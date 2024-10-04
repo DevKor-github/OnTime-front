@@ -31,6 +31,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "70a87e35-03de-427c-9f83-02edac708881"
+      }
+    },
+    "owner": "devkor"
   }
 }

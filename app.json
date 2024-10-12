@@ -20,7 +20,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.devkor.ontime"
     },
     "web": {
       "bundler": "metro",
@@ -33,7 +34,10 @@
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "1.8.10",
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0",
+            "kotlinVersion": "1.6.10",
             "packagingOptions": {
               "pickFirst": ["**/libc++_shared.so"]
             }

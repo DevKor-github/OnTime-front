@@ -1,7 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/config/database.dart';
+import 'package:on_time_front/data/daos/schedule_dao.dart';
+import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final database = AppDatabase();
+
+  final ScheduleDao scheduleDao = ScheduleDao(database);
+  final ScheduleEntity scheduleEntity = ScheduleEntity(
+    id: 1,
+    place: PlaceEntity(id: 1, placeName: 'placeName'),
+    scheduleName: 'scheduleName',
+    scheduleTime: DateTime.now(),
+    moveTime: DateTime.now(),
+    isChanged: false,
+    isStarted: false,
+    scheduleSpareTime: DateTime.now(),
+    scheduleNote: 'scheduleNote',
+  );
+  scheduleDao.createSchedule(scheduleEntity);
+
+  final List<ScheduleEntity> scheduleList = await scheduleDao.getScheduleList();
+  debugPrint(scheduleList.first.toString());
 }
 
 class MyApp extends StatelessWidget {

@@ -3,6 +3,7 @@ import 'package:on_time_front/config/database.dart';
 import 'package:on_time_front/data/daos/schedule_dao.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/user_entity.dart';
 
 void main() async {
   runApp(const MyApp());
@@ -13,6 +14,14 @@ void main() async {
   final ScheduleDao scheduleDao = ScheduleDao(database);
   final ScheduleEntity scheduleEntity = ScheduleEntity(
     id: 1,
+    user: UserEntity(
+        id: 1,
+        email: 'email',
+        password: 'password',
+        name: 'name',
+        spareTime: 100,
+        note: 'note',
+        score: 20),
     place: PlaceEntity(id: 1, placeName: 'placeName'),
     scheduleName: 'scheduleName',
     scheduleTime: DateTime.now(),

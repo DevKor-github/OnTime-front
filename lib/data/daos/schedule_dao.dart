@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:on_time_front/config/database.dart';
+import 'package:on_time_front/data/daos/place_dao.dart';
+import 'package:on_time_front/data/daos/user_dao.dart';
 
 import 'package:on_time_front/data/tables/places_table.dart';
 import 'package:on_time_front/data/tables/schedules_table.dart';
@@ -15,8 +17,10 @@ part 'schedule_dao.g.dart';
 class ScheduleDao extends DatabaseAccessor<AppDatabase>
     with _$ScheduleDaoMixin {
   final AppDatabase db;
+  final PlaceDao placeDao;
+  final UserDao userDao;
 
-  ScheduleDao(this.db) : super(db);
+  ScheduleDao(this.db, this.placeDao, this.userDao) : super(db);
 
   Future<void> createSchedule(ScheduleEntity scheduleEntity) async {
     await into(db.schedules).insert(
@@ -25,15 +29,11 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> createPlace(PlaceEntity placeEntity) async {
-    await into(db.places).insert(
-      placeEntity.toModel().toCompanion(false),
-    );
+    await placeDao.createPlace(placeEntity);
   }
 
-  Future<void> createUser(UserEntity userentity) async {
-    await into(db.users).insert(
-      userentity.toModel().toCompanion(false),
-    );
+  Future<void> createUser(UserEntity userEntity) async {
+    await userDao.createUser(userEntity);
   }
 
   Future<List<ScheduleEntity>> getScheduleList() async {

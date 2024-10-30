@@ -17,8 +17,10 @@ class PlaceDao extends DatabaseAccessor<AppDatabase> with _$PlaceDaoMixin {
     );
   }
 
-  Future<List> getAllPlaces() async {
+  Future<List<PlaceEntity>> getAllPlaces() async {
     final places = await select(db.places).get();
-    return places.map((place) => PlaceEntity.fromModel(place)).toList();
+    return places
+        .map<PlaceEntity>((place) => PlaceEntity.fromModel(place))
+        .toList();
   }
 }

@@ -1734,6 +1734,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PreparationUsersTable preparationUsers =
       $PreparationUsersTable(this);
   late final ScheduleDao scheduleDao = ScheduleDao(this as AppDatabase);
+  late final PlaceDao placeDao = PlaceDao(this as AppDatabase);
+  late final UserDao userDao = UserDao(this as AppDatabase);
+  late final PreparationScheduleDao preparationScheduleDao =
+      PreparationScheduleDao(this as AppDatabase);
+  late final PreparationUserDao preparationUserDao =
+      PreparationUserDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();

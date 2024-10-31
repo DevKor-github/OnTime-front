@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/config/database.dart';
+import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/daos/schedule_dao.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';

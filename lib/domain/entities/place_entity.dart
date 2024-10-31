@@ -15,4 +15,11 @@ class PlaceEntity {
       placeName: place.placeName,
     );
   }
+
+  Place toModel() {
+    return Place(
+      id: id,
+      placeName: placeName,
+    );
+  }
 }

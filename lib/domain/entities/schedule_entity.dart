@@ -1,4 +1,4 @@
-import 'package:on_time_front/config/database.dart';
+import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 
 class ScheduleEntity {

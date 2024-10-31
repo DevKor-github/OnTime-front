@@ -1,4 +1,4 @@
-import 'package:on_time_front/config/database.dart';
+import 'package:on_time_front/core/database/database.dart';
 
 class PlaceEntity {
   final int id;

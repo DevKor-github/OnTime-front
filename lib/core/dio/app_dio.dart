@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:on_time_front/core/dio/interceptors/logger_interceptor.dart';
 
 abstract class AppDio {
   AppDio._internal();
@@ -20,6 +21,6 @@ class _AppDio with DioMixin implements Dio {
       receiveDataWhenStatusError: true,
     );
 
-    interceptors.addAll([]);
+    interceptors.addAll([LoggerInterceptor()]);
   }
 }

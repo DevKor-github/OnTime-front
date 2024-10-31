@@ -17,10 +17,8 @@ part 'schedule_dao.g.dart';
 class ScheduleDao extends DatabaseAccessor<AppDatabase>
     with _$ScheduleDaoMixin {
   final AppDatabase db;
-  final PlaceDao placeDao;
-  final UserDao userDao;
 
-  ScheduleDao(this.db, this.placeDao, this.userDao) : super(db);
+  ScheduleDao(this.db) : super(db);
 
   Future<void> createSchedule(ScheduleEntity scheduleEntity) async {
     await into(db.schedules).insert(
@@ -29,11 +27,11 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> createPlace(PlaceEntity placeEntity) async {
-    await placeDao.createPlace(placeEntity);
+    await db.placeDao.createPlace(placeEntity);
   }
 
   Future<void> createUser(UserEntity userEntity) async {
-    await userDao.createUser(userEntity);
+    await db.userDao.createUser(userEntity);
   }
 
   Future<List<ScheduleEntity>> getScheduleList() async {

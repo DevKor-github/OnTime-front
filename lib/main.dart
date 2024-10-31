@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/config/database.dart';
-import 'package:on_time_front/data/daos/place_dao.dart';
 import 'package:on_time_front/data/daos/schedule_dao.dart';
-import 'package:on_time_front/data/daos/user_dao.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
@@ -12,10 +10,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final database = AppDatabase();
-  final placeDao = PlaceDao(database);
-  final userDao = UserDao(database);
-
-  final ScheduleDao scheduleDao = ScheduleDao(database, placeDao, userDao);
 
   // final ScheduleDao scheduleDao = ScheduleDao(database, placeDao, userDao);
   final ScheduleEntity scheduleEntity = ScheduleEntity(
@@ -38,8 +32,10 @@ void main() async {
     scheduleNote: 'scheduleNote',
   );
   scheduleDao.createSchedule(scheduleEntity);
+  database.scheduleDao.createSchedule(scheduleEntity);
 
-  final List<ScheduleEntity> scheduleList = await scheduleDao.getScheduleList();
+  final List<ScheduleEntity> scheduleList =
+      await database.scheduleDao.getScheduleList();
   debugPrint(scheduleList.first.toString());
 }
 

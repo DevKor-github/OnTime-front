@@ -29,18 +29,8 @@ part 'database.g.dart';
   PreparationUserDao
 ])
 class AppDatabase extends _$AppDatabase {
-  @override
-  late final PlaceDao placeDao;
-  @override
-  late final UserDao userDao;
-  @override
-  late final ScheduleDao scheduleDao;
+  AppDatabase() : super(_openConnection());
 
-  AppDatabase() : super(_openConnection()) {
-    placeDao = PlaceDao(this);
-    userDao = UserDao(this);
-    scheduleDao = ScheduleDao(this, placeDao, userDao);
-  }
   @override
   int get schemaVersion => 3;
 

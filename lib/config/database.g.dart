@@ -22,7 +22,10 @@ class $PlacesTable extends Places with TableInfo<$PlacesTable, Place> {
   @override
   late final GeneratedColumn<String> placeName = GeneratedColumn<String>(
       'place_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 30),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [id, placeName];
   @override
@@ -1731,6 +1734,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PreparationUsersTable preparationUsers =
       $PreparationUsersTable(this);
   late final ScheduleDao scheduleDao = ScheduleDao(this as AppDatabase);
+  late final PlaceDao placeDao = PlaceDao(this as AppDatabase);
   late final UserDao userDao = UserDao(this as AppDatabase);
   late final PreparationScheduleDao preparationScheduleDao =
       PreparationScheduleDao(this as AppDatabase);

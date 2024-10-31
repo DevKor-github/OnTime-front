@@ -32,6 +32,10 @@ void main() async {
     scheduleSpareTime: DateTime.now(),
     scheduleNote: 'scheduleNote',
   );
+
+  database.userDao.createUser(scheduleEntity.user);
+  database.placeDao.createPlace(scheduleEntity.place);
+
   scheduleDao.createSchedule(scheduleEntity);
 
   final List<ScheduleEntity> scheduleList = await scheduleDao.getScheduleList();

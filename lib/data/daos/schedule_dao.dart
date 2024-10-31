@@ -27,7 +27,17 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
       //       ..where((tbl) => tbl.id.equals(shcedule.placeId)))
       //     .getSingle();
       scheduleList.add(ScheduleEntity.fromModel(
-          shcedule, const Place(id: 1, placeName: 'placeName')));
+        shcedule,
+        const User(
+            id: 1,
+            email: 'email',
+            password: 'password',
+            name: 'name',
+            spareTime: 1,
+            note: 'note',
+            score: 1),
+        const Place(id: 1, placeName: 'placeName'),
+      ));
     });
     return scheduleList;
   }

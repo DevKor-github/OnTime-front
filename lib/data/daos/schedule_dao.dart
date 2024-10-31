@@ -1,7 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:on_time_front/config/database.dart';
-import 'package:on_time_front/data/daos/place_dao.dart';
-import 'package:on_time_front/data/daos/user_dao.dart';
 
 import 'package:on_time_front/data/tables/places_table.dart';
 import 'package:on_time_front/data/tables/schedules_table.dart';
@@ -17,10 +15,8 @@ part 'schedule_dao.g.dart';
 class ScheduleDao extends DatabaseAccessor<AppDatabase>
     with _$ScheduleDaoMixin {
   final AppDatabase db;
-  final PlaceDao placeDao;
-  final UserDao userDao;
 
-  ScheduleDao(this.db, this.placeDao, this.userDao) : super(db);
+  ScheduleDao(this.db) : super(db);
 
   Future<void> createSchedule(ScheduleEntity scheduleEntity) async {
     await into(db.schedules).insert(
@@ -29,18 +25,18 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> createPlace(PlaceEntity placeEntity) async {
-    await placeDao.createPlace(placeEntity);
+    await db.placeDao.createPlace(placeEntity);
   }
 
   Future<void> createUser(UserEntity userEntity) async {
-    await userDao.createUser(userEntity);
+    await db.userDao.createUser(userEntity);
   }
 
   Future<List<ScheduleEntity>> getScheduleList() async {
     final List<Schedule> query = await select(db.schedules).get();
     final List<ScheduleEntity> scheduleList = [];
 
-    Future.forEach(query, (schedule) async {
+    await Future.forEach(query, (schedule) async {
       final place = await (select(db.places)
             ..where((tbl) => tbl.id.equals(schedule.placeId)))
           .getSingle();

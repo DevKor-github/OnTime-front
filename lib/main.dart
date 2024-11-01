@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_time_front/config/database.dart';
-import 'package:on_time_front/data/daos/schedule_dao.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/user_entity.dart';
 
 void main() async {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
   WidgetsFlutterBinding.ensureInitialized();
 
   final database = AppDatabase();
 
-  final ScheduleDao scheduleDao = ScheduleDao(database);
+  // final ScheduleDao scheduleDao = ScheduleDao(database, placeDao, userDao);
   final ScheduleEntity scheduleEntity = ScheduleEntity(
     id: 1,
+    user: UserEntity(
+        id: 1,
+        email: 'email',
+        password: 'password',
+        name: 'name',
+        spareTime: 100,
+        note: 'note',
+        score: 20),
     place: PlaceEntity(id: 1, placeName: 'placeName'),
     scheduleName: 'scheduleName',
     scheduleTime: DateTime.now(),
@@ -22,9 +31,12 @@ void main() async {
     scheduleSpareTime: DateTime.now(),
     scheduleNote: 'scheduleNote',
   );
-  scheduleDao.createSchedule(scheduleEntity);
+  database.userDao.createUser(scheduleEntity.user);
+  database.placeDao.createPlace(scheduleEntity.place);
+  database.scheduleDao.createSchedule(scheduleEntity);
 
-  final List<ScheduleEntity> scheduleList = await scheduleDao.getScheduleList();
+  final List<ScheduleEntity> scheduleList =
+      await database.scheduleDao.getScheduleList();
   debugPrint(scheduleList.first.toString());
 }
 

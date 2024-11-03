@@ -1,4 +1,4 @@
-import 'package:on_time_front/core/database/database.dart';
+import '/core/database/database.dart';
 
 class PlaceEntity {
   final int id;
@@ -13,6 +13,13 @@ class PlaceEntity {
     return PlaceEntity(
       id: place.id,
       placeName: place.placeName,
+    );
+  }
+
+  Place toModel() {
+    return Place(
+      id: id,
+      placeName: placeName,
     );
   }
 }

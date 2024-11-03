@@ -1,18 +1,14 @@
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+
 class PreparationEntity {
-  final int id;
-  final String preparationName;
-  final int preparationTime;
-  final int order;
+  List<PreparationStepEntity> preparationStepList;
 
   PreparationEntity({
-    required this.id,
-    required this.preparationName,
-    required this.preparationTime,
-    required this.order,
+    required this.preparationStepList,
   });
 
   @override
   String toString() {
-    return 'PreparationEntity(id: $id, preparationName: $preparationName, preparationTime: $preparationTime, order: $order)';
+    return 'PreparationEntity(preparationStepList: ${preparationStepList.toString()})';
   }
 }

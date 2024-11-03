@@ -1,4 +1,4 @@
-import 'package:on_time_front/config/database.dart';
+import '/core/database/database.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
 class PreparationUserEntity {

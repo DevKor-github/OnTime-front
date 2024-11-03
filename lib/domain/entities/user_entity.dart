@@ -1,4 +1,4 @@
-import 'package:on_time_front/config/database.dart';
+import '/core/database/database.dart';
 
 class UserEntity {
   final int id;

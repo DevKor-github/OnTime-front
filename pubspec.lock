@@ -197,7 +197,7 @@ packages:
       sha256: ee67cb0715911d28db6bf4af1026078bd6f0128b07a5f66fb2ed94ec6783c09a
       url: "https://pub.dev"
     source: hosted
-    version: "1.18.0"
+    version: "1.19.0"
   commitlint_cli:
     dependency: "direct dev"
     description:
@@ -258,10 +258,10 @@ packages:
     dependency: transitive
     description:
       name: custom_lint_visitor
-      sha256: "8aeb3b6ae2bb765e7716b93d1d10e8356d04e0ff6d7592de6ee04e0dd7d6587d"
+      sha256: bfe9b7a09c4775a587b58d10ebb871d4fe618237639b1e84d5ec62d7dfef25f9
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0+6.7.0"
+    version: "1.0.0+6.11.0"
   dart_style:
     dependency: transitive
     description:
@@ -270,6 +270,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.7"
+  dio:
+    dependency: "direct main"
+    description:
+      name: dio
+      sha256: "5598aa796bbf4699afd5c67c0f5f6e2ed542afc956884b9cd58c306966efc260"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.7.0"
+  dio_web_adapter:
+    dependency: transitive
+    description:
+      name: dio_web_adapter
+      sha256: "33259a9276d6cea88774a0000cfae0d861003497755969c92faa223108620dc8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   drift:
     dependency: "direct main"
     description:
@@ -756,7 +772,7 @@ packages:
       sha256: "73713990125a6d93122541237550ee3352a2d84baad52d375a4cad2eb9b7ce0b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.11.1"
+    version: "1.12.0"
   state_notifier:
     dependency: transitive
     description:

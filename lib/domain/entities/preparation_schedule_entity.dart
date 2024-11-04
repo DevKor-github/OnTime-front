@@ -23,7 +23,7 @@ class PreparationScheduleEntity {
       Place place) {
     return PreparationScheduleEntity(
       id: preparationSchedule.id,
-      schedule: ScheduleEntity.fromModel(schedule, user, place),
+      schedule: ScheduleEntity.fromModel(schedule, place),
       preparationName: preparationSchedule.preparationName,
       preparationTime: preparationSchedule.preparationTime,
       order: preparationSchedule.order,

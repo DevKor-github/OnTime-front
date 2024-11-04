@@ -1,10 +1,8 @@
 import '/core/database/database.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
-import 'package:on_time_front/domain/entities/user_entity.dart';
 
 class ScheduleEntity {
   final int id;
-  final UserEntity user;
   final PlaceEntity place;
   final String scheduleName;
   final DateTime scheduleTime;
@@ -16,7 +14,6 @@ class ScheduleEntity {
 
   ScheduleEntity({
     required this.id,
-    required this.user,
     required this.place,
     required this.scheduleName,
     required this.scheduleTime,
@@ -27,10 +24,9 @@ class ScheduleEntity {
     required this.scheduleNote,
   });
 
-  static ScheduleEntity fromModel(Schedule schedule, User user, Place place) {
+  static ScheduleEntity fromModel(Schedule schedule, Place place) {
     return ScheduleEntity(
       id: schedule.id,
-      user: UserEntity.fromModel(user),
       place: PlaceEntity.fromModel(place),
       scheduleName: schedule.scheduleName,
       scheduleTime: schedule.scheduleTime,
@@ -42,10 +38,10 @@ class ScheduleEntity {
     );
   }
 
-  Schedule toModel() {
+  Schedule toModel(int userId) {
     return Schedule(
       id: id,
-      userId: user.id,
+      userId: userId,
       placeId: place.id,
       scheduleName: scheduleName,
       scheduleTime: scheduleTime,

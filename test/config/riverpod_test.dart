@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:on_time_front/config/database.dart';
-import 'package:on_time_front/config/riverpod.dart';
+import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/core/database/riverpod.dart';
 
 void main() {
   test('[appDatabaseProvider] should provide AppDatabase', () {

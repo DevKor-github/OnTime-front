@@ -3,7 +3,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 abstract interface class ScheduleRepository {
   /// Create a schedule
   /// This is for creating a schedule
-  Future<void> createSchedule(ScheduleEntity schedule);
+  Future<void> createSchedule(ScheduleEntity schedule, int userId);
 
   /// Get a List of schedules that are between the [startDate] and [endDate]
   /// if [endDate] is null, it will get all schedules after [startDate]

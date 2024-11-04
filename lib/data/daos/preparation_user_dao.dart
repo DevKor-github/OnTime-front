@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:on_time_front/config/database.dart';
+import '/core/database/database.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
 import 'package:on_time_front/data/tables/user_table.dart';
 import 'package:on_time_front/domain/entities/preparation_user_entity.dart';

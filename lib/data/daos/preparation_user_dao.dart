@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
 import 'package:on_time_front/data/tables/user_table.dart';
-import 'package:on_time_front/domain/entities/preparation_user_entity.dart';
+
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 
 part 'preparation_user_dao.g.dart';
 
@@ -14,32 +16,48 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   PreparationUserDao(this.db) : super(db);
 
   Future<void> createPreparationUser(
-      PreparationUserEntity preparationUserEntity) async {
-    await into(db.preparationUsers).insert(
-      preparationUserEntity.toModel().toCompanion(false),
-    );
+      PreparationEntity preparationEntity, int userId) async {
+    for (var step in preparationEntity.preparationStepList) {
+      await into(db.preparationUsers).insert(
+        step.toUserModel(userId).toCompanion(false),
+      );
+    }
   }
 
-  Future<List<PreparationUserEntity>> getPreparationUsersByUserId(
+  Future<List<PreparationEntity>> getPreparationUsersByUserId(
       int userId) async {
     final List<PreparationUser> query = await (select(db.preparationUsers)
           ..where((tbl) => tbl.userId.equals(userId)))
         .get();
-    final List<PreparationUserEntity> preparationUserList = [];
+    final List<PreparationStepEntity> stepEntities = [];
 
-    await Future.forEach(query, (preparationUser) async {
-      final user = await (select(db.users)
-            ..where((tbl) => tbl.id.equals(preparationUser.userId)))
-          .getSingle();
-
-      preparationUserList.add(
-        PreparationUserEntity.fromModel(
-          preparationUser as PreparationSchedule,
-          user,
+    for (var preparationUser in query) {
+      stepEntities.add(
+        PreparationStepEntity(
+          id: preparationUser.id,
+          preparationName: preparationUser.preparationName,
+          preparationTime: preparationUser.preparationTime,
+          order: preparationUser.order,
         ),
       );
-    });
+    }
 
-    return preparationUserList;
+    // await Future.forEach(
+    //   query,
+    //   (preparationUser) async {
+    //     final user = await (select(db.users)
+    //           ..where((tbl) => tbl.id.equals(preparationUser.userId)))
+    //         .getSingle();
+
+    //     preparationUserList.add(
+    //       PreparationEntity.fromModel(
+    //         preparationUser as PreparationSchedule,
+    //         user,
+    //       ),
+    //     );
+    //   },
+    // );
+
+    return [PreparationEntity(preparationStepList: stepEntities)];
   }
 }

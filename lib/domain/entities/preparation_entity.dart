@@ -7,6 +7,10 @@ class PreparationEntity {
     required this.preparationStepList,
   });
 
+  PreparationEntity toModel() {
+    return PreparationEntity(preparationStepList: preparationStepList);
+  }
+
   @override
   String toString() {
     return 'PreparationEntity(preparationStepList: ${preparationStepList.toString()})';

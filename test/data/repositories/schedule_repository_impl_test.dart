@@ -19,6 +19,7 @@ void main() {
 
   final tScheduleEntity = ScheduleEntity(
     id: 1,
+    userId: 1,
     place: tPlaceEntity,
     scheduleName: 'Meeting',
     scheduleTime: DateTime.now(),
@@ -31,6 +32,7 @@ void main() {
 
   final tLocalScheduleEntity = ScheduleEntity(
     id: 1,
+    userId: 1,
     place: tPlaceEntity,
     scheduleName: 'Meeting local',
     scheduleTime: DateTime.now(),
@@ -56,15 +58,14 @@ void main() {
         'when successful [createSchedule] should create a schedule with the given schedule entity',
         () async {
           // Arrange
-          when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity, 1))
+          when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
               .thenAnswer((_) async {});
           when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
               .thenAnswer((_) async {});
           // Act
-          await scheduleRepository.createSchedule(tScheduleEntity, 1);
+          await scheduleRepository.createSchedule(tScheduleEntity);
           // Assert
-          verify(
-              mockScheduleLocalDataSource.createSchedule(tScheduleEntity, 1));
+          verify(mockScheduleLocalDataSource.createSchedule(tScheduleEntity));
           verify(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity));
         },
       );

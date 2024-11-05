@@ -13,7 +13,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   });
 
   @override
-  Future<void> createSchedule(ScheduleEntity schedule, int userId) {
+  Future<void> createSchedule(ScheduleEntity schedule) {
     throw UnimplementedError();
   }
 

@@ -18,9 +18,9 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
 
   ScheduleDao(this.db) : super(db);
 
-  Future<void> createSchedule(ScheduleEntity scheduleEntity, int userId) async {
+  Future<void> createSchedule(ScheduleEntity scheduleEntity) async {
     await into(db.schedules).insert(
-      scheduleEntity.toModel(userId).toCompanion(false),
+      scheduleEntity.toModel().toCompanion(false),
     );
   }
 

@@ -44,6 +44,7 @@ dependencies:
   riverpod_annotation: ^2.6.1
   mockito: ^5.4.4
   equatable: ^2.0.5
+  collection: ^1.18.0
 
 dev_dependencies:
   flutter_test:

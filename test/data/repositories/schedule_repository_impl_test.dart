@@ -69,6 +69,54 @@ void main() {
           verify(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity));
         },
       );
+      test(
+          'when ScheduleRemoteDataSource throws an exception [createSchedule] should throw an exception',
+          () async {
+        // Arrange
+        when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
+            .thenAnswer((_) async {});
+        when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
+            .thenThrow(Exception());
+        // Act
+        final call = scheduleRepository.createSchedule(tScheduleEntity);
+        // Assert
+        expect(call, throwsException);
+      });
+    },
+  );
+
+  group('deleteSchedule', () {
+    test(
+      'when successful [deleteSchedule] should delete a schedule with the given schedule entity',
+      () async {
+        // Arrange
+        when(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity))
+            .thenAnswer((_) async {});
+        when(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity))
+            .thenAnswer((_) async {});
+        // Act
+        await scheduleRepository.deleteSchedule(tScheduleEntity);
+        // Assert
+        verify(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity));
+        verify(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity));
+      },
+    );
+    test(
+      'when ScheduleRemoteDataSource throws an exception [deleteSchedule] should throw an exception',
+      () async {
+        // Arrange
+        when(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity))
+            .thenAnswer((_) async {});
+        when(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity))
+            .thenThrow(Exception());
+        // Act
+        final call = scheduleRepository.deleteSchedule(tScheduleEntity);
+        // Assert
+        expect(call, throwsException);
+      },
+    );
+  });
+
   group('getScheduleById', () {
     test(
       'when successful [getScheduleById] should yield a stream of schedule entity in order of local and remote if local data response is faster',
@@ -132,6 +180,39 @@ void main() {
       },
     );
   });
+
+  group(
+    'updateSchedule',
+    () {
+      test(
+        'when successful [updateSchedule] should update a schedule with the given schedule entity',
+        () async {
+          // Arrange
+          when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
+              .thenAnswer((_) async {});
+          when(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity))
+              .thenAnswer((_) async {});
+          // Act
+          await scheduleRepository.updateSchedule(tScheduleEntity);
+          // Assert
+          verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity));
+          verify(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity));
+        },
+      );
+      test(
+        'when ScheduleRemoteDataSource throws an exception [updateSchedule] should throw an exception',
+        () async {
+          // Arrange
+          when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
+              .thenAnswer((_) async {});
+          when(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity))
+              .thenThrow(Exception());
+          // Act
+          final call = scheduleRepository.updateSchedule(tScheduleEntity);
+          // Assert
+          expect(call, throwsException);
+        },
+      );
     },
   );
 }

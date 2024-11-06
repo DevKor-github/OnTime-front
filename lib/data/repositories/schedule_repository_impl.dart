@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -13,8 +14,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   });
 
   @override
-  Future<void> createSchedule(ScheduleEntity schedule) {
-    throw UnimplementedError();
+  Future<void> createSchedule(ScheduleEntity schedule) async {
+    try {
+      await scheduleRemoteDataSource.createSchedule(schedule);
+      await scheduleLocalDataSource.createSchedule(schedule);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override

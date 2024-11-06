@@ -24,8 +24,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<void> deleteSchedule(ScheduleEntity schedule) {
-    throw UnimplementedError();
+  Future<void> deleteSchedule(ScheduleEntity schedule) async {
+    try {
+      await scheduleRemoteDataSource.deleteSchedule(schedule);
+      await scheduleLocalDataSource.deleteSchedule(schedule);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override

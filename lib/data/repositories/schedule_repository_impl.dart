@@ -75,7 +75,12 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<void> updateSchedule(ScheduleEntity schedule) {
-    throw UnimplementedError();
+  Future<void> updateSchedule(ScheduleEntity schedule) async {
+    try {
+      await scheduleRemoteDataSource.updateSchedule(schedule);
+      await scheduleLocalDataSource.updateSchedule(schedule);
+    } catch (e) {
+      rethrow;
+    }
   }
 }

@@ -22,7 +22,7 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
       PreparationEntity preparationEntity, int scheduleId) async {
     for (var step in preparationEntity.preparationStepList) {
       await into(db.preparationSchedules).insert(
-        step.toScheduleModel(scheduleId).toCompanion(false),
+        step.toPreparationScheduleModel(scheduleId).toCompanion(false),
       );
     }
   }

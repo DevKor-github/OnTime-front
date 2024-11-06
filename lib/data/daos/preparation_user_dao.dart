@@ -19,7 +19,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
       PreparationEntity preparationEntity, int userId) async {
     for (var step in preparationEntity.preparationStepList) {
       await into(db.preparationUsers).insert(
-        step.toUserModel(userId).toCompanion(false),
+        step.toPreparationUserModel(userId).toCompanion(false),
       );
     }
   }

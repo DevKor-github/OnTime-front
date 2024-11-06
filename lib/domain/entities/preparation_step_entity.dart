@@ -13,7 +13,7 @@ class PreparationStepEntity {
     required this.order,
   });
 
-  PreparationUser toUserModel(int userId) {
+  PreparationUser toPreparationUserModel(int userId) {
     return PreparationUser(
       id: id,
       userId: userId,
@@ -23,7 +23,7 @@ class PreparationStepEntity {
     );
   }
 
-  PreparationSchedule toScheduleModel(int scheduleId) {
+  PreparationSchedule toPreparationScheduleModel(int scheduleId) {
     return PreparationSchedule(
       id: id,
       scheduleId: scheduleId,

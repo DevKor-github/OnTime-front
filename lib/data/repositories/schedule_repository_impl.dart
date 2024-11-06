@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
+import 'package:collection/collection.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
@@ -60,8 +61,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
           }
         }
       });
-
-      await Future.wait([localScheduleEntity, remoteScheduleEntity]);
       yield* streamController.stream;
     } catch (e) {
       rethrow;
@@ -70,8 +69,45 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Stream<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate) {
-    throw UnimplementedError();
+      DateTime startDate, DateTime? endDate) async* {
+    try {
+      final streamController = StreamController<List<ScheduleEntity>>();
+      final localScheduleEntityList =
+          scheduleLocalDataSource.getSchedulesByDate(startDate, endDate);
+      final remoteScheduleEntityList =
+          scheduleRemoteDataSource.getSchedulesByDate(startDate, endDate);
+
+      bool isFirstResponse = true;
+
+      localScheduleEntityList.then((localSchedules) {
+        if (isFirstResponse) {
+          isFirstResponse = false;
+          streamController.add(localSchedules);
+        }
+      });
+
+      remoteScheduleEntityList.then((remoteSchedules) async {
+        if (isFirstResponse) {
+          isFirstResponse = false;
+          streamController.add(remoteSchedules);
+        } else {
+          final localData = await localScheduleEntityList;
+          //update local data
+          for (final remoteSchedule in remoteSchedules) {
+            final localSchedule = localData
+                .firstWhereOrNull((element) => element.id == remoteSchedule.id);
+            if (localSchedule != remoteSchedule) {
+              await scheduleLocalDataSource.updateSchedule(remoteSchedule);
+            }
+          }
+
+          streamController.add(remoteSchedules);
+        }
+      });
+      yield* streamController.stream;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override

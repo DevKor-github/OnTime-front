@@ -8,9 +8,12 @@ abstract interface class ScheduleLocalDataSource {
     required this.appDatabase,
   });
 
-  Future<void> createSchedule(ScheduleEntity schedule, int userId);
+  Future<void> createSchedule(ScheduleEntity schedule);
 
-  Future<List<ScheduleEntity>> getScheduleList();
+  Future<List<ScheduleEntity>> getSchedulesByDate(
+      DateTime startDate, DateTime? endDate);
+
+  Future<ScheduleEntity> getScheduleById(int id);
 
   Future<void> updateSchedule(ScheduleEntity schedule);
 

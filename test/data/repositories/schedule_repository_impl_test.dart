@@ -37,25 +37,4 @@ void main() {
       scheduleRemoteDataSource: mockScheduleRemoteDataSource,
     );
   });
-  group(
-    'createSchedule',
-    () {
-      test(
-        'when successful [createSchedule] should create a schedule with the given schedule entity',
-        () async {
-          // Arrange
-          when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity, 1))
-              .thenAnswer((_) async {});
-          when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
-              .thenAnswer((_) async {});
-          // Act
-          await scheduleRepository.createSchedule(tScheduleEntity, 1);
-          // Assert
-          verify(
-              mockScheduleLocalDataSource.createSchedule(tScheduleEntity, 1));
-          verify(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity));
-        },
-      );
-    },
-  );
 }

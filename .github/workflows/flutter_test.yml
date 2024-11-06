@@ -1,0 +1,21 @@
+name: Flutter Testing
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Install packages
+        run: flutter pub get
+      - name: Check Flutter version
+        run: flutter --version
+      - name: Run generator
+        run: flutter pub run build_runner build
+      - name: Run test
+        run: flutter test test

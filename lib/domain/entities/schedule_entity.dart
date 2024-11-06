@@ -1,8 +1,11 @@
+import 'package:equatable/equatable.dart';
+
 import '/core/database/database.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 
-class ScheduleEntity {
+class ScheduleEntity extends Equatable {
   final int id;
+  final int userId;
   final PlaceEntity place;
   final String scheduleName;
   final DateTime scheduleTime;
@@ -12,8 +15,9 @@ class ScheduleEntity {
   final DateTime scheduleSpareTime;
   final String scheduleNote;
 
-  ScheduleEntity({
+  const ScheduleEntity({
     required this.id,
+    required this.userId,
     required this.place,
     required this.scheduleName,
     required this.scheduleTime,
@@ -27,6 +31,7 @@ class ScheduleEntity {
   static ScheduleEntity fromModel(Schedule schedule, Place place) {
     return ScheduleEntity(
       id: schedule.id,
+      userId: schedule.userId,
       place: PlaceEntity.fromModel(place),
       scheduleName: schedule.scheduleName,
       scheduleTime: schedule.scheduleTime,
@@ -38,7 +43,7 @@ class ScheduleEntity {
     );
   }
 
-  Schedule toModel(int userId) {
+  Schedule toModel() {
     return Schedule(
       id: id,
       userId: userId,
@@ -57,4 +62,17 @@ class ScheduleEntity {
   String toString() {
     return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote)';
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        place,
+        scheduleName,
+        scheduleTime,
+        moveTime,
+        isChanged,
+        isStarted,
+        scheduleSpareTime,
+        scheduleNote,
+      ];
 }

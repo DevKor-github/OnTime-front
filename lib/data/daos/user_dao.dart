@@ -17,7 +17,7 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
     );
   }
 
-  Future<UserEntity?> getUserById(int userId) async {
+  Future<UserEntity?> getUserById(String userId) async {
     final user = await (select(db.users)..where((tbl) => tbl.id.equals(userId)))
         .getSingleOrNull();
     if (user != null) {

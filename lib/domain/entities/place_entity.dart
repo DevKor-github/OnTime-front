@@ -1,7 +1,7 @@
 import '/core/database/database.dart';
 
 class PlaceEntity {
-  final int id;
+  final String id;
   final String placeName;
 
   PlaceEntity({

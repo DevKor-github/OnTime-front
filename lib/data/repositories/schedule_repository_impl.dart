@@ -35,7 +35,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Stream<ScheduleEntity> getScheduleById(int id) async* {
+  Stream<ScheduleEntity> getScheduleById(String id) async* {
     try {
       final streamController = StreamController<ScheduleEntity>();
       final localScheduleEntity = scheduleLocalDataSource.getScheduleById(id);

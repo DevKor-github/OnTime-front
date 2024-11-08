@@ -6,7 +6,7 @@ abstract interface class ScheduleRemoteDataSource {
   Future<List<ScheduleEntity>> getSchedulesByDate(
       DateTime startDate, DateTime? endDate);
 
-  Future<ScheduleEntity> getScheduleById(int id);
+  Future<ScheduleEntity> getScheduleById(String id);
 
   Future<void> updateSchedule(ScheduleEntity schedule);
 

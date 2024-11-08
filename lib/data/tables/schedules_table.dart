@@ -1,10 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:on_time_front/data/tables/places_table.dart';
-import 'package:on_time_front/data/tables/user_table.dart';
 
 class Schedules extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get userId => integer().references(Users, #id)();
+  IntColumn get userId => integer()();
   IntColumn get placeId => integer().references(Places, #id)();
   TextColumn get scheduleName => text()();
   DateTimeColumn get scheduleTime => dateTime()();

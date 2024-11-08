@@ -1,12 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
-import 'package:on_time_front/domain/entities/place_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../helpers/mock.mocks.dart';
+
+import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
+
+import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
+
+import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 
 void main() {
   late MockScheduleLocalDataSource mockScheduleLocalDataSource;

@@ -64,7 +64,6 @@ void main() {
       expect(
         result,
         emits(tPreparationEntity),
-        reason: 'localDataSource should return the expected PreparationEntity.',
       );
       verify(mockLocalDataSource.getPreparationByScheduleId(scheduleEntityId))
           .called(1);
@@ -101,8 +100,6 @@ void main() {
       expect(
         result,
         emits(tPreparationStep),
-        reason:
-            'localDataSource should return the expected PreparationStepEntity.',
       );
       verify(mockLocalDataSource
               .getPreparationStepById(preparationStepEntityId))

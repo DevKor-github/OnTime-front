@@ -23,7 +23,7 @@ abstract interface class PreparationRepository {
 
   /// Update preparation
   /// This is for updating preparation
-  Future<void> updatePreparation(PreparationStepEntity preparationEntity);
+  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
 
   /// Delete preparation
   /// This is for deleting preparation

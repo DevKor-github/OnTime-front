@@ -9,46 +9,144 @@ import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 class PreparationRepositoryImpl implements PreparationRepository {
-  final PreparationRemoteDataSource remoteDataSource;
-  final PreparationLocalDataSource localDataSource;
+  final PreparationRemoteDataSource preparationRemoteDataSource;
+  final PreparationLocalDataSource preparationLocalDataSource;
 
   PreparationRepositoryImpl({
-    required this.remoteDataSource,
-    required this.localDataSource,
+    required this.preparationRemoteDataSource,
+    required this.preparationLocalDataSource,
   });
-
-  @override
-  Stream<PreparationEntity> getPreparationByScheduleId(String scheduleId) {
-    return localDataSource.getPreparationByScheduleId(scheduleId);
-  }
-
-  @override
-  Stream<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId) {
-    return localDataSource.getPreparationStepById(preparationStepId);
-  }
 
   @override
   Future<void> createDefaultPreparation(
       PreparationEntity preparationEntity, String userId) async {
-    await remoteDataSource.createDefaultPreparation(preparationEntity, userId);
+    try {
+      await preparationRemoteDataSource.createDefaultPreparation(
+          preparationEntity, userId);
+      await preparationLocalDataSource.createDefaultPreparation(
+          preparationEntity, userId);
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId) async {
-    await remoteDataSource.createCustomPreparation(
-        preparationEntity, scheduleId);
+    try {
+      await preparationRemoteDataSource.createCustomPreparation(
+          preparationEntity, scheduleId);
+      await preparationLocalDataSource.createCustomPreparation(
+          preparationEntity, scheduleId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deletePreparation(PreparationEntity preparationEntity) async {
+    try {
+      await preparationRemoteDataSource.deletePreparation(preparationEntity);
+      await preparationLocalDataSource.deletePreparation(preparationEntity);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Stream<PreparationEntity> getPreparationByScheduleId(
+      String scheduleId) async* {
+    try {
+      final streamController = StreamController<PreparationEntity>();
+
+      final localPreparationEntity =
+          preparationLocalDataSource.getPreparationByScheduleId(scheduleId);
+
+      final remotePreparationEntity =
+          preparationRemoteDataSource.getPreparationByScheduleId(scheduleId);
+
+      bool isFirstResponse = true;
+
+      localPreparationEntity.then((localPreparationEntity) {
+        if (isFirstResponse) {
+          isFirstResponse = false;
+          streamController.add(localPreparationEntity);
+        }
+      });
+
+      remotePreparationEntity.then((remotePreparationEntity) async {
+        if (isFirstResponse) {
+          isFirstResponse = false;
+          streamController.add(remotePreparationEntity);
+        } else {
+          if (localPreparationEntity != remotePreparationEntity) {
+            streamController.add(remotePreparationEntity);
+            for (final step in remotePreparationEntity.preparationStepList) {
+              await preparationLocalDataSource.updatePreparation(step);
+            }
+          }
+        }
+      });
+
+      yield* streamController.stream;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Stream<PreparationStepEntity> getPreparationStepById(
+      String preparationStepId) async* {
+    try {
+      final streamController = StreamController<PreparationStepEntity>();
+
+      final localPreparationEntity = preparationLocalDataSource
+          .getPreparationByScheduleId(preparationStepId);
+
+      final remotePreparationEntity = preparationRemoteDataSource
+          .getPreparationByScheduleId(preparationStepId);
+
+      bool isFirstResponse = true;
+
+      localPreparationEntity.then((localPreparationEntity) {
+        if (isFirstResponse) {
+          isFirstResponse = false;
+          for (final step in localPreparationEntity.preparationStepList) {
+            streamController.add(step);
+          }
+        }
+      });
+
+      remotePreparationEntity.then((remotePreparationEntity) async {
+        if (isFirstResponse) {
+          isFirstResponse = false;
+          for (final step in remotePreparationEntity.preparationStepList) {
+            streamController.add(step);
+          }
+        } else {
+          if (localPreparationEntity != remotePreparationEntity) {
+            for (final step in remotePreparationEntity.preparationStepList) {
+              streamController.add(step);
+              await preparationLocalDataSource.updatePreparation(step);
+            }
+          }
+        }
+      });
+
+      yield* streamController.stream;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
   Future<void> updatePreparation(
       PreparationStepEntity preparationEntity) async {
-    await localDataSource.updatePreparation(preparationEntity);
-  }
-
-  @override
-  Future<void> deletePreparation(PreparationEntity preparationEntity) async {
-    await localDataSource.deletePreparation(preparationEntity);
+    try {
+      await preparationRemoteDataSource.updatePreparation(preparationEntity);
+      await preparationLocalDataSource.updatePreparation(preparationEntity);
+    } catch (e) {
+      rethrow;
+    }
   }
 }

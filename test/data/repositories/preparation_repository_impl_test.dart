@@ -48,15 +48,15 @@ void main() {
     mockRemoteDataSource = MockPreparationRemoteDataSource();
     mockLocalDataSource = MockPreparationLocalDataSource();
     preparationRepository = PreparationRepositoryImpl(
-      remoteDataSource: mockRemoteDataSource,
-      localDataSource: mockLocalDataSource,
+      preparationRemoteDataSource: mockRemoteDataSource,
+      preparationLocalDataSource: mockLocalDataSource,
     );
   });
 
   group('getPreparationByScheduleId', () {
     test('should return PreparationEntity from local data source', () {
       when(mockLocalDataSource.getPreparationByScheduleId(scheduleEntityId))
-          .thenAnswer((_) => Stream.value(tPreparationEntity));
+          .thenAnswer((_) => Future.value(tPreparationEntity));
 
       final result =
           preparationRepository.getPreparationByScheduleId(scheduleEntityId);
@@ -92,7 +92,7 @@ void main() {
   group('getPreparationStepById', () {
     test('should return PreparationStepEntity from local data source', () {
       when(mockLocalDataSource.getPreparationStepById(preparationStepEntityId))
-          .thenAnswer((_) => Stream.value(tPreparationStep));
+          .thenAnswer((_) => Future.value(tPreparationStep));
 
       final result =
           preparationRepository.getPreparationStepById(preparationStepEntityId);

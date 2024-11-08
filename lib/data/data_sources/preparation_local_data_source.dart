@@ -9,18 +9,18 @@ abstract interface class PreparationLocalDataSource {
     required this.appDatabase,
   });
 
-  Stream<PreparationEntity> getPreparationByScheduleId(String scheduleId);
-
-  Stream<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId);
-
-  Future<void> createDefualtPreparation(
+  Future<void> createDefaultPreparation(
       PreparationEntity preparationEntity, String userId);
 
   Future<void> createCustomPreparation(
       PreparationEntity preparation, String scheduleId);
 
-  Future<void> updatePreparation(PreparationStepEntity preparationEntity);
+  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
 
   Future<void> deletePreparation(PreparationEntity preparationEntity);
+
+  Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
+
+  Future<PreparationStepEntity> getPreparationStepById(
+      String preparationStepId);
 }

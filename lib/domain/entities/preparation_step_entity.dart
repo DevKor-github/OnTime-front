@@ -1,7 +1,7 @@
 import 'package:on_time_front/core/database/database.dart';
 
 class PreparationStepEntity {
-  final int id;
+  final String id;
   final String preparationName;
   final int preparationTime;
   final int order;
@@ -13,7 +13,7 @@ class PreparationStepEntity {
     required this.order,
   });
 
-  PreparationUser toPreparationUserModel(int userId) {
+  PreparationUser toPreparationUserModel(String userId) {
     return PreparationUser(
       id: id,
       userId: userId,
@@ -23,7 +23,7 @@ class PreparationStepEntity {
     );
   }
 
-  PreparationSchedule toPreparationScheduleModel(int scheduleId) {
+  PreparationSchedule toPreparationScheduleModel(String scheduleId) {
     return PreparationSchedule(
       id: id,
       scheduleId: scheduleId,

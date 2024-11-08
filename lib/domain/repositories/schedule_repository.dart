@@ -13,7 +13,7 @@ abstract interface class ScheduleRepository {
 
   /// Get a schedule by [id]
   /// This is for getting a schedule by id
-  Stream<ScheduleEntity> getScheduleById(int id);
+  Stream<ScheduleEntity> getScheduleById(String id);
 
   /// Update a schedule
   /// This is for updating a schedule

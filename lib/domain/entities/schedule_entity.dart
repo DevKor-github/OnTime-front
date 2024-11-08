@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 
 import '/core/database/database.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
@@ -28,7 +29,10 @@ class ScheduleEntity extends Equatable {
     required this.scheduleNote,
   });
 
-  static ScheduleEntity fromModel(Schedule schedule, Place place) {
+  static ScheduleEntity fromScheduleWithPlaceModel(
+      ScheduleWithPlace scheduleWithPlace) {
+    final schedule = scheduleWithPlace.schedule;
+    final place = scheduleWithPlace.place;
     return ScheduleEntity(
       id: schedule.id,
       userId: schedule.userId,
@@ -43,7 +47,7 @@ class ScheduleEntity extends Equatable {
     );
   }
 
-  Schedule toModel() {
+  Schedule toScheduleModel() {
     return Schedule(
       id: id,
       userId: userId,
@@ -55,6 +59,13 @@ class ScheduleEntity extends Equatable {
       isStarted: isStarted,
       scheduleSpareTime: scheduleSpareTime,
       scheduleNote: scheduleNote,
+    );
+  }
+
+  ScheduleWithPlace toScheduleWithPlaceModel() {
+    return ScheduleWithPlace(
+      schedule: toScheduleModel(),
+      place: place.toModel(),
     );
   }
 

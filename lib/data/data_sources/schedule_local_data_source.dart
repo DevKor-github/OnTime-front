@@ -34,7 +34,7 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   }
 
   @override
-  Future<ScheduleEntity> getScheduleById(int id) async {
+  Future<ScheduleEntity> getScheduleById(String id) async {
     final scheduleWithPlaceModel =
         await appDatabase.scheduleDao.getScheduleById(id);
     return ScheduleEntity.fromScheduleWithPlaceModel(scheduleWithPlaceModel);

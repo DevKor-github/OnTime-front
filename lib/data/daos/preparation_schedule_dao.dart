@@ -19,7 +19,7 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
   PreparationScheduleDao(this.db) : super(db);
 
   Future<void> createPreparationSchedule(
-      PreparationEntity preparationEntity, int scheduleId) async {
+      PreparationEntity preparationEntity, String scheduleId) async {
     for (var step in preparationEntity.preparationStepList) {
       await into(db.preparationSchedules).insert(
         step.toPreparationScheduleModel(scheduleId).toCompanion(false),
@@ -28,7 +28,7 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<PreparationEntity>> getPreparationSchedulesByScheduleId(
-      int scheduleId) async {
+      String scheduleId) async {
     final List<PreparationSchedule> query =
         await (select(db.preparationSchedules)
               ..where((tbl) => tbl.scheduleId.equals(scheduleId)))

@@ -100,35 +100,30 @@ class PreparationRepositoryImpl implements PreparationRepository {
     try {
       final streamController = StreamController<PreparationStepEntity>();
 
-      final localPreparationEntity = preparationLocalDataSource
-          .getPreparationByScheduleId(preparationStepId);
+      final localPreparationStep =
+          preparationLocalDataSource.getPreparationStepById(preparationStepId);
 
-      final remotePreparationEntity = preparationRemoteDataSource
-          .getPreparationByScheduleId(preparationStepId);
+      final remotePreparationStep =
+          preparationRemoteDataSource.getPreparationStepById(preparationStepId);
 
       bool isFirstResponse = true;
 
-      localPreparationEntity.then((localPreparationEntity) {
+      localPreparationStep.then((localStep) {
         if (isFirstResponse) {
           isFirstResponse = false;
-          for (final step in localPreparationEntity.preparationStepList) {
-            streamController.add(step);
-          }
+          streamController.add(localStep);
         }
       });
 
-      remotePreparationEntity.then((remotePreparationEntity) async {
+      remotePreparationStep.then((remoteStep) async {
         if (isFirstResponse) {
           isFirstResponse = false;
-          for (final step in remotePreparationEntity.preparationStepList) {
-            streamController.add(step);
-          }
+          streamController.add(remoteStep);
         } else {
-          if (localPreparationEntity != remotePreparationEntity) {
-            for (final step in remotePreparationEntity.preparationStepList) {
-              streamController.add(step);
-              await preparationLocalDataSource.updatePreparation(step);
-            }
+          final localStep = await localPreparationStep;
+          if (localStep != remoteStep) {
+            streamController.add(remoteStep);
+            await preparationLocalDataSource.updatePreparation(remoteStep);
           }
         }
       });

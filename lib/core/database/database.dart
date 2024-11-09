@@ -11,6 +11,7 @@ import 'package:on_time_front/data/tables/preparation_schedule_table.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
 import 'package:on_time_front/data/tables/schedules_table.dart';
 import 'package:on_time_front/data/tables/user_table.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 

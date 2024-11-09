@@ -5,8 +5,8 @@ import '/core/database/database.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 
 class ScheduleEntity extends Equatable {
-  final int id;
-  final int userId;
+  final String id;
+  final String userId;
   final PlaceEntity place;
   final String scheduleName;
   final DateTime scheduleTime;

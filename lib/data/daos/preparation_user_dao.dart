@@ -16,7 +16,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   PreparationUserDao(this.db) : super(db);
 
   Future<void> createPreparationUser(
-      PreparationEntity preparationEntity, int userId) async {
+      PreparationEntity preparationEntity, String userId) async {
     for (var step in preparationEntity.preparationStepList) {
       await into(db.preparationUsers).insert(
         step.toPreparationUserModel(userId).toCompanion(false),
@@ -25,7 +25,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<PreparationEntity>> getPreparationUsersByUserId(
-      int userId) async {
+      String userId) async {
     final List<PreparationUser> query = await (select(db.preparationUsers)
           ..where((tbl) => tbl.userId.equals(userId)))
         .get();

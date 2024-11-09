@@ -32,7 +32,7 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
-  Future<ScheduleWithPlace> getScheduleById(int id) async {
+  Future<ScheduleWithPlace> getScheduleById(String id) async {
     try {
       final query = await (select(db.schedules).join([
         leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),

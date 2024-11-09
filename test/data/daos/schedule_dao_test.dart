@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/daos/schedule_dao.dart';
 import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
+import 'package:uuid/uuid.dart';
 
 void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -10,7 +11,10 @@ void main() async {
   late ScheduleDao scheduleDao;
   late AppDatabase appDatabase;
 
-  final placeModel = Place(id: 1, placeName: 'Test Place');
+  final uuid = Uuid();
+  final scheduleEntityId = uuid.v7();
+
+  final placeModel = Place(id: uuid.v7(), placeName: 'Test Place');
 
   // sql database does not support DateTime to the precision of milliseconds
   final scheduleTime = DateTime(2022, 1, 1, 12, 0, 0, 0);
@@ -18,9 +22,9 @@ void main() async {
   final endDate = scheduleTime.add(Duration(days: 1));
 
   final scheduleModel = Schedule(
-    id: 1,
-    userId: 1,
-    placeId: 1,
+    id: scheduleEntityId,
+    userId: uuid.v7(),
+    placeId: placeModel.id,
     scheduleName: 'Test Schedule',
     scheduleTime: scheduleTime,
     moveTime: scheduleTime,
@@ -144,7 +148,7 @@ void main() async {
       //arange
       final laterDate = scheduleTime.add(Duration(days: 4));
       final laterScheduleModel = scheduleModel.copyWith(
-        id: 2,
+        id: uuid.v7(),
         scheduleTime: laterDate,
         moveTime: laterDate,
       );
@@ -172,7 +176,7 @@ void main() async {
       //arange
       final laterDate = DateTime(2022, 1, 4, 0, 0, 0, 0);
       final laterScheduleModel = scheduleModel.copyWith(
-        id: 2,
+        id: uuid.v7(),
         scheduleTime: laterDate,
         moveTime: laterDate,
       );

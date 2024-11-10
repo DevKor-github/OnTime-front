@@ -13,7 +13,7 @@ abstract interface class PreparationRepository {
 
   /// Create user's default preparation
   /// This is for creating default preparation for a user
-  Future<void> createDefualtPreparation(
+  Future<void> createDefaultPreparation(
       PreparationEntity preparationEntity, String userId);
 
   /// Create custom preparation
@@ -23,7 +23,7 @@ abstract interface class PreparationRepository {
 
   /// Update preparation
   /// This is for updating preparation
-  Future<void> updatePreparation(PreparationStepEntity preparationEntity);
+  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
 
   /// Delete preparation
   /// This is for deleting preparation

@@ -36,15 +36,15 @@ class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
   @override
   Future<void> createCustomPreparation(
       PreparationEntity preparation, String scheduleId) async {
-    await appDatabase.preparationScheduleDao.createPreparationSchedule(
+    await appDatabase.preparationScheduleDao.createPreparationSchedules(
         preparation.toPreparationScheduleModelList(scheduleId));
   }
 
   @override
   Future<void> createDefaultPreparation(
       PreparationEntity preparationEntity, String userId) async {
-    await appDatabase.preparationUserDao.createPreparationUser(
-        preparationEntity.toPreparationUserModelList(userId), userId);
+    await appDatabase.preparationUserDao.createPreparationUsers(
+        preparationEntity.toPreparationUserModelList(userId));
   }
 
   @override
@@ -77,16 +77,16 @@ class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
   Future<void> updateCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId) async {
     await appDatabase.preparationScheduleDao
-        .deletePreparationScheduleByScheduleId(scheduleId);
-    await appDatabase.preparationScheduleDao.createPreparationSchedule(
+        .deletePreparationSchedulesByScheduleId(scheduleId);
+    await appDatabase.preparationScheduleDao.createPreparationSchedules(
         preparationEntity.toPreparationScheduleModelList(scheduleId));
   }
 
   @override
   Future<void> updateDefaultPreparation(
       PreparationEntity preparationEntity, String userId) async {
-    await appDatabase.preparationUserDao.deletePreparationUserByUserId(userId);
-    await appDatabase.preparationUserDao.createPreparationUser(
-        preparationEntity.toPreparationUserModelList(userId), userId);
+    await appDatabase.preparationUserDao.deletePreparationUsersByUserId(userId);
+    await appDatabase.preparationUserDao.createPreparationUsers(
+        preparationEntity.toPreparationUserModelList(userId));
   }
 }

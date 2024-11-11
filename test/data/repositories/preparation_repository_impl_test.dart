@@ -112,7 +112,7 @@ void main() {
 
       if (tLocalPreparationEntity != tPreparationEntity) {
         for (final step in tPreparationEntity.preparationStepList) {
-          verify(mockPreparationLocalDataSource.updatePreparation(step))
+          verify(mockPreparationLocalDataSource.updatePreparationStep(step))
               .called(1);
         }
       }
@@ -140,7 +140,7 @@ void main() {
                 }));
 
         for (final step in tPreparationEntity.preparationStepList) {
-          when(mockPreparationLocalDataSource.updatePreparation(step))
+          when(mockPreparationLocalDataSource.updatePreparationStep(step))
               .thenAnswer((_) async {});
         }
 
@@ -153,7 +153,7 @@ void main() {
             emitsInOrder([tLocalPreparationEntity, tPreparationEntity]));
 
         for (final step in tPreparationEntity.preparationStepList) {
-          verify(mockPreparationLocalDataSource.updatePreparation(step))
+          verify(mockPreparationLocalDataSource.updatePreparationStep(step))
               .called(1);
         }
       },
@@ -177,7 +177,8 @@ void main() {
                 return tPreparationStep;
               }));
 
-      when(mockPreparationLocalDataSource.updatePreparation(tPreparationStep))
+      when(mockPreparationLocalDataSource
+              .updatePreparationStep(tPreparationStep))
           .thenAnswer((_) async {});
 
       // Act
@@ -226,26 +227,29 @@ void main() {
   group('updatePreparation', () {
     test('should call updatePreparation on remote data source', () async {
       // Arrange
-      when(mockPreparationRemoteDataSource.updatePreparation(tPreparationStep))
+      when(mockPreparationRemoteDataSource
+              .updatePreparationStep(tPreparationStep))
           .thenAnswer((_) async {});
 
       // Act
-      await preparationRepository.updatePreparation(tPreparationStep);
+      await preparationRepository.updatePreparationStep(tPreparationStep);
 
       // Assert
       verify(mockPreparationRemoteDataSource
-              .updatePreparation(tPreparationStep))
+              .updatePreparationStep(tPreparationStep))
           .called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
     });
 
     test('should throw an exception if remote data source fails', () async {
       // Arrange
-      when(mockPreparationRemoteDataSource.updatePreparation(tPreparationStep))
+      when(mockPreparationRemoteDataSource
+              .updatePreparationStep(tPreparationStep))
           .thenThrow(Exception());
 
       // Act
-      final call = preparationRepository.updatePreparation(tPreparationStep);
+      final call =
+          preparationRepository.updatePreparationStep(tPreparationStep);
 
       // Assert
       expect(call, throwsException);

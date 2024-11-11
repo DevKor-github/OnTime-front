@@ -82,7 +82,7 @@ class PreparationRepositoryImpl implements PreparationRepository {
           if (localPreparationEntity != remotePreparationEntity) {
             streamController.add(remotePreparationEntity);
             for (final step in remotePreparationEntity.preparationStepList) {
-              await preparationLocalDataSource.updatePreparation(step);
+              await preparationLocalDataSource.updatePreparationStep(step);
             }
           }
         }
@@ -123,7 +123,7 @@ class PreparationRepositoryImpl implements PreparationRepository {
           final localStep = await localPreparationStep;
           if (localStep != remoteStep) {
             streamController.add(remoteStep);
-            await preparationLocalDataSource.updatePreparation(remoteStep);
+            await preparationLocalDataSource.updatePreparationStep(remoteStep);
           }
         }
       });
@@ -135,11 +135,25 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }
 
   @override
-  Future<void> updatePreparation(
+  Future<void> updatePreparationStep(
       PreparationStepEntity preparationEntity) async {
     try {
-      await preparationRemoteDataSource.updatePreparation(preparationEntity);
-      await preparationLocalDataSource.updatePreparation(preparationEntity);
+      await preparationRemoteDataSource
+          .updatePreparationStep(preparationEntity);
+      await preparationLocalDataSource.updatePreparationStep(preparationEntity);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updatePreparationByScheduleId(
+      PreparationEntity preparationEntity, String scheduleId) async {
+    try {
+      await preparationRemoteDataSource.updateCustomPreparation(
+          preparationEntity, scheduleId);
+      await preparationLocalDataSource.updateCustomPreparation(
+          preparationEntity, scheduleId);
     } catch (e) {
       rethrow;
     }

@@ -15,7 +15,14 @@ abstract interface class PreparationLocalDataSource {
   Future<void> createCustomPreparation(
       PreparationEntity preparation, String scheduleId);
 
-  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
+  Future<void> updatePreparationStep(
+      PreparationStepEntity preparationStepEntity);
+
+  Future<void> updateDefaultPreparation(
+      PreparationEntity preparationEntity, String userId);
+
+  Future<void> updateCustomPreparation(
+      PreparationEntity preparationEntity, String scheduleId);
 
   Future<void> deletePreparation(PreparationEntity preparationEntity);
 

@@ -8,7 +8,8 @@ abstract interface class PreparationRemoteDataSource {
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
 
-  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
+  Future<void> updatePreparationStep(
+      PreparationStepEntity preparationStepEntity);
 
   Future<void> deletePreparation(PreparationEntity preparationEntity);
 
@@ -16,4 +17,10 @@ abstract interface class PreparationRemoteDataSource {
 
   Future<PreparationStepEntity> getPreparationStepById(
       String preparationStepId);
+
+  Future<void> updateCustomPreparation(
+      PreparationEntity preparationEntity, String scheduleId);
+
+  Future<void> updateDefaultPreparation(
+      PreparationEntity preparationEntity, String userId);
 }

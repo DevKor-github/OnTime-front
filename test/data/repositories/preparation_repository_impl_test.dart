@@ -63,9 +63,6 @@ void main() {
     order: 1,
   );
 
-  // final tPreparationEntity =
-  //     PreparationEntity(preparationStepList: tPreparationStepList);
-
   final tPreparationEntity =
       PreparationEntity(preparationStepList: [tPreparationStep]);
 

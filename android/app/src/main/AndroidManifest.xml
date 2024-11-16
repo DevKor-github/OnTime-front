@@ -23,6 +23,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+
+                <data android:scheme="kakao$20830c4f7ddc6e7b5e0e8798b7a76d1d" android:host="oauth" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

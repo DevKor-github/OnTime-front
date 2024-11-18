@@ -52,8 +52,8 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
       }
     } catch (error) {
       // 네트워크 오류 처리
-      print("오류 발생: $error");
-      _showErrorDialog(context, "네트워크 오류가 발생했습니다.");
+      print("Error: $error");
+      _showErrorDialog(context, "Network Error.");
     }
   }
 
@@ -62,12 +62,12 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("오류"),
+        title: const Text("Error"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text("확인"),
+            child: const Text("OK"),
           ),
         ],
       ),

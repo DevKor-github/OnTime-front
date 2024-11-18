@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:on_time_front/widgets/google_login_button.dart';
+import 'package:on_time_front/widgets/google_login_ref.dart';
 import 'package:on_time_front/widgets/kakao_login_button.dart';
 
 void main() async {
@@ -58,6 +59,10 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 10,
             ),
             KakaoLoginButton(),
+            SizedBox(
+              height: 10,
+            ),
+            GoogleLoginRef(),
           ],
         ),
       ),

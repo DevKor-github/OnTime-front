@@ -14,7 +14,6 @@ class GoogleLoginButton extends StatefulWidget {
 class _GoogleLoginButtonState extends State<GoogleLoginButton> {
   LoginPlatform _loginPlatform = LoginPlatform.none;
 
-  // Spring Boot 서버 URL
   final String _serverUrl = "http://your-server.com/api/auth/google";
 
   // Spring Boot로 로그인 요청을 보내는 메서드
@@ -54,8 +53,8 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
       }
     } catch (error) {
       // 요청 중 오류가 발생한 경우
-      print("오류 발생: $error");
-      _showErrorDialog(context, "네트워크 오류가 발생했습니다.");
+      print("Error: $error");
+      _showErrorDialog(context, "Network Error.");
     }
   }
 
@@ -64,12 +63,12 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("오류"),
+        title: const Text("Error"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text("확인"),
+            child: const Text("OK"),
           ),
         ],
       ),

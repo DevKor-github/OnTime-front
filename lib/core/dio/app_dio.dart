@@ -14,7 +14,7 @@ class _AppDio with DioMixin implements Dio {
   _AppDio() {
     httpClientAdapter = IOHttpClientAdapter();
     options = BaseOptions(
-      baseUrl: '',
+      baseUrl: 'http://ejun.kro.kr:8000',
       connectTimeout: const Duration(milliseconds: 30000),
       receiveTimeout: const Duration(milliseconds: 30000),
       sendTimeout: const Duration(milliseconds: 30000),

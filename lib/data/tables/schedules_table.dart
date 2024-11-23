@@ -13,6 +13,7 @@ class Schedules extends Table {
   BoolColumn get isStarted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get scheduleSpareTime => dateTime()();
   TextColumn get scheduleNote => text()();
+  IntColumn get latenessTime => integer().withDefault(const Constant(-1))();
 
   @override
   Set<Column> get primaryKey => {id};

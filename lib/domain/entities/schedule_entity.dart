@@ -15,6 +15,7 @@ class ScheduleEntity extends Equatable {
   final bool isStarted;
   final DateTime scheduleSpareTime;
   final String scheduleNote;
+  final int latenessTime;
 
   const ScheduleEntity({
     required this.id,
@@ -27,6 +28,7 @@ class ScheduleEntity extends Equatable {
     required this.isStarted,
     required this.scheduleSpareTime,
     required this.scheduleNote,
+    this.latenessTime = 0,
   });
 
   static ScheduleEntity fromScheduleWithPlaceModel(
@@ -44,6 +46,7 @@ class ScheduleEntity extends Equatable {
       isStarted: schedule.isStarted,
       scheduleSpareTime: schedule.scheduleSpareTime,
       scheduleNote: schedule.scheduleNote,
+      latenessTime: schedule.latenessTime,
     );
   }
 
@@ -59,6 +62,7 @@ class ScheduleEntity extends Equatable {
       isStarted: isStarted,
       scheduleSpareTime: scheduleSpareTime,
       scheduleNote: scheduleNote,
+      latenessTime: latenessTime,
     );
   }
 
@@ -71,7 +75,7 @@ class ScheduleEntity extends Equatable {
 
   @override
   String toString() {
-    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote)';
+    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote, latenessTime: $latenessTime)';
   }
 
   @override
@@ -85,5 +89,6 @@ class ScheduleEntity extends Equatable {
         isStarted,
         scheduleSpareTime,
         scheduleNote,
+        latenessTime,
       ];
 }

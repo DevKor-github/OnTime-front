@@ -32,6 +32,7 @@ void main() async {
     isStarted: false,
     scheduleSpareTime: scheduleTime,
     scheduleNote: 'Test Note',
+    latenessTime: 0,
   );
 
   final scheduleWithPlaceModel = ScheduleWithPlace(

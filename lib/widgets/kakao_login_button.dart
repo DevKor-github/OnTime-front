@@ -1,6 +1,6 @@
-import 'dart:convert'; // JSON 디코딩용
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // HTTP 요청용
+import 'package:http/http.dart' as http;
 import 'package:on_time_front/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
 
@@ -12,16 +12,15 @@ class KakaoLoginButton extends StatefulWidget {
 }
 
 class _KakaoLoginButtonState extends State<KakaoLoginButton> {
-  // 로그인 플랫폼
   LoginPlatform _loginPlatform = LoginPlatform.none;
 
-  // Spring Boot 서버 URL
-  final String _serverUrl = 'http://your-server.com/api/auth/kakao';
+  final String _serverUrl =
+      'http://ejun.kro.kr:8888/login/oauth2/authorization/kakao';
 
-  // Spring Boot로 로그인 요청을 보내는 메서드
+  // 로그인 요청
   Future<void> _handleSignIn(BuildContext context) async {
     try {
-      // Spring Boot로 POST 요청 전송
+      // 요청 전송
       final response = await http.post(
         Uri.parse(_serverUrl),
         headers: {'Content-Type': 'application/json'}, // 요청 헤더
@@ -33,7 +32,7 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
         print("발급된 토큰: ${responseData['token']}");
 
         setState(() {
-          _loginPlatform = LoginPlatform.kakao; // 상태 업데이트
+          _loginPlatform = LoginPlatform.kakao;
         });
 
         // TestScreen으로 이동

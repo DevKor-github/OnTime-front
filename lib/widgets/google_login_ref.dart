@@ -1,57 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 class GoogleLoginRef extends StatelessWidget {
-  final String loginUrl = "http://localhost:8080/oauth2/authorization/google";
+  final String _loginUrl =
+      "http://ejun.kro.kr:8888/login/oauth2/authorization/google";
+
+  final LoginPlatform _loginPlatform = LoginPlatform.none;
 
   const GoogleLoginRef({super.key});
 
-  // Google OAuth2 로그인 URL 실행 및 토큰 처리
+  // Google OAuth2 로그인 URL 실행 메서드
   Future<void> _launchLoginUrl(BuildContext context) async {
     try {
-      // 서버에 로그인 요청
-      final response = await http.get(
-        Uri.parse(loginUrl),
-        headers: {'Content-Type': 'application/json'},
-      );
+      if (await canLaunch(_loginUrl)) {
+        // 브라우저를 통해 URL 열기
+        await launch(_loginUrl, forceWebView: false, enableJavaScript: true);
 
-      if (response.statusCode == 200) {
-        // 서버 응답 처리 (JSON 파싱)
-        final responseData = jsonDecode(response.body);
-        final token = responseData['token'];
+        print("Requesting: $_loginUrl \n");
 
-        if (token != null && token.isNotEmpty) {
-          print("로그인 성공, 토큰: $token");
-
-          // TestScreen으로 이동
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TestScreen(
-                loginPlatform: LoginPlatform.google,
-              ),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const TestScreen(
+              loginPlatform: LoginPlatform.google,
             ),
-          );
-        } else {
-          // 토큰이 없는 경우 에러 처리
-          _showErrorDialog(context, "로그인 실패: 유효한 토큰을 받지 못했습니다.");
-        }
+          ),
+        );
       } else {
-        // 로그인 실패 처리
-        print("로그인 실패: ${response.body}");
-        _showErrorDialog(context, "로그인 실패. 다시 시도해주세요.");
+        throw 'Could not launch $_loginUrl';
       }
     } catch (error) {
-      // 네트워크 또는 서버 오류 처리
       print("Error: $error");
-      _showErrorDialog(context, "Network Error. 다시 시도해주세요.");
+      _showErrorDialog(context, "Network Error.");
     }
   }
 
-  // 에러 다이얼로그 표시
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,

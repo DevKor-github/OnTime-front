@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:on_time_front/main.dart';
 import 'package:on_time_front/utils/login_platform.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TestScreen extends StatelessWidget {
   final LoginPlatform loginPlatform; // 로그인 플랫폼
@@ -23,15 +24,15 @@ class TestScreen extends StatelessWidget {
         print("Kakao 로그아웃 성공");
       }
 
-      // 로그아웃 후 상태 초기화
-      // 여기에 서버와의 세션을 끊고, 앱에서 사용자 상태를 초기화할 필요가 있을 수 있음
-      // 예를 들어, 로그인 상태를 초기화하는 로직 추가 가능
+      // JWT 삭제
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('jwt_token');
 
       // 로그아웃 후 MyApp으로 이동
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MyApp()), // MyApp으로 이동
-        (route) => false, // 이전 모든 화면 제거
+        (route) => false,
       );
     } catch (error) {
       print("로그아웃 실패: $error");
@@ -39,7 +40,7 @@ class TestScreen extends StatelessWidget {
     }
   }
 
-  // 에러 다이얼로그 표시
+  // 에러 표시
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,

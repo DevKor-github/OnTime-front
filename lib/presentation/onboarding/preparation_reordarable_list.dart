@@ -1,46 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
-import 'package:on_time_front/shared/components/tile.dart';
+import 'package:on_time_front/shared/components/Tile.dart';
 import 'package:on_time_front/shared/theme/theme.dart';
 
-void main() async {
-  runApp(const ProviderScope(child: MyApp()));
-  WidgetsFlutterBinding.ensureInitialized();
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class PreparationReorderableList extends StatefulWidget {
+  const PreparationReorderableList({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: themeData,
-      home: Scaffold(
-        appBar: AppBar(title: const Text('ReorderableListView Sample')),
-        body: const PreparationReorderableList(),
-      ),
-    );
-  }
+  State<PreparationReorderableList> createState() => _ReoderableListingState();
 }
 
-class ReorderableExample extends StatefulWidget {
-  const ReorderableExample({super.key});
-
-  @override
-  State<ReorderableExample> createState() => _ReorderableListViewExampleState();
-}
-
-class _ReorderableListViewExampleState extends State<ReorderableExample> {
+class _ReoderableListingState extends State<PreparationReorderableList> {
   final List<int> _items = List<int>.generate(50, (int index) => index);
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
-    final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
-    final Color draggableItemColor = colorScheme.secondary;
-
     Widget proxyDecorator(
         Widget child, int index, Animation<double> animation) {
       return AnimatedBuilder(
@@ -72,7 +45,10 @@ class _ReorderableListViewExampleState extends State<ReorderableExample> {
             margin: const EdgeInsets.only(bottom: 8.0),
             borderRadius: BorderRadius.circular(32),
           ),
-          child: Text('Item ${_items[index]}')),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 19.0),
+            child: Text('Item ${_items[index]}'),
+          )),
       onReorder: (int oldIndex, int newIndex) {
         setState(() {
           if (oldIndex < newIndex) {

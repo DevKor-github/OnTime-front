@@ -1,12 +1,13 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+@immutable
 class TileStyle extends ThemeExtension<TileStyle> {
   const TileStyle({
     this.backgroundColor,
     this.borderRadius,
-    this.height,
-    this.width,
+    this.minimumSize,
+    this.maximumSize,
     this.padding,
     this.margin,
   });
@@ -18,11 +19,11 @@ class TileStyle extends ThemeExtension<TileStyle> {
 
   /// The height of the tile.
   /// If null, the height will be determined by the child widget.
-  final double? height;
+  final Size? minimumSize;
 
   /// The width of the tile.
   /// If null, the width will be determined by the child widget.
-  final double? width;
+  final Size? maximumSize;
 
   /// The padding of the tile.
   final EdgeInsetsGeometry? padding;
@@ -31,18 +32,18 @@ class TileStyle extends ThemeExtension<TileStyle> {
   final EdgeInsetsGeometry? margin;
 
   @override
-  TileStyle copyWith(
+  ThemeExtension<TileStyle> copyWith(
       {Color? backgroundColor,
       BorderRadius? borderRadius,
-      double? height,
-      double? width,
       EdgeInsetsGeometry? padding,
-      EdgeInsetsGeometry? margin}) {
+      EdgeInsetsGeometry? margin,
+      Size? minimumSize,
+      Size? maximumSize}) {
     return TileStyle(
       backgroundColor: backgroundColor ?? this.backgroundColor,
       borderRadius: borderRadius ?? this.borderRadius,
-      height: height ?? this.height,
-      width: width ?? this.width,
+      minimumSize: minimumSize ?? this.minimumSize,
+      maximumSize: maximumSize ?? this.maximumSize,
       padding: padding ?? this.padding,
       margin: margin ?? this.margin,
     );
@@ -56,8 +57,8 @@ class TileStyle extends ThemeExtension<TileStyle> {
       backgroundColor:
           Color.lerp(backgroundColor, (other as TileStyle).backgroundColor, t)!,
       borderRadius: BorderRadius.lerp(borderRadius, other.borderRadius, t),
-      height: lerpDouble(height, other.height, t),
-      width: lerpDouble(width, other.width, t),
+      minimumSize: Size.lerp(minimumSize, other.minimumSize, t),
+      maximumSize: Size.lerp(maximumSize, other.maximumSize, t),
       padding: EdgeInsetsGeometry.lerp(padding, other.padding, t),
       margin: EdgeInsetsGeometry.lerp(margin, other.margin, t),
     );
@@ -93,36 +94,39 @@ class Tile extends StatelessWidget {
         widgetStyle?.backgroundColor ?? themeStyle?.backgroundColor;
     BorderRadius? borderRadius =
         widgetStyle?.borderRadius ?? themeStyle?.borderRadius;
-    double? height = widgetStyle?.height ?? themeStyle?.height;
-    double? width = widgetStyle?.width ?? themeStyle?.width;
+    Size? minimumSize = widgetStyle?.minimumSize ?? themeStyle?.minimumSize;
+    Size? maximumSize = widgetStyle?.maximumSize ?? themeStyle?.maximumSize;
     EdgeInsetsGeometry? padding = widgetStyle?.padding ?? themeStyle?.padding;
     EdgeInsetsGeometry? margin = widgetStyle?.margin ?? themeStyle?.margin;
 
     return Padding(
       padding: margin ?? const EdgeInsets.all(0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: borderRadius,
-          color: backgroundColor,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: minimumSize?.height ?? 0,
+          maxHeight: maximumSize?.height ?? double.infinity,
+          minWidth: minimumSize?.width ?? 0,
+          maxWidth: maximumSize?.width ?? double.infinity,
         ),
-        child: Padding(
-          padding: padding ?? const EdgeInsets.all(8),
-          child: SizedBox(
-              width: width,
-              height: height,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      leading ?? SizedBox.shrink(),
-                      child,
-                    ],
-                  ),
-                  trailing ?? SizedBox.shrink(),
-                ],
-              )),
+        child: Material(
+          borderRadius: borderRadius ?? BorderRadius.zero,
+          color: backgroundColor,
+          child: Padding(
+            padding: padding ?? const EdgeInsets.all(8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    leading ?? SizedBox.shrink(),
+                    child,
+                  ],
+                ),
+                trailing ?? SizedBox.shrink(),
+              ],
+            ),
+          ),
         ),
       ),
     );

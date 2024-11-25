@@ -19,10 +19,10 @@ ThemeData themeData = ThemeData(
     textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
             backgroundColor: WidgetStatePropertyAll(colorScheme.primary))),
-    extensions: [
+    extensions: <ThemeExtension<dynamic>>[
       TileStyle(
         backgroundColor: colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(16),
         padding: const EdgeInsets.all(16),
-      )
+      ),
     ]);

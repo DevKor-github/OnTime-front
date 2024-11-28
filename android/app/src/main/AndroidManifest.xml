@@ -23,8 +23,22 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
 
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="kakao$20830c4f7ddc6e7b5e0e8798b7a76d1d" android:host="oauth" />
+            </intent-filter>
+
+    <!-- Google OAuth 2.0 설정 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Flutter 앱의 Custom URL Scheme -->
+                <data android:scheme="ontime" android:host="callback" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

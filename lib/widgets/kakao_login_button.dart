@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:on_time_front/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart'; // 카카오 SDK 추가
 
 class KakaoLoginButton extends StatefulWidget {
   const KakaoLoginButton({super.key});
@@ -17,13 +18,44 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
   final String _serverUrl =
       'http://ejun.kro.kr:8888/oauth2/authorization/kakao';
 
-  // 로그인 요청
-  Future<void> _handleSignIn(BuildContext context) async {
+  // 카카오 로그인 처리
+  Future<void> _handleKakaoLogin(BuildContext context) async {
     try {
-      // 요청 전송
+      // 카카오톡 설치 여부 확인
+      bool talkInstalled = await isKakaoTalkInstalled();
+
+      String authCode;
+
+      if (talkInstalled) {
+        // 카카오톡으로 로그인
+        try {
+          authCode = await AuthCodeClient.instance.authorizeWithTalk(
+            redirectUri:
+                "http://localhost:8888/oauth/kakao/callback", // 리다이렉트 URI
+          );
+        } catch (error) {
+          print('카카오톡으로 로그인 실패: $error');
+          _showErrorDialog(context, '카카오톡으로 로그인에 실패했습니다.');
+          return;
+        }
+      } else {
+        // 카카오 계정으로 로그인
+        try {
+          authCode = await AuthCodeClient.instance.authorize(
+            redirectUri: "http://localhost:8888/oauth/kakao/callback",
+          );
+        } catch (error) {
+          print('카카오 계정으로 로그인 실패: $error');
+          _showErrorDialog(context, '카카오 계정으로 로그인에 실패했습니다.');
+          return;
+        }
+      }
+
+      // 서버에 인증 코드 전달
       final response = await http.post(
         Uri.parse(_serverUrl),
-        headers: {'Content-Type': 'application/json'}, // 요청 헤더
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'authCode': authCode}),
       );
 
       if (response.statusCode == 200) {
@@ -45,14 +77,12 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
           ),
         );
       } else {
-        // 서버 응답 실패 처리
         print("로그인 실패: ${response.body}");
         _showErrorDialog(context, "로그인 실패. 다시 시도해주세요.");
       }
     } catch (error) {
-      // 네트워크 오류 처리
-      print("Error: $error");
-      _showErrorDialog(context, "Network Error.");
+      print("에러 발생: $error");
+      _showErrorDialog(context, "네트워크 오류가 발생했습니다.");
     }
   }
 
@@ -79,7 +109,7 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         OutlinedButton(
-          onPressed: () => _handleSignIn(context), // Spring Boot로 요청
+          onPressed: () => _handleKakaoLogin(context), // 카카오 로그인 실행
           child: const Text('Kakao Login'),
         )
       ],

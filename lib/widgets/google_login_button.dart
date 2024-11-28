@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:on_time_front/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class GoogleLoginButton extends StatefulWidget {
   const GoogleLoginButton({super.key});
@@ -13,46 +12,32 @@ class GoogleLoginButton extends StatefulWidget {
 }
 
 class _GoogleLoginButtonState extends State<GoogleLoginButton> {
+  final String _loginUrl =
+      "http://ejun.kro.kr:8888/oauth2/authorization/google"; // Spring Boot 엔드포인트
   LoginPlatform _loginPlatform = LoginPlatform.none;
 
-  final String _loginUrl =
-      "http://ejun.kro.kr:8888/login/oauth2/authorization/google";
-
-  // https://5aa50832-d09d-457b-a0e2-52a9a108b179.mock.pstmn.io
-  // final String _loginUrl =
-  //     "https://9d55cb59-d1ed-453c-8afc-bf8850dbee36.mock.pstmn.io/oauth2/authorization/google";
-
-  // Spring Boot로 로그인 요청을 보내는 메서드
-  Future<void> _handleLogin(BuildContext context) async {
+  Future<void> _handleLogin() async {
     try {
-      print("Requesting: $_loginUrl \n");
+      print("Spring Boot 서버로 Google OAuth 인증 요청 중: $_loginUrl");
 
-      // Spring Boot로 로그인 요청 전송
-      final response = await http.post(
-        Uri.parse(_loginUrl),
-        headers: {'Access-Control-Allow-Origin': '*'},
-      );
+      // 브라우저에서 Google 로그인 페이지 열기
+      if (await canLaunch(_loginUrl)) {
+        await launch(_loginUrl);
 
-      print("Response Status Code: ${response.statusCode}");
+        final redirectedUrl =
+            "http://ejun.kro.kr:8888/callback?token=abc123"; // 테스트용 URL
+        final token = Uri.parse(redirectedUrl).queryParameters['token'];
 
-      if (response.statusCode == 200) {
-        // 서버로부터 받은 응답(JSON 파싱)
-        final responseData = jsonDecode(response.body);
-
-        // 토큰이 없거나 응답 데이터가 없을 경우 에러 처리
-        if (responseData == null || !responseData.containsKey('token')) {
-          _showErrorDialog(context, "서버 응답 오류: 토큰이 없습니다.");
-          return;
+        if (token == null || token.isEmpty) {
+          throw Exception("토큰을 받을 수 없습니다.");
         }
 
-        print("로그인 성공: ${responseData['message']}");
-        print("발급된 토큰: ${responseData['token']}");
+        print("로그인 성공, 발급된 토큰: $token");
 
         // 토큰 저장
-        final token = responseData['token'];
-        await saveToken(token); // SharedPreferences에 저장
+        await saveToken(token);
 
-        // 로그인 성공 시 상태 업데이트
+        // 로그인 성공 상태 업데이트
         setState(() {
           _loginPlatform = LoginPlatform.google;
         });
@@ -61,32 +46,25 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const TestScreen(
-              loginPlatform: LoginPlatform.google,
-            ),
+            builder: (context) => TestScreen(loginPlatform: _loginPlatform),
           ),
         );
       } else {
-        // 서버 응답이 실패일 경우
-        print("로그인 실패: ${response.body}");
-        _showErrorDialog(context, "로그인 실패. 다시 시도해주세요.");
+        throw Exception("브라우저를 열 수 없습니다.");
       }
     } catch (error) {
-      // 요청 중 오류가 발생한 경우
-      print("Error: $error");
-      _showErrorDialog(context, "Network Error.");
+      print("로그인 요청 중 에러 발생: $error");
+      _showErrorDialog("로그인 중 에러 발생: $error");
     }
   }
 
-  // 토큰 저장 함수
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('jwt_token', token);
-    print("Token Saved: $token");
+    print("Token 저장 완료: $token");
   }
 
-  // 에러 표시
-  void _showErrorDialog(BuildContext context, String message) {
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -104,15 +82,11 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // 로그인 버튼: Spring Boot로 요청만 보냄
-        OutlinedButton(
-          onPressed: () => _handleLogin(context),
-          child: const Text('Google Login'),
-        ),
-      ],
+    return Center(
+      child: OutlinedButton(
+        onPressed: _handleLogin,
+        child: const Text('Google Login'),
+      ),
     );
   }
 }

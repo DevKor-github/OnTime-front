@@ -15,7 +15,7 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
   LoginPlatform _loginPlatform = LoginPlatform.none;
 
   final String _serverUrl =
-      'http://ejun.kro.kr:8888/login/oauth2/authorization/kakao';
+      'http://ejun.kro.kr:8888/oauth2/authorization/kakao';
 
   // 로그인 요청
   Future<void> _handleSignIn(BuildContext context) async {

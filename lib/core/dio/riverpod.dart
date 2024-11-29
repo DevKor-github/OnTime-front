@@ -7,7 +7,7 @@ part 'riverpod.g.dart';
 
 @riverpod
 Dio dio(Ref ref) {
-  var dio = AppDio.instance;
+  var dio = AppDio();
 
   return dio;
 }

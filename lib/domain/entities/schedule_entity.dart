@@ -10,10 +10,10 @@ class ScheduleEntity extends Equatable {
   final PlaceEntity place;
   final String scheduleName;
   final DateTime scheduleTime;
-  final DateTime moveTime;
+  final Duration moveTime;
   final bool isChanged;
   final bool isStarted;
-  final DateTime scheduleSpareTime;
+  final Duration scheduleSpareTime;
   final String scheduleNote;
   final int latenessTime;
 

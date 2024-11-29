@@ -5,19 +5,19 @@ part 'create_schedule_model.g.dart';
 
 @JsonSerializable()
 class CreateScheduleModel {
-  final String id;
+  final String scheduleId;
   final String userId;
   final String placeId;
   final String placeName;
   final String scheduleName;
   final DateTime scheduleTime;
-  final DateTime moveTime;
-  final DateTime scheduleSpareTime;
+  final Duration moveTime;
+  final Duration scheduleSpareTime;
   final String scheduleNote;
   final int latenessTime;
 
   const CreateScheduleModel({
-    required this.id,
+    required this.scheduleId,
     required this.userId,
     required this.placeId,
     required this.placeName,
@@ -36,7 +36,7 @@ class CreateScheduleModel {
 
   static CreateScheduleModel fromEntity(ScheduleEntity entity) {
     return CreateScheduleModel(
-      id: entity.id,
+      scheduleId: entity.id,
       userId: entity.userId,
       placeId: entity.place.id,
       placeName: entity.place.placeName,

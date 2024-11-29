@@ -31,10 +31,10 @@ void main() {
     place: tPlaceEntity,
     scheduleName: 'Meeting',
     scheduleTime: DateTime.now(),
-    moveTime: DateTime(0, 0, 0, 0, 10),
+    moveTime: Duration(minutes: 10),
     isChanged: false,
     isStarted: false,
-    scheduleSpareTime: DateTime(0, 0, 0, 0, 5),
+    scheduleSpareTime: Duration(minutes: 5),
     scheduleNote: 'Discuss project updates',
   );
 
@@ -44,10 +44,10 @@ void main() {
     place: tPlaceEntity,
     scheduleName: 'Meeting local',
     scheduleTime: DateTime.now(),
-    moveTime: DateTime(0, 0, 0, 0, 15),
+    moveTime: Duration(minutes: 10),
     isChanged: false,
     isStarted: false,
-    scheduleSpareTime: DateTime(0, 0, 0, 0, 10),
+    scheduleSpareTime: Duration(minutes: 5),
     scheduleNote: 'Discuss project updates local',
   );
 

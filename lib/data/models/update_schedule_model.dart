@@ -11,8 +11,8 @@ class UpdateScheduleModel {
   final String placeName;
   final String scheduleName;
   final DateTime scheduleTime;
-  final DateTime moveTime;
-  final DateTime scheduleSpareTime;
+  final Duration moveTime;
+  final Duration scheduleSpareTime;
   final String scheduleNote;
   final int latenessTime;
 

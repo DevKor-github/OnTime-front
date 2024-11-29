@@ -27,10 +27,10 @@ void main() async {
     placeId: placeModel.id,
     scheduleName: 'Test Schedule',
     scheduleTime: scheduleTime,
-    moveTime: scheduleTime,
+    moveTime: Duration(minutes: 10),
     isChanged: false,
     isStarted: false,
-    scheduleSpareTime: scheduleTime,
+    scheduleSpareTime: Duration(minutes: 5),
     scheduleNote: 'Test Note',
     latenessTime: 0,
   );
@@ -151,7 +151,6 @@ void main() async {
       final laterScheduleModel = scheduleModel.copyWith(
         id: uuid.v7(),
         scheduleTime: laterDate,
-        moveTime: laterDate,
       );
 
       await appDatabase.into(appDatabase.places).insert(
@@ -179,7 +178,6 @@ void main() async {
       final laterScheduleModel = scheduleModel.copyWith(
         id: uuid.v7(),
         scheduleTime: laterDate,
-        moveTime: laterDate,
       );
       final laterScheduleWithPlaceModel = ScheduleWithPlace(
         schedule: laterScheduleModel,

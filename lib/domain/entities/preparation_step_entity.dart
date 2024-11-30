@@ -4,13 +4,13 @@ class PreparationStepEntity {
   final String id;
   final String preparationName;
   final int preparationTime;
-  final int order;
+  final String? nextPreparationId;
 
   PreparationStepEntity({
     required this.id,
     required this.preparationName,
     required this.preparationTime,
-    required this.order,
+    required this.nextPreparationId,
   });
 
   PreparationUser toPreparationUserModel(String userId) {
@@ -19,7 +19,7 @@ class PreparationStepEntity {
       userId: userId,
       preparationName: preparationName,
       preparationTime: preparationTime,
-      order: order,
+      nextPreparationId: nextPreparationId,
     );
   }
 
@@ -29,12 +29,12 @@ class PreparationStepEntity {
       scheduleId: scheduleId,
       preparationName: preparationName,
       preparationTime: preparationTime,
-      order: order,
+      nextPreparationId: nextPreparationId,
     );
   }
 
   @override
   String toString() {
-    return 'PreparationStepEntity(id: $id, preparationName: $preparationName, preparationTime: $preparationTime, order: $order)';
+    return 'PreparationStepEntity(id: $id, preparationName: $preparationName, preparationTime: $preparationTime, nextPreparationId: $nextPreparationId)';
   }
 }

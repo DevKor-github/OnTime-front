@@ -19,50 +19,66 @@ void main() {
   final preparationStepEntityId = uuid.v7();
   final userEntityId = uuid.v7();
 
+  // 첫 번째 단계: 리스트의 각 항목을 생성
   final tPreparationStepList = [
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Meeting A Friend',
       preparationTime: 30,
-      order: 1,
+      nextPreparationId: null, // 이후에 설정
     ),
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Museum Tour',
       preparationTime: 40,
-      order: 2,
+      nextPreparationId: null, // 이후에 설정
     ),
   ];
+
+// 두 번째 단계: 각 항목의 nextPreparationId 설정
+  tPreparationStepList[0] = PreparationStepEntity(
+    id: tPreparationStepList[0].id,
+    preparationName: tPreparationStepList[0].preparationName,
+    preparationTime: tPreparationStepList[0].preparationTime,
+    nextPreparationId: tPreparationStepList[1].id,
+  );
 
   final tLocalPreparationStepList = [
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Meeting A Friend Local',
       preparationTime: 10,
-      order: 1,
+      nextPreparationId: null, // 이후에 설정
     ),
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Museum Tour Local',
       preparationTime: 30,
-      order: 2,
+      nextPreparationId: null, // 이후에 설정
     ),
   ];
+
+// 두 번째 단계: 각 항목의 nextPreparationId 설정
+  tLocalPreparationStepList[0] = PreparationStepEntity(
+    id: tLocalPreparationStepList[0].id,
+    preparationName: tLocalPreparationStepList[0].preparationName,
+    preparationTime: tLocalPreparationStepList[0].preparationTime,
+    nextPreparationId: tLocalPreparationStepList[1].id,
+  );
 
   final tPreparationStep = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Dress Up',
     preparationTime: 10,
-    order: 1,
+    nextPreparationId: null, // 단일 항목이므로 다음 단계 없음
   );
 
   final tLocalPreparationStep = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Dress Up Local',
     preparationTime: 15,
-    order: 1,
+    nextPreparationId: null, // 단일 항목이므로 다음 단계 없음
   );
-
   // final tPreparationEntity =
   //     PreparationEntity(preparationStepList: tPreparationStepList);
 

@@ -52,7 +52,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         throw Exception('Error updating schedule');
       }
     } catch (e) {
-      throw Exception('Error updating schedule');
+      rethrow;
     }
   }
 
@@ -66,14 +66,24 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         throw Exception('Error deleting schedule');
       }
     } catch (e) {
-      throw Exception('Error deleting schedule');
+      rethrow;
     }
   }
 
   @override
-  Future<ScheduleEntity> getScheduleById(String id) {
-    // TODO: implement getScheduleById
-    throw UnimplementedError();
+  Future<ScheduleEntity> getScheduleById(String id) async {
+    try {
+      final result = await dio.get(Endpoint.getSchedule(id));
+      if (result.statusCode == 200) {
+        final GetScheduleResponseModel schedule =
+            GetScheduleResponseModel.fromJson(result.data["data"]);
+        return schedule.toEntity();
+      } else {
+        throw Exception('Error getting schedules');
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override

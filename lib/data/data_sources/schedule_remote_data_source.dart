@@ -78,8 +78,24 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate) {
-    // TODO: implement getSchedulesByDate
-    throw UnimplementedError();
+      DateTime startDate, DateTime? endDate) async {
+    try {
+      final result =
+          await dio.get(Endpoint.getSchedulesByDate, queryParameters: {
+        'startDate': startDate.toIso8601String(),
+        'endDate': endDate?.toIso8601String() ?? '',
+      });
+      if (result.statusCode == 200) {
+        final List<ScheduleEntity> schedules = result.data["data"]
+            .map<ScheduleEntity>(
+                (e) => GetScheduleResponseModel.fromJson(e).toEntity())
+            .toList();
+        return schedules;
+      } else {
+        throw Exception('Error getting schedules');
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 }

@@ -1,5 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:on_time_front/data/models/create_schedule_model.dart';
+import 'package:on_time_front/core/constants/endpoint.dart';
+import 'package:on_time_front/data/models/create_schedule_request_model.dart';
+import 'package:on_time_front/data/models/get_schedule_response_model.dart';
+import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 abstract interface class ScheduleRemoteDataSource {
@@ -22,26 +25,26 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   @override
   Future<void> createSchedule(ScheduleEntity schedule) async {
     try {
-      CreateScheduleModel createScheduleModel =
-          CreateScheduleModel.fromEntity(schedule);
-      final result =
-          await dio.post('/schedules/add', data: createScheduleModel.toJson());
-      if (result.statusCode == 201) {
+      CreateScheduleRequestModel createScheduleModel =
+          CreateScheduleRequestModel.fromEntity(schedule);
+      final result = await dio.post(Endpoint.createSchedule,
+          data: createScheduleModel.toJson());
+      if (result.statusCode == 200) {
         return;
       } else {
-        throw Exception('Error creating schedule');
+        throw Exception('Error creating schedule worng status code');
       }
     } catch (e) {
-      throw Exception('Error creating schedule');
+      rethrow;
     }
   }
 
   @override
   Future<void> updateSchedule(ScheduleEntity schedule) async {
     try {
-      CreateScheduleModel createScheduleModel =
-          CreateScheduleModel.fromEntity(schedule);
-      final result = await dio.put('/schedules/${schedule.id}',
+      UpdateScheduleRequestModel createScheduleModel =
+          UpdateScheduleRequestModel.fromEntity(schedule);
+      final result = await dio.put(Endpoint.updateSchedule(schedule.id),
           data: createScheduleModel.toJson());
       if (result.statusCode == 204) {
         return;
@@ -56,7 +59,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   @override
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
     try {
-      final result = await dio.delete('/schedules/${schedule.id}');
+      final result = await dio.delete(Endpoint.deleteSchedule(schedule.id));
       if (result.statusCode == 204) {
         return;
       } else {

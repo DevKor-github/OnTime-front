@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_time_front/data/repositories/riverpod.dart';
+import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/repositories/schedule_repository.dart';
+import 'package:uuid/uuid.dart';
 
 void main() async {
   runApp(const ProviderScope(child: MyApp()));
@@ -38,7 +43,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -53,13 +58,36 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends ConsumerState<MyHomePage> {
   int _counter = 0;
+  late ScheduleRepository scheduleRepository;
+
+  final uuid = Uuid();
 
   void _incrementCounter() {
+    final scheduleEntityId = uuid.v7();
+    final userEntityId = uuid.v7();
+
+    final tPlaceEntity = PlaceEntity(
+      id: uuid.v7(),
+      placeName: 'Office',
+    );
+
+    final tScheduleEntity = ScheduleEntity(
+      id: scheduleEntityId,
+      userId: userEntityId,
+      place: tPlaceEntity,
+      scheduleName: 'Meeting',
+      scheduleTime: DateTime.now(),
+      moveTime: const Duration(minutes: 10),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 5),
+      scheduleNote: 'Discuss project updates',
+    );
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -68,10 +96,12 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+    scheduleRepository.createSchedule(tScheduleEntity);
   }
 
   @override
   Widget build(BuildContext context) {
+    scheduleRepository = ref.read(scheduleRepositoryProvider);
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -114,6 +144,17 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            TextButton(
+                onPressed: () async {
+                  final schedules = scheduleRepository
+                      .getSchedulesByDate(
+                          DateTime.now().subtract(const Duration(days: 100)),
+                          null)
+                      .listen((event) {
+                    print(event);
+                  });
+                },
+                child: Text('get schedules')),
           ],
         ),
       ),

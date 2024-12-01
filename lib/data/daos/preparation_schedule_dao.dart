@@ -40,29 +40,9 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
         id: preparationSchedule.id,
         preparationName: preparationSchedule.preparationName,
         preparationTime: preparationSchedule.preparationTime,
-        order: preparationSchedule.order,
+        nextPreparationId: preparationSchedule.nextPreparationId,
       );
     }).toList();
-
-    // await Future.forEach(
-    //   query,
-    //   (preparationSchedule) async {
-    //     final schedule = await (select(db.schedules)
-    //           ..where((tbl) => tbl.id.equals(preparationSchedule.scheduleId)))
-    //         .getSingle();
-    //     final user = await (select(db.users)
-    //           ..where((tbl) => tbl.id.equals(schedule.userId)))
-    //         .getSingle();
-    //     final place = await (select(db.places)
-    //           ..where((tbl) => tbl.id.equals(schedule.placeId)))
-    //         .getSingle();
-
-    //     preparationScheduleList.add(
-    //       PreparationEntity.fromModel(
-    //           preparationSchedule, schedule, user, place),
-    //     );
-    //   },
-    // );
 
     return [PreparationEntity(preparationStepList: stepEntities)];
   }

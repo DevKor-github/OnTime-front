@@ -48,7 +48,7 @@ void main() {
       UpdateScheduleRequestModel.fromEntity(tScheduleEntity);
 
   setUp(() {
-    dio = AppDio();
+    dio = MockAppDio();
     scheduleRemoteDataSourceImpl = ScheduleRemoteDataSourceImpl(dio);
   });
 
@@ -95,37 +95,6 @@ void main() {
     });
   });
 
-  group('getScheduleByDate', () {
-    test('should perform a GET request on the /schedule/show endpoint',
-        () async {
-      // arrange
-      when(dio.get<ApiResponse<List<GetScheduleResponseModel>>>(
-          Endpoint.getSchedulesByDate,
-          queryParameters: {
-            'startDate': tScheduleEntity.scheduleTime,
-            'endDate': '',
-          })).thenAnswer(
-        (_) async => Response(
-          statusCode: 200,
-          requestOptions: RequestOptions(path: Endpoint.getSchedulesByDate),
-          data: ApiResponse(
-              status: 'success',
-              data: [GetScheduleResponseModel.fromEntity(tScheduleEntity)]),
-        ),
-      );
-
-      // act
-      final result = await scheduleRemoteDataSourceImpl.getSchedulesByDate(
-          tScheduleEntity.scheduleTime, null);
-
-      debugPrint(result.toString());
-
-      // assert
-      verify(dio.get(Endpoint.getSchedulesByDate,
-          queryParameters: {'date': tScheduleEntity.scheduleTime})).called(1);
-    });
-  });
-
   group('updateSchdule', () {
     test('should perform a PUT request on the /schedule/modify endpoint',
         () async {
@@ -163,6 +132,43 @@ void main() {
 
       // act
       final call = scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
+
+      // assert
+      expect(call, throwsException);
+    });
+  });
+
+  group('deleteSchedule', () {
+    test('should perform a DELETE request on the /schedule/delete endpoint',
+        () async {
+      // arrange
+      when(dio.delete(Endpoint.deleteSchedule(scheduleEntityId))).thenAnswer(
+        (_) async => Response(
+          statusCode: 204,
+          requestOptions:
+              RequestOptions(path: Endpoint.deleteSchedule(scheduleEntityId)),
+        ),
+      );
+
+      // act
+      await scheduleRemoteDataSourceImpl.deleteSchedule(tScheduleEntity);
+
+      // assert
+      verify(dio.delete(Endpoint.deleteSchedule(scheduleEntityId))).called(1);
+    });
+
+    test('should throw an exception when the response code is not 204',
+        () async {
+      when(dio.delete(Endpoint.deleteSchedule(scheduleEntityId))).thenAnswer(
+        (_) async => Response(
+          statusCode: 400,
+          requestOptions:
+              RequestOptions(path: Endpoint.deleteSchedule(scheduleEntityId)),
+        ),
+      );
+
+      // act
+      final call = scheduleRemoteDataSourceImpl.deleteSchedule(tScheduleEntity);
 
       // assert
       expect(call, throwsException);

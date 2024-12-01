@@ -12,11 +12,7 @@ class AppDio with DioMixin implements Dio {
         sendTimeout: const Duration(milliseconds: 30000),
         receiveDataWhenStatusError: true,
         followRedirects: false,
-        headers: {
-          "Accept": "application/json",
-          "Authorization":
-              "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczMjcwMDQ5NywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.9LtGN1omJ2LkEnFUXT4pP52BE7dOyubX25VGQkIxRY6PxCxO74fiYsUosfo_XDmI5nf4cNuNGlqYVwNSK1qWTA"
-        });
+        headers: {"Accept": "application/json", "Authorization": ""});
 
     interceptors.addAll([LoggerInterceptor()]);
   }

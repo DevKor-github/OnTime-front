@@ -1,10 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
-part 'create_schedule_model.g.dart';
+part 'create_schedule_request_model.g.dart';
 
 @JsonSerializable()
-class CreateScheduleModel {
+class CreateScheduleRequestModel {
   final String scheduleId;
   final String userId;
   final String placeId;
@@ -16,7 +16,7 @@ class CreateScheduleModel {
   final String scheduleNote;
   final int latenessTime;
 
-  const CreateScheduleModel({
+  const CreateScheduleRequestModel({
     required this.scheduleId,
     required this.userId,
     required this.placeId,
@@ -29,13 +29,13 @@ class CreateScheduleModel {
     this.latenessTime = 0,
   });
 
-  factory CreateScheduleModel.fromJson(Map<String, dynamic> json) =>
-      _$CreateScheduleModelFromJson(json);
+  factory CreateScheduleRequestModel.fromJson(Map<String, dynamic> json) =>
+      _$CreateScheduleRequestModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$CreateScheduleModelToJson(this);
+  Map<String, dynamic> toJson() => _$CreateScheduleRequestModelToJson(this);
 
-  static CreateScheduleModel fromEntity(ScheduleEntity entity) {
-    return CreateScheduleModel(
+  static CreateScheduleRequestModel fromEntity(ScheduleEntity entity) {
+    return CreateScheduleRequestModel(
       scheduleId: entity.id,
       userId: entity.userId,
       placeId: entity.place.id,

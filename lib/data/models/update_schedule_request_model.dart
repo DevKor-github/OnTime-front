@@ -1,10 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
-part 'update_schedule_model.g.dart';
+part 'update_schedule_request_model.g.dart';
 
 @JsonSerializable()
-class UpdateScheduleModel {
+class UpdateScheduleRequestModel {
   final String id;
   final String userId;
   final String placeId;
@@ -16,7 +16,7 @@ class UpdateScheduleModel {
   final String scheduleNote;
   final int latenessTime;
 
-  const UpdateScheduleModel({
+  const UpdateScheduleRequestModel({
     required this.id,
     required this.userId,
     required this.placeId,
@@ -29,13 +29,13 @@ class UpdateScheduleModel {
     this.latenessTime = 0,
   });
 
-  factory UpdateScheduleModel.fromJson(Map<String, dynamic> json) =>
-      _$UpdateScheduleModelFromJson(json);
+  factory UpdateScheduleRequestModel.fromJson(Map<String, dynamic> json) =>
+      _$UpdateScheduleRequestModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$UpdateScheduleModelToJson(this);
+  Map<String, dynamic> toJson() => _$UpdateScheduleRequestModelToJson(this);
 
-  static UpdateScheduleModel fromEntity(ScheduleEntity entity) {
-    return UpdateScheduleModel(
+  static UpdateScheduleRequestModel fromEntity(ScheduleEntity entity) {
+    return UpdateScheduleRequestModel(
       id: entity.id,
       userId: entity.userId,
       placeId: entity.place.id,

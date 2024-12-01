@@ -37,7 +37,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
           id: preparationUser.id,
           preparationName: preparationUser.preparationName,
           preparationTime: preparationUser.preparationTime,
-          order: preparationUser.order,
+          nextPreparationId: preparationUser.nextPreparationId,
         ),
       );
     }

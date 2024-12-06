@@ -5,22 +5,25 @@ import 'package:http/http.dart' as http;
 import 'package:on_time_front/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
 
-class GoogleLoginButton extends StatefulWidget {
-  const GoogleLoginButton({super.key});
+class GoogleLoginMobile extends StatefulWidget {
+  const GoogleLoginMobile({super.key});
 
   @override
-  State<GoogleLoginButton> createState() => _GoogleLoginButtonState();
+  State<GoogleLoginMobile> createState() => _GoogleLoginMobileState();
 }
 
-class _GoogleLoginButtonState extends State<GoogleLoginButton> {
+class _GoogleLoginMobileState extends State<GoogleLoginMobile> {
   final LoginPlatform _loginPlatform = LoginPlatform.none;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
   Future<void> _handleSignIn(BuildContext context) async {
     try {
-      // Google 계정 로그인
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      GoogleSignInAccount? googleUser;
+
+      // Android/iOS에서는 네이티브 Google 로그인 방식 사용
+      googleUser = await _googleSignIn.signIn();
+
       if (googleUser != null) {
         print("로그인 성공: ${googleUser.displayName}, 이메일: ${googleUser.email}");
 
@@ -32,46 +35,34 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
         if (accessToken != null) {
           print("Access Token: $accessToken");
 
-          // Google 사용자 정보 요청 (User Info API 호출)
-          final userInfoResponse = await http.get(
-            Uri.parse('https://www.googleapis.com/oauth2/v3/userinfo'),
+          // 여기서는 Google에서 제공한 사용자 정보를 사용하여 백엔드로 전달합니다
+          final backendResponse = await http.post(
+            // 백엔드 URI
+            Uri.parse('http://ejun.kro.kr:8888/oauth2/google/registerOrLogin'),
             headers: {
-              'Authorization': 'Bearer $accessToken',
+              'Content-Type': 'application/json', // JSON 형식으로 전달
             },
+            body: json.encode({
+              'id': googleUser.id,
+              'displayName': googleUser.displayName,
+              'email': googleUser.email,
+              'photoUrl': googleUser.photoUrl,
+            }), // 필요한 사용자 정보를 body로 전달
           );
 
-          if (userInfoResponse.statusCode == 200) {
-            final userInfo = json.decode(userInfoResponse.body);
-            print("사용자 정보 가져오기 성공: $userInfo");
+          if (backendResponse.statusCode == 200) {
+            print("백엔드 처리 성공: ${backendResponse.headers}");
 
-            // userInfo와 accessToken을 모두 헤더로 전달
-            final backendResponse = await http.post(
-              // 백엔드 URI
-              Uri.parse(
-                  'http://ejun.kro.kr:8888/oauth2/google/registerOrLogin'),
-              headers: {
-                'Content-Type': 'application/json', // JSON 형식으로 전달
-              },
-              body: json.encode(userInfo), // userInfo를 body로 전달
+            // TestScreen으로 이동
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const TestScreen(loginPlatform: LoginPlatform.google),
+              ),
             );
-
-            if (backendResponse.statusCode == 200) {
-              print("백엔드 처리 성공: ${backendResponse.headers}");
-
-              // TestScreen으로 이동
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const TestScreen(loginPlatform: LoginPlatform.google),
-                ),
-              );
-            } else {
-              print("Status error: ${backendResponse.statusCode}");
-            }
           } else {
-            print("User info request failed: ${userInfoResponse.statusCode}");
-            _showErrorDialog("Failed to get Google user info");
+            print("Backend error: ${backendResponse.statusCode}");
           }
         } else {
           _showErrorDialog("Failed to get Google Access Token");

@@ -8,7 +8,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class TestScreen extends StatelessWidget {
   final LoginPlatform loginPlatform; // 로그인 플랫폼
 
-  const TestScreen({super.key, required this.loginPlatform});
+  const TestScreen({
+    super.key,
+    required this.loginPlatform,
+  }) : assert(loginPlatform != LoginPlatform.none,
+            "loginPlatform cannot be null.");
 
   // 로그아웃 처리
   Future<void> _handleLogout(BuildContext context) async {
@@ -17,11 +21,9 @@ class TestScreen extends StatelessWidget {
       if (loginPlatform == LoginPlatform.google) {
         // Google 로그아웃 처리
         await GoogleSignIn().signOut();
-        print("Google 로그아웃 성공");
       } else if (loginPlatform == LoginPlatform.kakao) {
         // Kakao 로그아웃 처리
         await UserApi.instance.logout();
-        print("Kakao 로그아웃 성공");
       }
 
       // JWT 삭제
@@ -36,7 +38,7 @@ class TestScreen extends StatelessWidget {
       );
     } catch (error) {
       print("로그아웃 실패: $error");
-      _showErrorDialog(context, "로그아웃에 실패했습니다. 다시 시도해주세요.");
+      _showErrorDialog(context, "Logout failed.");
     }
   }
 
@@ -45,12 +47,12 @@ class TestScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("오류"),
+        title: const Text("Error"),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text("확인"),
+            child: const Text("OK"),
           ),
         ],
       ),

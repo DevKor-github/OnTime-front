@@ -40,7 +40,7 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
         id: preparationSchedule.id,
         preparationName: preparationSchedule.preparationName,
         preparationTime: preparationSchedule.preparationTime,
-        order: preparationSchedule.order,
+        nextPreparationId: preparationSchedule.nextPreparationId,
       );
     }).toList();
 

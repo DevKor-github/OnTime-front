@@ -1,20 +1,19 @@
 import 'dart:convert'; // For json.decode
 import 'dart:io'; // For HttpHeaders and Platform
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // For HTTP requests
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:on_time_front/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
 
-class KakaoLoginButton extends StatefulWidget {
-  const KakaoLoginButton({super.key});
+class KakaoLoginTest extends StatefulWidget {
+  const KakaoLoginTest({super.key});
 
   @override
-  State<KakaoLoginButton> createState() => _KakaoLoginButtonState();
+  State<KakaoLoginTest> createState() => _KakaoLoginTestState();
 }
 
-class _KakaoLoginButtonState extends State<KakaoLoginButton> {
+class _KakaoLoginTestState extends State<KakaoLoginTest> {
   LoginPlatform _loginPlatform = LoginPlatform.none; // 로그인 플랫폼
   Map<String, dynamic>? _userProfile;
   String? _accessToken;
@@ -33,14 +32,14 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
     try {
       OAuthToken token;
 
-      if (kIsWeb) {
-        token = await UserApi.instance.loginWithKakaoAccount();
-      } else if (Platform.isAndroid || Platform.isIOS) {
+      // 모바일 환경 (Android/iOS)에서 카카오 로그인 처리
+      if (Platform.isAndroid || Platform.isIOS) {
         bool isInstalled = await isKakaoTalkInstalled();
         token = isInstalled
             ? await UserApi.instance.loginWithKakaoTalk()
             : await UserApi.instance.loginWithKakaoAccount();
       } else {
+        // 웹에서 로그인 (웹에서만 사용)
         throw Exception("지원하지 않는 플랫폼");
       }
 
@@ -77,8 +76,8 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
 
         print("Filtered User Info: $filteredProfileInfo");
 
+        // 백엔드로 사용자 정보 전송
         final backendResponse = await http.post(
-          // 백엔드 URI
           Uri.parse('http://ejun.kro.kr:8888/oauth2/kakao/registerOrLogin'),
           headers: {
             'Content-Type': 'application/json',

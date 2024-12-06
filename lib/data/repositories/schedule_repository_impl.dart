@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
-import 'package:collection/collection.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
@@ -30,7 +29,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.deleteSchedule(schedule);
-      await scheduleLocalDataSource.deleteSchedule(schedule);
+      //await scheduleLocalDataSource.deleteSchedule(schedule);
     } catch (e) {
       rethrow;
     }
@@ -40,27 +39,27 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Stream<ScheduleEntity> getScheduleById(String id) async* {
     try {
       final streamController = StreamController<ScheduleEntity>();
-      final localScheduleEntity = scheduleLocalDataSource.getScheduleById(id);
+      // final localScheduleEntity = scheduleLocalDataSource.getScheduleById(id);
       final remoteScheduleEntity = scheduleRemoteDataSource.getScheduleById(id);
 
       bool isFirstResponse = true;
 
-      localScheduleEntity.then((localScheduleEntity) {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(localScheduleEntity);
-        }
-      });
+      // localScheduleEntity.then((localScheduleEntity) {
+      //   if (isFirstResponse) {
+      //     isFirstResponse = false;
+      //     streamController.add(localScheduleEntity);
+      //   }
+      // });
 
       remoteScheduleEntity.then((remoteScheduleEntity) async {
         if (isFirstResponse) {
           isFirstResponse = false;
           streamController.add(remoteScheduleEntity);
         } else {
-          if (await localScheduleEntity != remoteScheduleEntity) {
-            streamController.add(remoteScheduleEntity);
-            await scheduleLocalDataSource.updateSchedule(remoteScheduleEntity);
-          }
+          // if (await localScheduleEntity != remoteScheduleEntity) {
+          //   streamController.add(remoteScheduleEntity);
+          //   await scheduleLocalDataSource.updateSchedule(remoteScheduleEntity);
+          // }
         }
       });
       yield* streamController.stream;
@@ -74,34 +73,34 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       DateTime startDate, DateTime? endDate) async* {
     try {
       final streamController = StreamController<List<ScheduleEntity>>();
-      final localScheduleEntityList =
-          scheduleLocalDataSource.getSchedulesByDate(startDate, endDate);
+      // final localScheduleEntityList =
+      //     scheduleLocalDataSource.getSchedulesByDate(startDate, endDate);
       final remoteScheduleEntityList =
           scheduleRemoteDataSource.getSchedulesByDate(startDate, endDate);
 
       bool isFirstResponse = true;
 
-      localScheduleEntityList.then((localSchedules) {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(localSchedules);
-        }
-      });
+      // localScheduleEntityList.then((localSchedules) {
+      //   if (isFirstResponse) {
+      //     isFirstResponse = false;
+      //     streamController.add(localSchedules);
+      //   }
+      // });
 
       remoteScheduleEntityList.then((remoteSchedules) async {
         if (isFirstResponse) {
           isFirstResponse = false;
           streamController.add(remoteSchedules);
         } else {
-          final localData = await localScheduleEntityList;
-          //update local data
-          for (final remoteSchedule in remoteSchedules) {
-            final localSchedule = localData
-                .firstWhereOrNull((element) => element.id == remoteSchedule.id);
-            if (localSchedule != remoteSchedule) {
-              await scheduleLocalDataSource.updateSchedule(remoteSchedule);
-            }
-          }
+          // final localData = await localScheduleEntityList;
+          // //update local data
+          // for (final remoteSchedule in remoteSchedules) {
+          //   final localSchedule = localData
+          //       .firstWhereOrNull((element) => element.id == remoteSchedule.id);
+          //   if (localSchedule != remoteSchedule) {
+          //     await scheduleLocalDataSource.updateSchedule(remoteSchedule);
+          //   }
+          // }
 
           streamController.add(remoteSchedules);
         }
@@ -116,7 +115,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> updateSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.updateSchedule(schedule);
-      await scheduleLocalDataSource.updateSchedule(schedule);
+      //await scheduleLocalDataSource.updateSchedule(schedule);
     } catch (e) {
       rethrow;
     }

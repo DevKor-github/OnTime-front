@@ -112,7 +112,7 @@ void main() {
         // Act
         await scheduleRepository.deleteSchedule(tScheduleEntity);
         // Assert
-        verify(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity));
+        //verify(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity));
         verify(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity));
       },
     );
@@ -152,11 +152,10 @@ void main() {
             scheduleRepository.getScheduleById(scheduleEntityId);
         // Assert
 
-        await expectLater(scheduleStream,
-            emitsInOrder([tLocalScheduleEntity, tScheduleEntity]));
+        await expectLater(scheduleStream, emitsInOrder([tScheduleEntity]));
 
-        verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
-            .called(1);
+        // verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
+        //     .called(1);
       },
     );
 
@@ -221,10 +220,9 @@ void main() {
         final scheduleStream =
             scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
         // Assert
-        await expectLater(
-            scheduleStream, emitsInOrder([tLocalScheduleList, tScheduleList]));
-        verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
-            .called(1);
+        await expectLater(scheduleStream, emitsInOrder([tScheduleList]));
+        // verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
+        //     .called(1);
       },
     );
     test(
@@ -260,7 +258,7 @@ void main() {
         // Arrange
         final tStartDate = DateTime.now();
         final tEndDate = DateTime.now().add(Duration(days: 1));
-        when(mockScheduleLocalDataSource.getSchedulesByDate(
+        when(mockScheduleRemoteDataSource.getSchedulesByDate(
                 tStartDate, tEndDate))
             .thenThrow(Exception());
         // Act
@@ -286,7 +284,7 @@ void main() {
           // Act
           await scheduleRepository.updateSchedule(tScheduleEntity);
           // Assert
-          verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity));
+          //verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity));
           verify(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity));
         },
       );

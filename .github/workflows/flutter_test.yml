@@ -11,6 +11,8 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+      - name: install sql
+        run: sudo apt-get install sqlite3 libsqlite3-dev
       - name: Install packages
         run: flutter pub get
       - name: Check Flutter version

@@ -19,23 +19,21 @@ void main() {
   final preparationStepEntityId = uuid.v7();
   final userEntityId = uuid.v7();
 
-  // 첫 번째 단계: 리스트의 각 항목을 생성
   final tPreparationStepList = [
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Meeting A Friend',
       preparationTime: 30,
-      nextPreparationId: null, // 이후에 설정
+      nextPreparationId: null,
     ),
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Museum Tour',
       preparationTime: 40,
-      nextPreparationId: null, // 이후에 설정
+      nextPreparationId: null,
     ),
   ];
 
-// 두 번째 단계: 각 항목의 nextPreparationId 설정
   tPreparationStepList[0] = PreparationStepEntity(
     id: tPreparationStepList[0].id,
     preparationName: tPreparationStepList[0].preparationName,
@@ -58,7 +56,6 @@ void main() {
     ),
   ];
 
-// 두 번째 단계: 각 항목의 nextPreparationId 설정
   tLocalPreparationStepList[0] = PreparationStepEntity(
     id: tLocalPreparationStepList[0].id,
     preparationName: tLocalPreparationStepList[0].preparationName,
@@ -70,14 +67,14 @@ void main() {
     id: uuid.v7(),
     preparationName: 'Dress Up',
     preparationTime: 10,
-    nextPreparationId: null, // 단일 항목이므로 다음 단계 없음
+    nextPreparationId: null,
   );
 
   final tLocalPreparationStep = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Dress Up Local',
     preparationTime: 15,
-    nextPreparationId: null, // 단일 항목이므로 다음 단계 없음
+    nextPreparationId: null,
   );
 
   final tPreparationEntity =

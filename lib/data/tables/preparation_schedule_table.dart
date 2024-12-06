@@ -9,6 +9,7 @@ class PreparationSchedules extends Table {
   IntColumn get preparationTime => integer()();
   TextColumn get nextPreparationId =>
       text().nullable().references(PreparationSchedules, #id)();
+
   @override
   Set<Column> get primaryKey => {id};
 }

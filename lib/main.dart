@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-import 'package:on_time_front/widgets/google_login_button.dart';
-import 'package:on_time_front/widgets/google_login_test.dart';
-import 'package:on_time_front/widgets/kakao_login_button.dart';
-import 'package:on_time_front/widgets/kakao_login_test.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
+import 'package:on_time_front/shared/components/tile.dart';
+import 'package:on_time_front/shared/theme/theme.dart';
 
 void main() async {
-  // 카카오톡 host 초기화
-  KakaoSdk.init(
-    nativeAppKey: '20830c4f7ddc6e7b5e0e8798b7a76d1d',
-    javaScriptAppKey: '88dfce85357afe3bc7b7acd971fd008a',
-  );
-
   runApp(const ProviderScope(child: MyApp()));
   WidgetsFlutterBinding.ensureInitialized();
 }
@@ -20,57 +12,76 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ontime',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+      theme: themeData,
+      home: Scaffold(
+        appBar: AppBar(title: const Text('ReorderableListView Sample')),
+        body: const PreparationReorderableList(),
       ),
-      home: const MyHomePage(title: 'Ontime home'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class ReorderableExample extends StatefulWidget {
+  const ReorderableExample({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<ReorderableExample> createState() => _ReorderableListViewExampleState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _ReorderableListViewExampleState extends State<ReorderableExample> {
+  final List<int> _items = List<int>.generate(50, (int index) => index);
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            GoogleLoginButton(),
-            SizedBox(
-              height: 10,
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
+    final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
+    final Color draggableItemColor = colorScheme.secondary;
+
+    Widget proxyDecorator(
+        Widget child, int index, Animation<double> animation) {
+      return AnimatedBuilder(
+        animation: animation,
+        builder: (BuildContext context, Widget? child) {
+          return SizedBox(
+            child: child,
+          );
+        },
+        child: child,
+      );
+    }
+
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      proxyDecorator: proxyDecorator,
+      itemCount: _items.length,
+      itemBuilder: (context, index) => Tile(
+          key: ValueKey<int>(_items[index]),
+          leading: const SizedBox(
+            width: 30,
+            height: 30,
+            child: CircleAvatar(
+              child: Icon(Icons.check),
             ),
-            KakaoLoginButton(),
-            SizedBox(
-              height: 10,
-            ),
-            GoogleLoginTest(),
-            SizedBox(
-              height: 10,
-            ),
-            KakaoLoginTest(),
-          ],
-        ),
-      ),
+          ),
+          style: TileStyle(
+            padding: const EdgeInsets.all(16.0),
+            margin: const EdgeInsets.only(bottom: 8.0),
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: Text('Item ${_items[index]}')),
+      onReorder: (int oldIndex, int newIndex) {
+        setState(() {
+          if (oldIndex < newIndex) {
+            newIndex -= 1;
+          }
+          final int item = _items.removeAt(oldIndex);
+          _items.insert(newIndex, item);
+        });
+      },
     );
   }
 }

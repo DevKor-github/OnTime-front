@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 
 import '/core/database/database.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
@@ -9,11 +10,12 @@ class ScheduleEntity extends Equatable {
   final PlaceEntity place;
   final String scheduleName;
   final DateTime scheduleTime;
-  final DateTime moveTime;
+  final Duration moveTime;
   final bool isChanged;
   final bool isStarted;
-  final DateTime scheduleSpareTime;
+  final Duration scheduleSpareTime;
   final String scheduleNote;
+  final int latenessTime;
 
   const ScheduleEntity({
     required this.id,
@@ -26,9 +28,13 @@ class ScheduleEntity extends Equatable {
     required this.isStarted,
     required this.scheduleSpareTime,
     required this.scheduleNote,
+    this.latenessTime = 0,
   });
 
-  static ScheduleEntity fromModel(Schedule schedule, Place place) {
+  static ScheduleEntity fromScheduleWithPlaceModel(
+      ScheduleWithPlace scheduleWithPlace) {
+    final schedule = scheduleWithPlace.schedule;
+    final place = scheduleWithPlace.place;
     return ScheduleEntity(
       id: schedule.id,
       userId: schedule.userId,
@@ -40,10 +46,11 @@ class ScheduleEntity extends Equatable {
       isStarted: schedule.isStarted,
       scheduleSpareTime: schedule.scheduleSpareTime,
       scheduleNote: schedule.scheduleNote,
+      latenessTime: schedule.latenessTime,
     );
   }
 
-  Schedule toModel() {
+  Schedule toScheduleModel() {
     return Schedule(
       id: id,
       userId: userId,
@@ -55,12 +62,20 @@ class ScheduleEntity extends Equatable {
       isStarted: isStarted,
       scheduleSpareTime: scheduleSpareTime,
       scheduleNote: scheduleNote,
+      latenessTime: latenessTime,
+    );
+  }
+
+  ScheduleWithPlace toScheduleWithPlaceModel() {
+    return ScheduleWithPlace(
+      schedule: toScheduleModel(),
+      place: place.toModel(),
     );
   }
 
   @override
   String toString() {
-    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote)';
+    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote, latenessTime: $latenessTime)';
   }
 
   @override
@@ -74,5 +89,6 @@ class ScheduleEntity extends Equatable {
         isStarted,
         scheduleSpareTime,
         scheduleNote,
+        latenessTime,
       ];
 }

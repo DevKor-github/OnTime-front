@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
-part 'preparation_user_response_model.g.dart';
+part 'get_preparation_user_response_model.g.dart';
 
 @JsonSerializable()
 class PreparationUserResponseModel {

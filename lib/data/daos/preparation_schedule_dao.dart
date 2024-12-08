@@ -46,4 +46,33 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
 
     return [PreparationEntity(preparationStepList: stepEntities)];
   }
+
+  Future<PreparationStepEntity> getPreparationStepById(
+      String preparationStepId) async {
+    final result = await (select(db.preparationSchedules)
+          ..where((tbl) => tbl.id.equals(preparationStepId)))
+        .getSingle();
+    return PreparationStepEntity(
+      id: result.id,
+      preparationName: result.preparationName,
+      preparationTime: result.preparationTime,
+      nextPreparationId: result.nextPreparationId,
+    );
+  }
+
+  Future<void> updatePreparationSchedule(
+      PreparationStepEntity stepEntity, String scheduleId) async {
+    final preparationSchedule =
+        stepEntity.toPreparationScheduleModel(scheduleId);
+
+    await (update(db.preparationSchedules)
+          ..where((tbl) => tbl.id.equals(preparationSchedule.id)))
+        .write(preparationSchedule);
+  }
+
+  Future<void> deletePreparationSchedule(String preparationId) async {
+    await (delete(db.preparationSchedules)
+          ..where((tbl) => tbl.id.equals(preparationId)))
+        .go();
+  }
 }

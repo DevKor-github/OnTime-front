@@ -42,22 +42,21 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
       );
     }
 
-    // await Future.forEach(
-    //   query,
-    //   (preparationUser) async {
-    //     final user = await (select(db.users)
-    //           ..where((tbl) => tbl.id.equals(preparationUser.userId)))
-    //         .getSingle();
-
-    //     preparationUserList.add(
-    //       PreparationEntity.fromModel(
-    //         preparationUser as PreparationSchedule,
-    //         user,
-    //       ),
-    //     );
-    //   },
-    // );
-
     return [PreparationEntity(preparationStepList: stepEntities)];
+  }
+
+  Future<void> updatePreparationUser(
+      PreparationStepEntity stepEntity, String userId) async {
+    final preparationUser = stepEntity.toPreparationUserModel(userId);
+
+    await (update(db.preparationUsers)
+          ..where((tbl) => tbl.id.equals(preparationUser.id)))
+        .write(preparationUser);
+  }
+
+  Future<void> deletePreparationUser(String preparationId) async {
+    await (delete(db.preparationUsers)
+          ..where((tbl) => tbl.id.equals(preparationId)))
+        .go();
   }
 }

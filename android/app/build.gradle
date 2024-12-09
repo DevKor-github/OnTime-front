@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.on_time_front"
+    namespace = "com.example.ontime"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

@@ -27,5 +27,7 @@ abstract interface class PreparationRepository {
 
   /// Delete preparation
   /// This is for deleting preparation
-  Future<void> deletePreparation(PreparationEntity preparationEntity);
+  /// Delete preparation and return updated preparation entity
+  Future<PreparationEntity> deletePreparation(
+      PreparationEntity preparationEntity);
 }

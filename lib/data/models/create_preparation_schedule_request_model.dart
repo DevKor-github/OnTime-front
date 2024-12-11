@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
@@ -18,16 +19,13 @@ class PreparationScheduleCreateRequestModel {
     required this.nextPreparationId,
   });
 
-  // JSON → Model 변환
   factory PreparationScheduleCreateRequestModel.fromJson(
           Map<String, dynamic> json) =>
       _$PreparationScheduleCreateRequestModelFromJson(json);
 
-  // Model → JSON 변환
   Map<String, dynamic> toJson() =>
       _$PreparationScheduleCreateRequestModelToJson(this);
 
-  // PreparationStepEntity → RequestModel 변환
   static PreparationScheduleCreateRequestModel fromEntity(
       PreparationStepEntity entity) {
     return PreparationScheduleCreateRequestModel(
@@ -60,5 +58,18 @@ extension PreparationScheduleCreateRequestModelListExtension
         .map((entity) =>
             PreparationScheduleCreateRequestModel.fromEntity(entity))
         .toList();
+  }
+}
+
+extension PreparationStepEntityListExtension on List<PreparationStepEntity> {
+  void updateLinksAfterDeletion(String deletedId) {
+    for (var i = 0; i < length; i++) {
+      if (this[i].nextPreparationId == deletedId) {
+        this[i].updateNextPreparationId(
+          firstWhereOrNull((step) => step.id == deletedId)?.nextPreparationId,
+        );
+        break;
+      }
+    }
   }
 }

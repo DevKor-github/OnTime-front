@@ -41,7 +41,12 @@ void main() {
     await appDatabase.into(appDatabase.users).insert(
           UsersCompanion(
             id: drift.Value(userId),
+            email: drift.Value('testuser@example.com'),
+            password: drift.Value('password123'),
             name: drift.Value('Test User'),
+            spareTime: drift.Value(Duration(minutes: 30).inSeconds),
+            note: drift.Value('Test Note'),
+            score: drift.Value(100),
           ),
         );
   });

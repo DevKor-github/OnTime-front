@@ -50,7 +50,10 @@ void main() {
       final result =
           await appDatabase.select(appDatabase.preparationUsers).get();
       expect(result.length, preparationEntity.preparationStepList.length);
-      expect(result.first.nextPreparationId, result[1].id); // Linked List 확인
+
+      // Linked List 검증
+      expect(result.first.nextPreparationId, result[1].id);
+      expect(result[1].nextPreparationId, isNull);
     });
   });
 
@@ -65,8 +68,11 @@ void main() {
       // Assert
       expect(result.preparationStepList.length,
           preparationEntity.preparationStepList.length);
+
+      // Linked List 검증
       expect(result.preparationStepList.first.nextPreparationId,
           result.preparationStepList[1].id);
+      expect(result.preparationStepList[1].nextPreparationId, isNull);
     });
   });
 
@@ -80,9 +86,32 @@ void main() {
 
       // Assert
       final result = await userDao.getPreparationUsersByUserId(userId);
-      expect(result.preparationStepList.length, 1); // 하나가 삭제되었는지 확인
-      expect(result.preparationStepList.first.id,
-          preparationStep2.id); // 올바르게 연결되었는지 확인
+      expect(result.preparationStepList.length, 1);
+
+      // 삭제된 첫 번째 준비 단계를 제외하고 올바르게 연결되었는지 확인
+      expect(result.preparationStepList.first.id, preparationStep2.id);
+      expect(result.preparationStepList.first.nextPreparationId, isNull);
+    });
+  });
+
+  group('updatePreparationUser', () {
+    test('should update a preparation step', () async {
+      // Arrange
+      await userDao.createPreparationUser(preparationEntity, userId);
+
+      final updatedStep = preparationStep1.copyWith(
+        preparationName: 'Updated Step 1',
+        preparationTime: 15,
+      );
+
+      // Act
+      await userDao.updatePreparationUser(updatedStep, userId);
+
+      // Assert
+      final result = await userDao.getPreparationUsersByUserId(userId);
+      expect(
+          result.preparationStepList.first.preparationName, 'Updated Step 1');
+      expect(result.preparationStepList.first.preparationTime, 15);
     });
   });
 }

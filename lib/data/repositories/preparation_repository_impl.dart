@@ -44,12 +44,14 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }
 
   @override
-  Future<void> deletePreparation(PreparationEntity preparationEntity) async {
+  Future<PreparationEntity> deletePreparation(
+      PreparationEntity preparationEntity) async {
     try {
-      await preparationRemoteDataSource.deletePreparation(preparationEntity);
-      await preparationLocalDataSource.deletePreparation(preparationEntity);
+      final updatedPreparation =
+          await preparationLocalDataSource.deletePreparation(preparationEntity);
+      return updatedPreparation;
     } catch (e) {
-      rethrow;
+      throw Exception('Failed to delete preparation: $e');
     }
   }
 

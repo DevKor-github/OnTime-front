@@ -1,4 +1,6 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
@@ -17,47 +19,113 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> createPreparationUser(
       PreparationEntity preparationEntity, String userId) async {
+    String? previousStepId;
+
     for (var step in preparationEntity.preparationStepList) {
-      await into(db.preparationUsers).insert(
+      final insertedStep = await into(db.preparationUsers).insertReturning(
         step.toPreparationUserModel(userId).toCompanion(false),
       );
+
+      if (previousStepId != null) {
+        await (update(db.preparationUsers)
+              ..where((tbl) => tbl.id.equals(previousStepId!)))
+            .write(
+          PreparationUsersCompanion(nextPreparationId: Value(insertedStep.id)),
+        );
+      }
+
+      previousStepId = insertedStep.id;
     }
   }
 
-  Future<List<PreparationEntity>> getPreparationUsersByUserId(
-      String userId) async {
-    final List<PreparationUser> query = await (select(db.preparationUsers)
+  Future<PreparationEntity> getPreparationUsersByUserId(String userId) async {
+    final allSteps = await (select(db.preparationUsers)
           ..where((tbl) => tbl.userId.equals(userId)))
         .get();
-    final List<PreparationStepEntity> stepEntities = [];
 
-    for (var preparationUser in query) {
-      stepEntities.add(
+    if (allSteps.isEmpty) {
+      return PreparationEntity(preparationStepList: []);
+    }
+
+    final firstStep = allSteps.firstWhere(
+      (step) => allSteps.every((other) => other.nextPreparationId != step.id),
+      orElse: () => allSteps.first,
+    );
+
+    final List<PreparationStepEntity> orderedSteps = [];
+    PreparationUser? currentStep = firstStep;
+
+    while (currentStep != null) {
+      orderedSteps.add(
         PreparationStepEntity(
-          id: preparationUser.id,
-          preparationName: preparationUser.preparationName,
-          preparationTime: preparationUser.preparationTime,
-          nextPreparationId: preparationUser.nextPreparationId,
+          id: currentStep.id,
+          preparationName: currentStep.preparationName,
+          preparationTime: currentStep.preparationTime,
+          nextPreparationId: currentStep.nextPreparationId,
         ),
+      );
+      currentStep = allSteps.firstWhereOrNull(
+        (step) => step.id == currentStep!.nextPreparationId,
       );
     }
 
-    // await Future.forEach(
-    //   query,
-    //   (preparationUser) async {
-    //     final user = await (select(db.users)
-    //           ..where((tbl) => tbl.id.equals(preparationUser.userId)))
-    //         .getSingle();
+    return PreparationEntity(preparationStepList: orderedSteps);
+  }
 
-    //     preparationUserList.add(
-    //       PreparationEntity.fromModel(
-    //         preparationUser as PreparationSchedule,
-    //         user,
-    //       ),
-    //     );
-    //   },
-    // );
+  Future<PreparationStepEntity> getPreparationStepById(
+      String preparationStepId) async {
+    final result = await (select(db.preparationUsers)
+          ..where((tbl) => tbl.id.equals(preparationStepId)))
+        .getSingleOrNull();
 
-    return [PreparationEntity(preparationStepList: stepEntities)];
+    if (result == null) {
+      throw Exception("Preparation step not found");
+    }
+
+    return PreparationStepEntity(
+      id: result.id,
+      preparationName: result.preparationName,
+      preparationTime: result.preparationTime,
+      nextPreparationId: result.nextPreparationId,
+    );
+  }
+
+  Future<void> updatePreparationUser(
+      PreparationStepEntity stepEntity, String userId) async {
+    await (update(db.preparationUsers)
+          ..where((tbl) => tbl.id.equals(stepEntity.id)))
+        .write(
+      PreparationUsersCompanion(
+        preparationName: Value(stepEntity.preparationName),
+        preparationTime: Value(stepEntity.preparationTime),
+      ),
+    );
+  }
+
+  Future<PreparationEntity> deletePreparationUser(String preparationId) async {
+    final preparationToDelete = await (select(db.preparationUsers)
+          ..where((tbl) => tbl.id.equals(preparationId)))
+        .getSingle();
+
+    await (update(db.preparationUsers)
+          ..where((tbl) => tbl.nextPreparationId.equals(preparationId)))
+        .write(
+      PreparationUsersCompanion(
+        nextPreparationId: Value(preparationToDelete.nextPreparationId),
+      ),
+    );
+
+    await (delete(db.preparationUsers)
+          ..where((tbl) => tbl.id.equals(preparationId)))
+        .go();
+
+    return await getPreparationUsersByUserId(preparationToDelete.userId);
+  }
+
+  Future<PreparationEntity> getPreparationUsersByUserIdAfterDeletion(
+      String userId, String deletedId) async {
+    final steps = await getPreparationUsersByUserId(userId);
+    steps.preparationStepList.updateLinksAfterDeletion(deletedId);
+    return steps;
   }
 }

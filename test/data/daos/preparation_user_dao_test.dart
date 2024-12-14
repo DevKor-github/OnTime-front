@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
@@ -12,6 +13,7 @@ void main() {
 
   final uuid = Uuid();
   final userId = uuid.v7();
+  final placeId = uuid.v7();
 
   final preparationStep1 = PreparationStepEntity(
     id: uuid.v7(),
@@ -31,9 +33,43 @@ void main() {
     preparationStepList: [preparationStep1, preparationStep2],
   );
 
-  setUp(() {
+  setUp(() async {
     appDatabase = AppDatabase.forTesting(NativeDatabase.memory());
+    await appDatabase.customStatement('PRAGMA foreign_keys = ON');
     userDao = PreparationUserDao(appDatabase);
+
+    // `Users` 테이블에 데이터 삽입
+    await appDatabase.into(appDatabase.users).insert(
+          UsersCompanion(
+            id: drift.Value(userId),
+            name: drift.Value('Test User'),
+          ),
+        );
+
+    // `Places` 테이블에 데이터 삽입
+    await appDatabase.into(appDatabase.places).insert(
+          PlacesCompanion(
+            id: drift.Value(placeId),
+            placeName: drift.Value('Test Place'),
+          ),
+        );
+
+    // `Schedules` 테이블에 필수 데이터 삽입
+    await appDatabase.into(appDatabase.schedules).insert(
+          SchedulesCompanion(
+            id: drift.Value(uuid.v7()),
+            userId: drift.Value(userId),
+            placeId: drift.Value(placeId),
+            scheduleName: drift.Value('Test Schedule'),
+            scheduleTime: drift.Value(DateTime.now()),
+            moveTime: drift.Value(Duration(minutes: 10)),
+            isChanged: drift.Value(false),
+            isStarted: drift.Value(false),
+            scheduleSpareTime: drift.Value(Duration(minutes: 5)),
+            scheduleNote: drift.Value('Test Note'),
+            latenessTime: drift.Value(0),
+          ),
+        );
   });
 
   tearDown(() async {

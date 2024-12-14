@@ -4,13 +4,13 @@ class PreparationStepEntity {
   final String id;
   final String preparationName;
   final int preparationTime;
-  final String? nextPreparationId;
+  String? nextPreparationId;
 
   PreparationStepEntity({
     required this.id,
     required this.preparationName,
     required this.preparationTime,
-    required this.nextPreparationId,
+    this.nextPreparationId,
   });
 
   PreparationUser toPreparationUserModel(String userId) {
@@ -33,8 +33,26 @@ class PreparationStepEntity {
     );
   }
 
+  void updateNextPreparationId(String? newNextId) {
+    nextPreparationId = newNextId;
+  }
+
   @override
   String toString() {
     return 'PreparationStepEntity(id: $id, preparationName: $preparationName, preparationTime: $preparationTime, nextPreparationId: $nextPreparationId)';
+  }
+
+  PreparationStepEntity copyWith({
+    String? id,
+    String? preparationName,
+    int? preparationTime,
+    String? nextPreparationId,
+  }) {
+    return PreparationStepEntity(
+      id: id ?? this.id,
+      preparationName: preparationName ?? this.preparationName,
+      preparationTime: preparationTime ?? this.preparationTime,
+      nextPreparationId: nextPreparationId ?? this.nextPreparationId,
+    );
   }
 }

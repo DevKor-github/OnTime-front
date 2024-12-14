@@ -47,6 +47,8 @@ dependencies:
   equatable: ^2.0.5
   collection: ^1.18.0
   uuid: ^4.5.1
+  flutter_svg: ^2.0.14
+
 
   google_sign_in: ^6.2.2
   kakao_flutter_sdk_user: ^1.9.6
@@ -57,7 +59,6 @@ dependencies:
   kakao_flutter_sdk: ^1.9.6
   flutter_appauth: ^8.0.1
 
-  flutter_svg: ^2.0.14
   sqlite3_flutter_libs: ^0.5.27
 
 

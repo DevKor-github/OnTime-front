@@ -60,6 +60,7 @@ dependencies:
   flutter_appauth: ^8.0.1
 
   sqlite3_flutter_libs: ^0.5.27
+  dotted_border: ^2.1.0
 
 
 dev_dependencies:
@@ -96,6 +97,7 @@ flutter:
 
   assets:
     - assets/check.svg
+    - lib/test_data/t_schedule_data.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

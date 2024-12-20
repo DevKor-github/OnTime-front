@@ -19,7 +19,7 @@ class ScheduleStart extends StatelessWidget {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 110),
+            padding: const EdgeInsets.only(top: 90),
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -49,6 +49,14 @@ class ScheduleStart extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Image.asset(
+                      'lib/images/ontime_mascot.png',
+                      width: 204,
+                      height: 269,
+                    ),
+                  )
                 ],
               ),
             ),

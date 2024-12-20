@@ -3,8 +3,8 @@
         {
             "scheduleId": "3fa85f64-5717-4562-b3fc-2c963f66afe5",
             "placeId": "70d460da-6a82-4c57-a285-567cdeda5670",
-            "placeName": "데이트",
-            "scheduleName": "강남역 3번 출구",
+            "placeName": "강남역 3번 출구",
+            "scheduleName": "데이트",
             "moveTime": "01:00:00",
             "scheduleTime": "2024-06-01T09:00:00",
             "scheduleSpareTime": 20,

@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_select_list.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -18,24 +17,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   PreparationFormData preparationFormData = PreparationFormData();
   int _currentPageIndex = 0;
   final int _numberOfPages = 3;
-
-  List<PreparationStepWithSelection> preparationStepList = [
-    PreparationStepWithSelection(
-      id: '1',
-      preparationName: 'Preparation 1',
-      isSelected: false,
-    ),
-    PreparationStepWithSelection(
-      id: '2',
-      preparationName: 'Preparation 2',
-      isSelected: false,
-    ),
-    PreparationStepWithSelection(
-      id: '3',
-      preparationName: 'Preparation 3',
-      isSelected: false,
-    ),
-  ];
 
   @override
   void initState() {
@@ -72,78 +53,53 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 controller: _pageViewController,
                 onPageChanged: _handlePageViewChanged,
                 children: <Widget>[
-                  Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 27.0),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Text(
-                              '주로 하는 준비 과정을\n선택해주세요',
-                              style: textTheme.titleLarge,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Form(
-                          key: formKeys[0],
-                          child: FormField<List<PreparationStepWithNameAndId>>(
-                            key: const Key('field'),
-                            initialValue:
-                                preparationFormData.preparationStepList
-                                    .map((e) => PreparationStepWithNameAndId(
-                                          id: e.id,
-                                          preparationName: e.preparationName,
-                                        ))
-                                    .toList(),
-                            onSaved: (newValue) {
-                              setState(() {
-                                preparationFormData =
-                                    preparationFormData.copyWith(
-                                        preparationStepList: newValue!
-                                            .map((e) => PreparationStepFormData(
-                                                  id: e.id,
-                                                  preparationName:
-                                                      e.preparationName,
-                                                ))
-                                            .toList());
-                              });
-                            },
-                            builder: (field) => PreparationSelectList(
-                              preparationList: preparationStepList,
-                              onSelectedStepChanged:
-                                  (preparationStepWithSelection) {
-                                field.didChange(preparationStepWithSelection
-                                    .where((element) => element.isSelected)
-                                    .map((e) {
-                                  return PreparationStepWithNameAndId(
-                                    id: e.id,
-                                    preparationName: e.preparationName,
-                                  );
-                                }).toList());
-                                setState(() {
-                                  preparationStepList =
-                                      preparationStepWithSelection;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  PreparationSelectField(
+                    formKey: formKeys[0],
+                    initailValue: preparationFormData
+                        .toPreparationStepWithNameAndIdList(),
+                    onSaved: (value) {
+                      final PreparationFormData tmp =
+                          PreparationFormData(preparationStepList: []);
+                      int j = 0;
+                      for (int i = 0; i < value.length; i++) {
+                        while (j <
+                                preparationFormData
+                                    .preparationStepList.length &&
+                            preparationFormData.preparationStepList[j].id !=
+                                value[i].id) {
+                          j++;
+                        }
+                        if (j ==
+                            preparationFormData.preparationStepList.length) {
+                          tmp.preparationStepList.add(PreparationStepFormData(
+                              id: value[i].id,
+                              preparationName: value[i].preparationName));
+                          continue;
+                        }
+                        tmp.preparationStepList.add(
+                            preparationFormData.preparationStepList[j].copyWith(
+                                preparationName: value[i].preparationName));
+                      }
+                      setState(() {
+                        preparationFormData = tmp;
+                      });
+                    },
                   ),
-                  Center(
-                    child: ListView.builder(
-                        itemCount:
-                            preparationFormData.preparationStepList.length,
-                        itemBuilder: (context, index) {
-                          return Text(
-                              '${preparationFormData.preparationStepList[index].preparationName}');
-                        }),
-                  ),
+                  PreparationReorderField(
+                      formKey: formKeys[1],
+                      initalValue: preparationFormData
+                          .toPreparationStepWithOriginalIndexList(),
+                      onSaved: (value) {
+                        setState(() {
+                          for (int i = 0; i < value.length; i++) {
+                            preparationFormData.preparationStepList[
+                                    value[i].originalIndex] =
+                                preparationFormData
+                                    .preparationStepList[value[i].originalIndex]
+                                    .copyWith(order: i);
+                          }
+                        });
+                      }),
                   Center(
                     child: TextFormField(
                       onChanged: (value) {
@@ -188,6 +144,41 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       curve: Curves.easeInOut,
     );
   }
+
+  // void _onReorderPreparationStep(int oldIndex, int newIndex) {
+  //   final List<PreparationStepFormData> preparationStepList =
+  //       preparationFormData.preparationStepList;
+  //   setState(() {
+  //     final preparationStep = preparationStepList[oldIndex];
+  //     final int previousOfOldIndex = preparationStep.previousPreparationIndex;
+  //     final int nextOfOldIndex = preparationStep.nextPreparationIndex;
+  //     if (previousOfOldIndex != -1) {
+  //       preparationStepList[previousOfOldIndex] =
+  //           preparationStepList[previousOfOldIndex]
+  //               .copyWith(nextPreparationIndex: nextOfOldIndex);
+  //     }
+  //     if (nextOfOldIndex != -1) {
+  //       preparationStepList[nextOfOldIndex] =
+  //           preparationStepList[nextOfOldIndex]
+  //               .copyWith(previousPreparationIndex: previousOfOldIndex);
+  //     }
+
+  //     final int previousOfNewIndex =
+  //         preparationStepList[newIndex].previousPreparationIndex;
+  //     final int nextOfNewIndex =
+  //         preparationStepList[newIndex].nextPreparationIndex;
+  //     if (previousOfNewIndex != -1) {
+  //       preparationStepList[previousOfNewIndex] =
+  //           preparationStepList[previousOfNewIndex]
+  //               .copyWith(nextPreparationIndex: oldIndex);
+  //     }
+  //     if (nextOfNewIndex != -1) {
+  //       preparationStepList[nextOfNewIndex] =
+  //           preparationStepList[nextOfNewIndex]
+  //               .copyWith(previousPreparationIndex: oldIndex);
+  //     }
+  //   });
+  // }
 }
 
 class PageIndicator extends StatelessWidget {
@@ -260,18 +251,73 @@ class PreparationFormData {
       preparationStepList: preparationStepList ?? this.preparationStepList,
     );
   }
+
+  PreparationFormData sortByOrder() {
+    final List<PreparationStepFormData> sortedList =
+        List.from(preparationStepList)
+          ..sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
+    return copyWith(preparationStepList: sortedList);
+  }
+
+  List<PreparationStepWithNameAndId> toPreparationStepWithNameAndIdList() {
+    return preparationStepList
+        .map((e) => e.toPreparationStepWithNameAndId())
+        .toList();
+  }
+
+  List<PreparationStepWithOriginalIndex>
+      toPreparationStepWithOriginalIndexList() {
+    List<_PreparationStepWithOriginalIndexAndOrder> tmp = preparationStepList
+        .mapWithIndex((e, index) => _PreparationStepWithOriginalIndexAndOrder(
+              preparationStep: PreparationStepWithOriginalIndex(
+                  preparationStep: e.toPreparationStepWithNameAndId(),
+                  originalIndex: index),
+              order: e.order ?? index,
+            ));
+    tmp.sort((a, b) => (a.order).compareTo(b.order));
+    return tmp.map((e) => e.preparationStep).toList();
+  }
+}
+
+class _PreparationStepWithOriginalIndexAndOrder {
+  const _PreparationStepWithOriginalIndexAndOrder({
+    required this.preparationStep,
+    required this.order,
+  });
+
+  final PreparationStepWithOriginalIndex preparationStep;
+  final int order;
 }
 
 class PreparationStepFormData {
-  PreparationStepFormData(
-      {required this.id,
-      required this.preparationName,
-      this.preparationTime,
-      this.nextPreparationId});
+  PreparationStepFormData({
+    required this.id,
+    required this.preparationName,
+    this.preparationTime,
+    this.order,
+  });
+
   final String id;
   final String preparationName;
   final int? preparationTime;
-  final String? nextPreparationId;
+  final int? order;
+
+  PreparationStepWithNameAndId toPreparationStepWithNameAndId() {
+    return PreparationStepWithNameAndId(
+      id: id,
+      preparationName: preparationName,
+    );
+  }
+
+  PreparationStepFormData copyWith(
+      {String? id, String? preparationName, int? preparationTime, int? order}) {
+    return PreparationStepFormData(
+      id: id ?? this.id,
+      preparationName: preparationName ?? this.preparationName,
+      preparationTime: preparationTime ?? this.preparationTime,
+      order: order ?? this.order,
+    );
+  }
 }
 
 class CustomFormField<T> extends FormField<T> {
@@ -289,4 +335,25 @@ class CustomFormField<T> extends FormField<T> {
             );
           },
         );
+}
+
+extension MapWithIndex<T> on List<T> {
+  List<R> mapWithIndex<R>(R Function(T, int i) callback) {
+    List<R> result = [];
+    for (int i = 0; i < length; i++) {
+      R item = callback(this[i], i);
+      result.add(item);
+    }
+    return result;
+  }
+}
+
+class PreparationStepWithNameAndId {
+  PreparationStepWithNameAndId({
+    required this.id,
+    required this.preparationName,
+  });
+
+  final String id;
+  final String preparationName;
 }

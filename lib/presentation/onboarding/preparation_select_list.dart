@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/presentation/onboarding/onboarding_page_view_layout.dart';
+import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 import 'package:on_time_front/shared/components/check_button.dart';
 import 'package:on_time_front/shared/components/tile.dart';
-import 'package:on_time_front/shared/theme/theme.dart';
 import 'package:uuid/uuid.dart';
 
 typedef OnSelectedStepChangedCallBackFunction<T> = void Function(List<T>);
@@ -47,7 +48,8 @@ class _PreparationSelectListState extends State<PreparationSelectList> {
     widget.onSelectedStepChanged(widget.preparationList);
   }
 
-  List<Widget> _listViewChildren() {
+  List<Widget> _listViewChildren(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     List<Widget> children = [];
     for (var i = 0; i < widget.preparationList.length; i++) {
       PreparationStepWithSelection step = widget.preparationList[i];
@@ -161,7 +163,7 @@ class _PreparationSelectListState extends State<PreparationSelectList> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      children: _listViewChildren(),
+      children: _listViewChildren(context),
     );
   }
 }
@@ -241,46 +243,92 @@ class PreparationStepWithSelection {
   bool isSelected;
 }
 
-class PreparationStepWithNameAndId {
-  PreparationStepWithNameAndId({
-    required this.id,
-    required this.preparationName,
-  });
-
-  final String id;
-  final String preparationName;
-}
-
-class PreparationSelectListField extends StatefulWidget {
-  const PreparationSelectListField(
+class PreparationSelectField extends StatefulWidget {
+  const PreparationSelectField(
       {super.key,
-      required this.onSelectedStepChanged,
-      required this.preparationList});
+      required this.formKey,
+      required this.initailValue,
+      this.onSaved});
 
-  final List<PreparationStepWithSelection> preparationList;
+  final GlobalKey<FormState> formKey;
 
-  final OnSelectedStepChangedCallBackFunction<PreparationStepWithNameAndId>
-      onSelectedStepChanged;
+  final List<PreparationStepWithNameAndId> initailValue;
+
+  final Function(List<PreparationStepWithNameAndId>)? onSaved;
 
   @override
-  State<PreparationSelectListField> createState() =>
-      _PreparationSelectListFieldState();
+  State<PreparationSelectField> createState() => _PreparationSelectFieldState();
 }
 
-class _PreparationSelectListFieldState
-    extends State<PreparationSelectListField> {
+class _PreparationSelectFieldState extends State<PreparationSelectField> {
+  List<PreparationStepWithSelection> preparationStepSelectingList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initailValue.isEmpty) {
+      preparationStepSelectingList = [
+        PreparationStepWithSelection(
+          id: Uuid().v4(),
+          preparationName: 'Preparation 1',
+          isSelected: false,
+        ),
+        PreparationStepWithSelection(
+          id: Uuid().v4(),
+          preparationName: 'Preparation 2',
+          isSelected: false,
+        ),
+        PreparationStepWithSelection(
+          id: Uuid().v4(),
+          preparationName: 'Preparation 3',
+          isSelected: false,
+        ),
+      ];
+    } else {
+      preparationStepSelectingList.addAll(
+        widget.initailValue.map((e) {
+          return PreparationStepWithSelection(
+            id: e.id,
+            preparationName: e.preparationName,
+            isSelected: true,
+          );
+        }),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return PreparationSelectList(
-        preparationList: widget.preparationList,
-        onSelectedStepChanged: (value) {
-          widget.onSelectedStepChanged(value
-              .where((element) => element.isSelected)
-              .map((e) => PreparationStepWithNameAndId(
-                    id: e.id,
-                    preparationName: e.preparationName,
-                  ))
-              .toList());
-        });
+    final textTheme = Theme.of(context).textTheme;
+    return OnboardingPageViewLayout(
+      title: Text(
+        '주로 하는 준비 과정을\n선택해주세요',
+        style: textTheme.titleLarge,
+      ),
+      form: Form(
+        key: widget.formKey,
+        child: FormField<List<PreparationStepWithSelection>>(
+          initialValue: preparationStepSelectingList,
+          onSaved: (value) {
+            widget.onSaved
+                ?.call(value!.where((element) => element.isSelected).map((e) {
+              return PreparationStepWithNameAndId(
+                id: e.id,
+                preparationName: e.preparationName,
+              );
+            }).toList());
+          },
+          builder: (field) => PreparationSelectList(
+            preparationList: preparationStepSelectingList,
+            onSelectedStepChanged: (value) {
+              field.didChange(value);
+              setState(() {
+                preparationStepSelectingList = value;
+              });
+            },
+          ),
+        ),
+      ),
+    );
   }
 }

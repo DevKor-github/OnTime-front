@@ -1,17 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/shared/components/tile.dart';
+import 'package:on_time_front/shared/theme/tile_style.dart';
 
 ColorScheme colorScheme = const ColorScheme(
-    primary: Color.fromARGB(255, 92, 121, 251),
     brightness: Brightness.light,
-    error: Colors.red,
-    onError: Colors.white,
-    onPrimary: Color.fromARGB(255, 3, 0, 0),
+    primary: Color(0xFF5C79FB),
+    onPrimary: Colors.white,
+    primaryContainer: Color(0xFFDCE3FF),
+    onPrimaryContainer: Color(0xFF212F6F),
+    secondary: Color(0xFF00C575),
     onSecondary: Colors.white,
-    onSurface: Color.fromARGB(255, 0, 0, 0),
-    secondary: Color.fromARGB(0xff, 0x20, 0xB7, 0x67),
-    surface: Color.fromARGB(255, 247, 247, 247),
-    surfaceContainer: Color.fromARGB(255, 240, 240, 240));
+    secondaryContainer: Color(0xFFE2FFF4),
+    onSecondaryContainer: Color(0xFF00480E),
+    tertiary: Color(0xFFFFD956),
+    onTertiary: Colors.white,
+    tertiaryContainer: Color(0xFFFFFAEC),
+    onTertiaryContainer: Color(0xFF604E10),
+    error: Color(0xFFFF6953),
+    onError: Colors.white,
+    errorContainer: Color(0xFFFFEAE7),
+    onErrorContainer: Color(0xFF691E14),
+    surfaceDim: Color(0xFFAFB1B9),
+    surface: Colors.white,
+    surfaceBright: Colors.white,
+    surfaceContainerLowest: Colors.white,
+    surfaceContainerLow: Color(0xFFF0F0F0),
+    surfaceContainer: Color(0xFFE8E8E8),
+    surfaceContainerHigh: Color(0xFFC8C8C8),
+    surfaceContainerHighest: Color(0xFFB7B7B7),
+    onSurface: Color(0xFF111111),
+    outline: Color(0xFF777777),
+    outlineVariant: Color(0xFFB7B7B7));
+
+TextTheme textTheme = TextTheme();
 
 ThemeData themeData = ThemeData(
     colorScheme: colorScheme,
@@ -19,10 +40,20 @@ ThemeData themeData = ThemeData(
     textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
             backgroundColor: WidgetStatePropertyAll(colorScheme.primary))),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ButtonStyle(
+      backgroundColor: WidgetStatePropertyAll(colorScheme.primary),
+      foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
+      textStyle: WidgetStatePropertyAll(textTheme.titleMedium),
+      maximumSize: WidgetStatePropertyAll(const Size(double.infinity, 50)),
+      shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+    )),
     extensions: <ThemeExtension<dynamic>>[
       TileStyle(
-        backgroundColor: colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(16),
-        padding: const EdgeInsets.all(16),
+        backgroundColor: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(100),
+        maximumSize: const Size(double.infinity, 100),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
       ),
     ]);

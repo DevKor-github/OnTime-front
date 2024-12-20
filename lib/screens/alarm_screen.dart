@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/screens/preparation_done.dart';
 import 'package:on_time_front/widgets/arc_painter.dart';
 import 'package:on_time_front/widgets/arc_painter_proto.dart';
+import 'package:on_time_front/widgets/arc_painter_test.dart';
 import 'package:on_time_front/widgets/button.dart';
 import 'package:on_time_front/widgets/preparation_step_list.dart';
 
@@ -251,11 +252,15 @@ class _AlarmScreenState extends State<AlarmScreen>
                 // 타이머 그래프
                 CustomPaint(
                   size: const Size(200, 100), // 호의 크기 조정
-                  painter: ArcPainterProto(
-                    progress: currentProgress,
-                    preparationRatios: preparationRatios,
-                    preparationCompleted: preparationCompleted,
-                  ),
+                  // painter: ArcPainterProto(
+                  //   progress: currentProgress,
+                  //   preparationRatios: preparationRatios,
+                  //   preparationCompleted: preparationCompleted,
+                  // ),
+                  painter: ArcPainterTest(
+                      progress: currentProgress,
+                      preparationRatios: preparationRatios,
+                      currentIndex: currentIndex),
                 ),
                 const SizedBox(
                   height: 15,

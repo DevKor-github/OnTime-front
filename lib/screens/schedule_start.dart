@@ -58,7 +58,7 @@ class ScheduleStart extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 30),
             child: Button(
-              text: '시작하기',
+              text: '준비 시작',
               onPressed: () {
                 Navigator.push(
                   context,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
 import 'package:on_time_front/shared/components/tile.dart';
 import 'package:on_time_front/shared/theme/theme.dart';
@@ -17,8 +18,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: themeData,
       home: Scaffold(
-        appBar: AppBar(title: const Text('ReorderableListView Sample')),
-        body: const PreparationReorderableList(),
+        resizeToAvoidBottomInset: false,
+        body: OnboardingScreen(),
       ),
     );
   }
@@ -37,9 +38,6 @@ class _ReorderableListViewExampleState extends State<ReorderableExample> {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
-    final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
-    final Color draggableItemColor = colorScheme.secondary;
 
     Widget proxyDecorator(
         Widget child, int index, Animation<double> animation) {
@@ -66,11 +64,6 @@ class _ReorderableListViewExampleState extends State<ReorderableExample> {
             child: CircleAvatar(
               child: Icon(Icons.check),
             ),
-          ),
-          style: TileStyle(
-            padding: const EdgeInsets.all(16.0),
-            margin: const EdgeInsets.only(bottom: 8.0),
-            borderRadius: BorderRadius.circular(32),
           ),
           child: Text('Item ${_items[index]}')),
       onReorder: (int oldIndex, int newIndex) {

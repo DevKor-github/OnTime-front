@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/shared/components/Tile.dart';
-import 'package:on_time_front/shared/theme/theme.dart';
+import 'package:on_time_front/shared/components/check_button.dart';
+import 'package:on_time_front/shared/components/tile.dart';
+import 'package:on_time_front/shared/theme/tile_style.dart';
 
 class PreparationReorderableList extends StatefulWidget {
   const PreparationReorderableList({super.key});
@@ -31,24 +32,24 @@ class _ReoderableListingState extends State<PreparationReorderableList> {
       padding: const EdgeInsets.symmetric(horizontal: 40),
       proxyDecorator: proxyDecorator,
       itemCount: _items.length,
-      itemBuilder: (context, index) => Tile(
-          key: ValueKey<int>(_items[index]),
-          leading: const SizedBox(
-            width: 30,
-            height: 30,
-            child: CircleAvatar(
-              child: Icon(Icons.check),
-            ),
-          ),
-          style: TileStyle(
-            padding: const EdgeInsets.all(16.0),
-            margin: const EdgeInsets.only(bottom: 8.0),
-            borderRadius: BorderRadius.circular(32),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 19.0),
-            child: Text('Item ${_items[index]}'),
-          )),
+      itemBuilder: (context, index) => Padding(
+        key: ValueKey<int>(_items[index]),
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: Tile(
+            key: ValueKey<int>(_items[index]),
+            style: TileStyle(backgroundColor: Color(0xFFE6E9F9)),
+            leading: SizedBox(
+                width: 30,
+                height: 30,
+                child: CheckButton(
+                  isChecked: true,
+                  onPressed: () {},
+                )),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 19),
+              child: Text('Tile'),
+            )),
+      ),
       onReorder: (int oldIndex, int newIndex) {
         setState(() {
           if (oldIndex < newIndex) {

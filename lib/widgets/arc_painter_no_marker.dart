@@ -1,13 +1,11 @@
-import 'dart:math';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
-class ArcPainterProto extends CustomPainter {
+class ArcPainterNoMarker extends CustomPainter {
   final double progress; // 전체 진행률
   final List<double> preparationRatios; // 준비 과정별 비율
   final List<bool> preparationCompleted; // 준비 과정 완료 여부
 
-  ArcPainterProto({
+  ArcPainterNoMarker({
     required this.progress,
     required this.preparationRatios,
     required this.preparationCompleted,
@@ -32,11 +30,6 @@ class ArcPainterProto extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    // 준비과정 마커
-    final Paint markerPaint = Paint()
-      ..strokeWidth = 15
-      ..style = PaintingStyle.fill;
-
     final rect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height),
       width: size.width,
@@ -60,25 +53,6 @@ class ArcPainterProto extends CustomPainter {
       false,
       progressPaint,
     );
-
-    // 마커 표시
-
-    for (int i = 0; i < preparationRatios.length; i++) {
-      final double markerRatio = startAngle + preparationRatios[i];
-      final double angle = startAngle + (sweepAngle * markerRatio);
-
-      final Offset markerPosition = Offset(
-        size.width / 2 + (size.width / 2) * -cos(angle),
-        size.height - (size.height - 2.5) * sin(angle),
-      );
-
-      markerPaint.color = preparationCompleted[i]
-          ? const Color(0xff5C79FB) // 완료된 경우
-          : const Color(0xffB0C4FB); // 완료되지 않은 경우
-
-      // 마커 원 그리기
-      canvas.drawCircle(markerPosition, 11, markerPaint);
-    }
   }
 
   @override

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/widgets/button.dart';
-import 'package:on_time_front/widgets/preparation_step.dart';
 import 'alarm_screen.dart';
 
 class ScheduleStart extends StatelessWidget {

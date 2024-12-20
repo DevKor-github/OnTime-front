@@ -2,7 +2,7 @@ import 'dart:async'; // 타이머를 위한 패키지
 import 'package:flutter/material.dart';
 import 'package:on_time_front/screens/preparation_done.dart';
 import 'package:on_time_front/widgets/arc_painter.dart';
-import 'package:on_time_front/widgets/arc_painter_proto.dart';
+import 'package:on_time_front/widgets/arc_painter_no_marker.dart';
 import 'package:on_time_front/widgets/arc_painter_test.dart';
 import 'package:on_time_front/widgets/button.dart';
 import 'package:on_time_front/widgets/preparation_step_list.dart';
@@ -186,10 +186,16 @@ class _AlarmScreenState extends State<AlarmScreen>
 
   // 준비과정 남은 시간 표시
   String formatTime(int seconds) {
-    final int minutes = seconds ~/ 60;
+    final int hours = seconds ~/ 3600;
+    final int minutes = (seconds % 3600) ~/ 60;
     final int remainingSeconds = seconds % 60;
-    if (minutes > 0) {
-      return '$minutes분 $remainingSeconds초';
+
+    if (hours > 0) {
+      return minutes > 0 ? '$hours시간 $minutes분' : '$hours시간';
+    } else if (minutes > 0) {
+      return remainingSeconds > 0
+          ? '$minutes분 $remainingSeconds초'
+          : '$minutes분';
     } else {
       return '$remainingSeconds초';
     }
@@ -225,7 +231,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               child: Column(
                 children: [
                   Text(
-                    formatTime(totalRemainingTime), // 총 준비 시간 표시
+                    '${formatTime(totalPreparationTime)} 뒤에', // 총 준비 시간 표시
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -252,15 +258,16 @@ class _AlarmScreenState extends State<AlarmScreen>
                 // 타이머 그래프
                 CustomPaint(
                   size: const Size(200, 100), // 호의 크기 조정
-                  // painter: ArcPainterProto(
+                  painter: ArcPainterNoMarker(
+                    progress: currentProgress,
+                    preparationRatios: preparationRatios,
+                    preparationCompleted: preparationCompleted,
+                  ),
+                  // painter: ArcPainterTest(
                   //   progress: currentProgress,
                   //   preparationRatios: preparationRatios,
-                  //   preparationCompleted: preparationCompleted,
+                  //   currentIndex: currentIndex,
                   // ),
-                  painter: ArcPainterTest(
-                      progress: currentProgress,
-                      preparationRatios: preparationRatios,
-                      currentIndex: currentIndex),
                 ),
                 const SizedBox(
                   height: 15,

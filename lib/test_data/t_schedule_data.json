@@ -51,13 +51,13 @@
                 {
                     "preparationId": "223e4567-e89b-12d3-a456-426614174102",
                     "preparationName": "옷 갈아입기",
-                    "preparationTime": 1,
+                    "preparationTime": 5,
                     "nextPreparationId": "223e4567-e89b-12d3-a456-426614174103"
                 },
                 {
                     "preparationId": "223e4567-e89b-12d3-a456-426614174103",
                     "preparationName": "짐 챙기기",
-                    "preparationTime": 1,
+                    "preparationTime": 3,
                     "nextPreparationId": null
                 }
             ]

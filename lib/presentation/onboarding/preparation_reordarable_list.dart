@@ -57,9 +57,8 @@ class PreparationReorderableList extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 8.0),
         child: Tile(
           style: TileStyle(
-              backgroundColor: Color(0xFFE6E9F9),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 36, vertical: 20.0)),
+            backgroundColor: Color(0xFFE6E9F9),
+          ),
           trailing: ReorderableDragStartListener(
             index: index,
             child: dragIndicatorSvg,

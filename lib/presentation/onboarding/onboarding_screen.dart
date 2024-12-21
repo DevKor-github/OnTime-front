@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_select_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time_input_list.dart';
+import 'package:on_time_front/presentation/onboarding/schedule_spare_time_input.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -15,15 +17,16 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   late TabController _tabController;
   late List<GlobalKey<FormState>> formKeys;
   PreparationFormData preparationFormData = PreparationFormData();
+  Duration spareTime = const Duration(minutes: 0);
   int _currentPageIndex = 0;
-  final int _numberOfPages = 3;
+  final int _numberOfPages = 4;
 
   @override
   void initState() {
     super.initState();
     formKeys = List.generate(_numberOfPages, (index) => GlobalKey<FormState>());
     _pageViewController = PageController();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: _numberOfPages, vsync: this);
   }
 
   @override
@@ -48,8 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             ),
             Expanded(
               child: PageView(
-                /// [PageView.scrollDirection] defaults to [Axis.horizontal].
-                /// Use [Axis.vertical] to scroll vertically.
+                physics: const NeverScrollableScrollPhysics(),
                 controller: _pageViewController,
                 onPageChanged: _handlePageViewChanged,
                 children: <Widget>[
@@ -86,11 +88,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     },
                   ),
                   PreparationReorderField(
-                      formKey: formKeys[1],
-                      initalValue: preparationFormData
-                          .toPreparationStepWithOriginalIndexList(),
-                      onSaved: (value) {
-                        setState(() {
+                    formKey: formKeys[1],
+                    initalValue: preparationFormData
+                        .toPreparationStepWithOriginalIndexList(),
+                    onSaved: (value) {
+                      setState(
+                        () {
                           for (int i = 0; i < value.length; i++) {
                             preparationFormData.preparationStepList[
                                     value[i].originalIndex] =
@@ -98,14 +101,36 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                     .preparationStepList[value[i].originalIndex]
                                     .copyWith(order: i);
                           }
-                        });
-                      }),
-                  Center(
-                    child: TextFormField(
-                      onChanged: (value) {
-                        debugPrint('Form changed');
-                      },
-                    ),
+                        },
+                      );
+                    },
+                  ),
+                  PreparationTimeInputFieldList(
+                    formKey: formKeys[2],
+                    initalValue: preparationFormData.sortByOrder(),
+                    onSaved: (value) {
+                      setState(
+                        () {
+                          preparationFormData = PreparationFormData(
+                              preparationStepList: preparationFormData
+                                  .preparationStepList
+                                  .mapWithIndex((e, index) =>
+                                      e.copyWith(preparationTime: value[index]))
+                                  .toList());
+                        },
+                      );
+                    },
+                  ),
+                  ScheduleSpareTimeField(
+                    formKey: formKeys[3],
+                    initialValue: spareTime,
+                    onSaved: (value) {
+                      setState(
+                        () {
+                          spareTime = value;
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
@@ -144,41 +169,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       curve: Curves.easeInOut,
     );
   }
-
-  // void _onReorderPreparationStep(int oldIndex, int newIndex) {
-  //   final List<PreparationStepFormData> preparationStepList =
-  //       preparationFormData.preparationStepList;
-  //   setState(() {
-  //     final preparationStep = preparationStepList[oldIndex];
-  //     final int previousOfOldIndex = preparationStep.previousPreparationIndex;
-  //     final int nextOfOldIndex = preparationStep.nextPreparationIndex;
-  //     if (previousOfOldIndex != -1) {
-  //       preparationStepList[previousOfOldIndex] =
-  //           preparationStepList[previousOfOldIndex]
-  //               .copyWith(nextPreparationIndex: nextOfOldIndex);
-  //     }
-  //     if (nextOfOldIndex != -1) {
-  //       preparationStepList[nextOfOldIndex] =
-  //           preparationStepList[nextOfOldIndex]
-  //               .copyWith(previousPreparationIndex: previousOfOldIndex);
-  //     }
-
-  //     final int previousOfNewIndex =
-  //         preparationStepList[newIndex].previousPreparationIndex;
-  //     final int nextOfNewIndex =
-  //         preparationStepList[newIndex].nextPreparationIndex;
-  //     if (previousOfNewIndex != -1) {
-  //       preparationStepList[previousOfNewIndex] =
-  //           preparationStepList[previousOfNewIndex]
-  //               .copyWith(nextPreparationIndex: oldIndex);
-  //     }
-  //     if (nextOfNewIndex != -1) {
-  //       preparationStepList[nextOfNewIndex] =
-  //           preparationStepList[nextOfNewIndex]
-  //               .copyWith(previousPreparationIndex: oldIndex);
-  //     }
-  //   });
-  // }
 }
 
 class PageIndicator extends StatelessWidget {
@@ -293,13 +283,13 @@ class PreparationStepFormData {
   PreparationStepFormData({
     required this.id,
     required this.preparationName,
-    this.preparationTime,
+    this.preparationTime = const Duration(minutes: 0),
     this.order,
   });
 
   final String id;
   final String preparationName;
-  final int? preparationTime;
+  final Duration preparationTime;
   final int? order;
 
   PreparationStepWithNameAndId toPreparationStepWithNameAndId() {
@@ -310,7 +300,10 @@ class PreparationStepFormData {
   }
 
   PreparationStepFormData copyWith(
-      {String? id, String? preparationName, int? preparationTime, int? order}) {
+      {String? id,
+      String? preparationName,
+      Duration? preparationTime,
+      int? order}) {
     return PreparationStepFormData(
       id: id ?? this.id,
       preparationName: preparationName ?? this.preparationName,

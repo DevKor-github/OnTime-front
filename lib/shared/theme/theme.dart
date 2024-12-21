@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/shared/components/tile.dart';
 import 'package:on_time_front/shared/theme/tile_style.dart';
 
 ColorScheme colorScheme = const ColorScheme(
@@ -32,19 +31,38 @@ ColorScheme colorScheme = const ColorScheme(
     outline: Color(0xFF777777),
     outlineVariant: Color(0xFFB7B7B7));
 
-TextTheme textTheme = TextTheme();
+TextTheme textTheme = TextTheme(
+  titleLarge: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: colorScheme.onSurface,
+  ),
+  titleMedium: TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: colorScheme.onSurface,
+  ),
+  titleSmall: TextStyle(
+    fontSize: 16,
+    color: colorScheme.onSurface,
+  ),
+);
 
 ThemeData themeData = ThemeData(
     colorScheme: colorScheme,
     brightness: Brightness.light,
+    textTheme: textTheme,
     textButtonTheme: TextButtonThemeData(
         style: ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll(colorScheme.primary))),
+      foregroundColor: WidgetStatePropertyAll(colorScheme.primary),
+      textStyle: WidgetStatePropertyAll(textTheme.titleSmall),
+      padding: WidgetStatePropertyAll(const EdgeInsets.all(0.0)),
+    )),
     elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
       backgroundColor: WidgetStatePropertyAll(colorScheme.primary),
       foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
-      textStyle: WidgetStatePropertyAll(textTheme.titleMedium),
+      textStyle: WidgetStatePropertyAll(textTheme.titleSmall),
       maximumSize: WidgetStatePropertyAll(const Size(double.infinity, 50)),
       shape: WidgetStatePropertyAll(
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
@@ -54,6 +72,6 @@ ThemeData themeData = ThemeData(
         backgroundColor: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(100),
         maximumSize: const Size(double.infinity, 100),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 20.0),
       ),
     ]);

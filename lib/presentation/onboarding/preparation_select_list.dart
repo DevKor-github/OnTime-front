@@ -3,6 +3,7 @@ import 'package:on_time_front/presentation/onboarding/onboarding_page_view_layou
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 import 'package:on_time_front/shared/components/check_button.dart';
 import 'package:on_time_front/shared/components/tile.dart';
+import 'package:on_time_front/shared/theme/tile_style.dart';
 import 'package:uuid/uuid.dart';
 
 typedef OnSelectedStepChangedCallBackFunction<T> = void Function(List<T>);
@@ -59,9 +60,12 @@ class _PreparationSelectListState extends State<PreparationSelectList> {
           child: GestureDetector(
             onTap: () => FocusScope.of(context).requestFocus(focusNodes[i]),
             child: Tile(
+                style: TileStyle(
+                  padding: EdgeInsets.all(16.0),
+                ),
                 key: ValueKey<String>(step.id),
                 leading: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(vertical: 0.0),
                   child: SizedBox(
                       width: 30,
                       height: 30,
@@ -92,16 +96,14 @@ class _PreparationSelectListState extends State<PreparationSelectList> {
       isAdding
           ? Tile(
               key: ValueKey<String>('adding'),
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: SizedBox(
-                    width: 30,
-                    height: 30,
-                    child: CheckButton(
-                      isChecked: false,
-                      onPressed: () {},
-                    )),
-              ),
+              style: TileStyle(padding: EdgeInsets.all(16.0)),
+              leading: SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: CheckButton(
+                    isChecked: false,
+                    onPressed: () {},
+                  )),
               child: Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 19.0),
@@ -213,20 +215,22 @@ class _PreparationNameTextFieldState extends State<PreparationNameTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: TextEditingController(text: widget.preparationName),
-      onChanged: widget.onChanged,
-      focusNode: widget.focusNode,
-      onSubmitted: widget.onsubmitted,
-      onTapOutside: (event) {
-        print('onTapOutside');
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
-      decoration: isEditing
-          ? InputDecoration()
-          : InputDecoration(
-              border: InputBorder.none,
-            ),
+    return Container(
+      constraints: BoxConstraints(minHeight: 30),
+      child: TextField(
+        controller: TextEditingController(text: widget.preparationName),
+        onChanged: widget.onChanged,
+        focusNode: widget.focusNode,
+        onSubmitted: widget.onsubmitted,
+        onTapOutside: (event) {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.all(3.0),
+        ),
+      ),
     );
   }
 }
@@ -269,18 +273,23 @@ class _PreparationSelectFieldState extends State<PreparationSelectField> {
     if (widget.initailValue.isEmpty) {
       preparationStepSelectingList = [
         PreparationStepWithSelection(
-          id: Uuid().v4(),
-          preparationName: 'Preparation 1',
+          id: Uuid().v7(),
+          preparationName: '1',
           isSelected: false,
         ),
         PreparationStepWithSelection(
-          id: Uuid().v4(),
-          preparationName: 'Preparation 2',
+          id: Uuid().v7(),
+          preparationName: '2',
           isSelected: false,
         ),
         PreparationStepWithSelection(
-          id: Uuid().v4(),
-          preparationName: 'Preparation 3',
+          id: Uuid().v7(),
+          preparationName: '3',
+          isSelected: false,
+        ),
+        PreparationStepWithSelection(
+          id: Uuid().v7(),
+          preparationName: '4',
           isSelected: false,
         ),
       ];

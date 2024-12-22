@@ -168,8 +168,8 @@ void main() {
               tPreparationEntity, userEntityId))
           .thenAnswer((_) async {});
 
-      when(mockPreparationRemoteDataSource.createDefaultPreparation(
-              tPreparationEntity, userEntityId))
+      when(mockPreparationRemoteDataSource
+              .createDefaultPreparation(tPreparationEntity))
           .thenAnswer((_) async {});
 
       // Act
@@ -177,8 +177,8 @@ void main() {
           tPreparationEntity, userEntityId);
 
       // Assert
-      verify(mockPreparationRemoteDataSource.createDefaultPreparation(
-              tPreparationEntity, userEntityId))
+      verify(mockPreparationRemoteDataSource
+              .createDefaultPreparation(tPreparationEntity))
           .called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
     });

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/core/utils/data_loader.dart';
-import 'schedule_start.dart'; // 페이지 이동을 위해
+import 'package:on_time_front/screens/schedule_start.dart';
 
 class ScheduleList extends StatefulWidget {
   const ScheduleList({super.key});

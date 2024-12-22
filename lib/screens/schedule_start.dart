@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/screens/alarm_screen.dart';
 import 'package:on_time_front/screens/alarm_screen_test.dart';
 import 'package:on_time_front/widgets/button.dart';
-import 'alarm_screen.dart';
 
 class ScheduleStart extends StatelessWidget {
   final Map<String, dynamic> schedule;
@@ -71,7 +71,7 @@ class ScheduleStart extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AlarmScreenTest(
+                    builder: (context) => AlarmScreen(
                       // schedule 데이터를 AlarmScreen으로 전달
                       schedule: schedule,
                     ),

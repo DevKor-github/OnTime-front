@@ -1,11 +1,12 @@
-import 'dart:async'; // 타이머를 위한 패키지
+import 'dart:async';
 import 'package:flutter/material.dart';
+
 import 'package:on_time_front/screens/preparation_done.dart';
-import 'package:on_time_front/widgets/arc_painter_proto.dart';
-import 'package:on_time_front/widgets/arc_painter_no_marker.dart';
-import 'package:on_time_front/widgets/arc_painter_test.dart';
+
 import 'package:on_time_front/widgets/button.dart';
 import 'package:on_time_front/widgets/preparation_step_list.dart';
+
+import 'package:on_time_front/widgets/arc_painter_no_marker.dart';
 
 class AlarmScreen extends StatefulWidget {
   final Map<String, dynamic> schedule; // 스케줄 데이터를 받음
@@ -33,7 +34,15 @@ class _AlarmScreenState extends State<AlarmScreen>
   int remainingTime = 0;
   int totalPreparationTime = 0; // 전체 준비 시간의 초기값. 기준 용. 변하지 않음.
   int totalRemainingTime = 0; // 타이머 용 전체 준비 시간. 시간에 따라 차감
-  Timer? timer;
+
+  // 준비과정 타이머
+  Timer? preparationTimer;
+
+  // 전체 시간 타이머
+  Timer? fullTimeTimer;
+
+  // 전체시간 = 약속시간 - (이동시간 + 여유시간 + 현재시간)
+  late int fullTime;
 
   @override
   void initState() {
@@ -44,6 +53,9 @@ class _AlarmScreenState extends State<AlarmScreen>
 
     // 전체 준비시간 타이머 초기화
     initializeTotalTime();
+
+    // FullTime 계산 초기화
+    calculateFullTime();
 
     // 준비과정 시간 비율 계산
     calculatePreparationRatios();
@@ -65,6 +77,9 @@ class _AlarmScreenState extends State<AlarmScreen>
         });
       });
 
+    // FullTime 타이머 시작
+    startFullTimeTimer();
+
     // 첫 준비 과정 시작
     startPreparation();
   }
@@ -72,7 +87,8 @@ class _AlarmScreenState extends State<AlarmScreen>
   @override
   void dispose() {
     _animationController.dispose();
-    timer?.cancel(); // 타이머 종료
+    preparationTimer?.cancel();
+    fullTimeTimer?.cancel();
     super.dispose();
   }
 
@@ -83,6 +99,33 @@ class _AlarmScreenState extends State<AlarmScreen>
       (sum, prep) => sum + (prep['preparationTime'] as int) * 60,
     );
     totalRemainingTime = totalPreparationTime; // 초기 전체 시간 설정
+  }
+
+  // Fulltime 계산
+  void calculateFullTime() {
+    final DateTime now = DateTime.now();
+    final DateTime scheduleTime =
+        DateTime.parse(widget.schedule['scheduleTime']);
+    final String moveTimeString = widget.schedule['moveTime'];
+
+    final List<String> moveTimeParts = moveTimeString.split(':');
+    final Duration moveTime = Duration(
+      hours: int.parse(moveTimeParts[0]),
+      minutes: int.parse(moveTimeParts[1]),
+      seconds: int.parse(moveTimeParts[2]),
+    );
+
+    final Duration spareTime =
+        Duration(minutes: widget.schedule['scheduleSpareTime']);
+
+    final Duration remainingDuration =
+        scheduleTime.difference(now) - moveTime - spareTime;
+
+    if (remainingDuration.isNegative) {
+      fullTime = 0; // 이미 시간이 지난 경우 0초로 설정
+    } else {
+      fullTime = remainingDuration.inSeconds; // 남은 시간을 초 단위로 저장
+    }
   }
 
   void calculatePreparationRatios() {
@@ -115,6 +158,20 @@ class _AlarmScreenState extends State<AlarmScreen>
       });
   }
 
+  // 전체 시간 타이머
+  void startFullTimeTimer() {
+    fullTimeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (fullTime > 0) {
+        setState(() {
+          fullTime--;
+        });
+      } else {
+        timer.cancel();
+        navigateToPreparationDone();
+      }
+    });
+  }
+
   // 준비 과정 시작
   void startPreparation() {
     if (currentIndex < preparations.length) {
@@ -123,7 +180,8 @@ class _AlarmScreenState extends State<AlarmScreen>
       });
 
       // 타이머 시작
-      timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      preparationTimer =
+          Timer.periodic(const Duration(seconds: 1), (preparationTimer) {
         if (remainingTime > 0) {
           setState(() {
             remainingTime--;
@@ -131,7 +189,7 @@ class _AlarmScreenState extends State<AlarmScreen>
             updateProgress(1.0 - (totalRemainingTime / totalPreparationTime));
           });
         } else {
-          timer.cancel(); // 타이머 종료
+          preparationTimer.cancel(); // 타이머 종료
           preparationCompleted[currentIndex] = true; // 해당 준비 과정 완료 표시
           moveToNextPreparation(); // 다음 준비 과정으로 이동
         }
@@ -144,7 +202,7 @@ class _AlarmScreenState extends State<AlarmScreen>
 
   // 건너뛰기
   void skipCurrentPreparation() {
-    timer?.cancel();
+    preparationTimer?.cancel();
 
     if (currentIndex < preparations.length) {
       // 현재 남아있는 시간을 총 남은 시간에서 차감
@@ -162,7 +220,7 @@ class _AlarmScreenState extends State<AlarmScreen>
   }
 
   void moveToNextPreparation() {
-    timer?.cancel();
+    preparationTimer?.cancel();
 
     if (currentIndex + 1 < preparations.length) {
       setState(() {
@@ -177,7 +235,7 @@ class _AlarmScreenState extends State<AlarmScreen>
   }
 
   void navigateToPreparationDone() {
-    timer?.cancel(); // 타이머 종료
+    preparationTimer?.cancel(); // 타이머 종료
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const PreparationDone()),
@@ -196,6 +254,8 @@ class _AlarmScreenState extends State<AlarmScreen>
       return remainingSeconds > 0
           ? '$minutes분 $remainingSeconds초'
           : '$minutes분';
+    } else if (seconds <= 0) {
+      return '0초';
     } else {
       return '$remainingSeconds초';
     }
@@ -216,7 +276,7 @@ class _AlarmScreenState extends State<AlarmScreen>
         actions: [
           IconButton(
             onPressed: () {
-              timer?.cancel();
+              preparationTimer?.cancel();
               Navigator.pop(context);
             },
             icon: const Icon(Icons.close),
@@ -231,7 +291,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               child: Column(
                 children: [
                   Text(
-                    '${formatTime(totalPreparationTime)} 뒤에', // 총 준비 시간 표시
+                    '${formatTime(fullTime)} 뒤에', // 총 준비 시간 표시
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

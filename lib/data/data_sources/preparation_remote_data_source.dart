@@ -8,8 +8,7 @@ import 'package:on_time_front/data/models/get_preparation_response_model.dart';
 import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
 
 abstract interface class PreparationRemoteDataSource {
-  Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId);
+  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
 
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
@@ -53,7 +52,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId) async {
+      PreparationEntity preparationEntity) async {
     try {
       final requestModels =
           PreparationUserRequestModelListExtension.fromEntityList(

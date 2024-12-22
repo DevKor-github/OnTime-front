@@ -18,7 +18,6 @@ void main() {
   late PreparationRemoteDataSourceImpl remoteDataSource;
   final uuid = Uuid();
 
-  final userId = uuid.v7();
   final scheduleId = uuid.v7();
 
   final preparationStep1 = PreparationStepEntity(
@@ -127,8 +126,7 @@ void main() {
       );
 
       // act
-      await remoteDataSource.createDefaultPreparation(
-          preparationEntity, userId);
+      await remoteDataSource.createDefaultPreparation(preparationEntity);
 
       // assert
       verify(dio.post(
@@ -156,7 +154,7 @@ void main() {
       final call = remoteDataSource.createDefaultPreparation;
 
       // assert
-      expect(() => call(preparationEntity, userId), throwsException);
+      expect(() => call(preparationEntity), throwsException);
     });
   });
 

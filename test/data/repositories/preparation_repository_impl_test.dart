@@ -164,8 +164,8 @@ void main() {
     test('should call createDefaultPreparation on remote data source',
         () async {
       // Arrange
-      when(mockPreparationLocalDataSource.createDefaultPreparation(
-              tPreparationEntity, userEntityId))
+      when(mockPreparationLocalDataSource
+              .createDefaultPreparation(tPreparationEntity))
           .thenAnswer((_) async {});
 
       when(mockPreparationRemoteDataSource

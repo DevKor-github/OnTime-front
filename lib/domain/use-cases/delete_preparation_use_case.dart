@@ -1,12 +1,12 @@
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
+import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 class DeletePreparationUseCase {
-  final PreparationRemoteDataSource remoteDataSource;
+  final PreparationRepository _preparationRepository;
 
-  DeletePreparationUseCase(this.remoteDataSource);
+  DeletePreparationUseCase(this._preparationRepository);
 
   Future<PreparationEntity> call(PreparationEntity preparationEntity) async {
-    return await remoteDataSource.deletePreparation(preparationEntity);
+    return await _preparationRepository.deletePreparation(preparationEntity);
   }
 }

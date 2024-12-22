@@ -1,12 +1,12 @@
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
+import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 class GetPreparationByScheduleIdUseCase {
-  final PreparationRemoteDataSource remoteDataSource;
+  final PreparationRepository _preparationRepository;
 
-  GetPreparationByScheduleIdUseCase(this.remoteDataSource);
+  GetPreparationByScheduleIdUseCase(this._preparationRepository);
 
-  Future<PreparationEntity> call(String scheduleId) async {
-    return await remoteDataSource.getPreparationByScheduleId(scheduleId);
+  Stream<PreparationEntity> call(String scheduleId) {
+    return _preparationRepository.getPreparationByScheduleId(scheduleId);
   }
 }

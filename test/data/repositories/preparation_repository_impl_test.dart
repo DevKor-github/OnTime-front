@@ -173,8 +173,7 @@ void main() {
           .thenAnswer((_) async {});
 
       // Act
-      await preparationRepository.createDefaultPreparation(
-          tPreparationEntity, userEntityId);
+      await preparationRepository.createDefaultPreparation(tPreparationEntity);
 
       // Assert
       verify(mockPreparationRemoteDataSource

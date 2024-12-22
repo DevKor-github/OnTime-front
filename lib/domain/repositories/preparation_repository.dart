@@ -13,8 +13,7 @@ abstract interface class PreparationRepository {
 
   /// Create user's default preparation
   /// This is for creating default preparation for a user
-  Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId);
+  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
 
   /// Create custom preparation
   /// This is for creating custom preparation for a specific schedule

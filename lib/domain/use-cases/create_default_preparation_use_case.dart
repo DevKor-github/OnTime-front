@@ -6,8 +6,7 @@ class CreateDefaultPreparationUseCase {
 
   CreateDefaultPreparationUseCase(this._preparationRepository);
 
-  Future<void> call(PreparationEntity preparationEntity, String userId) async {
-    await _preparationRepository.createDefaultPreparation(
-        preparationEntity, userId);
+  Future<void> call(PreparationEntity preparationEntity) async {
+    await _preparationRepository.createDefaultPreparation(preparationEntity);
   }
 }

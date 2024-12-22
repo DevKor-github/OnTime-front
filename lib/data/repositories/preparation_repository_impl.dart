@@ -59,21 +59,19 @@ class PreparationRepositoryImpl implements PreparationRepository {
   Stream<PreparationEntity> getPreparationByScheduleId(
       String scheduleId) async* {
     try {
-      final localStream =
-          preparationLocalDataSource.getPreparationByScheduleId(scheduleId);
-      final remoteStream =
-          preparationRemoteDataSource.getPreparationByScheduleId(scheduleId);
+      final localPreparation = await preparationLocalDataSource
+          .getPreparationByScheduleId(scheduleId);
+      yield localPreparation;
 
-      yield* Stream.fromFuture(localStream).asyncExpand((localPreparation) {
-        return Stream.fromFuture(remoteStream).asyncMap((remotePreparation) {
-          if (localPreparation != remotePreparation) {
-            for (final step in remotePreparation.preparationStepList) {
-              preparationLocalDataSource.updatePreparation(step);
-            }
-          }
-          return remotePreparation;
-        });
-      });
+      final remotePreparation = await preparationRemoteDataSource
+          .getPreparationByScheduleId(scheduleId);
+
+      if (localPreparation != remotePreparation) {
+        for (final step in remotePreparation.preparationStepList) {
+          await preparationLocalDataSource.updatePreparation(step);
+        }
+        yield remotePreparation;
+      }
     } catch (e) {
       rethrow;
     }
@@ -83,19 +81,17 @@ class PreparationRepositoryImpl implements PreparationRepository {
   Stream<PreparationStepEntity> getPreparationStepById(
       String preparationStepId) async* {
     try {
-      final localStream =
-          preparationLocalDataSource.getPreparationStepById(preparationStepId);
-      final remoteStream =
-          preparationRemoteDataSource.getPreparationStepById(preparationStepId);
+      final localStep = await preparationLocalDataSource
+          .getPreparationStepById(preparationStepId);
+      yield localStep;
 
-      yield* Stream.fromFuture(localStream).asyncExpand((localStep) {
-        return Stream.fromFuture(remoteStream).asyncMap((remoteStep) {
-          if (localStep != remoteStep) {
-            preparationLocalDataSource.updatePreparation(remoteStep);
-          }
-          return remoteStep;
-        });
-      });
+      final remoteStep = await preparationRemoteDataSource
+          .getPreparationStepById(preparationStepId);
+
+      if (localStep != remoteStep) {
+        await preparationLocalDataSource.updatePreparation(remoteStep);
+        yield remoteStep;
+      }
     } catch (e) {
       rethrow;
     }

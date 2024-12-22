@@ -1,10 +1,7 @@
 import 'package:dio/dio.dart';
-
 import 'package:on_time_front/core/constants/endpoint.dart';
-
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_preparation_user_request_model.dart';
 import 'package:on_time_front/data/models/get_preparation_response_model.dart';
@@ -61,6 +58,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
       final requestModels =
           PreparationUserRequestModelListExtension.fromEntityList(
               preparationEntity.preparationStepList);
+
       final result = await dio.post(
         Endpoint.createDefaultPreparation,
         data: requestModels.map((model) => model.toJson()).toList(),
@@ -121,16 +119,22 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
   @override
   Future<PreparationEntity> deletePreparation(
       PreparationEntity preparationEntity) async {
-    if (preparationEntity.preparationStepList.isEmpty) {
+    try {
+      if (preparationEntity.preparationStepList.isEmpty) {
+        return preparationEntity;
+      }
+
+      final deletedStepId = preparationEntity.preparationStepList.first.id;
+
+      // 로컬에서 단계 삭제 및 재배열
+      preparationEntity.removeStepById(deletedStepId);
+      preparationEntity.relinkList();
+
+      // 삭제된 결과 반환
       return preparationEntity;
+    } catch (e) {
+      rethrow;
     }
-
-    final deletedStepId = preparationEntity.preparationStepList.first.id;
-
-    preparationEntity.removeStepById(deletedStepId);
-    preparationEntity.relinkList();
-
-    return preparationEntity;
   }
 
   @override

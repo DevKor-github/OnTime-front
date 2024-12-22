@@ -1,7 +1,7 @@
 import 'dart:async'; // 타이머를 위한 패키지
 import 'package:flutter/material.dart';
 import 'package:on_time_front/screens/preparation_done.dart';
-import 'package:on_time_front/widgets/arc_painter.dart';
+import 'package:on_time_front/widgets/arc_painter_proto.dart';
 import 'package:on_time_front/widgets/arc_painter_no_marker.dart';
 import 'package:on_time_front/widgets/arc_painter_test.dart';
 import 'package:on_time_front/widgets/button.dart';

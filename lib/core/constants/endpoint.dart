@@ -30,7 +30,7 @@ class Endpoint {
 
   static const _updatePreparation = '/preparationuser/modify'; // 사용자 준비과정 수정
 
-  // delelte는 api가 없음.
+// delelte는 api가 없음.
 //   delete는 api로 요청을 보내는 게 아니라, 전부 없애고 다시 순서를 조정하는 형태로
 // - 1 2 3 -> 2 삭제 -> 3이 2로 바뀌면서 재배치
 

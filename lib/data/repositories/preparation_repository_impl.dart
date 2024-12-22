@@ -19,12 +19,12 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId) async {
+      PreparationEntity preparationEntity) async {
     try {
-      await preparationRemoteDataSource.createDefaultPreparation(
-          preparationEntity, userId);
-      await preparationLocalDataSource.createDefaultPreparation(
-          preparationEntity, userId);
+      await preparationRemoteDataSource
+          .createDefaultPreparation(preparationEntity);
+      await preparationLocalDataSource
+          .createDefaultPreparation(preparationEntity);
     } catch (e) {
       rethrow;
     }
@@ -59,38 +59,21 @@ class PreparationRepositoryImpl implements PreparationRepository {
   Stream<PreparationEntity> getPreparationByScheduleId(
       String scheduleId) async* {
     try {
-      final streamController = StreamController<PreparationEntity>();
-
-      final localPreparationEntity =
+      final localStream =
           preparationLocalDataSource.getPreparationByScheduleId(scheduleId);
-
-      final remotePreparationEntity =
+      final remoteStream =
           preparationRemoteDataSource.getPreparationByScheduleId(scheduleId);
 
-      bool isFirstResponse = true;
-
-      localPreparationEntity.then((localPreparationEntity) {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(localPreparationEntity);
-        }
-      });
-
-      remotePreparationEntity.then((remotePreparationEntity) async {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(remotePreparationEntity);
-        } else {
-          if (localPreparationEntity != remotePreparationEntity) {
-            streamController.add(remotePreparationEntity);
-            for (final step in remotePreparationEntity.preparationStepList) {
-              await preparationLocalDataSource.updatePreparation(step);
+      yield* Stream.fromFuture(localStream).asyncExpand((localPreparation) {
+        return Stream.fromFuture(remoteStream).asyncMap((remotePreparation) {
+          if (localPreparation != remotePreparation) {
+            for (final step in remotePreparation.preparationStepList) {
+              preparationLocalDataSource.updatePreparation(step);
             }
           }
-        }
+          return remotePreparation;
+        });
       });
-
-      yield* streamController.stream;
     } catch (e) {
       rethrow;
     }
@@ -100,37 +83,19 @@ class PreparationRepositoryImpl implements PreparationRepository {
   Stream<PreparationStepEntity> getPreparationStepById(
       String preparationStepId) async* {
     try {
-      final streamController = StreamController<PreparationStepEntity>();
-
-      final localPreparationStep =
+      final localStream =
           preparationLocalDataSource.getPreparationStepById(preparationStepId);
-
-      final remotePreparationStep =
+      final remoteStream =
           preparationRemoteDataSource.getPreparationStepById(preparationStepId);
 
-      bool isFirstResponse = true;
-
-      localPreparationStep.then((localStep) {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(localStep);
-        }
-      });
-
-      remotePreparationStep.then((remoteStep) async {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(remoteStep);
-        } else {
-          final localStep = await localPreparationStep;
+      yield* Stream.fromFuture(localStream).asyncExpand((localStep) {
+        return Stream.fromFuture(remoteStream).asyncMap((remoteStep) {
           if (localStep != remoteStep) {
-            streamController.add(remoteStep);
-            await preparationLocalDataSource.updatePreparation(remoteStep);
+            preparationLocalDataSource.updatePreparation(remoteStep);
           }
-        }
+          return remoteStep;
+        });
       });
-
-      yield* streamController.stream;
     } catch (e) {
       rethrow;
     }

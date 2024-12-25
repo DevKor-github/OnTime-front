@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
-import 'package:on_time_front/shared/components/check_button.dart';
-import 'package:on_time_front/shared/components/tile.dart';
-import 'package:on_time_front/shared/theme/tile_style.dart';
+import 'package:on_time_front/presentation/shared/components/check_button.dart';
+import 'package:on_time_front/presentation/shared/components/tile.dart';
+import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 import 'package:uuid/uuid.dart';
 
 typedef OnSelectedStepChangedCallBackFunction<T> = void Function(List<T>);
@@ -274,22 +274,22 @@ class _PreparationSelectFieldState extends State<PreparationSelectField> {
       preparationStepSelectingList = [
         PreparationStepWithSelection(
           id: Uuid().v7(),
-          preparationName: '1',
+          preparationName: '샤워하기',
           isSelected: false,
         ),
         PreparationStepWithSelection(
           id: Uuid().v7(),
-          preparationName: '2',
+          preparationName: '메이크업',
           isSelected: false,
         ),
         PreparationStepWithSelection(
           id: Uuid().v7(),
-          preparationName: '3',
+          preparationName: '머리 세팅하기',
           isSelected: false,
         ),
         PreparationStepWithSelection(
           id: Uuid().v7(),
-          preparationName: '4',
+          preparationName: '짐 챙기기',
           isSelected: false,
         ),
       ];

@@ -453,6 +453,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  go_router:
+    dependency: "direct main"
+    description:
+      name: go_router
+      sha256: "2fd11229f59e23e967b0775df8d5948a519cd7e1e8b6e849729e010587b46539"
+      url: "https://pub.dev"
+    source: hosted
+    version: "14.6.2"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -549,14 +557,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.7"
-  intl:
-    dependency: transitive
-    description:
-      name: intl
-      sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.19.0"
   io:
     dependency: transitive
     description:
@@ -665,18 +665,18 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: c35baad643ba394b40aac41080300150a4f08fd0fd6a10378f8f7c6bc161acec
+      sha256: "7bb2830ebd849694d1ec25bf1f44582d6ac531a57a365a803a6034ff751d2d06"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.8"
+    version: "10.0.7"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
       name: leak_tracker_flutter_testing
-      sha256: f8b613e7e6a13ec79cfdc0e97638fddb3ab848452eff057653abd3edba760573
+      sha256: "9491a714cca3667b60b5c420da8217e6de0d1ba7a5ec322fab01758f6998f379"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.9"
+    version: "3.0.8"
   leak_tracker_testing:
     dependency: transitive
     description:
@@ -1105,23 +1105,7 @@ packages:
       sha256: "688af5ed3402a4bde5b3a6c15fd768dbf2621a614950b17f04626c431ab3c4c3"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
-  syncfusion_flutter_core:
-    dependency: transitive
-    description:
-      name: syncfusion_flutter_core
-      sha256: f6d1e8c08361aed6fb7f7b6f327cbd190464e1c717c6152d59866b2f0bb90ffd
-      url: "https://pub.dev"
-    source: hosted
-    version: "28.1.35"
-  syncfusion_flutter_gauges:
-    dependency: "direct main"
-    description:
-      name: syncfusion_flutter_gauges
-      sha256: bbc93e0210e282520c7d7774a1e4826552684cb87fe8ecbf362b860211d4cabd
-      url: "https://pub.dev"
-    source: hosted
-    version: "28.1.35"
+    version: "1.3.0"
   term_glyph:
     dependency: transitive
     description:

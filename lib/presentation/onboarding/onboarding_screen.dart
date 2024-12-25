@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:on_time_front/presentation/home/home_screen.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_select_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time_input_list.dart';
@@ -39,109 +41,113 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            PageIndicator(
-              tabController: _tabController,
-              currentPageIndex: _currentPageIndex,
-              onUpdateCurrentPageIndex: _updateCurrentPageIndex,
-            ),
-            Expanded(
-              child: PageView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: _pageViewController,
-                onPageChanged: _handlePageViewChanged,
-                children: <Widget>[
-                  PreparationSelectField(
-                    formKey: formKeys[0],
-                    initailValue: preparationFormData
-                        .toPreparationStepWithNameAndIdList(),
-                    onSaved: (value) {
-                      final PreparationFormData tmp =
-                          PreparationFormData(preparationStepList: []);
-                      int j = 0;
-                      for (int i = 0; i < value.length; i++) {
-                        while (j <
-                                preparationFormData
-                                    .preparationStepList.length &&
-                            preparationFormData.preparationStepList[j].id !=
-                                value[i].id) {
-                          j++;
-                        }
-                        if (j ==
-                            preparationFormData.preparationStepList.length) {
-                          tmp.preparationStepList.add(PreparationStepFormData(
-                              id: value[i].id,
-                              preparationName: value[i].preparationName));
-                          continue;
-                        }
-                        tmp.preparationStepList.add(
-                            preparationFormData.preparationStepList[j].copyWith(
-                                preparationName: value[i].preparationName));
-                      }
-                      setState(() {
-                        preparationFormData = tmp;
-                      });
-                    },
-                  ),
-                  PreparationReorderField(
-                    formKey: formKeys[1],
-                    initalValue: preparationFormData
-                        .toPreparationStepWithOriginalIndexList(),
-                    onSaved: (value) {
-                      setState(
-                        () {
-                          for (int i = 0; i < value.length; i++) {
-                            preparationFormData.preparationStepList[
-                                    value[i].originalIndex] =
-                                preparationFormData
-                                    .preparationStepList[value[i].originalIndex]
-                                    .copyWith(order: i);
-                          }
-                        },
-                      );
-                    },
-                  ),
-                  PreparationTimeInputFieldList(
-                    formKey: formKeys[2],
-                    initalValue: preparationFormData.sortByOrder(),
-                    onSaved: (value) {
-                      setState(
-                        () {
-                          preparationFormData = PreparationFormData(
-                              preparationStepList: preparationFormData
-                                  .preparationStepList
-                                  .mapWithIndex((e, index) =>
-                                      e.copyWith(preparationTime: value[index]))
-                                  .toList());
-                        },
-                      );
-                    },
-                  ),
-                  ScheduleSpareTimeField(
-                    formKey: formKeys[3],
-                    initialValue: spareTime,
-                    onSaved: (value) {
-                      setState(
-                        () {
-                          spareTime = value;
-                        },
-                      );
-                    },
-                  ),
-                ],
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: <Widget>[
+              PageIndicator(
+                tabController: _tabController,
+                currentPageIndex: _currentPageIndex,
+                onUpdateCurrentPageIndex: _updateCurrentPageIndex,
               ),
-            ),
-            SizedBox(
-                height: 58,
-                width: double.infinity,
-                child: ElevatedButton(
-                    onPressed: _onNextPageButtonClicked,
-                    child: const Text('다음'))),
-          ],
+              Expanded(
+                child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: _pageViewController,
+                  onPageChanged: _handlePageViewChanged,
+                  children: <Widget>[
+                    PreparationSelectField(
+                      formKey: formKeys[0],
+                      initailValue: preparationFormData
+                          .toPreparationStepWithNameAndIdList(),
+                      onSaved: (value) {
+                        final PreparationFormData tmp =
+                            PreparationFormData(preparationStepList: []);
+                        int j = 0;
+                        for (int i = 0; i < value.length; i++) {
+                          while (j <
+                                  preparationFormData
+                                      .preparationStepList.length &&
+                              preparationFormData.preparationStepList[j].id !=
+                                  value[i].id) {
+                            j++;
+                          }
+                          if (j ==
+                              preparationFormData.preparationStepList.length) {
+                            tmp.preparationStepList.add(PreparationStepFormData(
+                                id: value[i].id,
+                                preparationName: value[i].preparationName));
+                            continue;
+                          }
+                          tmp.preparationStepList.add(preparationFormData
+                              .preparationStepList[j]
+                              .copyWith(
+                                  preparationName: value[i].preparationName));
+                        }
+                        setState(() {
+                          preparationFormData = tmp;
+                        });
+                      },
+                    ),
+                    PreparationReorderField(
+                      formKey: formKeys[1],
+                      initalValue: preparationFormData
+                          .toPreparationStepWithOriginalIndexList(),
+                      onSaved: (value) {
+                        setState(
+                          () {
+                            for (int i = 0; i < value.length; i++) {
+                              preparationFormData.preparationStepList[
+                                  value[i]
+                                      .originalIndex] = preparationFormData
+                                  .preparationStepList[value[i].originalIndex]
+                                  .copyWith(order: i);
+                            }
+                          },
+                        );
+                      },
+                    ),
+                    PreparationTimeInputFieldList(
+                      formKey: formKeys[2],
+                      initalValue: preparationFormData.sortByOrder(),
+                      onSaved: (value) {
+                        setState(
+                          () {
+                            preparationFormData = PreparationFormData(
+                                preparationStepList: preparationFormData
+                                    .preparationStepList
+                                    .mapWithIndex((e, index) => e.copyWith(
+                                        preparationTime: value[index]))
+                                    .toList());
+                          },
+                        );
+                      },
+                    ),
+                    ScheduleSpareTimeField(
+                      formKey: formKeys[3],
+                      initialValue: spareTime,
+                      onSaved: (value) {
+                        setState(
+                          () {
+                            spareTime = value;
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                  height: 58,
+                  width: double.infinity,
+                  child: ElevatedButton(
+                      onPressed: _onNextPageButtonClicked,
+                      child: const Text('다음'))),
+            ],
+          ),
         ),
       ),
     );
@@ -151,6 +157,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     formKeys[_currentPageIndex].currentState!.save();
     if (_currentPageIndex < _numberOfPages - 1) {
       _updateCurrentPageIndex(_currentPageIndex + 1);
+    } else {
+      context.go('/home');
     }
   }
 

@@ -5,7 +5,6 @@ import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_navigation_bar.dart';
-import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final arrowRightSvg = SvgPicture.asset(
     'assets/arrow_right.svg',
     semanticsLabel: 'arrow right',
-    color: themeData.colorScheme.outlineVariant,
     height: 24,
     fit: BoxFit.contain,
   );

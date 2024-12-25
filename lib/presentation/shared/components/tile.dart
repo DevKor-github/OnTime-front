@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/shared/theme/tile_style.dart';
+import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class Tile extends StatelessWidget {
   const Tile(

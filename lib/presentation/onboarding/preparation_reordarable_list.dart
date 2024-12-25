@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
-import 'package:on_time_front/shared/components/tile.dart';
-import 'package:on_time_front/shared/theme/tile_style.dart';
+import 'package:on_time_front/presentation/shared/components/tile.dart';
+import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class PreparationStepWithOriginalIndex {
   PreparationStepWithOriginalIndex({

@@ -1,6 +1,8 @@
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 abstract interface class ScheduleRepository {
+  get scheduleStream;
+
   /// Create a schedule
   /// This is for creating a schedule
   Future<void> createSchedule(ScheduleEntity schedule);

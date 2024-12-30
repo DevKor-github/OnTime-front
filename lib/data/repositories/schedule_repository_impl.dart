@@ -5,10 +5,16 @@ import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
+import 'package:rxdart/subjects.dart';
 
 class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleLocalDataSource scheduleLocalDataSource;
   final ScheduleRemoteDataSource scheduleRemoteDataSource;
+
+  late final _scheduleStreamController =
+      BehaviorSubject<Set<ScheduleEntity>>.seeded(
+    const <ScheduleEntity>{},
+  );
 
   ScheduleRepositoryImpl({
     required this.scheduleLocalDataSource,
@@ -16,10 +22,16 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   });
 
   @override
+  Stream<Set<ScheduleEntity>> get scheduleStream =>
+      _scheduleStreamController.asBroadcastStream();
+
+  @override
   Future<void> createSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.createSchedule(schedule);
-      await scheduleLocalDataSource.createSchedule(schedule);
+      //await scheduleLocalDataSource.createSchedule(schedule);
+      _scheduleStreamController
+          .add(Set.from(_scheduleStreamController.value)..add(schedule));
     } catch (e) {
       rethrow;
     }
@@ -39,6 +51,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<ScheduleEntity> getScheduleById(String id) async {
     try {
       final schedule = await scheduleRemoteDataSource.getScheduleById(id);
+      _scheduleStreamController.add({schedule});
       return schedule;
     } catch (e) {
       rethrow;
@@ -51,6 +64,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       final schedules =
           await scheduleRemoteDataSource.getSchedulesByDate(startDate, endDate);
+      _scheduleStreamController.add(schedules.toSet());
       return schedules;
     } catch (e) {
       rethrow;

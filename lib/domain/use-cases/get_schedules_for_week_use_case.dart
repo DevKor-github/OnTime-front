@@ -3,10 +3,10 @@ import 'package:on_time_front/data/repositories/riverpod.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'get_schedule_for_week_use_case.g.dart';
+part 'get_schedules_for_week_use_case.g.dart';
 
 @riverpod
-Stream<List<ScheduleEntity>> getScheduleForWeekUseCase(
+Stream<List<ScheduleEntity>> getSchedulesForWeekUseCase(
     Ref ref, DateTime date) async* {
   final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
   final endOfWeek = startOfWeek.add(Duration(days: 6));

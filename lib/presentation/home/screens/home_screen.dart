@@ -6,6 +6,7 @@ import 'package:on_time_front/data/repositories/riverpod.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
+import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/home/view_models/home_view_model.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
@@ -217,22 +218,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     style: theme.textTheme.titleMedium,
                   ),
                   SizedBox(height: 21.0),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(11),
-                    ),
-                    width: double.infinity,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 11.0, vertical: 16.0),
-                      child: Text(
-                        '약속이 없는 날이에요',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.outlineVariant,
-                        ),
-                      ),
-                    ),
+                  TodaysScheduleTile(
+                    schedule: null,
                   )
                 ],
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/data/repositories/riverpod.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -128,7 +129,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                       children: [
                         Text('이번 주 약속', style: theme.textTheme.titleSmall),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            context.go('/calendar');
+                          },
                           child: Row(
                             children: [
                               Text('캘린더 보기',
@@ -171,7 +174,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           scheduleRepository.createSchedule(
             ScheduleEntity(
               id: Uuid().v7(),
-              scheduleTime: dateOfToday.add(Duration(days: 5)),
+              scheduleTime: dateOfToday.add(Duration(days: -2, hours: 10)),
               scheduleName: '약속',
               moveTime: Duration(minutes: 10),
               isChanged: false,

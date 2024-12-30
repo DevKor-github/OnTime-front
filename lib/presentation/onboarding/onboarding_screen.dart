@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/presentation/home/home_screen.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_select_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time_input_list.dart';

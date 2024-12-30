@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:on_time_front/data/repositories/riverpod.dart';
+import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
+import 'package:on_time_front/presentation/home/view_models/home_view_model.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_navigation_bar.dart';
+import 'package:uuid/uuid.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with TickerProviderStateMixin {
   late final AnimationController _animationController;
   late final Animation _animation;
   OverlayEntry? _overlayEntry;
@@ -55,6 +62,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final dateOfToday = DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
+    final schedules = ref.watch(homeViewModelProvider(dateOfToday));
+    final homeViewModel =
+        ref.watch(homeViewModelProvider(dateOfToday).notifier);
     final theme = Theme.of(context);
     return Scaffold(
       appBar: HomeAppBar(),
@@ -128,14 +140,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ],
                     ),
                     SizedBox(height: 23.0),
-                    WeekCalendar(
-                        date: DateTime.now(),
-                        onDateSelected: (date) {},
-                        highlightedDates: [
-                          DateTime.now().add(const Duration(days: 1)),
-                          DateTime.now().add(const Duration(days: 2)),
-                          DateTime.now().add(const Duration(days: 3)),
-                        ]),
+                    switch (schedules) {
+                      AsyncValue(:final error?) => Text('$error 에러가 발생했습니다'),
+                      AsyncValue(:final valueOrNull?) => WeekCalendar(
+                          date: DateTime.now(),
+                          onDateSelected: (date) {},
+                          highlightedDates:
+                              homeViewModel.getDatesOfSchedule(valueOrNull)),
+                      _ => SizedBox(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                theme.colorScheme.primary),
+                          ),
+                        ),
+                    },
                     Expanded(
                       child: SizedBox(),
                     ),
@@ -145,6 +163,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          final scheduleRepository = ref.read(scheduleRepositoryProvider);
+          scheduleRepository.createSchedule(
+            ScheduleEntity(
+              id: Uuid().v7(),
+              scheduleTime: dateOfToday.add(Duration(days: 5)),
+              scheduleName: '약속',
+              moveTime: Duration(minutes: 10),
+              isChanged: false,
+              isStarted: false,
+              scheduleSpareTime: Duration(minutes: 10),
+              scheduleNote: '',
+              userId: '1',
+              place: PlaceEntity(
+                id: Uuid().v7(),
+                placeName: '장소',
+              ),
+            ),
+          );
+        },
+        child: Icon(Icons.add),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(),
     );

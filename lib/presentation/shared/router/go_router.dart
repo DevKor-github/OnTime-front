@@ -1,9 +1,9 @@
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/presentation/home/home_screen.dart';
+import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 
 final goRouterConfig = GoRouter(
-  initialLocation: '/onboarding',
+  initialLocation: '/home',
   routes: [
     GoRoute(
       path: '/onboarding',

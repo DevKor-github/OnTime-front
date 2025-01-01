@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
 
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
@@ -20,6 +21,7 @@ abstract interface class ScheduleRemoteDataSource {
   Future<void> deleteSchedule(ScheduleEntity schedule);
 }
 
+@Injectable(as: ScheduleRemoteDataSource)
 class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   final Dio dio;
   ScheduleRemoteDataSourceImpl(this.dio);

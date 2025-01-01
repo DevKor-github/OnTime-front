@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/preparation_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
 
@@ -8,6 +9,7 @@ import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
+@Singleton(as: PreparationRepository)
 class PreparationRepositoryImpl implements PreparationRepository {
   final PreparationRemoteDataSource preparationRemoteDataSource;
   final PreparationLocalDataSource preparationLocalDataSource;

@@ -3,9 +3,10 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/data/repositories/riverpod.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
@@ -170,7 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          final scheduleRepository = ref.read(scheduleRepositoryProvider);
+          final scheduleRepository = getIt.get<ScheduleRepository>();
           scheduleRepository.createSchedule(
             ScheduleEntity(
               id: Uuid().v7(),

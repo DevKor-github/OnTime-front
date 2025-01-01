@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/shared/router/go_router.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() async {
-  runApp(const ProviderScope(child: MyApp()));
+  configureDependencies();
+  runApp(MyApp());
   WidgetsFlutterBinding.ensureInitialized();
 }
 

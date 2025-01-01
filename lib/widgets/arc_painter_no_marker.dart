@@ -16,6 +16,12 @@ class ArcPainterNoMarker extends CustomPainter {
     final double startAngle = 3.14 - (50 * 3.14 / 180);
     final double sweepAngle = 3.14 * 2 - (40 * 3.14 / 90);
 
+    final rect = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height),
+      width: size.width,
+      height: size.height * 2,
+    );
+
     // 채워지기 전 색
     final Paint backgroundPaint = Paint()
       ..color = const Color(0xffB0C4FB)
@@ -29,12 +35,6 @@ class ArcPainterNoMarker extends CustomPainter {
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-
-    final rect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height),
-      width: size.width,
-      height: size.height * 2,
-    );
 
     // 그래프 배경 호
     canvas.drawArc(

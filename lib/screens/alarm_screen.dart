@@ -323,11 +323,6 @@ class _AlarmScreenState extends State<AlarmScreen>
                     preparationRatios: preparationRatios,
                     preparationCompleted: preparationCompleted,
                   ),
-                  // painter: ArcPainterTest(
-                  //   progress: currentProgress,
-                  //   preparationRatios: preparationRatios,
-                  //   currentIndex: currentIndex,
-                  // ),
                 ),
                 const SizedBox(
                   height: 15,

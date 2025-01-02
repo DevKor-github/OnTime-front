@@ -7,7 +7,7 @@ class LoadSchedulesForMonthUseCase {
 
   LoadSchedulesForMonthUseCase(this._scheduleRepository);
 
-  Future<void> execute(DateTime date) async {
+  Future<void> call(DateTime date) async {
     final startOfMonth = DateTime(date.year, date.month, 1);
     final endOfMonth = DateTime(date.year, date.month + 1, 0);
 

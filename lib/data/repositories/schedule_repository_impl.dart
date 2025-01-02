@@ -53,7 +53,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<ScheduleEntity> getScheduleById(String id) async {
     try {
       final schedule = await scheduleRemoteDataSource.getScheduleById(id);
-      _scheduleStreamController.add({schedule});
+      _scheduleStreamController
+          .add(Set.from(_scheduleStreamController.value)..add(schedule));
       return schedule;
     } catch (e) {
       rethrow;
@@ -66,7 +67,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       final schedules =
           await scheduleRemoteDataSource.getSchedulesByDate(startDate, endDate);
-      _scheduleStreamController.add(schedules.toSet());
+      _scheduleStreamController
+          .add(Set.from(_scheduleStreamController.value)..addAll(schedules));
       return schedules;
     } catch (e) {
       rethrow;

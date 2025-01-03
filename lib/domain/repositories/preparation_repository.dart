@@ -2,32 +2,18 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 abstract interface class PreparationRepository {
-  /// Get preparation by [scheduleId]
-  /// This is for getting preparation by scheduleId
   Stream<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
-  /// Get preparationStep by [preparationStepId]
-  /// This is for getting preparation by preparationStepId
   Stream<PreparationStepEntity> getPreparationStepById(
       String preparationStepId);
 
-  /// Create user's default preparation
-  /// This is for creating default preparation for a user
-  Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId);
+  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
 
-  /// Create custom preparation
-  /// This is for creating custom preparation for a specific schedule
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
 
-  /// Update preparation
-  /// This is for updating preparation
   Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
 
-  /// Delete preparation
-  /// This is for deleting preparation
-  /// Delete preparation and return updated preparation entity
   Future<PreparationEntity> deletePreparation(
       PreparationEntity preparationEntity);
 }

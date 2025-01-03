@@ -64,7 +64,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
     try {
       final result = await dio.delete(Endpoint.deleteSchedule(schedule.id));
-      if (result.statusCode == 204) {
+      if (result.statusCode == 200) {
         return;
       } else {
         throw Exception('Error deleting schedule');

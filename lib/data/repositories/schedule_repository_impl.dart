@@ -44,6 +44,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       await scheduleRemoteDataSource.deleteSchedule(schedule);
       //await scheduleLocalDataSource.deleteSchedule(schedule);
+      _scheduleStreamController
+          .add(Set.from(_scheduleStreamController.value)..remove(schedule));
     } catch (e) {
       rethrow;
     }

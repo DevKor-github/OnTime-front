@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_schedules_by_date_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_schedules_for_month_use_case.dart';
 
@@ -15,13 +16,16 @@ class MonthlySchedulesBloc
   MonthlySchedulesBloc(
     this._loadSchedulesForMonthUseCase,
     this._getSchedulesByDateUseCase,
+    this._deleteScheduleUseCase,
   ) : super(MonthlySchedulesState()) {
     on<MonthlySchedulesSubscriptionRequested>(_onSubscriptionRequested);
     on<MonthlySchedulesMonthAdded>(_onMonthAdded);
+    on<MonthlySchedulesScheduleDeleted>(_onScheduleDeleted);
   }
 
   final LoadSchedulesForMonthUseCase _loadSchedulesForMonthUseCase;
   final GetSchedulesByDateUseCase _getSchedulesByDateUseCase;
+  final DeleteScheduleUseCase _deleteScheduleUseCase;
 
   Future<void> _onSubscriptionRequested(
     MonthlySchedulesSubscriptionRequested event,
@@ -130,5 +134,21 @@ class MonthlySchedulesBloc
         );
       },
     );
+  }
+
+  Future<void> _onScheduleDeleted(
+    MonthlySchedulesScheduleDeleted event,
+    Emitter<MonthlySchedulesState> emit,
+  ) async {
+    try {
+      emit(state.copyWith(
+        lastDeletedSchedule: () => event.schedule,
+      ));
+      await _deleteScheduleUseCase(event.schedule);
+    } catch (e) {
+      emit(state.copyWith(
+        status: () => MonthlySchedulesStatus.error,
+      ));
+    }
   }
 }

@@ -139,7 +139,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       itemCount: state.schedules[_selectedDate]?.length ?? 0,
                       itemBuilder: (context, index) {
                         final schedule = state.schedules[_selectedDate]![index];
-                        return ScheduleDetail(schedule: schedule);
+                        return ScheduleDetail(
+                          schedule: schedule,
+                          onDeleted: () {
+                            context.read<MonthlySchedulesBloc>().add(
+                                  MonthlySchedulesScheduleDeleted(
+                                      schedule: schedule),
+                                );
+                          },
+                        );
                       },
                     ),
                   );

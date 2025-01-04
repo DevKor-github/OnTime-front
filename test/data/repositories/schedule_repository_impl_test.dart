@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:uuid/uuid.dart';
@@ -40,21 +38,7 @@ void main() {
     scheduleNote: 'Discuss project updates',
   );
 
-  final tLocalScheduleEntity = ScheduleEntity(
-    id: scheduleEntityId,
-    userId: userEntityId,
-    place: tPlaceEntity,
-    scheduleName: 'Meeting local',
-    scheduleTime: DateTime.now(),
-    moveTime: Duration(minutes: 10),
-    isChanged: false,
-    isStarted: false,
-    scheduleSpareTime: Duration(minutes: 5),
-    scheduleNote: 'Discuss project updates local',
-  );
-
   final tScheduleList = [tScheduleEntity];
-  final tLocalScheduleList = [tLocalScheduleEntity];
 
   final tStartDate = DateTime.now();
   final tEndDate = DateTime.now().add(Duration(days: 1));

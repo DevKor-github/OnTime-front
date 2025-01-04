@@ -19,7 +19,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   late List<GlobalKey<FormState>> formKeys;
   PreparationFormData preparationFormData = PreparationFormData();
   Duration spareTime = const Duration(minutes: 0);
-  int _currentPageIndex = 0;
   final int _numberOfPages = 4;
 
   @override

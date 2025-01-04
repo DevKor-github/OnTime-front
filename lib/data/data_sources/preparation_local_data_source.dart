@@ -4,8 +4,7 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 abstract interface class PreparationLocalDataSource {
-  Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId);
+  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
 
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
@@ -29,9 +28,9 @@ class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId) async {
+      PreparationEntity preparationEntity) async {
     await appDatabase.preparationUserDao
-        .createPreparationUser(preparationEntity, userId);
+        .createPreparationUser(preparationEntity, 'userId');
   }
 
   @override

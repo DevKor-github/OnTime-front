@@ -164,20 +164,20 @@ void main() {
     test('should call createDefaultPreparation on remote data source',
         () async {
       // Arrange
-      when(mockPreparationLocalDataSource
-              .createDefaultPreparation(tPreparationEntity))
+      when(mockPreparationLocalDataSource.createDefaultPreparation(
+              tPreparationEntity, userEntityId))
           .thenAnswer((_) async {});
 
-      when(mockPreparationRemoteDataSource
-              .createDefaultPreparation(tPreparationEntity))
+      when(mockPreparationRemoteDataSource.createDefaultPreparation(
+              tPreparationEntity, userEntityId))
           .thenAnswer((_) async {});
 
       // Act
       await preparationRepository.createDefaultPreparation(tPreparationEntity);
 
       // Assert
-      verify(mockPreparationRemoteDataSource
-              .createDefaultPreparation(tPreparationEntity))
+      verify(mockPreparationRemoteDataSource.createDefaultPreparation(
+              tPreparationEntity, userEntityId))
           .called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
     });

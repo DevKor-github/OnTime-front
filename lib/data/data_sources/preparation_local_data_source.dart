@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -19,6 +20,7 @@ abstract interface class PreparationLocalDataSource {
       String preparationStepId);
 }
 
+@Injectable(as: PreparationLocalDataSource)
 class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
   final AppDatabase appDatabase;
 

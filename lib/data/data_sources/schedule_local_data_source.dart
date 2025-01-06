@@ -1,3 +1,4 @@
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
@@ -14,6 +15,7 @@ abstract interface class ScheduleLocalDataSource {
   Future<void> deleteSchedule(ScheduleEntity scheduleEntity);
 }
 
+@Injectable(as: ScheduleLocalDataSource)
 class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   final AppDatabase appDatabase;
 

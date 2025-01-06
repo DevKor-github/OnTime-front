@@ -1,5 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
-
 class ApiResponse<T> {
   final String status;
   final T data;

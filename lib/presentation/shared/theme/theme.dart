@@ -33,30 +33,33 @@ ColorScheme colorScheme = const ColorScheme(
     outlineVariant: Color(0xFFB7B7B7));
 
 TextTheme textTheme = TextTheme(
-  displaySmall: TextStyle(
-    fontSize: 36,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.bold,
-  ),
-  titleLarge: TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: colorScheme.onSurface,
-  ),
-  titleMedium: TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.bold,
-    color: colorScheme.onSurface,
-  ),
-  titleSmall: TextStyle(
-    fontSize: 16,
-    color: colorScheme.onSurface,
-  ),
-  bodyLarge: TextStyle(
-    fontSize: 16,
-    color: colorScheme.onSurface,
-  ),
-);
+    displaySmall: TextStyle(
+      fontSize: 36,
+      color: colorScheme.onSurface,
+      fontWeight: FontWeight.bold,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.bold,
+      color: colorScheme.onSurface,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+      color: colorScheme.onSurface,
+    ),
+    titleSmall: TextStyle(
+      fontSize: 16,
+      color: colorScheme.onSurface,
+    ),
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      color: colorScheme.onSurface,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 12,
+      color: colorScheme.onSurface,
+    ));
 
 ThemeData themeData = ThemeData(
   colorScheme: colorScheme,

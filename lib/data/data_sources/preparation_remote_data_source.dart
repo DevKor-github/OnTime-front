@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
+
 import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -24,6 +26,7 @@ abstract interface class PreparationRemoteDataSource {
       String preparationStepId);
 }
 
+@Injectable(as: PreparationRemoteDataSource)
 class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
   final Dio dio;
 

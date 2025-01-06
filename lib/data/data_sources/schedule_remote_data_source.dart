@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
 
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
@@ -20,6 +21,7 @@ abstract interface class ScheduleRemoteDataSource {
   Future<void> deleteSchedule(ScheduleEntity schedule);
 }
 
+@Injectable(as: ScheduleRemoteDataSource)
 class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   final Dio dio;
   ScheduleRemoteDataSourceImpl(this.dio);
@@ -62,7 +64,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
     try {
       final result = await dio.delete(Endpoint.deleteSchedule(schedule.id));
-      if (result.statusCode == 204) {
+      if (result.statusCode == 200) {
         return;
       } else {
         throw Exception('Error deleting schedule');

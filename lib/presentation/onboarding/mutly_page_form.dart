@@ -8,10 +8,10 @@ class MultiPageFormField extends Form {
     super.canPop,
     required super.child,
     super.onPopInvokedWithResult,
-    this.onSaved,
+    required this.onSaved,
   });
 
-  final VoidCallback? onSaved;
+  final VoidCallback onSaved;
 
   @override
   // ignore: library_private_types_in_public_api

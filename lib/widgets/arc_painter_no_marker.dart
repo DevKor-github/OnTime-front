@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 class ArcPainterNoMarker extends CustomPainter {
   final double progress; // 전체 진행률
@@ -13,8 +14,8 @@ class ArcPainterNoMarker extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double startAngle = 3.14 - (50 * 3.14 / 180);
-    final double sweepAngle = 3.14 * 2 - (40 * 3.14 / 90);
+    final double startAngle = -math.pi / 2;
+    final double sweepAngle = math.pi * 2;
 
     final rect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height),
@@ -24,14 +25,14 @@ class ArcPainterNoMarker extends CustomPainter {
 
     // 채워지기 전 색
     final Paint backgroundPaint = Paint()
-      ..color = const Color(0xffB0C4FB)
+      ..color = const Color(0xff3D54BC)
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     // 채워진 후 색
     final Paint progressPaint = Paint()
-      ..color = const Color(0xff5C79FB)
+      ..color = const Color(0xffDCE3FF)
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

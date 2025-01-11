@@ -6,7 +6,7 @@
             "placeName": "강남역 3번 출구",
             "scheduleName": "데이트",
             "moveTime": "01:00:00",
-            "scheduleTime": "2024-12-23T22:00:00",
+            "scheduleTime": "2025-01-31T22:00:00",
             "scheduleSpareTime": 20,
             "scheduleNote": "영화 데이트 하기",
             "latenessTime": 0,
@@ -14,7 +14,7 @@
                 {
                     "preparationId": "123e4567-e89b-12d3-a456-426614174001",
                     "preparationName": "샤워하기",
-                    "preparationTime": 30,
+                    "preparationTime": 1,
                     "nextPreparationId": "123e4567-e89b-12d3-a456-426614174002"
                 },
                 {

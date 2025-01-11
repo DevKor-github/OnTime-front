@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:on_time_front/screens/preparation_done.dart';
 
@@ -9,19 +8,19 @@ import 'package:on_time_front/widgets/preparation_step_list.dart';
 
 import 'package:on_time_front/widgets/arc_painter_no_marker.dart';
 
-class AlarmScreenTest extends StatefulWidget {
+class AlarmScreenNew extends StatefulWidget {
   final Map<String, dynamic> schedule; // 스케줄 데이터를 받음
 
-  const AlarmScreenTest({
+  const AlarmScreenNew({
     super.key,
     required this.schedule,
   });
 
   @override
-  _AlarmScreenTestState createState() => _AlarmScreenTestState();
+  _AlarmScreenNewState createState() => _AlarmScreenNewState();
 }
 
-class _AlarmScreenTestState extends State<AlarmScreenTest>
+class _AlarmScreenNewState extends State<AlarmScreenNew>
     with SingleTickerProviderStateMixin {
   late List<dynamic> preparations;
   late List<double> preparationRatios;
@@ -262,101 +261,84 @@ class _AlarmScreenTestState extends State<AlarmScreenTest>
     }
   }
 
+  String formatTimeTimer(int seconds) {
+    final int hours = seconds ~/ 3600;
+    final int minutes = (seconds % 3600) ~/ 60;
+    final int remainingSeconds = seconds % 60;
+
+    if (hours >= 1) {
+      // 1시간 이상이면 -> HH : MM : SS
+      return '${hours.toString().padLeft(2, '0')} : '
+          '${minutes.toString().padLeft(2, '0')} : '
+          '${remainingSeconds.toString().padLeft(2, '0')}';
+    } else {
+      // 1시간 미만이면 -> MM : SS
+      return '${minutes.toString().padLeft(2, '0')} : '
+          '${remainingSeconds.toString().padLeft(2, '0')}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentPreparation = preparations[currentIndex];
 
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: const Text(
-          '준비중',
-          style: TextStyle(fontSize: 14),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              preparationTimer?.cancel();
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.close),
-          ),
-        ],
-      ),
+      backgroundColor: Color(0xff5C79FB),
       body: Column(
         children: [
+          // (1) 상단 여백 + 텍스트
           Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Center(
-              child: Column(
-                children: [
-                  Text(
-                    '${formatTime(fullTime)} 뒤에', // 총 준비 시간 표시
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+            padding: const EdgeInsets.only(top: 52),
+            child: Column(
+              children: [
+                Text(
+                  '${formatTime(fullTime)} 뒤에 나가야 해요', // 총 준비 시간 표시
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  const Text(
-                    '밖으로 나가야 해요',
-                    style: TextStyle(
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+          // 타이머 그래프
           SizedBox(
-            height: 190, // 호의 전체 높이를 조정
+            height: 190,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // 타이머 그래프
                 CustomPaint(
-                  size: const Size(200, 100), // 호의 크기 조정
+                  size: const Size(230, 115), // 호의 크기 조정
                   painter: ArcPainterNoMarker(
                     progress: currentProgress,
                     preparationRatios: preparationRatios,
                     preparationCompleted: preparationCompleted,
                   ),
-                  // painter: ArcPainterTest(
-                  //   progress: currentProgress,
-                  //   preparationRatios: preparationRatios,
-                  //   currentIndex: currentIndex,
-                  // ),
                 ),
                 const SizedBox(
                   height: 15,
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 80),
+                  padding: const EdgeInsets.only(top: 100),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         currentPreparation['preparationName'], // 준비 과정 이름
                         style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xffDCE3FF)),
+                      ),
+                      SizedBox(
+                        height: 8,
                       ),
                       Text(
-                        formatTime(remainingTime), // 남은 시간 표시
+                        formatTimeTimer(remainingTime), // 남은 시간 표시
                         style: const TextStyle(
-                          fontSize: 30,
-                          color: Color(0xff5C79FB),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        '남음',
-                        style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 35,
+                          color: Color(0xffFFFFFF),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -366,45 +348,66 @@ class _AlarmScreenTestState extends State<AlarmScreenTest>
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 40),
-            child: Column(
+          const SizedBox(height: 110),
+
+          // 화면 하단 - 목록 표시 및 종료 버튼
+          Expanded(
+            child: Stack(
               children: [
-                Button(
-                  width: 100,
-                  height: 40,
-                  text: '건너뛰기',
-                  onPressed: skipCurrentPreparation,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 25,
-                  ),
-                  // 준비과정 목록 표시
-                  child: SizedBox(
-                    height: 181,
-                    width: 358,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: PreparationStepList(
-                        preparations: preparations,
-                        currentIndex: currentIndex,
-                      ),
+                // 하단 배경
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xffF6F6F6),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(18),
+                      topRight: Radius.circular(18),
                     ),
+                    // border: Border.all(color: Colors.red),
                   ),
                 ),
-                SizedBox(
-                  height: 15,
+                // 준비 과정 목록
+                Positioned(
+                  top: 20,
+                  left: MediaQuery.of(context).size.width * 0.06,
+                  right: MediaQuery.of(context).size.width * 0.06,
+                  bottom: 100,
+                  child: PreparationStepList(
+                    preparations: preparations,
+                    currentIndex: currentIndex,
+                    onSkip: skipCurrentPreparation,
+                  ),
                 ),
-                Button(
-                  text: '종료하기',
-                  onPressed: () {
-                    navigateToPreparationDone();
-                  },
-                )
+
+                // 하단 준비 종료 버튼
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Stack(
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: 100,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Button(
+                            text: '준비 종료',
+                            onPressed: () {
+                              navigateToPreparationDone();
+                            },
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

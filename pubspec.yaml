@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
+  assets:
+    path: assets
 
   
   drift: ^2.21.0

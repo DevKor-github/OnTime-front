@@ -40,6 +40,10 @@ class PreparationStepList extends StatelessWidget {
             final preparation = preparations[reversedIndex];
             final stepNumber = reversedIndex + 1;
 
+            // 각 목록 별 누적 시간
+            final int elapsed = preparation['elapsedTime'] ?? 0;
+
+            // 각 목록 별 상태(done, now, yet)
             final String state;
             if (reversedIndex < currentIndex) {
               state = 'done';
@@ -57,6 +61,7 @@ class PreparationStepList extends StatelessWidget {
               ),
               state: state,
               onSkip: state == 'now' ? () => onSkip() : null,
+              elapsedTime: elapsed,
             );
           },
         ),

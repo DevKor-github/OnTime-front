@@ -46,11 +46,13 @@ class ArcPainterNoMarker extends CustomPainter {
       backgroundPaint,
     );
 
+    final double currentSweep = sweepAngle * (1.0 - progress);
+
     // 그래프 채워진 호
     canvas.drawArc(
       rect,
       startAngle,
-      sweepAngle * progress,
+      currentSweep,
       false,
       progressPaint,
     );

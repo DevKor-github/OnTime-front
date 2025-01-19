@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
-import 'package:on_time_front/screens/preparation_done.dart';
+import 'package:on_time_front/screens/early_late_screen.dart';
 
 import 'package:on_time_front/widgets/button.dart';
 import 'package:on_time_front/widgets/preparation_step_list.dart';
@@ -23,22 +22,28 @@ class AlarmScreenNew extends StatefulWidget {
 class _AlarmScreenNewState extends State<AlarmScreenNew>
     with SingleTickerProviderStateMixin {
   late List<dynamic> preparations;
+
+  // 그래프 진행률 관련
   late List<double> preparationRatios;
   late List<bool> preparationCompleted;
+
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
+
   double currentProgress = 0.0; // 현재 진행률
-  double targetProgress = 0.0; // 목표 진행률
+
+  late bool isLate = false;
 
   int currentIndex = 0;
   int remainingTime = 0;
+
   int totalPreparationTime = 0; // 전체 준비 시간의 초기값. 기준 용. 변하지 않음.
   int totalRemainingTime = 0; // 타이머 용 전체 준비 시간. 시간에 따라 차감
 
   // 준비과정 타이머
   Timer? preparationTimer;
 
-  // 전체 시간 타이머
+  // 전체 시간 타이머 (~뒤에 나가야 해요)
   Timer? fullTimeTimer;
 
   // 전체시간 = 약속시간 - (이동시간 + 여유시간 + 현재시간)
@@ -47,7 +52,14 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
   @override
   void initState() {
     super.initState();
+
+    // 준비과정 + 누적 시간 초기화
     preparations = widget.schedule['preparations'];
+
+    for (var prep in preparations) {
+      prep['elapsedTime'] = 0;
+    }
+
     preparationRatios = [];
     preparationCompleted = List.filled(preparations.length, false);
 
@@ -103,9 +115,18 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
 
   // Fulltime 계산
   void calculateFullTime() {
+    // 현재 시간
     final DateTime now = DateTime.now();
+
+    // 여유시간
+    final Duration spareTime =
+        Duration(minutes: widget.schedule['scheduleSpareTime']);
+
+    // 약속시간
     final DateTime scheduleTime =
         DateTime.parse(widget.schedule['scheduleTime']);
+
+    // 이동시간
     final String moveTimeString = widget.schedule['moveTime'];
 
     final List<String> moveTimeParts = moveTimeString.split(':');
@@ -115,17 +136,24 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
       seconds: int.parse(moveTimeParts[2]),
     );
 
-    final Duration spareTime =
-        Duration(minutes: widget.schedule['scheduleSpareTime']);
-
     final Duration remainingDuration =
         scheduleTime.difference(now) - moveTime - spareTime;
 
-    if (remainingDuration.isNegative) {
-      fullTime = 0; // 이미 시간이 지난 경우 0초로 설정
-    } else {
-      fullTime = remainingDuration.inSeconds; // 남은 시간을 초 단위로 저장
+    fullTime = remainingDuration.inSeconds.toInt();
+
+    if (fullTime < 0) {
+      isLate = true;
     }
+  }
+
+  // 전체 시간 타이머
+  void startFullTimeTimer() {
+    fullTimeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      fullTime--;
+      if (fullTime < 0) {
+        isLate = true;
+      }
+    });
   }
 
   void calculatePreparationRatios() {
@@ -135,6 +163,31 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
       preparationRatios.add(cumulativeTime / totalPreparationTime);
       cumulativeTime += prepTime;
     }
+  }
+
+  // 준비 종료 (준비 종료 버튼 클릭 시 호출)
+  void finalizePreparation() {
+    preparationTimer?.cancel();
+    fullTimeTimer?.cancel();
+
+    // 그래프 0으로 줄이기
+    setState(() {
+      updateProgress(1.0);
+    });
+
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        // 준비 종료 후 EarlyLateScreen으로 이동
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EarlyLateScreen(
+              earlyLateTime: fullTime,
+            ),
+          ),
+        );
+      }
+    });
   }
 
   // 진행률 애니메이션 갱신
@@ -158,25 +211,15 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
       });
   }
 
-  // 전체 시간 타이머
-  void startFullTimeTimer() {
-    fullTimeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (fullTime > 0) {
-        setState(() {
-          fullTime--;
-        });
-      } else {
-        timer.cancel();
-        navigateToPreparationDone();
-      }
-    });
-  }
-
   // 준비 과정 시작
   void startPreparation() {
     if (currentIndex < preparations.length) {
       setState(() {
+        // 준비과정 남은 시간 (감소)
         remainingTime = preparations[currentIndex]['preparationTime'] * 60;
+
+        // 각 준비과정 누적 시간 (증가)
+        preparations[currentIndex]['elapsedTime'] = 0;
       });
 
       // 타이머 시작
@@ -184,9 +227,14 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
           Timer.periodic(const Duration(seconds: 1), (preparationTimer) {
         if (remainingTime > 0) {
           setState(() {
+            // 준비과정 남은 시간 차감
             remainingTime--;
             totalRemainingTime--;
             updateProgress(1.0 - (totalRemainingTime / totalPreparationTime));
+
+            // 준비과정 누적 시간 증가
+            preparations[currentIndex]['elapsedTime'] =
+                (preparations[currentIndex]['elapsedTime'] as int) + 1;
           });
         } else {
           preparationTimer.cancel(); // 타이머 종료
@@ -194,9 +242,6 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
           moveToNextPreparation(); // 다음 준비 과정으로 이동
         }
       });
-    } else {
-      // 준비과정이 모두 끝난 경우
-      navigateToPreparationDone();
     }
   }
 
@@ -204,21 +249,36 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
   void skipCurrentPreparation() {
     preparationTimer?.cancel();
 
-    if (currentIndex < preparations.length) {
-      // 현재 남아있는 시간을 총 남은 시간에서 차감
-      setState(
-        () {
-          totalRemainingTime -= remainingTime;
-          preparationCompleted[currentIndex] = true;
-          remainingTime = 0;
-          updateProgress(1.0 - (totalRemainingTime / totalPreparationTime));
-        },
-      );
+    // 마지막 목록시 즉시 채워지는 효과
+    if (currentIndex == preparations.length - 1) {
+      final newProgress = 1.0;
+      setState(() {
+        updateProgress(newProgress);
+      });
 
+      _animationController.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          setState(() {
+            totalRemainingTime -= remainingTime;
+            preparationCompleted[currentIndex] = true;
+            remainingTime = 0;
+          });
+          finalizePreparation();
+        }
+      });
+    } else {
+      // 건너뛰기 시 그래프 채워짐
+      setState(() {
+        totalRemainingTime -= remainingTime;
+        preparationCompleted[currentIndex] = true;
+        remainingTime = 0;
+        updateProgress(1.0 - (totalRemainingTime / totalPreparationTime));
+      });
       moveToNextPreparation();
     }
   }
 
+  // 다음 준비 과정 시작
   void moveToNextPreparation() {
     preparationTimer?.cancel();
 
@@ -227,54 +287,7 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
         currentIndex++;
       });
 
-      // 다음 준비 과정 시작
       startPreparation();
-    } else {
-      navigateToPreparationDone();
-    }
-  }
-
-  void navigateToPreparationDone() {
-    preparationTimer?.cancel(); // 타이머 종료
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const PreparationDone()),
-    );
-  }
-
-  // 준비과정 남은 시간 표시
-  String formatTime(int seconds) {
-    final int hours = seconds ~/ 3600;
-    final int minutes = (seconds % 3600) ~/ 60;
-    final int remainingSeconds = seconds % 60;
-
-    if (hours > 0) {
-      return minutes > 0 ? '$hours시간 $minutes분' : '$hours시간';
-    } else if (minutes > 0) {
-      return remainingSeconds > 0
-          ? '$minutes분 $remainingSeconds초'
-          : '$minutes분';
-    } else if (seconds <= 0) {
-      return '0초';
-    } else {
-      return '$remainingSeconds초';
-    }
-  }
-
-  String formatTimeTimer(int seconds) {
-    final int hours = seconds ~/ 3600;
-    final int minutes = (seconds % 3600) ~/ 60;
-    final int remainingSeconds = seconds % 60;
-
-    if (hours >= 1) {
-      // 1시간 이상이면 -> HH : MM : SS
-      return '${hours.toString().padLeft(2, '0')} : '
-          '${minutes.toString().padLeft(2, '0')} : '
-          '${remainingSeconds.toString().padLeft(2, '0')}';
-    } else {
-      // 1시간 미만이면 -> MM : SS
-      return '${minutes.toString().padLeft(2, '0')} : '
-          '${remainingSeconds.toString().padLeft(2, '0')}';
     }
   }
 
@@ -292,7 +305,9 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
             child: Column(
               children: [
                 Text(
-                  '${formatTime(fullTime)} 뒤에 나가야 해요', // 총 준비 시간 표시
+                  isLate
+                      ? '지각이에요!'
+                      : '${formatTime(fullTime)} 뒤에 나가야 해요', // 총 준비 시간 표시
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -362,7 +377,6 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
                       topLeft: Radius.circular(18),
                       topRight: Radius.circular(18),
                     ),
-                    // border: Border.all(color: Colors.red),
                   ),
                 ),
                 // 준비 과정 목록
@@ -400,7 +414,7 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
                           child: Button(
                             text: '준비 종료',
                             onPressed: () {
-                              navigateToPreparationDone();
+                              finalizePreparation();
                             },
                           ),
                         ),
@@ -414,5 +428,39 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
         ],
       ),
     );
+  }
+}
+
+// 준비과정 남은 시간 표시
+String formatTime(int seconds) {
+  final int hours = seconds ~/ 3600;
+  final int minutes = (seconds % 3600) ~/ 60;
+  final int remainingSeconds = seconds % 60;
+
+  if (hours > 0) {
+    return minutes > 0 ? '$hours시간 $minutes분' : '$hours시간';
+  } else if (minutes > 0) {
+    return remainingSeconds > 0 ? '$minutes분 $remainingSeconds초' : '$minutes분';
+  } else if (seconds <= 0) {
+    return '0초';
+  } else {
+    return '$remainingSeconds초';
+  }
+}
+
+String formatTimeTimer(int seconds) {
+  final int hours = seconds ~/ 3600;
+  final int minutes = (seconds % 3600) ~/ 60;
+  final int remainingSeconds = seconds % 60;
+
+  if (hours >= 1) {
+    // 1시간 이상이면 -> HH : MM : SS
+    return '${hours.toString().padLeft(2, '0')} : '
+        '${minutes.toString().padLeft(2, '0')} : '
+        '${remainingSeconds.toString().padLeft(2, '0')}';
+  } else {
+    // 1시간 미만이면 -> MM : SS
+    return '${minutes.toString().padLeft(2, '0')} : '
+        '${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

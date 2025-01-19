@@ -6,27 +6,27 @@
             "placeName": "강남역 3번 출구",
             "scheduleName": "데이트",
             "moveTime": "01:00:00",
-            "scheduleTime": "2025-01-31T22:00:00",
+            "scheduleTime": "2025-01-19T23:00:00",
             "scheduleSpareTime": 20,
             "scheduleNote": "영화 데이트 하기",
-            "latenessTime": 0,
+            "latenessTime": 30,
             "preparations": [
                 {
                     "preparationId": "123e4567-e89b-12d3-a456-426614174001",
                     "preparationName": "샤워하기",
-                    "preparationTime": 1,
+                    "preparationTime": 4,
                     "nextPreparationId": "123e4567-e89b-12d3-a456-426614174002"
                 },
                 {
                     "preparationId": "123e4567-e89b-12d3-a456-426614174002",
                     "preparationName": "옷 갈아입기",
-                    "preparationTime": 10,
+                    "preparationTime": 1,
                     "nextPreparationId": "123e4567-e89b-12d3-a456-426614174003"
                 },
                 {
                     "preparationId": "123e4567-e89b-12d3-a456-426614174003",
                     "preparationName": "메이크업",
-                    "preparationTime": 30,
+                    "preparationTime": 5,
                     "nextPreparationId": null
                 }
             ]
@@ -37,15 +37,15 @@
             "placeName": "일산 킨텍스",
             "scheduleName": "행사 참여",
             "moveTime": "00:30:00",
-            "scheduleTime": "2024-12-23T22:00:00",
-            "scheduleSpareTime": 30,
+            "scheduleTime": "2025-01-19T18:00:00",
+            "scheduleSpareTime": 40,
             "scheduleNote": "친구들과 모여서 행사 참여하기",
             "latenessTime": 10,
             "preparations": [
                 {
                     "preparationId": "223e4567-e89b-12d3-a456-426614174101",
                     "preparationName": "샤워하기",
-                    "preparationTime": 1,
+                    "preparationTime": 2,
                     "nextPreparationId": "223e4567-e89b-12d3-a456-426614174102"
                 },
                 {

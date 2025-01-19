@@ -1,35 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_line/dotted_line.dart';
 
-class PreparationStepTile extends StatefulWidget {
+class PreparationStepTileTest extends StatefulWidget {
   final int stepIndex;
   final String preparationName;
   final String preparationTime;
   final String state;
   final VoidCallback? onSkip;
-  final int elapsedTime;
+  final int? previousElapsedTime;
 
-  const PreparationStepTile({
+  const PreparationStepTileTest({
     super.key,
     required this.stepIndex,
     required this.preparationName,
     required this.preparationTime,
     required this.state,
-    required this.elapsedTime,
     this.onSkip,
+    this.previousElapsedTime,
   });
 
   @override
-  _PreparationStepTileState createState() => _PreparationStepTileState();
+  _PreparationStepTileTestState createState() =>
+      _PreparationStepTileTestState();
 }
 
-class _PreparationStepTileState extends State<PreparationStepTile> {
-  String _formatTime(int sec) {
-    final m = sec ~/ 60;
-    final s = sec % 60;
-    return '$m분 ${s.toString().padLeft(2, '0')}초';
-  }
-
+class _PreparationStepTileTestState extends State<PreparationStepTileTest> {
   // 좌측 순서 및 체크 표시
   @override
   Widget build(BuildContext context) {
@@ -45,19 +40,6 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
           color: Color(0xff212F6F),
         ),
       );
-    }
-
-    // 우측 - 상태별 표시할 시간
-    String displayTime;
-    if (widget.state == 'yet') {
-      // 준비 전: 지정된 목표 시간
-      displayTime = widget.preparationTime;
-    } else if (widget.state == 'now') {
-      // 진행 중: elapsedTime (누적 시간 타이머)
-      displayTime = _formatTime(widget.elapsedTime);
-    } else {
-      // done: 완료된 누적 시간
-      displayTime = _formatTime(widget.elapsedTime);
     }
 
     // 건너뛰기 버튼
@@ -124,7 +106,7 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
             SizedBox(
               height: 31,
               child: Text(
-                displayTime,
+                widget.preparationTime, // yet 상태에서는 지정된 시간 표시
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

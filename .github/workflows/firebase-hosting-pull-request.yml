@@ -13,10 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci
-        working-directory: ./widgetbook
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
+          entryPoint: ./widgetbook
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ON_TIME_FRONT_WIDGETBOOK }}
           projectId: on-time-front-widgetbook

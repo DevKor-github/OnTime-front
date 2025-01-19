@@ -32,22 +32,23 @@ class PreparationStepList extends StatelessWidget {
       child: SizedBox(
         width: 329,
         child: ListView.builder(
-          reverse: true,
           shrinkWrap: true,
           itemCount: preparations.length,
           itemBuilder: (context, index) {
-            final reversedIndex = preparations.length - 1 - index;
-            final preparation = preparations[reversedIndex];
-            final stepNumber = reversedIndex + 1;
+            final preparation = preparations[index];
+            final stepNumber = index + 1;
+
+            // 마지막 항목 판별
+            final bool isLastItem = (index == preparations.length - 1);
 
             // 각 목록 별 누적 시간
             final int elapsed = preparation['elapsedTime'] ?? 0;
 
             // 각 목록 별 상태(done, now, yet)
             final String state;
-            if (reversedIndex < currentIndex) {
+            if (index < currentIndex) {
               state = 'done';
-            } else if (reversedIndex == currentIndex) {
+            } else if (index == currentIndex) {
               state = 'now';
             } else {
               state = 'yet';
@@ -62,6 +63,7 @@ class PreparationStepList extends StatelessWidget {
               state: state,
               onSkip: state == 'now' ? () => onSkip() : null,
               elapsedTime: elapsed,
+              isLastItem: isLastItem,
             );
           },
         ),

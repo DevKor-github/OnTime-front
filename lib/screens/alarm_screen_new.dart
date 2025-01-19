@@ -381,7 +381,7 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
                 ),
                 // 준비 과정 목록
                 Positioned(
-                  top: 20,
+                  top: 15,
                   left: MediaQuery.of(context).size.width * 0.06,
                   right: MediaQuery.of(context).size.width * 0.06,
                   bottom: 100,
@@ -401,7 +401,7 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
                     children: [
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        height: 100,
+                        height: 90,
                         child: Container(
                           decoration: const BoxDecoration(
                             color: Colors.white,

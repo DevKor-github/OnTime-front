@@ -83,11 +83,13 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
                       SizedBox(height: screenHeight * 0.02),
                       SizedBox(
                         width: 292,
+                        height: 60,
                         child: Text(
                           earlylateMessage,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            height: 1.8,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -97,14 +99,14 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(top: screenHeight * 0.02),
+                padding: EdgeInsets.only(top: screenHeight * 0.01),
                 child: Image.asset(
                   'lib/images/ontime_mascot.png',
                   width: 150,
                   height: 150,
                 ),
               ),
-              SizedBox(height: screenHeight * 0.05),
+              SizedBox(height: screenHeight * 0.02),
               Center(
                 child: SizedBox(
                   width: screenWidth * 0.9,
@@ -149,7 +151,9 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
               ),
             ],
           ),
-          // Positioned를 이용한 버튼 배치
+          SizedBox(
+            height: 10,
+          ),
           Positioned(
             bottom: 20, // 하단에서 20px 떨어짐
             left: 0,

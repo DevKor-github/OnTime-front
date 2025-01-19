@@ -8,6 +8,7 @@ class PreparationStepTile extends StatefulWidget {
   final String state;
   final VoidCallback? onSkip;
   final int elapsedTime;
+  final bool isLastItem;
 
   const PreparationStepTile({
     super.key,
@@ -17,6 +18,7 @@ class PreparationStepTile extends StatefulWidget {
     required this.state,
     required this.elapsedTime,
     this.onSkip,
+    required this.isLastItem,
   });
 
   @override
@@ -169,17 +171,18 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
           ),
         ),
         // 점선
-        Padding(
-          padding: const EdgeInsets.only(left: 30),
-          child: DottedLine(
-            direction: Axis.vertical,
-            lineLength: 23,
-            lineThickness: 3,
-            dashColor: const Color(0xff5C79FB),
-            dashLength: 4,
-            dashGapLength: 5,
+        if (!widget.isLastItem)
+          Padding(
+            padding: const EdgeInsets.only(left: 30),
+            child: DottedLine(
+              direction: Axis.vertical,
+              lineLength: 23,
+              lineThickness: 3,
+              dashColor: const Color(0xff5C79FB),
+              dashLength: 4,
+              dashGapLength: 5,
+            ),
           ),
-        ),
       ],
     );
   }

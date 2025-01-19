@@ -34,5 +34,5 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ON_TIME_FRONT_WIDGETBOOK }}'
-          projectId: taskweaver-front
+          projectId: on-time-front-widgetbook
           entryPoint: ${{ env.working-directory }}

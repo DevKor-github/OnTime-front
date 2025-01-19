@@ -38,5 +38,3 @@ jobs:
           channelId: live
           projectId: on-time-front-widgetbook
           entryPoint: ${{ env.working-directory }}
-        env:
-          FIREBASE_CLI_EXPERIMENTS: webframeworks

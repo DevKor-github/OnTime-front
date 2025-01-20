@@ -19,7 +19,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   late List<GlobalKey<FormState>> formKeys;
   PreparationFormData preparationFormData = PreparationFormData();
   Duration spareTime = const Duration(minutes: 0);
-  int _currentPageIndex = 0;
   final int _numberOfPages = 4;
 
   @override
@@ -48,7 +47,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             children: <Widget>[
               PageIndicator(
                 tabController: _tabController,
-                currentPageIndex: _currentPageIndex,
                 onUpdateCurrentPageIndex: _updateCurrentPageIndex,
               ),
               Expanded(
@@ -152,9 +150,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _onNextPageButtonClicked() {
-    formKeys[_currentPageIndex].currentState!.save();
-    if (_currentPageIndex < _numberOfPages - 1) {
-      _updateCurrentPageIndex(_currentPageIndex + 1);
+    formKeys[_tabController.index].currentState!.save();
+    if (_tabController.index < _numberOfPages - 1) {
+      _updateCurrentPageIndex(_tabController.index + 1);
     } else {
       context.go('/home');
     }
@@ -163,7 +161,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void _handlePageViewChanged(int currentPageIndex) {
     _tabController.index = currentPageIndex;
     setState(() {
-      _currentPageIndex = currentPageIndex;
+      _tabController.index = currentPageIndex;
     });
   }
 
@@ -181,11 +179,9 @@ class PageIndicator extends StatelessWidget {
   const PageIndicator({
     super.key,
     required this.tabController,
-    required this.currentPageIndex,
     required this.onUpdateCurrentPageIndex,
   });
 
-  final int currentPageIndex;
   final TabController tabController;
   final void Function(int) onUpdateCurrentPageIndex;
 
@@ -203,10 +199,10 @@ class PageIndicator extends StatelessWidget {
           child: IconButton(
             padding: EdgeInsets.zero,
             onPressed: () {
-              if (currentPageIndex == 0) {
+              if (tabController.index == 0) {
                 return;
               }
-              onUpdateCurrentPageIndex(currentPageIndex - 1);
+              onUpdateCurrentPageIndex(tabController.index - 1);
             },
             icon: const Icon(
               Icons.arrow_left_rounded,

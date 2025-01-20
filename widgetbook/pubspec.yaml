@@ -9,6 +9,8 @@ environment:
 dependencies:
   on_time_front:
     path: ../
+  assets:
+    path: ../assets/
   flutter:
     sdk: flutter
   widgetbook: ^3.10.0
@@ -25,4 +27,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - ../assets/
+    - assets/

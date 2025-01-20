@@ -176,24 +176,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            final scheduleRepository = getIt.get<ScheduleRepository>();
-            scheduleRepository.createSchedule(
-              ScheduleEntity(
-                id: Uuid().v7(),
-                scheduleTime: dateOfToday.add(Duration(days: -2, hours: 10)),
-                scheduleName: 'ㅇㅇㅇㅇㅇ',
-                moveTime: Duration(minutes: 10),
-                isChanged: false,
-                isStarted: false,
-                scheduleSpareTime: Duration(minutes: 10),
-                scheduleNote: '',
-                userId: '1',
-                place: PlaceEntity(
-                  id: Uuid().v7(),
-                  placeName: '장소',
-                ),
-              ),
-            );
+            context.go('/scheduleCreate');
           },
           child: Icon(Icons.add),
         ),

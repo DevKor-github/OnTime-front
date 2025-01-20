@@ -17,7 +17,6 @@ void main() {
 
   final scheduleEntityId = uuid.v7();
   final preparationStepEntityId = uuid.v7();
-  final userEntityId = uuid.v7();
 
   final tPreparationStepList = [
     PreparationStepEntity(

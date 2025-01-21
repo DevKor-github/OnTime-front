@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/top_bar.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_name_form.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_place_moving_time_form.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_spare_and_preparing_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_time_form.dart';
 import 'package:on_time_front/presentation/shared/components/progress_bar.dart';
 
@@ -67,6 +68,12 @@ class _ScheduleCreateScreenState extends State<ScheduleCreateScreen>
                       onSaved: (value) {
                         _scheduleFormData = value;
                       }),
+                  ScheduleSpareAndPreparingTimeForm(
+                      formKey: formKeys[3],
+                      initalValue: _scheduleFormData,
+                      onSaved: (value) {
+                        _scheduleFormData = value;
+                      }),
                 ],
               ),
             ),
@@ -117,6 +124,7 @@ class ScheduleFormData {
   final bool? isChanged;
   final Duration? scheduleSpareTime;
   final String? scheduleNote;
+  final Duration? spareTime;
 
   ScheduleFormData({
     this.id,
@@ -127,6 +135,7 @@ class ScheduleFormData {
     this.isChanged,
     this.scheduleSpareTime,
     this.scheduleNote,
+    this.spareTime,
   });
 
   ScheduleFormData copyWith({
@@ -140,6 +149,7 @@ class ScheduleFormData {
     bool? isStarted,
     Duration? scheduleSpareTime,
     String? scheduleNote,
+    Duration? spareTime,
   }) {
     return ScheduleFormData(
       id: id ?? this.id,
@@ -150,6 +160,7 @@ class ScheduleFormData {
       isChanged: isChanged ?? this.isChanged,
       scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
       scheduleNote: scheduleNote ?? this.scheduleNote,
+      spareTime: spareTime ?? this.spareTime,
     );
   }
 }

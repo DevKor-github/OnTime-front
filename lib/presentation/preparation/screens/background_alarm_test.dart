@@ -1,26 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
 
-import 'package:on_time_front/screens/early_late_screen.dart';
-import 'package:on_time_front/widgets/preparation_timer/button.dart';
-import 'package:on_time_front/widgets/preparation_timer/preparation_step_list.dart';
-import 'package:on_time_front/widgets/preparation_timer/arc_painter_no_marker.dart';
+import 'package:on_time_front/presentation/preparation/component/preparation_timer/button.dart';
+import 'package:on_time_front/presentation/preparation/component/preparation_timer/preparation_step_list.dart';
 
-import 'package:on_time_front/utils/time_format.dart';
+import 'package:on_time_front/presentation/preparation/component/preparation_timer/arc_painter_no_marker.dart';
 
-class AlarmScreenNew extends StatefulWidget {
+class BackgroundAlarmTest extends StatefulWidget {
   final Map<String, dynamic> schedule; // 스케줄 데이터를 받음
 
-  const AlarmScreenNew({
+  const BackgroundAlarmTest({
     super.key,
     required this.schedule,
   });
 
   @override
-  _AlarmScreenNewState createState() => _AlarmScreenNewState();
+  _BackgroundAlarmTestState createState() => _BackgroundAlarmTestState();
 }
 
-class _AlarmScreenNewState extends State<AlarmScreenNew>
+class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
     with SingleTickerProviderStateMixin {
   late List<dynamic> preparations;
 
@@ -67,11 +66,11 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
     // 전체 준비시간 타이머 초기화
     initializeTotalTime();
 
-    // 준비과정 시간 비율 계산
-    calculatePreparationRatios();
-
     // FullTime 계산 초기화
     calculateFullTime();
+
+    // 준비과정 시간 비율 계산
+    calculatePreparationRatios();
 
     // AnimationController 초기화
     _animationController = AnimationController(
@@ -429,5 +428,39 @@ class _AlarmScreenNewState extends State<AlarmScreenNew>
         ],
       ),
     );
+  }
+}
+
+// 준비과정 남은 시간 표시
+String formatTime(int seconds) {
+  final int hours = seconds ~/ 3600;
+  final int minutes = (seconds % 3600) ~/ 60;
+  final int remainingSeconds = seconds % 60;
+
+  if (hours > 0) {
+    return minutes > 0 ? '$hours시간 $minutes분' : '$hours시간';
+  } else if (minutes > 0) {
+    return remainingSeconds > 0 ? '$minutes분 $remainingSeconds초' : '$minutes분';
+  } else if (seconds <= 0) {
+    return '0초';
+  } else {
+    return '$remainingSeconds초';
+  }
+}
+
+String formatTimeTimer(int seconds) {
+  final int hours = seconds ~/ 3600;
+  final int minutes = (seconds % 3600) ~/ 60;
+  final int remainingSeconds = seconds % 60;
+
+  if (hours >= 1) {
+    // 1시간 이상이면 -> HH : MM : SS
+    return '${hours.toString().padLeft(2, '0')} : '
+        '${minutes.toString().padLeft(2, '0')} : '
+        '${remainingSeconds.toString().padLeft(2, '0')}';
+  } else {
+    // 1시간 미만이면 -> MM : SS
+    return '${minutes.toString().padLeft(2, '0')} : '
+        '${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

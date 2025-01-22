@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/screens/early_late_messages.dart';
+import 'package:on_time_front/presentation/preparation/screens/early_late_messages.dart';
 import 'package:on_time_front/utils/time_format.dart';
-import 'package:on_time_front/widgets/preparation_timer/button.dart';
+import 'package:on_time_front/presentation/preparation/component/preparation_timer/button.dart';
 
 class EarlyLateScreen extends StatefulWidget {
   final int earlyLateTime;

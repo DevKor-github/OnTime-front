@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/screens/alarm_screen_new.dart';
-import 'package:on_time_front/screens/server_test/alarm_screen_test.dart';
-import 'package:on_time_front/widgets/preparation_timer/button.dart';
+import 'package:on_time_front/presentation/preparation/screens/server_test/alarm_screen_test.dart';
+import 'package:on_time_front/presentation/preparation/component/preparation_timer/button.dart';
 
-class ScheduleStart extends StatelessWidget {
+class ScheduleStartTest extends StatelessWidget {
   final Map<String, dynamic> schedule;
 
-  const ScheduleStart({
+  const ScheduleStartTest({
     super.key,
     required this.schedule,
   });
@@ -35,7 +34,7 @@ class ScheduleStart extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    schedule['placeName'],
+                    schedule['place']['placeName'],
                     style: const TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,
@@ -71,10 +70,6 @@ class ScheduleStart extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    // builder: (context) => AlarmScreenNew(
-                    //   // schedule 데이터를 AlarmScreen으로 전달
-                    //   schedule: schedule,
-                    // ),
                     builder: (context) => AlarmScreenTest(
                       // schedule 데이터를 AlarmScreen으로 전달
                       schedule: schedule,

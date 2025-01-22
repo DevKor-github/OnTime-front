@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:on_time_front/screens/server_test/data_loader_test.dart';
-import 'package:on_time_front/screens/server_test/schedule_start_test.dart';
+import 'package:on_time_front/presentation/preparation/screens/server_test/data_loader_test.dart';
+import 'package:on_time_front/presentation/preparation/screens/server_test/schedule_start_test.dart';
 
 class ScheduleListTest extends StatefulWidget {
   const ScheduleListTest({super.key});

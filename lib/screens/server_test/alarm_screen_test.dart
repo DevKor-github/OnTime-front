@@ -1,27 +1,31 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:on_time_front/screens/early_late_screen.dart';
 
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:on_time_front/screens/early_late_screen.dart';
 import 'package:on_time_front/widgets/preparation_timer/button.dart';
 import 'package:on_time_front/widgets/preparation_timer/preparation_step_list.dart';
-
 import 'package:on_time_front/widgets/preparation_timer/arc_painter_no_marker.dart';
 
-class BackgroundAlarmTest extends StatefulWidget {
+import 'package:on_time_front/utils/time_format.dart';
+
+class AlarmScreenTest extends StatefulWidget {
   final Map<String, dynamic> schedule; // 스케줄 데이터를 받음
 
-  const BackgroundAlarmTest({
+  const AlarmScreenTest({
     super.key,
     required this.schedule,
   });
 
   @override
-  _BackgroundAlarmTestState createState() => _BackgroundAlarmTestState();
+  _AlarmScreenTestState createState() => _AlarmScreenTestState();
 }
 
-class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
+class _AlarmScreenTestState extends State<AlarmScreenTest>
     with SingleTickerProviderStateMixin {
-  late List<dynamic> preparations;
+  late List<dynamic> preparations = [];
 
   // 그래프 진행률 관련
   late List<double> preparationRatios;
@@ -53,24 +57,11 @@ class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
   void initState() {
     super.initState();
 
-    // 준비과정 + 누적 시간 초기화
-    preparations = widget.schedule['preparations'];
-
-    for (var prep in preparations) {
-      prep['elapsedTime'] = 0;
-    }
-
-    preparationRatios = [];
-    preparationCompleted = List.filled(preparations.length, false);
-
-    // 전체 준비시간 타이머 초기화
-    initializeTotalTime();
+    // 준비과정 가져오기
+    fetchPreparations();
 
     // FullTime 계산 초기화
     calculateFullTime();
-
-    // 준비과정 시간 비율 계산
-    calculatePreparationRatios();
 
     // AnimationController 초기화
     _animationController = AnimationController(
@@ -88,12 +79,6 @@ class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
           currentProgress = _progressAnimation.value;
         });
       });
-
-    // FullTime 타이머 시작
-    startFullTimeTimer();
-
-    // 첫 준비 과정 시작
-    startPreparation();
   }
 
   @override
@@ -102,6 +87,68 @@ class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
     preparationTimer?.cancel();
     fullTimeTimer?.cancel();
     super.dispose();
+  }
+
+  // 서버에서 준비과정 가져오기
+  Future<void> fetchPreparations() async {
+    try {
+      // final response = await http.get(
+      //   Uri.parse('http://ejun.kro.kr:8888/preparationuser/show/all'),
+      //   headers: {
+      //     'accept': 'application/json',
+      //     'Authorization':
+      //         'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTc3MzU0Nzk3NywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.JAEIeG6HdfpbJJ2d-NVzw8Kb3PobxaaW0pgoMaId3cviJ18B1nug7brMcFMUook2Dxq5Q-NijM_FMiaQTpdz0w',
+      //   },
+      // );
+
+      final scheduleId = widget.schedule['scheduleId'];
+      final response = await http.get(
+        Uri.parse(
+            'http://ejun.kro.kr:8888/schedule/get/preparation/$scheduleId'),
+        headers: {
+          'accept': 'application/json',
+          'Authorization':
+              'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTc3MzU0Nzk3NywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.JAEIeG6HdfpbJJ2d-NVzw8Kb3PobxaaW0pgoMaId3cviJ18B1nug7brMcFMUook2Dxq5Q-NijM_FMiaQTpdz0w',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (data['status'] == 'success' && data['data'] != null) {
+          setState(() {
+            preparations = List<Map<String, dynamic>>.from(data['data']);
+          });
+
+          for (var prep in preparations) {
+            prep['elapsedTime'] = 0;
+          }
+
+          preparationRatios = [];
+          preparationCompleted = List.filled(preparations.length, false);
+
+          // 전체 준비시간 타이머 초기화
+          initializeTotalTime();
+
+          // 준비과정 시간 비율 계산
+          calculatePreparationRatios();
+
+          // FullTime 타이머 시작
+          startFullTimeTimer();
+
+          // 첫 준비 과정 시작
+          startPreparation();
+        } else {
+          throw Exception('Data fetch failedL ${data['message']}');
+        }
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching preparation data: $e');
+      setState(() {
+        preparations = [];
+      });
+    }
   }
 
   // 전체 준비 시간 초기화
@@ -127,17 +174,10 @@ class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
         DateTime.parse(widget.schedule['scheduleTime']);
 
     // 이동시간
-    final String moveTimeString = widget.schedule['moveTime'];
-
-    final List<String> moveTimeParts = moveTimeString.split(':');
-    final Duration moveTime = Duration(
-      hours: int.parse(moveTimeParts[0]),
-      minutes: int.parse(moveTimeParts[1]),
-      seconds: int.parse(moveTimeParts[2]),
-    );
+    final int moveTime = widget.schedule['moveTime'];
 
     final Duration remainingDuration =
-        scheduleTime.difference(now) - moveTime - spareTime;
+        scheduleTime.difference(now) - Duration(minutes: moveTime) - spareTime;
 
     fullTime = remainingDuration.inSeconds.toInt();
 
@@ -293,6 +333,13 @@ class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
 
   @override
   Widget build(BuildContext context) {
+    // 데이터가 준비되지 않았을 때 로딩 중 상태 처리
+    if (preparations.isEmpty) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final currentPreparation = preparations[currentIndex];
 
     return Scaffold(
@@ -428,39 +475,5 @@ class _BackgroundAlarmTestState extends State<BackgroundAlarmTest>
         ],
       ),
     );
-  }
-}
-
-// 준비과정 남은 시간 표시
-String formatTime(int seconds) {
-  final int hours = seconds ~/ 3600;
-  final int minutes = (seconds % 3600) ~/ 60;
-  final int remainingSeconds = seconds % 60;
-
-  if (hours > 0) {
-    return minutes > 0 ? '$hours시간 $minutes분' : '$hours시간';
-  } else if (minutes > 0) {
-    return remainingSeconds > 0 ? '$minutes분 $remainingSeconds초' : '$minutes분';
-  } else if (seconds <= 0) {
-    return '0초';
-  } else {
-    return '$remainingSeconds초';
-  }
-}
-
-String formatTimeTimer(int seconds) {
-  final int hours = seconds ~/ 3600;
-  final int minutes = (seconds % 3600) ~/ 60;
-  final int remainingSeconds = seconds % 60;
-
-  if (hours >= 1) {
-    // 1시간 이상이면 -> HH : MM : SS
-    return '${hours.toString().padLeft(2, '0')} : '
-        '${minutes.toString().padLeft(2, '0')} : '
-        '${remainingSeconds.toString().padLeft(2, '0')}';
-  } else {
-    // 1시간 미만이면 -> MM : SS
-    return '${minutes.toString().padLeft(2, '0')} : '
-        '${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

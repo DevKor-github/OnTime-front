@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/widgets/preparation_step_tile.dart';
+import 'package:on_time_front/widgets/preparation_timer/preparation_step_tile.dart';
 
 class PreparationStepList extends StatelessWidget {
   final List<dynamic> preparations; // 준비 과정 데이터

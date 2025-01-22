@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_time_front/screens/schedule_list.dart';
+import 'package:on_time_front/screens/server_test/schedule_list_test.dart';
 import 'package:on_time_front/shared/theme/theme.dart';
+import 'package:on_time_front/widgets/login_buttons/login_test_screen.dart';
 
 void main() async {
   runApp(const ProviderScope(child: MyApp()));
@@ -17,8 +19,9 @@ class MyApp extends StatelessWidget {
       theme: themeData,
       home: Scaffold(
         backgroundColor: Colors.grey,
-        body: ScheduleList(),
-        // body: EarlyLateScreenTest(),
+        body: ScheduleListTest(),
+        // body: ScheduleList(),
+        // body: LoginTestScreen(),
       ),
     );
   }

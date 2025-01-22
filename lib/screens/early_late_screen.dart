@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/screens/early_late_messages.dart';
-import 'package:on_time_front/widgets/button.dart';
+import 'package:on_time_front/utils/time_format.dart';
+import 'package:on_time_front/widgets/preparation_timer/button.dart';
 
 class EarlyLateScreen extends StatefulWidget {
   final int earlyLateTime;
@@ -61,7 +62,7 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
                         TextSpan(
                           children: [
                             TextSpan(
-                              text: formatTime(widget.earlyLateTime),
+                              text: formatEalyLateTime(widget.earlyLateTime),
                               style: TextStyle(
                                 fontSize: 34,
                                 fontWeight: FontWeight.bold,
@@ -168,19 +169,6 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
         ],
       ),
     );
-  }
-
-  String formatTime(int seconds) {
-    var time = seconds.abs();
-
-    final int hours = time ~/ 3600;
-    final int minutes = (time % 3600) ~/ 60;
-
-    if (hours > 0 && minutes > 0) {
-      return '$hours시간 $minutes분';
-    } else {
-      return '$minutes분';
-    }
   }
 
   /// 체크리스트 아이템

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 
@@ -40,7 +41,9 @@ class _ScheduleSpareAndPreparingTimeFormState
                   readOnly: true,
                   decoration: InputDecoration(labelText: '준비 시간'),
                   controller: TextEditingController(text: '1시간'),
-                  onTap: () {},
+                  onTap: () {
+                    context.go('/preparationEdit');
+                  },
                 ),
                 onSaved: (value) {},
               ),

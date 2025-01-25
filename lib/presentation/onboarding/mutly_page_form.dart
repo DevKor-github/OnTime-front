@@ -25,6 +25,6 @@ class _MultiPageFormFieldState extends FormState {
   @override
   void save() {
     super.save();
-    widget.onSaved!();
+    widget.onSaved();
   }
 }

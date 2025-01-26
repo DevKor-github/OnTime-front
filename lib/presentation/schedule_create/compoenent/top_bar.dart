@@ -6,6 +6,7 @@ class TopBar extends StatelessWidget {
       required this.onNextPAgeButtonClicked,
       required this.onPreviousPageButtonClicked});
 
+
   final void Function() onNextPAgeButtonClicked;
   final void Function() onPreviousPageButtonClicked;
 

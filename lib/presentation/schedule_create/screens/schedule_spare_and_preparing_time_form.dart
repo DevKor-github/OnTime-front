@@ -44,6 +44,7 @@ class _ScheduleSpareAndPreparingTimeFormState
                   onTap: () {
                     context.push('/preparationEdit');
                   },
+                ),
                 onSaved: (value) {},
               ),
             ),

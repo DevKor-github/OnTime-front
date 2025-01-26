@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_reorderable_list_form_field.dart';
@@ -63,6 +64,10 @@ class _PreparationEditListState extends State<PreparationEditList> {
     for (var i = 0; i < preparationList.length; i++) {
       focusNodes[i].dispose();
     }
+    newFocusNode.dispose();
+    newPreparationStepNameTextFieldFocusNode.dispose();
+    newPreparationStepTimeFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -92,47 +97,80 @@ class _PreparationEditListState extends State<PreparationEditList> {
         itemCount: preparationList.length,
         itemBuilder: (context, index) {
           final preparationStep = preparationList[index];
-          return Tile(
-            key: Key('$index'),
-            leading: ReorderableDragStartListener(
-              index: index,
-              child: dragIndicatorSvg,
-            ),
-            style: TileStyle(padding: EdgeInsets.all(16.0)),
-            trailing: FormField<Duration>(
-              onSaved: (newValue) {
-                preparationList[index] = preparationList[index].copyWith(
-                  preparationTime: newValue!,
-                );
-              },
-              initialValue: preparationStep.preparationTime,
-              builder: (field) => Row(
-                children: [
-                  GestureDetector(
-                    child: Text((field.value!.inMinutes < 10 ? '0' : '') +
-                        field.value!.inMinutes.toString()),
-                    onTap: () {
-                      context.showCupertinoPickerModal(
-                        context: context,
-                        initialValue: field.value!,
-                        onSaved: field.didChange,
-                      );
-                    },
+          return SwipeActionCell(
+            key: ObjectKey(preparationStep),
+            trailingActions: <SwipeAction>[
+              SwipeAction(
+                content: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    color: colorScheme.surfaceContainerLow,
                   ),
-                  SizedBox(width: 35),
-                  Text('분'),
-                ],
+                  width: 130,
+                  height: 60,
+                  child: OverflowBox(
+                    maxWidth: double.infinity,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('삭제',
+                            style: TextStyle(
+                                color: colorScheme.onSurface, fontSize: 20)),
+                      ],
+                    ),
+                  ),
+                ),
+                onTap: (CompletionHandler handler) {
+                  preparationList.removeAt(index);
+                  reorderableListKey.currentState?.elementRemoved(index);
+
+                  widget.onChanged(preparationList);
+                },
+                color: Colors.transparent,
               ),
-            ),
-            child: Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 19.0),
-                child: PreparationNameTextField(
-                  initialValue: preparationStep.preparationName,
-                  focusNode: focusNodes[index],
-                  onSaved: (newValue) => preparationList[index] =
-                      preparationList[index]
-                          .copyWith(preparationName: newValue!),
+            ],
+            child: Tile(
+              key: Key('$index'),
+              leading: ReorderableDragStartListener(
+                index: index,
+                child: dragIndicatorSvg,
+              ),
+              style: TileStyle(padding: EdgeInsets.all(16.0)),
+              trailing: FormField<Duration>(
+                onSaved: (newValue) {
+                  preparationList[index] = preparationList[index].copyWith(
+                    preparationTime: newValue!,
+                  );
+                },
+                initialValue: preparationStep.preparationTime,
+                builder: (field) => Row(
+                  children: [
+                    GestureDetector(
+                      child: Text((field.value!.inMinutes < 10 ? '0' : '') +
+                          field.value!.inMinutes.toString()),
+                      onTap: () {
+                        context.showCupertinoPickerModal(
+                          context: context,
+                          initialValue: field.value!,
+                          onSaved: field.didChange,
+                        );
+                      },
+                    ),
+                    SizedBox(width: 35),
+                    Text('분'),
+                  ],
+                ),
+              ),
+              child: Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 19.0),
+                  child: PreparationNameTextField(
+                    initialValue: preparationStep.preparationName,
+                    focusNode: focusNodes[index],
+                    onSaved: (newValue) => preparationList[index] =
+                        preparationList[index]
+                            .copyWith(preparationName: newValue!),
+                  ),
                 ),
               ),
             ),

@@ -54,4 +54,14 @@ class PreparationReorderableListFormFieldState
     value!.add(value!.length);
     didChange(value);
   }
+
+  void elementRemoved(int index) {
+    value!.remove(index);
+    for (int i = index; i < value!.length; i++) {
+      if (value![i] > index) {
+        value![i] -= 1;
+      }
+    }
+    didChange(value);
+  }
 }

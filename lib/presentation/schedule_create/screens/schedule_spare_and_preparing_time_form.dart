@@ -42,7 +42,7 @@ class _ScheduleSpareAndPreparingTimeFormState
                   decoration: InputDecoration(labelText: '준비 시간'),
                   controller: TextEditingController(text: '1시간'),
                   onTap: () {
-                    context.go('/preparationEdit');
+                    context.push('/preparationEdit');
                   },
                 ),
                 onSaved: (value) {},

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_edit_list.dart';
+import 'package:on_time_front/presentation/schedule_create/compoenent/top_bar.dart';
 import 'package:uuid/uuid.dart';
 
 class PreparationEditForm extends StatefulWidget {
@@ -41,15 +43,17 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: Column(
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
           children: [
-            FilledButton(
-                onPressed: () {
-                  _formKey.currentState?.save();
+            TopBar(
+                onNextPAgeButtonClicked: () {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                  }
                 },
-                child: Text("Save")),
+                onPreviousPageButtonClicked: context.pop),
             Expanded(
               child: PreparationEditList(
                 formKey: _formKey,

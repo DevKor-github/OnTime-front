@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/preparation_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
 
@@ -8,6 +9,7 @@ import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
+@Singleton(as: PreparationRepository)
 class PreparationRepositoryImpl implements PreparationRepository {
   final PreparationRemoteDataSource preparationRemoteDataSource;
   final PreparationLocalDataSource preparationLocalDataSource;
@@ -19,12 +21,12 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId) async {
+      PreparationEntity preparationEntity) async {
     try {
-      await preparationRemoteDataSource.createDefaultPreparation(
-          preparationEntity, userId);
-      await preparationLocalDataSource.createDefaultPreparation(
-          preparationEntity, userId);
+      await preparationRemoteDataSource
+          .createDefaultPreparation(preparationEntity);
+      await preparationLocalDataSource
+          .createDefaultPreparation(preparationEntity);
     } catch (e) {
       rethrow;
     }
@@ -59,38 +61,19 @@ class PreparationRepositoryImpl implements PreparationRepository {
   Stream<PreparationEntity> getPreparationByScheduleId(
       String scheduleId) async* {
     try {
-      final streamController = StreamController<PreparationEntity>();
+      final localPreparation = await preparationLocalDataSource
+          .getPreparationByScheduleId(scheduleId);
+      yield localPreparation;
 
-      final localPreparationEntity =
-          preparationLocalDataSource.getPreparationByScheduleId(scheduleId);
+      final remotePreparation = await preparationRemoteDataSource
+          .getPreparationByScheduleId(scheduleId);
 
-      final remotePreparationEntity =
-          preparationRemoteDataSource.getPreparationByScheduleId(scheduleId);
-
-      bool isFirstResponse = true;
-
-      localPreparationEntity.then((localPreparationEntity) {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(localPreparationEntity);
+      if (localPreparation != remotePreparation) {
+        for (final step in remotePreparation.preparationStepList) {
+          await preparationLocalDataSource.updatePreparation(step);
         }
-      });
-
-      remotePreparationEntity.then((remotePreparationEntity) async {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(remotePreparationEntity);
-        } else {
-          if (localPreparationEntity != remotePreparationEntity) {
-            streamController.add(remotePreparationEntity);
-            for (final step in remotePreparationEntity.preparationStepList) {
-              await preparationLocalDataSource.updatePreparation(step);
-            }
-          }
-        }
-      });
-
-      yield* streamController.stream;
+        yield remotePreparation;
+      }
     } catch (e) {
       rethrow;
     }
@@ -100,37 +83,17 @@ class PreparationRepositoryImpl implements PreparationRepository {
   Stream<PreparationStepEntity> getPreparationStepById(
       String preparationStepId) async* {
     try {
-      final streamController = StreamController<PreparationStepEntity>();
+      final localStep = await preparationLocalDataSource
+          .getPreparationStepById(preparationStepId);
+      yield localStep;
 
-      final localPreparationStep =
-          preparationLocalDataSource.getPreparationStepById(preparationStepId);
+      final remoteStep = await preparationRemoteDataSource
+          .getPreparationStepById(preparationStepId);
 
-      final remotePreparationStep =
-          preparationRemoteDataSource.getPreparationStepById(preparationStepId);
-
-      bool isFirstResponse = true;
-
-      localPreparationStep.then((localStep) {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(localStep);
-        }
-      });
-
-      remotePreparationStep.then((remoteStep) async {
-        if (isFirstResponse) {
-          isFirstResponse = false;
-          streamController.add(remoteStep);
-        } else {
-          final localStep = await localPreparationStep;
-          if (localStep != remoteStep) {
-            streamController.add(remoteStep);
-            await preparationLocalDataSource.updatePreparation(remoteStep);
-          }
-        }
-      });
-
-      yield* streamController.stream;
+      if (localStep != remoteStep) {
+        await preparationLocalDataSource.updatePreparation(remoteStep);
+        yield remoteStep;
+      }
     } catch (e) {
       rethrow;
     }

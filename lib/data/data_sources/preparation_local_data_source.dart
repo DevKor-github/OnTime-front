@@ -1,10 +1,10 @@
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 abstract interface class PreparationLocalDataSource {
-  Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId);
+  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
 
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
@@ -20,6 +20,7 @@ abstract interface class PreparationLocalDataSource {
       String preparationStepId);
 }
 
+@Injectable(as: PreparationLocalDataSource)
 class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
   final AppDatabase appDatabase;
 
@@ -27,9 +28,9 @@ class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId) async {
+      PreparationEntity preparationEntity) async {
     await appDatabase.preparationUserDao
-        .createPreparationUser(preparationEntity, userId);
+        .createPreparationUser(preparationEntity, 'userId');
   }
 
   @override

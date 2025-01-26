@@ -9,13 +9,13 @@ class Endpoint {
   static const _updateSchedule = '/schedule/update';
   static const _deleteSchedule = '/schedule/delete';
 
-  static getSchedule(String scheduleId) => '$_getSchedule$scheduleId';
+  static getSchedule(String scheduleId) => '$_getSchedule/$scheduleId';
   static get getSchedulesByDate => _getSchedulesByDate;
 
   static get createSchedule => _createSchedule;
 
-  static updateSchedule(String scheduleId) => '$_updateSchedule$scheduleId';
-  static deleteSchedule(String scheduleId) => '$_deleteSchedule$scheduleId';
+  static updateSchedule(String scheduleId) => '$_updateSchedule/$scheduleId';
+  static deleteSchedule(String scheduleId) => '$_deleteSchedule/$scheduleId';
 
   // preparation
   static const _createDefaultPreparation =

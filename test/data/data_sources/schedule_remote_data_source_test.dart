@@ -1,13 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
-import 'package:on_time_front/core/dio/api_response.dart';
-import 'package:on_time_front/core/dio/app_dio.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
-import 'package:on_time_front/data/models/get_schedule_response_model.dart';
 import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -144,7 +140,7 @@ void main() {
       // arrange
       when(dio.delete(Endpoint.deleteSchedule(scheduleEntityId))).thenAnswer(
         (_) async => Response(
-          statusCode: 204,
+          statusCode: 200,
           requestOptions:
               RequestOptions(path: Endpoint.deleteSchedule(scheduleEntityId)),
         ),

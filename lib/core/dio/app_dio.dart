@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/dio/interceptors/logger_interceptor.dart';
 
+@Injectable(as: Dio)
 class AppDio with DioMixin implements Dio {
   AppDio() {
     httpClientAdapter = IOHttpClientAdapter();

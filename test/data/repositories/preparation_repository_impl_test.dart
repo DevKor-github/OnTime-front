@@ -17,7 +17,6 @@ void main() {
 
   final scheduleEntityId = uuid.v7();
   final preparationStepEntityId = uuid.v7();
-  final userEntityId = uuid.v7();
 
   final tPreparationStepList = [
     PreparationStepEntity(
@@ -110,14 +109,19 @@ void main() {
 
       // Assert
       await expectLater(
-          result, emitsInOrder([tLocalPreparationEntity, tPreparationEntity]));
+        result,
+        emitsInOrder([
+          tLocalPreparationEntity,
+          tPreparationEntity,
+        ]),
+      );
 
-      if (tLocalPreparationEntity != tPreparationEntity) {
-        for (final step in tPreparationEntity.preparationStepList) {
-          verify(mockPreparationLocalDataSource.updatePreparation(step))
-              .called(1);
-        }
-      }
+      verify(mockPreparationLocalDataSource
+              .getPreparationByScheduleId(scheduleEntityId))
+          .called(1);
+      verify(mockPreparationRemoteDataSource
+              .getPreparationByScheduleId(scheduleEntityId))
+          .called(1);
     });
   });
 
@@ -128,18 +132,10 @@ void main() {
       // Arrange
       when(mockPreparationLocalDataSource
               .getPreparationStepById(preparationStepEntityId))
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 1), () {
-                return tLocalPreparationStep;
-              }));
-
+          .thenAnswer((_) async => tLocalPreparationStep);
       when(mockPreparationRemoteDataSource
               .getPreparationStepById(preparationStepEntityId))
-          .thenAnswer((_) async => Future.delayed(Duration(seconds: 2), () {
-                return tPreparationStep;
-              }));
-
-      when(mockPreparationLocalDataSource.updatePreparation(tPreparationStep))
-          .thenAnswer((_) async {});
+          .thenAnswer((_) async => tPreparationStep);
 
       // Act
       final result =
@@ -149,12 +145,15 @@ void main() {
       await expectLater(
         result,
         emitsInOrder([
-          tLocalPreparationStep,
-          tPreparationStep,
+          tLocalPreparationStep, // Local 데이터 방출
+          tPreparationStep, // Remote 데이터 방출
         ]),
       );
 
       verify(mockPreparationLocalDataSource
+              .getPreparationStepById(preparationStepEntityId))
+          .called(1);
+      verify(mockPreparationRemoteDataSource
               .getPreparationStepById(preparationStepEntityId))
           .called(1);
     });
@@ -164,21 +163,20 @@ void main() {
     test('should call createDefaultPreparation on remote data source',
         () async {
       // Arrange
-      when(mockPreparationLocalDataSource.createDefaultPreparation(
-              tPreparationEntity, userEntityId))
+      when(mockPreparationLocalDataSource
+              .createDefaultPreparation(tPreparationEntity))
           .thenAnswer((_) async {});
 
-      when(mockPreparationRemoteDataSource.createDefaultPreparation(
-              tPreparationEntity, userEntityId))
+      when(mockPreparationRemoteDataSource
+              .createDefaultPreparation(tPreparationEntity))
           .thenAnswer((_) async {});
 
       // Act
-      await preparationRepository.createDefaultPreparation(
-          tPreparationEntity, userEntityId);
+      await preparationRepository.createDefaultPreparation(tPreparationEntity);
 
       // Assert
-      verify(mockPreparationRemoteDataSource.createDefaultPreparation(
-              tPreparationEntity, userEntityId))
+      verify(mockPreparationRemoteDataSource
+              .createDefaultPreparation(tPreparationEntity))
           .called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
     });

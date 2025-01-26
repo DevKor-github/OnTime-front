@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:injectable/injectable.dart';
+
 import 'package:on_time_front/core/constants/endpoint.dart';
 
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
@@ -9,8 +11,7 @@ import 'package:on_time_front/data/models/get_preparation_response_model.dart';
 import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
 
 abstract interface class PreparationRemoteDataSource {
-  Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId);
+  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
 
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
@@ -26,6 +27,7 @@ abstract interface class PreparationRemoteDataSource {
       String preparationStepId);
 }
 
+@Injectable(as: PreparationRemoteDataSource)
 class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
   final Dio dio;
 
@@ -54,7 +56,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity, String userId) async {
+      PreparationEntity preparationEntity) async {
     try {
       final requestModels =
           PreparationUserRequestModelListExtension.fromEntityList(

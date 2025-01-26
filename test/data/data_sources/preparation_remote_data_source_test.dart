@@ -5,7 +5,6 @@ import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_preparation_user_request_model.dart';
-import 'package:on_time_front/data/models/get_preparation_response_model.dart';
 import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -18,7 +17,6 @@ void main() {
   late PreparationRemoteDataSourceImpl remoteDataSource;
   final uuid = Uuid();
 
-  final userId = uuid.v7();
   final scheduleId = uuid.v7();
 
   final preparationStep1 = PreparationStepEntity(
@@ -127,8 +125,7 @@ void main() {
       );
 
       // act
-      await remoteDataSource.createDefaultPreparation(
-          preparationEntity, userId);
+      await remoteDataSource.createDefaultPreparation(preparationEntity);
 
       // assert
       verify(dio.post(
@@ -156,7 +153,7 @@ void main() {
       final call = remoteDataSource.createDefaultPreparation;
 
       // assert
-      expect(() => call(preparationEntity, userId), throwsException);
+      expect(() => call(preparationEntity), throwsException);
     });
   });
 

@@ -38,21 +38,7 @@ void main() {
     scheduleNote: 'Discuss project updates',
   );
 
-  final tLocalScheduleEntity = ScheduleEntity(
-    id: scheduleEntityId,
-    userId: userEntityId,
-    place: tPlaceEntity,
-    scheduleName: 'Meeting local',
-    scheduleTime: DateTime.now(),
-    moveTime: Duration(minutes: 10),
-    isChanged: false,
-    isStarted: false,
-    scheduleSpareTime: Duration(minutes: 5),
-    scheduleNote: 'Discuss project updates local',
-  );
-
   final tScheduleList = [tScheduleEntity];
-  final tLocalScheduleList = [tLocalScheduleEntity];
 
   final tStartDate = DateTime.now();
   final tEndDate = DateTime.now().add(Duration(days: 1));
@@ -73,14 +59,14 @@ void main() {
         'when successful [createSchedule] should create a schedule with the given schedule entity',
         () async {
           // Arrange
-          when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
-              .thenAnswer((_) async {});
+          // when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
+          //     .thenAnswer((_) async {});
           when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
               .thenAnswer((_) async {});
           // Act
           await scheduleRepository.createSchedule(tScheduleEntity);
           // Assert
-          verify(mockScheduleLocalDataSource.createSchedule(tScheduleEntity));
+          //verify(mockScheduleLocalDataSource.createSchedule(tScheduleEntity));
           verify(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity));
         },
       );
@@ -134,122 +120,58 @@ void main() {
 
   group('getScheduleById', () {
     test(
-      'when successful [getScheduleById] should yield a stream of schedule entity in order of local and remote if local data response is faster',
+      'when successful [getScheduleById] should return a schedule entity with the given id',
       () async {
         // Arrange
-        when(mockScheduleLocalDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 1), () {
-                  return tLocalScheduleEntity;
-                }));
         when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 2), () {
-                  return tScheduleEntity;
-                }));
-        when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async => Future.value(tScheduleEntity));
         // Act
-        final scheduleStream =
-            scheduleRepository.getScheduleById(scheduleEntityId);
+        final schedules =
+            await scheduleRepository.getScheduleById(scheduleEntityId);
         // Assert
 
-        await expectLater(scheduleStream, emitsInOrder([tScheduleEntity]));
-
+        expect(schedules, tScheduleEntity);
         // verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
         //     .called(1);
-      },
-    );
-
-    test(
-      'when successful [getScheduleById] should yield a stream only contains remote data if remote data response is faster',
-      () async {
-        when(mockScheduleLocalDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 2), () {
-                  return tLocalScheduleEntity;
-                }));
-        when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 1), () {
-                  return tScheduleEntity;
-                }));
-        when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
-        // Act
-        final scheduleStream =
-            scheduleRepository.getScheduleById(scheduleEntityId);
-        // Assert
-        await expectLater(scheduleStream, emitsInOrder([tScheduleEntity]));
-        verifyNever(
-            mockScheduleLocalDataSource.updateSchedule(tScheduleEntity));
       },
     );
     test(
       'when ScheduleRemoteDataSource throws an exception [getScheduleById] should throw an exception',
       () async {
         // Arrange
-        when(mockScheduleLocalDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => tLocalScheduleEntity);
+        // when(mockScheduleLocalDataSource.getScheduleById(scheduleEntityId))
+        //     .thenAnswer((_) async => tLocalScheduleEntity);
         when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
             .thenThrow(Exception());
         // Act
-        final call = scheduleRepository.getScheduleById(scheduleEntityId);
+        final getScheduleById = scheduleRepository.getScheduleById;
         // Assert
-        expect(call, emitsError(isA<Exception>()));
+        // expect fuction throws an exception
+        expect(getScheduleById(scheduleEntityId), throwsException);
       },
     );
   });
 
   group('getSchedulesByDate', () {
     test(
-      'when successful [getSchedulesByDate] should return a stream of list of schedule entity',
+      'when successful [getSchedulesByDate] should return a list of schedules between the given start and end date',
       () async {
         // Arrange
-        when(mockScheduleLocalDataSource.getSchedulesByDate(
-                tStartDate, tEndDate))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 1), () {
-                  return tLocalScheduleList;
-                }));
+        // when(mockScheduleLocalDataSource.getSchedulesByDate(
+        //         tStartDate, tEndDate))
+        //     .thenAnswer((_) async => Future.delayed(Duration(seconds: 1), () {
+        //           return tLocalScheduleList;
+        //         }));
         when(mockScheduleRemoteDataSource.getSchedulesByDate(
                 tStartDate, tEndDate))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 2), () {
-                  return tScheduleList;
-                }));
-        when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
-        when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async => Future.value(tScheduleList));
         // Act
-        final scheduleStream =
-            scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
+        final schedules =
+            await scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
         // Assert
-        await expectLater(scheduleStream, emitsInOrder([tScheduleList]));
+        expect(schedules, tScheduleList);
         // verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
         //     .called(1);
-      },
-    );
-    test(
-      'when successful [getSchedulesByDate] should return a stream of list of schedule entity with only remote data if remote data response is faster',
-      () async {
-        // Arrange
-        when(mockScheduleLocalDataSource.getSchedulesByDate(
-                tStartDate, tEndDate))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 2), () {
-                  return tLocalScheduleList;
-                }));
-        when(mockScheduleRemoteDataSource.getSchedulesByDate(
-                tStartDate, tEndDate))
-            .thenAnswer((_) async => Future.delayed(Duration(seconds: 1), () {
-                  return tScheduleList;
-                }));
-        when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
-        when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
-        // Act
-        final scheduleStream =
-            scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
-        // Assert
-        await expectLater(scheduleStream, emitsInOrder([tScheduleList]));
-        verifyNever(
-            mockScheduleLocalDataSource.updateSchedule(tScheduleEntity));
       },
     );
     test(
@@ -262,10 +184,9 @@ void main() {
                 tStartDate, tEndDate))
             .thenThrow(Exception());
         // Act
-        final call =
-            scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
+        final getscheduleByDate = scheduleRepository.getSchedulesByDate;
         // Assert
-        expect(call, emitsError(isA<Exception>()));
+        expect(getscheduleByDate(tStartDate, tEndDate), throwsException);
       },
     );
   });

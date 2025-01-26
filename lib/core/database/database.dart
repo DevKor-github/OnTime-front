@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/utils/json_converters/duration_json_converters.dart';
 import 'package:on_time_front/data/daos/place_dao.dart';
 import 'package:on_time_front/data/daos/preparation_schedule_dao.dart';
@@ -16,6 +17,7 @@ import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
+@Singleton()
 @DriftDatabase(tables: [
   Places,
   Schedules,

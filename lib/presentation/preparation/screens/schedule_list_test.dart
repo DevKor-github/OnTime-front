@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:on_time_front/presentation/preparation/screens/server_test/data_loader_test.dart';
-import 'package:on_time_front/presentation/preparation/screens/server_test/schedule_start_test.dart';
+import 'package:on_time_front/presentation/preparation/screens/schedule_start.dart';
+import 'package:on_time_front/presentation/preparation/screens/server_data_loader.dart';
 
 class ScheduleListTest extends StatefulWidget {
   const ScheduleListTest({super.key});
@@ -19,13 +19,13 @@ class _ScheduleListTestState extends State<ScheduleListTest> {
     loadScheduleData();
   }
 
-  // DataLoader를 사용하여 데이터 불러오기
+  // DataLoader를 사용하여 데이터 불러오기 (날짜 하드코딩)
   Future<void> loadScheduleData() async {
     const String startDate = "2024-11-15T19:30:00";
     const String endDate = "2024-11-15T19:30:00";
 
     try {
-      final data = await DataLoaderTest.loadSchedules(
+      final data = await ServerDataLoader.loadSchedules(
         startDate: startDate,
         endDate: endDate,
       );
@@ -62,7 +62,7 @@ class _ScheduleListTestState extends State<ScheduleListTest> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ScheduleStartTest(
+                          builder: (context) => ScheduleStart(
                             schedule: schedule,
                           ),
                         ),

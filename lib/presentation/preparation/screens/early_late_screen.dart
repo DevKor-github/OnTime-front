@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/preparation/screens/early_late_messages.dart';
+import 'package:on_time_front/presentation/preparation/data/early_late_messages.dart';
 import 'package:on_time_front/utils/time_format.dart';
 import 'package:on_time_front/presentation/preparation/component/preparation_timer/button.dart';
 

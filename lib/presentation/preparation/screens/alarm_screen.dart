@@ -11,19 +11,19 @@ import 'package:on_time_front/presentation/preparation/component/preparation_tim
 
 import 'package:on_time_front/utils/time_format.dart';
 
-class AlarmScreenTest extends StatefulWidget {
+class AlarmScreen extends StatefulWidget {
   final Map<String, dynamic> schedule; // 스케줄 데이터를 받음
 
-  const AlarmScreenTest({
+  const AlarmScreen({
     super.key,
     required this.schedule,
   });
 
   @override
-  _AlarmScreenTestState createState() => _AlarmScreenTestState();
+  _AlarmScreenState createState() => _AlarmScreenState();
 }
 
-class _AlarmScreenTestState extends State<AlarmScreenTest>
+class _AlarmScreenState extends State<AlarmScreen>
     with SingleTickerProviderStateMixin {
   late List<dynamic> preparations = [];
 

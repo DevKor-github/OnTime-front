@@ -37,7 +37,6 @@ class _ScheduleCreateScreenState extends State<ScheduleCreateScreen>
         child: Column(
           children: [
             TopBar(
-              tabController: _tabController,
               onNextPAgeButtonClicked: _onNextPageButtonClicked,
               onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
             ),

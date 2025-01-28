@@ -5,9 +5,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
-import 'package:on_time_front/presentation/preparation/component/preparation_timer/button.dart';
-import 'package:on_time_front/presentation/preparation/component/preparation_timer/preparation_step_list.dart';
-import 'package:on_time_front/presentation/preparation/component/preparation_timer/arc_painter_no_marker.dart';
+import 'package:on_time_front/presentation/preparation/components/preparation_timer/button.dart';
+import 'package:on_time_front/presentation/preparation/components/preparation_timer/preparation_step_list_widget.dart';
+import 'package:on_time_front/presentation/preparation/components/preparation_timer/arc_painter_no_marker.dart';
 
 import 'package:on_time_front/utils/time_format.dart';
 
@@ -432,7 +432,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                   left: MediaQuery.of(context).size.width * 0.06,
                   right: MediaQuery.of(context).size.width * 0.06,
                   bottom: 100,
-                  child: PreparationStepList(
+                  child: PreparationStepListWidget(
                     preparations: preparations,
                     currentIndex: currentIndex,
                     onSkip: skipCurrentPreparation,

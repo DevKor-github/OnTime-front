@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/preparation/component/preparation_timer/preparation_step_tile.dart';
+import 'package:on_time_front/presentation/preparation/components/preparation_timer/preparation_step_tile.dart';
 
-class PreparationStepList extends StatelessWidget {
+class PreparationStepListWidget extends StatelessWidget {
   final List<dynamic> preparations; // 준비 과정 데이터
   final int currentIndex; // 현재 실행 중인 준비 과정 인덱스
   final Function onSkip; // "단계 건너뛰기" 콜백
 
-  const PreparationStepList({
+  const PreparationStepListWidget({
     super.key,
     required this.preparations,
     required this.currentIndex,

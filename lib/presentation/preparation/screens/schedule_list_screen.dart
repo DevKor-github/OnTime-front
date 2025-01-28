@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/preparation/screens/schedule_start.dart';
 import 'package:on_time_front/presentation/preparation/screens/server_data_loader.dart';
 
-class ScheduleListTest extends StatefulWidget {
-  const ScheduleListTest({super.key});
+// 해당 컴포넌트는 스케줄 데이터를 임시로 받아오는 화면. 실재 기능에서는 사용되지 않을 예정.
+
+class ScheduleListScreen extends StatefulWidget {
+  const ScheduleListScreen({super.key});
 
   @override
-  _ScheduleListTestState createState() => _ScheduleListTestState();
+  _ScheduleListScreenState createState() => _ScheduleListScreenState();
 }
 
-class _ScheduleListTestState extends State<ScheduleListTest> {
+class _ScheduleListScreenState extends State<ScheduleListScreen> {
   List<dynamic> schedules = [];
 
   @override

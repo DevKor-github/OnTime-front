@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/preparation/component/preparation_timer/button.dart';
+import 'package:on_time_front/presentation/preparation/components/preparation_timer/button.dart';
 import 'package:on_time_front/presentation/preparation/screens/alarm_screen.dart';
 
 class ScheduleStart extends StatelessWidget {
@@ -52,7 +52,7 @@ class ScheduleStart extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 20),
                     child: Image.asset(
-                      'lib/images/ontime_mascot.png',
+                      'assets/character.png',
                       width: 204,
                       height: 269,
                     ),

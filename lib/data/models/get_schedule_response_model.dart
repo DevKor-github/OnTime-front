@@ -12,7 +12,7 @@ class GetScheduleResponseModel {
   final DateTime scheduleTime;
   final Duration moveTime;
   final Duration scheduleSpareTime;
-  final String scheduleNote;
+  final String? scheduleNote;
   final int? latenessTime;
 
   const GetScheduleResponseModel({

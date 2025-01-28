@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 class TopBar extends StatelessWidget {
   const TopBar(
       {super.key,
-      required this.tabController,
       required this.onNextPAgeButtonClicked,
       required this.onPreviousPageButtonClicked});
 
-  final TabController tabController;
+
   final void Function() onNextPAgeButtonClicked;
   final void Function() onPreviousPageButtonClicked;
 

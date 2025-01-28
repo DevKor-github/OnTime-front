@@ -13,7 +13,7 @@ class UpdateScheduleRequestModel {
   final DateTime scheduleTime;
   final Duration moveTime;
   final Duration scheduleSpareTime;
-  final String scheduleNote;
+  final String? scheduleNote;
   final int latenessTime;
 
   const UpdateScheduleRequestModel({
@@ -25,7 +25,7 @@ class UpdateScheduleRequestModel {
     required this.scheduleTime,
     required this.moveTime,
     required this.scheduleSpareTime,
-    required this.scheduleNote,
+    this.scheduleNote,
     this.latenessTime = 0,
   });
 

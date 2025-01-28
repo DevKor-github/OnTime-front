@@ -1,0 +1,86 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+extension ModalBottomSheetExtension on BuildContext {
+  void showCupertinoPickerModal({
+    required BuildContext context,
+    required Duration initialValue,
+    required Function(Duration value) onSaved,
+    Function? onDisposed,
+  }) {
+    showModalBottomSheet<void>(
+      isDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        final textTheme = Theme.of(context).textTheme;
+        int minutes = initialValue.inMinutes;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 28.0),
+          child: SizedBox(
+            height: 334,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('시간을 선택해주세요', style: textTheme.titleMedium),
+                Expanded(
+                  child: Center(
+                    child: SizedBox(
+                      width: 69.0,
+                      child: CupertinoPicker(
+                        scrollController: FixedExtentScrollController(
+                            initialItem: initialValue.inMinutes),
+                        looping: true,
+                        itemExtent: 32,
+                        onSelectedItemChanged: (int value) {
+                          minutes = value;
+                        },
+                        children: List.generate(
+                            60,
+                            (index) => Text(
+                                (index < 10 ? '0' : '') + index.toString())),
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: ElevatedButton(
+                          onPressed: () {
+                            //calling order matters
+                            Navigator.pop(context);
+                            onDisposed?.call();
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(
+                                Color.fromARGB(255, 220, 227, 255)),
+                            foregroundColor: WidgetStatePropertyAll(
+                                Color.fromARGB(255, 92, 121, 251)),
+                          ),
+                          child: Text('취소')),
+                    ),
+                    SizedBox(width: 20.0),
+                    Expanded(
+                      flex: 1,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onSaved(Duration(minutes: minutes));
+                          onDisposed?.call();
+                        },
+                        child: Text('확인'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

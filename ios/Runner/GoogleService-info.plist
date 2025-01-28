@@ -2,13 +2,33 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>1068261222530-b9eihdof8hfupuhqk8t3u5utsmur841c.apps.googleusercontent.com</key>
-	<string>1068261222530-b9eihdof8hfupuhqk8t3u5utsmur841c.apps.googleusercontent.com</string>
+	<key>CLIENT_ID</key>
+	<string>272076387384-2m7vcg06s5vt53k57cprq8uk7mlfigq7.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.1068261222530-b9eihdof8hfupuhqk8t3u5utsmur841c</string>
+	<string>com.googleusercontent.apps.272076387384-2m7vcg06s5vt53k57cprq8uk7mlfigq7</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCuvAjxBF9lCrWITSr-Gxcnnm4PSSwHAdU</string>
+	<key>GCM_SENDER_ID</key>
+	<string>272076387384</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.onTimeFront</string>
+	<string>com.devkord.ontime</string>
+	<key>PROJECT_ID</key>
+	<string>ontime-push</string>
+	<key>STORAGE_BUCKET</key>
+	<string>ontime-push.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:272076387384:ios:6ba104287f0777f14562cd</string>
 </dict>
 </plist>

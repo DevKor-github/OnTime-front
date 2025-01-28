@@ -20,8 +20,10 @@
         <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
         <meta name="description" content="A new Flutter project." />
 
-        <meta name="google-signin-client_id" content="1068261222530-c8fr4b1m6jop8phlklem05lgcg7vh543.apps.googleusercontent.com">
-
+        <meta
+            name="google-signin-client_id"
+            content="1068261222530-c8fr4b1m6jop8phlklem05lgcg7vh543.apps.googleusercontent.com"
+        />
 
         <!-- iOS meta tags & icons -->
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -34,6 +36,25 @@
 
         <title>on_time_front</title>
         <link rel="manifest" href="manifest.json" />
+
+        <!-- Firebase App (기본 Firebase SDK) -->
+        <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-messaging.js"></script>
+
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyBsBkVEfFrCPLtNJxvrpr_2LfRH2fu8570",
+                authDomain: "ontime-push.firebaseapp.com",
+                projectId: "ontime-push",
+                storageBucket: "ontime-push.firebasestorage.app",
+                messagingSenderId: "272076387384",
+                appId: "1:272076387384:web:c6691181528ab99c4562cd",
+                measurementId: "G-4C4VJCQP7N",
+            };
+
+            firebase.initializeApp(firebaseConfig);
+        </script>
     </head>
     <body>
         <script src="flutter_bootstrap.js" async></script>

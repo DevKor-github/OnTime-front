@@ -51,26 +51,33 @@ final Map<Range, List<String>> earlyMessages = {
     "영화 예고편을 보며\n시간을 보낼 수 있어요!",
     "약속 장소에서\n조용히 책 몇 페이지를 읽을 수 있어요.",
   ],
-  Range(60, null): [
+  Range.openEnded(60): [
     // 1시간 이상 (60분 이상)
     "삶의 소소한 여유를 얻었어요!",
     "지각 걱정 없이 미리 가서\n주변을 살펴볼 수 있어요.",
   ],
 };
 
-/// 범위를 다루기 위한 간단한 클래스
 class Range {
   final int start;
   final int? end;
 
-  Range(this.start, this.end);
+  Range(this.start, [this.end]) {
+    if (end != null && end! < start) {
+      throw ArgumentError("end 값은 start 값보다 크거나 같아야 합니다.");
+    }
+  }
+
+  Range.openEnded(this.start) : end = null;
 
   bool contains(int value) {
+    if (end == null) {
+      return value >= start;
+    }
     return value >= start && value <= end!;
   }
 }
 
-/// [value] 분에 해당하는 문구 중 랜덤으로 하나를 반환
 String getEarlyMessage(int value) {
   for (final range in earlyMessages.keys) {
     if (range.contains(value)) {
@@ -78,7 +85,6 @@ String getEarlyMessage(int value) {
       return list[Random().nextInt(list.length)];
     }
   }
-  // 범위 밖(0분 이하)이면 특별 처리
   return "정확히 시간을 맞춰 준비했어요! 혹시 몸에 시계라도 있나요?";
 }
 

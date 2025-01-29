@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class ServerDataLoader {
   static const String baseUrl = "http://ejun.kro.kr:8888/schedule/show";
   static const String token =
-      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTc3NDE1MjYyOCwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.DKACYEgQnFdQwz0-fJKU3wH0I6qwYirlCgP-i7CsZddeyK3svzf3Pl6FfW4h5poZ4p_aN5hnpHLTMIXejFqhvQ";
+      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTc3NDE3MjM3MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.k7nANy05Q2_iFhRYjD1PXEnJUVfIr3rLu6nAIe-rEGnE-hLkZ-hx9tupAVO2TGUKwSiVBmwbozRxbobvUOsR_g";
 
   static Future<List<dynamic>> loadSchedules({
     required String startDate,

@@ -57,6 +57,7 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
       );
 
       if (response.statusCode == 200) {
+        print("success");
         final rawProfileInfo = json.decode(response.body);
 
         // userInfo에서 필요한 데이터만 추출

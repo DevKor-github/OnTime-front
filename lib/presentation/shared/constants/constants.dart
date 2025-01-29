@@ -52,7 +52,6 @@ final Map<Range, List<String>> earlyMessages = {
     "약속 장소에서\n조용히 책 몇 페이지를 읽을 수 있어요.",
   ],
   Range.openEnded(60): [
-    // 1시간 이상 (60분 이상)
     "삶의 소소한 여유를 얻었어요!",
     "지각 걱정 없이 미리 가서\n주변을 살펴볼 수 있어요.",
   ],

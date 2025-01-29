@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
       theme: themeData,
       home: Scaffold(
         backgroundColor: Colors.grey,
-        // body: ScheduleListScreen(),
-        body: LoginTestScreen(),
+        body: ScheduleListScreen(),
+        // body: LoginTestScreen(),
       ),
     );
   }

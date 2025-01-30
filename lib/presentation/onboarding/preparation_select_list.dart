@@ -116,7 +116,7 @@ class _PreparationSelectListState extends State<PreparationSelectList> {
                         isAdding = false;
                       });
                       widget.preparationList.add(PreparationStepWithSelection(
-                          id: Uuid().v4(),
+                          id: Uuid().v7(),
                           preparationName: value,
                           isSelected: true));
                       focusNodes.add(FocusNode());

@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 extension ModalBottomSheetExtension on BuildContext {
-  void showCupertinoPickerModal({
+  void showCupertinoTimePickerModal({
+    required String title,
     required BuildContext context,
     required Duration initialValue,
     required Function(Duration value) onSaved,
@@ -21,7 +22,7 @@ extension ModalBottomSheetExtension on BuildContext {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('시간을 선택해주세요', style: textTheme.titleMedium),
+                Text(title, style: textTheme.titleMedium),
                 Expanded(
                   child: Center(
                     child: SizedBox(
@@ -69,6 +70,82 @@ extension ModalBottomSheetExtension on BuildContext {
                         onPressed: () {
                           Navigator.pop(context);
                           onSaved(Duration(minutes: minutes));
+                          onDisposed?.call();
+                        },
+                        child: Text('확인'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void showCupertinoDatePickerModal({
+    required String title,
+    required BuildContext context,
+    required DateTime initialValue,
+    required Function(DateTime value) onSaved,
+    required CupertinoDatePickerMode mode,
+    Function? onDisposed,
+  }) {
+    showModalBottomSheet<void>(
+      isDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        final textTheme = Theme.of(context).textTheme;
+        DateTime dateTime = initialValue;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 28.0),
+          child: SizedBox(
+            height: 334,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: textTheme.titleMedium),
+                Expanded(
+                  child: Center(
+                    child: CupertinoDatePicker(
+                      mode: mode,
+                      initialDateTime: initialValue,
+                      itemExtent: 32,
+                      onDateTimeChanged: (DateTime value) {
+                        dateTime = value;
+                      },
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: ElevatedButton(
+                          onPressed: () {
+                            //calling order matters
+                            Navigator.pop(context);
+                            onDisposed?.call();
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(
+                                Color.fromARGB(255, 220, 227, 255)),
+                            foregroundColor: WidgetStatePropertyAll(
+                                Color.fromARGB(255, 92, 121, 251)),
+                          ),
+                          child: Text('취소')),
+                    ),
+                    SizedBox(width: 20.0),
+                    Expanded(
+                      flex: 1,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onSaved(dateTime);
                           onDisposed?.call();
                         },
                         child: Text('확인'),

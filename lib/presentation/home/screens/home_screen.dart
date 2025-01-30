@@ -3,9 +3,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/domain/entities/place_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/presentation/home/bloc/weekly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
@@ -13,7 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_navigation_bar.dart';
-import 'package:uuid/uuid.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

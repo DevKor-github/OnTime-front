@@ -1,120 +1,111 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
-import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
+import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
 
 class ScheduleTimeForm extends StatefulWidget {
-  const ScheduleTimeForm(
-      {super.key,
-      required this.formKey,
-      required this.initalValue,
-      this.onSaved});
+  const ScheduleTimeForm({
+    super.key,
+    required this.formKey,
+    required this.initalValue,
+    required this.onScheduleTimeSaved,
+    required this.onScheduleDateSaved,
+  });
 
   final GlobalKey<FormState> formKey;
-  final ScheduleFormData initalValue;
-  final Function(ScheduleFormData)? onSaved;
+  final ScheduleFormState initalValue;
+  final ValueChanged<DateTime> onScheduleTimeSaved;
+  final ValueChanged<DateTime> onScheduleDateSaved;
 
   @override
   State<ScheduleTimeForm> createState() => _ScheduleTimeFormState();
 }
 
 class _ScheduleTimeFormState extends State<ScheduleTimeForm> {
-  ScheduleFormData _scheduleFormData = ScheduleFormData();
   late DateTime date;
   late DateTime time;
 
   @override
   Widget build(BuildContext context) {
-    return MultiPageFormField(
-        key: widget.formKey,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 2,
-              child: FormField<DateTime>(
-                initialValue: widget.initalValue.scheduleTime ?? DateTime.now(),
-                builder: (field) => TextField(
-                  readOnly: true,
-                  decoration: InputDecoration(labelText: '약속 시간'),
-                  controller: TextEditingController(
-                      text:
-                          '${field.value!.year}년 ${field.value!.month}월 ${field.value!.day}일'),
-                  onTap: () {
-                    _showModalBottomSheet(
-                        context: context,
-                        builder: () {
-                          return Center(
-                            child: CupertinoDatePicker(
-                              mode: CupertinoDatePickerMode.date,
-                              initialDateTime: field.value!,
-                              onDateTimeChanged: (DateTime newDateTime) {
-                                date = newDateTime;
-                              },
-                            ),
-                          );
-                        },
-                        onSave: () {
-                          field.didChange(date);
-                        });
-                  },
-                ),
-                onSaved: (value) {
-                  _scheduleFormData = _scheduleFormData.copyWith(
-                      scheduleTime: _scheduleFormData.scheduleTime?.copyWith(
-                              year: value!.year,
-                              month: value.month,
-                              day: value.day) ??
-                          value);
-                },
-              ),
-            ),
-            SizedBox(
-              width: 16,
-            ),
-            Expanded(
-              flex: 1,
-              child: FormField<DateTime>(
-                initialValue: widget.initalValue.scheduleTime ?? DateTime.now(),
-                builder: (field) => TextField(
-                  readOnly: true,
-                  decoration: InputDecoration(labelText: ''),
-                  controller: TextEditingController(
-                      text:
-                          '${field.value!.hour > 12 ? '오후' : '오전'} ${field.value!.hour % 12}:${field.value!.minute}'),
-                  onTap: () {
-                    _showModalBottomSheet(
+    return Form(
+      key: widget.formKey,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: FormField<DateTime>(
+              initialValue: widget.initalValue.scheduleTime ?? DateTime.now(),
+              builder: (field) => TextField(
+                readOnly: true,
+                decoration: InputDecoration(labelText: '약속 시간'),
+                controller: TextEditingController(
+                    text:
+                        '${field.value!.year}년 ${field.value!.month}월 ${field.value!.day}일'),
+                onTap: () {
+                  _showModalBottomSheet(
                       context: context,
                       builder: () {
                         return Center(
                           child: CupertinoDatePicker(
-                            mode: CupertinoDatePickerMode.time,
-                            initialDateTime: field.value ?? DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            initialDateTime: field.value!,
                             onDateTimeChanged: (DateTime newDateTime) {
-                              time = newDateTime;
+                              date = newDateTime;
                             },
                           ),
                         );
                       },
                       onSave: () {
-                        field.didChange(time);
-                      },
-                    );
-                  },
-                ),
-                onSaved: (value) {
-                  _scheduleFormData = _scheduleFormData.copyWith(
-                      scheduleTime: _scheduleFormData.scheduleTime?.copyWith(
-                              hour: value!.hour, minute: value.minute) ??
-                          value);
+                        field.didChange(date);
+                      });
                 },
               ),
+              onSaved: (value) {
+                widget.onScheduleDateSaved(value!);
+              },
             ),
-          ],
-        ),
-        onSaved: () {
-          widget.onSaved?.call(_scheduleFormData);
-        });
+          ),
+          SizedBox(
+            width: 16,
+          ),
+          Expanded(
+            flex: 1,
+            child: FormField<DateTime>(
+              initialValue: widget.initalValue.scheduleTime ?? DateTime.now(),
+              builder: (field) => TextField(
+                readOnly: true,
+                decoration: InputDecoration(labelText: ''),
+                controller: TextEditingController(
+                    text:
+                        '${field.value!.hour > 12 ? '오후' : '오전'} ${field.value!.hour % 12}:${field.value!.minute}'),
+                onTap: () {
+                  _showModalBottomSheet(
+                    context: context,
+                    builder: () {
+                      return Center(
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.time,
+                          initialDateTime: field.value ?? DateTime.now(),
+                          onDateTimeChanged: (DateTime newDateTime) {
+                            time = newDateTime;
+                          },
+                        ),
+                      );
+                    },
+                    onSave: () {
+                      field.didChange(time);
+                    },
+                  );
+                },
+              ),
+              onSaved: (value) {
+                widget.onScheduleTimeSaved(value!);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showModalBottomSheet({

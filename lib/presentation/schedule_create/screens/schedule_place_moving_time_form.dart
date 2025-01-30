@@ -1,18 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
-import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
+import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
 
 class SchedulePlaceMovingTimeForm extends StatefulWidget {
   const SchedulePlaceMovingTimeForm(
       {super.key,
       required this.formKey,
       required this.initalValue,
-      this.onSaved});
+      required this.onPlaceNameSaved,
+      required this.onMovingTimeSaved});
 
   final GlobalKey<FormState> formKey;
-  final ScheduleFormData initalValue;
-  final Function(ScheduleFormData)? onSaved;
+  final ScheduleFormState initalValue;
+  final ValueChanged<String> onPlaceNameSaved;
+  final ValueChanged<Duration> onMovingTimeSaved;
 
   @override
   State<SchedulePlaceMovingTimeForm> createState() =>
@@ -23,11 +24,17 @@ class _SchedulePlaceMovingTimeFormState
     extends State<SchedulePlaceMovingTimeForm> {
   final FocusNode _placeFocusNode = FocusNode();
   final FocusNode _timeFocusNode = FocusNode();
-  ScheduleFormData _scheduleFormData = ScheduleFormData();
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _placeFocusNode.dispose();
+    _timeFocusNode.dispose();
+    super.dispose();
   }
 
   void _showModalBottomSheet(
@@ -98,11 +105,8 @@ class _SchedulePlaceMovingTimeFormState
 
   @override
   Widget build(BuildContext context) {
-    return MultiPageFormField(
+    return Form(
       key: widget.formKey,
-      onSaved: () {
-        widget.onSaved?.call(_scheduleFormData);
-      },
       child: Column(
         children: [
           TextFormField(
@@ -110,16 +114,14 @@ class _SchedulePlaceMovingTimeFormState
               focusNode: _placeFocusNode,
               textInputAction: TextInputAction.next,
               onSaved: (newValue) {
-                _scheduleFormData =
-                    _scheduleFormData.copyWith(placeName: newValue!);
+                widget.onPlaceNameSaved(newValue!);
               }),
           Row(
             children: [
               FormField<Duration>(
                 initialValue: widget.initalValue.moveTime,
                 onSaved: (newValue) {
-                  _scheduleFormData =
-                      _scheduleFormData.copyWith(moveTime: newValue);
+                  widget.onMovingTimeSaved(newValue!);
                 },
                 builder: (field) {
                   return Expanded(

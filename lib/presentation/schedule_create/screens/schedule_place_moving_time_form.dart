@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
+import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 
 class SchedulePlaceMovingTimeForm extends StatefulWidget {
   const SchedulePlaceMovingTimeForm(
@@ -37,72 +38,6 @@ class _SchedulePlaceMovingTimeFormState
     super.dispose();
   }
 
-  void _showModalBottomSheet(
-      BuildContext context, FormFieldState<Duration> field) {
-    showModalBottomSheet<void>(
-      isDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        final textTheme = Theme.of(context).textTheme;
-        Duration duration = field.value ?? Duration.zero;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 28.0),
-          child: SizedBox(
-            height: 334,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('시간을 선택해주세요', style: textTheme.titleMedium),
-                Expanded(
-                  child: Center(
-                    child: CupertinoTimerPicker(
-                      mode: CupertinoTimerPickerMode.hm,
-                      initialTimerDuration: duration,
-                      onTimerDurationChanged: (Duration newDuration) {
-                        duration = newDuration;
-                      },
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                                Color.fromARGB(255, 220, 227, 255)),
-                            foregroundColor: WidgetStatePropertyAll(
-                                Color.fromARGB(255, 92, 121, 251)),
-                          ),
-                          child: Text('취소')),
-                    ),
-                    SizedBox(width: 20.0),
-                    Expanded(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          field.didChange(duration);
-                          Navigator.pop(context);
-                        },
-                        child: Text('확인'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -135,7 +70,15 @@ class _SchedulePlaceMovingTimeFormState
                               ? '${field.value!.inHours}시간 ${field.value!.inMinutes % 60}분'
                               : ''),
                       onTap: () {
-                        _showModalBottomSheet(context, field);
+                        context.showCupertinoTimerPickerModal(
+                            title: '시간을 선택해 주세요',
+                            mode: CupertinoTimerPickerMode.hm,
+                            context: context,
+                            initialValue: field.value ?? Duration.zero,
+                            onSaved: (Duration newTime) {
+                              field.didChange(newTime);
+                            },
+                            onDisposed: () {});
                       },
                     ),
                   );

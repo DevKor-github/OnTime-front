@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
+import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 
 class ScheduleTimeForm extends StatefulWidget {
   const ScheduleTimeForm({
@@ -21,9 +22,6 @@ class ScheduleTimeForm extends StatefulWidget {
 }
 
 class _ScheduleTimeFormState extends State<ScheduleTimeForm> {
-  late DateTime date;
-  late DateTime time;
-
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -42,22 +40,16 @@ class _ScheduleTimeFormState extends State<ScheduleTimeForm> {
                     text:
                         '${field.value!.year}년 ${field.value!.month}월 ${field.value!.day}일'),
                 onTap: () {
-                  _showModalBottomSheet(
-                      context: context,
-                      builder: () {
-                        return Center(
-                          child: CupertinoDatePicker(
-                            mode: CupertinoDatePickerMode.date,
-                            initialDateTime: field.value!,
-                            onDateTimeChanged: (DateTime newDateTime) {
-                              date = newDateTime;
-                            },
-                          ),
-                        );
-                      },
-                      onSave: () {
-                        field.didChange(date);
-                      });
+                  context.showCupertinoDatePickerModal(
+                    title: '날짜를 입력해주세요.',
+                    context: context,
+                    mode: CupertinoDatePickerMode.date,
+                    initialValue: field.value!,
+                    onDisposed: () {},
+                    onSaved: (DateTime newDateTime) {
+                      field.didChange(newDateTime);
+                    },
+                  );
                 },
               ),
               onSaved: (value) {
@@ -79,21 +71,14 @@ class _ScheduleTimeFormState extends State<ScheduleTimeForm> {
                     text:
                         '${field.value!.hour > 12 ? '오후' : '오전'} ${field.value!.hour % 12}:${field.value!.minute}'),
                 onTap: () {
-                  _showModalBottomSheet(
+                  context.showCupertinoDatePickerModal(
+                    title: '시간을 입력해주세요.',
                     context: context,
-                    builder: () {
-                      return Center(
-                        child: CupertinoDatePicker(
-                          mode: CupertinoDatePickerMode.time,
-                          initialDateTime: field.value ?? DateTime.now(),
-                          onDateTimeChanged: (DateTime newDateTime) {
-                            time = newDateTime;
-                          },
-                        ),
-                      );
-                    },
-                    onSave: () {
-                      field.didChange(time);
+                    mode: CupertinoDatePickerMode.time,
+                    initialValue: field.value!,
+                    onDisposed: () {},
+                    onSaved: (DateTime newDateTime) {
+                      field.didChange(newDateTime);
                     },
                   );
                 },

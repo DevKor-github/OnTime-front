@@ -182,7 +182,7 @@ class _PreparationEditListState extends State<PreparationEditList> {
 
     final newPreparationStepFormKey = GlobalKey<FormState>();
     PreparationStepFormData newPreparationStep = PreparationStepFormData(
-      id: Uuid().v4(),
+      id: Uuid().v7(),
       preparationName: '',
     );
     children.addAll([
@@ -196,7 +196,7 @@ class _PreparationEditListState extends State<PreparationEditList> {
                     newPreparationStepFormKey.currentState?.save();
                     if (newPreparationStep.preparationName == '') {
                       newPreparationStep = PreparationStepFormData(
-                        id: Uuid().v4(),
+                        id: Uuid().v7(),
                         preparationName: '',
                       );
                     } else {

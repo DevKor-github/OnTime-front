@@ -3,7 +3,7 @@ import 'dart:io'; // For HttpHeaders and Platform
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // For HTTP requests
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-import 'package:on_time_front/screens/test_screen.dart';
+import 'package:on_time_front/presentation/login/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
 
 class KakaoLoginTest extends StatefulWidget {

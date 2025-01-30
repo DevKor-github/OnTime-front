@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
+import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 
 final goRouterConfig = GoRouter(
@@ -17,7 +18,15 @@ final goRouterConfig = GoRouter(
     ),
     GoRoute(path: '/calendar', builder: (context, state) => CalendarScreen()),
     GoRoute(
-        path: '/scheduleCreate',
-        builder: (context, state) => ScheduleCreateScreen()),
+      path: '/scheduleCreate',
+      builder: (context, state) => ScheduleCreateScreen(),
+    ),
+    GoRoute(
+      path: '/earlyLate',
+      builder: (context, state) {
+        final earlyLateTime = state.extra as int;
+        return EarlyLateScreen(earlyLateTime: earlyLateTime);
+      },
+    ),
   ],
 );

@@ -210,16 +210,16 @@ class _AlarmScreenState extends State<AlarmScreen>
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         // 준비 종료 후 EarlyLateScreen으로 이동
-        context.go('/earlyLate', extra: fullTime);
+        // context.go('/earlyLate', extra: fullTime);
 
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => EarlyLateScreen(
-        //       earlyLateTime: fullTime,
-        //     ),
-        //   ),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EarlyLateScreen(
+              earlyLateTime: fullTime,
+            ),
+          ),
+        );
       }
     });
   }

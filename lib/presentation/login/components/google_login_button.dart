@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import 'package:on_time_front/screens/test_screen.dart';
+import 'package:on_time_front/presentation/login/screens/test_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
 
 class GoogleLoginButton extends StatefulWidget {

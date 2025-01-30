@@ -1,0 +1,66 @@
+part of 'schedule_form_bloc.dart';
+
+enum ScheduleFormStatus { initial, loading, success, error }
+
+final class ScheduleFormState extends Equatable {
+  final ScheduleFormStatus status;
+  final String id;
+  final String? placeName;
+  final String? scheduleName;
+  final DateTime? scheduleTime;
+  final Duration? moveTime;
+  final bool? isChanged;
+  final Duration? scheduleSpareTime;
+  final String? scheduleNote;
+  final Duration? spareTime;
+
+  ScheduleFormState({
+    this.status = ScheduleFormStatus.initial,
+    String? id,
+    this.placeName,
+    this.scheduleName,
+    this.scheduleTime,
+    this.moveTime,
+    this.isChanged,
+    this.scheduleSpareTime,
+    this.scheduleNote,
+    this.spareTime,
+  }) : id = id ?? Uuid().v7();
+
+  ScheduleFormState copyWith({
+    String? id,
+    String? placeName,
+    String? scheduleName,
+    DateTime? scheduleTime,
+    Duration? moveTime,
+    bool? isChanged,
+    Duration? scheduleSpareTime,
+    String? scheduleNote,
+    Duration? spareTime,
+  }) {
+    return ScheduleFormState(
+      id: id ?? this.id,
+      placeName: placeName ?? this.placeName,
+      scheduleName: scheduleName ?? this.scheduleName,
+      scheduleTime: scheduleTime ?? this.scheduleTime,
+      moveTime: moveTime ?? this.moveTime,
+      isChanged: isChanged ?? this.isChanged,
+      scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
+      scheduleNote: scheduleNote ?? this.scheduleNote,
+      spareTime: spareTime ?? this.spareTime,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        placeName,
+        scheduleName,
+        scheduleTime,
+        moveTime,
+        isChanged,
+        scheduleSpareTime,
+        scheduleNote,
+        spareTime,
+      ];
+}

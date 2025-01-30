@@ -32,10 +32,7 @@ final class ScheduleFormScheduleNameChanged extends ScheduleFormEvent {
 final class ScheduleFormScheduleDateChanged extends ScheduleFormEvent {
   final DateTime scheduleDate;
 
-  ScheduleFormScheduleDateChanged({required this.scheduleDate})
-      : assert(scheduleDate.hour == 0 &&
-            scheduleDate.minute == 0 &&
-            scheduleDate.second == 0);
+  const ScheduleFormScheduleDateChanged({required this.scheduleDate});
 
   @override
   List<Object> get props => [scheduleDate];
@@ -75,6 +72,15 @@ final class ScheduleFormScheduleSpareTimeChanged extends ScheduleFormEvent {
 
   @override
   List<Object> get props => [scheduleSpareTime];
+}
+
+final class ScheduleFormPreparationChanged extends ScheduleFormEvent {
+  final PreparationEntity preparation;
+
+  const ScheduleFormPreparationChanged({required this.preparation});
+
+  @override
+  List<Object> get props => [preparation];
 }
 
 final class ScheduleFormSaved extends ScheduleFormEvent {

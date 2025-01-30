@@ -149,7 +149,8 @@ class _PreparationEditListState extends State<PreparationEditList> {
                       child: Text((field.value!.inMinutes < 10 ? '0' : '') +
                           field.value!.inMinutes.toString()),
                       onTap: () {
-                        context.showCupertinoPickerModal(
+                        context.showCupertinoTimePickerModal(
+                          title: '시간을 선택해 주세요',
                           context: context,
                           initialValue: field.value!,
                           onSaved: field.didChange,
@@ -230,7 +231,8 @@ class _PreparationEditListState extends State<PreparationEditList> {
                           if (focused) {
                             isModalUp = true;
 
-                            context.showCupertinoPickerModal(
+                            context.showCupertinoTimePickerModal(
+                              title: '시간을 선택해 주세요',
                               context: context,
                               initialValue: field.value!,
                               onSaved: (value) {

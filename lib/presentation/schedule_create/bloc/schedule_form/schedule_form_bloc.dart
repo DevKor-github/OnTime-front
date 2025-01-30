@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,10 +39,10 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ));
   }
 
-  Future<void> _onCreateRequested(
+  void _onCreateRequested(
     ScheduleFormCreateRequested event,
     Emitter<ScheduleFormState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(
       id: Uuid().v7(),
       placeName: null,
@@ -55,17 +56,17 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ));
   }
 
-  Future<void> _onScheduleNameChanged(
+  void _onScheduleNameChanged(
     ScheduleFormScheduleNameChanged event,
     Emitter<ScheduleFormState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(scheduleName: event.scheduleName));
   }
 
-  Future<void> _onScheduleDateChanged(
+  void _onScheduleDateChanged(
     ScheduleFormScheduleDateChanged event,
     Emitter<ScheduleFormState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(
         scheduleTime: state.scheduleTime?.copyWith(
               year: event.scheduleDate.year,
@@ -75,10 +76,10 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
             event.scheduleDate));
   }
 
-  Future<void> _onScheduleTimeChanged(
+  void _onScheduleTimeChanged(
     ScheduleFormScheduleTimeChanged event,
     Emitter<ScheduleFormState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(
         scheduleTime: state.scheduleTime?.copyWith(
               hour: event.scheduleTime.hour,
@@ -87,29 +88,33 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
             event.scheduleTime));
   }
 
-  Future<void> _onPlaceNameChanged(
+  void _onPlaceNameChanged(
     ScheduleFormPlaceNameChanged event,
     Emitter<ScheduleFormState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(placeName: event.placeName));
   }
 
-  Future<void> _onMoveTimeChanged(
+  void _onMoveTimeChanged(
     ScheduleFormMoveTimeChanged event,
     Emitter<ScheduleFormState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(moveTime: event.moveTime));
   }
 
-  Future<void> _onScheduleSpareTimeChanged(
+  void _onScheduleSpareTimeChanged(
     ScheduleFormScheduleSpareTimeChanged event,
     Emitter<ScheduleFormState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(scheduleSpareTime: event.scheduleSpareTime));
   }
 
-  Future<void> _onSaved(
+  void _onSaved(
     ScheduleFormSaved event,
     Emitter<ScheduleFormState> emit,
-  ) async {}
+  ) {}
+
+  Future<void> _getUserDefaultPreparation() {
+    throw UnimplementedError();
+  }
 }

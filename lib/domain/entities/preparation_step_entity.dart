@@ -3,7 +3,7 @@ import 'package:on_time_front/core/database/database.dart';
 class PreparationStepEntity {
   final String id;
   final String preparationName;
-  final int preparationTime;
+  final Duration preparationTime;
   String? nextPreparationId;
 
   PreparationStepEntity({
@@ -18,7 +18,7 @@ class PreparationStepEntity {
       id: id,
       userId: userId,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: preparationTime.inMinutes,
       nextPreparationId: nextPreparationId,
     );
   }
@@ -28,7 +28,7 @@ class PreparationStepEntity {
       id: id,
       scheduleId: scheduleId,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: preparationTime.inMinutes,
       nextPreparationId: nextPreparationId,
     );
   }
@@ -45,7 +45,7 @@ class PreparationStepEntity {
   PreparationStepEntity copyWith({
     String? id,
     String? preparationName,
-    int? preparationTime,
+    Duration? preparationTime,
     String? nextPreparationId,
   }) {
     return PreparationStepEntity(

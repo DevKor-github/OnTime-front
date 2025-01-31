@@ -58,42 +58,24 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }
 
   @override
-  Stream<PreparationEntity> getPreparationByScheduleId(
-      String scheduleId) async* {
+  Future<PreparationEntity> getPreparationByScheduleId(
+      String scheduleId) async {
     try {
-      final localPreparation = await preparationLocalDataSource
-          .getPreparationByScheduleId(scheduleId);
-      yield localPreparation;
-
       final remotePreparation = await preparationRemoteDataSource
           .getPreparationByScheduleId(scheduleId);
-
-      if (localPreparation != remotePreparation) {
-        for (final step in remotePreparation.preparationStepList) {
-          await preparationLocalDataSource.updatePreparation(step);
-        }
-        yield remotePreparation;
-      }
+      return remotePreparation;
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Stream<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId) async* {
+  Future<PreparationStepEntity> getPreparationStepById(
+      String preparationStepId) async {
     try {
-      final localStep = await preparationLocalDataSource
-          .getPreparationStepById(preparationStepId);
-      yield localStep;
-
       final remoteStep = await preparationRemoteDataSource
           .getPreparationStepById(preparationStepId);
-
-      if (localStep != remoteStep) {
-        await preparationLocalDataSource.updatePreparation(remoteStep);
-        yield remoteStep;
-      }
+      return remoteStep;
     } catch (e) {
       rethrow;
     }

@@ -6,7 +6,8 @@ class GetPreparationStepByIdUseCase {
 
   GetPreparationStepByIdUseCase(this._preparationRepository);
 
-  Stream<PreparationStepEntity> call(String preparationStepId) {
-    return _preparationRepository.getPreparationStepById(preparationStepId);
+  Future<PreparationStepEntity> call(String preparationStepId) async {
+    return await _preparationRepository
+        .getPreparationStepById(preparationStepId);
   }
 }

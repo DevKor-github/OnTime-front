@@ -6,7 +6,7 @@ class GetPreparationByScheduleIdUseCase {
 
   GetPreparationByScheduleIdUseCase(this._preparationRepository);
 
-  Stream<PreparationEntity> call(String scheduleId) {
-    return _preparationRepository.getPreparationByScheduleId(scheduleId);
+  Future<PreparationEntity> call(String scheduleId) async {
+    return await _preparationRepository.getPreparationByScheduleId(scheduleId);
   }
 }

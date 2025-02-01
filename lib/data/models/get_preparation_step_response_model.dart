@@ -9,7 +9,7 @@ class GetPreparationStepResponseModel {
   @JsonKey(name: 'preparationId')
   final String id;
   final String preparationName;
-  final Duration preparationTime;
+  final int preparationTime;
   final String? nextPreparationId;
 
   GetPreparationStepResponseModel({
@@ -29,7 +29,7 @@ class GetPreparationStepResponseModel {
     return PreparationStepEntity(
       id: id,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: Duration(minutes: preparationTime),
       nextPreparationId: nextPreparationId,
     );
   }
@@ -39,7 +39,7 @@ class GetPreparationStepResponseModel {
     return GetPreparationStepResponseModel(
       id: entity.id,
       preparationName: entity.preparationName,
-      preparationTime: entity.preparationTime,
+      preparationTime: entity.preparationTime.inMinutes,
       nextPreparationId: entity.nextPreparationId,
     );
   }

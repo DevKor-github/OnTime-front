@@ -36,6 +36,22 @@ final class PreparationFormState extends Equatable {
     );
   }
 
+  PreparationEntity toPreparationEntity() {
+    final sortedList = List<PreparationStepFormState>.from(preparationStepList)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    final steps = sortedList
+        .mapIndexed((index, step) => PreparationStepEntity(
+              id: step.id,
+              preparationName: step.preparationName,
+              preparationTime: step.preparationTime,
+              nextPreparationId: index < sortedList.length - 1
+                  ? sortedList[index + 1].id
+                  : null, // if not last step, set next step id
+            ))
+        .toList();
+    return PreparationEntity(preparationStepList: steps);
+  }
+
   final PreparationFormStatus status;
   final List<PreparationStepFormState> preparationStepList;
 
@@ -50,7 +66,10 @@ final class PreparationFormState extends Equatable {
   }
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [
+        status,
+        ...preparationStepList,
+      ];
 }
 
 final class PreparationStepFormState extends Equatable {
@@ -88,5 +107,7 @@ final class PreparationStepFormState extends Equatable {
         id,
         preparationName,
         preparationTime,
+        focusNode,
+        order,
       ];
 }

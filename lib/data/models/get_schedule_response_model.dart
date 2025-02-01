@@ -29,7 +29,6 @@ class GetScheduleResponseModel {
   ScheduleEntity toEntity() {
     return ScheduleEntity(
       id: scheduleId,
-      userId: '',
       place: place.toEntity(),
       scheduleName: scheduleName,
       scheduleTime: scheduleTime,

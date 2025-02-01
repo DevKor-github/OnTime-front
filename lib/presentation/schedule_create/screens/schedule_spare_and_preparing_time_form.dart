@@ -38,9 +38,11 @@ class _ScheduleSpareAndPreparingTimeFormState
               builder: (field) => TextField(
                 readOnly: true,
                 decoration: InputDecoration(labelText: '준비 시간'),
-                controller: TextEditingController(text: '1시간'),
+                controller: TextEditingController(
+                    text: widget.initalValue.totalPreparationTime.toString()),
                 onTap: () {
-                  context.push('/preparationEdit');
+                  context.push('/preparationEdit',
+                      extra: widget.initalValue.preparation);
                 },
               ),
               onSaved: (value) {},

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 import 'package:uuid/uuid.dart';
 
 part 'schedule_form_event.dart';
@@ -10,7 +12,9 @@ part 'schedule_form_state.dart';
 
 @Injectable()
 class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
-  ScheduleFormBloc() : super(ScheduleFormState()) {
+  ScheduleFormBloc(this._getPreparationByScheduleIdUseCase,
+      this._getDefaultPreparationUseCase)
+      : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
     on<ScheduleFormScheduleNameChanged>(_onScheduleNameChanged);
@@ -22,11 +26,22 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormSaved>(_onSaved);
   }
 
+  final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
+  final GetDefaultPreparationUseCase _getDefaultPreparationUseCase;
+
   Future<void> _onEditRequested(
     ScheduleFormEditRequested event,
     Emitter<ScheduleFormState> emit,
   ) async {
     emit(state.copyWith(
+      status: ScheduleFormStatus.loading,
+    ));
+
+    final PreparationEntity preparationEntity =
+        await _getPreparationByScheduleIdUseCase(event.schedule.id);
+
+    emit(state.copyWith(
+      status: ScheduleFormStatus.success,
       id: event.schedule.id,
       placeName: event.schedule.place.placeName,
       scheduleName: event.schedule.scheduleName,
@@ -36,14 +51,23 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       scheduleSpareTime: event.schedule.scheduleSpareTime,
       scheduleNote: event.schedule.scheduleNote,
       spareTime: event.schedule.scheduleSpareTime,
+      preparation: preparationEntity,
     ));
   }
 
   void _onCreateRequested(
     ScheduleFormCreateRequested event,
     Emitter<ScheduleFormState> emit,
-  ) {
+  ) async {
     emit(state.copyWith(
+      status: ScheduleFormStatus.loading,
+    ));
+
+    final PreparationEntity defaultPreparationStepList =
+        await _getDefaultPreparationUseCase();
+
+    emit(state.copyWith(
+      status: ScheduleFormStatus.success,
       id: Uuid().v7(),
       placeName: null,
       scheduleName: null,
@@ -53,6 +77,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       scheduleSpareTime: null,
       scheduleNote: null,
       spareTime: null,
+      preparation: defaultPreparationStepList,
     ));
   }
 

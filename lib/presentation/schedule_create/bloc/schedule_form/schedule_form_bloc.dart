@@ -23,6 +23,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormPlaceNameChanged>(_onPlaceNameChanged);
     on<ScheduleFormMoveTimeChanged>(_onMoveTimeChanged);
     on<ScheduleFormScheduleSpareTimeChanged>(_onScheduleSpareTimeChanged);
+    on<ScheduleFormPreparationChanged>(_onPreparationChanged);
     on<ScheduleFormSaved>(_onSaved);
   }
 
@@ -132,6 +133,13 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     Emitter<ScheduleFormState> emit,
   ) {
     emit(state.copyWith(scheduleSpareTime: event.scheduleSpareTime));
+  }
+
+  void _onPreparationChanged(
+    ScheduleFormPreparationChanged event,
+    Emitter<ScheduleFormState> emit,
+  ) {
+    emit(state.copyWith(preparation: event.preparation));
   }
 
   void _onSaved(

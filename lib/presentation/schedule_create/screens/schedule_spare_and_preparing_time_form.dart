@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
 
 class ScheduleSpareAndPreparingTimeForm extends StatefulWidget {
@@ -26,6 +28,7 @@ class _ScheduleSpareAndPreparingTimeFormState
 
   @override
   Widget build(BuildContext context) {
+    final ScheduleFormBloc scheduleFormBloc = context.read<ScheduleFormBloc>();
     return Form(
       key: widget.formKey,
       child: Row(
@@ -40,9 +43,14 @@ class _ScheduleSpareAndPreparingTimeFormState
                 decoration: InputDecoration(labelText: '준비 시간'),
                 controller: TextEditingController(
                     text: widget.initalValue.totalPreparationTime.toString()),
-                onTap: () {
-                  context.push('/preparationEdit',
-                      extra: widget.initalValue.preparation);
+                onTap: () async {
+                  final PreparationEntity? updatedPreparation =
+                      await context.push('/preparationEdit',
+                          extra: widget.initalValue.preparation);
+                  if (updatedPreparation != null) {
+                    scheduleFormBloc.add(ScheduleFormPreparationChanged(
+                        preparation: updatedPreparation));
+                  }
                 },
               ),
               onSaved: (value) {},

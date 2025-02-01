@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
@@ -22,6 +23,7 @@ final goRouterConfig = GoRouter(
         builder: (context, state) => ScheduleCreateScreen()),
     GoRoute(
         path: '/preparationEdit',
-        builder: (context, state) => PreparationEditForm()),
+        builder: (context, state) => PreparationEditForm(
+            preparationEntity: state.extra as PreparationEntity)),
   ],
 );

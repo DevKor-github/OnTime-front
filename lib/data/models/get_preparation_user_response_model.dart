@@ -28,7 +28,7 @@ class PreparationUserResponseModel {
     return PreparationStepEntity(
       id: id,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: Duration(minutes: preparationTime),
       nextPreparationId: nextPreparationId,
     );
   }
@@ -37,7 +37,7 @@ class PreparationUserResponseModel {
     return PreparationUserResponseModel(
       id: entity.id,
       preparationName: entity.preparationName,
-      preparationTime: entity.preparationTime,
+      preparationTime: entity.preparationTime.inMinutes,
       nextPreparationId: entity.nextPreparationId,
     );
   }

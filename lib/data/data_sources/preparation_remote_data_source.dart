@@ -19,6 +19,8 @@ abstract interface class PreparationRemoteDataSource {
 
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
+  Future<PreparationEntity> getDefualtPreparation();
+
   Future<PreparationStepEntity> getPreparationStepById(
       String preparationStepId);
 }
@@ -88,6 +90,26 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
         return responseModels.toPreparationEntity();
       } else {
         throw Exception('Error fetching preparation by schedule ID');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<PreparationEntity> getDefualtPreparation() async {
+    try {
+      final result = await dio.get(Endpoint.getDefaultPreparation);
+
+      if (result.statusCode == 200) {
+        final responseModels = (result.data as List<dynamic>)
+            .map((json) => GetPreparationStepResponseModel.fromJson(
+                json as Map<String, dynamic>))
+            .toList();
+
+        return responseModels.toPreparationEntity();
+      } else {
+        throw Exception('Error fetching default preparation');
       }
     } catch (e) {
       rethrow;

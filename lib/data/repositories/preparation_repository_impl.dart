@@ -70,6 +70,17 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }
 
   @override
+  Future<PreparationEntity> getDefualtPreparation() async {
+    try {
+      final remotePreparation =
+          await preparationRemoteDataSource.getDefualtPreparation();
+      return remotePreparation;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> updatePreparation(
       PreparationStepEntity preparationEntity) async {
     try {

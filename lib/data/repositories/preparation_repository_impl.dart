@@ -46,18 +46,6 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }
 
   @override
-  Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity) async {
-    try {
-      final updatedPreparation =
-          await preparationLocalDataSource.deletePreparation(preparationEntity);
-      return updatedPreparation;
-    } catch (e) {
-      throw Exception('Failed to delete preparation: $e');
-    }
-  }
-
-  @override
   Future<PreparationEntity> getPreparationByScheduleId(
       String scheduleId) async {
     try {

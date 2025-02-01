@@ -13,7 +13,4 @@ abstract interface class PreparationRepository {
       PreparationEntity preparationEntity, String scheduleId);
 
   Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
-
-  Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity);
 }

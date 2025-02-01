@@ -6,7 +6,7 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_preparation_user_request_model.dart';
-import 'package:on_time_front/data/models/get_preparation_response_model.dart';
+import 'package:on_time_front/data/models/get_preparation_step_response_model.dart';
 import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
 
 abstract interface class PreparationRemoteDataSource {
@@ -16,9 +16,6 @@ abstract interface class PreparationRemoteDataSource {
       PreparationEntity preparationEntity, String scheduleId);
 
   Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
-
-  Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity);
 
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
@@ -113,27 +110,6 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
       } else {
         throw Exception('Error fetching preparation step by ID');
       }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity) async {
-    try {
-      if (preparationEntity.preparationStepList.isEmpty) {
-        return preparationEntity;
-      }
-
-      final deletedStepId = preparationEntity.preparationStepList.first.id;
-
-      // 로컬에서 단계 삭제 및 재배열
-      preparationEntity.removeStepById(deletedStepId);
-      preparationEntity.relinkList();
-
-      // 삭제된 결과 반환
-      return preparationEntity;
     } catch (e) {
       rethrow;
     }

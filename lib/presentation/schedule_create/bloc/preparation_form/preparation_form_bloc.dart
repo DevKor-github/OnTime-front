@@ -1,8 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 part 'preparation_form_event.dart';
 part 'preparation_form_state.dart';
@@ -77,13 +79,16 @@ class PreparationFormBloc
     PreparationFormPreparationStepNameChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state.copyWith(
-      preparationStepList: state.preparationStepList
-          .map((element) => element.id == event.preparationStepId
-              ? element.copyWith(preparationName: event.preparationStepName)
-              : element)
-          .toList(),
-    );
+    final changedList = state;
+
+    for (var i = 0; i < state.preparationStepList.length; i++) {
+      if (state.preparationStepList[i].id == event.preparationStepId) {
+        changedList.preparationStepList[i] =
+            changedList.preparationStepList[i].copyWith(
+          preparationName: event.preparationStepName,
+        );
+      }
+    }
 
     emit(changedList);
   }
@@ -92,13 +97,16 @@ class PreparationFormBloc
     PreparationFormPreparationStepTimeChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state.copyWith(
-      preparationStepList: state.preparationStepList
-          .map((element) => element.id == event.preparationStepId
-              ? element.copyWith(preparationTime: event.preparationStepTime)
-              : element)
-          .toList(),
-    );
+    final changedList = state;
+
+    for (var i = 0; i < state.preparationStepList.length; i++) {
+      if (state.preparationStepList[i].id == event.preparationStepId) {
+        changedList.preparationStepList[i] =
+            changedList.preparationStepList[i].copyWith(
+          preparationTime: event.preparationStepTime,
+        );
+      }
+    }
 
     emit(changedList);
   }

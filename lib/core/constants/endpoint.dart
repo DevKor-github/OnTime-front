@@ -26,7 +26,7 @@ class Endpoint {
   static const _getPreparationStepById =
       '/preparationuser/show/all'; // 사용자 준비과정 조회
 
-  static const _getDefualtPreparation =
+  static const _getDefaultPreparation =
       '/preparationuser/show/all'; // 사용자 기본 준비과정 조회
 
   static const _getPreparationByScheduleId =
@@ -48,7 +48,7 @@ class Endpoint {
 
   static get getPreparationStepById => _getPreparationStepById;
 
-  static get getDefualtPreparation => _getDefualtPreparation;
+  static get getDefaultPreparation => _getDefaultPreparation;
 
   static get updatePreparation => _updatePreparation;
 }

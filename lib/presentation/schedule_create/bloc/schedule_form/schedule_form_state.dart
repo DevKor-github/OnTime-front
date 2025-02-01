@@ -57,6 +57,13 @@ final class ScheduleFormState extends Equatable {
     );
   }
 
+  Duration get totalPreparationTime {
+    return preparation?.preparationStepList
+            .map((e) => e.preparationTime)
+            .reduce((value, element) => value + element) ??
+        Duration.zero;
+  }
+
   @override
   List<Object?> get props => [
         id,

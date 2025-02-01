@@ -36,26 +36,23 @@ class _ScheduleCreateScreenState extends State<ScheduleCreateScreen>
   Widget build(BuildContext context) {
     return Material(
       child: SafeArea(
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<ScheduleFormBloc>(
-              create: (context) => getIt.get<ScheduleFormBloc>()
-                ..add(ScheduleFormCreateRequested()),
-            ),
-          ],
-          child: Column(
-            children: [
-              TopBar(
-                onNextPAgeButtonClicked: _onNextPageButtonClicked,
-                onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
-              ),
-              ProgressBar(
-                tabController: _tabController,
-              ),
-              Expanded(
-                child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
-                    builder: (context, state) {
-                  return PageView(
+        child: BlocProvider<ScheduleFormBloc>(
+          create: (context) =>
+              getIt.get<ScheduleFormBloc>()..add(ScheduleFormCreateRequested()),
+          child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
+            builder: (context, state) {
+              return Column(
+                children: [
+                  TopBar(
+                    onNextPAgeButtonClicked: () =>
+                        _onNextPageButtonClicked(context),
+                    onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
+                  ),
+                  ProgressBar(
+                    tabController: _tabController,
+                  ),
+                  Expanded(
+                      child: PageView(
                     physics: const NeverScrollableScrollPhysics(),
                     controller: _pageViewController,
                     onPageChanged: _handlePageViewChanged,
@@ -102,21 +99,22 @@ class _ScheduleCreateScreenState extends State<ScheduleCreateScreen>
                                     scheduleSpareTime: value));
                           }),
                     ],
-                  );
-                }),
-              ),
-            ],
+                  )),
+                ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  void _onNextPageButtonClicked() {
+  void _onNextPageButtonClicked(BuildContext context) {
     formKeys[_tabController.index].currentState?.save();
     if (_tabController.index < _tabController.length - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
+      context.read<ScheduleFormBloc>().add(ScheduleFormSaved());
       context.go('/home');
     }
   }

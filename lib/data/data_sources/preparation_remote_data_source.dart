@@ -81,7 +81,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
       if (result.statusCode == 200) {
         final responseModels = (result.data as List<dynamic>)
-            .map((json) => PreparationStepResponseModel.fromJson(
+            .map((json) => GetPreparationStepResponseModel.fromJson(
                 json as Map<String, dynamic>))
             .toList();
 
@@ -105,7 +105,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
       if (result.statusCode == 200) {
         final responseModel =
-            PreparationStepResponseModel.fromJson(result.data["data"]);
+            GetPreparationStepResponseModel.fromJson(result.data["data"]);
         return responseModel.toEntity();
       } else {
         throw Exception('Error fetching preparation step by ID');

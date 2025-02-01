@@ -25,6 +25,10 @@ class Endpoint {
 
   static const _getPreparationStepById =
       '/preparationuser/show/all'; // 사용자 준비과정 조회
+
+  static const _getDefualtPreparation =
+      '/preparationuser/show/all'; // 사용자 기본 준비과정 조회
+
   static const _getPreparationByScheduleId =
       '/schedule/get/preparation'; // 스케줄별 준비과정 조회
 
@@ -35,12 +39,16 @@ class Endpoint {
 // - 1 2 3 -> 2 삭제 -> 3이 2로 바뀌면서 재배치
 
   static get createDefaultPreparation => _createDefaultPreparation;
+
   static getCreateCustomPreparation(String scheduleId) =>
       '$_createCustomPreparation/$scheduleId';
 
   static getPreparationByScheduleId(String scheduleId) =>
       '$_getPreparationByScheduleId/$scheduleId';
+
   static get getPreparationStepById => _getPreparationStepById;
+
+  static get getDefualtPreparation => _getDefualtPreparation;
 
   static get updatePreparation => _updatePreparation;
 }

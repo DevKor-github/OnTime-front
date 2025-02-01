@@ -1,26 +1,25 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 
 part 'get_preparation_response_model.g.dart';
 
 @JsonSerializable()
-class PreparationResponseModel {
+class PreparationStepResponseModel {
   @JsonKey(name: 'preparationId')
   final String id;
   final String preparationName;
-  final int preparationTime;
+  final Duration preparationTime;
   final String? nextPreparationId;
 
-  PreparationResponseModel({
+  PreparationStepResponseModel({
     required this.id,
     required this.preparationName,
     required this.preparationTime,
     required this.nextPreparationId,
   });
 
-  factory PreparationResponseModel.fromJson(Map<String, dynamic> json) =>
+  factory PreparationStepResponseModel.fromJson(Map<String, dynamic> json) =>
       _$PreparationResponseModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$PreparationResponseModelToJson(this);
@@ -34,8 +33,8 @@ class PreparationResponseModel {
     );
   }
 
-  static PreparationResponseModel fromEntity(PreparationStepEntity entity) {
-    return PreparationResponseModel(
+  static PreparationStepResponseModel fromEntity(PreparationStepEntity entity) {
+    return PreparationStepResponseModel(
       id: entity.id,
       preparationName: entity.preparationName,
       preparationTime: entity.preparationTime,
@@ -45,15 +44,9 @@ class PreparationResponseModel {
 }
 
 extension PreparationResponseModelListExtension
-    on List<PreparationResponseModel> {
+    on List<PreparationStepResponseModel> {
   PreparationEntity toPreparationEntity() {
     final steps = map((model) => model.toEntity()).toList();
-    return PreparationEntity(preparationStepList: steps);
-  }
-
-  PreparationEntity toPreparationEntityAfterDeletion(String deletedId) {
-    final steps = map((model) => model.toEntity()).toList();
-    steps.updateLinksAfterDeletion(deletedId);
     return PreparationEntity(preparationStepList: steps);
   }
 }

@@ -60,7 +60,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
         PreparationStepEntity(
           id: currentStep.id,
           preparationName: currentStep.preparationName,
-          preparationTime: currentStep.preparationTime,
+          preparationTime: Duration(minutes: currentStep.preparationTime),
           nextPreparationId: currentStep.nextPreparationId,
         ),
       );
@@ -85,7 +85,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
     return PreparationStepEntity(
       id: result.id,
       preparationName: result.preparationName,
-      preparationTime: result.preparationTime,
+      preparationTime: Duration(minutes: result.preparationTime),
       nextPreparationId: result.nextPreparationId,
     );
   }
@@ -97,7 +97,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
         .write(
       PreparationUsersCompanion(
         preparationName: Value(stepEntity.preparationName),
-        preparationTime: Value(stepEntity.preparationTime),
+        preparationTime: Value(stepEntity.preparationTime.inMinutes),
       ),
     );
   }

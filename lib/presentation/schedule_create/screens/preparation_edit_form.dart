@@ -37,9 +37,13 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
               return Column(
                 children: [
                   TopBar(
-                    onNextPAgeButtonClicked: () {
+                    onNextPAgeButtonClicked: () async {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
+                        await Future.delayed(Duration.zero);
+                        debugPrint(state.toString());
+                        // ignore: use_build_context_synchronously
+                        context.pop(state.toPreparationEntity());
                       }
                     },
                     onPreviousPageButtonClicked: context.pop,
@@ -47,13 +51,7 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                   Expanded(
                     child: PreparationEditList(
                       formKey: _formKey,
-                      onSaved: (value) {
-                        for (var i in value.preparationStepList) {
-                          debugPrint(i.preparationName);
-                          debugPrint(i.preparationTime.toString());
-                          debugPrint(i.order.toString());
-                        }
-                      },
+                      onSaved: (value) {},
                       preparationFormState: state,
                     ),
                   ),

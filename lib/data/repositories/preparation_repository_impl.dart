@@ -78,11 +78,22 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   @override
   Future<void> updateDefaultPreparation(
-      PreparationStepEntity preparationEntity) async {
+      PreparationEntity preparationEntity) async {
     try {
       await preparationRemoteDataSource
           .updateDefaultPreparation(preparationEntity);
       // await preparationLocalDataSource.updatePreparation(preparationEntity);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updatePreparationByScheduleId(
+      PreparationEntity preparationEntity, String scheduleId) async {
+    try {
+      await preparationRemoteDataSource.updatePreparationByScheduleId(
+          preparationEntity, scheduleId);
     } catch (e) {
       rethrow;
     }

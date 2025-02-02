@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
@@ -10,10 +12,11 @@ class CreateScheduleRequestModel {
   final String placeName;
   final String scheduleName;
   final DateTime scheduleTime;
-  final Duration moveTime;
-  final Duration scheduleSpareTime;
+  final int moveTime;
+  final bool isChange;
+  final bool isStarted;
+  final int scheduleSpareTime;
   final String scheduleNote;
-  final int latenessTime;
 
   const CreateScheduleRequestModel({
     required this.scheduleId,
@@ -22,9 +25,10 @@ class CreateScheduleRequestModel {
     required this.scheduleName,
     required this.scheduleTime,
     required this.moveTime,
+    required this.isChange,
+    required this.isStarted,
     required this.scheduleSpareTime,
     required this.scheduleNote,
-    this.latenessTime = 0,
   });
 
   factory CreateScheduleRequestModel.fromJson(Map<String, dynamic> json) =>
@@ -39,10 +43,11 @@ class CreateScheduleRequestModel {
       placeName: entity.place.placeName,
       scheduleName: entity.scheduleName,
       scheduleTime: entity.scheduleTime,
-      moveTime: entity.moveTime,
-      scheduleSpareTime: entity.scheduleSpareTime,
+      moveTime: entity.moveTime.inMinutes,
+      isChange: entity.isChanged,
+      isStarted: entity.isStarted,
+      scheduleSpareTime: entity.scheduleSpareTime.inMinutes,
       scheduleNote: entity.scheduleNote,
-      latenessTime: entity.latenessTime,
     );
   }
 }

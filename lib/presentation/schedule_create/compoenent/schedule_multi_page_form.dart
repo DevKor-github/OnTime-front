@@ -10,7 +10,9 @@ import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_t
 import 'package:on_time_front/presentation/shared/components/progress_bar.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
-  const ScheduleMultiPageForm({super.key});
+  const ScheduleMultiPageForm({super.key, this.onSaved});
+
+  final void Function()? onSaved;
 
   @override
   State<ScheduleMultiPageForm> createState() => _ScheduleMultiPageFormState();
@@ -109,7 +111,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     if (_tabController.index < _tabController.length - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
-      context.read<ScheduleFormBloc>().add(ScheduleFormSaved());
+      widget.onSaved?.call();
       context.go('/home');
     }
   }

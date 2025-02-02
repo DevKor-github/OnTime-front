@@ -15,7 +15,8 @@ abstract interface class PreparationRemoteDataSource {
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
 
-  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
+  Future<void> updateDefaultPreparation(
+      PreparationStepEntity preparationStepEntity);
 
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
@@ -138,14 +139,14 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
   }
 
   @override
-  Future<void> updatePreparation(
+  Future<void> updateDefaultPreparation(
       PreparationStepEntity preparationStepEntity) async {
     try {
       final updateModel =
           PreparationUserModifyRequestModel.fromEntity(preparationStepEntity);
 
       final result = await dio.put(
-        Endpoint.updatePreparation,
+        Endpoint.updateDefaultPreparation,
         data: updateModel.toJson(),
       );
 

@@ -14,5 +14,6 @@ abstract interface class PreparationRepository {
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
 
-  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
+  Future<void> updateDefaultPreparation(
+      PreparationStepEntity preparationStepEntity);
 }

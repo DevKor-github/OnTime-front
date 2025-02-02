@@ -286,7 +286,7 @@ void main() {
       );
 
       // act
-      await remoteDataSource.updatePreparation(preparationStep1);
+      await remoteDataSource.updateDefaultPreparation(preparationStep1);
 
       // assert
       verify(dio.put(
@@ -311,7 +311,7 @@ void main() {
       );
 
       // act
-      final call = remoteDataSource.updatePreparation;
+      final call = remoteDataSource.updateDefaultPreparation;
 
       // assert
       expect(() => call(preparationStep1), throwsException);

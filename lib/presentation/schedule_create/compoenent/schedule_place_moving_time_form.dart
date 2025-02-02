@@ -46,6 +46,7 @@ class _SchedulePlaceMovingTimeFormState
         children: [
           TextFormField(
               decoration: InputDecoration(labelText: '약속 장소'),
+              initialValue: widget.initalValue.placeName,
               focusNode: _placeFocusNode,
               textInputAction: TextInputAction.next,
               onSaved: (newValue) {

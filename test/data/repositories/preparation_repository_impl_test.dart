@@ -185,26 +185,29 @@ void main() {
   group('updatePreparation', () {
     test('should call updatePreparation on remote data source', () async {
       // Arrange
-      when(mockPreparationRemoteDataSource.updatePreparation(tPreparationStep))
+      when(mockPreparationRemoteDataSource
+              .updateDefaultPreparation(tPreparationStep))
           .thenAnswer((_) async {});
 
       // Act
-      await preparationRepository.updatePreparation(tPreparationStep);
+      await preparationRepository.updateDefaultPreparation(tPreparationStep);
 
       // Assert
       verify(mockPreparationRemoteDataSource
-              .updatePreparation(tPreparationStep))
+              .updateDefaultPreparation(tPreparationStep))
           .called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
     });
 
     test('should throw an exception if remote data source fails', () async {
       // Arrange
-      when(mockPreparationRemoteDataSource.updatePreparation(tPreparationStep))
+      when(mockPreparationRemoteDataSource
+              .updateDefaultPreparation(tPreparationStep))
           .thenThrow(Exception());
 
       // Act
-      final call = preparationRepository.updatePreparation(tPreparationStep);
+      final call =
+          preparationRepository.updateDefaultPreparation(tPreparationStep);
 
       // Assert
       expect(call, throwsException);

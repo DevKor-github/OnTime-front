@@ -32,7 +32,8 @@ class Endpoint {
   static const _getPreparationByScheduleId =
       '/schedule/get/preparation'; // 스케줄별 준비과정 조회
 
-  static const _updatePreparation = '/preparationuser/modify'; // 사용자 준비과정 수정
+  static const _updateDefaultPreparation =
+      '/preparationuser/modify'; // 사용자 준비과정 수정
 
   // delelte는 api가 없음.
 //   delete는 api로 요청을 보내는 게 아니라, 전부 없애고 다시 순서를 조정하는 형태로
@@ -50,5 +51,5 @@ class Endpoint {
 
   static get getDefaultPreparation => _getDefaultPreparation;
 
-  static get updatePreparation => _updatePreparation;
+  static get updateDefaultPreparation => _updateDefaultPreparation;
 }

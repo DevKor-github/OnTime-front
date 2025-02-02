@@ -8,12 +8,12 @@ sealed class ScheduleFormEvent extends Equatable {
 }
 
 final class ScheduleFormEditRequested extends ScheduleFormEvent {
-  final ScheduleEntity schedule;
+  final String scheduleId;
 
-  const ScheduleFormEditRequested({required this.schedule});
+  const ScheduleFormEditRequested({required this.scheduleId});
 
   @override
-  List<Object> get props => [schedule];
+  List<Object> get props => [scheduleId];
 }
 
 final class ScheduleFormCreateRequested extends ScheduleFormEvent {

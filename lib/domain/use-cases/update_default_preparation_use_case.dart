@@ -1,5 +1,5 @@
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 @Injectable()
@@ -8,8 +8,7 @@ class UpdateDefaultPreparationUseCase {
 
   UpdateDefaultPreparationUseCase(this._preparationRepository);
 
-  Future<void> call(PreparationStepEntity preparationStepEntity) async {
-    await _preparationRepository
-        .updateDefaultPreparation(preparationStepEntity);
+  Future<void> call(PreparationEntity preparationEntity) async {
+    await _preparationRepository.updateDefaultPreparation(preparationEntity);
   }
 }

@@ -7,7 +7,6 @@ import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_preparation_user_request_model.dart';
 import 'package:on_time_front/data/models/get_preparation_step_response_model.dart';
-import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
 
 abstract interface class PreparationRemoteDataSource {
   Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
@@ -15,8 +14,10 @@ abstract interface class PreparationRemoteDataSource {
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
 
-  Future<void> updateDefaultPreparation(
-      PreparationStepEntity preparationStepEntity);
+  Future<void> updateDefaultPreparation(PreparationEntity preparationEntity);
+
+  Future<void> updatePreparationByScheduleId(
+      PreparationEntity preparationEntity, String scheduleId);
 
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
@@ -140,14 +141,36 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
   @override
   Future<void> updateDefaultPreparation(
-      PreparationStepEntity preparationStepEntity) async {
+      PreparationEntity preparationEntity) async {
     try {
       final updateModel =
-          PreparationUserModifyRequestModel.fromEntity(preparationStepEntity);
+          PreparationUserRequestModelListExtension.fromEntityList(
+              preparationEntity.preparationStepList);
 
-      final result = await dio.put(
+      final result = await dio.post(
         Endpoint.updateDefaultPreparation,
-        data: updateModel.toJson(),
+        data: updateModel.map((model) => model.toJson()).toList(),
+      );
+
+      if (result.statusCode != 200) {
+        throw Exception('Error updating preparation');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updatePreparationByScheduleId(
+      PreparationEntity preparationEntity, String preparationId) async {
+    try {
+      final updateModel =
+          PreparationUserRequestModelListExtension.fromEntityList(
+              preparationEntity.preparationStepList);
+
+      final result = await dio.post(
+        Endpoint.updatePreparationByScheduleId(preparationId),
+        data: updateModel.map((model) => model.toJson()).toList(),
       );
 
       if (result.statusCode != 200) {

@@ -9,6 +9,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
+import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
 import 'package:uuid/uuid.dart';
 
 part 'schedule_form_event.dart';
@@ -19,6 +20,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   ScheduleFormBloc(
     this._getPreparationByScheduleIdUseCase,
     this._getDefaultPreparationUseCase,
+    this._getScheduleByIdUseCase,
     this._createScheduleWithPlaceUseCase,
   ) : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
@@ -35,6 +37,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
 
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
   final GetDefaultPreparationUseCase _getDefaultPreparationUseCase;
+  final GetScheduleByIdUseCase _getScheduleByIdUseCase;
   final CreateScheduleWithPlaceUseCase _createScheduleWithPlaceUseCase;
 
   Future<void> _onEditRequested(
@@ -46,21 +49,24 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ));
 
     final PreparationEntity preparationEntity =
-        await _getPreparationByScheduleIdUseCase(event.schedule.id);
+        await _getPreparationByScheduleIdUseCase(event.scheduleId);
+
+    final ScheduleEntity scheduleEntity =
+        await _getScheduleByIdUseCase(event.scheduleId);
 
     emit(state.copyWith(
       status: ScheduleFormStatus.success,
-      id: event.schedule.id,
-      placeName: event.schedule.place.placeName,
-      scheduleName: event.schedule.scheduleName,
-      scheduleTime: event.schedule.scheduleTime,
-      moveTime: event.schedule.moveTime,
-      isChanged: event.schedule.isChanged
+      id: scheduleEntity.id,
+      placeName: scheduleEntity.place.placeName,
+      scheduleName: scheduleEntity.scheduleName,
+      scheduleTime: scheduleEntity.scheduleTime,
+      moveTime: scheduleEntity.moveTime,
+      isChanged: scheduleEntity.isChanged
           ? IsPreparationChanged.changed
           : IsPreparationChanged.unchanged,
-      scheduleSpareTime: event.schedule.scheduleSpareTime,
-      scheduleNote: event.schedule.scheduleNote,
-      spareTime: event.schedule.scheduleSpareTime,
+      scheduleSpareTime: scheduleEntity.scheduleSpareTime,
+      scheduleNote: scheduleEntity.scheduleNote,
+      spareTime: scheduleEntity.scheduleSpareTime,
       preparation: preparationEntity,
     ));
   }

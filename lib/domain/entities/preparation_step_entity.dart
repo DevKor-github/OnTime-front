@@ -1,12 +1,13 @@
+import 'package:equatable/equatable.dart';
 import 'package:on_time_front/core/database/database.dart';
 
-class PreparationStepEntity {
+class PreparationStepEntity extends Equatable {
   final String id;
   final String preparationName;
   final Duration preparationTime;
-  String? nextPreparationId;
+  final String? nextPreparationId;
 
-  PreparationStepEntity({
+  const PreparationStepEntity({
     required this.id,
     required this.preparationName,
     required this.preparationTime,
@@ -33,10 +34,6 @@ class PreparationStepEntity {
     );
   }
 
-  void updateNextPreparationId(String? newNextId) {
-    nextPreparationId = newNextId;
-  }
-
   @override
   String toString() {
     return 'PreparationStepEntity(id: $id, preparationName: $preparationName, preparationTime: $preparationTime, nextPreparationId: $nextPreparationId)';
@@ -55,4 +52,8 @@ class PreparationStepEntity {
       nextPreparationId: nextPreparationId ?? this.nextPreparationId,
     );
   }
+
+  @override
+  List<Object?> get props =>
+      [id, preparationName, preparationTime, nextPreparationId];
 }

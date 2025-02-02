@@ -60,16 +60,3 @@ extension PreparationScheduleCreateRequestModelListExtension
         .toList();
   }
 }
-
-extension PreparationStepEntityListExtension on List<PreparationStepEntity> {
-  void updateLinksAfterDeletion(String deletedId) {
-    for (var i = 0; i < length; i++) {
-      if (this[i].nextPreparationId == deletedId) {
-        this[i].updateNextPreparationId(
-          firstWhereOrNull((step) => step.id == deletedId)?.nextPreparationId,
-        );
-        break;
-      }
-    }
-  }
-}

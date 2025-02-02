@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 

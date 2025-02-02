@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
-import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';

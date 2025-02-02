@@ -83,6 +83,10 @@ final class ScheduleFormPreparationChanged extends ScheduleFormEvent {
   List<Object> get props => [preparation];
 }
 
+final class ScheduleFormUpdated extends ScheduleFormEvent {
+  const ScheduleFormUpdated();
+}
+
 final class ScheduleFormSaved extends ScheduleFormEvent {
   const ScheduleFormSaved();
 }

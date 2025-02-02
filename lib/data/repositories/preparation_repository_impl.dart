@@ -25,8 +25,6 @@ class PreparationRepositoryImpl implements PreparationRepository {
     try {
       await preparationRemoteDataSource
           .createDefaultPreparation(preparationEntity);
-      await preparationLocalDataSource
-          .createDefaultPreparation(preparationEntity);
     } catch (e) {
       rethrow;
     }
@@ -37,8 +35,6 @@ class PreparationRepositoryImpl implements PreparationRepository {
       PreparationEntity preparationEntity, String scheduleId) async {
     try {
       await preparationRemoteDataSource.createCustomPreparation(
-          preparationEntity, scheduleId);
-      await preparationLocalDataSource.createCustomPreparation(
           preparationEntity, scheduleId);
     } catch (e) {
       rethrow;

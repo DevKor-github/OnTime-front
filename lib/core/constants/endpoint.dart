@@ -2,14 +2,14 @@ import 'dart:core';
 
 class Endpoint {
   // schedule
-  static const _getSchedule = '/schedule/show';
+  static const _getScheduleById = '/schedule/show/id?scheduleId=';
   static const _getSchedulesByDate = '/schedule/show';
 
   static const _createSchedule = '/schedule/add';
   static const _updateSchedule = '/schedule/update';
   static const _deleteSchedule = '/schedule/delete';
 
-  static getSchedule(String scheduleId) => '$_getSchedule/$scheduleId';
+  static getSchedule(String scheduleId) => '$_getScheduleById$scheduleId';
   static get getSchedulesByDate => _getSchedulesByDate;
 
   static get createSchedule => _createSchedule;

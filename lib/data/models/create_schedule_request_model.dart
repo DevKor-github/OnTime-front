@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 

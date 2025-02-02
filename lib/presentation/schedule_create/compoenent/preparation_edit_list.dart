@@ -100,11 +100,12 @@ class _PreparationEditListState extends State<PreparationEditList> {
                     ),
                   ),
                 ),
-                onTap: (CompletionHandler handler) {
+                onTap: (CompletionHandler handler) async {
                   context.read<PreparationFormBloc>().add(
                         PreparationFormPreparationStepRemoved(
                             preparationStepId: preparationStep.id),
                       );
+                  await Future.delayed(Duration.zero);
                   reorderableListKey.currentState?.elementRemoved(index);
                 },
                 color: Colors.transparent,

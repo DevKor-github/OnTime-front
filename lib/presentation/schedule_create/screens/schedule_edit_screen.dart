@@ -5,15 +5,17 @@ import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/sc
 import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_multi_page_form.dart';
 
 class ScheduleEditScreen extends StatelessWidget {
-  const ScheduleEditScreen({super.key});
+  const ScheduleEditScreen({super.key, required this.scheduleId});
+
+  final String scheduleId;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: SafeArea(
         child: BlocProvider<ScheduleFormBloc>(
-          create: (context) =>
-              getIt.get<ScheduleFormBloc>()..add(ScheduleFormCreateRequested()),
+          create: (context) => getIt.get<ScheduleFormBloc>()
+            ..add(ScheduleFormEditRequested(scheduleId: scheduleId)),
           child: ScheduleMultiPageForm(),
         ),
       ),

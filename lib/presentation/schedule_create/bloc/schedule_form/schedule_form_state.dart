@@ -2,6 +2,8 @@ part of 'schedule_form_bloc.dart';
 
 enum ScheduleFormStatus { initial, loading, success, error }
 
+enum IsPreparationChanged { changed, unchanged, orderChanged }
+
 final class ScheduleFormState extends Equatable {
   final ScheduleFormStatus status;
   final String id;
@@ -9,7 +11,7 @@ final class ScheduleFormState extends Equatable {
   final String? scheduleName;
   final DateTime? scheduleTime;
   final Duration? moveTime;
-  final bool? isChanged;
+  final IsPreparationChanged isChanged;
   final Duration? scheduleSpareTime;
   final String? scheduleNote;
   final Duration? spareTime;
@@ -22,7 +24,7 @@ final class ScheduleFormState extends Equatable {
     this.scheduleName,
     this.scheduleTime,
     this.moveTime,
-    this.isChanged,
+    this.isChanged = IsPreparationChanged.unchanged,
     this.scheduleSpareTime,
     this.scheduleNote,
     this.spareTime,
@@ -36,7 +38,7 @@ final class ScheduleFormState extends Equatable {
     String? scheduleName,
     DateTime? scheduleTime,
     Duration? moveTime,
-    bool? isChanged,
+    IsPreparationChanged? isChanged,
     Duration? scheduleSpareTime,
     String? scheduleNote,
     Duration? spareTime,
@@ -62,6 +64,20 @@ final class ScheduleFormState extends Equatable {
             .map((e) => e.preparationTime)
             .reduce((value, element) => value + element) ??
         Duration.zero;
+  }
+
+  ScheduleEntity createEntity(ScheduleFormState state) {
+    return ScheduleEntity(
+      id: state.id,
+      place: PlaceEntity(id: Uuid().v7(), placeName: state.placeName!),
+      scheduleName: state.scheduleName!,
+      scheduleTime: state.scheduleTime!,
+      moveTime: state.moveTime!,
+      isChanged: !(state.isChanged == IsPreparationChanged.unchanged),
+      scheduleSpareTime: state.scheduleSpareTime!,
+      scheduleNote: state.scheduleNote ?? '',
+      isStarted: false,
+    );
   }
 
   @override

@@ -122,10 +122,10 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
     return await getPreparationUsersByUserId(preparationToDelete.userId);
   }
 
-  Future<PreparationEntity> getPreparationUsersByUserIdAfterDeletion(
-      String userId, String deletedId) async {
-    final steps = await getPreparationUsersByUserId(userId);
-    steps.preparationStepList.updateLinksAfterDeletion(deletedId);
-    return steps;
-  }
+  // Future<PreparationEntity> getPreparationUsersByUserIdAfterDeletion(
+  //     String userId, String deletedId) async {
+  //   final steps = await getPreparationUsersByUserId(userId);
+  //   steps.preparationStepList.updateLinksAfterDeletion(deletedId);
+  //   return steps;
+  // }
 }

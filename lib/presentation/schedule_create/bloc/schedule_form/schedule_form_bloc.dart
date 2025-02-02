@@ -1,8 +1,12 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 import 'package:uuid/uuid.dart';
@@ -12,9 +16,11 @@ part 'schedule_form_state.dart';
 
 @Injectable()
 class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
-  ScheduleFormBloc(this._getPreparationByScheduleIdUseCase,
-      this._getDefaultPreparationUseCase)
-      : super(ScheduleFormState()) {
+  ScheduleFormBloc(
+    this._getPreparationByScheduleIdUseCase,
+    this._getDefaultPreparationUseCase,
+    this._createScheduleWithPlaceUseCase,
+  ) : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
     on<ScheduleFormScheduleNameChanged>(_onScheduleNameChanged);
@@ -29,6 +35,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
 
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
   final GetDefaultPreparationUseCase _getDefaultPreparationUseCase;
+  final CreateScheduleWithPlaceUseCase _createScheduleWithPlaceUseCase;
 
   Future<void> _onEditRequested(
     ScheduleFormEditRequested event,
@@ -48,7 +55,9 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       scheduleName: event.schedule.scheduleName,
       scheduleTime: event.schedule.scheduleTime,
       moveTime: event.schedule.moveTime,
-      isChanged: event.schedule.isChanged,
+      isChanged: event.schedule.isChanged
+          ? IsPreparationChanged.changed
+          : IsPreparationChanged.unchanged,
       scheduleSpareTime: event.schedule.scheduleSpareTime,
       scheduleNote: event.schedule.scheduleNote,
       spareTime: event.schedule.scheduleSpareTime,
@@ -139,15 +148,50 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormPreparationChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
-    emit(state.copyWith(preparation: event.preparation));
+    final IsPreparationChanged isChagned;
+    if (state.isChanged == IsPreparationChanged.changed) {
+      // already changed
+      isChagned = IsPreparationChanged.changed;
+    } else if (state.preparation == event.preparation) {
+      // not changed
+      isChagned = IsPreparationChanged.unchanged;
+    }
+    // else if (isOnlyOrderChanged(state.preparation, event.preparation)) {
+    //   // only order changed
+    //   isChagned = IsPreparationChanged.orderChanged;
+    // }
+    else {
+      // changed
+      isChagned = IsPreparationChanged.changed;
+    }
+
+    emit(state.copyWith(
+      preparation: event.preparation,
+      isChanged: isChagned,
+    ));
+  }
+
+  bool _isOnlyOrderChanged(PreparationEntity? a, PreparationEntity? b) {
+    if (a == null && b == null) {
+      return true;
+    }
+    if (a == null || b == null) {
+      return false;
+    }
+    final A = a.preparationStepList
+        .map((e) => e.copyWith(nextPreparationId: ''))
+        .toSet();
+    final B = b.preparationStepList
+        .map((e) => e.copyWith(nextPreparationId: ''))
+        .toSet();
+    return setEquals<PreparationStepEntity>(A, B);
   }
 
   void _onSaved(
     ScheduleFormSaved event,
     Emitter<ScheduleFormState> emit,
-  ) {}
-
-  Future<void> _getUserDefaultPreparation() {
-    throw UnimplementedError();
+  ) {
+    final ScheduleEntity scheduleEntity = state.createEntity(state);
+    _createScheduleWithPlaceUseCase(scheduleEntity);
   }
 }

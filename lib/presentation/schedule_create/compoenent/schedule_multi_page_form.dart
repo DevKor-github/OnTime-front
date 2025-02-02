@@ -35,6 +35,12 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   Widget build(BuildContext context) {
     return BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
       builder: (context, state) {
+        if (state.status == ScheduleFormStatus.error) {
+          return const Text('Error');
+        } else if (state.status == ScheduleFormStatus.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         return Column(
           children: [
             TopBar(
@@ -112,7 +118,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     if (_tabController.index > 0) {
       _updateCurrentPageIndex(_tabController.index - 1);
     } else {
-      context.pop();
+      context.go('/home');
     }
   }
 

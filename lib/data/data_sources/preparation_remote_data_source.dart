@@ -82,7 +82,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
       );
 
       if (result.statusCode == 200) {
-        final responseModels = (result.data as List<dynamic>)
+        final responseModels = (result.data['data'] as List<dynamic>)
             .map((json) => GetPreparationStepResponseModel.fromJson(
                 json as Map<String, dynamic>))
             .toList();

@@ -3,7 +3,7 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
-import 'package:on_time_front/presentation/schedule_create/screens/preparation_edit_form.dart';
+import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_edit_form.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 
 final goRouterConfig = GoRouter(

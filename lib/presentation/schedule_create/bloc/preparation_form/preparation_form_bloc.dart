@@ -57,22 +57,21 @@ class PreparationFormBloc
   ) {
     final removedElement = state.preparationStepList
         .firstWhere((element) => element.id == event.preparationStepId);
-    final removedList = state.copyWith(
-      preparationStepList: state.preparationStepList
-          .where((element) => element.id != event.preparationStepId)
-          .toList(),
-    );
+    final removedList = state.preparationStepList
+        .where((element) => element.id != event.preparationStepId)
+        .toList();
 
-    for (var i = 0; i < removedList.preparationStepList.length; i++) {
-      if (removedElement.order < removedList.preparationStepList[i].order) {
-        removedList.preparationStepList[i] =
-            removedList.preparationStepList[i].copyWith(
-          order: removedList.preparationStepList[i].order - 1,
+    for (var i = 0; i < removedList.length; i++) {
+      if (removedElement.order < removedList[i].order) {
+        removedList[i] = removedList[i].copyWith(
+          order: removedList[i].order - 1,
         );
       }
     }
 
-    emit(removedList);
+    emit(state.copyWith(
+      preparationStepList: removedList,
+    ));
   }
 
   void _onPreparationFormPreparationStepNameChanged(

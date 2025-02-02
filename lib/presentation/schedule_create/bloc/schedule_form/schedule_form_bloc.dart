@@ -6,6 +6,7 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
@@ -22,6 +23,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     this._getDefaultPreparationUseCase,
     this._getScheduleByIdUseCase,
     this._createScheduleWithPlaceUseCase,
+    this._createCustomPreparationUseCase,
   ) : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
@@ -39,6 +41,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   final GetDefaultPreparationUseCase _getDefaultPreparationUseCase;
   final GetScheduleByIdUseCase _getScheduleByIdUseCase;
   final CreateScheduleWithPlaceUseCase _createScheduleWithPlaceUseCase;
+  final CreateCustomPreparationUseCase _createCustomPreparationUseCase;
 
   Future<void> _onEditRequested(
     ScheduleFormEditRequested event,
@@ -196,8 +199,12 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   void _onSaved(
     ScheduleFormSaved event,
     Emitter<ScheduleFormState> emit,
-  ) {
+  ) async {
     final ScheduleEntity scheduleEntity = state.createEntity(state);
-    _createScheduleWithPlaceUseCase(scheduleEntity);
+    await _createScheduleWithPlaceUseCase(scheduleEntity);
+    if (state.isChanged != IsPreparationChanged.unchanged) {
+      await _createCustomPreparationUseCase(
+          state.preparation!, scheduleEntity.id);
+    }
   }
 }

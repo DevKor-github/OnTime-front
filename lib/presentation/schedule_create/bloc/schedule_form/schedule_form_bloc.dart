@@ -11,6 +11,8 @@ import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_ca
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
+import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
+import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
 import 'package:uuid/uuid.dart';
 
 part 'schedule_form_event.dart';
@@ -24,6 +26,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     this._getScheduleByIdUseCase,
     this._createScheduleWithPlaceUseCase,
     this._createCustomPreparationUseCase,
+    this._updateScheduleUseCase,
+    this._updatePreparationByScheduleIdUseCase,
   ) : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
@@ -34,6 +38,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormMoveTimeChanged>(_onMoveTimeChanged);
     on<ScheduleFormScheduleSpareTimeChanged>(_onScheduleSpareTimeChanged);
     on<ScheduleFormPreparationChanged>(_onPreparationChanged);
+    on<ScheduleFormUpdated>(_onUpdated);
     on<ScheduleFormSaved>(_onSaved);
   }
 
@@ -42,6 +47,9 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   final GetScheduleByIdUseCase _getScheduleByIdUseCase;
   final CreateScheduleWithPlaceUseCase _createScheduleWithPlaceUseCase;
   final CreateCustomPreparationUseCase _createCustomPreparationUseCase;
+  final UpdateScheduleUseCase _updateScheduleUseCase;
+  final UpdatePreparationByScheduleIdUseCase
+      _updatePreparationByScheduleIdUseCase;
 
   Future<void> _onEditRequested(
     ScheduleFormEditRequested event,
@@ -196,7 +204,19 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     return setEquals<PreparationStepEntity>(A, B);
   }
 
-  void _onSaved(
+  Future<void> _onUpdated(
+    ScheduleFormUpdated event,
+    Emitter<ScheduleFormState> emit,
+  ) async {
+    final ScheduleEntity scheduleEntity = state.createEntity(state);
+    await _updateScheduleUseCase(scheduleEntity);
+    if (state.isChanged != IsPreparationChanged.unchanged) {
+      _updatePreparationByScheduleIdUseCase(
+          state.preparation!, scheduleEntity.id);
+    }
+  }
+
+  Future<void> _onSaved(
     ScheduleFormSaved event,
     Emitter<ScheduleFormState> emit,
   ) async {

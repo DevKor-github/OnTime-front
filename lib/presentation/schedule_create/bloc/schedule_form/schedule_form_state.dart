@@ -14,7 +14,6 @@ final class ScheduleFormState extends Equatable {
   final IsPreparationChanged isChanged;
   final Duration? scheduleSpareTime;
   final String? scheduleNote;
-  final Duration? spareTime;
   final PreparationEntity? preparation;
 
   ScheduleFormState({
@@ -27,7 +26,6 @@ final class ScheduleFormState extends Equatable {
     this.isChanged = IsPreparationChanged.unchanged,
     this.scheduleSpareTime,
     this.scheduleNote,
-    this.spareTime,
     this.preparation,
   }) : id = id ?? Uuid().v7();
 
@@ -41,7 +39,6 @@ final class ScheduleFormState extends Equatable {
     IsPreparationChanged? isChanged,
     Duration? scheduleSpareTime,
     String? scheduleNote,
-    Duration? spareTime,
     PreparationEntity? preparation,
   }) {
     return ScheduleFormState(
@@ -54,7 +51,6 @@ final class ScheduleFormState extends Equatable {
       isChanged: isChanged ?? this.isChanged,
       scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
       scheduleNote: scheduleNote ?? this.scheduleNote,
-      spareTime: spareTime ?? this.spareTime,
       preparation: preparation ?? this.preparation,
     );
   }
@@ -90,7 +86,6 @@ final class ScheduleFormState extends Equatable {
         isChanged,
         scheduleSpareTime,
         scheduleNote,
-        spareTime,
         preparation,
       ];
 }

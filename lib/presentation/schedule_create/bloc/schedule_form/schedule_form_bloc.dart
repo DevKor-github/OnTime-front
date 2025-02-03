@@ -77,7 +77,6 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
           : IsPreparationChanged.unchanged,
       scheduleSpareTime: scheduleEntity.scheduleSpareTime,
       scheduleNote: scheduleEntity.scheduleNote,
-      spareTime: scheduleEntity.scheduleSpareTime,
       preparation: preparationEntity,
     ));
   }
@@ -103,7 +102,6 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       isChanged: null,
       scheduleSpareTime: null,
       scheduleNote: null,
-      spareTime: null,
       preparation: defaultPreparationStepList,
     ));
   }

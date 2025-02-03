@@ -23,10 +23,11 @@ final class PreparationFormState extends Equatable {
               id: currentPreparationStep.id,
               preparationName: currentPreparationStep.preparationName,
               preparationTime: currentPreparationStep.preparationTime,
-              order: length - j - 1,
+              order: length - i - 1,
               focusNode: FocusNode(),
             ),
           );
+          break;
         }
       }
     }

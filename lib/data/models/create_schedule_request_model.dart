@@ -15,7 +15,7 @@ class CreateScheduleRequestModel {
   final bool isStarted;
   final int scheduleSpareTime;
   final String scheduleNote;
-
+  
   const CreateScheduleRequestModel({
     required this.scheduleId,
     required this.placeId,

@@ -10,8 +10,8 @@ class UpdateScheduleRequestModel {
   final String placeName;
   final String scheduleName;
   final DateTime scheduleTime;
-  final Duration moveTime;
-  final Duration scheduleSpareTime;
+  final int moveTime;
+  final int scheduleSpareTime;
   final String scheduleNote;
   final int latenessTime;
 
@@ -39,8 +39,8 @@ class UpdateScheduleRequestModel {
       placeName: entity.place.placeName,
       scheduleName: entity.scheduleName,
       scheduleTime: entity.scheduleTime,
-      moveTime: entity.moveTime,
-      scheduleSpareTime: entity.scheduleSpareTime,
+      moveTime: entity.moveTime.inMinutes,
+      scheduleSpareTime: entity.scheduleSpareTime.inMinutes,
       scheduleNote: entity.scheduleNote,
       latenessTime: entity.latenessTime,
     );

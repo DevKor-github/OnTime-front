@@ -13,7 +13,7 @@ class ScheduleEntity extends Equatable {
   final bool isChanged;
   final bool isStarted;
   final Duration scheduleSpareTime;
-  final String? scheduleNote;
+  final String scheduleNote;
   final int latenessTime;
 
   const ScheduleEntity({
@@ -25,7 +25,7 @@ class ScheduleEntity extends Equatable {
     required this.isChanged,
     required this.isStarted,
     required this.scheduleSpareTime,
-    this.scheduleNote,
+    required this.scheduleNote,
     this.latenessTime = 0,
   });
 

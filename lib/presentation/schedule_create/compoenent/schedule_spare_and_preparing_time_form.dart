@@ -62,13 +62,14 @@ class _ScheduleSpareAndPreparingTimeFormState
           Expanded(
             flex: 1,
             child: FormField<Duration>(
-              initialValue: widget.initalValue.spareTime ?? Duration.zero,
+              initialValue:
+                  widget.initalValue.scheduleSpareTime ?? Duration.zero,
               builder: (field) => TextField(
                 readOnly: true,
                 decoration: InputDecoration(labelText: ''),
                 controller: TextEditingController(
                     text:
-                        '${field.value?.inHours ?? 0}시간 ${field.value?.inMinutes.remainder(60) ?? 0}분'),
+                        '${field.value!.inHours}시간 ${field.value!.inMinutes.remainder(60)}분'),
                 onTap: () {
                   _showModalBottomSheet(
                     context: context,

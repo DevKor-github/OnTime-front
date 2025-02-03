@@ -55,7 +55,7 @@ class _SchedulePlaceMovingTimeFormState
           Row(
             children: [
               FormField<Duration>(
-                initialValue: widget.initalValue.moveTime,
+                initialValue: widget.initalValue.moveTime ?? Duration.zero,
                 onSaved: (newValue) {
                   widget.onMovingTimeSaved(newValue!);
                 },
@@ -67,9 +67,8 @@ class _SchedulePlaceMovingTimeFormState
                       focusNode: _timeFocusNode,
                       textInputAction: TextInputAction.done,
                       controller: TextEditingController(
-                          text: field.value != null
-                              ? '${field.value!.inHours}시간 ${field.value!.inMinutes % 60}분'
-                              : ''),
+                          text:
+                              '${field.value!.inHours}시간 ${field.value!.inMinutes % 60}분'),
                       onTap: () {
                         context.showCupertinoTimerPickerModal(
                             title: '시간을 선택해 주세요',

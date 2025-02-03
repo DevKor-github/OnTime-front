@@ -23,7 +23,7 @@ class UpdateScheduleRequestModel {
     required this.scheduleTime,
     required this.moveTime,
     required this.scheduleSpareTime,
-    required this.scheduleNote,
+    this.scheduleNote,
     this.latenessTime = 0,
   });
 

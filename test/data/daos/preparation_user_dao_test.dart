@@ -151,7 +151,8 @@ void main() {
       final result = await userDao.getPreparationUsersByUserId(userId);
       expect(
           result.preparationStepList.first.preparationName, 'Updated Step 1');
-      expect(result.preparationStepList.first.preparationTime, 15);
+      expect(result.preparationStepList.first.preparationTime,
+          Duration(minutes: 15));
     });
   });
 }

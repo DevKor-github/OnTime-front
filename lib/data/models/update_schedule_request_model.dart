@@ -5,27 +5,25 @@ part 'update_schedule_request_model.g.dart';
 
 @JsonSerializable()
 class UpdateScheduleRequestModel {
-  final String id;
-  final String userId;
+  final String scheduleId;
   final String placeId;
   final String placeName;
   final String scheduleName;
   final DateTime scheduleTime;
-  final Duration moveTime;
-  final Duration scheduleSpareTime;
-  final String? scheduleNote;
+  final int moveTime;
+  final int scheduleSpareTime;
+  final String scheduleNote;
   final int latenessTime;
 
   const UpdateScheduleRequestModel({
-    required this.id,
-    required this.userId,
+    required this.scheduleId,
     required this.placeId,
     required this.placeName,
     required this.scheduleName,
     required this.scheduleTime,
     required this.moveTime,
     required this.scheduleSpareTime,
-    this.scheduleNote,
+    required this.scheduleNote,
     this.latenessTime = 0,
   });
 
@@ -36,14 +34,13 @@ class UpdateScheduleRequestModel {
 
   static UpdateScheduleRequestModel fromEntity(ScheduleEntity entity) {
     return UpdateScheduleRequestModel(
-      id: entity.id,
-      userId: entity.userId,
+      scheduleId: entity.id,
       placeId: entity.place.id,
       placeName: entity.place.placeName,
       scheduleName: entity.scheduleName,
       scheduleTime: entity.scheduleTime,
-      moveTime: entity.moveTime,
-      scheduleSpareTime: entity.scheduleSpareTime,
+      moveTime: entity.moveTime.inMinutes,
+      scheduleSpareTime: entity.scheduleSpareTime.inMinutes,
       scheduleNote: entity.scheduleNote,
       latenessTime: entity.latenessTime,
     );

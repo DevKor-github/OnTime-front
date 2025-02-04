@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
@@ -31,7 +30,7 @@ class PreparationScheduleCreateRequestModel {
     return PreparationScheduleCreateRequestModel(
       id: entity.id,
       preparationName: entity.preparationName,
-      preparationTime: entity.preparationTime,
+      preparationTime: entity.preparationTime.inMinutes,
       nextPreparationId: entity.nextPreparationId,
     );
   }
@@ -40,7 +39,7 @@ class PreparationScheduleCreateRequestModel {
     return PreparationStepEntity(
       id: id,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: Duration(minutes: preparationTime),
       nextPreparationId: nextPreparationId,
     );
   }
@@ -58,18 +57,5 @@ extension PreparationScheduleCreateRequestModelListExtension
         .map((entity) =>
             PreparationScheduleCreateRequestModel.fromEntity(entity))
         .toList();
-  }
-}
-
-extension PreparationStepEntityListExtension on List<PreparationStepEntity> {
-  void updateLinksAfterDeletion(String deletedId) {
-    for (var i = 0; i < length; i++) {
-      if (this[i].nextPreparationId == deletedId) {
-        this[i].updateNextPreparationId(
-          firstWhereOrNull((step) => step.id == deletedId)?.nextPreparationId,
-        );
-        break;
-      }
-    }
   }
 }

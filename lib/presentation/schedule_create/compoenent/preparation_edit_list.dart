@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
-import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
+import 'package:on_time_front/presentation/schedule_create/bloc/preparation_form/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_reorderable_list_form_field.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
@@ -12,18 +14,15 @@ import 'package:uuid/uuid.dart';
 typedef OnPreparationListChangedCallBackFunction<T> = void Function(List<T>);
 
 class PreparationEditList extends StatefulWidget {
-  final List<PreparationStepFormData> preparationList;
-  final OnPreparationListChangedCallBackFunction<PreparationStepFormData>
-      onChanged;
+  final PreparationFormState preparationFormState;
   final GlobalKey<FormState> formKey;
-  final Function(PreparationFormData) onSaved;
+  final Function(PreparationEntity) onSaved;
 
   const PreparationEditList({
     super.key,
     required this.formKey,
     required this.onSaved,
-    required this.preparationList,
-    required this.onChanged,
+    required this.preparationFormState,
   });
 
   @override
@@ -31,48 +30,31 @@ class PreparationEditList extends StatefulWidget {
 }
 
 class _PreparationEditListState extends State<PreparationEditList> {
-  final List<FocusNode> focusNodes = [];
   final FocusScopeNode newFocusNode = FocusScopeNode();
   final FocusNode newPreparationStepNameTextFieldFocusNode = FocusNode();
   final FocusNode newPreparationStepTimeFocusNode = FocusNode();
   final reorderableListKey =
       GlobalKey<PreparationReorderableListFormFieldState>();
 
-  late List<PreparationStepFormData> preparationList;
   bool isModalUp = false;
   bool isAdding = false;
 
   @override
   void initState() {
     super.initState();
-    for (var i = 0; i < widget.preparationList.length; i++) {
-      focusNodes.add(FocusNode());
-    }
-    if (widget.preparationList[0].order == null) {
-      for (var i = 0; i < widget.preparationList.length; i++) {
-        widget.preparationList[i] = widget.preparationList[i].copyWith(
-          order: i,
-        );
-      }
-    }
-
-    preparationList = widget.preparationList;
   }
 
   @override
   void dispose() {
-    for (var i = 0; i < preparationList.length; i++) {
-      focusNodes[i].dispose();
-    }
     newFocusNode.dispose();
     newPreparationStepNameTextFieldFocusNode.dispose();
     newPreparationStepTimeFocusNode.dispose();
-
     super.dispose();
   }
 
   List<Widget> _listViewChildren(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final preparationList = widget.preparationFormState.preparationStepList;
     List<Widget> children = [];
     final Widget dragIndicatorSvg = SvgPicture.asset(
       'assets/drag_indicator.svg',
@@ -85,14 +67,12 @@ class _PreparationEditListState extends State<PreparationEditList> {
     children.add(
       PreparationReorderableListFormField(
         key: reorderableListKey,
-        initialValue: preparationList.map((e) => e.order!).toList(),
+        initialValue: preparationList.map((e) => e.order).toList(),
         onSaved: (newValue) {
-          for (var i = 0; i < preparationList.length; i++) {
-            var index = newValue!.indexOf(i);
-            preparationList[i] = preparationList[i].copyWith(
-              order: index,
-            );
-          }
+          context.read<PreparationFormBloc>().add(
+                PreparationFormPreparationStepOrderChanged(
+                    preparationStepOrder: newValue!),
+              );
         },
         itemCount: preparationList.length,
         itemBuilder: (context, index) {
@@ -120,11 +100,13 @@ class _PreparationEditListState extends State<PreparationEditList> {
                     ),
                   ),
                 ),
-                onTap: (CompletionHandler handler) {
-                  preparationList.removeAt(index);
+                onTap: (CompletionHandler handler) async {
+                  context.read<PreparationFormBloc>().add(
+                        PreparationFormPreparationStepRemoved(
+                            preparationStepId: preparationStep.id),
+                      );
+                  await Future.delayed(Duration.zero);
                   reorderableListKey.currentState?.elementRemoved(index);
-
-                  widget.onChanged(preparationList);
                 },
                 color: Colors.transparent,
               ),
@@ -137,10 +119,12 @@ class _PreparationEditListState extends State<PreparationEditList> {
               ),
               style: TileStyle(padding: EdgeInsets.all(16.0)),
               trailing: FormField<Duration>(
-                onSaved: (newValue) {
-                  preparationList[index] = preparationList[index].copyWith(
-                    preparationTime: newValue!,
-                  );
+                onSaved: (newValue) async {
+                  context.read<PreparationFormBloc>().add(
+                        PreparationFormPreparationStepTimeChanged(
+                            preparationStepId: preparationStep.id,
+                            preparationStepTime: newValue!),
+                      );
                 },
                 initialValue: preparationStep.preparationTime,
                 builder: (field) => Row(
@@ -149,7 +133,8 @@ class _PreparationEditListState extends State<PreparationEditList> {
                       child: Text((field.value!.inMinutes < 10 ? '0' : '') +
                           field.value!.inMinutes.toString()),
                       onTap: () {
-                        context.showCupertinoPickerModal(
+                        context.showCupertinoMinutePickerModal(
+                          title: '시간을 선택해 주세요',
                           context: context,
                           initialValue: field.value!,
                           onSaved: field.didChange,
@@ -166,10 +151,14 @@ class _PreparationEditListState extends State<PreparationEditList> {
                   padding: const EdgeInsets.symmetric(horizontal: 19.0),
                   child: PreparationNameTextField(
                     initialValue: preparationStep.preparationName,
-                    focusNode: focusNodes[index],
-                    onSaved: (newValue) => preparationList[index] =
-                        preparationList[index]
-                            .copyWith(preparationName: newValue!),
+                    focusNode: preparationList[index].focusNode,
+                    onSaved: (newValue) async {
+                      context.read<PreparationFormBloc>().add(
+                            PreparationFormPreparationStepNameChanged(
+                                preparationStepId: preparationStep.id,
+                                preparationStepName: newValue!),
+                          );
+                    },
                   ),
                 ),
               ),
@@ -180,32 +169,37 @@ class _PreparationEditListState extends State<PreparationEditList> {
     );
 
     final newPreparationStepFormKey = GlobalKey<FormState>();
-    PreparationStepFormData newPreparationStep = PreparationStepFormData(
-      id: Uuid().v4(),
+    PreparationStepFormState newPreparationStep = PreparationStepFormState(
+      id: Uuid().v7(),
       preparationName: '',
+      focusNode: FocusNode(),
+      order: preparationList.length,
     );
     children.addAll([
       isAdding
           ? Form(
               key: newPreparationStepFormKey,
-              child: FocusScope(
-                node: newFocusNode,
+              child: Focus(
+                focusNode: newPreparationStep.focusNode,
                 onFocusChange: (value) {
                   if (!value && isModalUp == false) {
                     newPreparationStepFormKey.currentState?.save();
                     if (newPreparationStep.preparationName == '') {
-                      newPreparationStep = PreparationStepFormData(
-                        id: Uuid().v4(),
+                      newPreparationStep = PreparationStepFormState(
+                        id: Uuid().v7(),
                         preparationName: '',
+                        focusNode: FocusNode(),
+                        order: preparationList.length,
                       );
                     } else {
                       newPreparationStep = newPreparationStep.copyWith(
                         order: preparationList.length,
                       );
-                      preparationList.add(newPreparationStep);
-                      widget.onChanged(preparationList);
+                      context.read<PreparationFormBloc>().add(
+                            PreparationFormPreparationStepAdded(
+                                preparationStep: newPreparationStep),
+                          );
                       reorderableListKey.currentState?.elementAdded();
-                      focusNodes.add(FocusNode());
                     }
                     setState(() {
                       isAdding = false;
@@ -230,7 +224,8 @@ class _PreparationEditListState extends State<PreparationEditList> {
                           if (focused) {
                             isModalUp = true;
 
-                            context.showCupertinoPickerModal(
+                            context.showCupertinoMinutePickerModal(
+                              title: '시간을 선택해 주세요',
                               context: context,
                               initialValue: field.value!,
                               onSaved: (value) {
@@ -242,11 +237,13 @@ class _PreparationEditListState extends State<PreparationEditList> {
                                       newPreparationStep.copyWith(
                                     order: preparationList.length,
                                   );
-                                  preparationList.add(newPreparationStep);
+                                  context.read<PreparationFormBloc>().add(
+                                        PreparationFormPreparationStepAdded(
+                                            preparationStep:
+                                                newPreparationStep),
+                                      );
                                   reorderableListKey.currentState
                                       ?.elementAdded();
-                                  widget.onChanged(preparationList);
-                                  focusNodes.add(FocusNode());
                                   isAdding = false;
                                 }
                               },
@@ -327,14 +324,16 @@ class _PreparationEditListState extends State<PreparationEditList> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiPageFormField(
-      key: widget.formKey,
-      onSaved: () => widget.onSaved
-          .call(PreparationFormData(preparationStepList: preparationList)),
-      child: ListView(
-        children: _listViewChildren(context),
-      ),
-    );
+    return BlocBuilder<PreparationFormBloc, PreparationFormState>(
+        builder: (context, state) {
+      return MultiPageFormField(
+        key: widget.formKey,
+        onSaved: () {},
+        child: ListView(
+          children: _listViewChildren(context),
+        ),
+      );
+    });
   }
 }
 

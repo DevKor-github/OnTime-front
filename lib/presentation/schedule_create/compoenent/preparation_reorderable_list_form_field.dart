@@ -57,7 +57,7 @@ class PreparationReorderableListFormFieldState
 
   void elementRemoved(int index) {
     value!.remove(index);
-    for (int i = index; i < value!.length; i++) {
+    for (int i = 0; i < value!.length; i++) {
       if (value![i] > index) {
         value![i] -= 1;
       }

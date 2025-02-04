@@ -3,14 +3,14 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 @Injectable()
-class CreateCustomPreparationUseCase {
+class UpdatePreparationByScheduleIdUseCase {
   final PreparationRepository _preparationRepository;
 
-  CreateCustomPreparationUseCase(this._preparationRepository);
+  UpdatePreparationByScheduleIdUseCase(this._preparationRepository);
 
   Future<void> call(
       PreparationEntity preparationEntity, String scheduleId) async {
-    await _preparationRepository.createCustomPreparation(
+    await _preparationRepository.updatePreparationByScheduleId(
         preparationEntity, scheduleId);
   }
 }

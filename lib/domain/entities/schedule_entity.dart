@@ -42,7 +42,7 @@ class ScheduleEntity extends Equatable {
       isChanged: schedule.isChanged,
       isStarted: schedule.isStarted,
       scheduleSpareTime: schedule.scheduleSpareTime,
-      scheduleNote: schedule.scheduleNote,
+      scheduleNote: schedule.scheduleNote ?? '',
       latenessTime: schedule.latenessTime,
     );
   }

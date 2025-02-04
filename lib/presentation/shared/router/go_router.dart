@@ -6,9 +6,10 @@ import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_edit_form.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
+import 'package:on_time_front/presentation/shared/components/apple_login.dart';
 
 final goRouterConfig = GoRouter(
-  initialLocation: '/home',
+  initialLocation: '/apple-login',
   routes: [
     GoRoute(
       path: '/onboarding',
@@ -30,5 +31,10 @@ final goRouterConfig = GoRouter(
         path: '/preparationEdit',
         builder: (context, state) => PreparationEditForm(
             preparationEntity: state.extra as PreparationEntity)),
+    //tmp
+    GoRoute(
+      path: '/apple-login',
+      builder: (context, state) => AppleLogin(),
+    ),
   ],
 );

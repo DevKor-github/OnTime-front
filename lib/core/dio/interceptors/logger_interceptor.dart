@@ -7,6 +7,7 @@ class LoggerInterceptor implements Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     log('❌ Dio Error!');
     log('❌ Url: ${err.requestOptions.uri}');
+    log('❌ Data: ${err.requestOptions.data}');
     log('❌ ${err.stackTrace}');
     log('❌ Response Error: ${err.response?.data}');
     log('❌ Response Message: ${err.message}');

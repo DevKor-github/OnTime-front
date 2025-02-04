@@ -141,6 +141,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         final schedule = state.schedules[_selectedDate]![index];
                         return ScheduleDetail(
                           schedule: schedule,
+                          onEdit: () {
+                            context.go(
+                              '/scheduleEdit/${schedule.id}',
+                            );
+                          },
                           onDeleted: () {
                             context.read<MonthlySchedulesBloc>().add(
                                   MonthlySchedulesScheduleDeleted(

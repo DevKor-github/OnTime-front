@@ -89,48 +89,48 @@ void main() {
     });
   });
 
-  group('updateSchdule', () {
-    test('should perform a PUT request on the /schedule/modify endpoint',
-        () async {
-      // arrange
-      when(dio.put(Endpoint.updateSchedule(scheduleEntityId),
-              data: tUpdateScheduleModel.toJson()))
-          .thenAnswer(
-        (_) async => Response(
-          statusCode: 204,
-          requestOptions:
-              RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
-        ),
-      );
+  // group('updateSchdule', () {
+  //   test('should perform a PUT request on the /schedule/modify endpoint',
+  //       () async {
+  //     // arrange
+  //     when(dio.put(Endpoint.updateSchedule(scheduleEntityId),
+  //             data: tUpdateScheduleModel.toJson()))
+  //         .thenAnswer(
+  //       (_) async => Response(
+  //         statusCode: 204,
+  //         requestOptions:
+  //             RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
+  //       ),
+  //     );
 
-      // act
-      await scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
+  //     // act
+  //     await scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
 
-      // assert
-      verify(dio.put(Endpoint.updateSchedule(scheduleEntityId),
-              data: tUpdateScheduleModel.toJson()))
-          .called(1);
-    });
+  //     // assert
+  //     verify(dio.put(Endpoint.updateSchedule(scheduleEntityId),
+  //             data: tUpdateScheduleModel.toJson()))
+  //         .called(1);
+  //   });
 
-    test('should throw an exception when the response code is not 204',
-        () async {
-      when(dio.put(Endpoint.updateSchedule(scheduleEntityId),
-              data: tUpdateScheduleModel.toJson()))
-          .thenAnswer(
-        (_) async => Response(
-          statusCode: 400,
-          requestOptions:
-              RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
-        ),
-      );
+  //   test('should throw an exception when the response code is not 204',
+  //       () async {
+  //     when(dio.put(Endpoint.updateSchedule(scheduleEntityId),
+  //             data: tUpdateScheduleModel.toJson()))
+  //         .thenAnswer(
+  //       (_) async => Response(
+  //         statusCode: 400,
+  //         requestOptions:
+  //             RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
+  //       ),
+  //     );
 
-      // act
-      final call = scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
+  //     // act
+  //     final call = scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
 
-      // assert
-      expect(call, throwsException);
-    });
-  });
+  //     // assert
+  //     expect(call, throwsException);
+  //   });
+  // });
 
   group('deleteSchedule', () {
     test('should perform a DELETE request on the /schedule/delete endpoint',

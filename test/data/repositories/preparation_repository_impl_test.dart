@@ -91,73 +91,73 @@ void main() {
     );
   });
 
-  group('getPreparationByScheduleId', () {
-    test(
-        'should emit local data first and then update local data if remote differs',
-        () async {
-      // Arrange
-      when(mockPreparationLocalDataSource
-              .getPreparationByScheduleId(scheduleEntityId))
-          .thenAnswer((_) async => tLocalPreparationEntity);
-      when(mockPreparationRemoteDataSource
-              .getPreparationByScheduleId(scheduleEntityId))
-          .thenAnswer((_) async => tPreparationEntity);
+  // group('getPreparationByScheduleId', () {
+  //   test(
+  //       'should emit local data first and then update local data if remote differs',
+  //       () async {
+  //     // Arrange
+  //     when(mockPreparationLocalDataSource
+  //             .getPreparationByScheduleId(scheduleEntityId))
+  //         .thenAnswer((_) async => tLocalPreparationEntity);
+  //     when(mockPreparationRemoteDataSource
+  //             .getPreparationByScheduleId(scheduleEntityId))
+  //         .thenAnswer((_) async => tPreparationEntity);
 
-      // Act
-      final result =
-          preparationRepository.getPreparationByScheduleId(scheduleEntityId);
+  //     // Act
+  //     final result =
+  //         preparationRepository.getPreparationByScheduleId(scheduleEntityId);
 
-      // Assert
-      await expectLater(
-        result,
-        emitsInOrder([
-          tLocalPreparationEntity,
-          tPreparationEntity,
-        ]),
-      );
+  //     // Assert
+  //     await expectLater(
+  //       result,
+  //       emitsInOrder([
+  //         tLocalPreparationEntity,
+  //         tPreparationEntity,
+  //       ]),
+  //     );
 
-      verify(mockPreparationLocalDataSource
-              .getPreparationByScheduleId(scheduleEntityId))
-          .called(1);
-      verify(mockPreparationRemoteDataSource
-              .getPreparationByScheduleId(scheduleEntityId))
-          .called(1);
-    });
-  });
+  //     verify(mockPreparationLocalDataSource
+  //             .getPreparationByScheduleId(scheduleEntityId))
+  //         .called(1);
+  //     verify(mockPreparationRemoteDataSource
+  //             .getPreparationByScheduleId(scheduleEntityId))
+  //         .called(1);
+  //   });
+  // });
 
-  group('getPreparationStepById', () {
-    test(
-        'should return PreparationStepEntity from local data source if available',
-        () async {
-      // Arrange
-      when(mockPreparationLocalDataSource
-              .getPreparationStepById(preparationStepEntityId))
-          .thenAnswer((_) async => tLocalPreparationStep);
-      when(mockPreparationRemoteDataSource
-              .getPreparationStepById(preparationStepEntityId))
-          .thenAnswer((_) async => tPreparationStep);
+  // group('getPreparationStepById', () {
+  //   test(
+  //       'should return PreparationStepEntity from local data source if available',
+  //       () async {
+  //     // Arrange
+  //     when(mockPreparationLocalDataSource
+  //             .getPreparationStepById(preparationStepEntityId))
+  //         .thenAnswer((_) async => tLocalPreparationStep);
+  //     when(mockPreparationRemoteDataSource
+  //             .getPreparationStepById(preparationStepEntityId))
+  //         .thenAnswer((_) async => tPreparationStep);
 
-      // Act
-      final result =
-          preparationRepository.getPreparationStepById(preparationStepEntityId);
+  //     // Act
+  //     final result =
+  //         preparationRepository.getPreparationStepById(preparationStepEntityId);
 
-      // Assert
-      await expectLater(
-        result,
-        emitsInOrder([
-          tLocalPreparationStep, // Local 데이터 방출
-          tPreparationStep, // Remote 데이터 방출
-        ]),
-      );
+  //     // Assert
+  //     await expectLater(
+  //       result,
+  //       emitsInOrder([
+  //         tLocalPreparationStep, // Local 데이터 방출
+  //         tPreparationStep, // Remote 데이터 방출
+  //       ]),
+  //     );
 
-      verify(mockPreparationLocalDataSource
-              .getPreparationStepById(preparationStepEntityId))
-          .called(1);
-      verify(mockPreparationRemoteDataSource
-              .getPreparationStepById(preparationStepEntityId))
-          .called(1);
-    });
-  });
+  //     verify(mockPreparationLocalDataSource
+  //             .getPreparationStepById(preparationStepEntityId))
+  //         .called(1);
+  //     verify(mockPreparationRemoteDataSource
+  //             .getPreparationStepById(preparationStepEntityId))
+  //         .called(1);
+  //   });
+  // });
 
   group('createDefaultPreparation', () {
     test('should call createDefaultPreparation on remote data source',

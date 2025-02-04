@@ -18,14 +18,14 @@ void main() {
   final preparationStep1 = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Step 1: Wake up',
-    preparationTime: 10,
+    preparationTime: Duration(minutes: 10),
     nextPreparationId: null,
   );
 
   final preparationStep2 = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Step 2: Brush teeth',
-    preparationTime: 5,
+    preparationTime: Duration(minutes: 10),
     nextPreparationId: null,
   );
 
@@ -63,7 +63,6 @@ void main() {
     await appDatabase.into(appDatabase.schedules).insert(
           SchedulesCompanion(
             id: drift.Value(uuid.v7()),
-            userId: drift.Value(userId),
             placeId: drift.Value(placeId),
             scheduleName: drift.Value('Test Schedule'),
             scheduleTime: drift.Value(DateTime.now()),
@@ -142,7 +141,7 @@ void main() {
 
       final updatedStep = preparationStep1.copyWith(
         preparationName: 'Updated Step 1',
-        preparationTime: 15,
+        preparationTime: Duration(minutes: 15),
       );
 
       // Act

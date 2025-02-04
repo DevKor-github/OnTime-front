@@ -22,13 +22,13 @@ void main() {
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Meeting A Friend',
-      preparationTime: 30,
+      preparationTime: Duration(minutes: 30),
       nextPreparationId: null,
     ),
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Museum Tour',
-      preparationTime: 40,
+      preparationTime: Duration(minutes: 40),
       nextPreparationId: null,
     ),
   ];
@@ -44,13 +44,13 @@ void main() {
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Meeting A Friend Local',
-      preparationTime: 10,
+      preparationTime: Duration(minutes: 10),
       nextPreparationId: null, // 이후에 설정
     ),
     PreparationStepEntity(
       id: uuid.v7(),
       preparationName: 'Museum Tour Local',
-      preparationTime: 30,
+      preparationTime: Duration(minutes: 30),
       nextPreparationId: null, // 이후에 설정
     ),
   ];
@@ -65,14 +65,14 @@ void main() {
   final tPreparationStep = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Dress Up',
-    preparationTime: 10,
+    preparationTime: Duration(minutes: 10),
     nextPreparationId: null,
   );
 
   final tLocalPreparationStep = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Dress Up Local',
-    preparationTime: 15,
+    preparationTime: Duration(minutes: 15),
     nextPreparationId: null,
   );
 
@@ -186,15 +186,15 @@ void main() {
     test('should call updatePreparation on remote data source', () async {
       // Arrange
       when(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationStep))
+              .updateDefaultPreparation(tPreparationEntity))
           .thenAnswer((_) async {});
 
       // Act
-      await preparationRepository.updateDefaultPreparation(tPreparationStep);
+      await preparationRepository.updateDefaultPreparation(tPreparationEntity);
 
       // Assert
       verify(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationStep))
+              .updateDefaultPreparation(tPreparationEntity))
           .called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
     });
@@ -202,43 +202,12 @@ void main() {
     test('should throw an exception if remote data source fails', () async {
       // Arrange
       when(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationStep))
+              .updateDefaultPreparation(tPreparationEntity))
           .thenThrow(Exception());
 
       // Act
       final call =
-          preparationRepository.updateDefaultPreparation(tPreparationStep);
-
-      // Assert
-      expect(call, throwsException);
-    });
-  });
-
-  group('deletePreparation', () {
-    test('should update the local preparation list after deletion', () async {
-      // Arrange
-      when(mockPreparationLocalDataSource.deletePreparation(tPreparationEntity))
-          .thenAnswer((_) async => tLocalPreparationEntity);
-
-      // Act
-      final result =
-          preparationRepository.deletePreparation(tPreparationEntity);
-
-      // Assert
-      await expectLater(result, completes);
-      verify(mockPreparationLocalDataSource
-              .deletePreparation(tPreparationEntity))
-          .called(1);
-      verifyNoMoreInteractions(mockPreparationLocalDataSource);
-    });
-
-    test('should throw an exception if local data source fails', () async {
-      // Arrange
-      when(mockPreparationLocalDataSource.deletePreparation(tPreparationEntity))
-          .thenThrow(Exception());
-
-      // Act
-      final call = preparationRepository.deletePreparation(tPreparationEntity);
+          preparationRepository.updateDefaultPreparation(tPreparationEntity);
 
       // Assert
       expect(call, throwsException);

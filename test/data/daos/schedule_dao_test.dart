@@ -23,7 +23,6 @@ void main() async {
 
   final scheduleModel = Schedule(
     id: scheduleEntityId,
-    userId: uuid.v7(),
     placeId: placeModel.id,
     scheduleName: 'Test Schedule',
     scheduleTime: scheduleTime,

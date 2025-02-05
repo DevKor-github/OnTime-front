@@ -366,7 +366,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               children: [
                 CustomPaint(
                   size: const Size(230, 115), // 호의 크기 조정
-                  painter: ArcPainterNoMarker(
+                  painter: AlarmGraphComponent(
                     progress: currentProgress,
                     preparationRatios: preparationRatios,
                     preparationCompleted: preparationCompleted,

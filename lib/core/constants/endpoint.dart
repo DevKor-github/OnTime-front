@@ -1,6 +1,13 @@
 import 'dart:core';
 
 class Endpoint {
+  //user
+  static const _signIn = '/login';
+  static const _signUp = '/sign-up';
+
+  static get signIn => _signIn;
+  static get signUp => _signUp;
+
   // schedule
   static const _getScheduleById = '/schedule/show/id?scheduleId=';
   static const _getSchedulesByDate = '/schedule/show';
@@ -34,8 +41,7 @@ class Endpoint {
   static const _updateDefaultPreparation =
       '/preparationuser/modify'; // 사용자 준비과정 수정
 
-  static const _updatePreparationByScheduleId =
-      '/preparationschedule/modify'; // 스케줄별 준비과정 수정
+  static const _updatePreparationByScheduleId = '/preparationschedule/modify';
 
   // delelte는 api가 없음.
 //   delete는 api로 요청을 보내는 게 아니라, 전부 없애고 다시 순서를 조정하는 형태로

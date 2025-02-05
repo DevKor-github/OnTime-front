@@ -10,8 +10,8 @@ class GetScheduleResponseModel {
   final GetPlaceResponseModel place;
   final String scheduleName;
   final DateTime scheduleTime;
-  final Duration moveTime;
-  final Duration scheduleSpareTime;
+  final int moveTime;
+  final int scheduleSpareTime;
   final String scheduleNote;
   final int? latenessTime;
 
@@ -29,14 +29,13 @@ class GetScheduleResponseModel {
   ScheduleEntity toEntity() {
     return ScheduleEntity(
       id: scheduleId,
-      userId: '',
       place: place.toEntity(),
       scheduleName: scheduleName,
       scheduleTime: scheduleTime,
-      moveTime: moveTime,
+      moveTime: Duration(minutes: moveTime),
       isChanged: false,
       isStarted: false,
-      scheduleSpareTime: scheduleSpareTime,
+      scheduleSpareTime: Duration(minutes: scheduleSpareTime),
       scheduleNote: scheduleNote,
       latenessTime: latenessTime ?? -1,
     );
@@ -53,8 +52,8 @@ class GetScheduleResponseModel {
       place: GetPlaceResponseModel.fromEntity(entity.place),
       scheduleName: entity.scheduleName,
       scheduleTime: entity.scheduleTime,
-      moveTime: entity.moveTime,
-      scheduleSpareTime: entity.scheduleSpareTime,
+      moveTime: entity.moveTime.inMinutes,
+      scheduleSpareTime: entity.scheduleSpareTime.inMinutes,
       scheduleNote: entity.scheduleNote,
       latenessTime: entity.latenessTime,
     );

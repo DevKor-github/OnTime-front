@@ -46,11 +46,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   @override
   Future<void> updateSchedule(ScheduleEntity schedule) async {
     try {
-      UpdateScheduleRequestModel createScheduleModel =
+      UpdateScheduleRequestModel updateScheduleModel =
           UpdateScheduleRequestModel.fromEntity(schedule);
-      final result = await dio.put(Endpoint.updateSchedule(schedule.id),
-          data: createScheduleModel.toJson());
-      if (result.statusCode == 204) {
+      final result = await dio.put(Endpoint.updateSchedule,
+          data: updateScheduleModel.toJson());
+      if (result.statusCode == 200) {
         return;
       } else {
         throw Exception('Error updating schedule');

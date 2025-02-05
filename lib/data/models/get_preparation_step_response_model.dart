@@ -1,59 +1,54 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 
-part 'get_preparation_response_model.g.dart';
+part 'get_preparation_step_response_model.g.dart';
 
 @JsonSerializable()
-class PreparationResponseModel {
+class GetPreparationStepResponseModel {
   @JsonKey(name: 'preparationId')
   final String id;
   final String preparationName;
   final int preparationTime;
   final String? nextPreparationId;
 
-  PreparationResponseModel({
+  GetPreparationStepResponseModel({
     required this.id,
     required this.preparationName,
     required this.preparationTime,
     required this.nextPreparationId,
   });
 
-  factory PreparationResponseModel.fromJson(Map<String, dynamic> json) =>
-      _$PreparationResponseModelFromJson(json);
+  factory GetPreparationStepResponseModel.fromJson(Map<String, dynamic> json) =>
+      _$GetPreparationStepResponseModelFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PreparationResponseModelToJson(this);
+  Map<String, dynamic> toJson() =>
+      _$GetPreparationStepResponseModelToJson(this);
 
   PreparationStepEntity toEntity() {
     return PreparationStepEntity(
       id: id,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: Duration(minutes: preparationTime),
       nextPreparationId: nextPreparationId,
     );
   }
 
-  static PreparationResponseModel fromEntity(PreparationStepEntity entity) {
-    return PreparationResponseModel(
+  static GetPreparationStepResponseModel fromEntity(
+      PreparationStepEntity entity) {
+    return GetPreparationStepResponseModel(
       id: entity.id,
       preparationName: entity.preparationName,
-      preparationTime: entity.preparationTime,
+      preparationTime: entity.preparationTime.inMinutes,
       nextPreparationId: entity.nextPreparationId,
     );
   }
 }
 
 extension PreparationResponseModelListExtension
-    on List<PreparationResponseModel> {
+    on List<GetPreparationStepResponseModel> {
   PreparationEntity toPreparationEntity() {
     final steps = map((model) => model.toEntity()).toList();
-    return PreparationEntity(preparationStepList: steps);
-  }
-
-  PreparationEntity toPreparationEntityAfterDeletion(String deletedId) {
-    final steps = map((model) => model.toEntity()).toList();
-    steps.updateLinksAfterDeletion(deletedId);
     return PreparationEntity(preparationStepList: steps);
   }
 }

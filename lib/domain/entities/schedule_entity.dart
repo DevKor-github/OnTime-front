@@ -6,7 +6,6 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 
 class ScheduleEntity extends Equatable {
   final String id;
-  final String userId;
   final PlaceEntity place;
   final String scheduleName;
   final DateTime scheduleTime;
@@ -19,7 +18,6 @@ class ScheduleEntity extends Equatable {
 
   const ScheduleEntity({
     required this.id,
-    required this.userId,
     required this.place,
     required this.scheduleName,
     required this.scheduleTime,
@@ -37,7 +35,6 @@ class ScheduleEntity extends Equatable {
     final place = scheduleWithPlace.place;
     return ScheduleEntity(
       id: schedule.id,
-      userId: schedule.userId,
       place: PlaceEntity.fromModel(place),
       scheduleName: schedule.scheduleName,
       scheduleTime: schedule.scheduleTime,
@@ -45,7 +42,7 @@ class ScheduleEntity extends Equatable {
       isChanged: schedule.isChanged,
       isStarted: schedule.isStarted,
       scheduleSpareTime: schedule.scheduleSpareTime,
-      scheduleNote: schedule.scheduleNote,
+      scheduleNote: schedule.scheduleNote ?? '',
       latenessTime: schedule.latenessTime,
     );
   }
@@ -53,7 +50,6 @@ class ScheduleEntity extends Equatable {
   Schedule toScheduleModel() {
     return Schedule(
       id: id,
-      userId: userId,
       placeId: place.id,
       scheduleName: scheduleName,
       scheduleTime: scheduleTime,

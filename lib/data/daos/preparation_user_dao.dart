@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
-import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
@@ -60,7 +59,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
         PreparationStepEntity(
           id: currentStep.id,
           preparationName: currentStep.preparationName,
-          preparationTime: currentStep.preparationTime,
+          preparationTime: Duration(minutes: currentStep.preparationTime),
           nextPreparationId: currentStep.nextPreparationId,
         ),
       );
@@ -85,7 +84,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
     return PreparationStepEntity(
       id: result.id,
       preparationName: result.preparationName,
-      preparationTime: result.preparationTime,
+      preparationTime: Duration(minutes: result.preparationTime),
       nextPreparationId: result.nextPreparationId,
     );
   }
@@ -97,7 +96,7 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
         .write(
       PreparationUsersCompanion(
         preparationName: Value(stepEntity.preparationName),
-        preparationTime: Value(stepEntity.preparationTime),
+        preparationTime: Value(stepEntity.preparationTime.inMinutes),
       ),
     );
   }
@@ -122,10 +121,10 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
     return await getPreparationUsersByUserId(preparationToDelete.userId);
   }
 
-  Future<PreparationEntity> getPreparationUsersByUserIdAfterDeletion(
-      String userId, String deletedId) async {
-    final steps = await getPreparationUsersByUserId(userId);
-    steps.preparationStepList.updateLinksAfterDeletion(deletedId);
-    return steps;
-  }
+  // Future<PreparationEntity> getPreparationUsersByUserIdAfterDeletion(
+  //     String userId, String deletedId) async {
+  //   final steps = await getPreparationUsersByUserId(userId);
+  //   steps.preparationStepList.updateLinksAfterDeletion(deletedId);
+  //   return steps;
+  // }
 }

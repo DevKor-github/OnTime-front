@@ -11,7 +11,7 @@ import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
-import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
+import 'package:on_time_front/presentation/home/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_navigation_bar.dart';
 import 'package:uuid/uuid.dart';
 

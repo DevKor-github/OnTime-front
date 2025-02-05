@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
 import 'dart:convert';
 
-import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
-import 'package:on_time_front/presentation/preparation/components/preparation_timer/button.dart';
-import 'package:on_time_front/presentation/preparation/components/preparation_timer/preparation_step_list_widget.dart';
-import 'package:on_time_front/presentation/preparation/components/preparation_timer/arc_painter_no_marker.dart';
+import 'package:on_time_front/presentation/shared/components/button.dart';
+import 'package:on_time_front/presentation/preparation/components/preparation_step_list_widget.dart';
+import 'package:on_time_front/presentation/preparation/components/alarm_graph_component.dart';
 
 import 'package:on_time_front/utils/time_format.dart';
 
@@ -210,16 +210,16 @@ class _AlarmScreenState extends State<AlarmScreen>
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         // 준비 종료 후 EarlyLateScreen으로 이동
-        context.go('/earlyLate', extra: fullTime);
+        // context.go('/earlyLate', extra: fullTime);
 
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => EarlyLateScreen(
-        //       earlyLateTime: fullTime,
-        //     ),
-        //   ),
-        // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EarlyLateScreen(
+              earlyLateTime: fullTime,
+            ),
+          ),
+        );
       }
     });
   }

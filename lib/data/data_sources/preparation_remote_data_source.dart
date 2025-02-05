@@ -7,8 +7,7 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_preparation_user_request_model.dart';
-import 'package:on_time_front/data/models/get_preparation_response_model.dart';
-import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
+import 'package:on_time_front/data/models/get_preparation_step_response_model.dart';
 
 abstract interface class PreparationRemoteDataSource {
   Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
@@ -16,12 +15,14 @@ abstract interface class PreparationRemoteDataSource {
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
 
-  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
+  Future<void> updateDefaultPreparation(PreparationEntity preparationEntity);
 
-  Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity);
+  Future<void> updatePreparationByScheduleId(
+      PreparationEntity preparationEntity, String scheduleId);
 
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
+
+  Future<PreparationEntity> getDefualtPreparation();
 
   Future<PreparationStepEntity> getPreparationStepById(
       String preparationStepId);
@@ -84,14 +85,34 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
       );
 
       if (result.statusCode == 200) {
-        final responseModels = (result.data as List<dynamic>)
-            .map((json) =>
-                PreparationResponseModel.fromJson(json as Map<String, dynamic>))
+        final responseModels = (result.data['data'] as List<dynamic>)
+            .map((json) => GetPreparationStepResponseModel.fromJson(
+                json as Map<String, dynamic>))
             .toList();
 
         return responseModels.toPreparationEntity();
       } else {
         throw Exception('Error fetching preparation by schedule ID');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<PreparationEntity> getDefualtPreparation() async {
+    try {
+      final result = await dio.get(Endpoint.getDefaultPreparation);
+
+      if (result.statusCode == 200) {
+        final responseModels = (result.data['data'] as List<dynamic>)
+            .map((json) => GetPreparationStepResponseModel.fromJson(
+                json as Map<String, dynamic>))
+            .toList();
+
+        return responseModels.toPreparationEntity();
+      } else {
+        throw Exception('Error fetching default preparation');
       }
     } catch (e) {
       rethrow;
@@ -109,7 +130,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
       if (result.statusCode == 200) {
         final responseModel =
-            PreparationResponseModel.fromJson(result.data["data"]);
+            GetPreparationStepResponseModel.fromJson(result.data["data"]);
         return responseModel.toEntity();
       } else {
         throw Exception('Error fetching preparation step by ID');
@@ -120,36 +141,37 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
   }
 
   @override
-  Future<PreparationEntity> deletePreparation(
+  Future<void> updateDefaultPreparation(
       PreparationEntity preparationEntity) async {
     try {
-      if (preparationEntity.preparationStepList.isEmpty) {
-        return preparationEntity;
+      final updateModel =
+          PreparationUserRequestModelListExtension.fromEntityList(
+              preparationEntity.preparationStepList);
+
+      final result = await dio.post(
+        Endpoint.updateDefaultPreparation,
+        data: updateModel.map((model) => model.toJson()).toList(),
+      );
+
+      if (result.statusCode != 200) {
+        throw Exception('Error updating preparation');
       }
-
-      final deletedStepId = preparationEntity.preparationStepList.first.id;
-
-      // 로컬에서 단계 삭제 및 재배열
-      preparationEntity.removeStepById(deletedStepId);
-      preparationEntity.relinkList();
-
-      // 삭제된 결과 반환
-      return preparationEntity;
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<void> updatePreparation(
-      PreparationStepEntity preparationStepEntity) async {
+  Future<void> updatePreparationByScheduleId(
+      PreparationEntity preparationEntity, String preparationId) async {
     try {
       final updateModel =
-          PreparationUserModifyRequestModel.fromEntity(preparationStepEntity);
+          PreparationUserRequestModelListExtension.fromEntityList(
+              preparationEntity.preparationStepList);
 
-      final result = await dio.put(
-        Endpoint.updatePreparation,
-        data: updateModel.toJson(),
+      final result = await dio.post(
+        Endpoint.updatePreparationByScheduleId(preparationId),
+        data: updateModel.map((model) => model.toJson()).toList(),
       );
 
       if (result.statusCode != 200) {

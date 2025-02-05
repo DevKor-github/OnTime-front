@@ -67,6 +67,7 @@ dependencies:
   injectable: ^2.5.0
   flutter_bloc: ^8.1.6
   flutter_swipe_action_cell: ^3.1.5
+  flutter_secure_storage: ^4.2.1
 
 
 

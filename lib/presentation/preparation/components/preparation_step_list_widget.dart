@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/preparation/components/preparation_timer/preparation_step_tile.dart';
+import 'package:on_time_front/presentation/preparation/components/preparation_step_tile.dart';
 import 'package:on_time_front/utils/time_format.dart';
 
 class PreparationStepListWidget extends StatelessWidget {

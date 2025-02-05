@@ -2,9 +2,11 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 abstract interface class PreparationRepository {
-  Stream<PreparationEntity> getPreparationByScheduleId(String scheduleId);
+  Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
-  Stream<PreparationStepEntity> getPreparationStepById(
+  Future<PreparationEntity> getDefualtPreparation();
+
+  Future<PreparationStepEntity> getPreparationStepById(
       String preparationStepId);
 
   Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
@@ -12,8 +14,8 @@ abstract interface class PreparationRepository {
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
 
-  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
+  Future<void> updateDefaultPreparation(PreparationEntity preparationEntity);
 
-  Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity);
+  Future<void> updatePreparationByScheduleId(
+      PreparationEntity preparationEntity, String scheduleId);
 }

@@ -17,14 +17,14 @@ void main() {
   final preparationStep1 = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Step 1: Wake up',
-    preparationTime: 10,
+    preparationTime: Duration(minutes: 10),
     nextPreparationId: null,
   );
 
   final preparationStep2 = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Step 2: Brush teeth',
-    preparationTime: 5,
+    preparationTime: Duration(minutes: 5),
     nextPreparationId: null,
   );
 
@@ -116,7 +116,7 @@ void main() {
 
       final updatedStep = preparationStep1.copyWith(
         preparationName: 'Updated Step 1',
-        preparationTime: 15,
+        preparationTime: Duration(minutes: 15),
       );
 
       // Act
@@ -126,7 +126,8 @@ void main() {
       final result = await userDao.getPreparationUsersByUserId(userId);
       expect(
           result.preparationStepList.first.preparationName, 'Updated Step 1');
-      expect(result.preparationStepList.first.preparationTime, 15);
+      expect(result.preparationStepList.first.preparationTime,
+          Duration(minutes: 15));
     });
   });
 }

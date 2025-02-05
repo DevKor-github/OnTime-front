@@ -4,9 +4,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 class ScheduleDetail extends StatefulWidget {
-  ScheduleDetail({super.key, required this.schedule, this.onDeleted});
+  ScheduleDetail(
+      {super.key, required this.schedule, this.onDeleted, this.onEdit});
 
   final ScheduleEntity schedule;
+  final VoidCallback? onEdit;
   final VoidCallback? onDeleted;
 
   final meatballsIcon = SvgPicture.asset(
@@ -27,6 +29,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         actions: [
           CupertinoContextMenuAction(
             onPressed: () {
+              widget.onEdit?.call();
               Navigator.pop(context);
             },
             trailingIcon: CupertinoIcons.square_pencil_fill,

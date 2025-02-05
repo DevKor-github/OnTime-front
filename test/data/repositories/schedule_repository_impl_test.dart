@@ -18,7 +18,6 @@ void main() {
 
   final uuid = Uuid();
   final scheduleEntityId = uuid.v7();
-  final userEntityId = uuid.v7();
 
   final tPlaceEntity = PlaceEntity(
     id: uuid.v7(),
@@ -27,7 +26,6 @@ void main() {
 
   final tScheduleEntity = ScheduleEntity(
     id: scheduleEntityId,
-    userId: userEntityId,
     place: tPlaceEntity,
     scheduleName: 'Meeting',
     scheduleTime: DateTime.now(),

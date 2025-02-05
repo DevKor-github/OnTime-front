@@ -1,12 +1,13 @@
+import 'package:equatable/equatable.dart';
 import 'package:on_time_front/core/database/database.dart';
 
-class PreparationStepEntity {
+class PreparationStepEntity extends Equatable {
   final String id;
   final String preparationName;
-  final int preparationTime;
-  String? nextPreparationId;
+  final Duration preparationTime;
+  final String? nextPreparationId;
 
-  PreparationStepEntity({
+  const PreparationStepEntity({
     required this.id,
     required this.preparationName,
     required this.preparationTime,
@@ -18,7 +19,7 @@ class PreparationStepEntity {
       id: id,
       userId: userId,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: preparationTime.inMinutes,
       nextPreparationId: nextPreparationId,
     );
   }
@@ -28,13 +29,9 @@ class PreparationStepEntity {
       id: id,
       scheduleId: scheduleId,
       preparationName: preparationName,
-      preparationTime: preparationTime,
+      preparationTime: preparationTime.inMinutes,
       nextPreparationId: nextPreparationId,
     );
-  }
-
-  void updateNextPreparationId(String? newNextId) {
-    nextPreparationId = newNextId;
   }
 
   @override
@@ -45,7 +42,7 @@ class PreparationStepEntity {
   PreparationStepEntity copyWith({
     String? id,
     String? preparationName,
-    int? preparationTime,
+    Duration? preparationTime,
     String? nextPreparationId,
   }) {
     return PreparationStepEntity(
@@ -55,4 +52,8 @@ class PreparationStepEntity {
       nextPreparationId: nextPreparationId ?? this.nextPreparationId,
     );
   }
+
+  @override
+  List<Object?> get props =>
+      [id, preparationName, preparationTime, nextPreparationId];
 }

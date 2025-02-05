@@ -31,8 +31,6 @@ final goRouterConfig = GoRouter(
         return EarlyLateScreen(earlyLateTime: earlyLateTime);
       },
     ),
-        path: '/scheduleCreate',
-        builder: (context, state) => ScheduleCreateScreen()),
     GoRoute(
         path: '/scheduleEdit/:scheduleId',
         builder: (context, state) => ScheduleEditScreen(

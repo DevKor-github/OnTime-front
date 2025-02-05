@@ -4,7 +4,7 @@ class UserEntity {
   final String id;
   final String email;
   final String name;
-  final int spareTime;
+  final Duration spareTime;
   final String note;
   final double score;
   final bool isOnboardingCompleted;
@@ -23,7 +23,7 @@ class UserEntity {
       id: user.id,
       email: user.email,
       name: user.name,
-      spareTime: user.spareTime,
+      spareTime: Duration(minutes: user.spareTime),
       note: user.note,
       score: user.score,
     );
@@ -34,7 +34,7 @@ class UserEntity {
       id: id,
       email: email,
       name: name,
-      spareTime: spareTime,
+      spareTime: spareTime.inMinutes,
       note: note,
       score: score,
     );

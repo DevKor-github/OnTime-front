@@ -1,10 +1,11 @@
-import 'dart:convert'; // For json.decode
-import 'dart:io'; // For HttpHeaders and Platform
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // For HTTP requests
+import 'package:http/http.dart' as http;
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-import 'package:on_time_front/presentation/login/screens/test_screen.dart';
+import 'package:on_time_front/presentation/home/screens/home_screen.dart';
+import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 import 'package:on_time_front/utils/login_platform.dart';
 
 class KakaoLoginButton extends StatefulWidget {
@@ -57,7 +58,6 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
       );
 
       if (response.statusCode == 200) {
-        print("success");
         final rawProfileInfo = json.decode(response.body);
 
         // userInfo에서 필요한 데이터만 추출
@@ -82,23 +82,40 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
           // 백엔드 URI
           Uri.parse('http://ejun.kro.kr:8888/oauth2/kakao/registerOrLogin'),
           headers: {
+            'Authorization': 'Bearer ${token.accessToken}',
             'Content-Type': 'application/json',
           },
           body: json.encode(filteredProfileInfo),
         );
 
         if (backendResponse.statusCode == 200) {
-          print("백엔드 처리 성공: ${backendResponse.headers}");
+          final responseBody = json.decode(backendResponse.body);
+          final String? message = responseBody['message'];
+          final String? role = responseBody['role'];
 
-          // TestScreen으로 이동
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TestScreen(
-                loginPlatform: LoginPlatform.kakao,
+          print(
+              "백엔드 처리 성공: $message, Role: $role, Response Body: $responseBody");
+
+          if (role == "GUEST") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OnboardingScreen(),
               ),
-            ),
-          );
+            );
+          } else if (role == "USER") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(),
+              ),
+            );
+          }
+
+          setState(() {
+            _loginPlatform = LoginPlatform.kakao;
+            _userProfile = filteredProfileInfo;
+          });
         } else {
           print("Backend error: ${backendResponse.statusCode}");
         }

@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-import 'package:on_time_front/presentation/login/screens/test_screen.dart';
+import 'package:on_time_front/presentation/home/screens/home_screen.dart';
+import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
+
 import 'package:on_time_front/utils/login_platform.dart';
 
 class GoogleLoginButton extends StatefulWidget {
@@ -44,6 +46,16 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
             final userInfo = json.decode(userInfoResponse.body);
             print("사용자 정보 가져오기 성공: $userInfo");
 
+            final formattedUserInfo = {
+              "sub": userInfo["sub"], // 고유 ID
+              "name": userInfo["name"],
+              "given_name": userInfo["given_name"],
+              "family_name": userInfo["family_name"],
+              "picture": userInfo["picture"],
+              "email": userInfo["email"],
+              "email_verified": userInfo["email_verified"]
+            };
+
             // userInfo와 accessToken을 모두 헤더로 전달
             final backendResponse = await http.post(
               // 백엔드 URI
@@ -52,22 +64,40 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
               headers: {
                 'Content-Type': 'application/json', // JSON 형식으로 전달
               },
-              body: json.encode(userInfo), // userInfo를 body로 전달
+              body: json.encode(formattedUserInfo), // userInfo를 body로 전달
             );
 
             if (backendResponse.statusCode == 200) {
-              print("백엔드 처리 성공: ${backendResponse.headers}");
+              // ✅ responseBody에서 message, role을 가져오도록 수정
+              final responseBody = json.decode(backendResponse.body);
+              final String? message = responseBody['message'];
+              final String? role = responseBody['role'];
 
-              // TestScreen으로 이동
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const TestScreen(loginPlatform: LoginPlatform.google),
-                ),
-              );
+              print("백엔드 처리 성공: $message, Role: $role");
+
+              if (role == "GUEST") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OnboardingScreen(),
+                  ),
+                );
+              } else if (role == "USER") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeScreen(),
+                  ),
+                );
+              }
+
+              final String? backendToken =
+                  backendResponse.headers['Authorization'];
+              if (backendToken != null) {
+                print("백엔드 토큰 저장: $backendToken");
+              }
             } else {
-              print("Status error: ${backendResponse.statusCode}");
+              print("Backend error: ${backendResponse.statusCode}");
             }
           } else {
             print("User info request failed: ${userInfoResponse.statusCode}");

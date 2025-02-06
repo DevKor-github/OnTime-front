@@ -1,22 +1,22 @@
 import '/core/database/database.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class UserEntity {
-  final String id;
-  final String email;
-  final String name;
-  final Duration spareTime;
-  final String note;
-  final double score;
-  final bool isOnboardingCompleted;
+part 'user_entity.freezed.dart';
 
-  UserEntity(
-      {required this.id,
-      required this.email,
-      required this.name,
-      required this.spareTime,
-      required this.note,
-      required this.score,
-      this.isOnboardingCompleted = false});
+@freezed
+class UserEntity with _$UserEntity {
+  const UserEntity._();
+
+  const factory UserEntity(
+      {required String id,
+      required String email,
+      required String name,
+      required Duration spareTime,
+      required String note,
+      required double score,
+      @Default(false) bool isOnboardingCompleted}) = _UserEntity;
+
+  const factory UserEntity.empty() = _UserEntityEmpty;
 
   static UserEntity fromModel(User user) {
     return UserEntity(
@@ -30,18 +30,16 @@ class UserEntity {
   }
 
   User toModel() {
-    return User(
-      id: id,
-      email: email,
-      name: name,
-      spareTime: spareTime.inMinutes,
-      note: note,
-      score: score,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'UserEntity(id: $id, email: $email, name: $name, spareTime: $spareTime, note: $note, score: $score)';
+    return map(
+        (userEntity) => User(
+              id: userEntity.id,
+              email: userEntity.email,
+              name: userEntity.name,
+              spareTime: userEntity.spareTime.inMinutes,
+              note: userEntity.note,
+              score: userEntity.score,
+            ),
+        empty: (_) =>
+            throw Exception('Cannot convert empty UserEntity to User'));
   }
 }

@@ -5,31 +5,31 @@ part 'sign_in_user_response_model.g.dart';
 
 @JsonSerializable()
 class SignInUserResponseModel {
-  final String id;
+  final String userId;
   final String email;
   final String name;
   final int spareTime;
   final String? note;
-  final double score;
+  final double punctualityScore;
   final String? role;
 
   const SignInUserResponseModel({
-    required this.id,
+    required this.userId,
     required this.email,
     required this.name,
     required this.spareTime,
-    required this.score,
+    required this.punctualityScore,
     this.role,
     this.note,
   });
 
   UserEntity toEntity() {
     return UserEntity(
-      id: id,
+      id: userId,
       email: email,
       name: name,
       spareTime: Duration(minutes: spareTime),
-      score: score,
+      score: punctualityScore,
       isOnboardingCompleted: role == 'GUEST' ? false : true,
       note: note ?? '',
     );

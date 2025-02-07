@@ -61,6 +61,8 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
         final String? accessToken = googleAuth.accessToken;
+        debugPrint('Access Token: $accessToken');
+        debugPrint('idToken: ${googleAuth.idToken}');
         if (accessToken != null) {
         } else {
           throw Exception('Access Token is null');

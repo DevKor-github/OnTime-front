@@ -6,7 +6,7 @@ import 'package:on_time_front/presentation/app/screens/app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   configureDependencies();
-  runApp(App());
+  runApp(Test());
 }
 
 class Test extends StatelessWidget {

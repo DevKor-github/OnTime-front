@@ -80,7 +80,7 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
 
         final backendResponse = await http.post(
           // 백엔드 URI
-          Uri.parse('http://ejun.kro.kr:8888/oauth2/kakao/registerOrLogin'),
+          Uri.parse('https://ontime.devkor.club/oauth2/kakao/registerOrLogin'),
           headers: {
             'Authorization': 'Bearer ${token.accessToken}',
             'Content-Type': 'application/json',

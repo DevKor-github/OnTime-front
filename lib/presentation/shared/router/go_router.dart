@@ -19,11 +19,27 @@ final goRouterConfig = GoRouter(
       path: '/home',
       builder: (context, state) => HomeScreen(),
     ),
-    GoRoute(path: '/calendar', builder: (context, state) => CalendarScreen()),
+    GoRoute(
+      path: '/calendar',
+      builder: (context, state) => CalendarScreen(),
+    ),
+
+    // schedule
     GoRoute(
       path: '/scheduleCreate',
       builder: (context, state) => ScheduleCreateScreen(),
     ),
+    GoRoute(
+        path: '/scheduleEdit/:scheduleId',
+        builder: (context, state) => ScheduleEditScreen(
+            scheduleId: state.pathParameters['scheduleId']!)),
+    GoRoute(
+      path: '/preparationEdit',
+      builder: (context, state) => PreparationEditForm(
+          preparationEntity: state.extra as PreparationEntity),
+    ),
+
+    // alarm
     GoRoute(
       path: '/earlyLate',
       builder: (context, state) {
@@ -31,13 +47,5 @@ final goRouterConfig = GoRouter(
         return EarlyLateScreen(earlyLateTime: earlyLateTime);
       },
     ),
-    GoRoute(
-        path: '/scheduleEdit/:scheduleId',
-        builder: (context, state) => ScheduleEditScreen(
-            scheduleId: state.pathParameters['scheduleId']!)),
-    GoRoute(
-        path: '/preparationEdit',
-        builder: (context, state) => PreparationEditForm(
-            preparationEntity: state.extra as PreparationEntity)),
   ],
 );

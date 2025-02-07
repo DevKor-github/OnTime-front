@@ -60,7 +60,7 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
             final backendResponse = await http.post(
               // 백엔드 URI
               Uri.parse(
-                  'http://ejun.kro.kr:8888/oauth2/google/registerOrLogin'),
+                  'https://ontime.devkor.club/oauth2/google/registerOrLogin'),
               headers: {
                 'Content-Type': 'application/json', // JSON 형식으로 전달
               },
@@ -68,7 +68,7 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
             );
 
             if (backendResponse.statusCode == 200) {
-              // ✅ responseBody에서 message, role을 가져오도록 수정
+              // responseBody에서 message, role을 가져오도록 수정
               final responseBody = json.decode(backendResponse.body);
               final String? message = responseBody['message'];
               final String? role = responseBody['role'];

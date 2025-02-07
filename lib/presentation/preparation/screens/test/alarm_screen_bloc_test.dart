@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
 import 'dart:convert';
 
@@ -13,7 +14,7 @@ import 'package:on_time_front/presentation/preparation/components/alarm_graph_co
 import 'package:on_time_front/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
-  final Map<String, dynamic> schedule; // 스케줄 데이터를 받음
+  final ScheduleEntity schedule; // 스케줄 데이터를 받음
 
   const AlarmScreen({
     super.key,
@@ -93,7 +94,7 @@ class _AlarmScreenState extends State<AlarmScreen>
   // 서버에서 준비과정 가져오기
   Future<void> fetchPreparations() async {
     try {
-      final scheduleId = widget.schedule['scheduleId'];
+      final scheduleId = widget.schedule.id;
       final response = await http.get(
         Uri.parse(
             'https://ontime.devkor.club/schedule/get/preparation/$scheduleId'),
@@ -158,18 +159,16 @@ class _AlarmScreenState extends State<AlarmScreen>
     final DateTime now = DateTime.now();
 
     // 여유시간
-    final Duration spareTime =
-        Duration(minutes: widget.schedule['scheduleSpareTime']);
+    final Duration spareTime = widget.schedule.scheduleSpareTime;
 
     // 약속시간
-    final DateTime scheduleTime =
-        DateTime.parse(widget.schedule['scheduleTime']);
+    final DateTime scheduleTime = widget.schedule.scheduleTime;
 
     // 이동시간
-    final int moveTime = widget.schedule['moveTime'];
+    final Duration moveTime = widget.schedule.moveTime;
 
     final Duration remainingDuration =
-        scheduleTime.difference(now) - Duration(minutes: moveTime) - spareTime;
+        scheduleTime.difference(now) - moveTime - spareTime;
 
     fullTime = remainingDuration.inSeconds.toInt();
 

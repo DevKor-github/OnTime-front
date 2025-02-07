@@ -23,6 +23,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:on_time_front/presentation/login/screens/login_test_screen.dart';
 import 'package:on_time_front/presentation/preparation/screens/schedule_list_screen.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
@@ -40,7 +41,8 @@ class MyApp extends StatelessWidget {
       theme: themeData,
       home: Scaffold(
         backgroundColor: Colors.grey,
-        body: ScheduleListScreen(),
+        // body: ScheduleListScreen(),
+        body: LoginTestScreen(),
       ),
     );
   }

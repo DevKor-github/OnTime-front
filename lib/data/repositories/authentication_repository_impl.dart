@@ -1,8 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
-import 'package:on_time_front/domain/repositories/user_repository.dart';
+import 'package:on_time_front/domain/repositories/authentication_repository.dart';
 import 'package:rxdart/subjects.dart';
 
 @Injectable(as: AuthenticationRepository)
@@ -47,6 +49,29 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   Future<void> signOut() async {
     await tokenLocalDataSource.deleteToken();
     _userStreamController.add(const UserEntity.empty());
+  }
+
+  @override
+  Future<void> signInWithGoogle() async {
+    final GoogleSignIn _googleSignIn =
+        GoogleSignIn(scopes: ['email', 'profile']);
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser != null) {
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+        final String? accessToken = googleAuth.accessToken;
+        if (accessToken != null) {
+        } else {
+          throw Exception('Access Token is null');
+        }
+      } else {
+        throw Exception('Google User is null');
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
   }
 
   @override

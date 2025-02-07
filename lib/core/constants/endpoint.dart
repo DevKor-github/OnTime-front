@@ -4,9 +4,11 @@ class Endpoint {
   //user
   static const _signIn = '/login';
   static const _signUp = '/sign-up';
+  static const _signInWithGoogle = '/oauth2/google/registerOrLogin';
 
   static get signIn => _signIn;
   static get signUp => _signUp;
+  static get signInWithGoogle => _signInWithGoogle;
 
   // schedule
   static const _getScheduleById = '/schedule/show/id?scheduleId=';

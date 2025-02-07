@@ -90,15 +90,28 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     }
   }
 
+// 여기 원상복귀 해 놓을 것.
   @override
   Future<List<ScheduleEntity>> getSchedulesByDate(
       DateTime startDate, DateTime? endDate) async {
     try {
-      final result =
-          await dio.get(Endpoint.getSchedulesByDate, queryParameters: {
-        'startDate': startDate.toIso8601String(),
-        'endDate': endDate?.toIso8601String() ?? '',
-      });
+      final result = await dio.get(
+        'https://ontime.devkor.club' + Endpoint.getSchedulesByDate,
+        queryParameters: {
+          'startDate': startDate.toIso8601String(),
+          'endDate': endDate?.toIso8601String() ?? '',
+        },
+        options: Options(
+          headers: {
+            'Authorization':
+                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODkzNjE5MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.Q7kKi6udbcv4onTAQjNjCAI5SGOqjwxnx3HXpcEm9K56rvWdpS8QwBtNLPJ6JkeYoxkFGBHwd-_u1HGBjnNTkA',
+          },
+        ),
+      );
+
+      print('Request URL: ${result.requestOptions.uri}');
+      print('Response Data: ${result.data}');
+
       if (result.statusCode == 200) {
         final List<ScheduleEntity> schedules = result.data["data"]
             .map<ScheduleEntity>(

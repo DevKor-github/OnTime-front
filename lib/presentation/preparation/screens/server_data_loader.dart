@@ -4,17 +4,24 @@ import 'package:http/http.dart' as http;
 class ServerDataLoader {
   static const String baseUrl = "https://ontime.devkor.club/schedule/show";
   static const String token =
-      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODg3MzkwOSwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.cnNiNNqtD-ZqUMyL5dl053em4-fF7LJ1sqDzxVlJtHwMoAw-IwD2OpLRp9iJ6DlXNfb7Uxv42BTre6Fi74PwHw";
+      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODkzMTQxNiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.chGqtagZf5AWsFjuLjCKibEA_Wh375PA8ifwx13sym_GyPhUXfvgNARGJFP3qknVkHgRFodXznYNvNTGrecwCg";
 
   static Future<List<dynamic>> loadSchedules({
-    required String startDate,
-    required String endDate,
+    String? startDate,
+    String? endDate,
   }) async {
-    final url = Uri.parse("$baseUrl?startDate=$startDate&endDate=$endDate");
+    String url = baseUrl;
+
+    if (startDate != null &&
+        startDate.isNotEmpty &&
+        endDate != null &&
+        endDate.isNotEmpty) {
+      url = "$baseUrl?startDate=$startDate&endDate=$endDate";
+    }
 
     try {
       final response = await http.get(
-        url,
+        Uri.parse(url),
         headers: {
           'accept': 'application/json',
           'Authorization': 'Bearer $token',

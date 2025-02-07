@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/preparation/screens/alarm_screen.dart';
 
 class ScheduleStart extends StatelessWidget {
-  final Map<String, dynamic> schedule;
+  final ScheduleEntity schedule;
 
   const ScheduleStart({
     super.key,
@@ -25,7 +26,7 @@ class ScheduleStart extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    schedule['scheduleName'],
+                    schedule.scheduleName,
                     style: const TextStyle(
                       fontSize: 40,
                       fontWeight: FontWeight.bold,
@@ -34,7 +35,7 @@ class ScheduleStart extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    schedule['place']['placeName'],
+                    schedule.place.placeName,
                     style: const TextStyle(
                       fontSize: 25,
                       fontWeight: FontWeight.bold,

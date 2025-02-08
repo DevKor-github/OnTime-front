@@ -90,11 +90,7 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
 
         if (backendResponse.statusCode == 200) {
           final responseBody = json.decode(backendResponse.body);
-          final String? message = responseBody['message'];
           final String? role = responseBody['role'];
-
-          print(
-              "백엔드 처리 성공: $message, Role: $role, Response Body: $responseBody");
 
           if (role == "GUEST") {
             Navigator.push(
@@ -125,11 +121,10 @@ class _KakaoLoginButtonState extends State<KakaoLoginButton> {
           _userProfile = filteredProfileInfo;
         });
       } else {
-        throw Exception("프로필 정보 요청 실패: ${response.body}");
+        throw Exception("Failed to get profile info: ${response.body}");
       }
     } catch (error) {
-      print('카카오 로그인 실패: $error');
-      _showErrorDialog("카카오 로그인 실패");
+      _showErrorDialog("Kakao login failed");
     }
   }
 

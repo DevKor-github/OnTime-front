@@ -1,4 +1,0 @@
-// 카카오 용 포트 고정 + cors 우회 
-flutter run -d chrome --web-browser-flag "--disable-web-security" --web-port 3000
-
-

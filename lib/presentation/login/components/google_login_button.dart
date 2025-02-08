@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
 import 'package:http/http.dart' as http;
+
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
 
@@ -32,8 +34,6 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
         final String? accessToken = googleAuth.accessToken;
 
         if (accessToken != null) {
-          print("Access Token: $accessToken");
-
           // Google 사용자 정보 요청 (User Info API 호출)
           final userInfoResponse = await http.get(
             Uri.parse('https://www.googleapis.com/oauth2/v3/userinfo'),
@@ -47,7 +47,7 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
             print("사용자 정보 가져오기 성공: $userInfo");
 
             final formattedUserInfo = {
-              "sub": userInfo["sub"], // 고유 ID
+              "sub": userInfo["sub"],
               "name": userInfo["name"],
               "given_name": userInfo["given_name"],
               "family_name": userInfo["family_name"],
@@ -70,10 +70,7 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
             if (backendResponse.statusCode == 200) {
               // responseBody에서 message, role을 가져오도록 수정
               final responseBody = json.decode(backendResponse.body);
-              final String? message = responseBody['message'];
               final String? role = responseBody['role'];
-
-              print("백엔드 처리 성공: $message, Role: $role");
 
               if (role == "GUEST") {
                 Navigator.push(
@@ -94,7 +91,7 @@ class _GoogleLoginButtonState extends State<GoogleLoginButton> {
               final String? backendToken =
                   backendResponse.headers['Authorization'];
               if (backendToken != null) {
-                print("백엔드 토큰 저장: $backendToken");
+                print("backend token : $backendToken");
               }
             } else {
               print("Backend error: ${backendResponse.statusCode}");

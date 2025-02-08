@@ -48,3 +48,6 @@ app.*.map.json
 *.mocks.dart
 *.config.dart
 .env
+
+/ios/Runner/GoogleService-Info.plist
+/android/app/google-services.json

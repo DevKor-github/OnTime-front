@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+
 import 'package:on_time_front/core/constants/endpoint.dart';
 
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
@@ -95,6 +96,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   Future<List<ScheduleEntity>> getSchedulesByDate(
       DateTime startDate, DateTime? endDate) async {
     try {
+      // final result =
+      //     await dio.get(Endpoint.getSchedulesByDate, queryParameters: {
+      //   'startDate': startDate.toIso8601String(),
+      //   'endDate': endDate?.toIso8601String() ?? '',
+      // });
       final result = await dio.get(
         'https://ontime.devkor.club' + Endpoint.getSchedulesByDate,
         queryParameters: {
@@ -104,13 +110,13 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         options: Options(
           headers: {
             'Authorization':
-                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODkzNjE5MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.Q7kKi6udbcv4onTAQjNjCAI5SGOqjwxnx3HXpcEm9K56rvWdpS8QwBtNLPJ6JkeYoxkFGBHwd-_u1HGBjnNTkA',
+                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczOTAwOTAzMywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.oGULELvmecAnQNeXiOLszgsJBzQRiYbOPfJUouF9MREqN77obor2_AAb9h46tYmqMP_moUFz-TG4wgzQnY0Yow',
           },
         ),
       );
 
-      print('Request URL: ${result.requestOptions.uri}');
-      print('Response Data: ${result.data}');
+      // print('Request URL: ${result.requestOptions.uri}');
+      // print('Response Data: ${result.data}');
 
       if (result.statusCode == 200) {
         final List<ScheduleEntity> schedules = result.data["data"]

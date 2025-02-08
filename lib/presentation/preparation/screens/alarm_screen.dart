@@ -1,9 +1,16 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:on_time_front/core/dio/app_dio.dart';
+import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/presentation/preparation/bloc/alarm_screen_bloc.dart';
 import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
 import 'dart:convert';
 
@@ -27,7 +34,21 @@ class AlarmScreen extends StatefulWidget {
 
 class _AlarmScreenState extends State<AlarmScreen>
     with SingleTickerProviderStateMixin {
-  late List<dynamic> preparations = [];
+  // 서버 통신용
+  PreparationEntity? preparationEntity;
+  late final PreparationRemoteDataSource preparationRemoteDataSource;
+
+  // 준비 과정 목록 저장 변수
+  List<PreparationStepEntity> preparationSteps = [];
+
+  // 각 준비 단계의 경과 시간을 초 단위로 관리 (ui에서 필요함)
+  List<int> elapsedTimes = [];
+
+  int currentIndex = 0;
+  int remainingTime = 0;
+
+  int totalPreparationTime = 0; // 전체 준비 시간의 초기값. 기준 용. 변하지 않음.
+  int totalRemainingTime = 0; // 타이머 용 전체 준비 시간. 시간에 따라 차감
 
   // 그래프 진행률 관련
   late List<double> preparationRatios;
@@ -39,12 +60,6 @@ class _AlarmScreenState extends State<AlarmScreen>
   double currentProgress = 0.0; // 현재 진행률
 
   late bool isLate = false;
-
-  int currentIndex = 0;
-  int remainingTime = 0;
-
-  int totalPreparationTime = 0; // 전체 준비 시간의 초기값. 기준 용. 변하지 않음.
-  int totalRemainingTime = 0; // 타이머 용 전체 준비 시간. 시간에 따라 차감
 
   // 준비과정 타이머
   Timer? preparationTimer;
@@ -58,6 +73,9 @@ class _AlarmScreenState extends State<AlarmScreen>
   @override
   void initState() {
     super.initState();
+
+    // final dio = AppDio();
+    preparationRemoteDataSource = PreparationRemoteDataSourceImpl(Dio());
 
     // 준비과정 가져오기
     fetchPreparations();
@@ -91,64 +109,52 @@ class _AlarmScreenState extends State<AlarmScreen>
     super.dispose();
   }
 
-  // 서버에서 준비과정 가져오기
   Future<void> fetchPreparations() async {
     try {
       final scheduleId = widget.schedule.id;
-      final response = await http.get(
-        Uri.parse(
-            'https://ontime.devkor.club/schedule/get/preparation/$scheduleId'),
-        headers: {
-          'accept': 'application/json',
-          'Authorization':
-              'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODkzNjE5MiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.Q7kKi6udbcv4onTAQjNjCAI5SGOqjwxnx3HXpcEm9K56rvWdpS8QwBtNLPJ6JkeYoxkFGBHwd-_u1HGBjnNTkA',
-        },
-      );
+      final PreparationEntity fetchedData = await preparationRemoteDataSource
+          .getPreparationByScheduleId(scheduleId);
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        if (data['status'] == 'success' && data['data'] != null) {
-          setState(() {
-            preparations = List<Map<String, dynamic>>.from(data['data']);
-          });
+      setState(() {
+        preparationEntity = fetchedData;
+        preparationSteps = fetchedData.preparationStepList;
+        // 각 준비 단계에 대한 경과 시간 초기값 0으로 초기화 (서버에서 받아온 정보만 저장)
+        elapsedTimes = List<int>.filled(preparationSteps.length, 0);
+      });
 
-          for (var preparationStep in preparations) {
-            preparationStep['elapsedTime'] = 0;
-          }
+      print("Fetched preparation steps: $preparationSteps");
 
-          preparationRatios = [];
-          preparationCompleted = List.filled(preparations.length, false);
-
-          // 전체 준비시간 타이머 초기화
-          initializeTotalTime();
-
-          // 준비과정 시간 비율 계산
-          calculatePreparationRatios();
-
-          // FullTime 타이머 시작
-          startFullTimeTimer();
-
-          // 첫 준비 과정 시작
-          startPreparation();
-        } else {
-          throw Exception('Data fetch failedL ${data['message']}');
-        }
-      } else {
-        throw Exception('Server error: ${response.statusCode}');
-      }
+      initializePreparationProcess();
     } catch (e) {
       print('Error fetching preparation data: $e');
       setState(() {
-        preparations = [];
+        preparationEntity = PreparationEntity(preparationStepList: []);
       });
     }
   }
 
+  void initializePreparationProcess() {
+    preparationRatios = [];
+    preparationCompleted = List.filled(preparationSteps.length, false);
+
+    // 전체 준비시간 타이머 초기화
+    initializeTotalTime();
+
+    // 준비과정 시간 비율 계산
+    calculatePreparationRatios();
+
+    // FullTime 타이머 시작
+    startFullTimeTimer();
+
+    // 첫 준비 과정 시작
+    startPreparation();
+  }
+
   // 전체 준비 시간 초기화
   void initializeTotalTime() {
-    totalPreparationTime = preparations.fold<int>(
+    totalPreparationTime = preparationSteps.fold<int>(
       0,
-      (sum, prep) => sum + (prep['preparationTime'] as int) * 60,
+      (sum, prep) => sum + prep.preparationTime.inSeconds,
     );
     totalRemainingTime = totalPreparationTime; // 초기 전체 시간 설정
   }
@@ -189,8 +195,9 @@ class _AlarmScreenState extends State<AlarmScreen>
 
   void calculatePreparationRatios() {
     int cumulativeTime = 0;
-    for (var preparation in preparations) {
-      final int prepTime = preparation['preparationTime'] * 60;
+    preparationRatios.clear(); // 기존에 저장된 비율이 있다면 초기화
+    for (var step in preparationSteps) {
+      final int prepTime = step.preparationTime.inSeconds; // Duration을 초 단위로 변환
       preparationRatios.add(cumulativeTime / totalPreparationTime);
       cumulativeTime += prepTime;
     }
@@ -246,13 +253,14 @@ class _AlarmScreenState extends State<AlarmScreen>
 
   // 준비 과정 시작
   void startPreparation() {
-    if (currentIndex < preparations.length) {
+    if (currentIndex < preparationSteps.length) {
       setState(() {
         // 준비과정 남은 시간 (감소)
-        remainingTime = preparations[currentIndex]['preparationTime'] * 60;
+        remainingTime =
+            preparationSteps[currentIndex].preparationTime.inSeconds;
 
         // 각 준비과정 누적 시간 (증가)
-        preparations[currentIndex]['elapsedTime'] = 0;
+        elapsedTimes[currentIndex] = 0;
       });
 
       // 타이머 시작
@@ -266,8 +274,7 @@ class _AlarmScreenState extends State<AlarmScreen>
             updateProgress(1.0 - (totalRemainingTime / totalPreparationTime));
 
             // 준비과정 누적 시간 증가
-            preparations[currentIndex]['elapsedTime'] =
-                (preparations[currentIndex]['elapsedTime'] as int) + 1;
+            elapsedTimes[currentIndex] = elapsedTimes[currentIndex] + 1;
           });
         } else {
           preparationTimer.cancel(); // 타이머 종료
@@ -283,7 +290,7 @@ class _AlarmScreenState extends State<AlarmScreen>
     preparationTimer?.cancel();
 
     // 마지막 목록시 즉시 채워지는 효과
-    if (currentIndex == preparations.length - 1) {
+    if (currentIndex == preparationSteps.length - 1) {
       final newProgress = 1.0;
       setState(() {
         updateProgress(newProgress);
@@ -315,7 +322,7 @@ class _AlarmScreenState extends State<AlarmScreen>
   void moveToNextPreparation() {
     preparationTimer?.cancel();
 
-    if (currentIndex + 1 < preparations.length) {
+    if (currentIndex + 1 < preparationSteps.length) {
       setState(() {
         currentIndex++;
       });
@@ -327,13 +334,13 @@ class _AlarmScreenState extends State<AlarmScreen>
   @override
   Widget build(BuildContext context) {
     // 데이터가 준비되지 않았을 때 로딩 중 상태 처리
-    if (preparations.isEmpty) {
+    if (preparationSteps.isEmpty) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    final currentPreparation = preparations[currentIndex];
+    final currentPreparation = preparationSteps[currentIndex];
 
     return Scaffold(
       backgroundColor: Color(0xff5C79FB),
@@ -380,7 +387,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        currentPreparation['preparationName'], // 준비 과정 이름
+                        currentPreparation.preparationName, // 준비 과정 이름
                         style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -426,9 +433,10 @@ class _AlarmScreenState extends State<AlarmScreen>
                   right: MediaQuery.of(context).size.width * 0.06,
                   bottom: 100,
                   child: PreparationStepListWidget(
-                    preparations: preparations,
+                    preparations: preparationSteps,
                     currentIndex: currentIndex,
                     onSkip: skipCurrentPreparation,
+                    elapsedTimes: elapsedTimes,
                   ),
                 ),
 

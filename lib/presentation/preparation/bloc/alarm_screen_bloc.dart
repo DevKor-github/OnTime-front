@@ -51,11 +51,15 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
     on<StartFullTimeTimer>((event, emit) {
       fullTimeTimer?.cancel();
       fullTimeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (isClosed) {
+          timer.cancel();
+          return;
+        }
         fullTime--;
         if (fullTime < 0) {
           isLate = true;
         }
-        emit(FullTimeTimerUpdated(fullTime, isLate));
+        if (!isClosed) emit(FullTimeTimerUpdated(fullTime, isLate));
       });
     });
 
@@ -88,7 +92,12 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
         remainingTime = preparations[currentIndex]['preparationTime'] * 60;
         preparations[currentIndex]['elapsedTime'] = 0;
 
+        //  preparationTimer?.cancel();
         preparationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (isClosed) {
+            timer.cancel();
+            return;
+          }
           if (remainingTime > 0) {
             remainingTime--;
             totalRemainingTime--;
@@ -98,11 +107,13 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
             preparations[currentIndex]['elapsedTime'] =
                 (preparations[currentIndex]['elapsedTime'] as int) + 1;
 
-            emit(PreparationStarted(remainingTime, totalRemainingTime));
+            if (!isClosed) {
+              emit(PreparationStarted(remainingTime, totalRemainingTime));
+            }
           } else {
             timer.cancel();
             preparationCompleted[currentIndex] = true;
-            add(MoveToNextPreparation());
+            if (!isClosed) add(MoveToNextPreparation());
           }
         });
       }
@@ -152,7 +163,7 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
           headers: {
             'accept': 'application/json',
             'Authorization':
-                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODg0NTU4NywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.TkX8dJDrHkaV5Cs-DHqQ7Jq9tP7tBAXeeWlVH3avFDkZCNyVLh6j766Bn73KNwPDIbKU06jXxFhmghKjW48_pw',
+                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODk1NzkxMSwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.nrma3eK-c416diOdXttW1JUVLQGqVC2IuN_4Q04ehgHNgbhm26EjS5VeRBNyD0RnyjAtn2rlr4cPRb2wC35Mzg',
           },
         );
 
@@ -169,15 +180,24 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
             emit(PreparationsLoaded(preparations));
 
             // BLoC 내에서 자동으로 초기화 이벤트 호출
-            add(InitializeTotalTime(preparations));
-            add(CalculatePreparationRatios(
-                preparations,
-                preparations.fold(
-                    0,
-                    (sum, prep) =>
-                        sum + (prep['preparationTime'] as int) * 60)));
-            add(StartFullTimeTimer());
-            add(StartPreparation());
+            if (!isClosed) {
+              await Future.delayed(Duration.zero);
+              add(InitializeTotalTime(preparations));
+
+              await Future.delayed(Duration.zero);
+              add(CalculatePreparationRatios(
+                  preparations,
+                  preparations.fold(
+                      0,
+                      (sum, prep) =>
+                          sum + (prep['preparationTime'] as int) * 60)));
+
+              await Future.delayed(Duration.zero);
+              add(StartFullTimeTimer());
+
+              await Future.delayed(Duration.zero);
+              add(StartPreparation());
+            }
           } else {
             throw Exception('Data fetch failed: ${data['message']}');
           }
@@ -185,7 +205,9 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
           throw Exception('Server error: ${response.statusCode}');
         }
       } catch (e) {
-        emit(PreparationsError('Error fetching preparation data: $e'));
+        if (!isClosed) {
+          emit(PreparationsError('Error fetching preparation data: $e'));
+        }
       }
     });
   }

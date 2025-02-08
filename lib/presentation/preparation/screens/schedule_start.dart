@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/presentation/preparation/screens/test/alarm_screen_bloc_test.dart';
+import 'package:provider/provider.dart';
+import 'package:on_time_front/presentation/preparation/bloc/alarm_screen_bloc.dart';
+
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/preparation/screens/alarm_screen.dart';
 
@@ -78,6 +83,22 @@ class ScheduleStart extends StatelessWidget {
                   ),
                 );
               },
+
+              // bloc ver
+              // onPressed: () {
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //       builder: (context) => Provider(
+              //         create: (_) => AlarmScreenBloc(),
+              //         // child: AlarmScreen(
+              //         //   schedule: schedule,
+              //         // ),
+              //         child: AlarmScreenBlocTest(schedule: schedule),
+              //       ),
+              //     ),
+              //   );
+              // },
             ),
           ),
         ],

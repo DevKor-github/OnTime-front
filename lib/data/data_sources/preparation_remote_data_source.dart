@@ -79,9 +79,18 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
   @override
   Future<PreparationEntity> getPreparationByScheduleId(
       String scheduleId) async {
+    // 원상복구!!!!!
     try {
       final result = await dio.get(
-        Endpoint.getPreparationByScheduleId(scheduleId),
+        //  Endpoint.getPreparationByScheduleId(scheduleId),
+        'https://ontime.devkor.club' +
+            Endpoint.getPreparationByScheduleId(scheduleId),
+        options: Options(
+          headers: {
+            'Authorization':
+                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczOTAwOTAzMywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.oGULELvmecAnQNeXiOLszgsJBzQRiYbOPfJUouF9MREqN77obor2_AAb9h46tYmqMP_moUFz-TG4wgzQnY0Yow',
+          },
+        ),
       );
 
       if (result.statusCode == 200) {

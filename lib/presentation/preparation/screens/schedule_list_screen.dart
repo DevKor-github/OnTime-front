@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+
 import 'package:on_time_front/presentation/preparation/screens/schedule_start.dart';
 
 class ScheduleListScreen extends StatefulWidget {
@@ -20,6 +21,8 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
   @override
   void initState() {
     super.initState();
+
+    // final dio = AppDio();
     scheduleRemoteDataSource = ScheduleRemoteDataSourceImpl(Dio());
     loadScheduleData();
   }

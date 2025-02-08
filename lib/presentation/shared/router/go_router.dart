@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/main.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
@@ -35,6 +36,7 @@ GoRouter goRouterConfig(AppBloc bloc) {
         path: '/home',
         builder: (context, state) => HomeScreen(),
       ),
+      GoRoute(path: '/signIn', builder: (context, state) => SignUp()),
       GoRoute(path: '/calendar', builder: (context, state) => CalendarScreen()),
       GoRoute(
           path: '/scheduleCreate',

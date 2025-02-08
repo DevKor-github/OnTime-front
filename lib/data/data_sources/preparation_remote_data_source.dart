@@ -88,7 +88,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
         options: Options(
           headers: {
             'Authorization':
-                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczOTAwOTAzMywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.oGULELvmecAnQNeXiOLszgsJBzQRiYbOPfJUouF9MREqN77obor2_AAb9h46tYmqMP_moUFz-TG4wgzQnY0Yow',
+                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczOTAxMzc4MywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.5_kMFuoOmmYjnNGQnTbwZD2DGInrmMYRsOp1iM4IMxbHvPEHktHdJJlgqwz_3F4eNPyqVHedzJfMH5CfOGRiEQ',
           },
         ),
       );

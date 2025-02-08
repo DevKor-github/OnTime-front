@@ -76,7 +76,7 @@ class ScheduleStart extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AlarmScreen(
+                    builder: (context) => AlarmScreenBlocTest(
                       // schedule 데이터를 AlarmScreen으로 전달
                       schedule: schedule,
                     ),

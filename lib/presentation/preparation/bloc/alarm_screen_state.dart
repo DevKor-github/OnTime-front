@@ -54,6 +54,15 @@ class AlarmScreenLoaded extends AlarmScreenState {
       ];
 }
 
+class AlarmScreenMoveToEarlyLateScreen extends AlarmScreenState {
+  final int earlyLateTime;
+
+  const AlarmScreenMoveToEarlyLateScreen(this.earlyLateTime);
+
+  @override
+  List<Object?> get props => [earlyLateTime];
+}
+
 class AlarmScreenError extends AlarmScreenState {
   final String errorMessage;
   const AlarmScreenError(this.errorMessage);

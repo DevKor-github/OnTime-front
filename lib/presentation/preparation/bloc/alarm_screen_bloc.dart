@@ -6,7 +6,6 @@ import 'package:equatable/equatable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
-import 'package:on_time_front/core/dio/app_dio.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 part 'alarm_screen_event.dart';
@@ -161,6 +160,7 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
       isLate: isLate,
     ));
     // 최종 상태 후 추가 네비게이션 로직 등 필요
+    emit(AlarmScreenMoveToEarlyLateScreen(fullTime));
   }
 
   void _calculatePreparationRatios() {

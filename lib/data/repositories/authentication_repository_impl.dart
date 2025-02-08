@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
+import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/authentication_repository.dart';
 import 'package:rxdart/subjects.dart';
@@ -62,8 +63,11 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
             await googleUser.authentication;
         final String? accessToken = googleAuth.accessToken;
         if (accessToken != null) {
+          final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
+            accessToken: accessToken,
+          );
           final result = await _authenticationRemoteDataSource
-              .signInWithGoogle(accessToken);
+              .signInWithGoogle(signInWithGoogleRequestModel);
           await _tokenLocalDataSource.storeToken(result.$2);
           _userStreamController.add(result.$1);
         } else {

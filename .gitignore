@@ -47,4 +47,5 @@ app.*.map.json
 *.g.dart
 *.mocks.dart
 *.config.dart
+*.freezed.dart
 .env

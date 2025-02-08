@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import 'package:on_time_front/core/dio/app_dio.dart';
 
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -22,8 +22,8 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
   void initState() {
     super.initState();
 
-    // final dio = AppDio();
-    scheduleRemoteDataSource = ScheduleRemoteDataSourceImpl(Dio());
+    final dio = AppDio();
+    scheduleRemoteDataSource = ScheduleRemoteDataSourceImpl(dio);
     loadScheduleData();
   }
 
@@ -32,7 +32,7 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
     try {
       final data = await scheduleRemoteDataSource.getSchedulesByDate(
         // 여기 now로 고칠 것
-        DateTime(2024, 02, 01, 00, 00),
+        DateTime.now(),
         null, // endDate는 null 허용
       );
       setState(() {

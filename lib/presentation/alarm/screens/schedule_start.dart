@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/presentation/alarm/screens/test/alarm_screen_bloc_test.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
-import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 
 class ScheduleStart extends StatelessWidget {
   final ScheduleEntity schedule;
@@ -72,16 +70,7 @@ class ScheduleStart extends StatelessWidget {
             child: Button(
               text: '준비 시작',
               onPressed: () {
-                // context.go('/alarmScreen', extra: schedule);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AlarmScreenBlocTest(
-                      // schedule 데이터를 AlarmScreen으로 전달
-                      schedule: schedule,
-                    ),
-                  ),
-                );
+                context.go('/alarmScreen', extra: schedule);
               },
             ),
           ),

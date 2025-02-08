@@ -110,7 +110,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         options: Options(
           headers: {
             'Authorization':
-                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczOTAxMzc4MywiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.5_kMFuoOmmYjnNGQnTbwZD2DGInrmMYRsOp1iM4IMxbHvPEHktHdJJlgqwz_3F4eNPyqVHedzJfMH5CfOGRiEQ',
+                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczOTAzNDU1OCwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoyfQ.f-KlNoTEUacO1Yx8TVGompsDvtcDKRm4Tn2RF2JicRsnPTwvtoZNY4dMP3Y9U2yNpLDvV7qjov8WcIKghjgMbg',
           },
         ),
       );

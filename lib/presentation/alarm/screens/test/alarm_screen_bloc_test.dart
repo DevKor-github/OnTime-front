@@ -4,27 +4,80 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/core/dio/app_dio.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
-import 'package:on_time_front/presentation/preparation/bloc/alarm_screen_bloc.dart';
-import 'package:on_time_front/presentation/preparation/components/preparation_step_list_widget.dart';
-import 'package:on_time_front/presentation/preparation/components/alarm_graph_component.dart';
-import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_screen_bloc.dart';
+import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
+import 'package:on_time_front/presentation/alarm/components/alarm_graph_component.dart';
+import 'package:on_time_front/presentation/alarm/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/utils/time_format.dart';
 
-class AlarmScreenBlocTest extends StatelessWidget {
+class AlarmScreenBlocTest extends StatefulWidget {
   final ScheduleEntity schedule;
   const AlarmScreenBlocTest({super.key, required this.schedule});
+
+  @override
+  State<AlarmScreenBlocTest> createState() => _AlarmScreenBlocTestState();
+}
+
+class _AlarmScreenBlocTestState extends State<AlarmScreenBlocTest>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _progressAnimation;
+  double currentProgress = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    _progressAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    )..addListener(() {
+        setState(() {
+          currentProgress = _progressAnimation.value;
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void updateProgress(double newProgress) {
+    _progressAnimation = Tween<double>(
+      begin: currentProgress,
+      end: newProgress,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _animationController
+      ..reset()
+      ..forward();
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => AlarmScreenBloc(
-        scheduleId: schedule.id,
-        schedule: schedule,
+        scheduleId: widget.schedule.id,
+        schedule: widget.schedule,
         preparationRemoteDataSource:
             // PreparationRemoteDataSourceImpl(AppDio())),
             PreparationRemoteDataSourceImpl(Dio()), // AppDio 대신 Dio 사용
-      )..add(AlarmScreenFetchPreparation(schedule.id)),
+      )..add(AlarmScreenFetchPreparation(widget.schedule.id)),
       child: Scaffold(
         backgroundColor: const Color(0xff5C79FB),
         body: BlocListener<AlarmScreenBloc, AlarmScreenState>(
@@ -40,6 +93,8 @@ class AlarmScreenBlocTest extends StatelessWidget {
                   ),
                 ),
               );
+            } else if (state is AlarmScreenLoaded) {
+              updateProgress(state.progress);
             }
           },
           child: BlocBuilder<AlarmScreenBloc, AlarmScreenState>(
@@ -70,7 +125,7 @@ class AlarmScreenBlocTest extends StatelessWidget {
                           CustomPaint(
                             size: const Size(230, 115),
                             painter: AlarmGraphComponent(
-                              progress: state.progress,
+                              progress: currentProgress,
                               preparationRatios: state.preparationRatios,
                               preparationCompleted: state.preparationCompleted,
                             ),

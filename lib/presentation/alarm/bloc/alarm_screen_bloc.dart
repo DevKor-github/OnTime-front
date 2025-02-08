@@ -2,6 +2,7 @@ library;
 
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -63,6 +64,8 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
 
       _calculateFullTime(schedule);
 
+      remainingTime = preparationSteps[currentIndex].preparationTime.inSeconds;
+
       emit(AlarmScreenLoaded(
         preparationSteps: preparationSteps,
         elapsedTimes: elapsedTimes,
@@ -122,11 +125,25 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
 
   Future<void> _onSkipPreparation(
       AlarmScreenSkipPreparation event, Emitter<AlarmScreenState> emit) async {
-    preparationTimer?.cancel();
     totalRemainingTime -= remainingTime;
     preparationCompleted[currentIndex] = true;
     remainingTime = 0;
     progress = 1.0 - (totalRemainingTime / totalPreparationTime);
+
+    emit(AlarmScreenLoaded(
+      preparationSteps: preparationSteps,
+      elapsedTimes: elapsedTimes,
+      currentIndex: currentIndex,
+      remainingTime: remainingTime,
+      totalPreparationTime: totalPreparationTime,
+      totalRemainingTime: totalRemainingTime,
+      progress: progress,
+      preparationRatios: preparationRatios,
+      preparationCompleted: preparationCompleted,
+      fullTime: fullTime,
+      isLate: isLate,
+    ));
+
     add(const AlarmScreenMoveToNextPreparation());
   }
 
@@ -159,7 +176,6 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
       fullTime: fullTime,
       isLate: isLate,
     ));
-    // 최종 상태 후 추가 네비게이션 로직 등 필요
     emit(AlarmScreenMoveToEarlyLateScreen(fullTime));
   }
 

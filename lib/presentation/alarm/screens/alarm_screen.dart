@@ -10,13 +10,13 @@ import 'package:on_time_front/data/data_sources/preparation_remote_data_source.d
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/presentation/preparation/bloc/alarm_screen_bloc.dart';
-import 'package:on_time_front/presentation/preparation/screens/early_late_screen.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_screen_bloc.dart';
+import 'package:on_time_front/presentation/alarm/screens/early_late_screen.dart';
 import 'dart:convert';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
-import 'package:on_time_front/presentation/preparation/components/preparation_step_list_widget.dart';
-import 'package:on_time_front/presentation/preparation/components/alarm_graph_component.dart';
+import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
+import 'package:on_time_front/presentation/alarm/components/alarm_graph_component.dart';
 
 import 'package:on_time_front/utils/time_format.dart';
 

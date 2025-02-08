@@ -24,7 +24,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_time_front/presentation/login/screens/login_test_screen.dart';
-import 'package:on_time_front/presentation/preparation/screens/schedule_list_screen.dart';
+import 'package:on_time_front/presentation/alarm/screens/schedule_list_screen.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() async {

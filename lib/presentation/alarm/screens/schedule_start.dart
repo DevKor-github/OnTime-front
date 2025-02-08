@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/preparation/screens/test/alarm_screen_bloc_test.dart';
-import 'package:provider/provider.dart';
-import 'package:on_time_front/presentation/preparation/bloc/alarm_screen_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:on_time_front/presentation/alarm/screens/test/alarm_screen_bloc_test.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
-import 'package:on_time_front/presentation/preparation/screens/alarm_screen.dart';
+import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 
 class ScheduleStart extends StatelessWidget {
   final ScheduleEntity schedule;
@@ -73,6 +72,7 @@ class ScheduleStart extends StatelessWidget {
             child: Button(
               text: '준비 시작',
               onPressed: () {
+                // context.go('/alarmScreen', extra: schedule);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -83,22 +83,6 @@ class ScheduleStart extends StatelessWidget {
                   ),
                 );
               },
-
-              // bloc ver
-              // onPressed: () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => Provider(
-              //         create: (_) => AlarmScreenBloc(),
-              //         // child: AlarmScreen(
-              //         //   schedule: schedule,
-              //         // ),
-              //         child: AlarmScreenBlocTest(schedule: schedule),
-              //       ),
-              //     ),
-              //   );
-              // },
             ),
           ),
         ],

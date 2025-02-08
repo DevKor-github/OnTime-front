@@ -6,17 +6,26 @@ import 'package:on_time_front/presentation/shared/router/go_router.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class App extends StatelessWidget {
-  App({super.key});
-  final bloc = getIt.get<AppBloc>()..add(const AppUserSubscriptionRequested());
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AppBloc>(
-      create: (context) => bloc,
-      child: MaterialApp.router(
-        routerConfig: goRouterConfig(bloc),
-        theme: themeData,
-      ),
+      create: (context) =>
+          getIt.get<AppBloc>()..add(const AppUserSubscriptionRequested()),
+      child: AppView(),
+    );
+  }
+}
+
+class AppView extends StatelessWidget {
+  const AppView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      theme: themeData,
+      routerConfig: goRouterConfig(context.read<AppBloc>()),
     );
   }
 }

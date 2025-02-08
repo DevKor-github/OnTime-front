@@ -11,7 +11,7 @@ abstract interface class AuthenticationRemoteDataSource {
   Future<(UserEntity, TokenEntity)> signUp(
       String email, String password, String name);
 
-  Future<(UserEntity, String)> signInWithGoogle(String idToken);
+  Future<(UserEntity, TokenEntity)> signInWithGoogle(String accessToken);
 }
 
 @Injectable(as: AuthenticationRemoteDataSource)
@@ -68,18 +68,18 @@ class AuthenticationRemoteDataSourceImpl
   }
 
   @override
-  Future<(UserEntity, String)> signInWithGoogle(String idToken) async {
+  Future<(UserEntity, TokenEntity)> signInWithGoogle(String accessToken) async {
     try {
       final result = await dio.post(
         Endpoint.signInWithGoogle,
         data: {
-          'idToken': idToken,
+          'accessToken': accessToken,
         },
       );
       if (result.statusCode == 200) {
-        final user = UserEntity.fromModel(result.data);
-        final token = result.headers['authorization']! as String;
-        return (user, token);
+        final user = SignInUserResponseModel.fromJson(result.data['data']);
+        final token = TokenEntity.fromHeaders(result.headers);
+        return (user.toEntity(), token);
       } else {
         throw Exception('Error signing in with Google');
       }

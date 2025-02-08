@@ -33,7 +33,7 @@ class TestScreen extends StatelessWidget {
       // 로그아웃 후 MyApp으로 이동
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const MyApp()), // MyApp으로 이동
+        MaterialPageRoute(builder: (context) => const App()), // MyApp으로 이동
         (route) => false,
       );
     } catch (error) {

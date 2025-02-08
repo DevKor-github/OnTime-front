@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
-import 'package:on_time_front/domain/repositories/user_repository.dart';
+import 'package:on_time_front/domain/repositories/authentication_repository.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
@@ -26,6 +26,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       onData: (user) => emit(
         state.copyWith(
           user: user,
+          status: user.map(
+              (e) => e.isOnboardingCompleted
+                  ? AppStatus.authenticated
+                  : AppStatus.onboardingNotCompleted,
+              empty: (_) => AppStatus.unauthenticated),
         ),
       ),
       onError: addError,

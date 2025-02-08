@@ -7,11 +7,6 @@
       <dict>
       <key>CFBundleURLSchemes</key>
       <array>
-        <!-- google login -->
-        <string>com.googleusercontent.apps.1068261222530-b9eihdof8hfupuhqk8t3u5utsmur841c</string>
-
-		 <!-- kakao login -->
-        <string>20830c4f7ddc6e7b5e0e8798b7a76d1d</string>
       </array>
       </dict>
     </array>

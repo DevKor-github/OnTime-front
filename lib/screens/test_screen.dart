@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
-import 'package:on_time_front/main.dart';
+import 'package:on_time_front/presentation/app/screens/app.dart';
 import 'package:on_time_front/utils/login_platform.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,7 +33,7 @@ class TestScreen extends StatelessWidget {
       // 로그아웃 후 MyApp으로 이동
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const App()), // MyApp으로 이동
+        MaterialPageRoute(builder: (context) => App()), // MyApp으로 이동
         (route) => false,
       );
     } catch (error) {

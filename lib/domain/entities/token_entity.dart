@@ -13,7 +13,7 @@ class TokenEntity extends Equatable {
   static TokenEntity fromHeaders(Headers headers) {
     return TokenEntity(
       accessToken: headers.value('authorization')!,
-      refreshToken: headers.value('refresh-token')!,
+      refreshToken: headers.value('authorization-refresh')!,
     );
   }
 

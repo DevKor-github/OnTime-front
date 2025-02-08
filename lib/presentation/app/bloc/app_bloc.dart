@@ -26,6 +26,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       onData: (user) => emit(
         state.copyWith(
           user: user,
+          status: user.map(
+              (e) => e.isOnboardingCompleted
+                  ? AppStatus.authenticated
+                  : AppStatus.onboardingNotCompleted,
+              empty: (_) => AppStatus.unauthenticated),
         ),
       ),
       onError: addError,

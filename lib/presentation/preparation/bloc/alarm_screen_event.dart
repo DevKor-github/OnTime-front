@@ -1,39 +1,36 @@
 part of 'alarm_screen_bloc.dart';
 
-abstract class AlarmScreenEvent {}
+abstract class AlarmScreenEvent extends Equatable {
+  const AlarmScreenEvent();
 
-class InitializeTotalTime extends AlarmScreenEvent {
-  final List<dynamic> preparations;
-  InitializeTotalTime(this.preparations);
+  @override
+  List<Object?> get props => [];
 }
 
-class CalculateFullTime extends AlarmScreenEvent {
-  final Map<String, dynamic> schedule;
-  CalculateFullTime(this.schedule);
+class AlarmScreenFetchPreparation extends AlarmScreenEvent {
+  final String scheduleId;
+  const AlarmScreenFetchPreparation(this.scheduleId);
+
+  @override
+  List<Object?> get props => [scheduleId];
 }
 
-class StartFullTimeTimer extends AlarmScreenEvent {}
-
-class CalculatePreparationRatios extends AlarmScreenEvent {
-  final List<dynamic> preparations;
-  final int totalPreparationTime;
-  CalculatePreparationRatios(this.preparations, this.totalPreparationTime);
+class AlarmScreenStartPreparation extends AlarmScreenEvent {
+  const AlarmScreenStartPreparation();
 }
 
-class FinalizePreparation extends AlarmScreenEvent {}
-
-class UpdateProgress extends AlarmScreenEvent {
-  final double newProgress;
-  UpdateProgress(this.newProgress);
+class AlarmScreenTick extends AlarmScreenEvent {
+  const AlarmScreenTick();
 }
 
-class StartPreparation extends AlarmScreenEvent {}
+class AlarmScreenSkipPreparation extends AlarmScreenEvent {
+  const AlarmScreenSkipPreparation();
+}
 
-class SkipCurrentPreparation extends AlarmScreenEvent {}
+class AlarmScreenMoveToNextPreparation extends AlarmScreenEvent {
+  const AlarmScreenMoveToNextPreparation();
+}
 
-class MoveToNextPreparation extends AlarmScreenEvent {}
-
-class FetchPreparations extends AlarmScreenEvent {
-  final int scheduleId;
-  FetchPreparations(this.scheduleId);
+class AlarmScreenFinalizePreparation extends AlarmScreenEvent {
+  const AlarmScreenFinalizePreparation();
 }

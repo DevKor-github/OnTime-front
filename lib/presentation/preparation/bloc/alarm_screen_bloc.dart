@@ -1,221 +1,199 @@
+library;
+
 import 'dart:async';
-import 'dart:convert';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
+import 'package:on_time_front/core/dio/app_dio.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 part 'alarm_screen_event.dart';
 part 'alarm_screen_state.dart';
 
 class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
-  int fullTime = 0;
-  bool isLate = false;
+  final String scheduleId;
+  final ScheduleEntity schedule;
+  final PreparationRemoteDataSource preparationRemoteDataSource;
+
+  Timer? preparationTimer;
   Timer? fullTimeTimer;
 
-  double currentProgress = 0.0;
+  // 내부 상태 변수
+  List<PreparationStepEntity> preparationSteps = [];
+  List<int> elapsedTimes = [];
   int currentIndex = 0;
   int remainingTime = 0;
-  int totalRemainingTime = 0;
   int totalPreparationTime = 0;
-  Timer? preparationTimer;
+  int totalRemainingTime = 0;
+  double progress = 0.0;
+  List<double> preparationRatios = [];
+  List<bool> preparationCompleted = [];
+  int fullTime = 0;
+  bool isLate = false;
 
-  late List<dynamic> preparations;
-  late List<bool> preparationCompleted;
+  AlarmScreenBloc({
+    required this.scheduleId,
+    required this.schedule,
+    required this.preparationRemoteDataSource,
+  }) : super(AlarmScreenInitial()) {
+    on<AlarmScreenFetchPreparation>(_onFetchPreparation);
+    on<AlarmScreenStartPreparation>(_onStartPreparation);
+    on<AlarmScreenTick>(_onTick);
+    on<AlarmScreenSkipPreparation>(_onSkipPreparation);
+    on<AlarmScreenMoveToNextPreparation>(_onMoveToNextPreparation);
+    on<AlarmScreenFinalizePreparation>(_onFinalizePreparation);
+  }
 
-  AlarmScreenBloc() : super(AlarmScreenInitial()) {
-    on<InitializeTotalTime>((event, emit) {
-      int totalPreparationTime = event.preparations.fold<int>(
-        0,
-        (sum, prep) => sum + (prep['preparationTime'] as int) * 60,
-      );
-      emit(TotalTimeInitialized(totalPreparationTime, totalPreparationTime));
-    });
+  Future<void> _onFetchPreparation(
+      AlarmScreenFetchPreparation event, Emitter<AlarmScreenState> emit) async {
+    emit(AlarmScreenLoading());
+    try {
+      final PreparationEntity preparationEntity =
+          await preparationRemoteDataSource
+              .getPreparationByScheduleId(event.scheduleId);
+      preparationSteps = preparationEntity.preparationStepList;
+      elapsedTimes = List<int>.filled(preparationSteps.length, 0);
+      totalPreparationTime = preparationSteps.fold(
+          0, (sum, step) => sum + step.preparationTime.inSeconds);
+      totalRemainingTime = totalPreparationTime;
+      preparationCompleted = List<bool>.filled(preparationSteps.length, false);
 
-    on<CalculateFullTime>((event, emit) {
-      final DateTime now = DateTime.now();
-      final Duration spareTime =
-          Duration(minutes: event.schedule['scheduleSpareTime']);
-      final DateTime scheduleTime =
-          DateTime.parse(event.schedule['scheduleTime']);
-      final int moveTime = event.schedule['moveTime'];
+      _calculatePreparationRatios();
 
-      final Duration remainingDuration = scheduleTime.difference(now) -
-          Duration(minutes: moveTime) -
-          spareTime;
+      _calculateFullTime(schedule);
 
-      fullTime = remainingDuration.inSeconds.toInt();
-      isLate = fullTime < 0;
+      emit(AlarmScreenLoaded(
+        preparationSteps: preparationSteps,
+        elapsedTimes: elapsedTimes,
+        currentIndex: currentIndex,
+        remainingTime: remainingTime,
+        totalPreparationTime: totalPreparationTime,
+        totalRemainingTime: totalRemainingTime,
+        progress: progress,
+        preparationRatios: preparationRatios,
+        preparationCompleted: preparationCompleted,
+        fullTime: fullTime,
+        isLate: isLate,
+      ));
+      add(const AlarmScreenStartPreparation());
+    } catch (e) {
+      emit(AlarmScreenError(e.toString()));
+    }
+  }
 
-      emit(FullTimeCalculated(fullTime, isLate));
-    });
-
-    on<StartFullTimeTimer>((event, emit) {
-      fullTimeTimer?.cancel();
-      fullTimeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (isClosed) {
-          timer.cancel();
-          return;
-        }
-        fullTime--;
-        if (fullTime < 0) {
-          isLate = true;
-        }
-        if (!isClosed) emit(FullTimeTimerUpdated(fullTime, isLate));
-      });
-    });
-
-    on<CalculatePreparationRatios>((event, emit) {
-      List<double> preparationRatios = [];
-      int cumulativeTime = 0;
-
-      for (var preparation in event.preparations) {
-        final int prepTime = preparation['preparationTime'] * 60;
-        preparationRatios.add(cumulativeTime / event.totalPreparationTime);
-        cumulativeTime += prepTime;
-      }
-
-      emit(PreparationRatiosCalculated(preparationRatios));
-    });
-
-    on<FinalizePreparation>((event, emit) {
-      preparationTimer?.cancel();
-      fullTimeTimer?.cancel();
-      emit(ProgressUpdated(1.0));
-    });
-
-    on<UpdateProgress>((event, emit) {
-      currentProgress = event.newProgress;
-      emit(ProgressUpdated(currentProgress));
-    });
-
-    on<StartPreparation>((event, emit) {
-      if (currentIndex < preparations.length) {
-        remainingTime = preparations[currentIndex]['preparationTime'] * 60;
-        preparations[currentIndex]['elapsedTime'] = 0;
-
-        //  preparationTimer?.cancel();
-        preparationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-          if (isClosed) {
-            timer.cancel();
-            return;
-          }
-          if (remainingTime > 0) {
-            remainingTime--;
-            totalRemainingTime--;
-            add(UpdateProgress(
-                1.0 - (totalRemainingTime / totalPreparationTime)));
-
-            preparations[currentIndex]['elapsedTime'] =
-                (preparations[currentIndex]['elapsedTime'] as int) + 1;
-
-            if (!isClosed) {
-              emit(PreparationStarted(remainingTime, totalRemainingTime));
-            }
-          } else {
-            timer.cancel();
-            preparationCompleted[currentIndex] = true;
-            if (!isClosed) add(MoveToNextPreparation());
-          }
-        });
-      }
-    });
-
-    on<SkipCurrentPreparation>((event, emit) {
-      preparationTimer?.cancel();
-
-      if (currentIndex == preparations.length - 1) {
-        add(UpdateProgress(1.0));
-
-        totalRemainingTime -= remainingTime;
-        preparationCompleted[currentIndex] = true;
-        remainingTime = 0;
-
-        add(FinalizePreparation());
-      } else {
-        totalRemainingTime -= remainingTime;
-        preparationCompleted[currentIndex] = true;
-        remainingTime = 0;
-        add(UpdateProgress(1.0 - (totalRemainingTime / totalPreparationTime)));
-
-        add(MoveToNextPreparation());
-      }
-
-      emit(PreparationSkipped());
-    });
-
-    on<MoveToNextPreparation>((event, emit) {
-      preparationTimer?.cancel();
-
-      if (currentIndex + 1 < preparations.length) {
-        currentIndex++;
-        add(StartPreparation());
-      }
-
-      emit(NextPreparationStarted());
-    });
-
-    on<FetchPreparations>((event, emit) async {
-      emit(PreparationsLoading());
-
-      try {
-        final response = await http.get(
-          Uri.parse(
-              'https://ontime.devkor.club/schedule/get/preparation/${event.scheduleId}'),
-          headers: {
-            'accept': 'application/json',
-            'Authorization':
-                'Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBY2Nlc3NUb2tlbiIsImV4cCI6MTczODk1NzkxMSwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwidXNlcklkIjoxfQ.nrma3eK-c416diOdXttW1JUVLQGqVC2IuN_4Q04ehgHNgbhm26EjS5VeRBNyD0RnyjAtn2rlr4cPRb2wC35Mzg',
-          },
-        );
-
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> data = json.decode(response.body);
-          if (data['status'] == 'success' && data['data'] != null) {
-            List<Map<String, dynamic>> preparations =
-                List<Map<String, dynamic>>.from(data['data']);
-
-            for (var prep in preparations) {
-              prep['elapsedTime'] = 0;
-            }
-
-            emit(PreparationsLoaded(preparations));
-
-            // BLoC 내에서 자동으로 초기화 이벤트 호출
-            if (!isClosed) {
-              await Future.delayed(Duration.zero);
-              add(InitializeTotalTime(preparations));
-
-              await Future.delayed(Duration.zero);
-              add(CalculatePreparationRatios(
-                  preparations,
-                  preparations.fold(
-                      0,
-                      (sum, prep) =>
-                          sum + (prep['preparationTime'] as int) * 60)));
-
-              await Future.delayed(Duration.zero);
-              add(StartFullTimeTimer());
-
-              await Future.delayed(Duration.zero);
-              add(StartPreparation());
-            }
-          } else {
-            throw Exception('Data fetch failed: ${data['message']}');
-          }
+  Future<void> _onStartPreparation(
+      AlarmScreenStartPreparation event, Emitter<AlarmScreenState> emit) async {
+    if (currentIndex < preparationSteps.length) {
+      remainingTime = preparationSteps[currentIndex].preparationTime.inSeconds;
+      elapsedTimes[currentIndex] = 0;
+      preparationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (remainingTime > 0) {
+          remainingTime--;
+          totalRemainingTime--;
+          elapsedTimes[currentIndex] += 1;
+          progress = 1.0 - (totalRemainingTime / totalPreparationTime);
+          add(const AlarmScreenTick());
         } else {
-          throw Exception('Server error: ${response.statusCode}');
+          timer.cancel();
+          preparationCompleted[currentIndex] = true;
+          add(const AlarmScreenMoveToNextPreparation());
         }
-      } catch (e) {
-        if (!isClosed) {
-          emit(PreparationsError('Error fetching preparation data: $e'));
-        }
-      }
-    });
+      });
+    }
+  }
+
+  Future<void> _onTick(
+      AlarmScreenTick event, Emitter<AlarmScreenState> emit) async {
+    emit(AlarmScreenLoaded(
+      preparationSteps: preparationSteps,
+      elapsedTimes: elapsedTimes,
+      currentIndex: currentIndex,
+      remainingTime: remainingTime,
+      totalPreparationTime: totalPreparationTime,
+      totalRemainingTime: totalRemainingTime,
+      progress: progress,
+      preparationRatios: preparationRatios,
+      preparationCompleted: preparationCompleted,
+      fullTime: fullTime,
+      isLate: isLate,
+    ));
+  }
+
+  Future<void> _onSkipPreparation(
+      AlarmScreenSkipPreparation event, Emitter<AlarmScreenState> emit) async {
+    preparationTimer?.cancel();
+    totalRemainingTime -= remainingTime;
+    preparationCompleted[currentIndex] = true;
+    remainingTime = 0;
+    progress = 1.0 - (totalRemainingTime / totalPreparationTime);
+    add(const AlarmScreenMoveToNextPreparation());
+  }
+
+  Future<void> _onMoveToNextPreparation(AlarmScreenMoveToNextPreparation event,
+      Emitter<AlarmScreenState> emit) async {
+    preparationTimer?.cancel();
+    if (currentIndex + 1 < preparationSteps.length) {
+      currentIndex++;
+      add(const AlarmScreenStartPreparation());
+    } else {
+      add(const AlarmScreenFinalizePreparation());
+    }
+  }
+
+  Future<void> _onFinalizePreparation(AlarmScreenFinalizePreparation event,
+      Emitter<AlarmScreenState> emit) async {
+    preparationTimer?.cancel();
+    fullTimeTimer?.cancel();
+    progress = 1.0;
+    emit(AlarmScreenLoaded(
+      preparationSteps: preparationSteps,
+      elapsedTimes: elapsedTimes,
+      currentIndex: currentIndex,
+      remainingTime: remainingTime,
+      totalPreparationTime: totalPreparationTime,
+      totalRemainingTime: totalRemainingTime,
+      progress: progress,
+      preparationRatios: preparationRatios,
+      preparationCompleted: preparationCompleted,
+      fullTime: fullTime,
+      isLate: isLate,
+    ));
+    // 최종 상태 후 추가 네비게이션 로직 등 필요
+  }
+
+  void _calculatePreparationRatios() {
+    int cumulativeTime = 0;
+    preparationRatios.clear();
+    for (var step in preparationSteps) {
+      final int prepTime = step.preparationTime.inSeconds;
+      preparationRatios.add(cumulativeTime / totalPreparationTime);
+      cumulativeTime += prepTime;
+    }
+  }
+
+  void _calculateFullTime(ScheduleEntity schedule) {
+    final DateTime now = DateTime.now();
+    final Duration spareTime = schedule.scheduleSpareTime;
+    final DateTime scheduleTime = schedule.scheduleTime;
+    final Duration moveTime = schedule.moveTime;
+
+    // 약속시간 - (현재시간 + 이동시간 + 여유시간) 계산
+    final Duration remainingDuration =
+        scheduleTime.difference(now) - moveTime - spareTime;
+
+    fullTime = remainingDuration.inSeconds;
+
+    if (fullTime < 0) {
+      isLate = true;
+    }
   }
 
   @override
   Future<void> close() {
-    fullTimeTimer?.cancel();
     preparationTimer?.cancel();
+    fullTimeTimer?.cancel();
     return super.close();
   }
 }

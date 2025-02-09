@@ -17,12 +17,17 @@ GoRouter goRouterConfig(AppBloc bloc) {
     refreshListenable: StreamToListenable([bloc.stream]),
     redirect: (BuildContext context, GoRouterState state) {
       final status = bloc.state.status;
+      final bool onSignInScreen = state.fullPath == '/signIn';
 
       switch (status) {
         case AppStatus.unauthenticated:
           return '/signIn';
         case AppStatus.authenticated:
-          return '/home';
+          if (onSignInScreen) {
+            return '/home';
+          } else {
+            return null;
+          }
         case AppStatus.onboardingNotCompleted:
           return '/onboarding';
       }

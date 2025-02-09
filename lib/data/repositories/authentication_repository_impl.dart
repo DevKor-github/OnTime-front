@@ -66,6 +66,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
           final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
             accessToken: accessToken,
           );
+          await _tokenLocalDataSource.deleteToken();
           final result = await _authenticationRemoteDataSource
               .signInWithGoogle(signInWithGoogleRequestModel);
           await _tokenLocalDataSource.storeToken(result.$2);

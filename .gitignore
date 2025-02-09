@@ -47,7 +47,6 @@ app.*.map.json
 *.g.dart
 *.mocks.dart
 *.config.dart
+*.freezed.dart
+GoogleService-Info.plist
 .env
-
-/ios/Runner/GoogleService-Info.plist
-/android/app/google-services.json

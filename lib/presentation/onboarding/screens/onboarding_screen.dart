@@ -164,15 +164,14 @@ class _OnboardingFormState extends State<OnboardingForm>
     );
   }
 
-  void _onNextPageButtonClicked() {
+  Future<void> _onNextPageButtonClicked() async {
     formKeys[_tabController.index].currentState!.save();
     if (_tabController.index < _numberOfPages - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
-      context
+      return await context
           .read<OnboardingCubit>()
           .onboardingFormSubmitted(preparationFormData.toOnboardingState());
-      GoRouter.of(context).go('/home');
     }
   }
 
@@ -184,6 +183,10 @@ class _OnboardingFormState extends State<OnboardingForm>
   }
 
   void _updateCurrentPageIndex(int index) {
+    if (index < 0) {
+      context.go('/onboarding/start');
+      return;
+    }
     _tabController.index = index;
     _pageViewController.animateToPage(
       index,
@@ -217,9 +220,6 @@ class PageIndicator extends StatelessWidget {
           child: IconButton(
             padding: EdgeInsets.zero,
             onPressed: () {
-              if (tabController.index == 0) {
-                return;
-              }
               onUpdateCurrentPageIndex(tabController.index - 1);
             },
             icon: const Icon(

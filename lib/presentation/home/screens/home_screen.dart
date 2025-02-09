@@ -178,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
           child: Icon(Icons.add),
         ),
-        bottomNavigationBar: CustomBottomNavigationBar(),
+        //bottomNavigationBar: CustomBottomNavigationBar(),
       ),
     );
   }

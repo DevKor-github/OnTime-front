@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/dio/app_dio.dart';
 
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
-import 'package:on_time_front/presentation/alarm/screens/schedule_start.dart';
+import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 
 class ScheduleListScreen extends StatefulWidget {
   const ScheduleListScreen({super.key});
@@ -69,14 +70,7 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
                         subtitle: Text(schedule.place.placeName),
                         trailing: const Icon(Icons.arrow_forward_ios),
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ScheduleStart(
-                                schedule: schedule,
-                              ),
-                            ),
-                          );
+                          context.push('/scheduleStart', extra: schedule);
                         },
                       ),
                     );

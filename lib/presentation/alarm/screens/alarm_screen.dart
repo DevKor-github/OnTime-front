@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/core/dio/app_dio.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
@@ -15,7 +17,7 @@ class AlarmScreen extends StatefulWidget {
   const AlarmScreen({super.key, required this.schedule});
 
   @override
-  State<AlarmScreen> createState() => _AlarmScreenState();
+  _AlarmScreenState createState() => _AlarmScreenState();
 }
 
 class _AlarmScreenState extends State<AlarmScreen>
@@ -27,17 +29,12 @@ class _AlarmScreenState extends State<AlarmScreen>
   @override
   void initState() {
     super.initState();
-
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-
     _progressAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     )..addListener(() {
         setState(() {
           currentProgress = _progressAnimation.value;
@@ -51,56 +48,46 @@ class _AlarmScreenState extends State<AlarmScreen>
     super.dispose();
   }
 
-  void updateProgress(double newProgress) {
-    _progressAnimation = Tween<double>(
-      begin: currentProgress,
-      end: newProgress,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    _animationController
-      ..reset()
-      ..forward();
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => AlarmScreenBloc(
         scheduleId: widget.schedule.id,
-        schedule: widget.schedule,
-        preparationRemoteDataSource: PreparationRemoteDataSourceImpl(AppDio()),
+        schedule: widget.schedule, // 스케줄 정보 전달
+        preparationRemoteDataSource: PreparationRemoteDataSourceImpl(
+          Dio(),
+          // AppDio(),
+        ),
       )..add(AlarmScreenFetchPreparation(widget.schedule.id)),
-      child: Scaffold(
-        backgroundColor: const Color(0xff5C79FB),
-        body: BlocListener<AlarmScreenBloc, AlarmScreenState>(
-          listener: (context, state) {
-            if (state is AlarmScreenMoveToEarlyLateScreen) {
-              // context.go('/earlyLate', extra: fullTime);
-
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EarlyLateScreen(
-                    earlyLateTime: state.earlyLateTime,
-                  ),
-                ),
-              );
-            } else if (state is AlarmScreenLoaded) {
-              updateProgress(state.progress);
-            }
-          },
-          child: BlocBuilder<AlarmScreenBloc, AlarmScreenState>(
+      child: BlocListener<AlarmScreenBloc, AlarmScreenState>(
+        listener: (context, state) {
+          if (state is AlarmScreenLoaded) {
+            _progressAnimation = Tween<double>(
+              begin: currentProgress,
+              end: state.progress,
+            ).animate(
+              CurvedAnimation(
+                parent: _animationController,
+                curve: Curves.easeInOut,
+              ),
+            );
+            _animationController.reset();
+            _animationController.forward();
+          }
+          if (state is AlarmScreenFinalized) {
+            context.go('/earlyLate', extra: state.fullTime);
+          }
+        },
+        child: Scaffold(
+          backgroundColor: const Color(0xff5C79FB),
+          body: BlocBuilder<AlarmScreenBloc, AlarmScreenState>(
             builder: (context, state) {
               if (state is AlarmScreenLoading || state is AlarmScreenInitial) {
                 return const Center(child: CircularProgressIndicator());
               } else if (state is AlarmScreenLoaded) {
                 return Column(
                   children: [
+                    // 상단 텍스트
                     Padding(
                       padding: const EdgeInsets.only(top: 52),
                       child: Text(
@@ -114,6 +101,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                         ),
                       ),
                     ),
+                    // 타이머 그래프 영역
                     SizedBox(
                       height: 190,
                       child: Stack(
@@ -157,6 +145,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                       ),
                     ),
                     const SizedBox(height: 110),
+                    // 하단 영역: 준비 단계 목록과 종료 버튼
                     Expanded(
                       child: Stack(
                         children: [
@@ -201,10 +190,10 @@ class _AlarmScreenState extends State<AlarmScreen>
                                     padding: const EdgeInsets.only(top: 10),
                                     child: Button(
                                       text: '준비 종료',
-                                      onPressed: () =>
-                                          context.read<AlarmScreenBloc>().add(
-                                                const AlarmScreenFinalizePreparation(),
-                                              ),
+                                      onPressed: () => context
+                                          .read<AlarmScreenBloc>()
+                                          .add(
+                                              const AlarmScreenFinalizePreparation()),
                                     ),
                                   ),
                                 )

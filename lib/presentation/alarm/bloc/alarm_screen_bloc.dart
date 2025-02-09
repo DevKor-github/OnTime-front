@@ -125,26 +125,42 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
 
   Future<void> _onSkipPreparation(
       AlarmScreenSkipPreparation event, Emitter<AlarmScreenState> emit) async {
+    // 현재 타이머 취소
+    preparationTimer?.cancel();
+
+    // 현재 단계의 남은 시간을 차감하고 완료 처리
     totalRemainingTime -= remainingTime;
     preparationCompleted[currentIndex] = true;
-    remainingTime = 0;
-    progress = 1.0 - (totalRemainingTime / totalPreparationTime);
 
-    emit(AlarmScreenLoaded(
-      preparationSteps: preparationSteps,
-      elapsedTimes: elapsedTimes,
-      currentIndex: currentIndex,
-      remainingTime: remainingTime,
-      totalPreparationTime: totalPreparationTime,
-      totalRemainingTime: totalRemainingTime,
-      progress: progress,
-      preparationRatios: preparationRatios,
-      preparationCompleted: preparationCompleted,
-      fullTime: fullTime,
-      isLate: isLate,
-    ));
+    // 건너뛰기 시, currentIndex를 바로 증가시키고 다음 단계의 remainingTime 계산
+    if (currentIndex + 1 < preparationSteps.length) {
+      currentIndex++;
+      // 다음 단계의 준비 시간
+      remainingTime = preparationSteps[currentIndex].preparationTime.inSeconds;
+      // 진행률 업데이트
+      progress = 1.0 - (totalRemainingTime / totalPreparationTime);
 
-    add(const AlarmScreenMoveToNextPreparation());
+      // 상태를 한 번에 업데이트하여 UI에 반영
+      emit(AlarmScreenLoaded(
+        preparationSteps: preparationSteps,
+        elapsedTimes: elapsedTimes,
+        currentIndex: currentIndex,
+        remainingTime: remainingTime,
+        totalPreparationTime: totalPreparationTime,
+        totalRemainingTime: totalRemainingTime,
+        progress: progress,
+        preparationRatios: preparationRatios,
+        preparationCompleted: preparationCompleted,
+        fullTime: fullTime,
+        isLate: isLate,
+      ));
+
+      // 다음 단계 시작 이벤트를 발생시켜 타이머 재시작
+      add(const AlarmScreenStartPreparation());
+    } else {
+      // 만약 현재 단계가 마지막 단계라면, 바로 준비 종료 이벤트 처리
+      add(const AlarmScreenFinalizePreparation());
+    }
   }
 
   Future<void> _onMoveToNextPreparation(AlarmScreenMoveToNextPreparation event,
@@ -162,7 +178,9 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
       Emitter<AlarmScreenState> emit) async {
     preparationTimer?.cancel();
     fullTimeTimer?.cancel();
+
     progress = 1.0;
+
     emit(AlarmScreenLoaded(
       preparationSteps: preparationSteps,
       elapsedTimes: elapsedTimes,
@@ -176,7 +194,11 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
       fullTime: fullTime,
       isLate: isLate,
     ));
-    emit(AlarmScreenMoveToEarlyLateScreen(fullTime));
+
+    // 애니메이션 완료용 딜레이
+    await Future.delayed(const Duration(milliseconds: 550));
+
+    emit(AlarmScreenFinalized(fullTime));
   }
 
   void _calculatePreparationRatios() {

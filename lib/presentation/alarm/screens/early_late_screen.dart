@@ -12,7 +12,7 @@ class EarlyLateScreen extends StatefulWidget {
 }
 
 class _EarlyLateScreenState extends State<EarlyLateScreen> {
-  List<bool> checklistStates = [false, false, false];
+  List<bool> checklistStates = [false];
 
   late bool isLate;
   late int minuteValue;
@@ -102,7 +102,7 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
               Padding(
                 padding: EdgeInsets.only(top: screenHeight * 0.01),
                 child: Image.asset(
-                  'assets/character.png',
+                  'lib/images/ontime_mascot.png',
                   width: 150,
                   height: 150,
                 ),
@@ -139,7 +139,7 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
                                     bottom: screenHeight * 0.01),
                                 child: _buildChecklistItem(
                                   index,
-                                  "확인할 항목 ${index + 1}",
+                                  "우산 챙기기",
                                 ),
                               ),
                             ),

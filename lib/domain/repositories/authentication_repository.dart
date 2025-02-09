@@ -11,4 +11,6 @@ abstract interface class AuthenticationRepository {
   Future<void> signOut();
 
   Future<void> signInWithGoogle();
+
+  Future<void> getUSer();
 }

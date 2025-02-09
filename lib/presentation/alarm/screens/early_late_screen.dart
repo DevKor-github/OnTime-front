@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
-import 'package:on_time_front/utils/time_format.dart';
+import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
 
 class EarlyLateScreen extends StatefulWidget {

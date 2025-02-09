@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_tile.dart';
-import 'package:on_time_front/utils/time_format.dart';
+import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class PreparationStepListWidget extends StatefulWidget {
   final List<PreparationStepEntity> preparations; // 준비 과정 데이터
@@ -74,6 +74,7 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
       child: SizedBox(
         width: 329,
         child: ListView.builder(
+          controller: _scrollController,
           shrinkWrap: true,
           itemCount: widget.preparations.length,
           itemBuilder: (context, index) {

@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -9,7 +8,7 @@ import 'package:on_time_front/presentation/alarm/components/preparation_step_lis
 import 'package:on_time_front/presentation/alarm/components/alarm_graph_component.dart';
 import 'package:on_time_front/presentation/alarm/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
-import 'package:on_time_front/utils/time_format.dart';
+import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
   final ScheduleEntity schedule;

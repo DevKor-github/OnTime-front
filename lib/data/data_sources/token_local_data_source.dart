@@ -14,27 +14,30 @@ abstract class TokenLocalDataSource {
 class TokenLocalDataSourceImpl implements TokenLocalDataSource {
   final storage = FlutterSecureStorage();
 
+  final accessTokenKey = 'accessToken';
+  final refreshTokenKey = 'refreshToken';
+
   @override
   Future<void> storeToken(TokenEntity token) async {
-    await storage.write(key: 'accesToken', value: token.accessToken);
-    await storage.write(key: 'refreshToken', value: token.refreshToken);
+    await storage.write(key: accessTokenKey, value: token.accessToken);
+    await storage.write(key: refreshTokenKey, value: token.refreshToken);
   }
 
   @override
   Future<TokenEntity> getToken() async {
     try {
-      final accessToken = await storage.read(key: 'accessToken');
-      final refreshToken = await storage.read(key: 'refreshToken');
+      final accessToken = await storage.read(key: accessTokenKey);
+      final refreshToken = await storage.read(key: refreshTokenKey);
       return TokenEntity(
           accessToken: accessToken!, refreshToken: refreshToken!);
     } catch (e) {
-      throw Exception('Error getting token');
+      throw Exception('Token not found');
     }
   }
 
   @override
   Future<void> deleteToken() async {
-    await storage.delete(key: 'accessToken');
-    await storage.delete(key: 'refreshToken');
+    await storage.delete(key: accessTokenKey);
+    await storage.delete(key: refreshTokenKey);
   }
 }

@@ -2,14 +2,17 @@ import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
 import 'package:on_time_front/core/constants/endpoint.dart';
+import 'package:on_time_front/data/models/update_preparation_schedule_request_model.dart';
+import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
-import 'package:on_time_front/data/models/create_preparation_user_request_model.dart';
+import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 import 'package:on_time_front/data/models/get_preparation_step_response_model.dart';
 
 abstract interface class PreparationRemoteDataSource {
-  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
+  Future<void> createDefaultPreparation(
+      CreateDefaultPreparationRequestModel model);
 
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);
@@ -56,15 +59,11 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity) async {
+      CreateDefaultPreparationRequestModel model) async {
     try {
-      final requestModels =
-          PreparationUserRequestModelListExtension.fromEntityList(
-              preparationEntity.preparationStepList);
-
-      final result = await dio.post(
+      final result = await dio.put(
         Endpoint.createDefaultPreparation,
-        data: requestModels.map((model) => model.toJson()).toList(),
+        data: model.toJson(),
       );
 
       if (result.statusCode != 200) {
@@ -144,7 +143,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
       PreparationEntity preparationEntity) async {
     try {
       final updateModel =
-          PreparationUserRequestModelListExtension.fromEntityList(
+          PreparationUserModifyRequestModelListExtension.fromEntityList(
               preparationEntity.preparationStepList);
 
       final result = await dio.post(
@@ -165,7 +164,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
       PreparationEntity preparationEntity, String preparationId) async {
     try {
       final updateModel =
-          PreparationUserRequestModelListExtension.fromEntityList(
+          PreparationScheduleModifyRequestModelListExtension.fromEntityList(
               preparationEntity.preparationStepList);
 
       final result = await dio.post(

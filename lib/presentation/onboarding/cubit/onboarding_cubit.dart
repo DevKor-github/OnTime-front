@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:on_time_front/domain/use-cases/create_default_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/onboard_use_case.dart';
 
 part 'onboarding_state.dart';
 

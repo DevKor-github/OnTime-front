@@ -40,9 +40,11 @@ void main() {
   final tUpdateRequestModel =
       PreparationUserModifyRequestModel.fromEntity(preparationStep1);
 
-  final tCreateUserRequestModel =
-      PreparationUserRequestModelListExtension.fromEntityList(
-          preparationEntity.preparationStepList);
+  final tCreateDefualtPreparationRequestModel =
+      CreateDefaultPreparationRequestModel.fromEntity(
+          preparationEntity: preparationEntity,
+          spareTime: Duration(minutes: 10),
+          note: 'Wake up');
 
   final tCreateScheduleRequestModel =
       PreparationScheduleCreateRequestModelListExtension.fromEntityList(
@@ -112,9 +114,9 @@ void main() {
         'should perform a POST request on the create default preparation endpoint',
         () async {
       // arrange
-      when(dio.post(
+      when(dio.put(
         Endpoint.createDefaultPreparation,
-        data: tCreateUserRequestModel.map((model) => model.toJson()).toList(),
+        data: tCreateDefualtPreparationRequestModel.toJson(),
       )).thenAnswer(
         (_) async => Response(
           statusCode: 200,
@@ -125,12 +127,13 @@ void main() {
       );
 
       // act
-      await remoteDataSource.createDefaultPreparation(preparationEntity);
+      await remoteDataSource
+          .createDefaultPreparation(tCreateDefualtPreparationRequestModel);
 
       // assert
-      verify(dio.post(
+      verify(dio.put(
         Endpoint.createDefaultPreparation,
-        data: tCreateUserRequestModel.map((model) => model.toJson()).toList(),
+        data: tCreateDefualtPreparationRequestModel.toJson(),
       )).called(1);
     });
 
@@ -139,7 +142,7 @@ void main() {
       // arrange
       when(dio.post(
         Endpoint.createDefaultPreparation,
-        data: tCreateUserRequestModel.map((model) => model.toJson()).toList(),
+        data: tCreateDefualtPreparationRequestModel.toJson(),
       )).thenAnswer(
         (_) async => Response(
           statusCode: 400,
@@ -153,7 +156,8 @@ void main() {
       final call = remoteDataSource.createDefaultPreparation;
 
       // assert
-      expect(() => call(preparationEntity), throwsException);
+      expect(
+          () => call(tCreateDefualtPreparationRequestModel), throwsException);
     });
   });
 

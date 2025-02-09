@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
-import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 
 class ScheduleStartScreen extends StatelessWidget {
   final ScheduleEntity schedule;

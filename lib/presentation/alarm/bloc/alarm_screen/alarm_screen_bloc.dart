@@ -1,8 +1,7 @@
 library;
 
 import 'dart:async';
-import 'package:bloc/bloc.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -20,7 +19,6 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
   Timer? preparationTimer;
   Timer? fullTimeTimer;
 
-  // 내부 상태 변수
   List<PreparationStepEntity> preparationSteps = [];
   List<int> elapsedTimes = [];
   int currentIndex = 0;
@@ -38,17 +36,17 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
     required this.schedule,
     required this.preparationRemoteDataSource,
   }) : super(AlarmScreenInitial()) {
-    on<AlarmScreenFetchPreparation>(_onFetchPreparation);
-    on<AlarmScreenStartPreparation>(_onStartPreparation);
-    on<AlarmScreenTick>(_onTick);
-    on<AlarmScreenSkipPreparation>(_onSkipPreparation);
-    on<AlarmScreenMoveToNextPreparation>(_onMoveToNextPreparation);
-    on<AlarmScreenFinalizePreparation>(_onFinalizePreparation);
+    on<AlarmScreenPreparationFetched>(_onFetchPreparation);
+    on<AlarmScreenPreparationStarted>(_onStartPreparation);
+    on<AlarmScreenTimerTicked>(_onTick);
+    on<AlarmScreenPreparationSkipped>(_onSkipPreparation);
+    on<AlarmScreenNextPreparationSwitched>(_onMoveToNextPreparation);
+    on<AlarmScreenPreparationFinalized>(_onFinalizePreparation);
   }
 
-  Future<void> _onFetchPreparation(
-      AlarmScreenFetchPreparation event, Emitter<AlarmScreenState> emit) async {
-    emit(AlarmScreenLoading());
+  Future<void> _onFetchPreparation(AlarmScreenPreparationFetched event,
+      Emitter<AlarmScreenState> emit) async {
+    emit(AlarmScreenLoadInProgress());
     try {
       final PreparationEntity preparationEntity =
           await preparationRemoteDataSource
@@ -66,7 +64,7 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
 
       remainingTime = preparationSteps[currentIndex].preparationTime.inSeconds;
 
-      emit(AlarmScreenLoaded(
+      emit(AlarmScreenLoadSuccess(
         preparationSteps: preparationSteps,
         elapsedTimes: elapsedTimes,
         currentIndex: currentIndex,
@@ -79,14 +77,14 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
         fullTime: fullTime,
         isLate: isLate,
       ));
-      add(const AlarmScreenStartPreparation());
+      add(const AlarmScreenPreparationStarted());
     } catch (e) {
       emit(AlarmScreenError(e.toString()));
     }
   }
 
-  Future<void> _onStartPreparation(
-      AlarmScreenStartPreparation event, Emitter<AlarmScreenState> emit) async {
+  Future<void> _onStartPreparation(AlarmScreenPreparationStarted event,
+      Emitter<AlarmScreenState> emit) async {
     if (currentIndex < preparationSteps.length) {
       remainingTime = preparationSteps[currentIndex].preparationTime.inSeconds;
       elapsedTimes[currentIndex] = 0;
@@ -96,19 +94,19 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
           totalRemainingTime--;
           elapsedTimes[currentIndex] += 1;
           progress = 1.0 - (totalRemainingTime / totalPreparationTime);
-          add(const AlarmScreenTick());
+          add(const AlarmScreenTimerTicked());
         } else {
           timer.cancel();
           preparationCompleted[currentIndex] = true;
-          add(const AlarmScreenMoveToNextPreparation());
+          add(const AlarmScreenNextPreparationSwitched());
         }
       });
     }
   }
 
   Future<void> _onTick(
-      AlarmScreenTick event, Emitter<AlarmScreenState> emit) async {
-    emit(AlarmScreenLoaded(
+      AlarmScreenTimerTicked event, Emitter<AlarmScreenState> emit) async {
+    emit(AlarmScreenLoadSuccess(
       preparationSteps: preparationSteps,
       elapsedTimes: elapsedTimes,
       currentIndex: currentIndex,
@@ -123,8 +121,8 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
     ));
   }
 
-  Future<void> _onSkipPreparation(
-      AlarmScreenSkipPreparation event, Emitter<AlarmScreenState> emit) async {
+  Future<void> _onSkipPreparation(AlarmScreenPreparationSkipped event,
+      Emitter<AlarmScreenState> emit) async {
     // 현재 타이머 취소
     preparationTimer?.cancel();
 
@@ -141,7 +139,7 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
       progress = 1.0 - (totalRemainingTime / totalPreparationTime);
 
       // 상태를 한 번에 업데이트하여 UI에 반영
-      emit(AlarmScreenLoaded(
+      emit(AlarmScreenLoadSuccess(
         preparationSteps: preparationSteps,
         elapsedTimes: elapsedTimes,
         currentIndex: currentIndex,
@@ -156,32 +154,33 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
       ));
 
       // 다음 단계 시작 이벤트를 발생시켜 타이머 재시작
-      add(const AlarmScreenStartPreparation());
+      add(const AlarmScreenPreparationStarted());
     } else {
       // 만약 현재 단계가 마지막 단계라면, 바로 준비 종료 이벤트 처리
-      add(const AlarmScreenFinalizePreparation());
+      add(const AlarmScreenPreparationFinalized());
     }
   }
 
-  Future<void> _onMoveToNextPreparation(AlarmScreenMoveToNextPreparation event,
+  Future<void> _onMoveToNextPreparation(
+      AlarmScreenNextPreparationSwitched event,
       Emitter<AlarmScreenState> emit) async {
     preparationTimer?.cancel();
     if (currentIndex + 1 < preparationSteps.length) {
       currentIndex++;
-      add(const AlarmScreenStartPreparation());
+      add(const AlarmScreenPreparationStarted());
     } else {
-      add(const AlarmScreenFinalizePreparation());
+      add(const AlarmScreenPreparationFinalized());
     }
   }
 
-  Future<void> _onFinalizePreparation(AlarmScreenFinalizePreparation event,
+  Future<void> _onFinalizePreparation(AlarmScreenPreparationFinalized event,
       Emitter<AlarmScreenState> emit) async {
     preparationTimer?.cancel();
     fullTimeTimer?.cancel();
 
     progress = 1.0;
 
-    emit(AlarmScreenLoaded(
+    emit(AlarmScreenLoadSuccess(
       preparationSteps: preparationSteps,
       elapsedTimes: elapsedTimes,
       currentIndex: currentIndex,
@@ -198,7 +197,7 @@ class AlarmScreenBloc extends Bloc<AlarmScreenEvent, AlarmScreenState> {
     // 애니메이션 완료용 딜레이
     await Future.delayed(const Duration(milliseconds: 550));
 
-    emit(AlarmScreenFinalized(fullTime));
+    emit(AlarmScreenFinalization(fullTime));
   }
 
   void _calculatePreparationRatios() {

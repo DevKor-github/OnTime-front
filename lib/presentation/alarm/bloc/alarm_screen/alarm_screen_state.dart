@@ -9,9 +9,9 @@ abstract class AlarmScreenState extends Equatable {
 
 class AlarmScreenInitial extends AlarmScreenState {}
 
-class AlarmScreenLoading extends AlarmScreenState {}
+class AlarmScreenLoadInProgress extends AlarmScreenState {}
 
-class AlarmScreenLoaded extends AlarmScreenState {
+class AlarmScreenLoadSuccess extends AlarmScreenState {
   final List<PreparationStepEntity> preparationSteps;
   final List<int> elapsedTimes;
   final int currentIndex;
@@ -24,7 +24,7 @@ class AlarmScreenLoaded extends AlarmScreenState {
   final int fullTime;
   final bool isLate;
 
-  const AlarmScreenLoaded({
+  const AlarmScreenLoadSuccess({
     required this.preparationSteps,
     required this.elapsedTimes,
     required this.currentIndex,
@@ -54,9 +54,9 @@ class AlarmScreenLoaded extends AlarmScreenState {
       ];
 }
 
-class AlarmScreenFinalized extends AlarmScreenState {
+class AlarmScreenFinalization extends AlarmScreenState {
   final int fullTime;
-  const AlarmScreenFinalized(this.fullTime);
+  const AlarmScreenFinalization(this.fullTime);
 
   @override
   List<Object?> get props => [fullTime];

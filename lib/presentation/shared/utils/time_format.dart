@@ -41,3 +41,9 @@ String formatEalyLateTime(int seconds) {
     return '$minutes분';
   }
 }
+
+String formatElapsedTime(int sec) {
+  final m = sec ~/ 60;
+  final s = sec % 60;
+  return '$m분 ${s.toString().padLeft(2, '0')}초';
+}

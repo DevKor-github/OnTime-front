@@ -5,8 +5,6 @@ import 'package:on_time_front/core/dio/app_dio.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
-import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
-
 class ScheduleListScreen extends StatefulWidget {
   const ScheduleListScreen({super.key});
 
@@ -32,7 +30,6 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
   Future<void> loadScheduleData() async {
     try {
       final data = await scheduleRemoteDataSource.getSchedulesByDate(
-        // 여기 now로 고칠 것
         DateTime.now(),
         null, // endDate는 null 허용
       );

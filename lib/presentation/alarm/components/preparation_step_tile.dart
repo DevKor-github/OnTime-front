@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_line/dotted_line.dart';
+import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class PreparationStepTile extends StatefulWidget {
   final int stepIndex;
@@ -26,12 +27,6 @@ class PreparationStepTile extends StatefulWidget {
 }
 
 class _PreparationStepTileState extends State<PreparationStepTile> {
-  String _formatTime(int sec) {
-    final m = sec ~/ 60;
-    final s = sec % 60;
-    return '$m분 ${s.toString().padLeft(2, '0')}초';
-  }
-
   // 좌측 순서 및 체크 표시
   @override
   Widget build(BuildContext context) {
@@ -56,10 +51,10 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
       displayTime = widget.preparationTime;
     } else if (widget.state == 'now') {
       // 진행 중: elapsedTime (누적 시간 타이머)
-      displayTime = _formatTime(widget.elapsedTime);
+      displayTime = formatElapsedTime(widget.elapsedTime);
     } else {
       // done: 완료된 누적 시간
-      displayTime = _formatTime(widget.elapsedTime);
+      displayTime = formatElapsedTime(widget.elapsedTime);
     }
 
     // 건너뛰기 버튼

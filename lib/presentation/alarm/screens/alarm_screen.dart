@@ -1,14 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/core/dio/app_dio.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_screen_bloc.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_screen_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 import 'package:on_time_front/presentation/alarm/components/alarm_graph_component.dart';
-import 'package:on_time_front/presentation/alarm/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
@@ -55,13 +53,12 @@ class _AlarmScreenState extends State<AlarmScreen>
         scheduleId: widget.schedule.id,
         schedule: widget.schedule, // 스케줄 정보 전달
         preparationRemoteDataSource: PreparationRemoteDataSourceImpl(
-          Dio(),
-          // AppDio(),
+          AppDio(),
         ),
-      )..add(AlarmScreenFetchPreparation(widget.schedule.id)),
+      )..add(AlarmScreenPreparationFetched(widget.schedule.id)),
       child: BlocListener<AlarmScreenBloc, AlarmScreenState>(
         listener: (context, state) {
-          if (state is AlarmScreenLoaded) {
+          if (state is AlarmScreenLoadSuccess) {
             _progressAnimation = Tween<double>(
               begin: currentProgress,
               end: state.progress,
@@ -74,7 +71,7 @@ class _AlarmScreenState extends State<AlarmScreen>
             _animationController.reset();
             _animationController.forward();
           }
-          if (state is AlarmScreenFinalized) {
+          if (state is AlarmScreenFinalization) {
             context.go('/earlyLate', extra: state.fullTime);
           }
         },
@@ -82,9 +79,10 @@ class _AlarmScreenState extends State<AlarmScreen>
           backgroundColor: const Color(0xff5C79FB),
           body: BlocBuilder<AlarmScreenBloc, AlarmScreenState>(
             builder: (context, state) {
-              if (state is AlarmScreenLoading || state is AlarmScreenInitial) {
+              if (state is AlarmScreenLoadInProgress ||
+                  state is AlarmScreenInitial) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (state is AlarmScreenLoaded) {
+              } else if (state is AlarmScreenLoadSuccess) {
                 return Column(
                   children: [
                     // 상단 텍스트
@@ -169,7 +167,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                               currentIndex: state.currentIndex,
                               onSkip: () => context
                                   .read<AlarmScreenBloc>()
-                                  .add(const AlarmScreenSkipPreparation()),
+                                  .add(const AlarmScreenPreparationSkipped()),
                             ),
                           ),
                           Positioned(
@@ -193,7 +191,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                                       onPressed: () => context
                                           .read<AlarmScreenBloc>()
                                           .add(
-                                              const AlarmScreenFinalizePreparation()),
+                                              const AlarmScreenPreparationFinalized()),
                                     ),
                                   ),
                                 )

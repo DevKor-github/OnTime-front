@@ -140,7 +140,7 @@ void main() {
     test('should throw an exception when the response code is not 200',
         () async {
       // arrange
-      when(dio.post(
+      when(dio.put(
         Endpoint.createDefaultPreparation,
         data: tCreateDefualtPreparationRequestModel.toJson(),
       )).thenAnswer(

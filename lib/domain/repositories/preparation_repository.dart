@@ -9,7 +9,10 @@ abstract interface class PreparationRepository {
   Future<PreparationStepEntity> getPreparationStepById(
       String preparationStepId);
 
-  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
+  Future<void> createDefaultPreparation(
+      {required PreparationEntity preparationEntity,
+      required Duration spareTime,
+      required String note});
 
   Future<void> createCustomPreparation(
       PreparationEntity preparationEntity, String scheduleId);

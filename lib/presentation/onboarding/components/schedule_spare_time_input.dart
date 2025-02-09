@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
-import 'package:on_time_front/presentation/onboarding/onboarding_page_view_layout.dart';
+import 'package:on_time_front/presentation/onboarding/components/mutly_page_form.dart';
+import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/shared/components/time_stepper.dart';
 
 class ScheduleSpareTimeField extends StatefulWidget {

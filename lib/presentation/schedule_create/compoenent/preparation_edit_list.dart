@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/presentation/onboarding/mutly_page_form.dart';
+import 'package:on_time_front/presentation/onboarding/components/mutly_page_form.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/preparation_form/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_reorderable_list_form_field.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';

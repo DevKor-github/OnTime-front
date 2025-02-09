@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_reordarable_list.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_select_list.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_time_input_list.dart';
-import 'package:on_time_front/presentation/onboarding/schedule_spare_time_input.dart';
+import 'package:on_time_front/presentation/onboarding/components/preparation_reordarable_list.dart';
+import 'package:on_time_front/presentation/onboarding/components/preparation_select_list.dart';
+import 'package:on_time_front/presentation/onboarding/components/preparation_time_input_list.dart';
+import 'package:on_time_front/presentation/onboarding/components/schedule_spare_time_input.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -220,16 +220,6 @@ class PageIndicator extends StatelessWidget {
         )
       ],
     );
-  }
-}
-
-class Test {
-  Test({this.a, this.b});
-  final String? a;
-  final String? b;
-
-  Test copyWith({String? a, String? b}) {
-    return Test(a: a ?? this.a, b: b ?? this.b);
   }
 }
 

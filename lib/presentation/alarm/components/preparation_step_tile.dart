@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_line/dotted_line.dart';
-import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class PreparationStepTile extends StatefulWidget {
   final int stepIndex;
@@ -27,6 +26,12 @@ class PreparationStepTile extends StatefulWidget {
 }
 
 class _PreparationStepTileState extends State<PreparationStepTile> {
+  String _formatTime(int sec) {
+    final m = sec ~/ 60;
+    final s = sec % 60;
+    return '$m분 ${s.toString().padLeft(2, '0')}초';
+  }
+
   // 좌측 순서 및 체크 표시
   @override
   Widget build(BuildContext context) {
@@ -51,10 +56,10 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
       displayTime = widget.preparationTime;
     } else if (widget.state == 'now') {
       // 진행 중: elapsedTime (누적 시간 타이머)
-      displayTime = formatElapsedTime(widget.elapsedTime);
+      displayTime = _formatTime(widget.elapsedTime);
     } else {
       // done: 완료된 누적 시간
-      displayTime = formatElapsedTime(widget.elapsedTime);
+      displayTime = _formatTime(widget.elapsedTime);
     }
 
     // 건너뛰기 버튼
@@ -115,6 +120,7 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const Spacer(),
@@ -137,11 +143,12 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnimatedContainer(
+        AnimatedSize(
           duration: Duration(milliseconds: 300),
-          width: 358,
-          height: (widget.state == 'now' && skipButton != null) ? 135 : 62,
+          curve: Curves.ease,
           child: Container(
+            width: 358,
+            height: (widget.state == 'now' && skipButton != null) ? 135 : 62,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(10)),
               border: (widget.state == 'now')
@@ -156,7 +163,7 @@ class _PreparationStepTileState extends State<PreparationStepTile> {
                   boxChild,
                   if (skipButton != null) ...[
                     const SizedBox(height: 20),
-                    Flexible(
+                    Expanded(
                       child: skipButton,
                     ),
                   ]

@@ -74,9 +74,7 @@ class _AlarmScreenState extends State<AlarmScreen>
       create: (context) => AlarmScreenBloc(
         scheduleId: widget.schedule.id,
         schedule: widget.schedule,
-        preparationRemoteDataSource:
-            // PreparationRemoteDataSourceImpl(AppDio())),
-            PreparationRemoteDataSourceImpl(Dio()), // AppDio 대신 Dio 사용
+        preparationRemoteDataSource: PreparationRemoteDataSourceImpl(AppDio()),
       )..add(AlarmScreenFetchPreparation(widget.schedule.id)),
       child: Scaffold(
         backgroundColor: const Color(0xff5C79FB),

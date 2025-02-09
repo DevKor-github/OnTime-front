@@ -102,7 +102,7 @@ class _EarlyLateScreenState extends State<EarlyLateScreen> {
               Padding(
                 padding: EdgeInsets.only(top: screenHeight * 0.01),
                 child: Image.asset(
-                  'lib/images/ontime_mascot.png',
+                  'assets/character.png',
                   width: 150,
                   height: 150,
                 ),

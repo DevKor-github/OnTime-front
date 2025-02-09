@@ -7,4 +7,4 @@ abstract class ScheduleByDateEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class ScheduleListFetchEvent extends ScheduleByDateEvent {}
+class ScheduleByDateFetchEvent extends ScheduleByDateEvent {}

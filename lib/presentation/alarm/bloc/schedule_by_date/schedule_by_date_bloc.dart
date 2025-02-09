@@ -14,22 +14,22 @@ class ScheduleByDateBloc
   final ScheduleRemoteDataSource scheduleRemoteDataSource;
 
   ScheduleByDateBloc({required this.scheduleRemoteDataSource})
-      : super(ScheduleListInitial()) {
-    on<ScheduleListFetchEvent>(_onFetchEvent);
+      : super(ScheduleByDateInitial()) {
+    on<ScheduleByDateFetchEvent>(_onFetchEvent);
   }
 
   Future<void> _onFetchEvent(
-      ScheduleListFetchEvent event, Emitter<ScheduleByDateState> emit) async {
-    emit(ScheduleListLoadInProgress());
+      ScheduleByDateFetchEvent event, Emitter<ScheduleByDateState> emit) async {
+    emit(ScheduleByDateLoadInProgress());
     try {
       // 서버에서 오늘 날짜 기준 목록을 받아옴
       final schedules = await scheduleRemoteDataSource.getSchedulesByDate(
         DateTime.now(),
         null,
       );
-      emit(ScheduleListLoadSuccess(schedules: schedules));
+      emit(ScheduleByDateLoadSuccess(schedules: schedules));
     } catch (e) {
-      emit(ScheduleListError(errorMessage: e.toString()));
+      emit(ScheduleByDateError(errorMessage: e.toString()));
     }
   }
 }

@@ -16,6 +16,6 @@ class OnboardUseCase {
       required String note}) async {
     await _preparationRepository.createDefaultPreparation(
         preparationEntity: preparationEntity, spareTime: spareTime, note: note);
-    await _authenticationRepository.getUSer();
+    await _authenticationRepository.getUser();
   }
 }

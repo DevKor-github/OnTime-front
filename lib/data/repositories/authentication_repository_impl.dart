@@ -84,7 +84,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  Future<UserEntity> getUSer() async {
+  Future<UserEntity> getUser() async {
     try {
       final user = await _authenticationRemoteDataSource.getUser();
       _userStreamController.add(user);

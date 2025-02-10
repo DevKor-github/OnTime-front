@@ -1,9 +1,9 @@
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/data/repositories/authentication_repository_impl.dart';
+import 'package:on_time_front/domain/repositories/authentication_repository.dart';
 
 @Injectable()
 class SignOutUseCase {
-  final AuthenticationRepositoryImpl _authenticationRepository;
+  final AuthenticationRepository _authenticationRepository;
 
   SignOutUseCase(this._authenticationRepository);
 

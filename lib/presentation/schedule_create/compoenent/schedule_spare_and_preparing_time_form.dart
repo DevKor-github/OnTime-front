@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
 
 class ScheduleSpareAndPreparingTimeForm extends StatefulWidget {
@@ -62,8 +63,9 @@ class _ScheduleSpareAndPreparingTimeFormState
           Expanded(
             flex: 1,
             child: FormField<Duration>(
-              initialValue:
-                  widget.initalValue.scheduleSpareTime ?? Duration.zero,
+              initialValue: widget.initalValue.scheduleSpareTime ??
+                  context.select((AppBloc appBloc) =>
+                      appBloc.state.user.mapOrNull((user) => user.spareTime))!,
               builder: (field) => TextField(
                 readOnly: true,
                 decoration: InputDecoration(labelText: ''),

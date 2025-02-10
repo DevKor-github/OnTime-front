@@ -5,10 +5,12 @@ class Endpoint {
   static const _signIn = '/login';
   static const _signUp = '/sign-up';
   static const _signInWithGoogle = '/oauth2/google/registerOrLogin';
+  static const _getUser = '/user/info';
 
   static get signIn => _signIn;
   static get signUp => _signUp;
   static get signInWithGoogle => _signInWithGoogle;
+  static get getUser => _getUser;
 
   // schedule
   static const _getScheduleById = '/schedule/show/id?scheduleId=';
@@ -26,8 +28,7 @@ class Endpoint {
   static deleteSchedule(String scheduleId) => '$_deleteSchedule/$scheduleId';
 
   // preparation
-  static const _createDefaultPreparation =
-      '/preparationuser/set/first'; // 사용자 준비과정 첫 세팅
+  static const _createDefaultPreparation = '/user/onboarding'; // 사용자 준비과정 첫 세팅
   static const _createCustomPreparation =
       '/preparationschedule/create'; // 스케줄별 준비과정 생성
 

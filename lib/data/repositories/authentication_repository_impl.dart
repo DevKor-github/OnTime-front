@@ -66,6 +66,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
           final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
             accessToken: accessToken,
           );
+          await _tokenLocalDataSource.deleteToken();
           final result = await _authenticationRemoteDataSource
               .signInWithGoogle(signInWithGoogleRequestModel);
           await _tokenLocalDataSource.storeToken(result.$2);
@@ -78,6 +79,17 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       }
     } catch (e) {
       debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UserEntity> getUSer() async {
+    try {
+      final user = await _authenticationRemoteDataSource.getUser();
+      _userStreamController.add(user);
+      return user;
+    } catch (e) {
       rethrow;
     }
   }

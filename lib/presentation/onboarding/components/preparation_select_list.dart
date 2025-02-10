@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/onboarding/onboarding_page_view_layout.dart';
-import 'package:on_time_front/presentation/onboarding/onboarding_screen.dart';
+import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
+import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/shared/components/check_button.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';

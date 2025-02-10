@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/home/bloc/weekly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
@@ -41,13 +42,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Overlay.of(context).insert(_overlayEntry!);
       }
     });
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    )..forward();
-    _animation = _animationController.drive(
-      Tween<double>(begin: 0, end: 0.7),
-    );
     super.initState();
   }
 
@@ -63,7 +57,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final dateOfToday = DateTime(
         DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
     final theme = Theme.of(context);
-
+    final double score = context.select(
+        (AppBloc bloc) => bloc.state.user.mapOrNull((user) => user.score)!);
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    )..forward();
+    _animation = _animationController.drive(
+      Tween<double>(begin: 0, end: score / 100),
+    );
     return BlocProvider(
       create: (context) => getIt.get<WeeklySchedulesBloc>()
         ..add(WeeklySchedulesSubscriptionRequested(date: dateOfToday)),
@@ -91,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('70점',
+                                Text('${score.toInt()}점',
                                     style: theme.textTheme.displaySmall),
                                 SizedBox(height: 6.0),
                                 Text(
@@ -176,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
           child: Icon(Icons.add),
         ),
-        bottomNavigationBar: CustomBottomNavigationBar(),
+        //bottomNavigationBar: CustomBottomNavigationBar(),
       ),
     );
   }

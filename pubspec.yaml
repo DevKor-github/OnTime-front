@@ -119,13 +119,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/check.svg
-    - assets/drag_indicator.svg
-    - assets/bell.svg
-    - assets/friends.svg
-    - assets/character.png
-    - assets/arrow_right.svg
-    - assets/meatballs.svg
+    - assets/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

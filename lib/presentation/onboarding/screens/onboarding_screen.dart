@@ -169,9 +169,8 @@ class _OnboardingFormState extends State<OnboardingForm>
     if (_tabController.index < _numberOfPages - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
-      return await context
-          .read<OnboardingCubit>()
-          .onboardingFormSubmitted(preparationFormData.toOnboardingState());
+      return await context.read<OnboardingCubit>().onboardingFormSubmitted(
+          preparationFormData.toOnboardingState(spareTime));
     }
   }
 
@@ -278,7 +277,7 @@ class PreparationFormData {
     return tmp.map((e) => e.preparationStep).toList();
   }
 
-  OnboardingState toOnboardingState() {
+  OnboardingState toOnboardingState(Duration spareTime) {
     final sortedList = sortByOrder().preparationStepList;
     final steps = sortedList
         .mapIndexed((index, step) => OnboardingPreparationStepState(
@@ -290,7 +289,7 @@ class PreparationFormData {
                   : null, // if not last step, set next step id
             ))
         .toList();
-    return OnboardingState(preparationStepList: steps);
+    return OnboardingState(preparationStepList: steps, spareTime: spareTime);
   }
 }
 

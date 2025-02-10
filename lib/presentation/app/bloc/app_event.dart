@@ -8,6 +8,6 @@ final class AppUserSubscriptionRequested extends AppEvent {
   const AppUserSubscriptionRequested();
 }
 
-final class AppLogoutPressed extends AppEvent {
-  const AppLogoutPressed();
+final class AppSignOutPressed extends AppEvent {
+  const AppSignOutPressed();
 }

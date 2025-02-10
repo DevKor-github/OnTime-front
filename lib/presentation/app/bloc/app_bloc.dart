@@ -3,26 +3,32 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/authentication_repository.dart';
+import 'package:on_time_front/domain/use-cases/load_user_use_case.dart';
+import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
+import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
 
 part 'app_event.dart';
 part 'app_state.dart';
 
 @Injectable()
 class AppBloc extends Bloc<AppEvent, AppState> {
-  AppBloc(this._authenticationRepository)
+  AppBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase)
       : super(AppState(user: const UserEntity.empty())) {
     on<AppUserSubscriptionRequested>(_appUserSubscriptionRequested);
     on<AppLogoutPressed>(_appLogoutPressed);
   }
 
-  final AuthenticationRepository _authenticationRepository;
+  final StreamUserUseCase _streamUserUseCase;
+  final LoadUserUseCase _loadUserUseCase;
+  final SignOutUseCase _signOutUseCase;
 
   Future<void> _appUserSubscriptionRequested(
     AppUserSubscriptionRequested event,
     Emitter<AppState> emit,
   ) {
+    _loadUserUseCase();
     return emit.onEach(
-      _authenticationRepository.userStream,
+      _streamUserUseCase.call(),
       onData: (user) => emit(
         state.copyWith(
           user: user,
@@ -41,6 +47,6 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     AppLogoutPressed event,
     Emitter<AppState> emit,
   ) {
-    _authenticationRepository.signOut();
+    _signOutUseCase();
   }
 }

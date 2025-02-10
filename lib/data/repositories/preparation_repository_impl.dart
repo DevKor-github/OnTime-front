@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/preparation_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
+import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -21,10 +22,15 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity) async {
+      {required PreparationEntity preparationEntity,
+      required Duration spareTime,
+      required String note}) async {
     try {
-      await preparationRemoteDataSource
-          .createDefaultPreparation(preparationEntity);
+      await preparationRemoteDataSource.createDefaultPreparation(
+          CreateDefaultPreparationRequestModel.fromEntity(
+              preparationEntity: preparationEntity,
+              spareTime: spareTime,
+              note: note));
     } catch (e) {
       rethrow;
     }

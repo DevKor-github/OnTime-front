@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
+import 'package:on_time_front/data/models/get_user_response_model.dart';
 import 'package:on_time_front/data/models/sign_in_user_response_model.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
@@ -14,6 +15,8 @@ abstract interface class AuthenticationRemoteDataSource {
 
   Future<(UserEntity, TokenEntity)> signInWithGoogle(
       SignInWithGoogleRequestModel signInWithGoogleRequestModel);
+
+  Future<UserEntity> getUser();
 }
 
 @Injectable(as: AuthenticationRemoteDataSource)
@@ -83,6 +86,21 @@ class AuthenticationRemoteDataSourceImpl
         return (user.toEntity(), token);
       } else {
         throw Exception('Error signing in with Google');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UserEntity> getUser() async {
+    try {
+      final result = await dio.get(Endpoint.getUser);
+      if (result.statusCode == 200) {
+        final user = GetUserResponseModel.fromJson(result.data['data']);
+        return user.toEntity();
+      } else {
+        throw Exception('Error getting user');
       }
     } catch (e) {
       rethrow;

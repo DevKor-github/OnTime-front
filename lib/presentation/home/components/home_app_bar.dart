@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -30,7 +32,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           [
             IconButton(
               icon: friendsSvg,
-              onPressed: () {},
+              onPressed: () {
+                context.read<AppBloc>().add(AppSignOutPressed());
+              },
             ),
             IconButton(
               icon: bellSvg,

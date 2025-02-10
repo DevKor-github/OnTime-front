@@ -15,7 +15,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase)
       : super(AppState(user: const UserEntity.empty())) {
     on<AppUserSubscriptionRequested>(_appUserSubscriptionRequested);
-    on<AppLogoutPressed>(_appLogoutPressed);
+    on<AppSignOutPressed>(_appLogoutPressed);
   }
 
   final StreamUserUseCase _streamUserUseCase;
@@ -44,7 +44,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   void _appLogoutPressed(
-    AppLogoutPressed event,
+    AppSignOutPressed event,
     Emitter<AppState> emit,
   ) {
     _signOutUseCase();

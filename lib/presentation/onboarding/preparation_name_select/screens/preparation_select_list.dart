@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
-import 'package:on_time_front/presentation/onboarding/cubit/preparateion_step_name/preparation_step_name_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/shared/components/check_button.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';

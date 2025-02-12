@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/preparateion_step_name/preparation_step_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
@@ -167,6 +168,51 @@ class _PreparationSelectListState extends State<PreparationSelectList> {
   Widget build(BuildContext context) {
     return ListView(
       children: _listViewChildren(context),
+    );
+  }
+}
+
+class PreparationNameSelectField extends StatelessWidget {
+  const PreparationNameSelectField({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final preparationStepState =
+        context.select((PreparationStepNameCubit cubit) => cubit.state);
+
+    return Tile(
+      key: ValueKey<String>(preparationStepState.preparationId),
+      style: TileStyle(padding: EdgeInsets.all(16.0)),
+      leading: SizedBox(
+          width: 30,
+          height: 30,
+          child: CheckButton(
+            isChecked: false,
+            onPressed: () {},
+          )),
+      child: Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 19.0),
+          child: Container(
+            constraints: BoxConstraints(minHeight: 30),
+            child: TextField(
+              controller: TextEditingController(
+                  text: preparationStepState.preparationName),
+              onChanged: context.read<PreparationStepNameCubit>().nameChanged,
+              focusNode: preparationStepState.focusNode,
+              onSubmitted: (_) {},
+              onTapOutside: (event) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.all(3.0),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

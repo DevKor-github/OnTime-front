@@ -7,7 +7,7 @@ import 'package:on_time_front/presentation/onboarding/components/preparation_reo
 import 'package:on_time_front/presentation/onboarding/components/preparation_select_list.dart';
 import 'package:on_time_front/presentation/onboarding/components/preparation_time_input_list.dart';
 import 'package:on_time_front/presentation/onboarding/components/schedule_spare_time_input.dart';
-import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});

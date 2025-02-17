@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/shared/components/check_button.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
-import 'package:uuid/uuid.dart';
 
 typedef OnSelectedStepChangedCallBackFunction<T> = void Function(List<T>);
 
@@ -25,23 +25,15 @@ class PreparationSelectList extends StatefulWidget {
 }
 
 class _PreparationSelectListState extends State<PreparationSelectList> {
-  final List<FocusNode> focusNodes = [];
-  final FocusNode tmpAddFocusNode = FocusNode();
   bool isAdding = false;
 
   @override
   void initState() {
     super.initState();
-    for (var i = 0; i < widget.preparationList.length; i++) {
-      focusNodes.add(FocusNode());
-    }
   }
 
   @override
   void dispose() {
-    for (var i = 0; i < widget.preparationList.length; i++) {
-      focusNodes[i].dispose();
-    }
     super.dispose();
   }
 
@@ -51,124 +43,110 @@ class _PreparationSelectListState extends State<PreparationSelectList> {
     widget.onSelectedStepChanged(widget.preparationList);
   }
 
-  List<Widget> _listViewChildren(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    List<Widget> children = [];
-    for (var i = 0; i < widget.preparationList.length; i++) {
-      PreparationStepWithSelection step = widget.preparationList[i];
-      children.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: GestureDetector(
-            onTap: () => FocusScope.of(context).requestFocus(focusNodes[i]),
-            child: Tile(
-                style: TileStyle(
-                  padding: EdgeInsets.all(16.0),
-                ),
-                key: ValueKey<String>(step.id),
-                leading: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 0.0),
-                  child: SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: CheckButton(
-                        isChecked: step.isSelected,
-                        onPressed: () => onStepSelected(i),
-                      )),
-                ),
-                child: Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 19.0),
-                    child: PreparationNameTextField(
-                      preparationName: step.preparationName,
-                      focusNode: focusNodes[i],
-                      onChanged: (value) {},
-                      onsubmitted: (value) {
-                        widget.preparationList[i].preparationName = value;
-                        widget.onSelectedStepChanged(widget.preparationList);
-                      },
-                    ),
-                  ),
-                )),
-          ),
-        ),
-      );
-    }
-    children.addAll([
-      isAdding
-          ? Tile(
-              key: ValueKey<String>('adding'),
-              style: TileStyle(padding: EdgeInsets.all(16.0)),
-              leading: SizedBox(
-                  width: 30,
-                  height: 30,
-                  child: CheckButton(
-                    isChecked: false,
-                    onPressed: () {},
-                  )),
-              child: Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 19.0),
-                  child: PreparationNameTextField(
-                    preparationName: '',
-                    focusNode: tmpAddFocusNode,
-                    onChanged: (value) {},
-                    onsubmitted: (value) {
-                      setState(() {
-                        isAdding = false;
-                      });
-                      widget.preparationList.add(PreparationStepWithSelection(
-                          id: Uuid().v7(),
-                          preparationName: value,
-                          isSelected: true));
-                      focusNodes.add(FocusNode());
-                      widget.onSelectedStepChanged(widget.preparationList);
-                    },
-                    onFocusChange: (value) {
-                      if (!value) {
-                        setState(() {
-                          isAdding = false;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ))
-          : SizedBox.shrink(),
-      SizedBox(
-        height: 32.0,
-      ),
-      Center(
-        child: SizedBox(
-          height: 30,
-          width: 30,
-          child: IconButton(
-            style: ButtonStyle(
-              backgroundColor:
-                  WidgetStateProperty.all<Color>(colorScheme.primaryContainer),
-            ),
-            onPressed: () {
-              tmpAddFocusNode.requestFocus();
-              setState(() {
-                isAdding = true;
-              });
-            },
-            color: colorScheme.onPrimary,
-            icon: Icon(Icons.add),
-            padding: EdgeInsets.zero,
-            iconSize: 30.0,
-          ),
-        ),
-      ),
-    ]);
-    return children;
-  }
+  // List<Widget> _listViewChildren(BuildContext context) {
+  //   List<Widget> children = [];
+  //   for (var i = 0; i < widget.preparationList.length; i++) {
+  //     PreparationStepWithSelection step = widget.preparationList[i];
+  //     children.add(
+  //       Padding(
+  //         padding: const EdgeInsets.only(bottom: 8.0),
+  //         child: GestureDetector(
+  //           onTap: () => FocusScope.of(context).requestFocus(focusNodes[i]),
+  //           child: Tile(
+  //               style: TileStyle(
+  //                 padding: EdgeInsets.all(16.0),
+  //               ),
+  //               key: ValueKey<String>(step.id),
+  //               leading: Padding(
+  //                 padding: const EdgeInsets.symmetric(vertical: 0.0),
+  //                 child: SizedBox(
+  //                     width: 30,
+  //                     height: 30,
+  //                     child: CheckButton(
+  //                       isChecked: step.isSelected,
+  //                       onPressed: () => onStepSelected(i),
+  //                     )),
+  //               ),
+  //               child: Expanded(
+  //                 child: Padding(
+  //                   padding: const EdgeInsets.symmetric(horizontal: 19.0),
+  //                   child: PreparationNameTextField(
+  //                     preparationName: step.preparationName,
+  //                     focusNode: focusNodes[i],
+  //                     onChanged: (value) {},
+  //                     onsubmitted: (value) {
+  //                       widget.preparationList[i].preparationName = value;
+  //                       widget.onSelectedStepChanged(widget.preparationList);
+  //                     },
+  //                   ),
+  //                 ),
+  //               )),
+  //         ),
+  //       ),
+  //     );
+  //   }
+  //   return children;
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: _listViewChildren(context),
-    );
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return BlocBuilder<PreparationNameCubit, PreparationNameState>(
+        builder: (context, state) {
+      return ListView(
+        children: [
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: state.preparationStepList.length,
+            itemBuilder: (context, index) {
+              return BlocProvider<PreparationStepNameCubit>(
+                create: (context) => PreparationStepNameCubit(
+                  state.preparationStepList[index],
+                  preparationNameCubit: context.read<PreparationNameCubit>(),
+                ),
+                child: PreparationNameSelectField(),
+              );
+            },
+          ),
+          isAdding
+              ? BlocProvider<PreparationStepNameCubit>(
+                  create: (context) => PreparationStepNameCubit(
+                      PreparationStepNameState(),
+                      preparationNameCubit:
+                          context.read<PreparationNameCubit>()),
+                  child: PreparationNameSelectField(),
+                )
+              : SizedBox.shrink(),
+          SizedBox(
+            height: 32.0,
+          ),
+          Center(
+            child: SizedBox(
+              height: 30,
+              width: 30,
+              child: IconButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all<Color>(
+                      colorScheme.primaryContainer),
+                ),
+                onPressed: () {
+                  //tmpAddFocusNode.requestFocus();
+                  setState(() {
+                    isAdding = true;
+                  });
+                },
+                color: colorScheme.onPrimary,
+                icon: Icon(Icons.add),
+                padding: EdgeInsets.zero,
+                iconSize: 30.0,
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -177,42 +155,46 @@ class PreparationNameSelectField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final preparationStepState =
-        context.select((PreparationStepNameCubit cubit) => cubit.state);
-
-    return Tile(
-      key: ValueKey<String>(preparationStepState.preparationId),
-      style: TileStyle(padding: EdgeInsets.all(16.0)),
-      leading: SizedBox(
-          width: 30,
-          height: 30,
-          child: CheckButton(
-            isChecked: false,
-            onPressed: () {},
-          )),
-      child: Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 19.0),
-          child: Container(
-            constraints: BoxConstraints(minHeight: 30),
-            child: TextField(
-              controller: TextEditingController(
-                  text: preparationStepState.preparationName),
-              onChanged: context.read<PreparationStepNameCubit>().nameChanged,
-              focusNode: preparationStepState.focusNode,
-              onSubmitted: (_) {},
-              onTapOutside: (event) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
-              decoration: InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.all(3.0),
+    return BlocBuilder<PreparationStepNameCubit, PreparationStepNameState>(
+      builder: (context, state) {
+        return Tile(
+          key: ValueKey<String>(state.preparationId),
+          style: TileStyle(padding: EdgeInsets.all(16.0)),
+          leading: SizedBox(
+              width: 30,
+              height: 30,
+              child: CheckButton(
+                isChecked: state.isSelected,
+                onPressed: () {
+                  context.read<PreparationStepNameCubit>().selectionToggled();
+                },
+              )),
+          child: Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 19.0),
+              child: Container(
+                constraints: BoxConstraints(minHeight: 30),
+                child: TextFormField(
+                  initialValue: state.preparationName.value,
+                  onChanged:
+                      context.read<PreparationStepNameCubit>().nameChanged,
+                  onFieldSubmitted: (value) => context
+                      .read<PreparationStepNameCubit>()
+                      .preparationStepSaved(),
+                  onTapOutside: (event) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.all(3.0),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -318,28 +300,7 @@ class _PreparationSelectFieldState extends State<PreparationSelectField> {
   void initState() {
     super.initState();
     if (widget.initailValue.isEmpty) {
-      preparationStepSelectingList = [
-        PreparationStepWithSelection(
-          id: Uuid().v7(),
-          preparationName: '샤워하기',
-          isSelected: false,
-        ),
-        PreparationStepWithSelection(
-          id: Uuid().v7(),
-          preparationName: '메이크업',
-          isSelected: false,
-        ),
-        PreparationStepWithSelection(
-          id: Uuid().v7(),
-          preparationName: '머리 세팅하기',
-          isSelected: false,
-        ),
-        PreparationStepWithSelection(
-          id: Uuid().v7(),
-          preparationName: '짐 챙기기',
-          isSelected: false,
-        ),
-      ];
+      preparationStepSelectingList = [];
     } else {
       preparationStepSelectingList.addAll(
         widget.initailValue.map((e) {
@@ -356,32 +317,35 @@ class _PreparationSelectFieldState extends State<PreparationSelectField> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return OnboardingPageViewLayout(
-      title: Text(
-        '주로 하는 준비 과정을\n선택해주세요',
-        style: textTheme.titleLarge,
-      ),
-      form: Form(
-        key: widget.formKey,
-        child: FormField<List<PreparationStepWithSelection>>(
-          initialValue: preparationStepSelectingList,
-          onSaved: (value) {
-            widget.onSaved
-                ?.call(value!.where((element) => element.isSelected).map((e) {
-              return PreparationStepWithNameAndId(
-                id: e.id,
-                preparationName: e.preparationName,
-              );
-            }).toList());
-          },
-          builder: (field) => PreparationSelectList(
-            preparationList: preparationStepSelectingList,
-            onSelectedStepChanged: (value) {
-              field.didChange(value);
-              setState(() {
-                preparationStepSelectingList = value;
-              });
+    return BlocProvider<PreparationNameCubit>(
+      create: (context) => PreparationNameCubit(),
+      child: OnboardingPageViewLayout(
+        title: Text(
+          '주로 하는 준비 과정을\n선택해주세요',
+          style: textTheme.titleLarge,
+        ),
+        form: Form(
+          key: widget.formKey,
+          child: FormField<List<PreparationStepWithSelection>>(
+            initialValue: preparationStepSelectingList,
+            onSaved: (value) {
+              widget.onSaved
+                  ?.call(value!.where((element) => element.isSelected).map((e) {
+                return PreparationStepWithNameAndId(
+                  id: e.id,
+                  preparationName: e.preparationName,
+                );
+              }).toList());
             },
+            builder: (field) => PreparationSelectList(
+              preparationList: preparationStepSelectingList,
+              onSelectedStepChanged: (value) {
+                field.didChange(value);
+                setState(() {
+                  preparationStepSelectingList = value;
+                });
+              },
+            ),
           ),
         ),
       ),

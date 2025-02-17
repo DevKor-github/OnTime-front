@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/onboarding/components/preparation_reordarable_list.dart';
-import 'package:on_time_front/presentation/onboarding/components/preparation_select_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_select_list.dart';
 import 'package:on_time_front/presentation/onboarding/components/preparation_time_input_list.dart';
 import 'package:on_time_front/presentation/onboarding/components/schedule_spare_time_input.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';

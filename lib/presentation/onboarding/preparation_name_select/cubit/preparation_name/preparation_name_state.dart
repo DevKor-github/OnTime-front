@@ -11,21 +11,31 @@ final class PreparationNameState extends Equatable {
   final List<PreparationStepNameState> preparationStepList;
   final PreparationNameStatus status;
 
+  PreparationNameState copyWith({
+    List<PreparationStepNameState>? preparationStepList,
+    PreparationNameStatus? status,
+  }) {
+    return PreparationNameState(
+      preparationStepList: preparationStepList ?? this.preparationStepList,
+      status: status ?? this.status,
+    );
+  }
+
   @override
   List<Object> get props => [status];
 }
 
 final onBoardingPreparationSuggestion = [
   PreparationStepNameState(
-    preparationName: '화장실 가기',
+    preparationName: PreparationNameInputModel.dirty('화장실 가기'),
   ),
   PreparationStepNameState(
-    preparationName: '메이크업',
+    preparationName: PreparationNameInputModel.dirty('메이크업'),
   ),
   PreparationStepNameState(
-    preparationName: '머리 세팅하기',
+    preparationName: PreparationNameInputModel.dirty('머리 세팅하기'),
   ),
   PreparationStepNameState(
-    preparationName: '짐 챙기기',
+    preparationName: PreparationNameInputModel.dirty('짐 챙기기'),
   ),
 ];

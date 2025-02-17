@@ -1,40 +1,33 @@
 part of 'preparation_step_name_cubit.dart';
 
-enum PreparationStepNameStatus { selected, unselected }
-
 class PreparationStepNameState extends Equatable {
   PreparationStepNameState({
     String? preparationId,
-    this.preparationName = '',
-    FocusNode? focusNode,
+    this.preparationName = const PreparationNameInputModel.pure(),
     this.isValid = false,
-    this.status = PreparationStepNameStatus.unselected,
-  })  : preparationId = preparationId ?? Uuid().v7(),
-        focusNode = focusNode ?? FocusNode();
+    this.isSelected = true,
+  }) : preparationId = preparationId ?? Uuid().v7();
 
   final String preparationId;
-  final String preparationName;
-  final FocusNode focusNode;
+  final PreparationNameInputModel preparationName;
   final bool isValid;
-  final PreparationStepNameStatus status;
+  final bool isSelected;
 
   PreparationStepNameState copyWith({
     String? preparationId,
-    String? preparationName,
-    FocusNode? focusNode,
+    PreparationNameInputModel? preparationName,
     bool? isValid,
-    PreparationStepNameStatus? status,
+    bool? isSelected,
   }) {
     return PreparationStepNameState(
       preparationId: preparationId ?? this.preparationId,
       preparationName: preparationName ?? this.preparationName,
-      focusNode: focusNode ?? this.focusNode,
       isValid: isValid ?? this.isValid,
-      status: status ?? this.status,
+      isSelected: isSelected ?? this.isSelected,
     );
   }
 
   @override
   List<Object> get props =>
-      [preparationId, preparationName, focusNode, isValid, status];
+      [preparationId, preparationName, isValid, isSelected];
 }

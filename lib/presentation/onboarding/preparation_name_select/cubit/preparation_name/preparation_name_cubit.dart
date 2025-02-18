@@ -1,8 +1,4 @@
-import 'dart:math';
-
-import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';

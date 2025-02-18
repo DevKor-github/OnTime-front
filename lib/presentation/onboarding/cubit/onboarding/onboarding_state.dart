@@ -2,19 +2,26 @@ part of 'onboarding_cubit.dart';
 
 class OnboardingState extends Equatable {
   const OnboardingState(
-      {this.preparationStepList = const [], this.spareTime, this.note});
+      {this.preparationStepList = const [],
+      this.spareTime,
+      this.note,
+      this.isValid = false});
   final List<OnboardingPreparationStepState> preparationStepList;
   final Duration? spareTime;
   final String? note;
+  final bool isValid;
 
-  OnboardingState copyWith(
-      {List<OnboardingPreparationStepState>? preparationStepList,
-      Duration? spareTime,
-      String? note}) {
+  OnboardingState copyWith({
+    List<OnboardingPreparationStepState>? preparationStepList,
+    Duration? spareTime,
+    String? note,
+    bool? isValid,
+  }) {
     return OnboardingState(
       preparationStepList: preparationStepList ?? this.preparationStepList,
       spareTime: spareTime ?? this.spareTime,
       note: note ?? this.note,
+      isValid: isValid ?? this.isValid,
     );
   }
 
@@ -32,7 +39,7 @@ class OnboardingState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [preparationStepList, spareTime, note];
+  List<Object?> get props => [preparationStepList, spareTime, note, isValid];
 }
 
 class OnboardingPreparationStepState extends Equatable {

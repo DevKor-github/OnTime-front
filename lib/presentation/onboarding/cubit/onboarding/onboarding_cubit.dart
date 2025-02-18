@@ -22,4 +22,15 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       note: state.note ?? '',
     );
   }
+
+  void onboardingFormChanged(
+      List<OnboardingPreparationStepState> preparationStepList) {
+    emit(state.copyWith(preparationStepList: preparationStepList));
+  }
+
+  void onboardingFormValidated({
+    required bool isValid,
+  }) {
+    emit(state.copyWith(isValid: isValid));
+  }
 }

@@ -73,7 +73,15 @@ ThemeData themeData = ThemeData(
   )),
   elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
-    backgroundColor: WidgetStatePropertyAll(colorScheme.primary),
+    backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+      (Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
+          return colorScheme.surfaceDim;
+        } else {
+          return colorScheme.primary;
+        }
+      },
+    ),
     foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
     textStyle: WidgetStatePropertyAll(textTheme.titleSmall),
     maximumSize: WidgetStatePropertyAll(const Size(double.infinity, 50)),

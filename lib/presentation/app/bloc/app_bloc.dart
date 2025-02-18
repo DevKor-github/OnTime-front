@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
-import 'package:on_time_front/domain/repositories/authentication_repository.dart';
 import 'package:on_time_front/domain/use-cases/load_user_use_case.dart';
 import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
 import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';

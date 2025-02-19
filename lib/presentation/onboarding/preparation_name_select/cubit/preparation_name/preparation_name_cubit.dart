@@ -37,7 +37,7 @@ class PreparationNameCubit extends Cubit<PreparationNameState> {
     ));
   }
 
-  void preparationStepSaved(PreparationStepNameState stepState) {
+  void preparationStepAdded(PreparationStepNameState stepState) {
     if (state.status == PreparationNameStatus.adding) {
       final List<PreparationStepNameState> preparationStepList;
       if (stepState.preparationName.isValid) {

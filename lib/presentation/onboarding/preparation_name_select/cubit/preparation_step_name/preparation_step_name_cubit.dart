@@ -27,6 +27,6 @@ class PreparationStepNameCubit extends Cubit<PreparationStepNameState> {
   }
 
   void preparationStepSaved() {
-    preparationNameCubit.preparationStepSaved(state);
+    preparationNameCubit.preparationStepAdded(state);
   }
 }

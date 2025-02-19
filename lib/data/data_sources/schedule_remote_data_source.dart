@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+
 import 'package:on_time_front/core/constants/endpoint.dart';
 
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
@@ -90,6 +91,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     }
   }
 
+// 여기 원상복귀 해 놓을 것.
   @override
   Future<List<ScheduleEntity>> getSchedulesByDate(
       DateTime startDate, DateTime? endDate) async {
@@ -99,6 +101,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         'startDate': startDate.toIso8601String(),
         'endDate': endDate?.toIso8601String() ?? '',
       });
+
       if (result.statusCode == 200) {
         final List<ScheduleEntity> schedules = result.data["data"]
             .map<ScheduleEntity>(

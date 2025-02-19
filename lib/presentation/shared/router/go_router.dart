@@ -1,10 +1,17 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/main.dart';
+import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
+
+import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
+import 'package:on_time_front/presentation/alarm/screens/early_late_screen.dart';
+
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_start_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_edit_form.dart';
@@ -68,6 +75,24 @@ GoRouter goRouterConfig(AppBloc bloc) {
           path: '/preparationEdit',
           builder: (context, state) => PreparationEditForm(
               preparationEntity: state.extra as PreparationEntity)),
+      GoRoute(
+        path: '/scheduleStart',
+        builder: (context, state) => ScheduleStartScreen(
+          schedule: state.extra as ScheduleEntity,
+        ),
+      ),
+      GoRoute(
+        path: '/alarmScreen',
+        builder: (context, state) => AlarmScreen(
+          schedule: state.extra as ScheduleEntity,
+        ),
+      ),
+      GoRoute(
+        path: '/earlyLate',
+        builder: (context, state) => EarlyLateScreen(
+          earlyLateTime: state.extra as int,
+        ),
+      ),
     ],
   );
 }

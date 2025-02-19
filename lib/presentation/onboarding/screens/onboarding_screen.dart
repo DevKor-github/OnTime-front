@@ -9,6 +9,7 @@ import 'package:on_time_front/presentation/onboarding/preparation_name_select/sc
 import 'package:on_time_front/presentation/onboarding/components/preparation_time_input_list.dart';
 import 'package:on_time_front/presentation/onboarding/components/schedule_spare_time_input.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -42,6 +43,7 @@ class _OnboardingFormState extends State<OnboardingForm>
   final int _numberOfPages = 4;
   final List<Type> _pageCubitTypes = [
     PreparationNameCubit,
+    PreparationOrderCubit,
   ];
 
   @override
@@ -71,6 +73,11 @@ class _OnboardingFormState extends State<OnboardingForm>
                 onboardingCubit: context.read<OnboardingCubit>(),
               ),
             ),
+            BlocProvider<PreparationOrderCubit>(
+              create: (context) => PreparationOrderCubit(
+                onboardingCubit: context.read<OnboardingCubit>(),
+              ),
+            ),
           ],
           child: Builder(builder: (context) {
             return Column(
@@ -90,21 +97,6 @@ class _OnboardingFormState extends State<OnboardingForm>
                       ),
                       PreparationReorderField(
                         formKey: formKeys[1],
-                        initalValue: preparationFormData
-                            .toPreparationStepWithOriginalIndexList(),
-                        onSaved: (value) {
-                          setState(
-                            () {
-                              for (int i = 0; i < value.length; i++) {
-                                preparationFormData.preparationStepList[
-                                    value[i]
-                                        .originalIndex] = preparationFormData
-                                    .preparationStepList[value[i].originalIndex]
-                                    .copyWith(order: i);
-                              }
-                            },
-                          );
-                        },
                       ),
                       PreparationTimeInputFieldList(
                         formKey: formKeys[2],
@@ -160,6 +152,9 @@ class _OnboardingFormState extends State<OnboardingForm>
       switch (_pageCubitTypes[_tabController.index]) {
         case const (PreparationNameCubit):
           context.read<PreparationNameCubit>().preparationSaved();
+          break;
+        case const (PreparationOrderCubit):
+          context.read<PreparationOrderCubit>().preparationOrderSaved();
           break;
         // Add other cases if there are more cubit types
       }
@@ -254,25 +249,6 @@ class PreparationFormData {
     return copyWith(preparationStepList: sortedList);
   }
 
-  List<PreparationStepWithNameAndId> toPreparationStepWithNameAndIdList() {
-    return preparationStepList
-        .map((e) => e.toPreparationStepWithNameAndId())
-        .toList();
-  }
-
-  List<PreparationStepWithOriginalIndex>
-      toPreparationStepWithOriginalIndexList() {
-    List<_PreparationStepWithOriginalIndexAndOrder> tmp = preparationStepList
-        .mapWithIndex((e, index) => _PreparationStepWithOriginalIndexAndOrder(
-              preparationStep: PreparationStepWithOriginalIndex(
-                  preparationStep: e.toPreparationStepWithNameAndId(),
-                  originalIndex: index),
-              order: e.order ?? index,
-            ));
-    tmp.sort((a, b) => (a.order).compareTo(b.order));
-    return tmp.map((e) => e.preparationStep).toList();
-  }
-
   OnboardingState toOnboardingState(Duration spareTime) {
     final sortedList = sortByOrder().preparationStepList;
     final steps = sortedList
@@ -289,16 +265,6 @@ class PreparationFormData {
   }
 }
 
-class _PreparationStepWithOriginalIndexAndOrder {
-  const _PreparationStepWithOriginalIndexAndOrder({
-    required this.preparationStep,
-    required this.order,
-  });
-
-  final PreparationStepWithOriginalIndex preparationStep;
-  final int order;
-}
-
 class PreparationStepFormData {
   PreparationStepFormData({
     required this.id,
@@ -311,13 +277,6 @@ class PreparationStepFormData {
   final String preparationName;
   final Duration preparationTime;
   final int? order;
-
-  PreparationStepWithNameAndId toPreparationStepWithNameAndId() {
-    return PreparationStepWithNameAndId(
-      id: id,
-      preparationName: preparationName,
-    );
-  }
 
   PreparationStepFormData copyWith(
       {String? id,
@@ -359,14 +318,4 @@ extension MapWithIndex<T> on List<T> {
     }
     return result;
   }
-}
-
-class PreparationStepWithNameAndId {
-  PreparationStepWithNameAndId({
-    required this.id,
-    required this.preparationName,
-  });
-
-  final String id;
-  final String preparationName;
 }

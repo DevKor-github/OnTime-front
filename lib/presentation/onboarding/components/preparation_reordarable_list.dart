@@ -3,19 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
-
-class PreparationStepWithOriginalIndex {
-  PreparationStepWithOriginalIndex({
-    required this.preparationStep,
-    required this.originalIndex,
-  });
-
-  final PreparationStepWithNameAndId preparationStep;
-  final int originalIndex;
-}
 
 class PreparationReorderableList extends StatelessWidget {
   PreparationReorderableList(
@@ -49,27 +38,31 @@ class PreparationReorderableList extends StatelessWidget {
       );
     }
 
-    return ReorderableListView.builder(
-      buildDefaultDragHandles: false,
-      proxyDecorator: proxyDecorator,
-      itemCount: preparationOrderingList.length,
-      itemBuilder: (context, index) => Padding(
-        key: ValueKey<String>(preparationOrderingList[index].preparationId),
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: Tile(
-          style: TileStyle(
-            backgroundColor: Color(0xFFE6E9F9),
-          ),
-          trailing: ReorderableDragStartListener(
-            index: index,
-            child: dragIndicatorSvg,
-          ),
-          child: Text(
-            preparationOrderingList[index].preparationName,
+    return SingleChildScrollView(
+      child: ReorderableListView.builder(
+        buildDefaultDragHandles: false,
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        proxyDecorator: proxyDecorator,
+        itemCount: preparationOrderingList.length,
+        itemBuilder: (context, index) => Padding(
+          key: ValueKey<String>(preparationOrderingList[index].preparationId),
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Tile(
+            style: TileStyle(
+              backgroundColor: Color(0xFFE6E9F9),
+            ),
+            trailing: ReorderableDragStartListener(
+              index: index,
+              child: dragIndicatorSvg,
+            ),
+            child: Text(
+              preparationOrderingList[index].preparationName,
+            ),
           ),
         ),
+        onReorder: onReorder,
       ),
-      onReorder: onReorder,
     );
   }
 }

@@ -15,7 +15,23 @@ class PreparationOrderCubit extends Cubit<PreparationOrderState> {
 
   void initialize() {
     emit(PreparationOrderState.fromOnboardingState(onboardingCubit.state));
+    onboardingCubit.onboardingFormValidated(isValid: true);
   }
 
-  void preparationOrderChanged() {}
+  void preparationOrderChanged(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final List<PreparationStepOrderState> preparationStepList =
+        List<PreparationStepOrderState>.from(state.preparationStepList);
+    final PreparationStepOrderState item =
+        preparationStepList.removeAt(oldIndex);
+    preparationStepList.insert(newIndex, item);
+    emit(state.copyWith(preparationStepList: preparationStepList));
+  }
+
+  void preparationOrderSaved() {
+    onboardingCubit
+        .onboardingFormChanged(state.toOnboardingState().preparationStepList);
+  }
 }

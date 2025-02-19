@@ -249,25 +249,6 @@ class PreparationFormData {
     return copyWith(preparationStepList: sortedList);
   }
 
-  List<PreparationStepWithNameAndId> toPreparationStepWithNameAndIdList() {
-    return preparationStepList
-        .map((e) => e.toPreparationStepWithNameAndId())
-        .toList();
-  }
-
-  List<PreparationStepWithOriginalIndex>
-      toPreparationStepWithOriginalIndexList() {
-    List<_PreparationStepWithOriginalIndexAndOrder> tmp = preparationStepList
-        .mapWithIndex((e, index) => _PreparationStepWithOriginalIndexAndOrder(
-              preparationStep: PreparationStepWithOriginalIndex(
-                  preparationStep: e.toPreparationStepWithNameAndId(),
-                  originalIndex: index),
-              order: e.order ?? index,
-            ));
-    tmp.sort((a, b) => (a.order).compareTo(b.order));
-    return tmp.map((e) => e.preparationStep).toList();
-  }
-
   OnboardingState toOnboardingState(Duration spareTime) {
     final sortedList = sortByOrder().preparationStepList;
     final steps = sortedList
@@ -284,16 +265,6 @@ class PreparationFormData {
   }
 }
 
-class _PreparationStepWithOriginalIndexAndOrder {
-  const _PreparationStepWithOriginalIndexAndOrder({
-    required this.preparationStep,
-    required this.order,
-  });
-
-  final PreparationStepWithOriginalIndex preparationStep;
-  final int order;
-}
-
 class PreparationStepFormData {
   PreparationStepFormData({
     required this.id,
@@ -306,13 +277,6 @@ class PreparationStepFormData {
   final String preparationName;
   final Duration preparationTime;
   final int? order;
-
-  PreparationStepWithNameAndId toPreparationStepWithNameAndId() {
-    return PreparationStepWithNameAndId(
-      id: id,
-      preparationName: preparationName,
-    );
-  }
 
   PreparationStepFormData copyWith(
       {String? id,
@@ -354,14 +318,4 @@ extension MapWithIndex<T> on List<T> {
     }
     return result;
   }
-}
-
-class PreparationStepWithNameAndId {
-  PreparationStepWithNameAndId({
-    required this.id,
-    required this.preparationName,
-  });
-
-  final String id;
-  final String preparationName;
 }

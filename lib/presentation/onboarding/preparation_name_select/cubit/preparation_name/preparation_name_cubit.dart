@@ -37,7 +37,7 @@ class PreparationNameCubit extends Cubit<PreparationNameState> {
     ));
   }
 
-  void preparationStepAdded(PreparationStepNameState stepState) {
+  void preparationStepCreated(PreparationStepNameState stepState) {
     if (state.status == PreparationNameStatus.adding) {
       final List<PreparationStepNameState> preparationStepList;
       if (stepState.preparationName.isValid) {
@@ -97,7 +97,7 @@ class PreparationNameCubit extends Cubit<PreparationNameState> {
     onboardingCubit.onboardingFormValidated(isValid: isValid);
   }
 
-  void preparationStepCreateRequested() {
+  void preparationStepCreationRequested() {
     emit(state.copyWith(status: PreparationNameStatus.adding));
   }
 

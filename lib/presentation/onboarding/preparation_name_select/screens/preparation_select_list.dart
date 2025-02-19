@@ -86,7 +86,7 @@ class PreparationSelectList extends StatelessWidget {
                   onPressed: () {
                     context
                         .read<PreparationNameCubit>()
-                        .preparationStepCreateRequested();
+                        .preparationStepCreationRequested();
                   },
                   color: colorScheme.onPrimary,
                   icon: Icon(Icons.add),

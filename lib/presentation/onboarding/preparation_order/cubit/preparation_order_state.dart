@@ -19,6 +19,26 @@ class PreparationOrderState extends Equatable {
     final List<PreparationStepOrderState> preparationStepList = [];
     final List<OnboardingPreparationStepState> onboardingPreparationStepList =
         state.preparationStepList;
+
+    // Check if the order does not exist
+    // If all the nextPreparationId is null, it means the order does not exist
+    bool orderNotExists =
+        onboardingPreparationStepList.fold(true, (bool flag, element) {
+      if (flag) {
+        return element.nextPreparationId == null;
+      }
+      return false;
+    });
+
+    if (orderNotExists) {
+      return PreparationOrderState(
+        preparationStepList: onboardingPreparationStepList
+            .map((e) =>
+                PreparationStepOrderState.fromOnboardingPreparationStepState(e))
+            .toList(),
+      );
+    }
+
     String? nextPreparationId;
     for (int i = 0; i < onboardingPreparationStepList.length; i++) {
       for (int j = 0; j < onboardingPreparationStepList.length; j++) {
@@ -35,6 +55,19 @@ class PreparationOrderState extends Equatable {
     return PreparationOrderState(
       preparationStepList: preparationStepList.reversed.toList(),
     );
+  }
+
+  OnboardingState toOnboardingState() {
+    final List<OnboardingPreparationStepState> preparationStepList = [];
+    for (int i = 0; i < this.preparationStepList.length; i++) {
+      preparationStepList.add(OnboardingPreparationStepState(
+          id: this.preparationStepList[i].preparationId,
+          preparationName: this.preparationStepList[i].preparationName,
+          nextPreparationId: i == this.preparationStepList.length - 1
+              ? null
+              : this.preparationStepList[i + 1].preparationId));
+    }
+    return OnboardingState(preparationStepList: preparationStepList);
   }
 
   @override

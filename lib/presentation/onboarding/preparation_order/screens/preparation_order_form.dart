@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_order/components/preparation_reorderable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_order/screens/preparation_reorderable_list.dart';
 
 class PreparationOrderForm extends StatefulWidget {
   const PreparationOrderForm({

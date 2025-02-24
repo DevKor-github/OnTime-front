@@ -159,7 +159,7 @@ class _OnboardingFormState extends State<OnboardingForm>
 
   void _updateCurrentPageIndex(int index) {
     if (index < 0) {
-      context.go('/onboarding/start');
+      context.pop();
       return;
     }
     _tabController.index = index;

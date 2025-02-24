@@ -214,7 +214,7 @@ class _PreparationSelectFieldState extends State<PreparationSelectField> {
         '주로 하는 준비 과정을\n선택해주세요',
         style: textTheme.titleLarge,
       ),
-      form: Form(
+      child: Form(
         key: widget.formKey,
         child: PreparationSelectList(),
       ),

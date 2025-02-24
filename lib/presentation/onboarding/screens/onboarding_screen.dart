@@ -6,6 +6,7 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/onboarding/components/preparation_reordarable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_select_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_input_list.dart';
 import 'package:on_time_front/presentation/onboarding/components/schedule_spare_time_input.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';
@@ -44,6 +45,7 @@ class _OnboardingFormState extends State<OnboardingForm>
   final List<Type> _pageCubitTypes = [
     PreparationNameCubit,
     PreparationOrderCubit,
+    PreparationTimeCubit,
   ];
 
   @override
@@ -78,6 +80,11 @@ class _OnboardingFormState extends State<OnboardingForm>
                 onboardingCubit: context.read<OnboardingCubit>(),
               ),
             ),
+            BlocProvider<PreparationTimeCubit>(
+              create: (context) => PreparationTimeCubit(
+                onboardingCubit: context.read<OnboardingCubit>(),
+              ),
+            ),
           ],
           child: Builder(builder: (context) {
             return Column(
@@ -100,19 +107,6 @@ class _OnboardingFormState extends State<OnboardingForm>
                       ),
                       PreparationTimeInputFieldList(
                         formKey: formKeys[2],
-                        initalValue: preparationFormData.sortByOrder(),
-                        onSaved: (value) {
-                          setState(
-                            () {
-                              preparationFormData = PreparationFormData(
-                                  preparationStepList: preparationFormData
-                                      .preparationStepList
-                                      .mapWithIndex((e, index) => e.copyWith(
-                                          preparationTime: value[index]))
-                                      .toList());
-                            },
-                          );
-                        },
                       ),
                       ScheduleSpareTimeField(
                         formKey: formKeys[3],
@@ -155,6 +149,9 @@ class _OnboardingFormState extends State<OnboardingForm>
           break;
         case const (PreparationOrderCubit):
           context.read<PreparationOrderCubit>().preparationOrderSaved();
+          break;
+        case const (PreparationTimeCubit):
+          context.read<PreparationTimeCubit>().preparationTimeSaved();
           break;
         // Add other cases if there are more cubit types
       }

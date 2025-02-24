@@ -15,7 +15,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
 
   final OnboardUseCase _createDefaultPreparationUseCase;
 
-  Future<void> onboardingFormSubmitted(OnboardingState state) async {
+  Future<void> onboardingFormSubmitted() async {
     return await _createDefaultPreparationUseCase(
       preparationEntity: state.toEntity(),
       spareTime: state.spareTime!,

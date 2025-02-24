@@ -115,17 +115,22 @@ class PreparationNameCubit extends Cubit<PreparationNameState> {
               selectedList[i].preparationId) {
         j++;
       }
-      if (j == onboardingState.preparationStepList.length) {
+      if (j >= onboardingState.preparationStepList.length) {
         onboardingPreparationStepStateList.add(OnboardingPreparationStepState(
           id: selectedList[i].preparationId,
           preparationName: selectedList[i].preparationName.value,
+          nextPreparationId: i == selectedList.length - 1
+              ? null
+              : selectedList[i + 1].preparationId,
         ));
         continue;
       }
-      onboardingPreparationStepStateList
-          .add(onboardingState.preparationStepList[j].copyWith(
-        preparationName: selectedList[i].preparationName.value,
-      ));
+      onboardingPreparationStepStateList.add(
+          onboardingState.preparationStepList[j].copyWith(
+              preparationName: selectedList[i].preparationName.value,
+              nextPreparationId: i == selectedList.length - 1
+                  ? ''
+                  : selectedList[i + 1].preparationId));
     }
     onboardingCubit.onboardingFormChanged(onboardingPreparationStepStateList);
   }

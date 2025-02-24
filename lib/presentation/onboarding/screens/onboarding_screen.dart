@@ -9,7 +9,7 @@ import 'package:on_time_front/presentation/onboarding/preparation_name_select/sc
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_input.dart';
+import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 

@@ -23,9 +23,12 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     );
   }
 
-  void onboardingFormChanged(
-      List<OnboardingPreparationStepState> preparationStepList) {
-    emit(state.copyWith(preparationStepList: preparationStepList));
+  void onboardingFormChanged({
+    List<OnboardingPreparationStepState>? preparationStepList,
+    Duration? spareTime,
+  }) {
+    emit(state.copyWith(
+        preparationStepList: preparationStepList, spareTime: spareTime));
   }
 
   void onboardingFormValidated({

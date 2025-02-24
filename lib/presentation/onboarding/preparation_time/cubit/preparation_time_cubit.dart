@@ -41,6 +41,6 @@ class PreparationTimeCubit extends Cubit<PreparationTimeState> {
   void preparationTimeSaved() {
     final newList =
         state.toOnboardingState(onboardingCubit.state).preparationStepList;
-    onboardingCubit.onboardingFormChanged(newList);
+    onboardingCubit.onboardingFormChanged(preparationStepList: newList);
   }
 }

@@ -132,7 +132,8 @@ class PreparationNameCubit extends Cubit<PreparationNameState> {
                   ? ''
                   : selectedList[i + 1].preparationId));
     }
-    onboardingCubit.onboardingFormChanged(onboardingPreparationStepStateList);
+    onboardingCubit.onboardingFormChanged(
+        preparationStepList: onboardingPreparationStepStateList);
   }
 
   bool _validate(List<PreparationStepNameState> preparationStepList) {

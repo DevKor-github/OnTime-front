@@ -46,6 +46,6 @@ class PreparationOrderCubit extends Cubit<PreparationOrderState> {
         }
       }
     }
-    onboardingCubit.onboardingFormChanged(newList);
+    onboardingCubit.onboardingFormChanged(preparationStepList: newList);
   }
 }

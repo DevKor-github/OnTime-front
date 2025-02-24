@@ -6,9 +6,12 @@ class PreparationTimeState extends Equatable {
   });
 
   final List<PreparationStepTimeState> preparationTimeList;
+  bool get isValid => Formz.validate(
+      preparationTimeList.map((e) => e.preparationTime).toList());
 
   PreparationTimeState copyWith({
     List<PreparationStepTimeState>? preparationTimeList,
+    bool? isValid,
   }) {
     return PreparationTimeState(
       preparationTimeList: preparationTimeList ?? this.preparationTimeList,
@@ -38,7 +41,7 @@ class PreparationTimeState extends Equatable {
       }
       onboardingPreparationStepStateList
           .add(oldState.preparationStepList[j].copyWith(
-        preparationTime: preparationTimeList[i].preparationTime,
+        preparationTime: preparationTimeList[i].preparationTime.value,
       ));
     }
     return oldState.copyWith(
@@ -54,15 +57,15 @@ class PreparationStepTimeState extends Equatable {
   const PreparationStepTimeState({
     required this.preparationId,
     required this.preparationName,
-    this.preparationTime = const Duration(minutes: 0),
+    this.preparationTime = const PreparationTimeInputModel.pure(),
   });
 
   final String preparationId;
   final String preparationName;
-  final Duration preparationTime;
+  final PreparationTimeInputModel preparationTime;
 
   PreparationStepTimeState copyWith({
-    Duration? preparationTime,
+    PreparationTimeInputModel? preparationTime,
   }) {
     return PreparationStepTimeState(
       preparationId: preparationId,
@@ -76,7 +79,7 @@ class PreparationStepTimeState extends Equatable {
     return PreparationStepTimeState(
       preparationId: state.id,
       preparationName: state.preparationName,
-      preparationTime: state.preparationTime,
+      preparationTime: PreparationTimeInputModel.dirty(state.preparationTime),
     );
   }
 

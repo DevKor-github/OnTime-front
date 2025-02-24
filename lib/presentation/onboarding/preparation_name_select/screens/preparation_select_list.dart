@@ -190,10 +190,7 @@ class _PreparationNameSelectFieldState
 class PreparationSelectField extends StatefulWidget {
   const PreparationSelectField({
     super.key,
-    required this.formKey,
   });
-
-  final GlobalKey<FormState> formKey;
 
   @override
   State<PreparationSelectField> createState() => _PreparationSelectFieldState();
@@ -214,10 +211,7 @@ class _PreparationSelectFieldState extends State<PreparationSelectField> {
         '주로 하는 준비 과정을\n선택해주세요',
         style: textTheme.titleLarge,
       ),
-      child: Form(
-        key: widget.formKey,
-        child: PreparationSelectList(),
-      ),
+      child: PreparationSelectList(),
     );
   }
 }

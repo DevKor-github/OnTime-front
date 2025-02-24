@@ -39,7 +39,6 @@ class _OnboardingFormState extends State<OnboardingForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;
-  late List<GlobalKey<FormState>> formKeys;
   PreparationFormData preparationFormData = PreparationFormData();
   Duration spareTime = const Duration(minutes: 0);
   final int _numberOfPages = 4;
@@ -106,18 +105,10 @@ class _OnboardingFormState extends State<OnboardingForm>
                     controller: _pageViewController,
                     onPageChanged: _handlePageViewChanged,
                     children: <Widget>[
-                      PreparationSelectField(
-                        formKey: formKeys[0],
-                      ),
-                      PreparationReorderField(
-                        formKey: formKeys[1],
-                      ),
-                      PreparationTimeField(
-                        formKey: formKeys[2],
-                      ),
-                      ScheduleSpareTimeForm(
-                        formKey: formKeys[3],
-                      ),
+                      PreparationSelectField(),
+                      PreparationReorderField(),
+                      PreparationTimeField(),
+                      ScheduleSpareTimeForm(),
                     ],
                   ),
                 ),

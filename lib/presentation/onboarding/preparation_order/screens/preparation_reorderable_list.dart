@@ -70,10 +70,7 @@ class PreparationReorderableList extends StatelessWidget {
 class PreparationReorderField extends StatefulWidget {
   const PreparationReorderField({
     super.key,
-    required this.formKey,
   });
-
-  final GlobalKey<FormState> formKey;
 
   @override
   State<PreparationReorderField> createState() =>
@@ -95,10 +92,8 @@ class _PreparationReorderFieldState extends State<PreparationReorderField> {
         '평소 준비 과정의 순서로\n조정해주세요',
         style: textTheme.titleLarge,
       ),
-      child: Form(
-        key: widget.formKey,
-        child: BlocBuilder<PreparationOrderCubit, PreparationOrderState>(
-            builder: (context, state) {
+      child: BlocBuilder<PreparationOrderCubit, PreparationOrderState>(
+        builder: (context, state) {
           return PreparationReorderableList(
             preparationOrderingList: state.preparationStepList,
             onReorder: (oldIndex, newIndex) {
@@ -107,7 +102,7 @@ class _PreparationReorderFieldState extends State<PreparationReorderField> {
                   .preparationOrderChanged(oldIndex, newIndex);
             },
           );
-        }),
+        },
       ),
     );
   }

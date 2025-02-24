@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/screens/preparation_reorderable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_select_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_name_form.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_input_list.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
@@ -52,7 +52,6 @@ class _OnboardingFormState extends State<OnboardingForm>
   @override
   void initState() {
     super.initState();
-    formKeys = List.generate(_numberOfPages, (index) => GlobalKey<FormState>());
     _pageViewController = PageController();
     _tabController = TabController(length: _numberOfPages, vsync: this);
   }
@@ -105,7 +104,7 @@ class _OnboardingFormState extends State<OnboardingForm>
                     controller: _pageViewController,
                     onPageChanged: _handlePageViewChanged,
                     children: <Widget>[
-                      PreparationSelectField(),
+                      PreparationNameForm(),
                       PreparationReorderField(),
                       PreparationTimeField(),
                       ScheduleSpareTimeForm(),
@@ -131,7 +130,6 @@ class _OnboardingFormState extends State<OnboardingForm>
   }
 
   Future<void> _onNextPageButtonClicked(BuildContext context) async {
-    formKeys[_tabController.index].currentState!.save();
     switch (_pageCubitTypes[_tabController.index]) {
       case const (PreparationNameCubit):
         context.read<PreparationNameCubit>().preparationSaved();

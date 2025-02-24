@@ -95,7 +95,7 @@ class _PreparationReorderFieldState extends State<PreparationReorderField> {
         '평소 준비 과정의 순서로\n조정해주세요',
         style: textTheme.titleLarge,
       ),
-      form: Form(
+      child: Form(
         key: widget.formKey,
         child: BlocBuilder<PreparationOrderCubit, PreparationOrderState>(
             builder: (context, state) {

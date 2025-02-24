@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:on_time_front/presentation/onboarding/components/mutly_page_form.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/time_stepper.dart';
@@ -33,11 +32,8 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
         '여유시간을 설정해주세요',
         style: textTheme.titleLarge,
       ),
-      form: MultiPageFormField(
-        key: widget.formKey,
-        onSaved: () {},
-        child: BlocBuilder<ScheduleSpareTimeCubit, ScheduleSpareTimeState>(
-            builder: (context, state) {
+      child: BlocBuilder<ScheduleSpareTimeCubit, ScheduleSpareTimeState>(
+        builder: (context, state) {
           return ScheduleSpareTimeField(
             lowerBound: context.read<ScheduleSpareTimeCubit>().lowerBound,
             spareTime: state.spareTime,
@@ -48,7 +44,7 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
               context.read<ScheduleSpareTimeCubit>().spareTimeIncreased();
             },
           );
-        }),
+        },
       ),
     );
   }

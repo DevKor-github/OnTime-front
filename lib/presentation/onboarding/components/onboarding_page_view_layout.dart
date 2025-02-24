@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class OnboardingPageViewLayout extends StatefulWidget {
   const OnboardingPageViewLayout(
-      {super.key, required this.title, required this.form});
+      {super.key, required this.title, required this.child});
 
   final Widget title;
-  final Form form;
+  final Widget child;
 
   @override
   State<OnboardingPageViewLayout> createState() =>
@@ -28,7 +28,7 @@ class _OnboardingPageViewLayoutState extends State<OnboardingPageViewLayout> {
           ),
         ),
         Expanded(
-          child: widget.form,
+          child: widget.child,
         ),
       ],
     );

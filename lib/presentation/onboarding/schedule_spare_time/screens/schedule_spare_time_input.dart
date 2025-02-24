@@ -7,10 +7,7 @@ import 'package:on_time_front/presentation/shared/components/time_stepper.dart';
 class ScheduleSpareTimeForm extends StatefulWidget {
   const ScheduleSpareTimeForm({
     super.key,
-    required this.formKey,
   });
-
-  final GlobalKey<FormState> formKey;
 
   @override
   State<ScheduleSpareTimeForm> createState() => _ScheduleSpareTimeFormState();

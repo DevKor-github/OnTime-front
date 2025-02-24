@@ -61,9 +61,7 @@ class _PreparationTimeInputFieldListState
 }
 
 class PreparationTimeField extends StatefulWidget {
-  const PreparationTimeField({super.key, required this.formKey});
-
-  final GlobalKey<FormState> formKey;
+  const PreparationTimeField({super.key});
 
   @override
   State<PreparationTimeField> createState() => _PreparationTimeFieldState();

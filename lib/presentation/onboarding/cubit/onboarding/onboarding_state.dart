@@ -65,7 +65,9 @@ class OnboardingPreparationStepState extends Equatable {
       id: id ?? this.id,
       preparationName: preparationName ?? this.preparationName,
       preparationTime: preparationTime ?? this.preparationTime,
-      nextPreparationId: nextPreparationId ?? this.nextPreparationId,
+      nextPreparationId: nextPreparationId == ''
+          ? null
+          : (nextPreparationId ?? this.nextPreparationId),
     );
   }
 

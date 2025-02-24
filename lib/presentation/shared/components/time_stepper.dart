@@ -3,23 +3,20 @@ import 'package:flutter/material.dart';
 class TimeStepper extends StatelessWidget {
   const TimeStepper({
     super.key,
-    required this.onChanged,
+    required this.onSpareTimeIncreased,
+    required this.onSpareTimeDecreased,
+    required this.lowerBound,
     required this.value,
-    this.step = 1,
-    this.min = 0,
-    this.max,
-    required this.child,
   });
 
-  final ValueChanged<int> onChanged;
-  final int value;
-  final int step;
-  final int min;
-  final int? max;
-  final Widget child;
+  final VoidCallback onSpareTimeIncreased;
+  final VoidCallback onSpareTimeDecreased;
+  final Duration lowerBound;
+  final Duration value;
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final iconButtonStyle = ButtonStyle(
       backgroundColor: WidgetStatePropertyAll(Color(0xffe6e9f9)),
@@ -34,15 +31,18 @@ class TimeStepper extends StatelessWidget {
         IconButton(
             icon: const Icon(Icons.remove),
             style: iconButtonStyle,
-            onPressed:
-                value - step >= min ? () => onChanged(value - step) : null),
-        child,
+            onPressed: value > lowerBound ? onSpareTimeDecreased : null),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 35.0),
+          child: Text(
+            '${value.inMinutes}분',
+            style: textTheme.titleSmall,
+          ),
+        ),
         IconButton(
           icon: const Icon(Icons.add),
           style: iconButtonStyle,
-          onPressed: max != null && value + step > max!
-              ? null
-              : () => onChanged(value + step),
+          onPressed: onSpareTimeIncreased,
         ),
       ],
     );

@@ -135,7 +135,6 @@ class _PreparationEditListState extends State<PreparationEditList> {
                       onTap: () {
                         context.showCupertinoMinutePickerModal(
                           title: '시간을 선택해 주세요',
-                          context: context,
                           initialValue: field.value!,
                           onSaved: field.didChange,
                         );
@@ -226,7 +225,6 @@ class _PreparationEditListState extends State<PreparationEditList> {
 
                             context.showCupertinoMinutePickerModal(
                               title: '시간을 선택해 주세요',
-                              context: context,
                               initialValue: field.value!,
                               onSaved: (value) {
                                 field.didChange(value);

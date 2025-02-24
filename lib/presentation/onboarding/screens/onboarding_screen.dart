@@ -39,7 +39,6 @@ class _OnboardingFormState extends State<OnboardingForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;
-  PreparationFormData preparationFormData = PreparationFormData();
   Duration spareTime = const Duration(minutes: 0);
   final int _numberOfPages = 4;
   final List<Type> _pageCubitTypes = [
@@ -147,8 +146,7 @@ class _OnboardingFormState extends State<OnboardingForm>
     if (_tabController.index < _numberOfPages - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
-      return await context.read<OnboardingCubit>().onboardingFormSubmitted(
-          preparationFormData.toOnboardingState(spareTime));
+      return await context.read<OnboardingCubit>().onboardingFormSubmitted();
     }
   }
 

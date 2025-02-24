@@ -105,7 +105,7 @@ class _OnboardingFormState extends State<OnboardingForm>
                       PreparationReorderField(
                         formKey: formKeys[1],
                       ),
-                      PreparationTimeInputFieldList(
+                      PreparationTimeField(
                         formKey: formKeys[2],
                       ),
                       ScheduleSpareTimeField(

@@ -7,7 +7,7 @@ import 'package:on_time_front/presentation/onboarding/preparation_order/screens/
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_name_form.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_input_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_input.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
@@ -106,7 +106,7 @@ class _OnboardingFormState extends State<OnboardingForm>
                     children: <Widget>[
                       PreparationNameForm(),
                       PreparationOrderForm(),
-                      PreparationTimeField(),
+                      PreparationTimeForm(),
                       ScheduleSpareTimeForm(),
                     ],
                   ),

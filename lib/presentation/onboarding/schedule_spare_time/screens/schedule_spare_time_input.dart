@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/components/mutly_page_form.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
+import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/time_stepper.dart';
 
-class ScheduleSpareTimeField extends StatefulWidget {
-  const ScheduleSpareTimeField(
-      {super.key,
-      required this.formKey,
-      required this.initialValue,
-      this.onSaved});
+class ScheduleSpareTimeForm extends StatefulWidget {
+  const ScheduleSpareTimeForm({
+    super.key,
+    required this.formKey,
+  });
 
   final GlobalKey<FormState> formKey;
-  final Duration initialValue;
-  final Function(Duration)? onSaved;
 
   @override
-  State<ScheduleSpareTimeField> createState() => _ScheduleSpareTimeFieldState();
+  State<ScheduleSpareTimeForm> createState() => _ScheduleSpareTimeFormState();
 }
 
-class _ScheduleSpareTimeFieldState extends State<ScheduleSpareTimeField> {
+class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
   late Duration spareTime;
 
   @override
   void initState() {
-    spareTime = widget.initialValue;
     super.initState();
   }
 
@@ -32,43 +30,58 @@ class _ScheduleSpareTimeFieldState extends State<ScheduleSpareTimeField> {
     final textTheme = Theme.of(context).textTheme;
     return OnboardingPageViewLayout(
       title: Text(
-        '얼마만큼의 여유시간을 남기고\n약속 장소에 도착할지 알려주세요',
+        '여유시간을 설정해주세요',
         style: textTheme.titleLarge,
       ),
       form: MultiPageFormField(
         key: widget.formKey,
-        onSaved: () {
-          widget.onSaved?.call(spareTime);
-        },
-        child: Padding(
-          padding: EdgeInsets.only(top: 90.0),
-          child: Column(
-            children: [
-              FormField<Duration>(
-                  initialValue: widget.initialValue,
-                  onSaved: (value) {
-                    setState(() {
-                      spareTime = value!;
-                    });
-                  },
-                  builder: (field) => TimeStepper(
-                        step: 5,
-                        onChanged: (value) {
-                          field.didChange(Duration(minutes: value));
-                        },
-                        value: field.value!.inMinutes,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                          child: Text(
-                            '${field.value!.inMinutes}분',
-                            style: textTheme.titleSmall,
-                          ),
-                        ),
-                      )),
-              Expanded(child: SizedBox()),
-            ],
+        onSaved: () {},
+        child: BlocBuilder<ScheduleSpareTimeCubit, ScheduleSpareTimeState>(
+            builder: (context, state) {
+          return ScheduleSpareTimeField(
+            lowerBound: context.read<ScheduleSpareTimeCubit>().lowerBound,
+            spareTime: state.spareTime,
+            onSpareTimeDecreased: () {
+              context.read<ScheduleSpareTimeCubit>().spareTimeDecreased();
+            },
+            onSpareTimeIncreased: () {
+              context.read<ScheduleSpareTimeCubit>().spareTimeIncreased();
+            },
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class ScheduleSpareTimeField extends StatelessWidget {
+  const ScheduleSpareTimeField({
+    super.key,
+    required this.lowerBound,
+    required this.spareTime,
+    required this.onSpareTimeDecreased,
+    required this.onSpareTimeIncreased,
+  });
+
+  final Duration spareTime;
+  final Duration lowerBound;
+  final VoidCallback onSpareTimeIncreased;
+  final VoidCallback onSpareTimeDecreased;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: 90.0),
+      child: Column(
+        children: [
+          TimeStepper(
+            onSpareTimeIncreased: onSpareTimeIncreased,
+            onSpareTimeDecreased: onSpareTimeDecreased,
+            lowerBound: lowerBound,
+            value: spareTime,
           ),
-        ),
+          Expanded(child: SizedBox()),
+        ],
       ),
     );
   }

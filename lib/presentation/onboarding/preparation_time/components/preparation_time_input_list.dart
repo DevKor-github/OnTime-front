@@ -23,37 +23,41 @@ class _PreparationTimeInputFieldListState
     extends State<PreparationTimeInputFieldList> {
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: widget.preparationTimeList.length,
-      itemBuilder: (context, index) {
-        final value = widget.preparationTimeList[index];
-        return Tile(
-          style: TileStyle(
-              margin: EdgeInsets.only(bottom: 8),
-              backgroundColor: Color(0xFFE6E9F9)),
-          trailing: Row(
-            children: [
-              GestureDetector(
-                child: Text(
-                    (value.preparationTime.value.inMinutes < 10 ? '0' : '') +
-                        value.preparationTime.value.inMinutes.toString()),
-                onTap: () {
-                  context.showCupertinoMinutePickerModal(
-                    title: '시간을 선택해주세요',
-                    initialValue: value.preparationTime.value,
-                    onSaved: (value) {
-                      widget.onPreparationTimeChanged(index, value);
-                    },
-                  );
-                },
-              ),
-              SizedBox(width: 35),
-              Text('분'),
-            ],
-          ),
-          child: Text(value.preparationName),
-        );
-      },
+    return SingleChildScrollView(
+      child: ListView.builder(
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: widget.preparationTimeList.length,
+        itemBuilder: (context, index) {
+          final value = widget.preparationTimeList[index];
+          return Tile(
+            style: TileStyle(
+                margin: EdgeInsets.only(bottom: 8),
+                backgroundColor: Color(0xFFE6E9F9)),
+            trailing: Row(
+              children: [
+                GestureDetector(
+                  child: Text(
+                      (value.preparationTime.value.inMinutes < 10 ? '0' : '') +
+                          value.preparationTime.value.inMinutes.toString()),
+                  onTap: () {
+                    context.showCupertinoMinutePickerModal(
+                      title: '시간을 선택해주세요',
+                      initialValue: value.preparationTime.value,
+                      onSaved: (value) {
+                        widget.onPreparationTimeChanged(index, value);
+                      },
+                    );
+                  },
+                ),
+                SizedBox(width: 35),
+                Text('분'),
+              ],
+            ),
+            child: Text(value.preparationName),
+          );
+        },
+      ),
     );
   }
 }

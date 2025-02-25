@@ -68,6 +68,8 @@ class _PreparationNameSelectFieldState
             child: Container(
               constraints: BoxConstraints(minHeight: 30),
               child: TextFormField(
+                scrollPadding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 56),
                 initialValue: widget.preparationStep.preparationName.value,
                 onChanged: widget.onNameChanged,
                 onFieldSubmitted: (value) => widget.onNameSaved?.call(),

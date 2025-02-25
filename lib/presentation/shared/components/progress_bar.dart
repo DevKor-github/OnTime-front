@@ -46,41 +46,38 @@ class ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: tabController.length * (57.0 + 11 + 11) - 57.0 + 10.0,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (int i = 0; i < tabController.length; i++)
-                    ..._buildIndicator(context, i),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: tabController.length * (57.0 + 11 + 11) - 57.0 + 10.0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 for (int i = 0; i < tabController.length; i++)
-                  Text(
-                    'step\n${i + 1}',
-                    style: TextStyle(
-                      color: _getIndicatorColor(context, i),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  ..._buildIndicator(context, i),
               ],
-            )
-          ],
-        ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              for (int i = 0; i < tabController.length; i++)
+                Text(
+                  'step\n${i + 1}',
+                  style: TextStyle(
+                    color: _getIndicatorColor(context, i),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+            ],
+          )
+        ],
       ),
     );
   }

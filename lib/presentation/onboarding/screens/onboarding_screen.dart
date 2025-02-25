@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/screens/preparation_order_form.dart';
@@ -11,6 +12,7 @@ import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
+import 'package:on_time_front/presentation/shared/components/progress_bar.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -90,7 +92,7 @@ class _OnboardingFormState extends State<_OnboardingForm>
           child: Builder(builder: (context) {
             return Column(
               children: <Widget>[
-                PageIndicator(
+                _AppBar(
                   tabController: _tabController,
                   onUpdateCurrentPageIndex: _updateCurrentPageIndex,
                 ),
@@ -168,9 +170,8 @@ class _OnboardingFormState extends State<_OnboardingForm>
   }
 }
 
-class PageIndicator extends StatelessWidget {
-  const PageIndicator({
-    super.key,
+class _AppBar extends StatelessWidget {
+  _AppBar({
     required this.tabController,
     required this.onUpdateCurrentPageIndex,
   });
@@ -178,12 +179,18 @@ class PageIndicator extends StatelessWidget {
   final TabController tabController;
   final void Function(int) onUpdateCurrentPageIndex;
 
+  final SvgPicture _previousIcon = SvgPicture.asset(
+    'assets/chevron_left.svg',
+    semanticsLabel: 'Previous Icon',
+    fit: BoxFit.contain,
+  );
+
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     const double iconButtonSize = 32.0;
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         SizedBox(
@@ -194,17 +201,10 @@ class PageIndicator extends StatelessWidget {
             onPressed: () {
               onUpdateCurrentPageIndex(tabController.index - 1);
             },
-            icon: const Icon(
-              Icons.arrow_left_rounded,
-              size: 24.0,
-            ),
+            icon: _previousIcon,
           ),
         ),
-        TabPageSelector(
-          controller: tabController,
-          color: colorScheme.surface,
-          selectedColor: colorScheme.primary,
-        ),
+        ProgressBar(tabController: tabController),
         SizedBox(
           width: iconButtonSize,
         )

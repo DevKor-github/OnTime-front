@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -213,94 +212,5 @@ class PageIndicator extends StatelessWidget {
         )
       ],
     );
-  }
-}
-
-class PreparationFormData {
-  PreparationFormData({this.preparationStepList = const []});
-  final List<PreparationStepFormData> preparationStepList;
-
-  PreparationFormData copyWith(
-      {List<PreparationStepFormData>? preparationStepList}) {
-    return PreparationFormData(
-      preparationStepList: preparationStepList ?? this.preparationStepList,
-    );
-  }
-
-  PreparationFormData sortByOrder() {
-    final List<PreparationStepFormData> sortedList =
-        List.from(preparationStepList)
-          ..sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
-    return copyWith(preparationStepList: sortedList);
-  }
-
-  OnboardingState toOnboardingState(Duration spareTime) {
-    final sortedList = sortByOrder().preparationStepList;
-    final steps = sortedList
-        .mapIndexed((index, step) => OnboardingPreparationStepState(
-              id: step.id,
-              preparationName: step.preparationName,
-              preparationTime: step.preparationTime,
-              nextPreparationId: index < sortedList.length - 1
-                  ? sortedList[index + 1].id
-                  : null, // if not last step, set next step id
-            ))
-        .toList();
-    return OnboardingState(preparationStepList: steps, spareTime: spareTime);
-  }
-}
-
-class PreparationStepFormData {
-  PreparationStepFormData({
-    required this.id,
-    required this.preparationName,
-    this.preparationTime = const Duration(minutes: 0),
-    this.order,
-  });
-
-  final String id;
-  final String preparationName;
-  final Duration preparationTime;
-  final int? order;
-
-  PreparationStepFormData copyWith(
-      {String? id,
-      String? preparationName,
-      Duration? preparationTime,
-      int? order}) {
-    return PreparationStepFormData(
-      id: id ?? this.id,
-      preparationName: preparationName ?? this.preparationName,
-      preparationTime: preparationTime ?? this.preparationTime,
-      order: order ?? this.order,
-    );
-  }
-}
-
-class CustomFormField<T> extends FormField<T> {
-  CustomFormField({super.key, required})
-      : super(
-          builder: (FormFieldState<T> field) {
-            return Column(
-              children: [
-                TextField(
-                  onChanged: (value) {
-                    field.didChange(value as T);
-                  },
-                ),
-              ],
-            );
-          },
-        );
-}
-
-extension MapWithIndex<T> on List<T> {
-  List<R> mapWithIndex<R>(R Function(T, int i) callback) {
-    List<R> result = [];
-    for (int i = 0; i < length; i++) {
-      R item = callback(this[i], i);
-      result.add(item);
-    }
-    return result;
   }
 }

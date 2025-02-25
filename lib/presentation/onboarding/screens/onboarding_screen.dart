@@ -12,7 +12,7 @@ import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
-import 'package:on_time_front/presentation/shared/components/progress_bar.dart';
+import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -204,7 +204,7 @@ class _AppBar extends StatelessWidget {
             icon: _previousIcon,
           ),
         ),
-        ProgressBar(tabController: tabController),
+        StepProgress(tabController: tabController),
         SizedBox(
           width: iconButtonSize,
         )

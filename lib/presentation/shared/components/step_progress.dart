@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class ProgressBar extends StatelessWidget {
-  const ProgressBar({super.key, required this.tabController});
+class StepProgress extends StatelessWidget {
+  const StepProgress({super.key, required this.tabController});
 
   final TabController tabController;
 

@@ -7,7 +7,7 @@ import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_n
 import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_place_moving_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_spare_and_preparing_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_time_form.dart';
-import 'package:on_time_front/presentation/shared/components/progress_bar.dart';
+import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
   const ScheduleMultiPageForm({super.key, this.onSaved});
@@ -49,7 +49,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               onNextPAgeButtonClicked: () => _onNextPageButtonClicked(context),
               onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
             ),
-            ProgressBar(
+            StepProgress(
               tabController: _tabController,
             ),
             Expanded(

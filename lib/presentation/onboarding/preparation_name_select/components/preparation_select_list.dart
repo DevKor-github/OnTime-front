@@ -90,6 +90,8 @@ class PreparationSelectList extends StatelessWidget {
                 ),
               ),
             ),
+            SizedBox(height: 56.0),
+            SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
           ],
         ),
       );

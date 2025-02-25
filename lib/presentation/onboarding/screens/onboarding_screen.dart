@@ -21,20 +21,20 @@ class OnboardingScreen extends StatelessWidget {
       create: (context) => getIt.get<OnboardingCubit>(),
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: OnboardingForm(),
+        body: _OnboardingForm(),
       ),
     );
   }
 }
 
-class OnboardingForm extends StatefulWidget {
-  const OnboardingForm({super.key});
+class _OnboardingForm extends StatefulWidget {
+  const _OnboardingForm();
 
   @override
-  State<OnboardingForm> createState() => _OnboardingFormState();
+  State<_OnboardingForm> createState() => _OnboardingFormState();
 }
 
-class _OnboardingFormState extends State<OnboardingForm>
+class _OnboardingFormState extends State<_OnboardingForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;

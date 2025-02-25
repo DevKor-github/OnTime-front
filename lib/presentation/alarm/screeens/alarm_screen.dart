@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/core/dio/app_dio.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
@@ -9,7 +10,6 @@ import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/a
 import 'package:on_time_front/presentation/alarm/components/alarm_screen/alarm_graph_component.dart';
 import 'package:on_time_front/presentation/alarm/components/alarm_screen/preparation_step_list_widget.dart';
 
-import 'package:on_time_front/presentation/alarm/screeens/early_late_screen.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
@@ -112,14 +112,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               _animationController.forward();
             }
             if (timerState is TimerAllCompleted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => EarlyLateScreen(
-                    earlyLateTime: infoState.fullTime,
-                  ),
-                ),
-              );
+              GoRouter.of(context).go('/earlyLate', extra: infoState.fullTime);
             }
           },
         ),

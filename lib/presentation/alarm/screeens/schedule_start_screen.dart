@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/presentation/alarm/screeens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screeens/loading_screen.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
@@ -84,12 +83,7 @@ class ScheduleStart extends StatelessWidget {
 
                 if (context.mounted) {
                   Navigator.pop(context); // 로딩 화면 제거
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AlarmScreen(schedule: schedule),
-                    ),
-                  );
+                  GoRouter.of(context).go('/alarmScreen', extra: schedule);
                 }
               },
             ),

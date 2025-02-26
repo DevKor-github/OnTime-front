@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/presentation/onboarding/components/preparation_reordarable_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_order/screens/preparation_reorderable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_select_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_input_list.dart';
-import 'package:on_time_front/presentation/onboarding/components/schedule_spare_time_input.dart';
-import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_input.dart';
+import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -46,6 +47,7 @@ class _OnboardingFormState extends State<OnboardingForm>
     PreparationNameCubit,
     PreparationOrderCubit,
     PreparationTimeCubit,
+    ScheduleSpareTimeCubit,
   ];
 
   @override
@@ -85,6 +87,11 @@ class _OnboardingFormState extends State<OnboardingForm>
                 onboardingCubit: context.read<OnboardingCubit>(),
               ),
             ),
+            BlocProvider<ScheduleSpareTimeCubit>(
+              create: (context) => ScheduleSpareTimeCubit(
+                onboardingCubit: context.read<OnboardingCubit>(),
+              ),
+            ),
           ],
           child: Builder(builder: (context) {
             return Column(
@@ -108,16 +115,8 @@ class _OnboardingFormState extends State<OnboardingForm>
                       PreparationTimeField(
                         formKey: formKeys[2],
                       ),
-                      ScheduleSpareTimeField(
+                      ScheduleSpareTimeForm(
                         formKey: formKeys[3],
-                        initialValue: spareTime,
-                        onSaved: (value) {
-                          setState(
-                            () {
-                              spareTime = value;
-                            },
-                          );
-                        },
                       ),
                     ],
                   ),
@@ -142,19 +141,21 @@ class _OnboardingFormState extends State<OnboardingForm>
 
   Future<void> _onNextPageButtonClicked(BuildContext context) async {
     formKeys[_tabController.index].currentState!.save();
+    switch (_pageCubitTypes[_tabController.index]) {
+      case const (PreparationNameCubit):
+        context.read<PreparationNameCubit>().preparationSaved();
+        break;
+      case const (PreparationOrderCubit):
+        context.read<PreparationOrderCubit>().preparationOrderSaved();
+        break;
+      case const (PreparationTimeCubit):
+        context.read<PreparationTimeCubit>().preparationTimeSaved();
+        break;
+      case const (ScheduleSpareTimeCubit):
+        context.read<ScheduleSpareTimeCubit>().spareTimeSaved();
+        break;
+    }
     if (_tabController.index < _numberOfPages - 1) {
-      switch (_pageCubitTypes[_tabController.index]) {
-        case const (PreparationNameCubit):
-          context.read<PreparationNameCubit>().preparationSaved();
-          break;
-        case const (PreparationOrderCubit):
-          context.read<PreparationOrderCubit>().preparationOrderSaved();
-          break;
-        case const (PreparationTimeCubit):
-          context.read<PreparationTimeCubit>().preparationTimeSaved();
-          break;
-        // Add other cases if there are more cubit types
-      }
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
       return await context.read<OnboardingCubit>().onboardingFormSubmitted(

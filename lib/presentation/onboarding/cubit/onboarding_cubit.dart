@@ -18,14 +18,17 @@ class OnboardingCubit extends Cubit<OnboardingState> {
   Future<void> onboardingFormSubmitted(OnboardingState state) async {
     return await _createDefaultPreparationUseCase(
       preparationEntity: state.toEntity(),
-      spareTime: state.spareTime ?? Duration.zero,
+      spareTime: state.spareTime!,
       note: state.note ?? '',
     );
   }
 
-  void onboardingFormChanged(
-      List<OnboardingPreparationStepState> preparationStepList) {
-    emit(state.copyWith(preparationStepList: preparationStepList));
+  void onboardingFormChanged({
+    List<OnboardingPreparationStepState>? preparationStepList,
+    Duration? spareTime,
+  }) {
+    emit(state.copyWith(
+        preparationStepList: preparationStepList, spareTime: spareTime));
   }
 
   void onboardingFormValidated({

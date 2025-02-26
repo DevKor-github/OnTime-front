@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
-import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
 
 part 'preparation_time_state.dart';
@@ -41,6 +41,6 @@ class PreparationTimeCubit extends Cubit<PreparationTimeState> {
   void preparationTimeSaved() {
     final newList =
         state.toOnboardingState(onboardingCubit.state).preparationStepList;
-    onboardingCubit.onboardingFormChanged(newList);
+    onboardingCubit.onboardingFormChanged(preparationStepList: newList);
   }
 }

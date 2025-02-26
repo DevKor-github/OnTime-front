@@ -1,221 +1,99 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/shared/constants/constants.dart';
-import 'package:on_time_front/presentation/shared/utils/time_format.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/presentation/alarm/bloc/ealy_late_screen/early_late_screen_bloc.dart';
+import 'package:on_time_front/presentation/alarm/components/early_late_screen/check_list_box_widget.dart';
+import 'package:on_time_front/presentation/alarm/components/early_late_screen/early_late_message_image_widget.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
+import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
-class EarlyLateScreen extends StatefulWidget {
+class EarlyLateScreen extends StatelessWidget {
   final int earlyLateTime;
+
   const EarlyLateScreen({super.key, required this.earlyLateTime});
 
   @override
-  State<EarlyLateScreen> createState() => _EarlyLateScreenState();
-}
-
-class _EarlyLateScreenState extends State<EarlyLateScreen> {
-  List<bool> checklistStates = [false];
-
-  late bool isLate;
-  late int minuteValue;
-  late String earlylateMessage;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // 지각 여부 확인
-    isLate = widget.earlyLateTime < 0;
-
-    int absSeconds = widget.earlyLateTime.abs();
-    minuteValue = (absSeconds / 60).ceil();
-
-    // 지각/일찍 준비 문구 결정
-    if (isLate) {
-      // 지각
-      earlylateMessage = getLateMessage();
-    } else {
-      // 일찍 준비
-      earlylateMessage = getEarlyMessage(minuteValue);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // 화면 크기 가져오기
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
+    return BlocProvider(
+      create: (context) => EarlyLateScreenBloc()
+        ..add(LoadEarlyLateInfo(earlyLateTime: earlyLateTime))
+        ..add(ChecklistLoaded(checklist: List.generate(3, (index) => false))),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 70),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        BlocBuilder<EarlyLateScreenBloc, EarlyLateScreenState>(
+                          builder: (context, state) {
+                            if (state is EarlyLateScreenLoadSuccess) {
+                              final textColor = state.isLate
+                                  ? const Color(0xffFF6953)
+                                  : const Color(0xff5C79FB);
 
-    final Color textColor =
-        isLate ? const Color(0xffFF6953) : const Color(0xff5C79FB);
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: screenHeight * 0.1),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: formatEalyLateTime(widget.earlyLateTime),
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            ),
-                            TextSpan(
-                              text: isLate ? ' 지각했어요' : ' 일찍 준비했어요',
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      SizedBox(
-                        width: 292,
-                        height: 60,
-                        child: Text(
-                          earlylateMessage,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            height: 1.8,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: screenHeight * 0.01),
-                child: Image.asset(
-                  'lib/images/ontime_mascot.png',
-                  width: 150,
-                  height: 150,
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.02),
-              Center(
-                child: SizedBox(
-                  width: screenWidth * 0.9,
-                  height: screenHeight * 0.35,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xffF6F6F6),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(20), // 내부 여백
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
-                        children: [
-                          const Text(
-                            '나가기 전에 확인하세요',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: List.generate(
-                              checklistStates.length,
-                              (index) => Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: screenHeight * 0.01),
-                                child: _buildChecklistItem(
-                                  index,
-                                  "우산 챙기기",
+                              return Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: formatEalyLateTime(earlyLateTime),
+                                      style: TextStyle(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text:
+                                          state.isLate ? ' 지각했어요' : ' 일찍 준비했어요',
+                                      style: const TextStyle(
+                                        fontSize: 34,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                                textAlign: TextAlign.center,
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        // 지각/일찍 준비 문구 + 이미지 표시
+                        EarlyLateMessageImageWidget(
+                          screenHeight: MediaQuery.of(context).size.height,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Positioned(
-            bottom: 20, // 하단에서 20px 떨어짐
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Button(
-                text: '까먹지 않고 출발',
-                onPressed: () {},
+                const SizedBox(height: 20),
+                // 체크리스트 박스
+                ChecklistBox(
+                  screenWidth: MediaQuery.of(context).size.width,
+                  screenHeight: MediaQuery.of(context).size.height,
+                  items: ["우산 챙기기", "지갑 챙기기", "문 잠그기"],
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Button(
+                  text: '까먹지 않고 출발',
+                  onPressed: () {},
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 체크리스트 아이템
-  Widget _buildChecklistItem(int index, String label) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          checklistStates[index] = !checklistStates[index]; // 체크 상태 토글
-        });
-      },
-      child: Row(
-        children: [
-          // 체크박스 컨테이너
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              border: Border.all(
-                color: const Color(0xff5C79FB),
-                width: 2,
-              ),
-              borderRadius: BorderRadius.all(Radius.circular(5)),
-              color: checklistStates[index]
-                  ? const Color(0xff5C79FB)
-                  : Colors.transparent,
-            ),
-            child: checklistStates[index]
-                ? const Icon(Icons.check, color: Colors.white, size: 20)
-                : null,
-          ),
-          SizedBox(width: 15),
-          // 체크박스 텍스트
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: checklistStates[index]
-                  ? const Color(0xff5C79FB)
-                  : Colors.black,
-              decoration: checklistStates[index]
-                  ? TextDecoration.lineThrough
-                  : TextDecoration.none,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -50,7 +50,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
             ),
             StepProgress(
-              tabController: _tabController,
+              currentStep: _tabController.index,
+              totalSteps: _tabController.length,
             ),
             Expanded(
                 child: PageView(

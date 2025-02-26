@@ -204,7 +204,10 @@ class _AppBar extends StatelessWidget {
             icon: _previousIcon,
           ),
         ),
-        StepProgress(tabController: tabController),
+        StepProgress(
+          currentStep: tabController.index,
+          totalSteps: tabController.length,
+        ),
         SizedBox(
           width: iconButtonSize,
         )

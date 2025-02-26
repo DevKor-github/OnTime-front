@@ -1,17 +1,18 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_order/screens/preparation_reorderable_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_order/screens/preparation_order_form.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_select_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_name_form.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_input_list.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/screens/preparation_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
-import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_input.dart';
+import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
+import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -22,27 +23,23 @@ class OnboardingScreen extends StatelessWidget {
       create: (context) => getIt.get<OnboardingCubit>(),
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: OnboardingForm(),
+        body: _OnboardingForm(),
       ),
     );
   }
 }
 
-class OnboardingForm extends StatefulWidget {
-  const OnboardingForm({super.key});
+class _OnboardingForm extends StatefulWidget {
+  const _OnboardingForm();
 
   @override
-  State<OnboardingForm> createState() => _OnboardingFormState();
+  State<_OnboardingForm> createState() => _OnboardingFormState();
 }
 
-class _OnboardingFormState extends State<OnboardingForm>
+class _OnboardingFormState extends State<_OnboardingForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;
-  late List<GlobalKey<FormState>> formKeys;
-  PreparationFormData preparationFormData = PreparationFormData();
-  Duration spareTime = const Duration(minutes: 0);
-  final int _numberOfPages = 4;
   final List<Type> _pageCubitTypes = [
     PreparationNameCubit,
     PreparationOrderCubit,
@@ -53,9 +50,8 @@ class _OnboardingFormState extends State<OnboardingForm>
   @override
   void initState() {
     super.initState();
-    formKeys = List.generate(_numberOfPages, (index) => GlobalKey<FormState>());
     _pageViewController = PageController();
-    _tabController = TabController(length: _numberOfPages, vsync: this);
+    _tabController = TabController(length: _pageCubitTypes.length, vsync: this);
   }
 
   @override
@@ -96,7 +92,7 @@ class _OnboardingFormState extends State<OnboardingForm>
           child: Builder(builder: (context) {
             return Column(
               children: <Widget>[
-                PageIndicator(
+                _AppBar(
                   tabController: _tabController,
                   onUpdateCurrentPageIndex: _updateCurrentPageIndex,
                 ),
@@ -106,18 +102,10 @@ class _OnboardingFormState extends State<OnboardingForm>
                     controller: _pageViewController,
                     onPageChanged: _handlePageViewChanged,
                     children: <Widget>[
-                      PreparationSelectField(
-                        formKey: formKeys[0],
-                      ),
-                      PreparationReorderField(
-                        formKey: formKeys[1],
-                      ),
-                      PreparationTimeField(
-                        formKey: formKeys[2],
-                      ),
-                      ScheduleSpareTimeForm(
-                        formKey: formKeys[3],
-                      ),
+                      PreparationNameForm(),
+                      PreparationOrderForm(),
+                      PreparationTimeForm(),
+                      ScheduleSpareTimeForm(),
                     ],
                   ),
                 ),
@@ -140,7 +128,6 @@ class _OnboardingFormState extends State<OnboardingForm>
   }
 
   Future<void> _onNextPageButtonClicked(BuildContext context) async {
-    formKeys[_tabController.index].currentState!.save();
     switch (_pageCubitTypes[_tabController.index]) {
       case const (PreparationNameCubit):
         context.read<PreparationNameCubit>().preparationSaved();
@@ -155,11 +142,10 @@ class _OnboardingFormState extends State<OnboardingForm>
         context.read<ScheduleSpareTimeCubit>().spareTimeSaved();
         break;
     }
-    if (_tabController.index < _numberOfPages - 1) {
+    if (_tabController.index < _tabController.length - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
-      return await context.read<OnboardingCubit>().onboardingFormSubmitted(
-          preparationFormData.toOnboardingState(spareTime));
+      return await context.read<OnboardingCubit>().onboardingFormSubmitted();
     }
   }
 
@@ -172,7 +158,7 @@ class _OnboardingFormState extends State<OnboardingForm>
 
   void _updateCurrentPageIndex(int index) {
     if (index < 0) {
-      context.go('/onboarding/start');
+      context.pop();
       return;
     }
     _tabController.index = index;
@@ -184,9 +170,8 @@ class _OnboardingFormState extends State<OnboardingForm>
   }
 }
 
-class PageIndicator extends StatelessWidget {
-  const PageIndicator({
-    super.key,
+class _AppBar extends StatelessWidget {
+  _AppBar({
     required this.tabController,
     required this.onUpdateCurrentPageIndex,
   });
@@ -194,12 +179,18 @@ class PageIndicator extends StatelessWidget {
   final TabController tabController;
   final void Function(int) onUpdateCurrentPageIndex;
 
+  final SvgPicture _previousIcon = SvgPicture.asset(
+    'assets/chevron_left.svg',
+    semanticsLabel: 'Previous Icon',
+    fit: BoxFit.contain,
+  );
+
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     const double iconButtonSize = 32.0;
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         SizedBox(
@@ -210,110 +201,17 @@ class PageIndicator extends StatelessWidget {
             onPressed: () {
               onUpdateCurrentPageIndex(tabController.index - 1);
             },
-            icon: const Icon(
-              Icons.arrow_left_rounded,
-              size: 24.0,
-            ),
+            icon: _previousIcon,
           ),
         ),
-        TabPageSelector(
-          controller: tabController,
-          color: colorScheme.surface,
-          selectedColor: colorScheme.primary,
+        StepProgress(
+          currentStep: tabController.index,
+          totalSteps: tabController.length,
         ),
         SizedBox(
           width: iconButtonSize,
         )
       ],
     );
-  }
-}
-
-class PreparationFormData {
-  PreparationFormData({this.preparationStepList = const []});
-  final List<PreparationStepFormData> preparationStepList;
-
-  PreparationFormData copyWith(
-      {List<PreparationStepFormData>? preparationStepList}) {
-    return PreparationFormData(
-      preparationStepList: preparationStepList ?? this.preparationStepList,
-    );
-  }
-
-  PreparationFormData sortByOrder() {
-    final List<PreparationStepFormData> sortedList =
-        List.from(preparationStepList)
-          ..sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
-    return copyWith(preparationStepList: sortedList);
-  }
-
-  OnboardingState toOnboardingState(Duration spareTime) {
-    final sortedList = sortByOrder().preparationStepList;
-    final steps = sortedList
-        .mapIndexed((index, step) => OnboardingPreparationStepState(
-              id: step.id,
-              preparationName: step.preparationName,
-              preparationTime: step.preparationTime,
-              nextPreparationId: index < sortedList.length - 1
-                  ? sortedList[index + 1].id
-                  : null, // if not last step, set next step id
-            ))
-        .toList();
-    return OnboardingState(preparationStepList: steps, spareTime: spareTime);
-  }
-}
-
-class PreparationStepFormData {
-  PreparationStepFormData({
-    required this.id,
-    required this.preparationName,
-    this.preparationTime = const Duration(minutes: 0),
-    this.order,
-  });
-
-  final String id;
-  final String preparationName;
-  final Duration preparationTime;
-  final int? order;
-
-  PreparationStepFormData copyWith(
-      {String? id,
-      String? preparationName,
-      Duration? preparationTime,
-      int? order}) {
-    return PreparationStepFormData(
-      id: id ?? this.id,
-      preparationName: preparationName ?? this.preparationName,
-      preparationTime: preparationTime ?? this.preparationTime,
-      order: order ?? this.order,
-    );
-  }
-}
-
-class CustomFormField<T> extends FormField<T> {
-  CustomFormField({super.key, required})
-      : super(
-          builder: (FormFieldState<T> field) {
-            return Column(
-              children: [
-                TextField(
-                  onChanged: (value) {
-                    field.didChange(value as T);
-                  },
-                ),
-              ],
-            );
-          },
-        );
-}
-
-extension MapWithIndex<T> on List<T> {
-  List<R> mapWithIndex<R>(R Function(T, int i) callback) {
-    List<R> result = [];
-    for (int i = 0; i < length; i++) {
-      R item = callback(this[i], i);
-      result.add(item);
-    }
-    return result;
   }
 }

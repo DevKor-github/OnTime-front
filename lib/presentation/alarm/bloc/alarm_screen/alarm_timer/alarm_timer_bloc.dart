@@ -35,7 +35,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
             0, (sum, step) => sum + step.preparationTime.inSeconds),
         _totalRemaining = preparationSteps.fold<int>(
             0, (sum, step) => sum + step.preparationTime.inSeconds),
-        super(TimerInitial(
+        super(AlarmTimerInitial(
           duration: preparationSteps[0].preparationTime.inSeconds,
           currentStepIndex: 0,
           elapsedTime: 0,
@@ -45,7 +45,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     on<TimerStepStarted>(_onStepStarted);
     on<TimerStepTicked>(_onStepTicked);
     on<TimerStepSkipped>(_onStepSkipped);
-    on<TimerStepNext>(_onStepNext);
+    on<TimerStepNextShifted>(_onStepNext);
     on<TimerStepFinalized>(_onStepFinalized);
   }
 
@@ -63,7 +63,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
     _preparationStates[_currentStepIndex] = 'now';
 
-    emit(TimerRunInProgress(
+    emit(AlarmTimerRunInProgress(
       remainingTime: _currentRemaining,
       currentStepIndex: _currentStepIndex,
       elapsedTime: _currentElapsed,
@@ -79,7 +79,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       _currentElapsed = event.elapsedTime;
       _elapsedTimes[_currentStepIndex] = _currentElapsed;
 
-      emit(TimerRunInProgress(
+      emit(AlarmTimerRunInProgress(
         remainingTime: event.duration,
         currentStepIndex: _currentStepIndex,
         elapsedTime: _currentElapsed,
@@ -89,7 +89,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       ));
     } else {
       _preparationStates[_currentStepIndex] = "done";
-      add(const TimerStepNext());
+      add(const TimerStepNextShifted());
     }
   }
 
@@ -98,11 +98,11 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
     _tickerSubscription?.cancel();
     _totalRemaining -= _currentRemaining;
-    emit(TimerStepCompleted(_currentStepIndex));
-    add(TimerStepNext());
+    emit(AlarmTimerPreparationStepCompletion(_currentStepIndex));
+    add(TimerStepNextShifted());
   }
 
-  void _onStepNext(TimerStepNext event, Emitter<AlarmTimerState> emit) {
+  void _onStepNext(TimerStepNextShifted event, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
     if (_currentStepIndex + 1 < preparationSteps.length) {
       _currentStepIndex++;
@@ -119,7 +119,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   void _onStepFinalized(
       TimerStepFinalized event, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
-    emit(const TimerAllCompleted());
+    emit(const AlarmTimerPreparationCompletion());
   }
 
   void _startTicker(int duration) {

@@ -65,7 +65,8 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
   Widget build(BuildContext context) {
     return BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
       builder: (context, timerState) {
-        if (timerState is TimerRunInProgress || timerState is TimerInitial) {
+        if (timerState is AlarmTimerRunInProgress ||
+            timerState is AlarmTimerInitial) {
           return Center(
             child: SizedBox(
               width: 329,

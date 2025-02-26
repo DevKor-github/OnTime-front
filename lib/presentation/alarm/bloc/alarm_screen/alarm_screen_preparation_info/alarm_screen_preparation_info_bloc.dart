@@ -18,13 +18,14 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
   final PreparationRemoteDataSource preparationRemoteDataSource;
 
   AlarmScreenPreparationInfoBloc({required this.preparationRemoteDataSource})
-      : super(PreparationInfoInitial()) {
-    on<FetchPreparationInfo>(_onFetchPreparationInfo);
+      : super(AlarmScreenPreparationInitial()) {
+    on<AlarmScreenPreparationSubscriptionRequested>(_onFetchPreparationInfo);
   }
 
-  Future<void> _onFetchPreparationInfo(FetchPreparationInfo event,
+  Future<void> _onFetchPreparationInfo(
+      AlarmScreenPreparationSubscriptionRequested event,
       Emitter<AlarmScreenPreparationInfoState> emit) async {
-    emit(PreparationInfoLoadInProgress());
+    emit(AlarmScreenPreparationInfoLoadInProgress());
     try {
       final PreparationEntity prepEntity = await preparationRemoteDataSource
           .getPreparationByScheduleId(event.scheduleId);
@@ -42,7 +43,7 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
       final int remainingTime =
           steps.isNotEmpty ? steps[0].preparationTime.inSeconds : 0;
 
-      emit(PreparationInfoLoadSuccess(
+      emit(AlarmScreenPreparationLoadSuccess(
         preparationSteps: steps,
         currentIndex: 0,
         remainingTime: remainingTime,
@@ -53,7 +54,7 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
         preparationCompleted: preparationCompleted,
       ));
     } catch (e) {
-      emit(PreparationInfoLoadFailure(e.toString()));
+      emit(AlarmScreenPreparationLoadFailure(e.toString()));
     }
   }
 

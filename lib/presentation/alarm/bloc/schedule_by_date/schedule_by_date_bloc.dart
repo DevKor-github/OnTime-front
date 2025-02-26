@@ -29,7 +29,7 @@ class ScheduleByDateBloc
       );
       emit(ScheduleByDateLoadSuccess(schedules: schedules));
     } catch (e) {
-      emit(ScheduleByDateError(errorMessage: e.toString()));
+      emit(ScheduleByDateLoadFailure(errorMessage: e.toString()));
     }
   }
 }

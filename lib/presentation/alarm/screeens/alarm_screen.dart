@@ -57,22 +57,22 @@ class _AlarmScreenState extends State<AlarmScreen>
           AppDio(),
         ),
       )..add(
-          FetchPreparationInfo(
+          AlarmScreenPreparationSubscriptionRequested(
               scheduleId: widget.schedule.id, schedule: widget.schedule),
         ),
       child: BlocBuilder<AlarmScreenPreparationInfoBloc,
           AlarmScreenPreparationInfoState>(
         builder: (context, infoState) {
-          if (infoState is PreparationInfoLoadInProgress ||
-              infoState is PreparationInfoInitial) {
+          if (infoState is AlarmScreenPreparationInfoLoadInProgress ||
+              infoState is AlarmScreenPreparationInitial) {
             return const Scaffold(
                 backgroundColor: Color(0xff5C79FB),
                 body: Center(child: CircularProgressIndicator()));
-          } else if (infoState is PreparationInfoLoadFailure) {
+          } else if (infoState is AlarmScreenPreparationLoadFailure) {
             return Scaffold(
                 backgroundColor: const Color(0xff5C79FB),
                 body: Center(child: Text(infoState.errorMessage)));
-          } else if (infoState is PreparationInfoLoadSuccess) {
+          } else if (infoState is AlarmScreenPreparationLoadSuccess) {
             final stepDurations = infoState.preparationSteps
                 .map((step) => step.preparationTime.inSeconds)
                 .toList();
@@ -93,12 +93,12 @@ class _AlarmScreenState extends State<AlarmScreen>
     );
   }
 
-  Widget _buildAlarmScreen(PreparationInfoLoadSuccess infoState) {
+  Widget _buildAlarmScreen(AlarmScreenPreparationLoadSuccess infoState) {
     return MultiBlocListener(
       listeners: [
         BlocListener<AlarmTimerBloc, AlarmTimerState>(
           listener: (context, timerState) {
-            if (timerState is TimerRunInProgress) {
+            if (timerState is AlarmTimerRunInProgress) {
               _progressAnimation = Tween<double>(
                 begin: currentProgress,
                 end: infoState.progress,
@@ -111,7 +111,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               _animationController.reset();
               _animationController.forward();
             }
-            if (timerState is TimerAllCompleted) {
+            if (timerState is AlarmTimerPreparationCompletion) {
               GoRouter.of(context).go('/earlyLate', extra: infoState.fullTime);
             }
           },
@@ -158,7 +158,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                         BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
                           builder: (context, timerState) {
                             String preparationName = "";
-                            if (timerState is TimerRunInProgress) {
+                            if (timerState is AlarmTimerRunInProgress) {
                               preparationName = infoState
                                   .preparationSteps[timerState.currentStepIndex]
                                   .preparationName;
@@ -178,7 +178,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                         BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
                           builder: (context, timerState) {
                             int remainingTime = 0;
-                            if (timerState is TimerRunInProgress) {
+                            if (timerState is AlarmTimerRunInProgress) {
                               remainingTime = timerState.remainingTime;
                             }
                             return Text(

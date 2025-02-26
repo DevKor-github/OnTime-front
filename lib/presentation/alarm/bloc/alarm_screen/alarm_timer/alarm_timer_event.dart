@@ -28,8 +28,8 @@ class TimerStepSkipped extends AlarmTimerEvent {
   const TimerStepSkipped();
 }
 
-class TimerStepNext extends AlarmTimerEvent {
-  const TimerStepNext();
+class TimerStepNextShifted extends AlarmTimerEvent {
+  const TimerStepNextShifted();
 }
 
 class TimerStepFinalized extends AlarmTimerEvent {

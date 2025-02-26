@@ -1,6 +1,6 @@
 part of 'schedule_by_date_bloc.dart';
 
-abstract class ScheduleByDateState extends Equatable {
+sealed class ScheduleByDateState extends Equatable {
   const ScheduleByDateState();
 
   @override
@@ -19,9 +19,9 @@ class ScheduleByDateLoadSuccess extends ScheduleByDateState {
   List<Object?> get props => [schedules];
 }
 
-class ScheduleByDateError extends ScheduleByDateState {
+class ScheduleByDateLoadFailure extends ScheduleByDateState {
   final String errorMessage;
-  const ScheduleByDateError({required this.errorMessage});
+  const ScheduleByDateLoadFailure({required this.errorMessage});
 
   @override
   List<Object?> get props => [errorMessage];

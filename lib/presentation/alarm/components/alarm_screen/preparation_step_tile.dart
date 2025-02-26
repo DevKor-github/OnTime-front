@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:dotted_line/dotted_line.dart';
+import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,7 +67,7 @@ class _PreparationStepTileState extends State<PreparationStepTile>
           displayTime = formatElapsedTime(widget.elapsedTime);
 
           // 타이머가 진행 중인 상태일 때, timerState를 통해 실시간 업데이트된 elapsedTime을 표시
-          if (timerState is TimerRunInProgress) {
+          if (timerState is AlarmTimerRunInProgress) {
             displayTime = formatElapsedTime(timerState.elapsedTime);
           }
         } else {

@@ -1,17 +1,19 @@
 part of 'alarm_screen_preparation_info_bloc.dart';
 
-abstract class AlarmScreenPreparationInfoState extends Equatable {
+sealed class AlarmScreenPreparationInfoState extends Equatable {
   const AlarmScreenPreparationInfoState();
 
   @override
   List<Object?> get props => [];
 }
 
-class PreparationInfoInitial extends AlarmScreenPreparationInfoState {}
+class AlarmScreenPreparationInitial extends AlarmScreenPreparationInfoState {}
 
-class PreparationInfoLoadInProgress extends AlarmScreenPreparationInfoState {}
+class AlarmScreenPreparationInfoLoadInProgress
+    extends AlarmScreenPreparationInfoState {}
 
-class PreparationInfoLoadSuccess extends AlarmScreenPreparationInfoState {
+class AlarmScreenPreparationLoadSuccess
+    extends AlarmScreenPreparationInfoState {
   final List<PreparationStepEntity> preparationSteps;
   final int currentIndex;
   final int remainingTime;
@@ -21,7 +23,7 @@ class PreparationInfoLoadSuccess extends AlarmScreenPreparationInfoState {
   final bool isLate;
   final List<bool> preparationCompleted;
 
-  const PreparationInfoLoadSuccess({
+  const AlarmScreenPreparationLoadSuccess({
     required this.preparationSteps,
     required this.currentIndex,
     required this.remainingTime,
@@ -51,7 +53,7 @@ class PreparationInfoLoadSuccess extends AlarmScreenPreparationInfoState {
     return ratios;
   }
 
-  PreparationInfoLoadSuccess copyWith({
+  AlarmScreenPreparationLoadSuccess copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentIndex,
     int? remainingTime,
@@ -61,7 +63,7 @@ class PreparationInfoLoadSuccess extends AlarmScreenPreparationInfoState {
     bool? isLate,
     List<bool>? preparationCompleted,
   }) {
-    return PreparationInfoLoadSuccess(
+    return AlarmScreenPreparationLoadSuccess(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentIndex: currentIndex ?? this.currentIndex,
       remainingTime: remainingTime ?? this.remainingTime,
@@ -86,9 +88,10 @@ class PreparationInfoLoadSuccess extends AlarmScreenPreparationInfoState {
       ];
 }
 
-class PreparationInfoLoadFailure extends AlarmScreenPreparationInfoState {
+class AlarmScreenPreparationLoadFailure
+    extends AlarmScreenPreparationInfoState {
   final String errorMessage;
-  const PreparationInfoLoadFailure(this.errorMessage);
+  const AlarmScreenPreparationLoadFailure(this.errorMessage);
 
   @override
   List<Object?> get props => [errorMessage];

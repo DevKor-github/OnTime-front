@@ -1,20 +1,20 @@
 part of 'alarm_timer_bloc.dart';
 
-abstract class AlarmTimerState extends Equatable {
+sealed class AlarmTimerState extends Equatable {
   const AlarmTimerState();
 
   @override
   List<Object?> get props => [];
 }
 
-class TimerInitial extends AlarmTimerState {
+class AlarmTimerInitial extends AlarmTimerState {
   final int duration;
   final int currentStepIndex;
   final int elapsedTime;
   final String preparationName;
   final String preparationState;
 
-  const TimerInitial({
+  const AlarmTimerInitial({
     required this.duration,
     required this.currentStepIndex,
     required this.elapsedTime,
@@ -27,7 +27,7 @@ class TimerInitial extends AlarmTimerState {
       [duration, currentStepIndex, elapsedTime, preparationState];
 }
 
-class TimerRunInProgress extends AlarmTimerState {
+class AlarmTimerRunInProgress extends AlarmTimerState {
   final int remainingTime;
   final int currentStepIndex;
   final int elapsedTime;
@@ -35,7 +35,7 @@ class TimerRunInProgress extends AlarmTimerState {
   final String preparationName;
   final String preparationState;
 
-  const TimerRunInProgress({
+  const AlarmTimerRunInProgress({
     required this.remainingTime,
     required this.currentStepIndex,
     required this.elapsedTime,
@@ -55,16 +55,16 @@ class TimerRunInProgress extends AlarmTimerState {
       ];
 }
 
-class TimerStepCompleted extends AlarmTimerState {
+class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
   final int completedStepIndex;
-  const TimerStepCompleted(this.completedStepIndex);
+  const AlarmTimerPreparationStepCompletion(this.completedStepIndex);
 
   @override
   List<Object?> get props => [completedStepIndex];
 }
 
-class TimerAllCompleted extends AlarmTimerState {
-  const TimerAllCompleted();
+class AlarmTimerPreparationCompletion extends AlarmTimerState {
+  const AlarmTimerPreparationCompletion();
 
   @override
   List<Object?> get props => [];

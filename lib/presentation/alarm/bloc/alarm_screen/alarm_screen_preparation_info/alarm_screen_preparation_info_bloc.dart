@@ -6,8 +6,8 @@ import 'package:equatable/equatable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 
 part 'alarm_screen_preparation_info_event.dart';
 part 'alarm_screen_preparation_info_state.dart';
@@ -15,9 +15,10 @@ part 'alarm_screen_preparation_info_state.dart';
 @injectable
 class AlarmScreenPreparationInfoBloc extends Bloc<
     AlarmScreenPreparationInfoEvent, AlarmScreenPreparationInfoState> {
-  final PreparationRemoteDataSource preparationRemoteDataSource;
+  final GetPreparationByScheduleIdUseCase getPreparationByScheduleIdUseCase;
 
-  AlarmScreenPreparationInfoBloc({required this.preparationRemoteDataSource})
+  AlarmScreenPreparationInfoBloc(
+      {required this.getPreparationByScheduleIdUseCase})
       : super(AlarmScreenPreparationInitial()) {
     on<AlarmScreenPreparationSubscriptionRequested>(_onFetchPreparationInfo);
   }
@@ -27,8 +28,8 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
       Emitter<AlarmScreenPreparationInfoState> emit) async {
     emit(AlarmScreenPreparationInfoLoadInProgress());
     try {
-      final PreparationEntity prepEntity = await preparationRemoteDataSource
-          .getPreparationByScheduleId(event.scheduleId);
+      final PreparationEntity prepEntity =
+          await getPreparationByScheduleIdUseCase(event.scheduleId);
 
       final List<PreparationStepEntity> steps = prepEntity.preparationStepList;
       final int totalPrepTime =

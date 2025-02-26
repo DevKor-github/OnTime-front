@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/core/dio/app_dio.dart';
-import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
+import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 
 import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_screen_preparation_info/alarm_screen_preparation_info_bloc.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
@@ -53,9 +52,8 @@ class _AlarmScreenState extends State<AlarmScreen>
   Widget build(BuildContext context) {
     return BlocProvider<AlarmScreenPreparationInfoBloc>(
       create: (context) => AlarmScreenPreparationInfoBloc(
-        preparationRemoteDataSource: PreparationRemoteDataSourceImpl(
-          AppDio(),
-        ),
+        getPreparationByScheduleIdUseCase:
+            context.read<GetPreparationByScheduleIdUseCase>(),
       )..add(
           AlarmScreenPreparationSubscriptionRequested(
               scheduleId: widget.schedule.id, schedule: widget.schedule),

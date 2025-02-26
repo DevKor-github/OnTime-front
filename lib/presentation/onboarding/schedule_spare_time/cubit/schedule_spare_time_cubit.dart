@@ -29,7 +29,6 @@ class ScheduleSpareTimeCubit extends Cubit<ScheduleSpareTimeState> {
   }
 
   void spareTimeSaved() {
-    onboardingCubit.onboardingFormChanged(
-        spareTime: onboardingCubit.state.spareTime);
+    onboardingCubit.onboardingFormChanged(spareTime: state.spareTime);
   }
 }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
@@ -62,52 +60,6 @@ class PreparationReorderableList extends StatelessWidget {
           ),
         ),
         onReorder: onReorder,
-      ),
-    );
-  }
-}
-
-class PreparationReorderField extends StatefulWidget {
-  const PreparationReorderField({
-    super.key,
-    required this.formKey,
-  });
-
-  final GlobalKey<FormState> formKey;
-
-  @override
-  State<PreparationReorderField> createState() =>
-      _PreparationReorderFieldState();
-}
-
-class _PreparationReorderFieldState extends State<PreparationReorderField> {
-  @override
-  void initState() {
-    context.read<PreparationOrderCubit>().initialize();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return OnboardingPageViewLayout(
-      title: Text(
-        '평소 준비 과정의 순서로\n조정해주세요',
-        style: textTheme.titleLarge,
-      ),
-      form: Form(
-        key: widget.formKey,
-        child: BlocBuilder<PreparationOrderCubit, PreparationOrderState>(
-            builder: (context, state) {
-          return PreparationReorderableList(
-            preparationOrderingList: state.preparationStepList,
-            onReorder: (oldIndex, newIndex) {
-              context
-                  .read<PreparationOrderCubit>()
-                  .preparationOrderChanged(oldIndex, newIndex);
-            },
-          );
-        }),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 part 'alarm_timer_event.dart';
 part 'alarm_timer_state.dart';
@@ -20,7 +21,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   int _currentElapsed = 0;
 
   // 각 준비과정 상태 (yet, now, done)
-  final List<String> _preparationStates;
+  final List<PreparationStateEnum> _preparationStates;
 
   final List<int> _elapsedTimes;
 
@@ -28,8 +29,8 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   int _totalRemaining;
 
   AlarmTimerBloc({required this.preparationSteps})
-      : _preparationStates =
-            List.generate(preparationSteps.length, (index) => 'yet'),
+      : _preparationStates = List.generate(
+            preparationSteps.length, (index) => PreparationStateEnum.yet),
         _elapsedTimes = List.generate(preparationSteps.length, (index) => 0),
         _totalPreparationTime = preparationSteps.fold<int>(
             0, (sum, step) => sum + step.preparationTime.inSeconds),
@@ -40,7 +41,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
           currentStepIndex: 0,
           elapsedTime: 0,
           preparationName: preparationSteps[0].preparationName,
-          preparationState: 'yet',
+          preparationState: PreparationStateEnum.yet,
         )) {
     on<TimerStepStarted>(_onStepStarted);
     on<TimerStepTicked>(_onStepTicked);
@@ -51,7 +52,8 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
   int get currentStepIndex => _currentStepIndex;
 
-  List<String> get preparationStates => List.unmodifiable(_preparationStates);
+  List<PreparationStateEnum> get preparationStates =>
+      List.unmodifiable(_preparationStates);
   List<int> get elapsedTimes => List.unmodifiable(_elapsedTimes);
 
   void _onStepStarted(TimerStepStarted event, Emitter<AlarmTimerState> emit) {
@@ -61,7 +63,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     String preparationName =
         preparationSteps[_currentStepIndex].preparationName;
 
-    _preparationStates[_currentStepIndex] = 'now';
+    _preparationStates[_currentStepIndex] = PreparationStateEnum.now;
 
     emit(AlarmTimerRunInProgress(
       preparationRemainingTime: _currentRemaining,
@@ -89,13 +91,14 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
         preparationState: _preparationStates[_currentStepIndex],
       ));
     } else {
-      _preparationStates[_currentStepIndex] = "done";
+      _preparationStates[_currentStepIndex] = PreparationStateEnum.done;
       add(const TimerStepNextShifted());
     }
   }
 
   void _onStepSkipped(TimerStepSkipped event, Emitter<AlarmTimerState> emit) {
-    _preparationStates[_currentStepIndex] = "done"; // 건너뛰기 시 상태 변경
+    _preparationStates[_currentStepIndex] =
+        PreparationStateEnum.done; // 건너뛰기 시 상태 변경
 
     _tickerSubscription?.cancel();
     _totalRemaining -= _currentRemaining;
@@ -110,7 +113,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       _currentRemaining =
           preparationSteps[_currentStepIndex].preparationTime.inSeconds;
       _currentElapsed = 0;
-      _preparationStates[_currentStepIndex] = "now";
+      _preparationStates[_currentStepIndex] = PreparationStateEnum.now;
       add(TimerStepStarted(_currentRemaining));
     } else {
       add(const TimerStepFinalized());

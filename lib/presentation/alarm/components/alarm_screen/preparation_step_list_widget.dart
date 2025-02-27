@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/alarm_screen/preparation_step_tile.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // Bloc import 추가
 
@@ -76,7 +77,7 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
                 itemBuilder: (context, index) {
                   final preparation = widget.preparations[index];
 
-                  final String preparationState =
+                  final PreparationStateEnum preparationState =
                       context.read<AlarmTimerBloc>().preparationStates[index];
                   final int elapsedTime =
                       context.read<AlarmTimerBloc>().elapsedTimes[index];
@@ -93,7 +94,7 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
                     preparationState: preparationState,
                     elapsedTime: elapsedTime,
                     isLastItem: isLastItem,
-                    onSkip: preparationState == 'now'
+                    onSkip: preparationState == PreparationStateEnum.now
                         ? () {
                             context
                                 .read<AlarmTimerBloc>()

@@ -1,6 +1,7 @@
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -8,7 +9,7 @@ class PreparationStepTile extends StatefulWidget {
   final int stepIndex;
   final String preparationName;
   final String preparationTime;
-  final String preparationState;
+  final PreparationStateEnum preparationState;
   final int elapsedTime;
   final bool isLastItem;
   final VoidCallback? onSkip;
@@ -59,10 +60,10 @@ class _PreparationStepTileState extends State<PreparationStepTile>
         String displayTime;
 
         // 상태에 따라 타이머 시간 업데이트
-        if (widget.preparationState == 'yet') {
+        if (widget.preparationState == PreparationStateEnum.yet) {
           // 준비 전: 목표 시간 표시
           displayTime = widget.preparationTime;
-        } else if (widget.preparationState == 'now') {
+        } else if (widget.preparationState == PreparationStateEnum.now) {
           // 진행 중: elapsedTime (누적 시간 타이머)
           displayTime = formatElapsedTime(widget.elapsedTime);
 
@@ -78,7 +79,7 @@ class _PreparationStepTileState extends State<PreparationStepTile>
 
         // 좌측 순서 및 체크 표시
         Widget circleContent;
-        if (widget.preparationState == 'done') {
+        if (widget.preparationState == PreparationStateEnum.done) {
           circleContent = const Icon(Icons.check);
         } else {
           circleContent = Text(
@@ -93,7 +94,8 @@ class _PreparationStepTileState extends State<PreparationStepTile>
 
         // 건너뛰기 버튼
         Widget? skipButton;
-        if (widget.preparationState == 'now' && widget.onSkip != null) {
+        if (widget.preparationState == PreparationStateEnum.now &&
+            widget.onSkip != null) {
           skipButton = Builder(builder: (context) {
             return Align(
               alignment: Alignment.centerRight,
@@ -190,14 +192,16 @@ class _PreparationStepTileState extends State<PreparationStepTile>
                 child: Container(
                   width: 358,
                   height:
-                      (widget.preparationState == 'now' && skipButton != null)
+                      (widget.preparationState == PreparationStateEnum.now &&
+                              skipButton != null)
                           ? 135
                           : 62,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.all(Radius.circular(10)),
-                    border: (widget.preparationState == 'now')
-                        ? Border.all(color: Color(0xff5C79FB), width: 2)
-                        : null,
+                    border:
+                        (widget.preparationState == PreparationStateEnum.now)
+                            ? Border.all(color: Color(0xff5C79FB), width: 2)
+                            : null,
                     color: Colors.white,
                   ),
                   child: Padding(

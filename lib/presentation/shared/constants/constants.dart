@@ -91,3 +91,9 @@ String getEarlyMessage(int value) {
 String getLateMessage() {
   return lateMessages[Random().nextInt(lateMessages.length)];
 }
+
+enum PreparationStateEnum {
+  yet, // 준비 전
+  now, // 진행 중
+  done, // 완료됨
+}

@@ -12,7 +12,7 @@ class AlarmTimerInitial extends AlarmTimerState {
   final int currentStepIndex;
   final int elapsedTime;
   final String preparationName;
-  final String preparationState;
+  final PreparationStateEnum preparationState;
 
   const AlarmTimerInitial({
     required this.duration,
@@ -33,7 +33,7 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
   final int preparationStepelapsedTime;
   final double progress;
   final String preparationStepName;
-  final String preparationState;
+  final PreparationStateEnum preparationState;
 
   const AlarmTimerRunInProgress({
     required this.preparationRemainingTime,

@@ -67,21 +67,24 @@ class _PreparationNameSelectFieldState
             padding: const EdgeInsets.symmetric(horizontal: 19.0),
             child: Container(
               constraints: BoxConstraints(minHeight: 30),
-              child: TextFormField(
-                scrollPadding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom + 56),
-                initialValue: widget.preparationStep.preparationName.value,
-                onChanged: widget.onNameChanged,
-                onFieldSubmitted: (value) => widget.onNameSaved?.call(),
-                onTapOutside: (event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(3.0),
+              child: Center(
+                child: TextFormField(
+                  scrollPadding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 56),
+                  initialValue: widget.preparationStep.preparationName.value,
+                  onChanged: widget.onNameChanged,
+                  onFieldSubmitted: (value) => widget.onNameSaved?.call(),
+                  onTapOutside: (event) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.all(3.0),
+                  ),
+                  style: TextStyle(fontSize: 16),
+                  focusNode: focusNode,
                 ),
-                focusNode: focusNode,
               ),
             ),
           ),

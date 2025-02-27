@@ -20,10 +20,10 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
   AlarmScreenPreparationInfoBloc(
       {required this.getPreparationByScheduleIdUseCase})
       : super(AlarmScreenPreparationInitial()) {
-    on<AlarmScreenPreparationSubscriptionRequested>(_onFetchPreparationInfo);
+    on<AlarmScreenPreparationSubscriptionRequested>(_onSubscriptionRequested);
   }
 
-  Future<void> _onFetchPreparationInfo(
+  Future<void> _onSubscriptionRequested(
       AlarmScreenPreparationSubscriptionRequested event,
       Emitter<AlarmScreenPreparationInfoState> emit) async {
     emit(AlarmScreenPreparationInfoLoadInProgress());
@@ -39,18 +39,18 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
       final List<bool> preparationCompleted =
           List<bool>.filled(steps.length, false);
 
-      final int fullTime = _calculateFullTime(event.schedule);
-      final bool isLate = fullTime < 0;
-      final int remainingTime =
+      final int beforeOutTime = _calculateBeforeOutTime(event.schedule);
+      final bool isLate = beforeOutTime < 0;
+      final int preparationRemainingTime =
           steps.isNotEmpty ? steps[0].preparationTime.inSeconds : 0;
 
       emit(AlarmScreenPreparationLoadSuccess(
         preparationSteps: steps,
         currentIndex: 0,
-        remainingTime: remainingTime,
+        preparationRemainingTime: preparationRemainingTime,
         totalPreparationTime: totalPrepTime,
-        totalRemainingTime: totalRemainingTime,
-        fullTime: fullTime,
+        totalPreparationRemainingTime: totalRemainingTime,
+        beforeOutTime: beforeOutTime,
         isLate: isLate,
         preparationCompleted: preparationCompleted,
       ));
@@ -59,7 +59,7 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
     }
   }
 
-  int _calculateFullTime(ScheduleEntity schedule) {
+  int _calculateBeforeOutTime(ScheduleEntity schedule) {
     final DateTime now = DateTime.now();
     final Duration spareTime = schedule.scheduleSpareTime;
     final DateTime scheduleTime = schedule.scheduleTime;

@@ -16,29 +16,28 @@ class AlarmScreenPreparationLoadSuccess
     extends AlarmScreenPreparationInfoState {
   final List<PreparationStepEntity> preparationSteps;
   final int currentIndex;
-  final int remainingTime;
-  final int totalPreparationTime;
-  final int _totalRemainingTime;
-  final int fullTime;
+  final int preparationRemainingTime; // 현재 준비단계의 남은 시간
+  final int totalPreparationTime; // preparation 내 준비시간 총합
+  final int totalPreparationRemainingTime; // 준비 시간 중 남은 시간
+  final int beforeOutTime; // 지금부터 몇분 뒤에 나가야하는지에 대한 시간. alarm screen 최상단에서 표시.
   final bool isLate;
   final List<bool> preparationCompleted;
 
   const AlarmScreenPreparationLoadSuccess({
     required this.preparationSteps,
     required this.currentIndex,
-    required this.remainingTime,
+    required this.preparationRemainingTime,
     required this.totalPreparationTime,
-    required int totalRemainingTime,
-    required this.fullTime,
+    required this.totalPreparationRemainingTime,
+    required this.beforeOutTime,
     required this.isLate,
     required this.preparationCompleted,
-  }) : _totalRemainingTime = totalRemainingTime;
+  });
 
-  int get totalRemainingTime => _totalRemainingTime;
-
+// 그래프 비율 계산용 (남은 준비시간 / 총 준비시간)
   double get progress => totalPreparationTime == 0
       ? 0.0
-      : 1.0 - (_totalRemainingTime / totalPreparationTime);
+      : 1.0 - (totalPreparationRemainingTime / totalPreparationTime);
 
   List<double> get preparationRatios {
     List<double> ratios = [];
@@ -66,10 +65,11 @@ class AlarmScreenPreparationLoadSuccess
     return AlarmScreenPreparationLoadSuccess(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentIndex: currentIndex ?? this.currentIndex,
-      remainingTime: remainingTime ?? this.remainingTime,
+      preparationRemainingTime: remainingTime ?? preparationRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
-      totalRemainingTime: totalRemainingTime ?? _totalRemainingTime,
-      fullTime: fullTime ?? this.fullTime,
+      totalPreparationRemainingTime:
+          totalRemainingTime ?? totalPreparationRemainingTime,
+      beforeOutTime: fullTime ?? beforeOutTime,
       isLate: isLate ?? this.isLate,
       preparationCompleted: preparationCompleted ?? this.preparationCompleted,
     );
@@ -79,10 +79,10 @@ class AlarmScreenPreparationLoadSuccess
   List<Object?> get props => [
         preparationSteps,
         currentIndex,
-        remainingTime,
+        preparationRemainingTime,
         totalPreparationTime,
-        _totalRemainingTime,
-        fullTime,
+        totalPreparationRemainingTime,
+        beforeOutTime,
         isLate,
         preparationCompleted,
       ];

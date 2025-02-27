@@ -64,27 +64,28 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     _preparationStates[_currentStepIndex] = 'now';
 
     emit(AlarmTimerRunInProgress(
-      remainingTime: _currentRemaining,
+      preparationRemainingTime: _currentRemaining,
       currentStepIndex: _currentStepIndex,
-      elapsedTime: _currentElapsed,
+      preparationStepelapsedTime: _currentElapsed,
       progress: progress,
-      preparationName: preparationName,
+      preparationStepName: preparationName,
       preparationState: _preparationStates[_currentStepIndex],
     ));
     _startTicker(event.duration);
   }
 
   void _onStepTicked(TimerStepTicked event, Emitter<AlarmTimerState> emit) {
-    if (event.duration > 0) {
-      _currentElapsed = event.elapsedTime;
+    if (event.preparationRemainingTime > 0) {
+      _currentElapsed = event.preparationElapsedTime;
       _elapsedTimes[_currentStepIndex] = _currentElapsed;
 
       emit(AlarmTimerRunInProgress(
-        remainingTime: event.duration,
+        preparationRemainingTime: event.preparationRemainingTime,
         currentStepIndex: _currentStepIndex,
-        elapsedTime: _currentElapsed,
+        preparationStepelapsedTime: _currentElapsed,
         progress: progress,
-        preparationName: preparationSteps[_currentStepIndex].preparationName,
+        preparationStepName:
+            preparationSteps[_currentStepIndex].preparationName,
         preparationState: _preparationStates[_currentStepIndex],
       ));
     } else {

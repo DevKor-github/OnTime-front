@@ -28,29 +28,29 @@ class AlarmTimerInitial extends AlarmTimerState {
 }
 
 class AlarmTimerRunInProgress extends AlarmTimerState {
-  final int remainingTime;
+  final int preparationRemainingTime;
   final int currentStepIndex;
-  final int elapsedTime;
+  final int preparationStepelapsedTime;
   final double progress;
-  final String preparationName;
+  final String preparationStepName;
   final String preparationState;
 
   const AlarmTimerRunInProgress({
-    required this.remainingTime,
+    required this.preparationRemainingTime,
     required this.currentStepIndex,
-    required this.elapsedTime,
+    required this.preparationStepelapsedTime,
     required this.progress,
-    required this.preparationName,
+    required this.preparationStepName,
     required this.preparationState,
   });
 
   @override
   List<Object?> get props => [
-        remainingTime,
+        preparationRemainingTime,
         currentStepIndex,
-        elapsedTime,
+        preparationStepelapsedTime,
         progress,
-        preparationName,
+        preparationStepName,
         preparationState
       ];
 }

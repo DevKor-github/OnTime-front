@@ -110,7 +110,8 @@ class _AlarmScreenState extends State<AlarmScreen>
               _animationController.forward();
             }
             if (timerState is AlarmTimerPreparationCompletion) {
-              GoRouter.of(context).go('/earlyLate', extra: infoState.fullTime);
+              GoRouter.of(context)
+                  .go('/earlyLate', extra: infoState.beforeOutTime);
             }
           },
         ),
@@ -125,7 +126,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               child: Text(
                 infoState.isLate
                     ? '지각이에요!'
-                    : '${formatTime(infoState.fullTime)} 뒤에 나가야 해요',
+                    : '${formatTime(infoState.beforeOutTime)} 뒤에 나가야 해요',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -175,12 +176,13 @@ class _AlarmScreenState extends State<AlarmScreen>
                         // 각 준비과정의 남은 시간 표시
                         BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
                           builder: (context, timerState) {
-                            int remainingTime = 0;
+                            int preparationRemainingTime = 0;
                             if (timerState is AlarmTimerRunInProgress) {
-                              remainingTime = timerState.remainingTime;
+                              preparationRemainingTime =
+                                  timerState.preparationRemainingTime;
                             }
                             return Text(
-                              formatTimeTimer(remainingTime),
+                              formatTimeTimer(preparationRemainingTime),
                               style: const TextStyle(
                                 fontSize: 35,
                                 color: Colors.white,

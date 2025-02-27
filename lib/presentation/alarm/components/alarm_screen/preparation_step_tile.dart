@@ -68,7 +68,8 @@ class _PreparationStepTileState extends State<PreparationStepTile>
 
           // 타이머가 진행 중인 상태일 때, timerState를 통해 실시간 업데이트된 elapsedTime을 표시
           if (timerState is AlarmTimerRunInProgress) {
-            displayTime = formatElapsedTime(timerState.elapsedTime);
+            displayTime =
+                formatElapsedTime(timerState.preparationStepelapsedTime);
           }
         } else {
           // 완료된 상태: 완료된 누적 시간 표시

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:on_time_front/presentation/shared/components/check_button.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
@@ -8,19 +9,38 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 @widgetbook.UseCase(name: 'Default', type: Tile)
 Widget tile(BuildContext context) {
   final leading = context.knobs.boolean(label: 'Leading', initialValue: true);
-
-  final isChecked = context.knobs.boolean(label: 'Checked', initialValue: true);
+  final trailing = context.knobs.boolean(label: 'Trailing', initialValue: true);
 
   return Tile(
-    leading:
-        leading ? CheckButton(isChecked: isChecked, onPressed: () {}) : null,
+    leading: leading
+        ? SizedBox(
+            height: 30,
+            width: 30,
+            child: CheckButton(isChecked: true, onPressed: () {}))
+        : null,
     style: TileStyle(
       borderRadius: BorderRadius.circular(100),
-      margin: const EdgeInsets.all(8.0),
     ),
+    trailing: trailing
+        ? SvgPicture.asset(
+            'assets/drag_indicator.svg',
+            semanticsLabel: 'drag indicator',
+            height: 14,
+            width: 14,
+            fit: BoxFit.contain,
+          )
+        : null,
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 19.0),
-      child: Text(context.knobs.string(label: 'Text', initialValue: '샤워하기')),
+      child: Center(
+        child: Text(
+          context.knobs.string(label: 'Text', initialValue: '샤워하기'),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
     ),
   );
 }

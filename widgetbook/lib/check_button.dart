@@ -9,7 +9,7 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 )
 Widget useCaseCheckButton(BuildContext context) {
   final isChecked = context.knobs.boolean(
-    label: 'isChecked',
+    label: 'Checked',
     initialValue: true,
   );
   return CheckButton(

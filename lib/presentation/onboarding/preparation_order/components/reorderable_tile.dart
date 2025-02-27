@@ -27,7 +27,7 @@ class ReorderableTile extends StatelessWidget {
     return Tile(
       style: TileStyle(
         backgroundColor: Color(0xFFE6E9F9),
-        padding: EdgeInsets.all(18.0),
+        padding: EdgeInsets.all(18.0) + EdgeInsets.only(right: 15),
       ),
       leading: Container(
         height: 22,

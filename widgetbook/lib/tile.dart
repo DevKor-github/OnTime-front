@@ -20,6 +20,7 @@ Widget tile(BuildContext context) {
         : null,
     style: TileStyle(
       borderRadius: BorderRadius.circular(100),
+      padding: const EdgeInsets.all(16.0) + const EdgeInsets.only(right: 17),
     ),
     trailing: trailing
         ? SvgPicture.asset(

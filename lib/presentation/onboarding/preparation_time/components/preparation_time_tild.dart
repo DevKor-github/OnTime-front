@@ -39,7 +39,9 @@ class PreparationTimeTile extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 8.0, vertical: 1.0),
                 child: Text(
                   (value.preparationTime.value.inMinutes < 10 ? '0' : '') +
-                      value.preparationTime.value.inMinutes.toString(),
+                      (value.preparationTime.value.inMinutes < 0
+                          ? '0'
+                          : value.preparationTime.value.inMinutes.toString()),
                   style: TextStyle(
                     color: colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w500,

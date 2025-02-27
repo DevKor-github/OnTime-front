@@ -7,12 +7,18 @@ abstract class AlarmScreenPreparationInfoEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class AlarmScreenPreparationLoadingRequested
+    extends AlarmScreenPreparationInfoEvent {}
+
 class AlarmScreenPreparationSubscriptionRequested
     extends AlarmScreenPreparationInfoEvent {
   final String scheduleId;
   final ScheduleEntity schedule;
-  const AlarmScreenPreparationSubscriptionRequested(
-      {required this.scheduleId, required this.schedule});
+
+  const AlarmScreenPreparationSubscriptionRequested({
+    required this.scheduleId,
+    required this.schedule,
+  });
   @override
   List<Object?> get props => [scheduleId, schedule];
 }

@@ -20,27 +20,32 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
   AlarmScreenPreparationInfoBloc(
       {required this.getPreparationByScheduleIdUseCase})
       : super(AlarmScreenPreparationInitial()) {
+    on<AlarmScreenPreparationLoadingRequested>(_onLoadingRequested);
     on<AlarmScreenPreparationSubscriptionRequested>(_onSubscriptionRequested);
+  }
+
+  void _onLoadingRequested(AlarmScreenPreparationLoadingRequested event,
+      Emitter<AlarmScreenPreparationInfoState> emit) {
+    emit(AlarmScreenPreparationInfoLoadInProgress());
   }
 
   Future<void> _onSubscriptionRequested(
       AlarmScreenPreparationSubscriptionRequested event,
       Emitter<AlarmScreenPreparationInfoState> emit) async {
-    emit(AlarmScreenPreparationInfoLoadInProgress());
+    add(AlarmScreenPreparationLoadingRequested());
+
     try {
       final PreparationEntity prepEntity =
           await getPreparationByScheduleIdUseCase(event.scheduleId);
 
       final List<PreparationStepEntity> steps = prepEntity.preparationStepList;
-      final int totalPrepTime =
+      final int totalPreparationTime =
           steps.fold(0, (sum, step) => sum + step.preparationTime.inSeconds);
 
-      final int totalRemainingTime = totalPrepTime;
+      final int totalRemainingTime = totalPreparationTime;
       final List<bool> preparationCompleted =
           List<bool>.filled(steps.length, false);
 
-      final int beforeOutTime = _calculateBeforeOutTime(event.schedule);
-      final bool isLate = beforeOutTime < 0;
       final int preparationRemainingTime =
           steps.isNotEmpty ? steps[0].preparationTime.inSeconds : 0;
 
@@ -48,24 +53,12 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
         preparationSteps: steps,
         currentIndex: 0,
         preparationRemainingTime: preparationRemainingTime,
-        totalPreparationTime: totalPrepTime,
         totalPreparationRemainingTime: totalRemainingTime,
-        beforeOutTime: beforeOutTime,
-        isLate: isLate,
         preparationCompleted: preparationCompleted,
+        schedule: event.schedule,
       ));
     } catch (e) {
       emit(AlarmScreenPreparationLoadFailure(e.toString()));
     }
-  }
-
-  int _calculateBeforeOutTime(ScheduleEntity schedule) {
-    final DateTime now = DateTime.now();
-    final Duration spareTime = schedule.scheduleSpareTime;
-    final DateTime scheduleTime = schedule.scheduleTime;
-    final Duration moveTime = schedule.moveTime;
-    final Duration remainingDuration =
-        scheduleTime.difference(now) - moveTime - spareTime;
-    return remainingDuration.inSeconds;
   }
 }

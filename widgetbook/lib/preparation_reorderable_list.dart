@@ -12,11 +12,9 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 Widget useCasePreparationReorderableList(BuildContext context) {
   final preparationLength = context.knobs.int
       .slider(label: 'Preparation Length', initialValue: 4, min: 1, max: 7);
-  final preparationStepName = context.knobs
-      .string(label: 'Preparation Step Name', initialValue: '샤워하기');
   final preparationOrderingList = [
     PreparationStepOrderState(
-        preparationId: const Uuid().v7(), preparationName: preparationStepName),
+        preparationId: const Uuid().v7(), preparationName: '샤워하기'),
     PreparationStepOrderState(
         preparationId: const Uuid().v7(), preparationName: '양치하기'),
     PreparationStepOrderState(

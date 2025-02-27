@@ -56,15 +56,16 @@ class _PreparationNameSelectFieldState
         key: ValueKey<String>(widget.preparationStep.preparationId),
         style: TileStyle(padding: EdgeInsets.all(16.0)),
         leading: SizedBox(
-            width: 30,
-            height: 30,
-            child: CheckButton(
-              isChecked: widget.preparationStep.isSelected,
-              onPressed: widget.onSelectionChanged,
-            )),
+          width: 30,
+          height: 30,
+          child: CheckButton(
+            isChecked: widget.preparationStep.isSelected,
+            onPressed: widget.onSelectionChanged,
+          ),
+        ),
         child: Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 19.0),
+            padding: const EdgeInsets.symmetric(horizontal: 18.0),
             child: Container(
               constraints: BoxConstraints(minHeight: 30),
               child: Center(

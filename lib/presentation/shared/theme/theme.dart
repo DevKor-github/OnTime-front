@@ -93,7 +93,7 @@ ThemeData themeData = ThemeData(
       backgroundColor: colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(100),
       maximumSize: const Size(double.infinity, 100),
-      padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 20.0),
+      padding: const EdgeInsets.all(16.0),
     ),
     DateTileThemeData(
       style: DateTileStyle(

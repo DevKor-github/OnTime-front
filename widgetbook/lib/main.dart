@@ -42,10 +42,7 @@ class WidgetbookApp extends StatelessWidget {
           ],
         ),
         DeviceFrameAddon(
-          devices: [
-            Devices.ios.iPhoneSE,
-            Devices.ios.iPhone13,
-          ],
+          devices: Devices.ios.all,
           initialDevice: Devices.ios.iPhone13,
         ),
         BuilderAddon(
@@ -55,7 +52,10 @@ class WidgetbookApp extends StatelessWidget {
               height: double.infinity,
               width: double.infinity,
               color: Colors.white,
-              child: child,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: child,
+              ),
             );
           },
         ),

@@ -24,14 +24,21 @@ jobs:
         with:
           flutter-version: "3.27.1"
           channel: "stable"
+
+
+      - run: flutter pub get
+
+      - run: dart run build_runner build -d
+
       - run: flutter pub get
         working-directory: ${{ env.working-directory }}
 
-      - run: dart run build_runner build
+      - run: dart run build_runner build -d
         working-directory: ${{ env.working-directory }} 
       
-      - run: flutter build web
+      - run: flutter build web --release
         working-directory: ${{ env.working-directory }}
+        
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'

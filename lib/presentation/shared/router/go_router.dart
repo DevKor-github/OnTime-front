@@ -22,7 +22,6 @@ GoRouter goRouterConfig(AppBloc bloc) {
           state.fullPath == '/onboarding/start';
       final bool onOnboardingScreen = state.fullPath == '/onboarding';
 
-      return null;
       switch (status) {
         case AppStatus.unauthenticated:
           return '/signIn';
@@ -40,7 +39,7 @@ GoRouter goRouterConfig(AppBloc bloc) {
           }
       }
     },
-    initialLocation: '/onboarding',
+    initialLocation: '/home',
     routes: [
       GoRoute(
         path: '/onboarding',

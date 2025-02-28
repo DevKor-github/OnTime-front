@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_time/components/preparation_time_tild.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/components/preparation_time_tile.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
 import 'package:widgetbook/widgetbook.dart';

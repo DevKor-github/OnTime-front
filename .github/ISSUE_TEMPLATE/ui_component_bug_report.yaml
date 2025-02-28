@@ -1,0 +1,41 @@
+name: UI Compoent Bug Report
+description: File a bug report related to widgetbook component
+projects: ["DevKor-github/3"]
+title: "[Bug]: (컴포넌트 이름) (버그 내용)"
+labels: ["component bug", "component"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        수정이 필요한 컴포넌트에 대해서 작성해 주세요~~ 😊
+  - type: input
+    attributes:
+      label: 컴포넌트 이름
+      description: 문제가 있는 컴포넌트 이름을 입력해 주세요.
+      placeholder: Tile
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: use-case 이름
+      description: 문제가 있는 컴포넌트의 use-case 이름을 입력해 주세요. (use-case가 하나인 경우 Default라고 입력해주세요)
+      placeholder: Default
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 문제 명세
+      description: 컴포넌트에 어떤 문제가 있는지 설명해 주세요.
+      placeholder: 내부 텍스트가 길어지면 오류가 발생합니다. 텍스트가 길어지면 한줄로 제한하되 말줄임표(...)를 사용해주세요.
+    validations:
+      required: true
+  - type: textarea
+    attributes: 
+      label: 문제 재현 방법
+      description: 위에서 설명한 문제 상황을 재현하기 위한 방법을 알려주세요. (없으면 빈칸, 있다면 변경해야 하는 Knob 이름과 값을 포함해 작성해주세요,)
+      placeholder: Text Knob의 값을 Lorem ipsum dolor sit amet, consectetur adipiscing elit으로 설정해 주세요.
+  - type: markdown
+    attributes:
+      value: |
+        감사합니다. 최대한 빠르게 수정하도록 하겠습니다. ❤️
+  

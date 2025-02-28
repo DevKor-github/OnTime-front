@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/components/create_icon_button.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/components/preparation_name_select_field.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/components/preparation_select_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
@@ -21,8 +22,6 @@ class PreparationCreateList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -72,19 +71,7 @@ class PreparationCreateList extends StatelessWidget {
             child: SizedBox(
               height: 30,
               width: 30,
-              child: IconButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all<Color>(
-                      colorScheme.primaryContainer),
-                ),
-                onPressed: () {
-                  onCreationRequested();
-                },
-                color: colorScheme.onPrimary,
-                icon: Icon(Icons.add),
-                padding: EdgeInsets.zero,
-                iconSize: 30.0,
-              ),
+              child: CreateIconButton(onCreationRequested: onCreationRequested),
             ),
           ),
           SizedBox(height: 56.0),

@@ -13,8 +13,10 @@ class OnboardingTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         RichText(
             text: TextSpan(
@@ -23,8 +25,13 @@ class OnboardingTitle extends StatelessWidget {
                 children: hint != null
                     ? [
                         TextSpan(
-                            text: hint,
-                            style: Theme.of(context).textTheme.titleSmall)
+                          text: hint,
+                          style: TextStyle(
+                            color: colorScheme.outline,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        )
                       ]
                     : [])),
         SizedBox(height: 8.0),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_time/components/preparation_time_tild.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/components/preparation_time_tile.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 
 class PreparationTimeInputFieldList extends StatefulWidget {

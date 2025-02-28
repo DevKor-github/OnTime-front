@@ -20,12 +20,8 @@ class _PreparationTimeFormState extends State<PreparationTimeForm> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return OnboardingPageViewLayout(
-      title: Text(
-        '과정별로 소요되는 시간을\n알려주세요',
-        style: textTheme.titleLarge,
-      ),
+      title: '과정별로 소요되는 시간을\n알려주세요',
       child: BlocBuilder<PreparationTimeCubit, PreparationTimeState>(
         builder: (context, state) {
           return PreparationTimeInputFieldList(

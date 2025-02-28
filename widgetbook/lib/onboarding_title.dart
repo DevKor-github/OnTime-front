@@ -21,6 +21,9 @@ Widget useCaseOnboardingTitle(BuildContext context) {
         fontSize: 16,
       ),
     )),
-    hint: context.knobs.stringOrNull(label: 'Hint', initialValue: '(중복 가능)'),
+    hint: context.knobs.stringOrNull(
+      label: 'Hint',
+      initialValue: '  (복수 선택)',
+    ),
   );
 }

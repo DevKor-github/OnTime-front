@@ -25,9 +25,19 @@ class PreparationStepTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
       builder: (context, timerState) {
-        final preparationState = timerState.preparationStates[stepIndex - 1];
-        final elapsedTime = timerState.elapsedTimes[stepIndex - 1];
+        final int currentIndex = timerState.currentStepIndex;
 
+        // 현재 진행 중인 단계인지 확인하고 elapsedTime 가져오기
+        final int elapsedTime = (currentIndex == stepIndex - 1)
+            ? timerState.elapsedTimes[currentIndex]
+            : timerState.elapsedTimes[stepIndex - 1];
+
+        // 현재 진행 중인 단계인지 확인하고 preparationState 가져오기
+        final preparationState = (currentIndex == stepIndex - 1)
+            ? timerState.preparationStates[currentIndex]
+            : timerState.preparationStates[stepIndex - 1];
+
+        // 타이머 상태에 따라 시간 표시
         String displayTime;
         if (preparationState == PreparationStateEnum.yet) {
           displayTime = preparationTime;
@@ -37,8 +47,9 @@ class PreparationStepTile extends StatelessWidget {
           displayTime = formatElapsedTime(elapsedTime);
         }
 
+        // 왼쪽 원 안에 들어갈 내용 (숫자 또는 체크 아이콘)
         Widget circleContent = (preparationState == PreparationStateEnum.done)
-            ? const Icon(Icons.check)
+            ? const Icon(Icons.check, color: Color(0xff5C79FB))
             : Text(
                 '$stepIndex',
                 style: const TextStyle(
@@ -48,6 +59,7 @@ class PreparationStepTile extends StatelessWidget {
                 ),
               );
 
+        // 현재 진행 중인 단계에서만 "건너뛰기" 버튼 표시
         Widget? skipButton;
         if (preparationState == PreparationStateEnum.now && onSkip != null) {
           skipButton = Align(

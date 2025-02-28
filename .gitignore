@@ -50,3 +50,5 @@ app.*.map.json
 *.freezed.dart
 GoogleService-Info.plist
 .env
+
+android/app/google-service.json

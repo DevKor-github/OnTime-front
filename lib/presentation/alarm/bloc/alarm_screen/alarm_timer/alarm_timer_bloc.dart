@@ -12,36 +12,21 @@ part 'alarm_timer_state.dart';
 
 @injectable
 class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
-  final List<PreparationStepEntity> preparationSteps; // preparation 데이터
-
   StreamSubscription<int>? _tickerSubscription;
 
-  int _currentStepIndex = 0;
-  int _currentRemaining = 0;
-  int _currentElapsed = 0;
-
-  // 각 준비과정 상태 (yet, now, done)
-  final List<PreparationStateEnum> _preparationStates;
-
-  final List<int> _elapsedTimes;
-
-  final int _totalPreparationTime;
-  int _totalRemaining;
-
-  AlarmTimerBloc({required this.preparationSteps})
-      : _preparationStates = List.generate(
-            preparationSteps.length, (index) => PreparationStateEnum.yet),
-        _elapsedTimes = List.generate(preparationSteps.length, (index) => 0),
-        _totalPreparationTime = preparationSteps.fold<int>(
-            0, (sum, step) => sum + step.preparationTime.inSeconds),
-        _totalRemaining = preparationSteps.fold<int>(
-            0, (sum, step) => sum + step.preparationTime.inSeconds),
-        super(AlarmTimerInitial(
-          duration: preparationSteps[0].preparationTime.inSeconds,
+  AlarmTimerBloc({required List<PreparationStepEntity> preparationSteps})
+      : super(AlarmTimerInitial(
+          preparationSteps: preparationSteps,
           currentStepIndex: 0,
-          elapsedTime: 0,
-          preparationName: preparationSteps[0].preparationName,
-          preparationState: PreparationStateEnum.yet,
+          elapsedTimes: List.generate(preparationSteps.length, (_) => 0),
+          preparationStates: List.generate(
+              preparationSteps.length, (_) => PreparationStateEnum.yet),
+          preparationRemainingTime:
+              preparationSteps.first.preparationTime.inSeconds,
+          totalRemainingTime: preparationSteps.fold(
+              0, (sum, step) => sum + step.preparationTime.inSeconds),
+          totalPreparationTime: preparationSteps.fold(
+              0, (sum, step) => sum + step.preparationTime.inSeconds),
         )) {
     on<TimerStepStarted>(_onStepStarted);
     on<TimerStepTicked>(_onStepTicked);
@@ -50,71 +35,70 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     on<TimerStepFinalized>(_onStepFinalized);
   }
 
-  int get currentStepIndex => _currentStepIndex;
-
-  List<PreparationStateEnum> get preparationStates =>
-      List.unmodifiable(_preparationStates);
-  List<int> get elapsedTimes => List.unmodifiable(_elapsedTimes);
-
   void _onStepStarted(TimerStepStarted event, Emitter<AlarmTimerState> emit) {
-    _currentRemaining = event.duration;
-    _currentElapsed = 0;
+    final updatedStates =
+        List<PreparationStateEnum>.from(state.preparationStates);
+    updatedStates[state.currentStepIndex] = PreparationStateEnum.now;
 
-    String preparationName =
-        preparationSteps[_currentStepIndex].preparationName;
-
-    _preparationStates[_currentStepIndex] = PreparationStateEnum.now;
-
-    emit(AlarmTimerRunInProgress(
-      preparationRemainingTime: _currentRemaining,
-      currentStepIndex: _currentStepIndex,
-      preparationStepelapsedTime: _currentElapsed,
-      progress: progress,
-      preparationStepName: preparationName,
-      preparationState: _preparationStates[_currentStepIndex],
+    emit(state.copyWith(
+      preparationStates: updatedStates,
+      preparationRemainingTime: event.duration,
+      elapsedTimes: List.from(state.elapsedTimes),
     ));
-    _startTicker(event.duration);
+
+    _startTicker(event.duration, emit);
   }
 
   void _onStepTicked(TimerStepTicked event, Emitter<AlarmTimerState> emit) {
-    if (event.preparationRemainingTime > 0) {
-      _currentElapsed = event.preparationElapsedTime;
-      _elapsedTimes[_currentStepIndex] = _currentElapsed;
+    final updatedElapsedTimes = List<int>.from(state.elapsedTimes);
+    updatedElapsedTimes[state.currentStepIndex] = event.preparationElapsedTime;
 
-      emit(AlarmTimerRunInProgress(
+    if (event.preparationRemainingTime > 0) {
+      emit(state.copyWith(
         preparationRemainingTime: event.preparationRemainingTime,
-        currentStepIndex: _currentStepIndex,
-        preparationStepelapsedTime: _currentElapsed,
-        progress: progress,
-        preparationStepName:
-            preparationSteps[_currentStepIndex].preparationName,
-        preparationState: _preparationStates[_currentStepIndex],
+        elapsedTimes: updatedElapsedTimes,
       ));
     } else {
-      _preparationStates[_currentStepIndex] = PreparationStateEnum.done;
       add(const TimerStepNextShifted());
     }
   }
 
   void _onStepSkipped(TimerStepSkipped event, Emitter<AlarmTimerState> emit) {
-    _preparationStates[_currentStepIndex] =
-        PreparationStateEnum.done; // 건너뛰기 시 상태 변경
+    final updatedStates =
+        List<PreparationStateEnum>.from(state.preparationStates);
+    updatedStates[state.currentStepIndex] = PreparationStateEnum.done;
+
+    final updatedRemainingTime =
+        state.totalRemainingTime - state.preparationRemainingTime;
 
     _tickerSubscription?.cancel();
-    _totalRemaining -= _currentRemaining;
-    emit(AlarmTimerPreparationStepCompletion(_currentStepIndex));
-    add(TimerStepNextShifted());
+    emit(state.copyWith(
+      preparationStates: updatedStates,
+      totalRemainingTime: updatedRemainingTime,
+    ));
+
+    add(const TimerStepNextShifted());
   }
 
   void _onStepNext(TimerStepNextShifted event, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
-    if (_currentStepIndex + 1 < preparationSteps.length) {
-      _currentStepIndex++;
-      _currentRemaining =
-          preparationSteps[_currentStepIndex].preparationTime.inSeconds;
-      _currentElapsed = 0;
-      _preparationStates[_currentStepIndex] = PreparationStateEnum.now;
-      add(TimerStepStarted(_currentRemaining));
+
+    if (state.currentStepIndex + 1 < state.preparationSteps.length) {
+      final nextIndex = state.currentStepIndex + 1;
+      final nextStepDuration =
+          state.preparationSteps[nextIndex].preparationTime.inSeconds;
+
+      final updatedStates =
+          List<PreparationStateEnum>.from(state.preparationStates);
+      updatedStates[nextIndex] = PreparationStateEnum.now;
+
+      emit(state.copyWith(
+        currentStepIndex: nextIndex,
+        preparationStates: updatedStates,
+        preparationRemainingTime: nextStepDuration,
+      ));
+
+      add(TimerStepStarted(nextStepDuration));
     } else {
       add(const TimerStepFinalized());
     }
@@ -123,24 +107,37 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   void _onStepFinalized(
       TimerStepFinalized event, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
-    emit(const AlarmTimerPreparationCompletion());
+    emit(AlarmTimerPreparationCompletion(
+      preparationSteps: state.preparationSteps,
+      currentStepIndex: state.currentStepIndex,
+      elapsedTimes: state.elapsedTimes,
+      preparationStates: state.preparationStates,
+      preparationRemainingTime: 0,
+      totalRemainingTime: 0,
+      totalPreparationTime: state.totalPreparationTime,
+    ));
   }
 
-  void _startTicker(int duration) {
+  void _startTicker(int duration, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
     _tickerSubscription = Stream.periodic(const Duration(seconds: 1), (x) => x)
         .take(duration)
         .listen((tick) {
-      final int newElapsed = tick + 1;
-      final int newRemaining = duration - newElapsed;
-      _totalRemaining = _totalRemaining > 0 ? _totalRemaining - 1 : 0;
-      add(TimerStepTicked(newRemaining, newElapsed));
+      final newElapsed = tick + 1;
+      final newRemaining = duration - newElapsed;
+      final updatedTotalRemaining = state.totalRemainingTime - 1;
+
+      add(TimerStepTicked(
+        preparationRemainingTime: newRemaining,
+        preparationElapsedTime: newElapsed,
+      ));
+
+      emit(state.copyWith(
+        totalRemainingTime: updatedTotalRemaining,
+        preparationRemainingTime: newRemaining,
+      ));
     });
   }
-
-  double get progress => _totalPreparationTime == 0
-      ? 0.0
-      : 1.0 - (_totalRemaining / _totalPreparationTime);
 
   @override
   Future<void> close() {

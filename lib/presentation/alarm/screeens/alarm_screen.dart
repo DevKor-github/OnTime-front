@@ -50,75 +50,71 @@ class _AlarmScreenState extends State<AlarmScreen>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AlarmScreenPreparationInfoBloc>(
-      create: (context) => AlarmScreenPreparationInfoBloc(
-        getPreparationByScheduleIdUseCase:
-            context.read<GetPreparationByScheduleIdUseCase>(),
-      )..add(
-          AlarmScreenPreparationSubscriptionRequested(
-              scheduleId: widget.schedule.id, schedule: widget.schedule),
+    return Scaffold(
+      backgroundColor: const Color(0xff5C79FB),
+      body: BlocProvider(
+        create: (context) => AlarmScreenPreparationInfoBloc(
+          getPreparationByScheduleIdUseCase:
+              context.read<GetPreparationByScheduleIdUseCase>(),
+        )..add(
+            AlarmScreenPreparationSubscriptionRequested(
+              scheduleId: widget.schedule.id,
+              schedule: widget.schedule,
+            ),
+          ),
+        child: BlocBuilder<AlarmScreenPreparationInfoBloc,
+            AlarmScreenPreparationInfoState>(
+          builder: (context, infoState) {
+            if (infoState is AlarmScreenPreparationInfoLoadInProgress ||
+                infoState is AlarmScreenPreparationInitial) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (infoState is AlarmScreenPreparationLoadFailure) {
+              return Center(child: Text(infoState.errorMessage));
+            } else if (infoState is AlarmScreenPreparationLoadSuccess) {
+              return _buildAlarmContent(infoState);
+            }
+            return const SizedBox.shrink();
+          },
         ),
-      child: BlocBuilder<AlarmScreenPreparationInfoBloc,
-          AlarmScreenPreparationInfoState>(
-        builder: (context, infoState) {
-          if (infoState is AlarmScreenPreparationInfoLoadInProgress ||
-              infoState is AlarmScreenPreparationInitial) {
-            return const Scaffold(
-                backgroundColor: Color(0xff5C79FB),
-                body: Center(child: CircularProgressIndicator()));
-          } else if (infoState is AlarmScreenPreparationLoadFailure) {
-            return Scaffold(
-                backgroundColor: const Color(0xff5C79FB),
-                body: Center(child: Text(infoState.errorMessage)));
-          } else if (infoState is AlarmScreenPreparationLoadSuccess) {
-            final stepDurations = infoState.preparationSteps
-                .map((step) => step.preparationTime.inSeconds)
-                .toList();
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider<AlarmTimerBloc>(
-                  create: (context) => AlarmTimerBloc(
-                      preparationSteps: infoState.preparationSteps)
-                    ..add(TimerStepStarted(stepDurations[0])),
-                ),
-              ],
-              child: _buildAlarmScreen(infoState),
-            );
-          }
-          return const SizedBox.shrink();
-        },
       ),
     );
   }
 
-  Widget _buildAlarmScreen(AlarmScreenPreparationLoadSuccess infoState) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<AlarmTimerBloc, AlarmTimerState>(
-          listener: (context, timerState) {
-            if (timerState is AlarmTimerRunInProgress) {
-              _progressAnimation = Tween<double>(
-                begin: currentProgress,
-                end: infoState.progress,
-              ).animate(
-                CurvedAnimation(
-                  parent: _animationController,
-                  curve: Curves.easeInOut,
-                ),
-              );
-              _animationController.reset();
-              _animationController.forward();
-            }
-            if (timerState is AlarmTimerPreparationCompletion) {
-              GoRouter.of(context)
-                  .go('/earlyLate', extra: infoState.beforeOutTime);
-            }
-          },
+  Widget _buildAlarmContent(AlarmScreenPreparationLoadSuccess infoState) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AlarmTimerBloc>(
+          create: (context) => AlarmTimerBloc(
+              preparationSteps: infoState.preparationSteps)
+            ..add(TimerStepStarted(
+                infoState.preparationSteps.first.preparationTime.inSeconds)),
         ),
       ],
-      child: Scaffold(
-        backgroundColor: const Color(0xff5C79FB),
-        body: Column(
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<AlarmTimerBloc, AlarmTimerState>(
+            listener: (context, timerState) {
+              if (timerState is AlarmTimerRunInProgress) {
+                _progressAnimation = Tween<double>(
+                  begin: currentProgress,
+                  end: infoState.progress,
+                ).animate(
+                  CurvedAnimation(
+                    parent: _animationController,
+                    curve: Curves.easeInOut,
+                  ),
+                );
+                _animationController.reset();
+                _animationController.forward();
+              }
+              if (timerState is AlarmTimerPreparationCompletion) {
+                GoRouter.of(context)
+                    .go('/earlyLate', extra: infoState.beforeOutTime);
+              }
+            },
+          ),
+        ],
+        child: Column(
           children: [
             // 상단 텍스트
             Padding(
@@ -142,7 +138,6 @@ class _AlarmScreenState extends State<AlarmScreen>
                 children: [
                   CustomPaint(
                     size: const Size(230, 115),
-                    // 타이머 그래프
                     painter: AlarmGraphComponent(
                       progress: currentProgress,
                       preparationRatios: infoState.preparationRatios,
@@ -151,54 +146,43 @@ class _AlarmScreenState extends State<AlarmScreen>
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 100),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-                          builder: (context, timerState) {
-                            String preparationName = "";
-                            if (timerState is AlarmTimerRunInProgress) {
-                              preparationName = infoState
-                                  .preparationSteps[timerState.currentStepIndex]
-                                  .preparationName;
-                            }
-                            return Text(
-                              preparationName, // 준비 과정 이름
+                    child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
+                      builder: (context, timerState) {
+                        final preparationName = infoState
+                            .preparationSteps[timerState.currentStepIndex]
+                            .preparationName;
+                        final preparationRemainingTime =
+                            timerState.preparationRemainingTime;
+
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              preparationName,
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xffDCE3FF),
                               ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        // 각 준비과정의 남은 시간 표시
-                        BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-                          builder: (context, timerState) {
-                            int preparationRemainingTime = 0;
-                            if (timerState is AlarmTimerRunInProgress) {
-                              preparationRemainingTime =
-                                  timerState.preparationRemainingTime;
-                            }
-                            return Text(
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
                               formatTimeTimer(preparationRemainingTime),
                               style: const TextStyle(
                                 fontSize: 35,
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
-                            );
-                          },
-                        ),
-                      ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 110),
-
             // 하단 영역: 준비 단계 목록과 종료 버튼
             Expanded(
               child: Stack(
@@ -217,16 +201,12 @@ class _AlarmScreenState extends State<AlarmScreen>
                     left: MediaQuery.of(context).size.width * 0.06,
                     right: MediaQuery.of(context).size.width * 0.06,
                     bottom: 100,
-                    child: Builder(
-                      builder: (context) {
-                        return PreparationStepListWidget(
-                          preparations: infoState.preparationSteps,
-                          onSkip: () {
-                            context
-                                .read<AlarmTimerBloc>()
-                                .add(const TimerStepSkipped());
-                          },
-                        );
+                    child: PreparationStepListWidget(
+                      preparations: infoState.preparationSteps,
+                      onSkip: () {
+                        context.read<AlarmTimerBloc>().add(
+                              const TimerStepSkipped(),
+                            );
                       },
                     ),
                   ),
@@ -234,33 +214,18 @@ class _AlarmScreenState extends State<AlarmScreen>
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    child: Builder(
-                      builder: (context) {
-                        return Stack(
-                          children: [
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width,
-                              height: 90,
-                              child: Container(
-                                color: Colors.white,
-                              ),
-                            ),
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 10),
-                                child: Button(
-                                  text: '준비 종료',
-                                  onPressed: () {
-                                    context
-                                        .read<AlarmTimerBloc>()
-                                        .add(const TimerStepFinalized());
-                                  },
-                                ),
-                              ),
-                            )
-                          ],
-                        );
-                      },
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Button(
+                          text: '준비 종료',
+                          onPressed: () {
+                            context
+                                .read<AlarmTimerBloc>()
+                                .add(const TimerStepFinalized());
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ],

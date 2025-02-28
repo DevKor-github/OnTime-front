@@ -18,8 +18,11 @@ class TimerStepStarted extends AlarmTimerEvent {
 class TimerStepTicked extends AlarmTimerEvent {
   final int preparationRemainingTime; // 남은 시간
   final int preparationElapsedTime; // 경과 시간
-  const TimerStepTicked(
-      this.preparationRemainingTime, this.preparationElapsedTime);
+
+  const TimerStepTicked({
+    required this.preparationRemainingTime,
+    required this.preparationElapsedTime,
+  });
 
   @override
   List<Object?> get props => [preparationRemainingTime, preparationElapsedTime];

@@ -42,7 +42,6 @@ class _ScheduleTimeFormState extends State<ScheduleTimeForm> {
                 onTap: () {
                   context.showCupertinoDatePickerModal(
                     title: '날짜를 입력해주세요.',
-                    context: context,
                     mode: CupertinoDatePickerMode.date,
                     initialValue: field.value!,
                     onDisposed: () {},
@@ -73,7 +72,6 @@ class _ScheduleTimeFormState extends State<ScheduleTimeForm> {
                 onTap: () {
                   context.showCupertinoDatePickerModal(
                     title: '시간을 입력해주세요.',
-                    context: context,
                     mode: CupertinoDatePickerMode.time,
                     initialValue: field.value!,
                     onDisposed: () {},

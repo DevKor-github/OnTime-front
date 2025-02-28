@@ -42,11 +42,25 @@ class WidgetbookApp extends StatelessWidget {
           ],
         ),
         DeviceFrameAddon(
-          devices: [
-            Devices.ios.iPhoneSE,
-            Devices.ios.iPhone13,
-          ],
+          devices: Devices.ios.all,
           initialDevice: Devices.ios.iPhone13,
+        ),
+        BuilderAddon(
+          name: 'background',
+          builder: (context, child) {
+            return Container(
+              height: double.infinity,
+              width: double.infinity,
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: child,
+              ),
+            );
+          },
+        ),
+        AlignmentAddon(
+          initialAlignment: Alignment.center,
         ),
       ],
     );

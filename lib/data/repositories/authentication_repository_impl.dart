@@ -54,10 +54,10 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
 
   @override
   Future<void> signInWithGoogle() async {
-    final GoogleSignIn _googleSignIn =
+    final GoogleSignIn googleSignIn =
         GoogleSignIn(scopes: ['email', 'profile']);
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser != null) {
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;

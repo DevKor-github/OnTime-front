@@ -63,14 +63,14 @@ class _SocialSignInButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthenticationRepository _authenticationRepository =
+    final AuthenticationRepository authenticationRepository =
         getIt.get<AuthenticationRepository>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GoogleSignInButton(
           onPressed: () async {
-            await _authenticationRepository.signInWithGoogle();
+            await authenticationRepository.signInWithGoogle();
           },
         ),
       ],

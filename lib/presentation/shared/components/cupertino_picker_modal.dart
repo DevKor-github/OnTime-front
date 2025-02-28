@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 extension ModalBottomSheetExtension on BuildContext {
   void showCupertinoTimerPickerModal({
     required String title,
-    required BuildContext context,
     required Duration initialValue,
     required CupertinoTimerPickerMode mode,
     required Function(Duration value) onSaved,
@@ -12,7 +11,7 @@ extension ModalBottomSheetExtension on BuildContext {
   }) {
     showModalBottomSheet<void>(
       isDismissible: false,
-      context: context,
+      context: this,
       builder: (BuildContext context) {
         final textTheme = Theme.of(context).textTheme;
         Duration duration = initialValue;
@@ -78,14 +77,13 @@ extension ModalBottomSheetExtension on BuildContext {
 
   void showCupertinoMinutePickerModal({
     required String title,
-    required BuildContext context,
     required Duration initialValue,
     required Function(Duration value) onSaved,
     Function? onDisposed,
   }) {
     showModalBottomSheet<void>(
       isDismissible: false,
-      context: context,
+      context: this,
       builder: (BuildContext context) {
         final textTheme = Theme.of(context).textTheme;
         int minutes = initialValue.inMinutes;
@@ -161,7 +159,6 @@ extension ModalBottomSheetExtension on BuildContext {
 
   void showCupertinoDatePickerModal({
     required String title,
-    required BuildContext context,
     required DateTime initialValue,
     required Function(DateTime value) onSaved,
     required CupertinoDatePickerMode mode,
@@ -169,7 +166,7 @@ extension ModalBottomSheetExtension on BuildContext {
   }) {
     showModalBottomSheet<void>(
       isDismissible: false,
-      context: context,
+      context: this,
       builder: (BuildContext context) {
         final textTheme = Theme.of(context).textTheme;
         DateTime dateTime = initialValue;

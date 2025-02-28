@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/presentation/onboarding/components/mutly_page_form.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/preparation_form/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_reorderable_list_form_field.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
@@ -135,7 +134,6 @@ class _PreparationEditListState extends State<PreparationEditList> {
                       onTap: () {
                         context.showCupertinoMinutePickerModal(
                           title: '시간을 선택해 주세요',
-                          context: context,
                           initialValue: field.value!,
                           onSaved: field.didChange,
                         );
@@ -226,7 +224,6 @@ class _PreparationEditListState extends State<PreparationEditList> {
 
                             context.showCupertinoMinutePickerModal(
                               title: '시간을 선택해 주세요',
-                              context: context,
                               initialValue: field.value!,
                               onSaved: (value) {
                                 field.didChange(value);
@@ -325,15 +322,12 @@ class _PreparationEditListState extends State<PreparationEditList> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PreparationFormBloc, PreparationFormState>(
-        builder: (context, state) {
-      return MultiPageFormField(
-        key: widget.formKey,
-        onSaved: () {},
-        child: ListView(
+      builder: (context, state) {
+        return ListView(
           children: _listViewChildren(context),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 

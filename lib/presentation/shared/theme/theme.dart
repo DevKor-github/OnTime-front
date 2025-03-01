@@ -30,7 +30,7 @@ ColorScheme colorScheme = ColorScheme(
   surfaceContainer: AppColors.grey.shade200,
   surfaceContainerHigh: AppColors.grey.shade300,
   surfaceContainerHighest: AppColors.grey.shade400,
-  onSurface: AppColors.grey.shade50,
+  onSurface: AppColors.grey[950]!,
   outline: AppColors.grey.shade600,
   outlineVariant: AppColors.grey.shade400,
 );

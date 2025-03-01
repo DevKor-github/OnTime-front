@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 
 /// Custom TextTheme with an additional titleTiny field
 class CustomTextTheme extends TextTheme {
+  final TextStyle? headlineExtraSmall;
+  final TextStyle? titleExtraLarge;
   final TextStyle? titleExtraSmall;
   final TextStyle? bodyExtraSmall;
-  final TextStyle? bodyExtraLarge;
-  final TextStyle? headlineExtraSmall;
 
   const CustomTextTheme({
     this.titleExtraSmall,
     this.bodyExtraSmall,
-    this.bodyExtraLarge,
+    this.titleExtraLarge,
     this.headlineExtraSmall,
     super.displayLarge,
     super.displayMedium,
@@ -56,7 +56,7 @@ class CustomTextTheme extends TextTheme {
     return CustomTextTheme(
       titleExtraSmall: titleTiny ?? this.titleExtraSmall,
       bodyExtraSmall: bodyTiny ?? this.bodyExtraSmall,
-      bodyExtraLarge: bodyExtraLarge ?? this.bodyExtraLarge,
+      titleExtraLarge: bodyExtraLarge ?? this.titleExtraLarge,
       headlineExtraSmall: headlineTiny ?? this.headlineExtraSmall,
       displayLarge: displayLarge ?? this.displayLarge,
       displayMedium: displayMedium ?? this.displayMedium,
@@ -103,8 +103,8 @@ class CustomTextTheme extends TextTheme {
           bodyExtraSmall?.merge((other as CustomTextTheme).bodyExtraSmall) ??
               (other as CustomTextTheme).bodyExtraSmall,
       bodyExtraLarge:
-          bodyExtraLarge?.merge((other as CustomTextTheme).bodyExtraLarge) ??
-              (other as CustomTextTheme).bodyExtraLarge,
+          titleExtraLarge?.merge((other as CustomTextTheme).titleExtraLarge) ??
+              (other as CustomTextTheme).titleExtraLarge,
       headlineTiny: headlineExtraSmall
               ?.merge((other as CustomTextTheme).headlineExtraSmall) ??
           (other as CustomTextTheme).headlineExtraSmall,
@@ -264,7 +264,7 @@ class CustomTextTheme extends TextTheme {
         fontSizeDelta: fontSizeDelta,
         package: package,
       ),
-      bodyExtraLarge: bodyExtraLarge?.apply(
+      titleExtraLarge: titleExtraLarge?.apply(
         color: bodyColor,
         decoration: decoration,
         decorationColor: decorationColor,
@@ -364,7 +364,8 @@ class CustomTextTheme extends TextTheme {
       titleExtraSmall:
           TextStyle.lerp(a?.titleExtraSmall, b?.titleExtraSmall, t),
       bodyExtraSmall: TextStyle.lerp(a?.bodyExtraSmall, b?.bodyExtraSmall, t),
-      bodyExtraLarge: TextStyle.lerp(a?.bodyExtraLarge, b?.bodyExtraLarge, t),
+      titleExtraLarge:
+          TextStyle.lerp(a?.titleExtraLarge, b?.titleExtraLarge, t),
       bodyLarge: TextStyle.lerp(a?.bodyLarge, b?.bodyLarge, t),
       bodyMedium: TextStyle.lerp(a?.bodyMedium, b?.bodyMedium, t),
       bodySmall: TextStyle.lerp(a?.bodySmall, b?.bodySmall, t),
@@ -395,7 +396,7 @@ class CustomTextTheme extends TextTheme {
         titleSmall == other.titleSmall &&
         titleExtraSmall == other.titleExtraSmall &&
         bodyExtraSmall == other.bodyExtraSmall &&
-        bodyExtraLarge == other.bodyExtraLarge &&
+        titleExtraLarge == other.titleExtraLarge &&
         bodyLarge == other.bodyLarge &&
         bodyMedium == other.bodyMedium &&
         bodySmall == other.bodySmall &&
@@ -418,7 +419,7 @@ class CustomTextTheme extends TextTheme {
         titleSmall,
         titleExtraSmall,
         bodyExtraSmall,
-        bodyExtraLarge,
+        titleExtraLarge,
         bodyLarge,
         bodyMedium,
         bodySmall,
@@ -434,8 +435,8 @@ class CustomTextTheme extends TextTheme {
     properties
         .add(DiagnosticsProperty<TextStyle?>('titleTiny', titleExtraSmall));
     properties.add(DiagnosticsProperty<TextStyle?>('bodyTiny', bodyExtraSmall));
-    properties
-        .add(DiagnosticsProperty<TextStyle?>('bodyExtraLarge', bodyExtraLarge));
+    properties.add(
+        DiagnosticsProperty<TextStyle?>('bodyExtraLarge', titleExtraLarge));
     properties.add(
         DiagnosticsProperty<TextStyle?>('headlineTiny', headlineExtraSmall));
   }

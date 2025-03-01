@@ -23,11 +23,25 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return OnboardingPageViewLayout(
-      title: Text(
-        '여유시간을 설정해주세요',
-        style: textTheme.titleLarge,
+      title: '여유시간을 설정해주세요',
+      subTitle: RichText(
+        text: TextSpan(
+          text: '설정한 여유시간만큼 일찍 도착할 수 있어요.\n',
+          style: TextStyle(
+            color: colorScheme.outline,
+            fontSize: 16,
+          ),
+          children: [
+            TextSpan(
+                text: '여유시간은 혹시 모를 상황을 위해 꼭 설정해야 돼요.',
+                style: TextStyle(
+                    color: colorScheme.outline,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700)),
+          ],
+        ),
       ),
       child: BlocBuilder<ScheduleSpareTimeCubit, ScheduleSpareTimeState>(
         builder: (context, state) {

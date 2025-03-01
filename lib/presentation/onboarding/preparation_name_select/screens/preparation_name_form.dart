@@ -22,12 +22,9 @@ class _PreparationNameFormState extends State<PreparationNameForm> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return OnboardingPageViewLayout(
-      title: Text(
-        '주로 하는 준비 과정을\n선택해주세요',
-        style: textTheme.titleLarge,
-      ),
+      title: '주로 하는 준비 과정을\n선택해주세요 ',
+      hint: '(복수 선택)',
       child: BlocBuilder<PreparationNameCubit, PreparationNameState>(
         builder: (context, state) => PreparationCreateList(
           preparationNameState: state,

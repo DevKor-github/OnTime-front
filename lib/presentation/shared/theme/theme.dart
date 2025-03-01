@@ -53,14 +53,14 @@ TextTheme textTheme = CustomTextTheme(
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w700,
     fontStyle: FontStyle.normal,
-    height: 1.2,
+    height: 1.3,
   ),
   headlineExtraSmall: TextStyle(
     fontSize: 28,
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w500,
     fontStyle: FontStyle.normal,
-    height: 1.2,
+    height: 1.3,
   ),
   titleExtraLarge: TextStyle(
     fontSize: 24,

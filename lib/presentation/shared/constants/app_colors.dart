@@ -110,7 +110,7 @@ abstract final class AppColors {
   ///
   ///  * [Theme.of], which allows you to select colors from the current theme
   ///    rather than hard-coding colors in your build methods.
-  static const MaterialColor indigo = MaterialColor(
+  static const MaterialColor blue = MaterialColor(
     _bluePrimaryValue,
     <int, Color>{
       0: Color(0xFF212F6F),

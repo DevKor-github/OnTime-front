@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 
 class OnboardingTitle extends StatelessWidget {
   const OnboardingTitle({
@@ -13,7 +15,7 @@ class OnboardingTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -21,15 +23,13 @@ class OnboardingTitle extends StatelessWidget {
         RichText(
             text: TextSpan(
                 text: title,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: textTheme.custom.titleLarge,
                 children: hint != null
                     ? [
                         TextSpan(
                           text: hint,
-                          style: TextStyle(
-                            color: colorScheme.outline,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
+                          style: textTheme.custom.bodyExtraLarge?.copyWith(
+                            color: AppColors.grey.shade600,
                           ),
                         )
                       ]

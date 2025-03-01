@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
+import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 ColorScheme colorScheme = const ColorScheme(
@@ -32,34 +33,90 @@ ColorScheme colorScheme = const ColorScheme(
     outline: Color(0xFF777777),
     outlineVariant: Color(0xFFB7B7B7));
 
-TextTheme textTheme = TextTheme(
-    displaySmall: TextStyle(
-      fontSize: 36,
-      color: colorScheme.onSurface,
-      fontWeight: FontWeight.bold,
-    ),
-    titleLarge: TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.bold,
-      color: colorScheme.onSurface,
-    ),
-    titleMedium: TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.bold,
-      color: colorScheme.onSurface,
-    ),
-    titleSmall: TextStyle(
-      fontSize: 16,
-      color: colorScheme.onSurface,
-    ),
-    bodyLarge: TextStyle(
-      fontSize: 16,
-      color: colorScheme.onSurface,
-    ),
-    bodySmall: TextStyle(
-      fontSize: 12,
-      color: colorScheme.onSurface,
-    ));
+TextTheme textTheme = CustomTextTheme(
+  headlineLarge: TextStyle(
+    fontSize: 40,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w800,
+    fontStyle: FontStyle.normal,
+    height: 1.193,
+  ),
+  headlineMedium: TextStyle(
+    fontSize: 34,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w700,
+    fontStyle: FontStyle.normal,
+    height: 1.21,
+  ),
+  headlineSmall: TextStyle(
+    fontSize: 30,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w700,
+    fontStyle: FontStyle.normal,
+    height: 1.21,
+  ),
+  headlineExtraSmall: TextStyle(
+    fontSize: 28,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.normal,
+    height: 1.193,
+  ),
+  titleLarge: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    color: colorScheme.onSurface,
+    height: 1.4,
+  ),
+  titleMedium: TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: colorScheme.onSurface,
+    height: 1.4,
+  ),
+  titleSmall: TextStyle(
+    fontSize: 16,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+  ),
+  titleExtraSmall: TextStyle(
+    fontSize: 12,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+  ),
+  bodyExtraLarge: TextStyle(
+    fontSize: 18,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+  ),
+  bodyLarge: TextStyle(
+    fontSize: 16,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+  bodyMedium: TextStyle(
+    fontSize: 14,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+  bodySmall: TextStyle(
+    fontSize: 13,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+  bodyExtraSmall: TextStyle(
+    fontSize: 12,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+);
 
 ThemeData themeData = ThemeData(
   colorScheme: colorScheme,

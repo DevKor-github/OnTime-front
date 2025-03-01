@@ -1,36 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
-ColorScheme colorScheme = const ColorScheme(
-    brightness: Brightness.light,
-    primary: Color(0xFF5C79FB),
-    onPrimary: Colors.white,
-    primaryContainer: Color(0xFFDCE3FF),
-    onPrimaryContainer: Color(0xFF212F6F),
-    secondary: Color(0xFF00C575),
-    onSecondary: Colors.white,
-    secondaryContainer: Color(0xFFE2FFF4),
-    onSecondaryContainer: Color(0xFF00480E),
-    tertiary: Color(0xFFFFD956),
-    onTertiary: Colors.white,
-    tertiaryContainer: Color(0xFFFFFAEC),
-    onTertiaryContainer: Color(0xFF604E10),
-    error: Color(0xFFFF6953),
-    onError: Colors.white,
-    errorContainer: Color(0xFFFFEAE7),
-    onErrorContainer: Color(0xFF691E14),
-    surfaceDim: Color(0xFFAFB1B9),
-    surface: Colors.white,
-    surfaceBright: Colors.white,
-    surfaceContainerLowest: Colors.white,
-    surfaceContainerLow: Color(0xFFF0F0F0),
-    surfaceContainer: Color(0xFFE8E8E8),
-    surfaceContainerHigh: Color(0xFFC8C8C8),
-    surfaceContainerHighest: Color(0xFFB7B7B7),
-    onSurface: Color(0xFF111111),
-    outline: Color(0xFF777777),
-    outlineVariant: Color(0xFFB7B7B7));
+ColorScheme colorScheme = ColorScheme(
+  brightness: Brightness.light,
+  primary: AppColors.blue,
+  onPrimary: AppColors.white,
+  primaryContainer: AppColors.blue.shade700,
+  onPrimaryContainer: AppColors.blue.shade50,
+  secondary: AppColors.green,
+  onSecondary: AppColors.white,
+  secondaryContainer: const Color(0xFFE2FFF4),
+  onSecondaryContainer: const Color(0xFF00480E),
+  tertiary: AppColors.yellow,
+  onTertiary: AppColors.white,
+  tertiaryContainer: AppColors.yellow.shade800,
+  onTertiaryContainer: const Color(0xFF604E10),
+  error: const Color(0xFFFF6953),
+  onError: Colors.white,
+  errorContainer: const Color(0xFFFFEAE7),
+  onErrorContainer: const Color(0xFF691E14),
+  surfaceDim: const Color(0xFFAFB1B9),
+  surface: AppColors.white,
+  surfaceBright: AppColors.white,
+  surfaceContainerLowest: AppColors.grey[1200]!,
+  surfaceContainerLow: AppColors.grey[1100]!,
+  surfaceContainer: AppColors.grey[1000]!,
+  surfaceContainerHigh: AppColors.grey.shade800,
+  surfaceContainerHighest: AppColors.grey.shade700,
+  onSurface: AppColors.grey.shade100,
+  outline: AppColors.grey.shade500,
+  outlineVariant: AppColors.grey.shade700,
+);
 
 TextTheme textTheme = TextTheme(
     displaySmall: TextStyle(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/check_button.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
+import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class PreparationNameSelectField extends StatefulWidget {
@@ -47,6 +48,7 @@ class _PreparationNameSelectFieldState
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     if (widget.isAdding) {
       focusNode.requestFocus();
     }
@@ -83,7 +85,7 @@ class _PreparationNameSelectFieldState
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(3.0),
                   ),
-                  style: TextStyle(fontSize: 16),
+                  style: textTheme.custom.bodyExtraLarge,
                   focusNode: focusNode,
                 ),
               ),

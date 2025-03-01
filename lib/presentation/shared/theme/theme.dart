@@ -64,6 +64,7 @@ TextTheme textTheme = TextTheme(
 ThemeData themeData = ThemeData(
   colorScheme: colorScheme,
   brightness: Brightness.light,
+  fontFamily: 'Pretendard',
   textTheme: textTheme,
   textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(

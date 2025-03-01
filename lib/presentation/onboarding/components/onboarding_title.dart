@@ -28,7 +28,7 @@ class OnboardingTitle extends StatelessWidget {
                     ? [
                         TextSpan(
                           text: hint,
-                          style: textTheme.custom.bodyExtraLarge?.copyWith(
+                          style: textTheme.custom.bodyLarge?.copyWith(
                             color: AppColors.grey.shade600,
                           ),
                         )

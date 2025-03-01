@@ -246,5 +246,5 @@ abstract final class AppColors {
       1200: Color(0xFFF6F6F6),
     },
   );
-  static const int _greyPrimaryValue = 0xFF555555;
+  static const int _greyPrimaryValue = 0x545454;
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 
 class OnboardingStartScreen extends StatelessWidget {
   const OnboardingStartScreen({super.key});
@@ -38,22 +40,21 @@ class _Title extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('반가워요!',
-            key: Key('onboarding_start_title'),
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.w700,
-            )),
-        Text('Ontime과 함께 준비하기 위해서\n평소 본인의 준비 과정을 알려주세요',
-            textAlign: TextAlign.center,
-            key: Key('onboarding_start_subtitle'),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            )),
+        Text(
+          '반가워요!',
+          key: Key('onboarding_start_title'),
+          style: textTheme.headlineSmall,
+        ),
+        Text(
+          'Ontime과 함께 준비하기 위해서\n평소 본인의 준비 과정을 알려주세요',
+          textAlign: TextAlign.center,
+          key: Key('onboarding_start_subtitle'),
+          style: textTheme.titleSmall?.copyWith(color: AppColors.grey.shade700),
+        ),
       ],
     );
   }

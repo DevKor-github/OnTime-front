@@ -35,61 +35,42 @@ ColorScheme colorScheme = ColorScheme(
   outlineVariant: AppColors.grey.shade400,
 );
 
-TextTheme textTheme = CustomTextTheme(
+TextTheme textTheme = TextTheme(
   headlineLarge: TextStyle(
     fontSize: 40,
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w800,
     fontStyle: FontStyle.normal,
-    height: 1.193,
+    height: 1.2,
   ),
   headlineMedium: TextStyle(
     fontSize: 34,
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w700,
     fontStyle: FontStyle.normal,
-    height: 1.21,
+    height: 1.2,
   ),
   headlineSmall: TextStyle(
     fontSize: 30,
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w700,
     fontStyle: FontStyle.normal,
-    height: 1.21,
-  ),
-  headlineExtraSmall: TextStyle(
-    fontSize: 28,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w500,
-    fontStyle: FontStyle.normal,
-    height: 1.193,
+    height: 1.3,
   ),
   titleLarge: TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    color: colorScheme.onSurface,
-    height: 1.4,
-  ),
-  titleMedium: TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: colorScheme.onSurface,
     height: 1.4,
   ),
+  titleMedium: TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: colorScheme.onSurface,
+    height: 1.4,
+  ),
   titleSmall: TextStyle(
     fontSize: 16,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-  ),
-  titleExtraSmall: TextStyle(
-    fontSize: 12,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-  ),
-  bodyExtraLarge: TextStyle(
-    fontSize: 18,
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w500,
     height: 1.4,
@@ -108,12 +89,6 @@ TextTheme textTheme = CustomTextTheme(
   ),
   bodySmall: TextStyle(
     fontSize: 13,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w400,
-    height: 1.4,
-  ),
-  bodyExtraSmall: TextStyle(
-    fontSize: 12,
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w400,
     height: 1.4,

@@ -24,6 +24,7 @@ class ReorderableTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Tile(
       style: TileStyle(
         backgroundColor: Color(0xFFE6E9F9),
@@ -40,9 +41,10 @@ class ReorderableTile extends StatelessWidget {
           child: Text(
             (index + 1).toString(),
             style: TextStyle(
-              color: colorScheme.onPrimary,
-              fontSize: 12,
+              color: colorScheme.surface,
+              fontSize: 10.48,
               fontWeight: FontWeight.w600,
+              height: 1.4,
             ),
           ),
         ),
@@ -55,9 +57,7 @@ class ReorderableTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12.0),
         child: Text(
           preparationStepOrderState.preparationName,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
+          style: textTheme.bodyLarge?.copyWith(
             color: colorScheme.onPrimaryContainer,
           ),
         ),

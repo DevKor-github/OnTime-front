@@ -35,7 +35,7 @@ ColorScheme colorScheme = ColorScheme(
   outlineVariant: AppColors.grey.shade400,
 );
 
-TextTheme textTheme = CustomTextTheme(
+TextTheme textTheme = TextTheme(
   headlineLarge: TextStyle(
     fontSize: 40,
     color: colorScheme.onSurface,
@@ -57,19 +57,6 @@ TextTheme textTheme = CustomTextTheme(
     fontStyle: FontStyle.normal,
     height: 1.3,
   ),
-  headlineExtraSmall: TextStyle(
-    fontSize: 28,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w500,
-    fontStyle: FontStyle.normal,
-    height: 1.3,
-  ),
-  titleExtraLarge: TextStyle(
-    fontSize: 24,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w600,
-    height: 1.4,
-  ),
   titleLarge: TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w600,
@@ -88,12 +75,6 @@ TextTheme textTheme = CustomTextTheme(
     fontWeight: FontWeight.w500,
     height: 1.4,
   ),
-  titleExtraSmall: TextStyle(
-    fontSize: 14,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-  ),
   bodyLarge: TextStyle(
     fontSize: 16,
     color: colorScheme.onSurface,
@@ -108,12 +89,6 @@ TextTheme textTheme = CustomTextTheme(
   ),
   bodySmall: TextStyle(
     fontSize: 13,
-    color: colorScheme.onSurface,
-    fontWeight: FontWeight.w400,
-    height: 1.4,
-  ),
-  bodyExtraSmall: TextStyle(
-    fontSize: 12,
     color: colorScheme.onSurface,
     fontWeight: FontWeight.w400,
     height: 1.4,

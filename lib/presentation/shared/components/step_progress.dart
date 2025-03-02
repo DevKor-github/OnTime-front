@@ -45,7 +45,7 @@ class StepProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme as CustomTextTheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return ConstrainedBox(
       constraints: BoxConstraints(

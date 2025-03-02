@@ -22,12 +22,8 @@ class _PreparationOrderFormState extends State<PreparationOrderForm> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return OnboardingPageViewLayout(
-      title: Text(
-        '평소 준비 과정의 순서로\n조정해주세요',
-        style: textTheme.titleLarge,
-      ),
+      title: '앞에서 고른 준비 과정의 순서를\n알려주세요',
       child: BlocBuilder<PreparationOrderCubit, PreparationOrderState>(
         builder: (context, state) {
           return PreparationReorderableList(

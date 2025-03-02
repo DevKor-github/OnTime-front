@@ -1,69 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
-ColorScheme colorScheme = const ColorScheme(
-    brightness: Brightness.light,
-    primary: Color(0xFF5C79FB),
-    onPrimary: Colors.white,
-    primaryContainer: Color(0xFFDCE3FF),
-    onPrimaryContainer: Color(0xFF212F6F),
-    secondary: Color(0xFF00C575),
-    onSecondary: Colors.white,
-    secondaryContainer: Color(0xFFE2FFF4),
-    onSecondaryContainer: Color(0xFF00480E),
-    tertiary: Color(0xFFFFD956),
-    onTertiary: Colors.white,
-    tertiaryContainer: Color(0xFFFFFAEC),
-    onTertiaryContainer: Color(0xFF604E10),
-    error: Color(0xFFFF6953),
-    onError: Colors.white,
-    errorContainer: Color(0xFFFFEAE7),
-    onErrorContainer: Color(0xFF691E14),
-    surfaceDim: Color(0xFFAFB1B9),
-    surface: Colors.white,
-    surfaceBright: Colors.white,
-    surfaceContainerLowest: Colors.white,
-    surfaceContainerLow: Color(0xFFF0F0F0),
-    surfaceContainer: Color(0xFFE8E8E8),
-    surfaceContainerHigh: Color(0xFFC8C8C8),
-    surfaceContainerHighest: Color(0xFFB7B7B7),
-    onSurface: Color(0xFF111111),
-    outline: Color(0xFF777777),
-    outlineVariant: Color(0xFFB7B7B7));
+ColorScheme colorScheme = ColorScheme(
+  brightness: Brightness.light,
+  primary: AppColors.blue,
+  onPrimary: AppColors.white,
+  primaryContainer: AppColors.blue.shade200,
+  onPrimaryContainer: AppColors.blue.shade900,
+  secondary: AppColors.green,
+  onSecondary: AppColors.white,
+  secondaryContainer: AppColors.green.shade100,
+  onSecondaryContainer: AppColors.green.shade900,
+  tertiary: AppColors.yellow,
+  onTertiary: AppColors.white,
+  tertiaryContainer: AppColors.yellow.shade100,
+  onTertiaryContainer: AppColors.yellow.shade900,
+  error: AppColors.red,
+  onError: Colors.white,
+  errorContainer: AppColors.red.shade50,
+  onErrorContainer: AppColors.red.shade900,
+  surfaceDim: AppColors.grey.shade400,
+  surface: AppColors.white,
+  surfaceBright: AppColors.white,
+  surfaceContainerLowest: AppColors.grey.shade50,
+  surfaceContainerLow: AppColors.grey.shade100,
+  surfaceContainer: AppColors.grey.shade200,
+  surfaceContainerHigh: AppColors.grey.shade300,
+  surfaceContainerHighest: AppColors.grey.shade400,
+  onSurface: AppColors.grey[950]!,
+  outline: AppColors.grey.shade600,
+  outlineVariant: AppColors.grey.shade400,
+);
 
-TextTheme textTheme = TextTheme(
-    displaySmall: TextStyle(
-      fontSize: 36,
-      color: colorScheme.onSurface,
-      fontWeight: FontWeight.bold,
-    ),
-    titleLarge: TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.bold,
-      color: colorScheme.onSurface,
-    ),
-    titleMedium: TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.bold,
-      color: colorScheme.onSurface,
-    ),
-    titleSmall: TextStyle(
-      fontSize: 16,
-      color: colorScheme.onSurface,
-    ),
-    bodyLarge: TextStyle(
-      fontSize: 16,
-      color: colorScheme.onSurface,
-    ),
-    bodySmall: TextStyle(
-      fontSize: 12,
-      color: colorScheme.onSurface,
-    ));
+TextTheme textTheme = CustomTextTheme(
+  headlineLarge: TextStyle(
+    fontSize: 40,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w800,
+    fontStyle: FontStyle.normal,
+    height: 1.193,
+  ),
+  headlineMedium: TextStyle(
+    fontSize: 34,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w700,
+    fontStyle: FontStyle.normal,
+    height: 1.21,
+  ),
+  headlineSmall: TextStyle(
+    fontSize: 30,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w700,
+    fontStyle: FontStyle.normal,
+    height: 1.21,
+  ),
+  headlineExtraSmall: TextStyle(
+    fontSize: 28,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    fontStyle: FontStyle.normal,
+    height: 1.193,
+  ),
+  titleLarge: TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    color: colorScheme.onSurface,
+    height: 1.4,
+  ),
+  titleMedium: TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: colorScheme.onSurface,
+    height: 1.4,
+  ),
+  titleSmall: TextStyle(
+    fontSize: 16,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+  ),
+  titleExtraSmall: TextStyle(
+    fontSize: 12,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+  ),
+  bodyExtraLarge: TextStyle(
+    fontSize: 18,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+  ),
+  bodyLarge: TextStyle(
+    fontSize: 16,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+  bodyMedium: TextStyle(
+    fontSize: 14,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+  bodySmall: TextStyle(
+    fontSize: 13,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+  bodyExtraSmall: TextStyle(
+    fontSize: 12,
+    color: colorScheme.onSurface,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+  ),
+);
 
 ThemeData themeData = ThemeData(
   colorScheme: colorScheme,
   brightness: Brightness.light,
+  fontFamily: 'Pretendard',
   textTheme: textTheme,
   textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(

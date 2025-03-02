@@ -39,3 +39,12 @@ class TimerStepNextShifted extends AlarmTimerEvent {
 class TimerStepFinalized extends AlarmTimerEvent {
   const TimerStepFinalized();
 }
+
+class TimerStepsUpdated extends AlarmTimerEvent {
+  final List<PreparationStepEntity> preparationSteps;
+
+  const TimerStepsUpdated(this.preparationSteps);
+
+  @override
+  List<Object?> get props => [preparationSteps];
+}

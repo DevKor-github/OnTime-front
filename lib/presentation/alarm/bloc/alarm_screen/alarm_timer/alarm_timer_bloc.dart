@@ -33,6 +33,17 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     on<TimerStepSkipped>(_onStepSkipped);
     on<TimerStepNextShifted>(_onStepNext);
     on<TimerStepFinalized>(_onStepFinalized);
+    on<TimerStepsUpdated>(_onPreparationStepsUpdated);
+  }
+
+  void _onPreparationStepsUpdated(
+      TimerStepsUpdated event, Emitter<AlarmTimerState> emit) {
+    emit(state.copyWith(preparationSteps: event.preparationSteps));
+
+    if (event.preparationSteps.isNotEmpty) {
+      add(TimerStepStarted(
+          event.preparationSteps.first.preparationTime.inSeconds));
+    }
   }
 
   void _onStepStarted(TimerStepStarted event, Emitter<AlarmTimerState> emit) {
@@ -90,6 +101,9 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
       final updatedStates =
           List<PreparationStateEnum>.from(state.preparationStates);
+
+      updatedStates[state.currentStepIndex] = PreparationStateEnum.done;
+
       updatedStates[nextIndex] = PreparationStateEnum.now;
 
       emit(state.copyWith(
@@ -104,9 +118,9 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     }
   }
 
-  void _onStepFinalized(
-      TimerStepFinalized event, Emitter<AlarmTimerState> emit) {
-    _tickerSubscription?.cancel();
+  Future<void> _onStepFinalized(
+      TimerStepFinalized event, Emitter<AlarmTimerState> emit) async {
+    await _tickerSubscription?.cancel();
     emit(AlarmTimerPreparationCompletion(
       preparationSteps: state.preparationSteps,
       currentStepIndex: state.currentStepIndex,

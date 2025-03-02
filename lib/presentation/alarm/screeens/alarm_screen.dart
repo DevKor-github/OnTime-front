@@ -12,125 +12,84 @@ import 'package:on_time_front/presentation/alarm/components/alarm_screen/prepara
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
-class AlarmScreen extends StatefulWidget {
+class AlarmScreen extends StatelessWidget {
   final ScheduleEntity schedule;
-  const AlarmScreen({super.key, required this.schedule});
 
-  @override
-  _AlarmScreenState createState() => _AlarmScreenState();
-}
-
-class _AlarmScreenState extends State<AlarmScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _progressAnimation;
-  double currentProgress = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _progressAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    )..addListener(() {
-        setState(() {
-          currentProgress = _progressAnimation.value;
-        });
-      });
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
+  const AlarmScreen({
+    super.key,
+    required this.schedule,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xff5C79FB),
-      body: BlocProvider(
-        create: (context) => AlarmScreenPreparationInfoBloc(
-          getPreparationByScheduleIdUseCase:
-              context.read<GetPreparationByScheduleIdUseCase>(),
-        )..add(
-            AlarmScreenPreparationSubscriptionRequested(
-              scheduleId: widget.schedule.id,
-              schedule: widget.schedule,
-            ),
+    return BlocProvider<AlarmScreenPreparationInfoBloc>(
+      create: (context) => AlarmScreenPreparationInfoBloc(
+        getPreparationByScheduleIdUseCase:
+            context.read<GetPreparationByScheduleIdUseCase>(),
+      )..add(
+          AlarmScreenPreparationSubscriptionRequested(
+            scheduleId: schedule.id,
+            schedule: schedule,
           ),
-        child: BlocBuilder<AlarmScreenPreparationInfoBloc,
-            AlarmScreenPreparationInfoState>(
-          builder: (context, infoState) {
-            if (infoState is AlarmScreenPreparationInfoLoadInProgress ||
-                infoState is AlarmScreenPreparationInitial) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (infoState is AlarmScreenPreparationLoadFailure) {
-              return Center(child: Text(infoState.errorMessage));
-            } else if (infoState is AlarmScreenPreparationLoadSuccess) {
-              return _buildAlarmContent(infoState);
-            }
-            return const SizedBox.shrink();
-          },
         ),
+      child: BlocBuilder<AlarmScreenPreparationInfoBloc,
+          AlarmScreenPreparationInfoState>(
+        builder: (context, infoState) {
+          if (infoState is AlarmScreenPreparationInfoLoadInProgress ||
+              infoState is AlarmScreenPreparationInitial) {
+            return const Scaffold(
+                backgroundColor: Color(0xff5C79FB),
+                body: Center(child: CircularProgressIndicator()));
+          } else if (infoState is AlarmScreenPreparationLoadFailure) {
+            return Scaffold(
+                backgroundColor: const Color(0xff5C79FB),
+                body: Center(child: Text(infoState.errorMessage)));
+          } else if (infoState is AlarmScreenPreparationLoadSuccess) {
+            return BlocProvider<AlarmTimerBloc>(
+              create: (context) =>
+                  AlarmTimerBloc(preparationSteps: infoState.preparationSteps)
+                    ..add(TimerStepStarted(infoState
+                        .preparationSteps.first.preparationTime.inSeconds)),
+              child: _buildAlarmScreen(infoState, context),
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
 
-  Widget _buildAlarmContent(AlarmScreenPreparationLoadSuccess infoState) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<AlarmTimerBloc>(
-          create: (context) => AlarmTimerBloc(
-              preparationSteps: infoState.preparationSteps)
-            ..add(TimerStepStarted(
-                infoState.preparationSteps.first.preparationTime.inSeconds)),
-        ),
-      ],
-      child: MultiBlocListener(
-        listeners: [
-          BlocListener<AlarmTimerBloc, AlarmTimerState>(
-            listener: (context, timerState) {
-              if (timerState is AlarmTimerRunInProgress) {
-                _progressAnimation = Tween<double>(
-                  begin: currentProgress,
-                  end: infoState.progress,
-                ).animate(
-                  CurvedAnimation(
-                    parent: _animationController,
-                    curve: Curves.easeInOut,
-                  ),
-                );
-                _animationController.reset();
-                _animationController.forward();
-              }
-              if (timerState is AlarmTimerPreparationCompletion) {
-                GoRouter.of(context)
-                    .go('/earlyLate', extra: infoState.beforeOutTime);
-              }
-            },
-          ),
-        ],
-        child: Column(
+  Widget _buildAlarmScreen(
+    AlarmScreenPreparationLoadSuccess infoState,
+    BuildContext context,
+  ) {
+    return BlocListener<AlarmTimerBloc, AlarmTimerState>(
+      listener: (context, timerState) {
+        if (timerState is AlarmTimerPreparationCompletion) {
+          GoRouter.of(context).go('/earlyLate', extra: schedule);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xff5C79FB),
+        body: Column(
           children: [
-            // 상단 텍스트
             Padding(
               padding: const EdgeInsets.only(top: 52),
-              child: Text(
-                infoState.isLate
-                    ? '지각이에요!'
-                    : '${formatTime(infoState.beforeOutTime)} 뒤에 나가야 해요',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
+                builder: (context, timerState) {
+                  return Text(
+                    infoState.isLate
+                        ? '지각이에요!'
+                        : '${formatTime(infoState.beforeOutTime)} 뒤에 나가야 해요',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  );
+                },
               ),
             ),
-            // 타이머 그래프 영역
             SizedBox(
               height: 190,
               child: Stack(
@@ -139,7 +98,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                   CustomPaint(
                     size: const Size(230, 115),
                     painter: AlarmGraphComponent(
-                      progress: currentProgress,
+                      progress: infoState.progress,
                       preparationRatios: infoState.preparationRatios,
                       preparationCompleted: infoState.preparationCompleted,
                     ),
@@ -183,7 +142,6 @@ class _AlarmScreenState extends State<AlarmScreen>
               ),
             ),
             const SizedBox(height: 110),
-            // 하단 영역: 준비 단계 목록과 종료 버튼
             Expanded(
               child: Stack(
                 children: [
@@ -198,9 +156,9 @@ class _AlarmScreenState extends State<AlarmScreen>
                   ),
                   Positioned(
                     top: 15,
+                    bottom: 100,
                     left: MediaQuery.of(context).size.width * 0.06,
                     right: MediaQuery.of(context).size.width * 0.06,
-                    bottom: 100,
                     child: PreparationStepListWidget(
                       preparations: infoState.preparationSteps,
                       onSkip: () {
@@ -211,20 +169,21 @@ class _AlarmScreenState extends State<AlarmScreen>
                     ),
                   ),
                   Positioned(
-                    bottom: 0,
+                    bottom: 20,
                     left: 0,
                     right: 0,
                     child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Button(
-                          text: '준비 종료',
-                          onPressed: () {
-                            context
-                                .read<AlarmTimerBloc>()
-                                .add(const TimerStepFinalized());
-                          },
-                        ),
+                      child: Builder(
+                        builder: (context) {
+                          return Button(
+                            text: '준비 종료',
+                            onPressed: () {
+                              context
+                                  .read<AlarmTimerBloc>()
+                                  .add(const TimerStepFinalized());
+                            },
+                          );
+                        },
                       ),
                     ),
                   ),

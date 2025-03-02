@@ -85,7 +85,7 @@ class _PreparationNameSelectFieldState
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(3.0),
                   ),
-                  style: textTheme.custom.bodyLarge,
+                  style: textTheme.bodyLarge,
                   focusNode: focusNode,
                 ),
               ),

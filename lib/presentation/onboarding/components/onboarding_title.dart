@@ -23,12 +23,12 @@ class OnboardingTitle extends StatelessWidget {
         RichText(
             text: TextSpan(
                 text: title,
-                style: textTheme.custom.titleLarge,
+                style: textTheme.titleLarge,
                 children: hint != null
                     ? [
                         TextSpan(
                           text: hint,
-                          style: textTheme.custom.bodyLarge?.copyWith(
+                          style: textTheme.bodyLarge?.copyWith(
                             color: AppColors.grey.shade600,
                           ),
                         )

@@ -45,7 +45,7 @@ class PreparationTimeTile extends StatelessWidget {
                       (value.preparationTime.value.inMinutes < 0
                           ? '0'
                           : value.preparationTime.value.inMinutes.toString()),
-                  style: textTheme.custom.titleSmall?.copyWith(
+                  style: textTheme.titleSmall?.copyWith(
                     color: colorScheme.onPrimaryContainer,
                   ),
                 ),
@@ -64,7 +64,7 @@ class PreparationTimeTile extends StatelessWidget {
           SizedBox(width: 10),
           Text(
             '분',
-            style: textTheme.custom.bodyLarge?.copyWith(
+            style: textTheme.bodyLarge?.copyWith(
               color: colorScheme.onPrimaryContainer,
             ),
           ),
@@ -72,7 +72,7 @@ class PreparationTimeTile extends StatelessWidget {
       ),
       child: Text(
         value.preparationName,
-        style: textTheme.custom.bodyLarge?.copyWith(
+        style: textTheme.bodyLarge?.copyWith(
           color: colorScheme.onPrimaryContainer,
         ),
       ),

@@ -18,7 +18,7 @@ Widget useCaseOnboardingTitle(BuildContext context) {
       text: TextSpan(
         text: context.knobs.string(
             label: 'SubTitle', initialValue: '설정한 여유시간만큼 일찍 도착할 수 있어요.'),
-        style: textTheme.custom.titleSmall?.copyWith(
+        style: textTheme.titleSmall?.copyWith(
           color: colorScheme.outline,
         ),
       ),

@@ -83,16 +83,6 @@ class PreparationStepOrderState extends Equatable {
   final String preparationId;
   final String preparationName;
 
-  PreparationStepOrderState copyWith({
-    String? preparationId,
-    String? preparationName,
-  }) {
-    return PreparationStepOrderState(
-      preparationId: preparationId ?? this.preparationId,
-      preparationName: preparationName ?? this.preparationName,
-    );
-  }
-
   static PreparationStepOrderState fromOnboardingPreparationStepState(
       OnboardingPreparationStepState state) {
     return PreparationStepOrderState(

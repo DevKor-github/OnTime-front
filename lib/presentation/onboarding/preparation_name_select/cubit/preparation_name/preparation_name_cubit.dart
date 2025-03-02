@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
-import 'package:on_time_front/presentation/onboarding/cubit/onboarding/onboarding_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart';
 
@@ -115,19 +115,25 @@ class PreparationNameCubit extends Cubit<PreparationNameState> {
               selectedList[i].preparationId) {
         j++;
       }
-      if (j == onboardingState.preparationStepList.length) {
+      if (j >= onboardingState.preparationStepList.length) {
         onboardingPreparationStepStateList.add(OnboardingPreparationStepState(
           id: selectedList[i].preparationId,
           preparationName: selectedList[i].preparationName.value,
+          nextPreparationId: i == selectedList.length - 1
+              ? null
+              : selectedList[i + 1].preparationId,
         ));
         continue;
       }
-      onboardingPreparationStepStateList
-          .add(onboardingState.preparationStepList[j].copyWith(
-        preparationName: selectedList[i].preparationName.value,
-      ));
+      onboardingPreparationStepStateList.add(
+          onboardingState.preparationStepList[j].copyWith(
+              preparationName: selectedList[i].preparationName.value,
+              nextPreparationId: i == selectedList.length - 1
+                  ? ''
+                  : selectedList[i + 1].preparationId));
     }
-    onboardingCubit.onboardingFormChanged(onboardingPreparationStepStateList);
+    onboardingCubit.onboardingFormChanged(
+        preparationStepList: onboardingPreparationStepStateList);
   }
 
   bool _validate(List<PreparationStepNameState> preparationStepList) {

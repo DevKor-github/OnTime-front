@@ -73,7 +73,6 @@ class _SchedulePlaceMovingTimeFormState
                         context.showCupertinoTimerPickerModal(
                             title: '시간을 선택해 주세요',
                             mode: CupertinoTimerPickerMode.hm,
-                            context: context,
                             initialValue: field.value ?? Duration.zero,
                             onSaved: (Duration newTime) {
                               field.didChange(newTime);

@@ -7,9 +7,6 @@ abstract class AlarmScreenPreparationInfoEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class AlarmScreenPreparationLoadingRequested
-    extends AlarmScreenPreparationInfoEvent {}
-
 class AlarmScreenPreparationSubscriptionRequested
     extends AlarmScreenPreparationInfoEvent {
   final String scheduleId;

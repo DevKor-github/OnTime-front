@@ -20,19 +20,13 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
   AlarmScreenPreparationInfoBloc(
       {required this.getPreparationByScheduleIdUseCase})
       : super(AlarmScreenPreparationInitial()) {
-    on<AlarmScreenPreparationLoadingRequested>(_onLoadingRequested);
     on<AlarmScreenPreparationSubscriptionRequested>(_onSubscriptionRequested);
-  }
-
-  void _onLoadingRequested(AlarmScreenPreparationLoadingRequested event,
-      Emitter<AlarmScreenPreparationInfoState> emit) {
-    emit(AlarmScreenPreparationInfoLoadInProgress());
   }
 
   Future<void> _onSubscriptionRequested(
       AlarmScreenPreparationSubscriptionRequested event,
       Emitter<AlarmScreenPreparationInfoState> emit) async {
-    add(AlarmScreenPreparationLoadingRequested());
+    emit(AlarmScreenPreparationInfoLoadInProgress());
 
     try {
       final PreparationEntity prepEntity =

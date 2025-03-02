@@ -71,6 +71,7 @@ dependencies:
   freezed: ^2.5.7
   freezed_annotation: ^2.4.4
   formz: ^0.8.0
+  dotted_line: ^3.2.3
 
 
 

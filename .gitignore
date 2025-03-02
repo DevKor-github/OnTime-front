@@ -48,6 +48,7 @@ app.*.map.json
 *.mocks.dart
 *.config.dart
 *.freezed.dart
+
 .env
 ios/Flutter/Dart-Defines.xcconfig
 ios/GoogleService-Info.plist

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 class OnboardingStartScreen extends StatelessWidget {
@@ -19,7 +20,7 @@ class OnboardingStartScreen extends StatelessWidget {
                     children: [
                       _Title(),
                       SizedBox(height: 37),
-                      _CharacterImage(),
+                      _OnboardingCharacterImage(),
                     ],
                   ),
                 ),
@@ -59,14 +60,17 @@ class _Title extends StatelessWidget {
   }
 }
 
-class _CharacterImage extends StatelessWidget {
-  const _CharacterImage();
+class _OnboardingCharacterImage extends StatelessWidget {
+  const _OnboardingCharacterImage();
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/character_greeting.png',
-      height: 280,
+    return SvgPicture.asset(
+      'assets/characters/onboarding_character.svg',
+      semanticsLabel: 'character onboarding',
+      height: 271,
+      width: 280,
+      fit: BoxFit.contain,
     );
   }
 }

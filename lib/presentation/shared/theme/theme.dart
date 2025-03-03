@@ -61,6 +61,7 @@ TextTheme textTheme = TextTheme(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: colorScheme.onSurface,
+    fontWeight: FontWeight.w600,
     height: 1.4,
   ),
   titleMedium: TextStyle(

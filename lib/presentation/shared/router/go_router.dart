@@ -1,6 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/presentation/alarm/screeens/alarm_screen.dart';
+import 'package:on_time_front/presentation/alarm/screeens/early_late_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
@@ -68,6 +71,23 @@ GoRouter goRouterConfig(AppBloc bloc) {
           path: '/preparationEdit',
           builder: (context, state) => PreparationEditForm(
               preparationEntity: state.extra as PreparationEntity)),
+
+      // alarm
+      GoRoute(
+        path: '/alarmScreen',
+        builder: (context, state) {
+          final schedule = state.extra as ScheduleEntity;
+          return AlarmScreen(schedule: schedule);
+        },
+      ),
+
+      GoRoute(
+        path: '/earlyLate',
+        builder: (context, state) {
+          final earlyLateTime = state.extra as int;
+          return EarlyLateScreen(earlyLateTime: earlyLateTime);
+        },
+      ),
     ],
   );
 }

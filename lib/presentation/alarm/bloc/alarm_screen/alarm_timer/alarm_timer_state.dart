@@ -30,7 +30,6 @@ sealed class AlarmTimerState extends Equatable {
         totalPreparationTime,
       ];
 
-  /// 🔹 모든 상태에서 `copyWith()` 사용 가능하도록 설정
   AlarmTimerState copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,

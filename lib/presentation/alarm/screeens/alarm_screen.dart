@@ -48,7 +48,7 @@ class AlarmScreen extends StatelessWidget {
             return BlocProvider<AlarmTimerBloc>(
               create: (context) =>
                   AlarmTimerBloc(preparationSteps: infoState.preparationSteps)
-                    ..add(TimerStepStarted(infoState
+                    ..add(AlarmTimerStepStarted(infoState
                         .preparationSteps.first.preparationTime.inSeconds)),
               child: _buildAlarmScreen(infoState, context),
             );
@@ -163,7 +163,7 @@ class AlarmScreen extends StatelessWidget {
                       preparations: infoState.preparationSteps,
                       onSkip: () {
                         context.read<AlarmTimerBloc>().add(
-                              const TimerStepSkipped(),
+                              const AlarmTimerStepSkipped(),
                             );
                       },
                     ),
@@ -180,7 +180,7 @@ class AlarmScreen extends StatelessWidget {
                             onPressed: () {
                               context
                                   .read<AlarmTimerBloc>()
-                                  .add(const TimerStepFinalized());
+                                  .add(const AlarmTimerStepFinalized());
                             },
                           );
                         },

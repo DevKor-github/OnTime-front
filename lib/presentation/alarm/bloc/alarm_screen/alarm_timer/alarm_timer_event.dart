@@ -7,43 +7,45 @@ abstract class AlarmTimerEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class TimerStepStarted extends AlarmTimerEvent {
+class AlarmTimerStepStarted extends AlarmTimerEvent {
   final int duration;
-  const TimerStepStarted(this.duration);
+  const AlarmTimerStepStarted(this.duration);
 
   @override
   List<Object?> get props => [duration];
 }
 
-class TimerStepTicked extends AlarmTimerEvent {
+class AlarmTimerStepTicked extends AlarmTimerEvent {
   final int preparationRemainingTime; // 남은 시간
   final int preparationElapsedTime; // 경과 시간
+  final int totalRemainingTime;
 
-  const TimerStepTicked({
+  const AlarmTimerStepTicked({
     required this.preparationRemainingTime,
     required this.preparationElapsedTime,
+    required this.totalRemainingTime,
   });
 
   @override
   List<Object?> get props => [preparationRemainingTime, preparationElapsedTime];
 }
 
-class TimerStepSkipped extends AlarmTimerEvent {
-  const TimerStepSkipped();
+class AlarmTimerStepSkipped extends AlarmTimerEvent {
+  const AlarmTimerStepSkipped();
 }
 
-class TimerStepNextShifted extends AlarmTimerEvent {
-  const TimerStepNextShifted();
+class AlarmTimerStepNextShifted extends AlarmTimerEvent {
+  const AlarmTimerStepNextShifted();
 }
 
-class TimerStepFinalized extends AlarmTimerEvent {
-  const TimerStepFinalized();
+class AlarmTimerStepFinalized extends AlarmTimerEvent {
+  const AlarmTimerStepFinalized();
 }
 
-class TimerStepsUpdated extends AlarmTimerEvent {
+class AlarmTimerStepsUpdated extends AlarmTimerEvent {
   final List<PreparationStepEntity> preparationSteps;
 
-  const TimerStepsUpdated(this.preparationSteps);
+  const AlarmTimerStepsUpdated(this.preparationSteps);
 
   @override
   List<Object?> get props => [preparationSteps];

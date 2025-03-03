@@ -75,7 +75,7 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
                   onSkip: () {
                     context
                         .read<AlarmTimerBloc>()
-                        .add(const TimerStepSkipped());
+                        .add(const AlarmTimerStepSkipped());
                   },
                 );
               },

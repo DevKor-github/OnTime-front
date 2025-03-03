@@ -28,25 +28,26 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
           totalPreparationTime: preparationSteps.fold(
               0, (sum, step) => sum + step.preparationTime.inSeconds),
         )) {
-    on<TimerStepStarted>(_onStepStarted);
-    on<TimerStepTicked>(_onStepTicked);
-    on<TimerStepSkipped>(_onStepSkipped);
-    on<TimerStepNextShifted>(_onStepNext);
-    on<TimerStepFinalized>(_onStepFinalized);
-    on<TimerStepsUpdated>(_onPreparationStepsUpdated);
+    on<AlarmTimerStepStarted>(_onStepStarted);
+    on<AlarmTimerStepTicked>(_onStepTicked);
+    on<AlarmTimerStepSkipped>(_onStepSkipped);
+    on<AlarmTimerStepNextShifted>(_onStepNext);
+    on<AlarmTimerStepFinalized>(_onStepFinalized);
+    on<AlarmTimerStepsUpdated>(_onPreparationStepsUpdated);
   }
 
   void _onPreparationStepsUpdated(
-      TimerStepsUpdated event, Emitter<AlarmTimerState> emit) {
+      AlarmTimerStepsUpdated event, Emitter<AlarmTimerState> emit) {
     emit(state.copyWith(preparationSteps: event.preparationSteps));
 
     if (event.preparationSteps.isNotEmpty) {
-      add(TimerStepStarted(
+      add(AlarmTimerStepStarted(
           event.preparationSteps.first.preparationTime.inSeconds));
     }
   }
 
-  void _onStepStarted(TimerStepStarted event, Emitter<AlarmTimerState> emit) {
+  void _onStepStarted(
+      AlarmTimerStepStarted event, Emitter<AlarmTimerState> emit) {
     final updatedStates =
         List<PreparationStateEnum>.from(state.preparationStates);
     updatedStates[state.currentStepIndex] = PreparationStateEnum.now;
@@ -60,7 +61,8 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     _startTicker(event.duration, emit);
   }
 
-  void _onStepTicked(TimerStepTicked event, Emitter<AlarmTimerState> emit) {
+  void _onStepTicked(
+      AlarmTimerStepTicked event, Emitter<AlarmTimerState> emit) {
     final updatedElapsedTimes = List<int>.from(state.elapsedTimes);
     updatedElapsedTimes[state.currentStepIndex] = event.preparationElapsedTime;
 
@@ -70,11 +72,12 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
         elapsedTimes: updatedElapsedTimes,
       ));
     } else {
-      add(const TimerStepNextShifted());
+      add(const AlarmTimerStepNextShifted());
     }
   }
 
-  void _onStepSkipped(TimerStepSkipped event, Emitter<AlarmTimerState> emit) {
+  void _onStepSkipped(
+      AlarmTimerStepSkipped event, Emitter<AlarmTimerState> emit) {
     final updatedStates =
         List<PreparationStateEnum>.from(state.preparationStates);
     updatedStates[state.currentStepIndex] = PreparationStateEnum.done;
@@ -88,10 +91,11 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       totalRemainingTime: updatedRemainingTime,
     ));
 
-    add(const TimerStepNextShifted());
+    add(const AlarmTimerStepNextShifted());
   }
 
-  void _onStepNext(TimerStepNextShifted event, Emitter<AlarmTimerState> emit) {
+  void _onStepNext(
+      AlarmTimerStepNextShifted event, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
 
     if (state.currentStepIndex + 1 < state.preparationSteps.length) {
@@ -112,14 +116,14 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
         preparationRemainingTime: nextStepDuration,
       ));
 
-      add(TimerStepStarted(nextStepDuration));
+      add(AlarmTimerStepStarted(nextStepDuration));
     } else {
-      add(const TimerStepFinalized());
+      add(const AlarmTimerStepFinalized());
     }
   }
 
   Future<void> _onStepFinalized(
-      TimerStepFinalized event, Emitter<AlarmTimerState> emit) async {
+      AlarmTimerStepFinalized event, Emitter<AlarmTimerState> emit) async {
     await _tickerSubscription?.cancel();
     emit(AlarmTimerPreparationCompletion(
       preparationSteps: state.preparationSteps,
@@ -141,14 +145,10 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       final newRemaining = duration - newElapsed;
       final updatedTotalRemaining = state.totalRemainingTime - 1;
 
-      add(TimerStepTicked(
+      add(AlarmTimerStepTicked(
         preparationRemainingTime: newRemaining,
         preparationElapsedTime: newElapsed,
-      ));
-
-      emit(state.copyWith(
         totalRemainingTime: updatedTotalRemaining,
-        preparationRemainingTime: newRemaining,
       ));
     });
   }

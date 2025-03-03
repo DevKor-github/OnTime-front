@@ -99,8 +99,6 @@ class AlarmScreen extends StatelessWidget {
                     size: const Size(230, 115),
                     painter: AlarmGraphComponent(
                       progress: infoState.progress,
-                      preparationRatios: infoState.preparationRatios,
-                      preparationCompleted: infoState.preparationCompleted,
                     ),
                   ),
                   Padding(

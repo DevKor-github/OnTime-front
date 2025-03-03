@@ -54,19 +54,6 @@ class AlarmScreenPreparationLoadSuccess
       ? 0.0
       : 1.0 - (totalPreparationRemainingTime / totalPreparationTime);
 
-  List<double> get preparationRatios {
-    List<double> ratios = [];
-    int cumulativeTime = 0;
-    for (var step in preparationSteps) {
-      final int prepTime = step.preparationTime.inSeconds;
-      ratios.add(totalPreparationTime == 0
-          ? 0.0
-          : cumulativeTime / totalPreparationTime);
-      cumulativeTime += prepTime;
-    }
-    return ratios;
-  }
-
   AlarmScreenPreparationLoadSuccess copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentIndex,

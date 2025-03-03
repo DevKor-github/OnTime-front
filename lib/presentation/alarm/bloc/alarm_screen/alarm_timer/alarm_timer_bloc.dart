@@ -33,10 +33,10 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     on<AlarmTimerStepSkipped>(_onStepSkipped);
     on<AlarmTimerStepNextShifted>(_onStepNext);
     on<AlarmTimerStepFinalized>(_onStepFinalized);
-    on<AlarmTimerStepsUpdated>(_onPreparationStepsUpdated);
+    on<AlarmTimerStepsUpdated>(_onStepUpdated);
   }
 
-  void _onPreparationStepsUpdated(
+  void _onStepUpdated(
       AlarmTimerStepsUpdated event, Emitter<AlarmTimerState> emit) {
     emit(state.copyWith(preparationSteps: event.preparationSteps));
 

@@ -3,13 +3,9 @@ import 'dart:math' as math;
 
 class AlarmGraphComponent extends CustomPainter {
   final double progress; // 전체 진행률
-  final List<double> preparationRatios; // 준비 과정별 비율
-  final List<bool> preparationCompleted; // 준비 과정 완료 여부
 
   AlarmGraphComponent({
     required this.progress,
-    required this.preparationRatios,
-    required this.preparationCompleted,
   });
 
   @override

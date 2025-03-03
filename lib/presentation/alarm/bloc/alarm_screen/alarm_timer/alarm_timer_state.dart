@@ -3,7 +3,7 @@ part of 'alarm_timer_bloc.dart';
 sealed class AlarmTimerState extends Equatable {
   final List<PreparationStepEntity> preparationSteps;
   final int currentStepIndex;
-  final List<int> elapsedTimes;
+  final List<int> stepElapsedTimes;
   final List<PreparationStateEnum> preparationStates;
   final int preparationRemainingTime;
   final int totalRemainingTime;
@@ -12,7 +12,7 @@ sealed class AlarmTimerState extends Equatable {
   const AlarmTimerState({
     required this.preparationSteps,
     required this.currentStepIndex,
-    required this.elapsedTimes,
+    required this.stepElapsedTimes,
     required this.preparationStates,
     required this.preparationRemainingTime,
     required this.totalRemainingTime,
@@ -23,7 +23,7 @@ sealed class AlarmTimerState extends Equatable {
   List<Object?> get props => [
         preparationSteps,
         currentStepIndex,
-        elapsedTimes,
+        stepElapsedTimes,
         preparationStates,
         preparationRemainingTime,
         totalRemainingTime,
@@ -33,7 +33,7 @@ sealed class AlarmTimerState extends Equatable {
   AlarmTimerState copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
-    List<int>? elapsedTimes,
+    List<int>? stepElapsedTimes,
     List<PreparationStateEnum>? preparationStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
@@ -46,7 +46,7 @@ class AlarmTimerInitial extends AlarmTimerState {
   const AlarmTimerInitial({
     required super.preparationSteps,
     required super.currentStepIndex,
-    required super.elapsedTimes,
+    required super.stepElapsedTimes,
     required super.preparationStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
@@ -57,7 +57,7 @@ class AlarmTimerInitial extends AlarmTimerState {
   AlarmTimerInitial copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
-    List<int>? elapsedTimes,
+    List<int>? stepElapsedTimes,
     List<PreparationStateEnum>? preparationStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
@@ -66,7 +66,7 @@ class AlarmTimerInitial extends AlarmTimerState {
     return AlarmTimerInitial(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
-      elapsedTimes: elapsedTimes ?? this.elapsedTimes,
+      stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
       preparationStates: preparationStates ?? this.preparationStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,
@@ -81,7 +81,7 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
   const AlarmTimerRunInProgress({
     required super.preparationSteps,
     required super.currentStepIndex,
-    required super.elapsedTimes,
+    required super.stepElapsedTimes,
     required super.preparationStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
@@ -92,7 +92,7 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
   AlarmTimerRunInProgress copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
-    List<int>? elapsedTimes,
+    List<int>? stepElapsedTimes,
     List<PreparationStateEnum>? preparationStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
@@ -101,7 +101,7 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
     return AlarmTimerRunInProgress(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
-      elapsedTimes: elapsedTimes ?? this.elapsedTimes,
+      stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
       preparationStates: preparationStates ?? this.preparationStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,
@@ -119,7 +119,7 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
     required this.completedStepIndex,
     required super.preparationSteps,
     required super.currentStepIndex,
-    required super.elapsedTimes,
+    required super.stepElapsedTimes,
     required super.preparationStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
@@ -130,7 +130,7 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
   AlarmTimerPreparationStepCompletion copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
-    List<int>? elapsedTimes,
+    List<int>? stepElapsedTimes,
     List<PreparationStateEnum>? preparationStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
@@ -140,7 +140,7 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
       completedStepIndex: completedStepIndex,
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
-      elapsedTimes: elapsedTimes ?? this.elapsedTimes,
+      stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
       preparationStates: preparationStates ?? this.preparationStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,
@@ -155,7 +155,7 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
   const AlarmTimerPreparationCompletion({
     required super.preparationSteps,
     required super.currentStepIndex,
-    required super.elapsedTimes,
+    required super.stepElapsedTimes,
     required super.preparationStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
@@ -166,7 +166,7 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
   AlarmTimerPreparationCompletion copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
-    List<int>? elapsedTimes,
+    List<int>? stepElapsedTimes,
     List<PreparationStateEnum>? preparationStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
@@ -175,7 +175,7 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
     return AlarmTimerPreparationCompletion(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
-      elapsedTimes: elapsedTimes ?? this.elapsedTimes,
+      stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
       preparationStates: preparationStates ?? this.preparationStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,

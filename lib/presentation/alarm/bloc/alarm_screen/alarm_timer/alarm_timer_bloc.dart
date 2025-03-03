@@ -18,7 +18,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       : super(AlarmTimerInitial(
           preparationSteps: preparationSteps,
           currentStepIndex: 0,
-          elapsedTimes: List.generate(preparationSteps.length, (_) => 0),
+          stepElapsedTimes: List.generate(preparationSteps.length, (_) => 0),
           preparationStates: List.generate(
               preparationSteps.length, (_) => PreparationStateEnum.yet),
           preparationRemainingTime:
@@ -55,7 +55,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     emit(state.copyWith(
       preparationStates: updatedStates,
       preparationRemainingTime: event.duration,
-      elapsedTimes: List.from(state.elapsedTimes),
+      stepElapsedTimes: List.from(state.stepElapsedTimes),
     ));
 
     _startTicker(event.duration, emit);
@@ -63,13 +63,14 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
   void _onStepTicked(
       AlarmTimerStepTicked event, Emitter<AlarmTimerState> emit) {
-    final updatedElapsedTimes = List<int>.from(state.elapsedTimes);
-    updatedElapsedTimes[state.currentStepIndex] = event.preparationElapsedTime;
+    final updatedStepElapsedTimes = List<int>.from(state.stepElapsedTimes);
+    updatedStepElapsedTimes[state.currentStepIndex] =
+        event.preparationElapsedTime;
 
     if (event.preparationRemainingTime > 0) {
       emit(state.copyWith(
         preparationRemainingTime: event.preparationRemainingTime,
-        elapsedTimes: updatedElapsedTimes,
+        stepElapsedTimes: updatedStepElapsedTimes,
       ));
     } else {
       add(const AlarmTimerStepNextShifted());
@@ -128,7 +129,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     emit(AlarmTimerPreparationCompletion(
       preparationSteps: state.preparationSteps,
       currentStepIndex: state.currentStepIndex,
-      elapsedTimes: state.elapsedTimes,
+      stepElapsedTimes: state.stepElapsedTimes,
       preparationStates: state.preparationStates,
       preparationRemainingTime: 0,
       totalRemainingTime: 0,

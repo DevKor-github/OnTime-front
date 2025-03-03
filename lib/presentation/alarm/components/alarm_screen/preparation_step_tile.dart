@@ -29,8 +29,8 @@ class PreparationStepTile extends StatelessWidget {
 
         // 현재 진행 중인 단계인지 확인하고 elapsedTime 가져오기
         final int elapsedTime = (currentIndex == stepIndex - 1)
-            ? timerState.elapsedTimes[currentIndex]
-            : timerState.elapsedTimes[stepIndex - 1];
+            ? timerState.stepElapsedTimes[currentIndex]
+            : timerState.stepElapsedTimes[stepIndex - 1];
 
         // 현재 진행 중인 단계인지 확인하고 preparationState 가져오기
         final preparationState = (currentIndex == stepIndex - 1)

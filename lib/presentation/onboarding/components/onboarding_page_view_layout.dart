@@ -24,14 +24,17 @@ class _OnboardingPageViewLayoutState extends State<OnboardingPageViewLayout> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 27.0, horizontal: 8.0),
-          child: OnboardingTitle(
-            title: widget.title,
-            subTitle: widget.subTitle,
-            hint: widget.hint,
+        SizedBox(
+          width: double.infinity,
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 27.0, horizontal: 8.0),
+            child: OnboardingTitle(
+              title: widget.title,
+              subTitle: widget.subTitle,
+              hint: widget.hint,
+            ),
           ),
         ),
         Expanded(

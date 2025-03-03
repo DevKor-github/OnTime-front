@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class PreparationTimeTile extends StatelessWidget {
@@ -20,6 +21,7 @@ class PreparationTimeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Tile(
       style: TileStyle(
         margin: EdgeInsets.only(bottom: 8),
@@ -31,7 +33,7 @@ class PreparationTimeTile extends StatelessWidget {
           GestureDetector(
             child: Container(
               decoration: BoxDecoration(
-                color: Color(0xFFB5C2FF),
+                color: AppColors.blue.shade300,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Padding(
@@ -42,10 +44,8 @@ class PreparationTimeTile extends StatelessWidget {
                       (value.preparationTime.value.inMinutes < 0
                           ? '0'
                           : value.preparationTime.value.inMinutes.toString()),
-                  style: TextStyle(
+                  style: textTheme.titleSmall?.copyWith(
                     color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
                   ),
                 ),
               ),
@@ -63,20 +63,16 @@ class PreparationTimeTile extends StatelessWidget {
           SizedBox(width: 10),
           Text(
             '분',
-            style: TextStyle(
+            style: textTheme.bodyLarge?.copyWith(
               color: colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.w400,
-              fontSize: 16,
             ),
           ),
         ],
       ),
       child: Text(
         value.preparationName,
-        style: TextStyle(
+        style: textTheme.bodyLarge?.copyWith(
           color: colorScheme.onPrimaryContainer,
-          fontWeight: FontWeight.w400,
-          fontSize: 16,
         ),
       ),
     );

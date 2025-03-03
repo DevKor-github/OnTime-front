@@ -47,6 +47,7 @@ class _PreparationNameSelectFieldState
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     if (widget.isAdding) {
       focusNode.requestFocus();
     }
@@ -83,7 +84,7 @@ class _PreparationNameSelectFieldState
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.all(3.0),
                   ),
-                  style: TextStyle(fontSize: 16),
+                  style: textTheme.bodyLarge,
                   focusNode: focusNode,
                 ),
               ),

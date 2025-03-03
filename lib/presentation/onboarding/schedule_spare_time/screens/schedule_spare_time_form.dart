@@ -24,22 +24,23 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return OnboardingPageViewLayout(
       title: '여유시간을 설정해주세요',
       subTitle: RichText(
         text: TextSpan(
           text: '설정한 여유시간만큼 일찍 도착할 수 있어요.\n',
-          style: TextStyle(
+          style: textTheme.titleSmall?.copyWith(
             color: colorScheme.outline,
-            fontSize: 16,
           ),
           children: [
             TextSpan(
-                text: '여유시간은 혹시 모를 상황을 위해 꼭 설정해야 돼요.',
-                style: TextStyle(
-                    color: colorScheme.outline,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700)),
+              text: '여유시간은 혹시 모를 상황을 위해 꼭 설정해야 돼요.',
+              style: textTheme.titleSmall?.copyWith(
+                color: colorScheme.outline,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),

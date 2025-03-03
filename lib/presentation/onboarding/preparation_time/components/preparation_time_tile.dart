@@ -3,7 +3,6 @@ import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/pre
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class PreparationTimeTile extends StatelessWidget {

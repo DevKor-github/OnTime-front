@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/check_button.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class PreparationNameSelectField extends StatefulWidget {

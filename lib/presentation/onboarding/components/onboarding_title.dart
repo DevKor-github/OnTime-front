@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 
 class OnboardingTitle extends StatelessWidget {
   const OnboardingTitle({

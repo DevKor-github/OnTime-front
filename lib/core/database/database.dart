@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:drift/wasm.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/utils/json_converters/duration_json_converters.dart';
@@ -56,6 +57,12 @@ class AppDatabase extends _$AppDatabase {
       );
 
   static QueryExecutor _openConnection() {
-    return driftDatabase(name: 'my_database');
+    return driftDatabase(
+      name: 'my_database',
+      web: DriftWebOptions(
+        sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+        driftWorker: Uri.parse('drift_worker.dart.js'),
+      ),
+    );
   }
 }

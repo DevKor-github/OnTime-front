@@ -17,7 +17,24 @@ class UserRepositoryImpl implements UserRepository {
   );
 
   UserRepositoryImpl(
-      this._authenticationRemoteDataSource, this._tokenLocalDataSource);
+      this._authenticationRemoteDataSource, this._tokenLocalDataSource) {
+    _tokenLocalDataSource.authenticationStream.listen((state) {
+      if (state) {
+        _userStreamController.add(const UserEntity.empty());
+      }
+    });
+  }
+
+  @override
+  Future<UserEntity> getUser() async {
+    try {
+      final user = await _authenticationRemoteDataSource.getUser();
+      _userStreamController.add(user);
+      return user;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   @override
   Future<void> signIn({required String email, required String password}) async {
@@ -79,17 +96,6 @@ class UserRepositoryImpl implements UserRepository {
       }
     } catch (e) {
       debugPrint(e.toString());
-      rethrow;
-    }
-  }
-
-  @override
-  Future<UserEntity> getUser() async {
-    try {
-      final user = await _authenticationRemoteDataSource.getUser();
-      _userStreamController.add(user);
-      return user;
-    } catch (e) {
       rethrow;
     }
   }

@@ -24,7 +24,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     try {
       final result =
           await _authenticationRemoteDataSource.signIn(email, password);
-      await _tokenLocalDataSource.storeToken(result.$2);
+      await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (e) {
       rethrow;
@@ -39,7 +39,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     try {
       final result =
           await _authenticationRemoteDataSource.signUp(email, password, name);
-      await _tokenLocalDataSource.storeToken(result.$2);
+      await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (e) {
       rethrow;
@@ -69,7 +69,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
           await _tokenLocalDataSource.deleteToken();
           final result = await _authenticationRemoteDataSource
               .signInWithGoogle(signInWithGoogleRequestModel);
-          await _tokenLocalDataSource.storeToken(result.$2);
+          await _tokenLocalDataSource.storeTokens(result.$2);
           _userStreamController.add(result.$1);
         } else {
           throw Exception('Access Token is null');

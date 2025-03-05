@@ -3,7 +3,9 @@ import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
 
 abstract class TokenLocalDataSource {
-  Future<void> storeToken(TokenEntity token);
+  Future<void> storeTokens(TokenEntity token);
+
+  Future<void> storeAuthToken(String token);
 
   Future<TokenEntity> getToken();
 
@@ -18,7 +20,7 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
   final refreshTokenKey = 'refreshToken';
 
   @override
-  Future<void> storeToken(TokenEntity token) async {
+  Future<void> storeTokens(TokenEntity token) async {
     await storage.write(key: accessTokenKey, value: token.accessToken);
     await storage.write(key: refreshTokenKey, value: token.refreshToken);
   }
@@ -39,5 +41,10 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
   Future<void> deleteToken() async {
     await storage.delete(key: accessTokenKey);
     await storage.delete(key: refreshTokenKey);
+  }
+
+  @override
+  Future<void> storeAuthToken(String token) async {
+    await storage.write(key: accessTokenKey, value: token);
   }
 }

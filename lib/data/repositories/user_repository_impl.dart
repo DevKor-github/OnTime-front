@@ -9,14 +9,14 @@ import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
 
 @Singleton(as: UserRepository)
-class AuthenticationRepositoryImpl implements UserRepository {
+class UserRepositoryImpl implements UserRepository {
   final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
   final TokenLocalDataSource _tokenLocalDataSource;
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(
     const UserEntity.empty(),
   );
 
-  AuthenticationRepositoryImpl(
+  UserRepositoryImpl(
       this._authenticationRemoteDataSource, this._tokenLocalDataSource);
 
   @override

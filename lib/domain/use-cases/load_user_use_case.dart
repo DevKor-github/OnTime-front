@@ -1,13 +1,13 @@
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/domain/repositories/authentication_repository.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 @Injectable()
 class LoadUserUseCase {
-  final UserRepository _authenticationRepository;
+  final UserRepository _userRepository;
 
-  LoadUserUseCase(this._authenticationRepository);
+  LoadUserUseCase(this._userRepository);
 
   Future<void> call() async {
-    await _authenticationRepository.getUser();
+    await _userRepository.getUser();
   }
 }

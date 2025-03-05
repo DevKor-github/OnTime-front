@@ -1,6 +1,6 @@
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
-abstract interface class AuthenticationRepository {
+abstract interface class UserRepository {
   Stream<UserEntity> get userStream;
 
   Future<void> signUp(

@@ -8,8 +8,8 @@ import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/authentication_repository.dart';
 import 'package:rxdart/subjects.dart';
 
-@Singleton(as: AuthenticationRepository)
-class AuthenticationRepositoryImpl implements AuthenticationRepository {
+@Singleton(as: UserRepository)
+class AuthenticationRepositoryImpl implements UserRepository {
   final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
   final TokenLocalDataSource _tokenLocalDataSource;
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(

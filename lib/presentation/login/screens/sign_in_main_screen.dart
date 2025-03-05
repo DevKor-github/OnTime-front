@@ -63,8 +63,7 @@ class _SocialSignInButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthenticationRepository authenticationRepository =
-        getIt.get<AuthenticationRepository>();
+    final UserRepository authenticationRepository = getIt.get<UserRepository>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

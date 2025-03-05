@@ -4,7 +4,7 @@ import 'package:on_time_front/domain/repositories/authentication_repository.dart
 
 @Injectable()
 class StreamUserUseCase {
-  final AuthenticationRepository _authenticationRepository;
+  final UserRepository _authenticationRepository;
 
   StreamUserUseCase(this._authenticationRepository);
 

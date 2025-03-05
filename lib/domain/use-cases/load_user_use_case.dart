@@ -3,7 +3,7 @@ import 'package:on_time_front/domain/repositories/authentication_repository.dart
 
 @Injectable()
 class LoadUserUseCase {
-  final AuthenticationRepository _authenticationRepository;
+  final UserRepository _authenticationRepository;
 
   LoadUserUseCase(this._authenticationRepository);
 

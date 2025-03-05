@@ -6,7 +6,7 @@ import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 @Injectable()
 class OnboardUseCase {
   final PreparationRepository _preparationRepository;
-  final AuthenticationRepository _authenticationRepository;
+  final UserRepository _authenticationRepository;
 
   OnboardUseCase(this._preparationRepository, this._authenticationRepository);
 

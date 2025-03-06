@@ -11,7 +11,10 @@
       "type": "dart",
       "args": [
         "--dart-define-from-file",
-        ".env/debug.env"
+        ".env/debug.env",
+        "--web-port",
+        "58102"
+
       ]
     },
     {

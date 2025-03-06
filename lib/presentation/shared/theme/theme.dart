@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 ColorScheme colorScheme = ColorScheme(

@@ -21,6 +21,8 @@ jobs:
         with:
           flutter-version: "3.27.1"
           channel: "stable"
+      
+      - run: cat "$env"
 
       - run: flutter --version
 

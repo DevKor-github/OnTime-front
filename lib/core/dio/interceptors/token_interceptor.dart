@@ -90,11 +90,15 @@ class TokenInterceptor implements InterceptorsWrapper {
     try {
       final tokenEntity = await tokenLocalDataSource.getToken();
       final refreshToken = tokenEntity.refreshToken;
-      dio.options.headers['Authorization-refresh'] = 'Bearer $refreshToken';
+
       final res = await dio.get(
         '/refresh-token',
+        options: Options(
+          headers: {
+            'Authorization-refresh': 'Bearer $refreshToken',
+          },
+        ),
       );
-      dio.options.headers.remove('Authorization-refresh');
       if (res.statusCode == 200) {
         debugPrint("token refreshing success");
         final authToken = res.headers['authorization']![0];

@@ -36,7 +36,7 @@ jobs:
       - name: Build Web
         env:
             REST_API_URL: ${{ vars.REST_API_URL }}
-            GOOGLE_RESERVED_CLIENT_ID: ${{ secrets.GOOGLE_RESERVED_CLIENT_ID }}
+            GOOGLE_RESERVED_CLIENT_ID: ${{ secrets.GOOGLE_RESERVED_CLIENT_ID_IOS }}
         run: flutter build web --release
 
       - uses: FirebaseExtended/action-hosting-deploy@v0

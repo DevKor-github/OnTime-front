@@ -27,7 +27,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>$(GOOGLE_RESERVED_CLIENT_ID)</string>
+				<string>$(GOOGLE_RESERVED_CLIENT_ID_IOS)</string>
 			</array>
 		</dict>
 	</array>

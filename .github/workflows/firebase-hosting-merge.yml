@@ -34,6 +34,6 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_ONTIME_C63F1 }}
           channelId: live
-          projectId: ontime-push
+          projectId: ontime-c63f1
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks

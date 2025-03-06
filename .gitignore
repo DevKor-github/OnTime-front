@@ -51,6 +51,5 @@ app.*.map.json
 
 .env
 ios/Flutter/Dart-Defines.xcconfig
-ios/GoogleService-Info.plist
-
+ios/Runner/GoogleService-Info.plist
 android/app/google-services.json

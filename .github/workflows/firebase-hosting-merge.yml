@@ -32,16 +32,10 @@ jobs:
       - run: flutter pub get
 
       - run: dart run build_runner build -d
-      
-      - name: Create Dart Define JSON
-        run: |
-          echo '{
-            "REST_API_URL": "${{ vars.REST_API_URL }}"
-          }' > dart_define.json
-
-      - name: Build Flutter Web
-        run: flutter build web --release --dart-define-from-file=dart_define.json
-
+      - name: Build Web
+        env:
+            REST_API_URL: ${{ vars.REST_API_URL }}
+        run: flutter build web --release --dart-define=REST_API_URL=$REST_API_URL
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

@@ -23,6 +23,8 @@ jobs:
           channel: "stable"
       
       - name: Use Environment Variables
+        env:
+            REST_API_URL: ${{ vars.REST_API_URL }}
         run: echo "Using REST_API_URL=$REST_API_URL"
 
       - run: flutter --version

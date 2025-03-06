@@ -90,7 +90,7 @@ class StepProgress extends StatelessWidget {
                 _StepText(
                   step: i + 1,
                   singleLine: singleLine,
-                  style: textTheme.bodyExtraSmall!.copyWith(
+                  style: textTheme.bodyExtraSmall.copyWith(
                     color: _getIndicatorColor(context, i),
                   ),
                 )

@@ -35,7 +35,7 @@ jobs:
       - name: Build Web
         env:
             REST_API_URL: ${{ vars.REST_API_URL }}
-        run: flutter build web --release --dart-define="REST_API_URL=$REST_API_URL"
+        run: flutter build web --release --dart-define=REST_API_URL="$REST_API_URL"
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

@@ -26,8 +26,7 @@ void main() async {
     provisional: true,
     sound: true,
   );
-  // NotificationSettings settings = await messaging.getNotificationSettings();
-  // final token = await messaging.getToken();
-  // debugPrint('Token: $token');
+  final token = await messaging.getToken();
+  debugPrint('Token: $token');
   runApp(App());
 }

@@ -21,10 +21,6 @@ class TokenInterceptor implements InterceptorsWrapper {
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     try {
-      // if (options.path == "/refresh-token") {
-      //   handler.next(options);
-      //   return;
-      // }
       final token = await tokenLocalDataSource.getToken();
 
       options.headers['Authorization'] = 'Bearer ${token.accessToken}';
@@ -98,6 +94,7 @@ class TokenInterceptor implements InterceptorsWrapper {
       final res = await dio.get(
         '/refresh-token',
       );
+      dio.options.headers.remove('Authorization-refresh');
       if (res.statusCode == 200) {
         debugPrint("token refreshing success");
         final authToken = res.headers['authorization']![0];

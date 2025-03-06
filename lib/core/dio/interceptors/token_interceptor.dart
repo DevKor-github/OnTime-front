@@ -21,6 +21,10 @@ class TokenInterceptor implements InterceptorsWrapper {
   void onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
     try {
+      // if (options.path == "/refresh-token") {
+      //   handler.next(options);
+      //   return;
+      // }
       final token = await tokenLocalDataSource.getToken();
 
       options.headers['Authorization'] = 'Bearer ${token.accessToken}';
@@ -90,15 +94,13 @@ class TokenInterceptor implements InterceptorsWrapper {
     try {
       final tokenEntity = await tokenLocalDataSource.getToken();
       final refreshToken = tokenEntity.refreshToken;
-      final res = await dio.post(
+      dio.options.headers['Authorization-refresh'] = 'Bearer $refreshToken';
+      final res = await dio.get(
         '/refresh-token',
-        data: {
-          'refreshToken': refreshToken,
-        },
       );
       if (res.statusCode == 200) {
         debugPrint("token refreshing success");
-        final authToken = res.headers['authorization']! as String;
+        final authToken = res.headers['authorization']![0];
         // save new access + refresh token to your local storage for using later
         await tokenLocalDataSource.storeAuthToken(authToken);
         return true;

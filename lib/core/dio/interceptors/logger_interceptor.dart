@@ -30,7 +30,7 @@ class LoggerInterceptor implements Interceptor {
     ResponseInterceptorHandler handler,
   ) {
     log('⬅️ Received network response');
-    if (response.data['status'] != null) {
+    if (response.data is Map && response.data['status'] != null) {
       log('${'✅ ${response.data['status']} ✅'} ${response.requestOptions.baseUrl}${response.requestOptions.path}');
     } else {
       log('${'✅ ${response.statusCode} ✅'} ${response.requestOptions.baseUrl}${response.requestOptions.path}');

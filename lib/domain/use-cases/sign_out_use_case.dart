@@ -1,13 +1,13 @@
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/domain/repositories/authentication_repository.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 @Injectable()
 class SignOutUseCase {
-  final AuthenticationRepository _authenticationRepository;
+  final UserRepository _userRepository;
 
-  SignOutUseCase(this._authenticationRepository);
+  SignOutUseCase(this._userRepository);
 
   Future<void> call() async {
-    return _authenticationRepository.signOut();
+    return _userRepository.signOut();
   }
 }

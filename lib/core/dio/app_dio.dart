@@ -21,6 +21,6 @@ class AppDio with DioMixin implements Dio {
           "Authorization": EnvironmentVariable.restAuthToken
         });
 
-    interceptors.addAll([TokenInterceptor(), LoggerInterceptor()]);
+    interceptors.addAll([TokenInterceptor(this), LoggerInterceptor()]);
   }
 }

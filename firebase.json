@@ -1,18 +1,8 @@
 {
   "hosting": {
-    "source": ".",
+    "public": "build/web",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "frameworksBackend": { "region": "asia-east1" },
-    "headers": [
-      {
-        "source": "**/*.js",
-        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
-      },
-      {
-        "source": "**/*.html",
-        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
-      }
-    ]
+    "frameworksBackend": { "region": "asia-east1" }
   },
   "flutter": {
     "platforms": {

@@ -5,26 +5,43 @@ import 'package:on_time_front/data/data_sources/authentication_remote_data_sourc
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
-import 'package:on_time_front/domain/repositories/authentication_repository.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
 
-@Singleton(as: AuthenticationRepository)
-class AuthenticationRepositoryImpl implements AuthenticationRepository {
+@Singleton(as: UserRepository)
+class UserRepositoryImpl implements UserRepository {
   final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
   final TokenLocalDataSource _tokenLocalDataSource;
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(
     const UserEntity.empty(),
   );
 
-  AuthenticationRepositoryImpl(
-      this._authenticationRemoteDataSource, this._tokenLocalDataSource);
+  UserRepositoryImpl(
+      this._authenticationRemoteDataSource, this._tokenLocalDataSource) {
+    _tokenLocalDataSource.authenticationStream.listen((state) {
+      if (state) {
+        _userStreamController.add(const UserEntity.empty());
+      }
+    });
+  }
+
+  @override
+  Future<UserEntity> getUser() async {
+    try {
+      final user = await _authenticationRemoteDataSource.getUser();
+      _userStreamController.add(user);
+      return user;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   @override
   Future<void> signIn({required String email, required String password}) async {
     try {
       final result =
           await _authenticationRemoteDataSource.signIn(email, password);
-      await _tokenLocalDataSource.storeToken(result.$2);
+      await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (e) {
       rethrow;
@@ -39,7 +56,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     try {
       final result =
           await _authenticationRemoteDataSource.signUp(email, password, name);
-      await _tokenLocalDataSource.storeToken(result.$2);
+      await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (e) {
       rethrow;
@@ -69,7 +86,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
           await _tokenLocalDataSource.deleteToken();
           final result = await _authenticationRemoteDataSource
               .signInWithGoogle(signInWithGoogleRequestModel);
-          await _tokenLocalDataSource.storeToken(result.$2);
+          await _tokenLocalDataSource.storeTokens(result.$2);
           _userStreamController.add(result.$1);
         } else {
           throw Exception('Access Token is null');
@@ -79,17 +96,6 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       }
     } catch (e) {
       debugPrint(e.toString());
-      rethrow;
-    }
-  }
-
-  @override
-  Future<UserEntity> getUser() async {
-    try {
-      final user = await _authenticationRemoteDataSource.getUser();
-      _userStreamController.add(user);
-      return user;
-    } catch (e) {
       rethrow;
     }
   }

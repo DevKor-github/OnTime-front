@@ -19,7 +19,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
           preparationSteps: preparationSteps,
           currentStepIndex: 0,
           stepElapsedTimes: List.generate(preparationSteps.length, (_) => 0),
-          preparationStates: List.generate(
+          preparationStepStates: List.generate(
               preparationSteps.length, (_) => PreparationStateEnum.yet),
           preparationRemainingTime:
               preparationSteps.first.preparationTime.inSeconds,
@@ -27,6 +27,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
               0, (sum, step) => sum + step.preparationTime.inSeconds),
           totalPreparationTime: preparationSteps.fold(
               0, (sum, step) => sum + step.preparationTime.inSeconds),
+          progress: 0.0,
         )) {
     on<AlarmTimerStepStarted>(_onStepStarted);
     on<AlarmTimerStepTicked>(_onStepTicked);
@@ -38,7 +39,9 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
   void _onStepUpdated(
       AlarmTimerStepsUpdated event, Emitter<AlarmTimerState> emit) {
-    emit(state.copyWith(preparationSteps: event.preparationSteps));
+    emit(state.copyWith(
+      preparationSteps: event.preparationSteps,
+    ));
 
     if (event.preparationSteps.isNotEmpty) {
       add(AlarmTimerStepStarted(
@@ -49,11 +52,11 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   void _onStepStarted(
       AlarmTimerStepStarted event, Emitter<AlarmTimerState> emit) {
     final updatedStates =
-        List<PreparationStateEnum>.from(state.preparationStates);
+        List<PreparationStateEnum>.from(state.preparationStepStates);
     updatedStates[state.currentStepIndex] = PreparationStateEnum.now;
 
     emit(state.copyWith(
-      preparationStates: updatedStates,
+      preparationStepStates: updatedStates,
       preparationRemainingTime: event.duration,
       stepElapsedTimes: List.from(state.stepElapsedTimes),
     ));
@@ -67,10 +70,17 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     updatedStepElapsedTimes[state.currentStepIndex] =
         event.preparationElapsedTime;
 
+    final updatedTotalRemaining = state.totalRemainingTime - 1;
+
+    final double updatedProgress =
+        1.0 - (updatedTotalRemaining / state.totalPreparationTime);
+
     if (event.preparationRemainingTime > 0) {
       emit(state.copyWith(
         preparationRemainingTime: event.preparationRemainingTime,
         stepElapsedTimes: updatedStepElapsedTimes,
+        totalRemainingTime: updatedTotalRemaining,
+        progress: updatedProgress,
       ));
     } else {
       add(const AlarmTimerStepNextShifted());
@@ -80,16 +90,20 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   void _onStepSkipped(
       AlarmTimerStepSkipped event, Emitter<AlarmTimerState> emit) {
     final updatedStates =
-        List<PreparationStateEnum>.from(state.preparationStates);
+        List<PreparationStateEnum>.from(state.preparationStepStates);
     updatedStates[state.currentStepIndex] = PreparationStateEnum.done;
 
     final updatedRemainingTime =
         state.totalRemainingTime - state.preparationRemainingTime;
 
+    final updatedProgress =
+        1.0 - (updatedRemainingTime / state.totalPreparationTime);
+
     _tickerSubscription?.cancel();
     emit(state.copyWith(
-      preparationStates: updatedStates,
+      preparationStepStates: updatedStates,
       totalRemainingTime: updatedRemainingTime,
+      progress: updatedProgress,
     ));
 
     add(const AlarmTimerStepNextShifted());
@@ -100,20 +114,21 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     _tickerSubscription?.cancel();
 
     if (state.currentStepIndex + 1 < state.preparationSteps.length) {
-      final nextIndex = state.currentStepIndex + 1;
+      final nextStepIndex = state.currentStepIndex + 1;
+
       final nextStepDuration =
-          state.preparationSteps[nextIndex].preparationTime.inSeconds;
+          state.preparationSteps[nextStepIndex].preparationTime.inSeconds;
 
-      final updatedStates =
-          List<PreparationStateEnum>.from(state.preparationStates);
+      final updatedStepStates =
+          List<PreparationStateEnum>.from(state.preparationStepStates);
 
-      updatedStates[state.currentStepIndex] = PreparationStateEnum.done;
+      updatedStepStates[state.currentStepIndex] = PreparationStateEnum.done;
 
-      updatedStates[nextIndex] = PreparationStateEnum.now;
+      updatedStepStates[nextStepIndex] = PreparationStateEnum.now;
 
       emit(state.copyWith(
-        currentStepIndex: nextIndex,
-        preparationStates: updatedStates,
+        currentStepIndex: nextStepIndex,
+        preparationStepStates: updatedStepStates,
         preparationRemainingTime: nextStepDuration,
       ));
 
@@ -130,10 +145,11 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       preparationSteps: state.preparationSteps,
       currentStepIndex: state.currentStepIndex,
       stepElapsedTimes: state.stepElapsedTimes,
-      preparationStates: state.preparationStates,
+      preparationStepStates: state.preparationStepStates,
       preparationRemainingTime: 0,
       totalRemainingTime: 0,
       totalPreparationTime: state.totalPreparationTime,
+      progress: 1.0,
     ));
   }
 

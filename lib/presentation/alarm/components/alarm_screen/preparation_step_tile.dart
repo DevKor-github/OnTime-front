@@ -34,8 +34,8 @@ class PreparationStepTile extends StatelessWidget {
 
         // 현재 진행 중인 단계인지 확인하고 preparationState 가져오기
         final preparationState = (currentIndex == stepIndex - 1)
-            ? timerState.preparationStates[currentIndex]
-            : timerState.preparationStates[stepIndex - 1];
+            ? timerState.preparationStepStates[currentIndex]
+            : timerState.preparationStepStates[stepIndex - 1];
 
         // 타이머 상태에 따라 시간 표시
         String displayTime;

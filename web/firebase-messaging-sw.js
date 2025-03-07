@@ -19,23 +19,15 @@ firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(function (payload) {
-  console.log("Received background message ", payload);
-
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-  };
-
-  //showNotification(notificationTitle, notificationOptions);
-});
-
 function showNotification(title, body) {
   if (Notification.permission === "granted") {
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.showNotification("Vibration Sample", {
-        body: "Buzz! Buzz!",
-      });
+    self.registration.showNotification(title, {
+      body: body,
     });
   }
 }
+self.addEventListener("push", (event) => {
+  const data = event.data.json();
+  console.log("New notification", data.data);
+  event.waitUntil(showNotification(data.data.title, data.data.content));
+});

@@ -28,7 +28,7 @@ class PreparationStepTile extends StatelessWidget {
         final int currentIndex = timerState.currentStepIndex;
 
         // 현재 진행 중인 단계인지 확인하고 elapsedTime 가져오기
-        final int elapsedTime = (currentIndex == stepIndex - 1)
+        final int stepElapsedTime = (currentIndex == stepIndex - 1)
             ? timerState.stepElapsedTimes[currentIndex]
             : timerState.stepElapsedTimes[stepIndex - 1];
 
@@ -42,9 +42,9 @@ class PreparationStepTile extends StatelessWidget {
         if (preparationState == PreparationStateEnum.yet) {
           displayTime = preparationTime;
         } else if (preparationState == PreparationStateEnum.now) {
-          displayTime = formatElapsedTime(elapsedTime);
+          displayTime = formatElapsedTime(stepElapsedTime);
         } else {
-          displayTime = formatElapsedTime(elapsedTime);
+          displayTime = formatElapsedTime(stepElapsedTime);
         }
 
         // 왼쪽 원 안에 들어갈 내용 (숫자 또는 체크 아이콘)

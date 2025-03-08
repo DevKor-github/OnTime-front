@@ -28,23 +28,23 @@ class PreparationStepTile extends StatelessWidget {
         final int currentIndex = timerState.currentStepIndex;
 
         // 현재 진행 중인 단계인지 확인하고 elapsedTime 가져오기
-        final int elapsedTime = (currentIndex == stepIndex - 1)
+        final int stepElapsedTime = (currentIndex == stepIndex - 1)
             ? timerState.stepElapsedTimes[currentIndex]
             : timerState.stepElapsedTimes[stepIndex - 1];
 
         // 현재 진행 중인 단계인지 확인하고 preparationState 가져오기
         final preparationState = (currentIndex == stepIndex - 1)
-            ? timerState.preparationStates[currentIndex]
-            : timerState.preparationStates[stepIndex - 1];
+            ? timerState.preparationStepStates[currentIndex]
+            : timerState.preparationStepStates[stepIndex - 1];
 
         // 타이머 상태에 따라 시간 표시
         String displayTime;
         if (preparationState == PreparationStateEnum.yet) {
           displayTime = preparationTime;
         } else if (preparationState == PreparationStateEnum.now) {
-          displayTime = formatElapsedTime(elapsedTime);
+          displayTime = formatElapsedTime(stepElapsedTime);
         } else {
-          displayTime = formatElapsedTime(elapsedTime);
+          displayTime = formatElapsedTime(stepElapsedTime);
         }
 
         // 왼쪽 원 안에 들어갈 내용 (숫자 또는 체크 아이콘)

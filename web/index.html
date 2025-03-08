@@ -25,10 +25,11 @@
         content="456571312261-5kuf2r6i5i7lqjr7qealv06sdgkn3hcp.apps.googleusercontent.com">
 
     <!-- iOS meta tags & icons -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="on_time_front" />
+    <meta name="apple-mobile-web-app-title" content="OnTime" />
     <link rel="apple-touch-icon" href="icons/Icon-192.png" />
+
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -36,17 +37,18 @@
     <title>on_time_front</title>
     <link rel="manifest" href="manifest.json" />
 </head>
-<script src="main.dart.js" defer=""></script>
-<script>
-    window.sqlite3WasmUri = "https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.wasm";
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-            navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        });
-    }
-</script>
 
 <body>
+    <script>
+        window.sqlite3WasmUri = "https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.wasm";
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('flutter_service_worker.js');
+                navigator.serviceWorker.register('firebase-messaging-sw.js');
+            });
+        }
+
+    </script>
     <script src="flutter_bootstrap.js" async></script>
 </body>
 

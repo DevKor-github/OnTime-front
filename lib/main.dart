@@ -1,5 +1,4 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/core/constants/environment_variable.dart';
@@ -18,17 +17,5 @@ void main() async {
   } else {
     await Firebase.initializeApp();
   }
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-  messaging.requestPermission(
-    alert: true,
-    announcement: false,
-    badge: true,
-    carPlay: false,
-    criticalAlert: false,
-    provisional: true,
-    sound: true,
-  );
-  final token = await messaging.getToken();
-  debugPrint('Token: $token');
   runApp(App());
 }

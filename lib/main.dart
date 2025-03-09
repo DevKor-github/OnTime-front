@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/core/constants/environment_variable.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/firebase_options.dart';
 import 'package:on_time_front/presentation/app/screens/app.dart';
 
@@ -17,5 +18,6 @@ void main() async {
   } else {
     await Firebase.initializeApp();
   }
+  NotificationService.instance.initialize();
   runApp(App());
 }

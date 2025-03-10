@@ -4,19 +4,22 @@ sealed class AlarmTimerState extends Equatable {
   final List<PreparationStepEntity> preparationSteps;
   final int currentStepIndex;
   final List<int> stepElapsedTimes;
-  final List<PreparationStateEnum> preparationStates;
+  final List<PreparationStateEnum> preparationStepStates;
   final int preparationRemainingTime;
   final int totalRemainingTime;
   final int totalPreparationTime;
+
+  final double progress;
 
   const AlarmTimerState({
     required this.preparationSteps,
     required this.currentStepIndex,
     required this.stepElapsedTimes,
-    required this.preparationStates,
+    required this.preparationStepStates,
     required this.preparationRemainingTime,
     required this.totalRemainingTime,
     required this.totalPreparationTime,
+    required this.progress,
   });
 
   @override
@@ -24,20 +27,22 @@ sealed class AlarmTimerState extends Equatable {
         preparationSteps,
         currentStepIndex,
         stepElapsedTimes,
-        preparationStates,
+        preparationStepStates,
         preparationRemainingTime,
         totalRemainingTime,
         totalPreparationTime,
+        progress,
       ];
 
   AlarmTimerState copyWith({
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
     List<int>? stepElapsedTimes,
-    List<PreparationStateEnum>? preparationStates,
+    List<PreparationStateEnum>? preparationStepStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
     int? totalPreparationTime,
+    double? progress,
   });
 }
 
@@ -47,10 +52,11 @@ class AlarmTimerInitial extends AlarmTimerState {
     required super.preparationSteps,
     required super.currentStepIndex,
     required super.stepElapsedTimes,
-    required super.preparationStates,
+    required super.preparationStepStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
     required super.totalPreparationTime,
+    required super.progress,
   });
 
   @override
@@ -58,20 +64,23 @@ class AlarmTimerInitial extends AlarmTimerState {
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
     List<int>? stepElapsedTimes,
-    List<PreparationStateEnum>? preparationStates,
+    List<PreparationStateEnum>? preparationStepStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
     int? totalPreparationTime,
+    double? progress,
   }) {
     return AlarmTimerInitial(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
       stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
-      preparationStates: preparationStates ?? this.preparationStates,
+      preparationStepStates:
+          preparationStepStates ?? this.preparationStepStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
+      progress: progress ?? this.progress,
     );
   }
 }
@@ -82,10 +91,11 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
     required super.preparationSteps,
     required super.currentStepIndex,
     required super.stepElapsedTimes,
-    required super.preparationStates,
+    required super.preparationStepStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
     required super.totalPreparationTime,
+    required super.progress,
   });
 
   @override
@@ -93,20 +103,23 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
     List<int>? stepElapsedTimes,
-    List<PreparationStateEnum>? preparationStates,
+    List<PreparationStateEnum>? preparationStepStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
     int? totalPreparationTime,
+    double? progress,
   }) {
     return AlarmTimerRunInProgress(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
       stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
-      preparationStates: preparationStates ?? this.preparationStates,
+      preparationStepStates:
+          preparationStepStates ?? this.preparationStepStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
+      progress: progress ?? this.progress,
     );
   }
 }
@@ -120,10 +133,11 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
     required super.preparationSteps,
     required super.currentStepIndex,
     required super.stepElapsedTimes,
-    required super.preparationStates,
+    required super.preparationStepStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
     required super.totalPreparationTime,
+    required super.progress,
   });
 
   @override
@@ -131,21 +145,24 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
     List<int>? stepElapsedTimes,
-    List<PreparationStateEnum>? preparationStates,
+    List<PreparationStateEnum>? preparationStepStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
     int? totalPreparationTime,
+    double? progress,
   }) {
     return AlarmTimerPreparationStepCompletion(
       completedStepIndex: completedStepIndex,
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
       stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
-      preparationStates: preparationStates ?? this.preparationStates,
+      preparationStepStates:
+          preparationStepStates ?? this.preparationStepStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
+      progress: progress ?? this.progress,
     );
   }
 }
@@ -156,10 +173,11 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
     required super.preparationSteps,
     required super.currentStepIndex,
     required super.stepElapsedTimes,
-    required super.preparationStates,
+    required super.preparationStepStates,
     required super.preparationRemainingTime,
     required super.totalRemainingTime,
     required super.totalPreparationTime,
+    required super.progress,
   });
 
   @override
@@ -167,20 +185,23 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
     List<PreparationStepEntity>? preparationSteps,
     int? currentStepIndex,
     List<int>? stepElapsedTimes,
-    List<PreparationStateEnum>? preparationStates,
+    List<PreparationStateEnum>? preparationStepStates,
     int? preparationRemainingTime,
     int? totalRemainingTime,
     int? totalPreparationTime,
+    double? progress,
   }) {
     return AlarmTimerPreparationCompletion(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
       stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
-      preparationStates: preparationStates ?? this.preparationStates,
+      preparationStepStates:
+          preparationStepStates ?? this.preparationStepStates,
       preparationRemainingTime:
           preparationRemainingTime ?? this.preparationRemainingTime,
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
+      progress: progress ?? this.progress,
     );
   }
 }

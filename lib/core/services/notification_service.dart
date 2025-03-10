@@ -1,15 +1,12 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print(message.data);
-  await NotificationService.instance.setupFlutterNotifications();
-  await NotificationService.instance.showNotification(message);
-}
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 class NotificationService {
   NotificationService._();
@@ -27,10 +24,11 @@ class NotificationService {
 
     // Setup message handlers
     await _setupMessageHandlers();
-
-    if (Platform.isIOS) {
-      final APNSToken = await _messaging.getAPNSToken();
-      print('APNs Token: $APNSToken');
+    if (!kIsWeb) {
+      if (Platform.isIOS) {
+        final APNSToken = await _messaging.getAPNSToken();
+        print('APNs Token: $APNSToken');
+      }
     }
     // Get FCM token
     final token = await _messaging.getToken();
@@ -121,7 +119,7 @@ class NotificationService {
   Future<void> _setupMessageHandlers() async {
     //foreground message
     FirebaseMessaging.onMessage.listen((message) {
-      print('Received message: $message');
+      print('Received message: ${message.notification?.body.toString()}');
       showNotification(message);
     });
 

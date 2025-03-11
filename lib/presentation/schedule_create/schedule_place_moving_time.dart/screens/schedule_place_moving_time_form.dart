@@ -1,20 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 
 class SchedulePlaceMovingTimeForm extends StatefulWidget {
-  const SchedulePlaceMovingTimeForm(
-      {super.key,
-      required this.formKey,
-      required this.initalValue,
-      required this.onPlaceNameSaved,
-      required this.onMovingTimeSaved});
-
-  final GlobalKey<FormState> formKey;
-  final ScheduleFormState initalValue;
-  final ValueChanged<String> onPlaceNameSaved;
-  final ValueChanged<Duration> onMovingTimeSaved;
+  const SchedulePlaceMovingTimeForm({super.key});
 
   @override
   State<SchedulePlaceMovingTimeForm> createState() =>
@@ -40,53 +31,52 @@ class _SchedulePlaceMovingTimeFormState
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: widget.formKey,
-      child: Column(
+    return BlocBuilder<SchedulePlaceMovingTimeCubit,
+        SchedulePlaceMovingTimeState>(builder: (context, state) {
+      return Column(
         children: [
           TextFormField(
-              decoration: InputDecoration(labelText: '약속 장소'),
-              initialValue: widget.initalValue.placeName,
-              focusNode: _placeFocusNode,
-              textInputAction: TextInputAction.next,
-              onSaved: (newValue) {
-                widget.onPlaceNameSaved(newValue!);
-              }),
+            decoration: InputDecoration(
+                labelText: '약속 장소',
+                floatingLabelBehavior: FloatingLabelBehavior.always),
+            initialValue: state.placeName.value,
+            focusNode: _placeFocusNode,
+            textInputAction: TextInputAction.next,
+            onSaved: (newValue) {
+              context
+                  .read<SchedulePlaceMovingTimeCubit>()
+                  .placeNameChanged(newValue ?? state.placeName.value);
+            },
+          ),
           Row(
             children: [
-              FormField<Duration>(
-                initialValue: widget.initalValue.moveTime ?? Duration.zero,
-                onSaved: (newValue) {
-                  widget.onMovingTimeSaved(newValue!);
-                },
-                builder: (field) {
-                  return Expanded(
-                    child: TextField(
-                      readOnly: true,
-                      decoration: InputDecoration(labelText: '이동 소요 시간'),
-                      focusNode: _timeFocusNode,
-                      textInputAction: TextInputAction.done,
-                      controller: TextEditingController(
-                          text:
-                              '${field.value!.inHours}시간 ${field.value!.inMinutes % 60}분'),
-                      onTap: () {
-                        context.showCupertinoTimerPickerModal(
-                            title: '시간을 선택해 주세요',
-                            mode: CupertinoTimerPickerMode.hm,
-                            initialValue: field.value ?? Duration.zero,
-                            onSaved: (Duration newTime) {
-                              field.didChange(newTime);
-                            },
-                            onDisposed: () {});
-                      },
-                    ),
-                  );
-                },
+              Expanded(
+                child: TextField(
+                  readOnly: true,
+                  decoration: InputDecoration(labelText: '이동 소요 시간'),
+                  focusNode: _timeFocusNode,
+                  textInputAction: TextInputAction.done,
+                  controller: TextEditingController(
+                      text:
+                          '${state.moveTime.value.inHours}시간 ${state.moveTime.value.inMinutes % 60}분'),
+                  onTap: () {
+                    context.showCupertinoTimerPickerModal(
+                        title: '시간을 선택해 주세요',
+                        mode: CupertinoTimerPickerMode.hm,
+                        initialValue: state.moveTime.value,
+                        onSaved: (Duration newTime) {
+                          context
+                              .read<SchedulePlaceMovingTimeCubit>()
+                              .moveTimeChanged(newTime);
+                        },
+                        onDisposed: () {});
+                  },
+                ),
               ),
             ],
           )
         ],
-      ),
-    );
+      );
+    });
   }
 }

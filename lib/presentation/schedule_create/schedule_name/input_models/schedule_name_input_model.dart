@@ -1,6 +1,6 @@
 import 'package:formz/formz.dart';
 
-/// Validation errors for the [PreparationNameInputModel] [FormzInput].
+/// Validation errors for the [ScheduleNameInputModel] [FormzInput].
 enum ScheduleNameValidationError {
   empty,
 }

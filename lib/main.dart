@@ -18,6 +18,5 @@ void main() async {
   } else {
     await Firebase.initializeApp();
   }
-  NotificationService.instance.initialize();
   runApp(App());
 }

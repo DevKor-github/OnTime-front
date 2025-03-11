@@ -3,10 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/top_bar.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_name_form.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_place_moving_time_form.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_spare_and_preparing_time_form.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/schedule_time_form.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_name/screens/schedule_name_form.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
@@ -22,6 +20,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;
+  final List<Type> _pageCubitTypes = [ScheduleNameCubit];
   late List<GlobalKey<FormState>> formKeys;
 
   @override
@@ -43,72 +42,49 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
           return const Center(child: CircularProgressIndicator());
         }
 
-        return Column(
-          children: [
-            TopBar(
-              onNextPAgeButtonClicked: () => _onNextPageButtonClicked(context),
-              onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<ScheduleNameCubit>(
+              create: (context) => ScheduleNameCubit(
+                scheduleFormBloc: context.read<ScheduleFormBloc>(),
+              ),
             ),
-            StepProgress(
-              currentStep: _tabController.index,
-              totalSteps: _tabController.length,
-            ),
-            Expanded(
-                child: PageView(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: _pageViewController,
-              onPageChanged: _handlePageViewChanged,
-              children: [
-                ScheduleNameForm(
-                    formKey: formKeys[0],
-                    initalValue: state,
-                    onScheduleNameSaved: (value) {
-                      context.read<ScheduleFormBloc>().add(
-                          ScheduleFormScheduleNameChanged(scheduleName: value));
-                    }),
-                ScheduleTimeForm(
-                  formKey: formKeys[1],
-                  initalValue: state,
-                  onScheduleTimeSaved: (value) {
-                    context.read<ScheduleFormBloc>().add(
-                        ScheduleFormScheduleTimeChanged(scheduleTime: value));
-                  },
-                  onScheduleDateSaved: (value) {
-                    context.read<ScheduleFormBloc>().add(
-                        ScheduleFormScheduleDateChanged(scheduleDate: value));
-                  },
-                ),
-                SchedulePlaceMovingTimeForm(
-                    formKey: formKeys[2],
-                    initalValue: state,
-                    onPlaceNameSaved: (value) {
-                      context
-                          .read<ScheduleFormBloc>()
-                          .add(ScheduleFormPlaceNameChanged(placeName: value));
-                    },
-                    onMovingTimeSaved: (value) {
-                      context
-                          .read<ScheduleFormBloc>()
-                          .add(ScheduleFormMoveTimeChanged(moveTime: value));
-                    }),
-                ScheduleSpareAndPreparingTimeForm(
-                    formKey: formKeys[3],
-                    initalValue: state,
-                    onSpareTimeSaved: (value) {
-                      context.read<ScheduleFormBloc>().add(
-                          ScheduleFormScheduleSpareTimeChanged(
-                              scheduleSpareTime: value));
-                    }),
-              ],
-            )),
           ],
+          child: Builder(builder: (context) {
+            return Column(
+              children: [
+                TopBar(
+                  onNextPAgeButtonClicked: () =>
+                      _onNextPageButtonClicked(context),
+                  onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
+                ),
+                StepProgress(
+                  currentStep: _tabController.index,
+                  totalSteps: _tabController.length,
+                ),
+                Expanded(
+                    child: PageView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: _pageViewController,
+                  onPageChanged: _handlePageViewChanged,
+                  children: [
+                    ScheduleNameForm(),
+                  ],
+                )),
+              ],
+            );
+          }),
         );
       },
     );
   }
 
   void _onNextPageButtonClicked(BuildContext context) {
-    formKeys[_tabController.index].currentState?.save();
+    switch (_pageCubitTypes[_tabController.index]) {
+      case const (ScheduleNameCubit):
+        context.read<ScheduleNameCubit>().scheduleNameSubmitted();
+        break;
+    }
     if (_tabController.index < _tabController.length - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {

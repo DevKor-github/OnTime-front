@@ -40,4 +40,13 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
     emit(state.copyWith(moveTime: moveTimeInputModel));
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
+
+  void schedulePlaceMovingTimeSubmitted() {
+    if (state.placeName.isValid && state.moveTime.isValid) {
+      scheduleFormBloc
+          .add(ScheduleFormMoveTimeChanged(moveTime: state.moveTime.value));
+      scheduleFormBloc
+          .add(ScheduleFormPlaceNameChanged(placeName: state.placeName.value));
+    }
+  }
 }

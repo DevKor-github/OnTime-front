@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:on_time_front/core/services/js_interop_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
@@ -36,17 +37,22 @@ class NotificationService {
   }
 
   Future<void> _requestPermission() async {
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-      announcement: false,
-      carPlay: false,
-      criticalAlert: false,
-    );
+    if (kIsWeb) {
+      final permission = await JsInteropService.requestNotificationPermission();
+      print('Permission status: $permission');
+    } else {
+      final settings = await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+        announcement: false,
+        carPlay: false,
+        criticalAlert: false,
+      );
 
-    print('Permission status: ${settings.authorizationStatus}');
+      print('Permission status: ${settings.authorizationStatus}');
+    }
   }
 
   Future<void> setupFlutterNotifications() async {

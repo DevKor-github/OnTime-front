@@ -29,22 +29,15 @@ final class ScheduleFormScheduleNameChanged extends ScheduleFormEvent {
   List<Object> get props => [scheduleName];
 }
 
-final class ScheduleFormScheduleDateChanged extends ScheduleFormEvent {
+final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
   final DateTime scheduleDate;
-
-  const ScheduleFormScheduleDateChanged({required this.scheduleDate});
-
-  @override
-  List<Object> get props => [scheduleDate];
-}
-
-final class ScheduleFormScheduleTimeChanged extends ScheduleFormEvent {
   final DateTime scheduleTime;
 
-  const ScheduleFormScheduleTimeChanged({required this.scheduleTime});
+  const ScheduleFormScheduleDateTimeChanged(
+      {required this.scheduleDate, required this.scheduleTime});
 
   @override
-  List<Object> get props => [scheduleTime];
+  List<Object> get props => [scheduleDate, scheduleTime];
 }
 
 final class ScheduleFormPlaceNameChanged extends ScheduleFormEvent {

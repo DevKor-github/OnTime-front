@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,8 +32,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
     on<ScheduleFormScheduleNameChanged>(_onScheduleNameChanged);
-    on<ScheduleFormScheduleDateChanged>(_onScheduleDateChanged);
-    on<ScheduleFormScheduleTimeChanged>(_onScheduleTimeChanged);
+    on<ScheduleFormScheduleDateTimeChanged>(_onScheduleDateChanged);
     on<ScheduleFormPlaceNameChanged>(_onPlaceNameChanged);
     on<ScheduleFormMoveTimeChanged>(_onMoveTimeChanged);
     on<ScheduleFormScheduleSpareTimeChanged>(_onScheduleSpareTimeChanged);
@@ -117,28 +114,18 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   }
 
   void _onScheduleDateChanged(
-    ScheduleFormScheduleDateChanged event,
+    ScheduleFormScheduleDateTimeChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
     emit(state.copyWith(
-        scheduleTime: state.scheduleTime?.copyWith(
-              year: event.scheduleDate.year,
-              month: event.scheduleDate.month,
-              day: event.scheduleDate.day,
-            ) ??
-            event.scheduleDate));
-  }
-
-  void _onScheduleTimeChanged(
-    ScheduleFormScheduleTimeChanged event,
-    Emitter<ScheduleFormState> emit,
-  ) {
-    emit(state.copyWith(
-        scheduleTime: state.scheduleTime?.copyWith(
-              hour: event.scheduleTime.hour,
-              minute: event.scheduleTime.minute,
-            ) ??
-            event.scheduleTime));
+      scheduleTime: DateTime(
+        event.scheduleDate.year,
+        event.scheduleDate.month,
+        event.scheduleDate.day,
+        event.scheduleTime.hour,
+        event.scheduleTime.minute,
+      ),
+    ));
   }
 
   void _onPlaceNameChanged(

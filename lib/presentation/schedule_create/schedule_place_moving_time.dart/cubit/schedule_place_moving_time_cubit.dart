@@ -10,14 +10,16 @@ part 'schedule_place_moving_time_state.dart';
 
 class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
   SchedulePlaceMovingTimeCubit({required this.scheduleFormBloc})
-      : super(SchedulePlaceMovingTimeState()){
-        initialize();
-      };  
+      : super(SchedulePlaceMovingTimeState()) {
+    initialize();
+  }
 
   final ScheduleFormBloc scheduleFormBloc;
 
-  void initialize(){
-    final schedulePlaceMovingTimeState = SchedulePlaceMovingTimeState.fromScheduleFormState(scheduleFormBloc.state);
+  void initialize() {
+    final schedulePlaceMovingTimeState =
+        SchedulePlaceMovingTimeState.fromScheduleFormState(
+            scheduleFormBloc.state);
     emit(state.copyWith(
       placeName: schedulePlaceMovingTimeState.placeName,
       moveTime: schedulePlaceMovingTimeState.moveTime,
@@ -38,6 +40,4 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
     emit(state.copyWith(moveTime: moveTimeInputModel));
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
-
-
 }

@@ -7,6 +7,8 @@ import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cu
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/screens/schedule_date_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/screens/schedule_name_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/screens/schedule_place_moving_time_form.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
@@ -22,7 +24,11 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;
-  final List<Type> _pageCubitTypes = [ScheduleNameCubit, ScheduleDateTimeCubit];
+  final List<Type> _pageCubitTypes = [
+    ScheduleNameCubit,
+    ScheduleDateTimeCubit,
+    SchedulePlaceMovingTimeCubit
+  ];
   late List<GlobalKey<FormState>> formKeys;
 
   @override
@@ -52,9 +58,15 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               ),
             ),
             BlocProvider(
-                create: (context) => ScheduleDateTimeCubit(
-                      scheduleFormBloc: context.read<ScheduleFormBloc>(),
-                    )),
+              create: (context) => ScheduleDateTimeCubit(
+                scheduleFormBloc: context.read<ScheduleFormBloc>(),
+              ),
+            ),
+            BlocProvider(
+              create: (context) => SchedulePlaceMovingTimeCubit(
+                scheduleFormBloc: context.read<ScheduleFormBloc>(),
+              ),
+            ),
           ],
           child: Builder(builder: (context) {
             return Column(
@@ -76,6 +88,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                   children: [
                     ScheduleNameForm(),
                     ScheduleDateTimeForm(),
+                    SchedulePlaceMovingTimeForm(),
                   ],
                 )),
               ],
@@ -93,6 +106,11 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
         break;
       case const (ScheduleDateTimeCubit):
         context.read<ScheduleDateTimeCubit>().scheduleDateTimeSubmitted();
+        break;
+      case const (SchedulePlaceMovingTimeCubit):
+        context
+            .read<SchedulePlaceMovingTimeCubit>()
+            .schedulePlaceMovingTimeSubmitted();
         break;
     }
     if (_tabController.index < _tabController.length - 1) {

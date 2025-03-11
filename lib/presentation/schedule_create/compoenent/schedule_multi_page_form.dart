@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/compoenent/top_bar.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_date_time/screens/schedule_date_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/screens/schedule_name_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
@@ -20,7 +22,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;
-  final List<Type> _pageCubitTypes = [ScheduleNameCubit];
+  final List<Type> _pageCubitTypes = [ScheduleNameCubit, ScheduleDateTimeCubit];
   late List<GlobalKey<FormState>> formKeys;
 
   @override
@@ -49,6 +51,10 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                 scheduleFormBloc: context.read<ScheduleFormBloc>(),
               ),
             ),
+            BlocProvider(
+                create: (context) => ScheduleDateTimeCubit(
+                      scheduleFormBloc: context.read<ScheduleFormBloc>(),
+                    )),
           ],
           child: Builder(builder: (context) {
             return Column(
@@ -69,6 +75,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                   onPageChanged: _handlePageViewChanged,
                   children: [
                     ScheduleNameForm(),
+                    ScheduleDateTimeForm(),
                   ],
                 )),
               ],
@@ -83,6 +90,9 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     switch (_pageCubitTypes[_tabController.index]) {
       case const (ScheduleNameCubit):
         context.read<ScheduleNameCubit>().scheduleNameSubmitted();
+        break;
+      case const (ScheduleDateTimeCubit):
+        context.read<ScheduleDateTimeCubit>().scheduleDateTimeSubmitted();
         break;
     }
     if (_tabController.index < _tabController.length - 1) {

@@ -90,3 +90,12 @@ final class ScheduleFormUpdated extends ScheduleFormEvent {
 final class ScheduleFormSaved extends ScheduleFormEvent {
   const ScheduleFormSaved();
 }
+
+final class ScheduleFormValidated extends ScheduleFormEvent {
+  final bool isValid;
+
+  const ScheduleFormValidated({required this.isValid});
+
+  @override
+  List<Object> get props => [isValid];
+}

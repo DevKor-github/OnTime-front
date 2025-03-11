@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,6 +42,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormPreparationChanged>(_onPreparationChanged);
     on<ScheduleFormUpdated>(_onUpdated);
     on<ScheduleFormSaved>(_onSaved);
+    on<ScheduleFormValidated>(_onValidated);
   }
 
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
@@ -224,5 +227,10 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       await _createCustomPreparationUseCase(
           state.preparation!, scheduleEntity.id);
     }
+  }
+
+  void _onValidated(
+      ScheduleFormValidated event, Emitter<ScheduleFormState> emit) {
+    emit(state.copyWith(isValid: event.isValid));
   }
 }

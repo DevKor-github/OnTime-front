@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class TopBar extends StatelessWidget {
   const TopBar(
       {super.key,
-      required this.onNextPAgeButtonClicked,
+      required this.onNextPageButtonClicked,
       required this.onPreviousPageButtonClicked});
 
-  final void Function()? onNextPAgeButtonClicked;
+  final void Function()? onNextPageButtonClicked;
   final void Function() onPreviousPageButtonClicked;
 
   @override
@@ -26,7 +26,7 @@ class TopBar extends StatelessWidget {
         ),
         TextButton(
           child: const Text('다음'),
-          onPressed: onNextPAgeButtonClicked,
+          onPressed: onNextPageButtonClicked,
         ),
       ],
     );

@@ -80,7 +80,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             return Column(
               children: [
                 TopBar(
-                  onNextPAgeButtonClicked: () =>
+                  onNextPageButtonClicked: () =>
                       _onNextPageButtonClicked(context),
                   onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
                 ),

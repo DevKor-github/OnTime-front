@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/components/create_icon_button.dart';
-import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/preparation_form/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart';
@@ -12,13 +11,11 @@ class PreparationFormCreateList extends StatelessWidget {
       {super.key,
       required this.preparationNameState,
       required this.onNameChanged,
-      required this.onSelectionChanged,
       required this.onCreationRequested});
 
   final PreparationFormState preparationNameState;
   final void Function({required int index, required String value})
       onNameChanged;
-  final void Function({required int index}) onSelectionChanged;
   final VoidCallback onCreationRequested;
 
   @override

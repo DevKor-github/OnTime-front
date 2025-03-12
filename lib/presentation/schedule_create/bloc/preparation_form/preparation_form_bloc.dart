@@ -1,10 +1,13 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:formz/formz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 
 part 'preparation_form_event.dart';
 part 'preparation_form_state.dart';
@@ -14,8 +17,8 @@ class PreparationFormBloc
     extends Bloc<PreparationFormEvent, PreparationFormState> {
   PreparationFormBloc() : super(PreparationFormState()) {
     on<PreparationFormEditRequested>(_onPreparationFormEditRequested);
-    on<PreparationFormPreparationStepAdded>(
-        _onPreparationFormPreparationStepAdded);
+    on<PreparationFormPreparationStepCreated>(
+        _onPreparationFormPreparationStepCreated);
     on<PreparationFormPreparationStepRemoved>(
         _onPreparationFormPreparationStepRemoved);
     on<PreparationFormPreparationStepNameChanged>(
@@ -39,8 +42,8 @@ class PreparationFormBloc
     ));
   }
 
-  void _onPreparationFormPreparationStepAdded(
-    PreparationFormPreparationStepAdded event,
+  void _onPreparationFormPreparationStepCreated(
+    PreparationFormPreparationStepCreated event,
     Emitter<PreparationFormState> emit,
   ) {
     emit(state.copyWith(
@@ -55,19 +58,9 @@ class PreparationFormBloc
     PreparationFormPreparationStepRemoved event,
     Emitter<PreparationFormState> emit,
   ) {
-    final removedElement = state.preparationStepList
-        .firstWhere((element) => element.id == event.preparationStepId);
-    final removedList = state.preparationStepList
-        .where((element) => element.id != event.preparationStepId)
-        .toList();
-
-    for (var i = 0; i < removedList.length; i++) {
-      if (removedElement.order < removedList[i].order) {
-        removedList[i] = removedList[i].copyWith(
-          order: removedList[i].order - 1,
-        );
-      }
-    }
+    final removedList =
+        List<PreparationStepFormState>.from(state.preparationStepList);
+    removedList.removeWhere((element) => element.id == event.preparationStepId);
 
     emit(state.copyWith(
       preparationStepList: removedList,
@@ -78,51 +71,68 @@ class PreparationFormBloc
     PreparationFormPreparationStepNameChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state;
+    final changedList = state.preparationStepList;
 
     for (var i = 0; i < state.preparationStepList.length; i++) {
       if (state.preparationStepList[i].id == event.preparationStepId) {
-        changedList.preparationStepList[i] =
-            changedList.preparationStepList[i].copyWith(
-          preparationName: event.preparationStepName,
+        changedList[i] = changedList[i].copyWith(
+          preparationName:
+              PreparationNameInputModel.dirty(event.preparationStepName),
         );
       }
     }
 
-    emit(changedList);
+    final isValid = _validate(changedList);
+    emit(state.copyWith(
+      preparationStepList: changedList,
+      isValid: isValid,
+    ));
   }
 
   void _onPreparationFormPreparationStepTimeChanged(
     PreparationFormPreparationStepTimeChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state;
+    final changedList = state.preparationStepList;
 
     for (var i = 0; i < state.preparationStepList.length; i++) {
       if (state.preparationStepList[i].id == event.preparationStepId) {
-        changedList.preparationStepList[i] =
-            changedList.preparationStepList[i].copyWith(
-          preparationTime: event.preparationStepTime,
+        changedList[i] = changedList[i].copyWith(
+          preparationTime:
+              PreparationTimeInputModel.dirty(event.preparationStepTime),
         );
       }
     }
-
-    emit(changedList);
+    final isValid = _validate(changedList);
+    emit(state.copyWith(
+      preparationStepList: changedList,
+      isValid: isValid,
+    ));
   }
 
   void _onPreparationFormPreparationStepOrderChanged(
     PreparationFormPreparationStepOrderChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state;
-    for (var i = 0; i < state.preparationStepList.length; i++) {
-      var index = event.preparationStepOrder.indexOf(i);
-      changedList.preparationStepList[i] =
-          changedList.preparationStepList[i].copyWith(
-        order: index,
-      );
+    final changedList = state.preparationStepList;
+    int oldIndex = event.oldIndex;
+    int newIndex = event.newIndex;
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
     }
 
-    emit(changedList);
+    final item = changedList.removeAt(oldIndex);
+    changedList.insert(newIndex, item);
+
+    emit(state.copyWith(
+      preparationStepList: changedList,
+    ));
+  }
+
+  bool _validate(List<PreparationStepFormState> preparationStepList) {
+    final isValid = preparationStepList.isNotEmpty &&
+        Formz.validate(
+            preparationStepList.map((e) => e.preparationName).toList());
+    return isValid;
   }
 }

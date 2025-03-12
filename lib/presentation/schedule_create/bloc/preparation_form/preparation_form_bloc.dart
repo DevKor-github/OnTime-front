@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,6 +29,8 @@ class PreparationFormBloc
         _onPreparationFormPreparationStepTimeChanged);
     on<PreparationFormPreparationStepOrderChanged>(
         _onPreparationFormPreparationStepOrderChanged);
+    on<PreparationFormPreparationStepCreationRequested>(
+        _onPreparationFormPreparationStepCreationRequested);
   }
 
   void _onPreparationFormEditRequested(
@@ -37,7 +41,7 @@ class PreparationFormBloc
         PreparationFormState.fromEntity(event.preparationEntity);
 
     emit(state.copyWith(
-      status: PreparationFormStatus.success,
+      status: PreparationFormStatus.initial,
       preparationStepList: preparationFormState.preparationStepList,
     ));
   }
@@ -46,12 +50,23 @@ class PreparationFormBloc
     PreparationFormPreparationStepCreated event,
     Emitter<PreparationFormState> emit,
   ) {
-    emit(state.copyWith(
-      preparationStepList: [
-        ...state.preparationStepList,
-        event.preparationStep,
-      ],
-    ));
+    if (state.status == PreparationFormStatus.adding) {
+      final List<PreparationStepFormState> preparationStepList;
+      if (event.preparationStep.preparationName.isValid) {
+        preparationStepList = [
+          ...state.preparationStepList,
+          event.preparationStep,
+        ];
+      } else {
+        preparationStepList = state.preparationStepList;
+      }
+      final isValid = _validate(preparationStepList);
+      emit(state.copyWith(
+        preparationStepList: preparationStepList,
+        status: PreparationFormStatus.initial,
+        isValid: isValid,
+      ));
+    }
   }
 
   void _onPreparationFormPreparationStepRemoved(
@@ -72,15 +87,10 @@ class PreparationFormBloc
     Emitter<PreparationFormState> emit,
   ) {
     final changedList = state.preparationStepList;
-
-    for (var i = 0; i < state.preparationStepList.length; i++) {
-      if (state.preparationStepList[i].id == event.preparationStepId) {
-        changedList[i] = changedList[i].copyWith(
-          preparationName:
-              PreparationNameInputModel.dirty(event.preparationStepName),
-        );
-      }
-    }
+    changedList[event.index] = changedList[event.index].copyWith(
+      preparationName:
+          PreparationNameInputModel.dirty(event.preparationStepName),
+    );
 
     final isValid = _validate(changedList);
     emit(state.copyWith(
@@ -134,5 +144,11 @@ class PreparationFormBloc
         Formz.validate(
             preparationStepList.map((e) => e.preparationName).toList());
     return isValid;
+  }
+
+  FutureOr<void> _onPreparationFormPreparationStepCreationRequested(
+      PreparationFormPreparationStepCreationRequested event,
+      Emitter<PreparationFormState> emit) {
+    emit(state.copyWith(status: PreparationFormStatus.adding));
   }
 }

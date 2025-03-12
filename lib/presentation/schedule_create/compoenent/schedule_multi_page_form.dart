@@ -9,6 +9,8 @@ import 'package:on_time_front/presentation/schedule_create/schedule_name/screens
 import 'package:on_time_front/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/screens/schedule_place_moving_time_form.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
@@ -27,14 +29,15 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   final List<Type> _pageCubitTypes = [
     ScheduleNameCubit,
     ScheduleDateTimeCubit,
-    SchedulePlaceMovingTimeCubit
+    SchedulePlaceMovingTimeCubit,
+    ScheduleFormSpareTimeCubit,
   ];
   late List<GlobalKey<FormState>> formKeys;
 
   @override
   void initState() {
     _pageViewController = PageController();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: _pageCubitTypes.length, vsync: this);
     formKeys =
         List.generate(_tabController.length, (index) => GlobalKey<FormState>());
     super.initState();
@@ -67,6 +70,11 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                 scheduleFormBloc: context.read<ScheduleFormBloc>(),
               ),
             ),
+            BlocProvider(
+              create: (context) => ScheduleFormSpareTimeCubit(
+                scheduleFormBloc: context.read<ScheduleFormBloc>(),
+              ),
+            ),
           ],
           child: Builder(builder: (context) {
             return Column(
@@ -89,6 +97,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                     ScheduleNameForm(),
                     ScheduleDateTimeForm(),
                     SchedulePlaceMovingTimeForm(),
+                    ScheduleSpareAndPreparingTimeForm(),
                   ],
                 )),
               ],
@@ -111,6 +120,9 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
         context
             .read<SchedulePlaceMovingTimeCubit>()
             .schedulePlaceMovingTimeSubmitted();
+        break;
+      case const (ScheduleFormSpareTimeCubit):
+        context.read<ScheduleFormSpareTimeCubit>().scheduleSpareTimeSubmitted();
         break;
     }
     if (_tabController.index < _tabController.length - 1) {

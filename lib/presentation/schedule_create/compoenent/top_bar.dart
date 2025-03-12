@@ -6,8 +6,7 @@ class TopBar extends StatelessWidget {
       required this.onNextPAgeButtonClicked,
       required this.onPreviousPageButtonClicked});
 
-
-  final void Function() onNextPAgeButtonClicked;
+  final void Function()? onNextPAgeButtonClicked;
   final void Function() onPreviousPageButtonClicked;
 
   @override
@@ -27,10 +26,7 @@ class TopBar extends StatelessWidget {
         ),
         TextButton(
           child: const Text('다음'),
-          onPressed: () {
-            // Save the schedule
-            onNextPAgeButtonClicked();
-          },
+          onPressed: onNextPAgeButtonClicked,
         ),
       ],
     );

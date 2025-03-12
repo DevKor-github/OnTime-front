@@ -49,14 +49,14 @@ final class PreparationFormPreparationStepNameChanged
 
 final class PreparationFormPreparationStepTimeChanged
     extends PreparationFormEvent {
-  final String preparationStepId;
+  final int index;
   final Duration preparationStepTime;
 
   const PreparationFormPreparationStepTimeChanged(
-      {required this.preparationStepId, required this.preparationStepTime});
+      {required this.index, required this.preparationStepTime});
 
   @override
-  List<Object> get props => [preparationStepId, preparationStepTime];
+  List<Object> get props => [index, preparationStepTime];
 }
 
 final class PreparationFormPreparationStepOrderChanged

@@ -104,15 +104,10 @@ class PreparationFormBloc
     Emitter<PreparationFormState> emit,
   ) {
     final changedList = state.preparationStepList;
-
-    for (var i = 0; i < state.preparationStepList.length; i++) {
-      if (state.preparationStepList[i].id == event.preparationStepId) {
-        changedList[i] = changedList[i].copyWith(
-          preparationTime:
-              PreparationTimeInputModel.dirty(event.preparationStepTime),
-        );
-      }
-    }
+    changedList[event.index] = changedList[event.index].copyWith(
+      preparationTime:
+          PreparationTimeInputModel.dirty(event.preparationStepTime),
+    );
     final isValid = _validate(changedList);
     emit(state.copyWith(
       preparationStepList: changedList,

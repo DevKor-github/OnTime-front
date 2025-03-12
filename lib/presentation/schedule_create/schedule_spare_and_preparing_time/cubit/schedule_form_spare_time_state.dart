@@ -1,23 +1,24 @@
-part of 'schedule_spare_time_cubit.dart';
+part of 'schedule_form_spare_time_cubit.dart';
 
-class ScheduleSpareTimeState extends Equatable {
-  const ScheduleSpareTimeState({
+class ScheduleFormSpareTimeState extends Equatable {
+  const ScheduleFormSpareTimeState({
     this.spareTime = const ScheduleSpareTimeInputModel.pure(),
   });
 
   final ScheduleSpareTimeInputModel spareTime;
   bool get isValid => Formz.validate([spareTime]);
 
-  ScheduleSpareTimeState copyWith({
+  ScheduleFormSpareTimeState copyWith({
     ScheduleSpareTimeInputModel? spareTime,
   }) {
-    return ScheduleSpareTimeState(
+    return ScheduleFormSpareTimeState(
       spareTime: spareTime ?? this.spareTime,
     );
   }
 
-  static ScheduleSpareTimeState fromScheduleFormState(ScheduleFormState state) {
-    return ScheduleSpareTimeState(
+  static ScheduleFormSpareTimeState fromScheduleFormState(
+      ScheduleFormState state) {
+    return ScheduleFormSpareTimeState(
       spareTime: ScheduleSpareTimeInputModel.pure(
           state.scheduleSpareTime ?? Duration.zero),
     );

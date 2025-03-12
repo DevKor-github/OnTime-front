@@ -4,18 +4,19 @@ import 'package:formz/formz.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/input_models/schedule_spare_time_input_model.dart';
 
-part 'schedule_spare_time_state.dart';
+part 'schedule_form_spare_time_state.dart';
 
-class ScheduleSpareTimeCubit extends Cubit<ScheduleSpareTimeState> {
-  ScheduleSpareTimeCubit({
+class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
+  ScheduleFormSpareTimeCubit({
     required this.scheduleFormBloc,
-  }) : super(ScheduleSpareTimeState());
+  }) : super(ScheduleFormSpareTimeState());
 
   final ScheduleFormBloc scheduleFormBloc;
 
   void initialize() {
     final schedulePlaceMovingTimeState =
-        ScheduleSpareTimeState.fromScheduleFormState(scheduleFormBloc.state);
+        ScheduleFormSpareTimeState.fromScheduleFormState(
+            scheduleFormBloc.state);
     emit(state.copyWith(
       spareTime: schedulePlaceMovingTimeState.spareTime,
     ));
@@ -28,5 +29,13 @@ class ScheduleSpareTimeCubit extends Cubit<ScheduleSpareTimeState> {
       spareTime: spareTime,
     ));
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
+  }
+
+  void scheduleSpareTimeSubmitted() {
+    if (state.isValid) {
+      scheduleFormBloc.add(ScheduleFormScheduleSpareTimeChanged(
+        scheduleSpareTime: state.spareTime.value!,
+      ));
+    }
   }
 }

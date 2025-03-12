@@ -28,6 +28,14 @@ class PreparationFormCreateList extends StatelessWidget {
             onNameChanged: (index, value) {
               onNameChanged(index: index, value: value);
             },
+            onTimeChanged: (index, value) => context
+                .read<PreparationFormBloc>()
+                .add(PreparationFormPreparationStepTimeChanged(
+                    index: index, preparationStepTime: value)),
+            onReorder: (oldIndex, newIndex) => context
+                .read<PreparationFormBloc>()
+                .add(PreparationFormPreparationStepOrderChanged(
+                    oldIndex: oldIndex, newIndex: newIndex)),
           ),
           preparationNameState.status == PreparationFormStatus.adding
               ? BlocProvider<PreparationStepFormCubit>(

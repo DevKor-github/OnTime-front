@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_time_input.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
@@ -7,13 +9,17 @@ class PreparationFormListField extends StatefulWidget {
   const PreparationFormListField({
     super.key,
     required this.preparationStep,
+    this.index,
     this.onNameChanged,
+    this.onPreparationTimeChanged,
     this.onNameSaved,
     this.isAdding = false,
   });
 
   final PreparationStepFormState preparationStep;
+  final int? index;
   final ValueChanged<String>? onNameChanged;
+  final ValueChanged<Duration>? onPreparationTimeChanged;
   final VoidCallback? onNameSaved;
   final bool isAdding;
 
@@ -24,6 +30,13 @@ class PreparationFormListField extends StatefulWidget {
 
 class _PreparationFormListFieldState extends State<PreparationFormListField> {
   final FocusNode focusNode = FocusNode();
+  final dragIndicatorSvg = SvgPicture.asset(
+    'assets/drag_indicator.svg',
+    semanticsLabel: 'drag indicator',
+    height: 14,
+    width: 14,
+    fit: BoxFit.contain,
+  );
 
   @override
   void dispose() {
@@ -52,6 +65,15 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
       child: Tile(
         key: ValueKey<String>(widget.preparationStep.id),
         style: TileStyle(padding: EdgeInsets.all(16.0)),
+        leading: widget.index == null
+            ? dragIndicatorSvg
+            : ReorderableDragStartListener(
+                index: widget.index!,
+                child: dragIndicatorSvg,
+              ),
+        trailing: PreparationTimeInput(
+            time: widget.preparationStep.preparationTime.value,
+            onPreparationTimeChanged: widget.onPreparationTimeChanged),
         child: Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),

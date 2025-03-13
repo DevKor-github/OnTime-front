@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/top_bar.dart';
+import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/screens/schedule_date_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/screens/schedule_name_form.dart';

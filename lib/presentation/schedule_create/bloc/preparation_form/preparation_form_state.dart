@@ -34,7 +34,7 @@ final class PreparationFormState extends Equatable {
     }
     return PreparationFormState(
       status: PreparationFormStatus.success,
-      preparationStepList: preparationStepFormStateList,
+      preparationStepList: preparationStepFormStateList.reversed.toList(),
     );
   }
 
@@ -59,7 +59,7 @@ final class PreparationFormState extends Equatable {
   PreparationFormState copyWith({
     PreparationFormStatus? status,
     List<PreparationStepFormState>? preparationStepList,
-    bool? isValid = false,
+    bool? isValid,
   }) {
     return PreparationFormState(
       status: status ?? this.status,
@@ -71,7 +71,7 @@ final class PreparationFormState extends Equatable {
   @override
   List<Object> get props => [
         status,
-        ...preparationStepList,
+        preparationStepList,
         isValid,
       ];
 }

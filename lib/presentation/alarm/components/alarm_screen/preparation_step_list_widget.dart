@@ -22,67 +22,75 @@ class PreparationStepListWidget extends StatefulWidget {
 
 class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
   final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _tileKeys = {};
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToCurrentStep();
-    });
+    for (int i = 0; i < widget.preparations.length; i++) {
+      _tileKeys[i] = GlobalKey();
+    }
   }
 
-  void _scrollToCurrentStep() {
-    final currentStepIndex =
-        context.read<AlarmTimerBloc>().state.currentStepIndex;
+  Future<void> _scrollToCurrentStep(int currentStepIndex) async {
+    if (currentStepIndex > 1) {
+      final key = _tileKeys[currentStepIndex - 1];
+      if (key?.currentContext != null) {
+        final RenderBox box =
+            key!.currentContext!.findRenderObject() as RenderBox;
+        final double targetOffset = box.localToGlobal(Offset.zero).dy +
+            _scrollController.offset -
+            (MediaQuery.of(context).size.height / 2) +
+            (box.size.height / 2) -
+            50;
 
-    if (currentStepIndex >= 0 &&
-        currentStepIndex < widget.preparations.length) {
-      const double tileHeight = 135.0;
-      final double listPaddingTop = MediaQuery.of(context).size.height * 0.05;
-
-      double scrollOffset = (currentStepIndex * tileHeight) - listPaddingTop;
-      scrollOffset =
-          scrollOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
-
-      _scrollController.animateTo(
-        scrollOffset,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+        await _scrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-      builder: (context, timerState) {
-        return Center(
-          child: SizedBox(
-            width: 329,
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: widget.preparations.length,
-              itemBuilder: (context, index) {
-                final preparation = widget.preparations[index];
-
-                return PreparationStepTile(
-                  key: Key('$index'),
-                  stepIndex: index + 1,
-                  preparationName: preparation.preparationName,
-                  preparationTime:
-                      formatTime(preparation.preparationTime.inSeconds),
-                  isLastItem: index == widget.preparations.length - 1,
-                  onSkip: () {
-                    context
-                        .read<AlarmTimerBloc>()
-                        .add(const AlarmTimerStepSkipped());
-                  },
-                );
-              },
-            ),
-          ),
-        );
+    return BlocListener<AlarmTimerBloc, AlarmTimerState>(
+      listenWhen: (previous, current) =>
+          previous.currentStepIndex != current.currentStepIndex,
+      listener: (context, state) {
+        _scrollToCurrentStep(state.currentStepIndex);
       },
+      child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
+        builder: (context, timerState) {
+          return Center(
+            child: SizedBox(
+              width: 329,
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: widget.preparations.length,
+                itemBuilder: (context, index) {
+                  final preparation = widget.preparations[index];
+
+                  return PreparationStepTile(
+                    key: _tileKeys[index],
+                    stepIndex: index + 1,
+                    preparationName: preparation.preparationName,
+                    preparationTime:
+                        formatTime(preparation.preparationTime.inSeconds),
+                    isLastItem: index == widget.preparations.length - 1,
+                    onSkip: () {
+                      context
+                          .read<AlarmTimerBloc>()
+                          .add(const AlarmTimerStepSkipped());
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

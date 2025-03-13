@@ -25,16 +25,16 @@ class PreparationStepTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
       builder: (context, timerState) {
-        final int currentIndex = timerState.currentStepIndex;
+        final int currentStepIndex = timerState.currentStepIndex;
 
-        // 현재 진행 중인 단계인지 확인하고 elapsedTime 가져오기
-        final int stepElapsedTime = (currentIndex == stepIndex - 1)
-            ? timerState.stepElapsedTimes[currentIndex]
+        // 현재 진행 중인 단계인지 확인하고 stepElapsedTime 가져오기
+        final int stepElapsedTime = (currentStepIndex == stepIndex - 1)
+            ? timerState.stepElapsedTimes[currentStepIndex]
             : timerState.stepElapsedTimes[stepIndex - 1];
 
         // 현재 진행 중인 단계인지 확인하고 preparationState 가져오기
-        final preparationState = (currentIndex == stepIndex - 1)
-            ? timerState.preparationStepStates[currentIndex]
+        final preparationState = (currentStepIndex == stepIndex - 1)
+            ? timerState.preparationStepStates[currentStepIndex]
             : timerState.preparationStepStates[stepIndex - 1];
 
         // 타이머 상태에 따라 시간 표시
@@ -93,7 +93,7 @@ class PreparationStepTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AnimatedSize(
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 200),
               curve: Curves.ease,
               child: Container(
                 width: 358,

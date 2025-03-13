@@ -80,8 +80,9 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             return Column(
               children: [
                 TopBar(
-                  onNextPageButtonClicked: () =>
-                      _onNextPageButtonClicked(context),
+                  onNextPageButtonClicked: state.isValid
+                      ? () => _onNextPageButtonClicked(context)
+                      : null,
                   onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
                 ),
                 StepProgress(

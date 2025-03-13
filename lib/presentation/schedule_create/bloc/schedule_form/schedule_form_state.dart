@@ -2,7 +2,7 @@ part of 'schedule_form_bloc.dart';
 
 enum ScheduleFormStatus { initial, loading, success, error }
 
-enum IsPreparationChanged { changed, unchanged, orderChanged }
+enum IsPreparationChanged { changed, unchanged }
 
 final class ScheduleFormState extends Equatable {
   final ScheduleFormStatus status;

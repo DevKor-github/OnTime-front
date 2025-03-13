@@ -154,19 +154,10 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     Emitter<ScheduleFormState> emit,
   ) {
     final IsPreparationChanged isChagned;
-    if (state.isChanged == IsPreparationChanged.changed) {
-      // already changed
-      isChagned = IsPreparationChanged.changed;
-    } else if (state.preparation == event.preparation) {
+    if (state.preparation == event.preparation) {
       // not changed
       isChagned = IsPreparationChanged.unchanged;
-    }
-    // else if (isOnlyOrderChanged(state.preparation, event.preparation)) {
-    //   // only order changed
-    //   isChagned = IsPreparationChanged.orderChanged;
-    // }
-    else {
-      // changed
+    } else {
       isChagned = IsPreparationChanged.changed;
     }
 
@@ -174,22 +165,6 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       preparation: event.preparation,
       isChanged: isChagned,
     ));
-  }
-
-  bool _isOnlyOrderChanged(PreparationEntity? a, PreparationEntity? b) {
-    if (a == null && b == null) {
-      return true;
-    }
-    if (a == null || b == null) {
-      return false;
-    }
-    final A = a.preparationStepList
-        .map((e) => e.copyWith(nextPreparationId: ''))
-        .toSet();
-    final B = b.preparationStepList
-        .map((e) => e.copyWith(nextPreparationId: ''))
-        .toSet();
-    return setEquals<PreparationStepEntity>(A, B);
   }
 
   Future<void> _onUpdated(

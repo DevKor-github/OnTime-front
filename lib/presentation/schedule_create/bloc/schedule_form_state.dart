@@ -74,7 +74,7 @@ final class ScheduleFormState extends Equatable {
       scheduleTime: state.scheduleTime!,
       moveTime: state.moveTime!,
       isChanged: !(state.isChanged == IsPreparationChanged.unchanged),
-      scheduleSpareTime: state.scheduleSpareTime!,
+      scheduleSpareTime: state.scheduleSpareTime,
       scheduleNote: state.scheduleNote ?? '',
       isStarted: false,
     );

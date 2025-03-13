@@ -13,9 +13,9 @@ class CreateScheduleRequestModel {
   final int moveTime;
   final bool isChange;
   final bool isStarted;
-  final int scheduleSpareTime;
+  final int? scheduleSpareTime;
   final String scheduleNote;
-  
+
   const CreateScheduleRequestModel({
     required this.scheduleId,
     required this.placeId,
@@ -44,7 +44,7 @@ class CreateScheduleRequestModel {
       moveTime: entity.moveTime.inMinutes,
       isChange: entity.isChanged,
       isStarted: entity.isStarted,
-      scheduleSpareTime: entity.scheduleSpareTime.inMinutes,
+      scheduleSpareTime: entity.scheduleSpareTime?.inMinutes,
       scheduleNote: entity.scheduleNote,
     );
   }

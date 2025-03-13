@@ -42,10 +42,10 @@ class _SchedulePlaceMovingTimeFormState
             initialValue: state.placeName.value,
             focusNode: _placeFocusNode,
             textInputAction: TextInputAction.next,
-            onSaved: (newValue) {
+            onChanged: (newValue) {
               context
                   .read<SchedulePlaceMovingTimeCubit>()
-                  .placeNameChanged(newValue ?? state.placeName.value);
+                  .placeNameChanged(newValue);
             },
           ),
           Row(

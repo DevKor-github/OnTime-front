@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <!--
+
+<head>
+    <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
 
@@ -14,25 +15,40 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-        <base href="$FLUTTER_BASE_HREF" />
+    <base href="$FLUTTER_BASE_HREF" />
 
-        <meta charset="UTF-8" />
-        <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
-        <meta name="description" content="A new Flutter project." />
+    <meta charset="UTF-8" />
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
+    <meta name="description" content="A new Flutter project." />
 
-        <!-- iOS meta tags & icons -->
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="apple-mobile-web-app-title" content="on_time_front" />
-        <link rel="apple-touch-icon" href="icons/Icon-192.png" />
+    <meta name="google-signin-client_id"
+        content="456571312261-5kuf2r6i5i7lqjr7qealv06sdgkn3hcp.apps.googleusercontent.com">
 
-        <!-- Favicon -->
-        <link rel="icon" type="image/png" href="favicon.png" />
+    <!-- iOS meta tags & icons -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="OnTime" />
+    <link rel="apple-touch-icon" href="icons/Icon-192.png" />
 
-        <title>on_time_front</title>
-        <link rel="manifest" href="manifest.json" />
-    </head>
-    <body>
-        <script src="flutter_bootstrap.js" async></script>
-    </body>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+
+    <title>on_time_front</title>
+    <link rel="manifest" href="manifest.json" />
+</head>
+
+<body>
+    <script>
+        window.sqlite3WasmUri = "https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.wasm";
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('firebase_messaging_sw.js');
+            });
+        }
+
+    </script>
+    <script src="flutter_bootstrap.js" async></script>
+</body>
+
 </html>

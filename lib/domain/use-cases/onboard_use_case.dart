@@ -1,14 +1,14 @@
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/repositories/authentication_repository.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 @Injectable()
 class OnboardUseCase {
   final PreparationRepository _preparationRepository;
-  final AuthenticationRepository _authenticationRepository;
+  final UserRepository _userRepository;
 
-  OnboardUseCase(this._preparationRepository, this._authenticationRepository);
+  OnboardUseCase(this._preparationRepository, this._userRepository);
 
   Future<void> call(
       {required PreparationEntity preparationEntity,
@@ -16,6 +16,6 @@ class OnboardUseCase {
       required String note}) async {
     await _preparationRepository.createDefaultPreparation(
         preparationEntity: preparationEntity, spareTime: spareTime, note: note);
-    await _authenticationRepository.getUser();
+    await _userRepository.getUser();
   }
 }

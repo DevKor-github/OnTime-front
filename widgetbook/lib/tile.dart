@@ -36,10 +36,7 @@ Widget tile(BuildContext context) {
       child: Center(
         child: Text(
           context.knobs.string(label: 'Text', initialValue: '샤워하기'),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
     ),

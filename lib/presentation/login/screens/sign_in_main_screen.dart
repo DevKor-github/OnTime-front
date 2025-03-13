@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/domain/repositories/authentication_repository.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 class SignInMainScreen extends StatelessWidget {
   const SignInMainScreen({super.key});
@@ -63,8 +63,7 @@ class _SocialSignInButtonRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthenticationRepository authenticationRepository =
-        getIt.get<AuthenticationRepository>();
+    final UserRepository authenticationRepository = getIt.get<UserRepository>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

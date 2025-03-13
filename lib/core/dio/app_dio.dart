@@ -1,14 +1,14 @@
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/constants/environment_variable.dart';
+import 'package:on_time_front/core/dio/adapters/shared.dart';
 import 'package:on_time_front/core/dio/interceptors/logger_interceptor.dart';
 import 'package:on_time_front/core/dio/interceptors/token_interceptor.dart';
 
 @Injectable(as: Dio)
 class AppDio with DioMixin implements Dio {
   AppDio() {
-    httpClientAdapter = IOHttpClientAdapter();
+    httpClientAdapter = getAdapter();
     options = BaseOptions(
         baseUrl: EnvironmentVariable.restApiUrl,
         connectTimeout: const Duration(milliseconds: 30000),
@@ -21,6 +21,6 @@ class AppDio with DioMixin implements Dio {
           "Authorization": EnvironmentVariable.restAuthToken
         });
 
-    interceptors.addAll([TokenInterceptor(), LoggerInterceptor()]);
+    interceptors.addAll([TokenInterceptor(this), LoggerInterceptor()]);
   }
 }

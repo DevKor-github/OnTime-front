@@ -27,7 +27,7 @@ class PreparationStepTile extends StatelessWidget {
       builder: (context, timerState) {
         final int currentStepIndex = timerState.currentStepIndex;
 
-        // 현재 진행 중인 단계인지 확인하고 elapsedTime 가져오기
+        // 현재 진행 중인 단계인지 확인하고 stepElapsedTime 가져오기
         final int stepElapsedTime = (currentStepIndex == stepIndex - 1)
             ? timerState.stepElapsedTimes[currentStepIndex]
             : timerState.stepElapsedTimes[stepIndex - 1];

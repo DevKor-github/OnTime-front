@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 
 class StepProgress extends StatelessWidget {
   const StepProgress(
@@ -44,9 +45,7 @@ class StepProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stepTextStyle = TextStyle(
-      fontSize: 14.0,
-    );
+    final textTheme = Theme.of(context).textTheme;
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -63,7 +62,7 @@ class StepProgress extends StatelessWidget {
               final textPainter = TextPainter(
                 text: TextSpan(
                   text: 'STEP${singleLine ? ' ' : '\n'}1',
-                  style: stepTextStyle,
+                  style: textTheme.bodyExtraSmall,
                 ),
                 textDirection: TextDirection.ltr,
               )..layout();
@@ -91,7 +90,7 @@ class StepProgress extends StatelessWidget {
                 _StepText(
                   step: i + 1,
                   singleLine: singleLine,
-                  style: stepTextStyle.copyWith(
+                  style: textTheme.bodyExtraSmall.copyWith(
                     color: _getIndicatorColor(context, i),
                   ),
                 )

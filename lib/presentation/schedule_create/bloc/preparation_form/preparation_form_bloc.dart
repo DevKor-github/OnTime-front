@@ -39,10 +39,11 @@ class PreparationFormBloc
   ) {
     final PreparationFormState preparationFormState =
         PreparationFormState.fromEntity(event.preparationEntity);
-
+    final isValid = _validate(preparationFormState.preparationStepList);
     emit(state.copyWith(
       status: PreparationFormStatus.initial,
       preparationStepList: preparationFormState.preparationStepList,
+      isValid: isValid,
     ));
   }
 
@@ -86,7 +87,8 @@ class PreparationFormBloc
     PreparationFormPreparationStepNameChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state.preparationStepList;
+    final changedList =
+        List<PreparationStepFormState>.from(state.preparationStepList);
     changedList[event.index] = changedList[event.index].copyWith(
       preparationName:
           PreparationNameInputModel.dirty(event.preparationStepName),
@@ -103,7 +105,8 @@ class PreparationFormBloc
     PreparationFormPreparationStepTimeChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state.preparationStepList;
+    final changedList =
+        List<PreparationStepFormState>.from(state.preparationStepList);
     changedList[event.index] = changedList[event.index].copyWith(
       preparationTime:
           PreparationTimeInputModel.dirty(event.preparationStepTime),
@@ -119,7 +122,8 @@ class PreparationFormBloc
     PreparationFormPreparationStepOrderChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final changedList = state.preparationStepList;
+    final changedList =
+        List<PreparationStepFormState>.from(state.preparationStepList);
     int oldIndex = event.oldIndex;
     int newIndex = event.newIndex;
     if (oldIndex < newIndex) {
@@ -136,8 +140,11 @@ class PreparationFormBloc
 
   bool _validate(List<PreparationStepFormState> preparationStepList) {
     final isValid = preparationStepList.isNotEmpty &&
-        Formz.validate(
-            preparationStepList.map((e) => e.preparationName).toList());
+        Formz.validate(preparationStepList
+            .map((e) => [e.preparationName, e.preparationTime])
+            .expand((element) => element)
+            .cast<FormzInput<dynamic, dynamic>>()
+            .toList());
     return isValid;
   }
 

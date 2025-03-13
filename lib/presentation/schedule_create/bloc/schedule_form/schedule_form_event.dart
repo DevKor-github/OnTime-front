@@ -80,8 +80,8 @@ final class ScheduleFormUpdated extends ScheduleFormEvent {
   const ScheduleFormUpdated();
 }
 
-final class ScheduleFormSaved extends ScheduleFormEvent {
-  const ScheduleFormSaved();
+final class ScheduleFormCreated extends ScheduleFormEvent {
+  const ScheduleFormCreated();
 }
 
 final class ScheduleFormValidated extends ScheduleFormEvent {

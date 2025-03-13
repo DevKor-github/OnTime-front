@@ -45,17 +45,4 @@ class GetScheduleResponseModel {
       _$GetScheduleResponseModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetScheduleResponseModelToJson(this);
-
-  static GetScheduleResponseModel fromEntity(ScheduleEntity entity) {
-    return GetScheduleResponseModel(
-      scheduleId: entity.id,
-      place: GetPlaceResponseModel.fromEntity(entity.place),
-      scheduleName: entity.scheduleName,
-      scheduleTime: entity.scheduleTime,
-      moveTime: entity.moveTime.inMinutes,
-      scheduleSpareTime: entity.scheduleSpareTime.inMinutes,
-      scheduleNote: entity.scheduleNote,
-      latenessTime: entity.latenessTime,
-    );
-  }
 }

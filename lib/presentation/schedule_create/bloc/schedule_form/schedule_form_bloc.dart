@@ -1,10 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';

@@ -1,6 +1,5 @@
 part of 'schedule_place_moving_time_cubit.dart';
 
-@freezed
 class SchedulePlaceMovingTimeState extends Equatable {
   const SchedulePlaceMovingTimeState({
     this.placeName = const SchedulePlaceInputModel.pure(),

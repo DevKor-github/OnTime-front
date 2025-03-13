@@ -38,7 +38,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormScheduleSpareTimeChanged>(_onScheduleSpareTimeChanged);
     on<ScheduleFormPreparationChanged>(_onPreparationChanged);
     on<ScheduleFormUpdated>(_onUpdated);
-    on<ScheduleFormSaved>(_onSaved);
+    on<ScheduleFormCreated>(_onCreated);
     on<ScheduleFormValidated>(_onValidated);
   }
 
@@ -204,8 +204,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     }
   }
 
-  Future<void> _onSaved(
-    ScheduleFormSaved event,
+  Future<void> _onCreated(
+    ScheduleFormCreated event,
     Emitter<ScheduleFormState> emit,
   ) async {
     final ScheduleEntity scheduleEntity = state.createEntity(state);

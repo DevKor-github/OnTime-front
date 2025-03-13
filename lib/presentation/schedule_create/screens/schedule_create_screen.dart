@@ -15,13 +15,14 @@ class ScheduleCreateScreen extends StatelessWidget {
           create: (context) =>
               getIt.get<ScheduleFormBloc>()..add(ScheduleFormCreateRequested()),
           child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
-              builder: (context, state) {
-            return ScheduleMultiPageForm(
-              onSaved: () => context.read<ScheduleFormBloc>().add(
-                    const ScheduleFormSaved(),
-                  ),
-            );
-          }),
+            builder: (context, state) {
+              return ScheduleMultiPageForm(
+                onSaved: () => context.read<ScheduleFormBloc>().add(
+                      const ScheduleFormCreated(),
+                    ),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -1,10 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
@@ -32,14 +30,14 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
     on<ScheduleFormScheduleNameChanged>(_onScheduleNameChanged);
-    on<ScheduleFormScheduleDateChanged>(_onScheduleDateChanged);
-    on<ScheduleFormScheduleTimeChanged>(_onScheduleTimeChanged);
+    on<ScheduleFormScheduleDateTimeChanged>(_onScheduleDateChanged);
     on<ScheduleFormPlaceNameChanged>(_onPlaceNameChanged);
     on<ScheduleFormMoveTimeChanged>(_onMoveTimeChanged);
     on<ScheduleFormScheduleSpareTimeChanged>(_onScheduleSpareTimeChanged);
     on<ScheduleFormPreparationChanged>(_onPreparationChanged);
     on<ScheduleFormUpdated>(_onUpdated);
-    on<ScheduleFormSaved>(_onSaved);
+    on<ScheduleFormCreated>(_onCreated);
+    on<ScheduleFormValidated>(_onValidated);
   }
 
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
@@ -114,28 +112,18 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   }
 
   void _onScheduleDateChanged(
-    ScheduleFormScheduleDateChanged event,
+    ScheduleFormScheduleDateTimeChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
     emit(state.copyWith(
-        scheduleTime: state.scheduleTime?.copyWith(
-              year: event.scheduleDate.year,
-              month: event.scheduleDate.month,
-              day: event.scheduleDate.day,
-            ) ??
-            event.scheduleDate));
-  }
-
-  void _onScheduleTimeChanged(
-    ScheduleFormScheduleTimeChanged event,
-    Emitter<ScheduleFormState> emit,
-  ) {
-    emit(state.copyWith(
-        scheduleTime: state.scheduleTime?.copyWith(
-              hour: event.scheduleTime.hour,
-              minute: event.scheduleTime.minute,
-            ) ??
-            event.scheduleTime));
+      scheduleTime: DateTime(
+        event.scheduleDate.year,
+        event.scheduleDate.month,
+        event.scheduleDate.day,
+        event.scheduleTime.hour,
+        event.scheduleTime.minute,
+      ),
+    ));
   }
 
   void _onPlaceNameChanged(
@@ -164,19 +152,10 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     Emitter<ScheduleFormState> emit,
   ) {
     final IsPreparationChanged isChagned;
-    if (state.isChanged == IsPreparationChanged.changed) {
-      // already changed
-      isChagned = IsPreparationChanged.changed;
-    } else if (state.preparation == event.preparation) {
+    if (state.preparation == event.preparation) {
       // not changed
       isChagned = IsPreparationChanged.unchanged;
-    }
-    // else if (isOnlyOrderChanged(state.preparation, event.preparation)) {
-    //   // only order changed
-    //   isChagned = IsPreparationChanged.orderChanged;
-    // }
-    else {
-      // changed
+    } else {
       isChagned = IsPreparationChanged.changed;
     }
 
@@ -184,22 +163,6 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       preparation: event.preparation,
       isChanged: isChagned,
     ));
-  }
-
-  bool _isOnlyOrderChanged(PreparationEntity? a, PreparationEntity? b) {
-    if (a == null && b == null) {
-      return true;
-    }
-    if (a == null || b == null) {
-      return false;
-    }
-    final A = a.preparationStepList
-        .map((e) => e.copyWith(nextPreparationId: ''))
-        .toSet();
-    final B = b.preparationStepList
-        .map((e) => e.copyWith(nextPreparationId: ''))
-        .toSet();
-    return setEquals<PreparationStepEntity>(A, B);
   }
 
   Future<void> _onUpdated(
@@ -214,8 +177,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     }
   }
 
-  Future<void> _onSaved(
-    ScheduleFormSaved event,
+  Future<void> _onCreated(
+    ScheduleFormCreated event,
     Emitter<ScheduleFormState> emit,
   ) async {
     final ScheduleEntity scheduleEntity = state.createEntity(state);
@@ -224,5 +187,10 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       await _createCustomPreparationUseCase(
           state.preparation!, scheduleEntity.id);
     }
+  }
+
+  void _onValidated(
+      ScheduleFormValidated event, Emitter<ScheduleFormState> emit) {
+    emit(state.copyWith(isValid: event.isValid));
   }
 }

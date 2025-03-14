@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/presentation/schedule_create/bloc/preparation_form/preparation_form_bloc.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_edit_list.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/top_bar.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
+import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_create_list.dart';
 
 class PreparationEditForm extends StatefulWidget {
   const PreparationEditForm({super.key, required this.preparationEntity});
@@ -17,8 +17,6 @@ class PreparationEditForm extends StatefulWidget {
 }
 
 class _PreparationEditFormState extends State<PreparationEditForm> {
-  final GlobalKey<FormState> _formKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
@@ -37,22 +35,26 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
               return Column(
                 children: [
                   TopBar(
-                    onNextPAgeButtonClicked: () async {
-                      if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        await Future.delayed(Duration.zero);
-                        debugPrint(state.toString());
-                        // ignore: use_build_context_synchronously
-                        context.pop(state.toPreparationEntity());
-                      }
-                    },
+                    onNextPageButtonClicked: state.isValid
+                        ? () {
+                            context.pop(state.toPreparationEntity());
+                          }
+                        : null,
                     onPreviousPageButtonClicked: context.pop,
                   ),
                   Expanded(
-                    child: PreparationEditList(
-                      formKey: _formKey,
-                      onSaved: (value) {},
-                      preparationFormState: state,
+                    child: PreparationFormCreateList(
+                      preparationNameState: state,
+                      onNameChanged: (
+                          {required int index, required String value}) {
+                        context.read<PreparationFormBloc>().add(
+                            PreparationFormPreparationStepNameChanged(
+                                index: index, preparationStepName: value));
+                      },
+                      onCreationRequested: () {
+                        context.read<PreparationFormBloc>().add(
+                            PreparationFormPreparationStepCreationRequested());
+                      },
                     ),
                   ),
                 ],

@@ -2,7 +2,7 @@ part of 'schedule_form_bloc.dart';
 
 enum ScheduleFormStatus { initial, loading, success, error }
 
-enum IsPreparationChanged { changed, unchanged, orderChanged }
+enum IsPreparationChanged { changed, unchanged }
 
 final class ScheduleFormState extends Equatable {
   final ScheduleFormStatus status;
@@ -15,6 +15,7 @@ final class ScheduleFormState extends Equatable {
   final Duration? scheduleSpareTime;
   final String? scheduleNote;
   final PreparationEntity? preparation;
+  final bool isValid;
 
   ScheduleFormState({
     this.status = ScheduleFormStatus.initial,
@@ -27,6 +28,7 @@ final class ScheduleFormState extends Equatable {
     this.scheduleSpareTime,
     this.scheduleNote,
     this.preparation,
+    this.isValid = false,
   }) : id = id ?? Uuid().v7();
 
   ScheduleFormState copyWith({
@@ -40,6 +42,7 @@ final class ScheduleFormState extends Equatable {
     Duration? scheduleSpareTime,
     String? scheduleNote,
     PreparationEntity? preparation,
+    bool? isValid,
   }) {
     return ScheduleFormState(
       status: status ?? this.status,
@@ -52,6 +55,7 @@ final class ScheduleFormState extends Equatable {
       scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
       scheduleNote: scheduleNote ?? this.scheduleNote,
       preparation: preparation ?? this.preparation,
+      isValid: isValid ?? this.isValid,
     );
   }
 
@@ -70,7 +74,7 @@ final class ScheduleFormState extends Equatable {
       scheduleTime: state.scheduleTime!,
       moveTime: state.moveTime!,
       isChanged: !(state.isChanged == IsPreparationChanged.unchanged),
-      scheduleSpareTime: state.scheduleSpareTime!,
+      scheduleSpareTime: state.scheduleSpareTime,
       scheduleNote: state.scheduleNote ?? '',
       isStarted: false,
     );
@@ -87,5 +91,6 @@ final class ScheduleFormState extends Equatable {
         scheduleSpareTime,
         scheduleNote,
         preparation,
+        isValid,
       ];
 }

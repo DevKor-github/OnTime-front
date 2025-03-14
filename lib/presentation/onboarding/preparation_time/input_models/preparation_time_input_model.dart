@@ -7,7 +7,8 @@ enum PreparationTimeValidationError {
 
 class PreparationTimeInputModel
     extends FormzInput<Duration, PreparationTimeValidationError> {
-  const PreparationTimeInputModel.pure() : super.pure(Duration.zero);
+  const PreparationTimeInputModel.pure([super.value = Duration.zero])
+      : super.pure();
   const PreparationTimeInputModel.dirty([super.value = Duration.zero])
       : super.dirty();
 

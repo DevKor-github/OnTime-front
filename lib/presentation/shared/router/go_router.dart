@@ -10,7 +10,7 @@ import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_start_screen.dart';
-import 'package:on_time_front/presentation/schedule_create/compoenent/preparation_edit_form.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/screens/preparation_edit_form.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dart';

@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/home/bloc/weekly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/home_app_bar.dart';
@@ -10,6 +11,8 @@ import 'package:on_time_front/presentation/home/components/todays_schedule_tile.
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,14 +36,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    _overlayEntry?.remove();
-    _overlayEntry = OverlayEntry(
-        builder: (context) => todaysScheduleOverlayBuilder(context));
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (_overlayEntry != null) {
-        Overlay.of(context).insert(_overlayEntry!);
-      }
-    });
     super.initState();
   }
 
@@ -72,55 +67,66 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         appBar: HomeAppBar(),
         body: Column(
           children: [
-            Padding(
-              key: _overlayKey,
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: AnimatedBuilder(
-                  animation: _animation,
-                  builder: (context, child) {
-                    return SizedBox(
-                      width: 325,
-                      child: CustomPaint(
-                        painter: ArcIndicator(
-                          strokeWidth: 16,
-                          progress: _animation.value,
-                        ),
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                                top: 52.0, right: 60.0, left: 60.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('${score.toInt()}점',
-                                    style: theme.textTheme.displaySmall),
-                                SizedBox(height: 6.0),
-                                Text(
-                                  '성실도 점수 30점 올랐어요!\n약속을 잘 지키고 있네요',
-                                  style: theme.textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: 6.0),
-                                SizedBox(
-                                    height: 270.3,
-                                    child: Image.asset('assets/character.png')),
-                              ],
+            Stack(alignment: Alignment.bottomCenter, children: [
+              Padding(
+                key: _overlayKey,
+                padding: const EdgeInsets.only(bottom: 40.0),
+                child: AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      return SizedBox(
+                        width: 325,
+                        child: CustomPaint(
+                          painter: ArcIndicator(
+                            strokeWidth: 16,
+                            progress: _animation.value,
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  top: 52.0, right: 60.0, left: 60.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('${score.toInt()}점',
+                                      style: theme.textTheme.displaySmall),
+                                  SizedBox(height: 6.0),
+                                  Text(
+                                    '성실도 점수 30점 올랐어요!\n약속을 잘 지키고 있네요',
+                                    style: theme.textTheme.bodySmall,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 6.0),
+                                  SizedBox(
+                                      height: 270.3,
+                                      child:
+                                          Image.asset('assets/character.png')),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  }),
-            ),
+                      );
+                    }),
+              ),
+              BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
+                  builder: (context, state) {
+                if (state.status == WeeklySchedulesStatus.success) {
+                  return todaysScheduleOverlayBuilder(state.todaySchedule);
+                } else {
+                  return CircularProgressIndicator();
+                }
+              }),
+            ]),
             Expanded(
               flex: 2,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Color(0xffF3F5FF),
+                  color: AppColors.blue[100],
                 ),
                 child: Padding(
                   padding:
-                      const EdgeInsets.only(top: 71.0, left: 16.0, right: 16.0),
+                      const EdgeInsets.only(top: 0.0, left: 16.0, right: 16.0),
                   child: Column(
                     children: [
                       Row(
@@ -182,16 +188,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget todaysScheduleOverlayBuilder(BuildContext context) {
-    final keyContext = _overlayKey.currentContext;
+  Widget todaysScheduleOverlayBuilder(ScheduleEntity? todaySchedule) {
     final theme = Theme.of(context);
-    if (keyContext != null) {
-      final RenderBox renderBox = keyContext.findRenderObject() as RenderBox;
-      final Offset offset = renderBox.localToGlobal(Offset.zero);
-      return Positioned(
-          top: offset.dy + renderBox.size.height - 117,
-          left: 16,
-          right: 16,
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Container(
+          height: 21 + 16,
+          decoration: BoxDecoration(color: AppColors.blue[100]),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Material(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
@@ -209,13 +216,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   SizedBox(height: 21.0),
                   TodaysScheduleTile(
-                    schedule: null,
+                    schedule: todaySchedule,
                   )
                 ],
               ),
             ),
-          ));
-    }
-    return Container();
+          ),
+        ),
+      ],
+    );
   }
 }

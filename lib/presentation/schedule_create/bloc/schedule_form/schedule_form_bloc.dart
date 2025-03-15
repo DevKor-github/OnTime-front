@@ -186,22 +186,6 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ));
   }
 
-  bool _isOnlyOrderChanged(PreparationEntity? a, PreparationEntity? b) {
-    if (a == null && b == null) {
-      return true;
-    }
-    if (a == null || b == null) {
-      return false;
-    }
-    final A = a.preparationStepList
-        .map((e) => e.copyWith(nextPreparationId: ''))
-        .toSet();
-    final B = b.preparationStepList
-        .map((e) => e.copyWith(nextPreparationId: ''))
-        .toSet();
-    return setEquals<PreparationStepEntity>(A, B);
-  }
-
   Future<void> _onUpdated(
     ScheduleFormUpdated event,
     Emitter<ScheduleFormState> emit,

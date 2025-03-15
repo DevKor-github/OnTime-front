@@ -19,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -38,31 +37,31 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         appBar: HomeAppBar(),
         body: BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
-                      builder: (context, state) {
-            return Column(
-              children: [
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    _PunctualityIndicator(score: score),
-                    todaysScheduleOverlayBuilder(state),
-                  ],
-                ),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0),,
-                    decoration: BoxDecoration(
-                      color: AppColors.blue[100],
-                    ),
-                    child: _WeeklySchedule(
-                      weeklySchedulesState: state,
-                    ),
+            builder: (context, state) {
+          return Column(
+            children: [
+              Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  _PunctualityIndicator(score: score),
+                  todaysScheduleOverlayBuilder(state),
+                ],
+              ),
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0),
+                  decoration: BoxDecoration(
+                    color: AppColors.blue[100],
+                  ),
+                  child: _WeeklySchedule(
+                    weeklySchedulesState: state,
                   ),
                 ),
-              ],
-            );
-          }
-        ),
+              ),
+            ],
+          );
+        }),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             context.go('/scheduleCreate');
@@ -144,8 +143,7 @@ class _WeeklySchedule extends StatelessWidget {
 }
 
 class _WeeklyScheduleHeader extends StatelessWidget {
-  _WeeklyScheduleHeader(
-  );
+  _WeeklyScheduleHeader();
 
   final arrowRightSvg = SvgPicture.asset(
     'assets/arrow_right.svg',
@@ -168,9 +166,8 @@ class _WeeklyScheduleHeader extends StatelessWidget {
           child: Row(
             children: [
               Text('캘린더 보기',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          theme.colorScheme.outlineVariant)),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.outlineVariant)),
               arrowRightSvg,
             ],
           ),
@@ -181,29 +178,25 @@ class _WeeklyScheduleHeader extends StatelessWidget {
 }
 
 class _WeekCalendar extends StatelessWidget {
-  const _WeekCalendar(
-    {required this.weeklySchedulesState}
-  );
+  const _WeekCalendar({required this.weeklySchedulesState});
 
   final WeeklySchedulesState weeklySchedulesState;
 
   @override
   Widget build(BuildContext context) {
-    
-      if (weeklySchedulesState.schedules.isEmpty) {
-        if (weeklySchedulesState.status == WeeklySchedulesStatus.loading) {
-          return CircularProgressIndicator();
-        } else if (weeklySchedulesState.status != WeeklySchedulesStatus.success) {
-          return const SizedBox();
-        }
+    if (weeklySchedulesState.schedules.isEmpty) {
+      if (weeklySchedulesState.status == WeeklySchedulesStatus.loading) {
+        return CircularProgressIndicator();
+      } else if (weeklySchedulesState.status != WeeklySchedulesStatus.success) {
+        return const SizedBox();
       }
+    }
 
-      return WeekCalendar(
-        date: DateTime.now(),
-        onDateSelected: (date) {},
-        highlightedDates: weeklySchedulesState.dates,
-      );
-  
+    return WeekCalendar(
+      date: DateTime.now(),
+      onDateSelected: (date) {},
+      highlightedDates: weeklySchedulesState.dates,
+    );
   }
 }
 
@@ -221,7 +214,7 @@ class _PunctualityIndicator extends StatelessWidget {
       child: SizedBox(
         width: 325,
         child: AnimatedArcIndicator(
-          score: score,
+          score: 80,
           child: Center(
             child: Padding(
               padding:
@@ -268,14 +261,17 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
   }
 
   @override
+  void initState() {
+    super.initState();
+    _animationController =
+        AnimationController(duration: const Duration(seconds: 1), vsync: this);
+    _animation = Tween<double>(begin: 0, end: widget.score / 100)
+        .animate(_animationController);
+    _animationController.forward();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    )..forward();
-    _animation = _animationController.drive(
-      Tween<double>(begin: 0, end: widget.score / 100),
-    );
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {

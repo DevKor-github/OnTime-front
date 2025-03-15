@@ -11,7 +11,7 @@ class UpdateScheduleRequestModel {
   final String scheduleName;
   final DateTime scheduleTime;
   final int moveTime;
-  final int scheduleSpareTime;
+  final int? scheduleSpareTime;
   final String scheduleNote;
   final int latenessTime;
 
@@ -22,7 +22,7 @@ class UpdateScheduleRequestModel {
     required this.scheduleName,
     required this.scheduleTime,
     required this.moveTime,
-    required this.scheduleSpareTime,
+    this.scheduleSpareTime,
     required this.scheduleNote,
     this.latenessTime = 0,
   });
@@ -40,7 +40,7 @@ class UpdateScheduleRequestModel {
       scheduleName: entity.scheduleName,
       scheduleTime: entity.scheduleTime,
       moveTime: entity.moveTime.inMinutes,
-      scheduleSpareTime: entity.scheduleSpareTime.inMinutes,
+      scheduleSpareTime: entity.scheduleSpareTime?.inMinutes,
       scheduleNote: entity.scheduleNote,
       latenessTime: entity.latenessTime,
     );

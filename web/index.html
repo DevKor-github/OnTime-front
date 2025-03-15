@@ -36,6 +36,8 @@
 
     <title>on_time_front</title>
     <link rel="manifest" href="manifest.json" />
+
+
 </head>
 
 <body>
@@ -43,11 +45,11 @@
         window.sqlite3WasmUri = "https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.wasm";
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('firebase_messaging_sw.js');
+                navigator.serviceWorker.register('firebase-messaging-sw.js');
             });
         }
-
     </script>
+    <script src="functions.js"></script>
     <script src="flutter_bootstrap.js" async></script>
 </body>
 

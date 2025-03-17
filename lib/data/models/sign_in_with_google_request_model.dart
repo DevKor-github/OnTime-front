@@ -4,15 +4,16 @@ part 'sign_in_with_google_request_model.g.dart';
 
 @JsonSerializable()
 class SignInWithGoogleRequestModel {
-  final String accessToken;
+  final String idToken;
 
   SignInWithGoogleRequestModel({
-    required this.accessToken,
+    required this.idToken,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'accessToken': accessToken,
+      'idToken': idToken,
+      'refreshToken': '',
     };
   }
 }

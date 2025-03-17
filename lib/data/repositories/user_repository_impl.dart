@@ -71,18 +71,20 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<void> signInWithGoogle() async {
-    final GoogleSignIn googleSignIn =
-        GoogleSignIn(scopes: ['email', 'profile']);
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'], forceCodeForRefreshToken: true);
     try {
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser =
+          await googleSignIn.signInSilently();
       if (googleUser != null) {
         final GoogleSignInAuthentication googleAuth =
             await googleUser.authentication;
-        final String? accessToken = googleAuth.accessToken;
-        if (accessToken != null) {
+        final String? idToken = googleAuth.idToken;
+        if (idToken != null) {
           final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
-            accessToken: accessToken,
+            idToken: idToken,
           );
+          print(idToken);
           await _tokenLocalDataSource.deleteToken();
           final result = await _authenticationRemoteDataSource
               .signInWithGoogle(signInWithGoogleRequestModel);

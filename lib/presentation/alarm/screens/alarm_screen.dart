@@ -86,13 +86,13 @@ class AlarmScreen extends StatelessWidget {
             const SizedBox(height: 10),
             BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
               builder: (context, timerState) {
-                final preparationName = infoState
+                final preparationName = timerState
                     .preparationSteps[timerState.currentStepIndex]
                     .preparationName;
                 final preparationRemainingTime =
                     timerState.preparationRemainingTime;
 
-                return _AlarmGraphSection(
+                return _AlarmTimerGraphSection(
                     preparationName: preparationName,
                     preparationRemainingTime: preparationRemainingTime,
                     progress: timerState.progress);
@@ -103,7 +103,7 @@ class AlarmScreen extends StatelessWidget {
               child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
                 builder: (context, timerState) {
                   return _PreparationStepListSection(
-                    preparationSteps: infoState.preparationSteps,
+                    preparationSteps: timerState.preparationSteps,
                     currentStepIndex: timerState.currentStepIndex,
                     onSkip: () {
                       context
@@ -122,7 +122,7 @@ class AlarmScreen extends StatelessWidget {
   }
 }
 
-/// 상단 상태 표시 컴포넌트
+/// 상단 나가기 전 남은 시간 및 그래프 표시 컴포넌트
 class _BeforeOutTimeText extends StatelessWidget {
   final bool isLate;
   final int beforeOutTime;
@@ -149,12 +149,12 @@ class _BeforeOutTimeText extends StatelessWidget {
 }
 
 /// 그래프 및 상태 표시 컴포넌트
-class _AlarmGraphSection extends StatelessWidget {
+class _AlarmTimerGraphSection extends StatelessWidget {
   final String preparationName;
   final int preparationRemainingTime;
   final double progress;
 
-  const _AlarmGraphSection({
+  const _AlarmTimerGraphSection({
     required this.preparationName,
     required this.preparationRemainingTime,
     required this.progress,

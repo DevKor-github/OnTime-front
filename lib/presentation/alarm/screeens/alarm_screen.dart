@@ -154,7 +154,7 @@ class AlarmScreen extends StatelessWidget {
                   ),
                   Positioned(
                     top: 15,
-                    bottom: 100,
+                    bottom: 80,
                     left: MediaQuery.of(context).size.width * 0.06,
                     right: MediaQuery.of(context).size.width * 0.06,
                     child: PreparationStepListWidget(
@@ -167,21 +167,25 @@ class AlarmScreen extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    bottom: 20,
+                    bottom: 0,
                     left: 0,
                     right: 0,
-                    child: Center(
-                      child: Builder(
-                        builder: (context) {
-                          return Button(
-                            text: '준비 종료',
-                            onPressed: () {
-                              context
-                                  .read<AlarmTimerBloc>()
-                                  .add(const AlarmTimerStepFinalized());
-                            },
-                          );
-                        },
+                    child: Container(
+                      color: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Center(
+                        child: Builder(
+                          builder: (context) {
+                            return Button(
+                              text: '준비 종료',
+                              onPressed: () {
+                                context
+                                    .read<AlarmTimerBloc>()
+                                    .add(const AlarmTimerStepFinalized());
+                              },
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),

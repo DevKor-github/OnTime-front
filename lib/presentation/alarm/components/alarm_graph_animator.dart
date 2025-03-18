@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/alarm_graph_component.dart';
 
 class AlarmGraphAnimator extends StatefulWidget {
-  const AlarmGraphAnimator({super.key});
+  final double progress;
+
+  const AlarmGraphAnimator({
+    super.key,
+    required this.progress,
+  });
 
   @override
   _AlarmGraphAnimatorState createState() => _AlarmGraphAnimatorState();
@@ -39,6 +42,14 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant AlarmGraphAnimator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.progress != widget.progress) {
+      _animateToNewProgress(widget.progress);
+    }
+  }
+
   void _animateToNewProgress(double newProgress) {
     _progressAnimation = Tween<double>(
       begin: previousProgress,
@@ -54,20 +65,14 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-      builder: (context, timerState) {
-        _animateToNewProgress(timerState.progress);
-
-        return AnimatedBuilder(
-          animation: _progressAnimation,
-          builder: (context, child) {
-            return CustomPaint(
-              size: const Size(230, 115),
-              painter: AlarmGraphComponent(
-                progress: _progressAnimation.value,
-              ),
-            );
-          },
+    return AnimatedBuilder(
+      animation: _progressAnimation,
+      builder: (context, child) {
+        return CustomPaint(
+          size: const Size(230, 115),
+          painter: AlarmGraphComponent(
+            progress: _progressAnimation.value,
+          ),
         );
       },
     );

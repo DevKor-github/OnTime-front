@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_tile.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PreparationStepListWidget extends StatefulWidget {
-  final List<PreparationStepEntity> preparations;
+  final List<PreparationStepEntity> preparationSteps;
+  final int currentStepIndex;
+
   final Function onSkip;
 
   const PreparationStepListWidget({
     super.key,
-    required this.preparations,
+    required this.preparationSteps,
+    required this.currentStepIndex,
     required this.onSkip,
   });
 
@@ -27,8 +28,16 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
   @override
   void initState() {
     super.initState();
-    for (int i = 0; i < widget.preparations.length; i++) {
+    for (int i = 0; i < widget.preparationSteps.length; i++) {
       _tileKeys[i] = GlobalKey();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant PreparationStepListWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentStepIndex != widget.currentStepIndex) {
+      _scrollToCurrentStep(widget.currentStepIndex);
     }
   }
 
@@ -55,41 +64,26 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AlarmTimerBloc, AlarmTimerState>(
-      listenWhen: (previous, current) =>
-          previous.currentStepIndex != current.currentStepIndex,
-      listener: (context, state) {
-        _scrollToCurrentStep(state.currentStepIndex);
-      },
-      child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-        builder: (context, timerState) {
-          return Center(
-            child: SizedBox(
-              width: 329,
-              child: ListView.builder(
-                controller: _scrollController,
-                itemCount: widget.preparations.length,
-                itemBuilder: (context, index) {
-                  final preparation = widget.preparations[index];
+    return Center(
+      child: SizedBox(
+        width: 329,
+        child: ListView.builder(
+          controller: _scrollController,
+          itemCount: widget.preparationSteps.length,
+          itemBuilder: (context, index) {
+            final preparation = widget.preparationSteps[index];
 
-                  return PreparationStepTile(
-                    key: _tileKeys[index],
-                    stepIndex: index + 1,
-                    preparationName: preparation.preparationName,
-                    preparationTime:
-                        formatTime(preparation.preparationTime.inSeconds),
-                    isLastItem: index == widget.preparations.length - 1,
-                    onSkip: () {
-                      context
-                          .read<AlarmTimerBloc>()
-                          .add(const AlarmTimerStepSkipped());
-                    },
-                  );
-                },
-              ),
-            ),
-          );
-        },
+            return PreparationStepTile(
+              key: _tileKeys[index],
+              stepIndex: index + 1,
+              preparationName: preparation.preparationName,
+              preparationTime:
+                  formatTime(preparation.preparationTime.inSeconds),
+              isLastItem: index == widget.preparationSteps.length - 1,
+              onSkip: () => widget.onSkip(),
+            );
+          },
+        ),
       ),
     );
   }

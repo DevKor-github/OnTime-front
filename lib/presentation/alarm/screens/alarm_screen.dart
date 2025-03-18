@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 
@@ -78,12 +79,40 @@ class AlarmScreen extends StatelessWidget {
         backgroundColor: const Color(0xff5C79FB),
         body: Column(
           children: [
-            _GoOutTimeText(infoState: infoState),
+            _BeforeOutTimeText(
+              isLate: infoState.isLate,
+              beforeOutTime: infoState.beforeOutTime,
+            ),
             const SizedBox(height: 10),
-            _AlarmGraphSection(infoState: infoState),
+            BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
+              builder: (context, timerState) {
+                final preparationName = infoState
+                    .preparationSteps[timerState.currentStepIndex]
+                    .preparationName;
+                final preparationRemainingTime =
+                    timerState.preparationRemainingTime;
+
+                return _AlarmGraphSection(
+                    preparationName: preparationName,
+                    preparationRemainingTime: preparationRemainingTime,
+                    progress: timerState.progress);
+              },
+            ),
             const SizedBox(height: 110),
             Expanded(
-              child: _PreparationStepListSection(infoState: infoState),
+              child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
+                builder: (context, timerState) {
+                  return _PreparationStepListSection(
+                    preparationSteps: infoState.preparationSteps,
+                    currentStepIndex: timerState.currentStepIndex,
+                    onSkip: () {
+                      context
+                          .read<AlarmTimerBloc>()
+                          .add(const AlarmTimerStepSkipped());
+                    },
+                  );
+                },
+              ),
             ),
             const _EndPreparationButtonSection(),
           ],
@@ -94,28 +123,26 @@ class AlarmScreen extends StatelessWidget {
 }
 
 /// 상단 상태 표시 컴포넌트
-class _GoOutTimeText extends StatelessWidget {
-  final AlarmScreenPreparationLoadSuccess infoState;
+class _BeforeOutTimeText extends StatelessWidget {
+  final bool isLate;
+  final int beforeOutTime;
 
-  const _GoOutTimeText({super.key, required this.infoState});
+  const _BeforeOutTimeText({
+    required this.isLate,
+    required this.beforeOutTime,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 45),
-      child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-        builder: (context, timerState) {
-          return Text(
-            infoState.isLate
-                ? '지각이에요!'
-                : '${formatTime(infoState.beforeOutTime)} 뒤에 나가야 해요',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          );
-        },
+      child: Text(
+        isLate ? '지각이에요!' : '${formatTime(beforeOutTime)} 뒤에 나가야 해요',
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -123,9 +150,15 @@ class _GoOutTimeText extends StatelessWidget {
 
 /// 그래프 및 상태 표시 컴포넌트
 class _AlarmGraphSection extends StatelessWidget {
-  final AlarmScreenPreparationLoadSuccess infoState;
+  final String preparationName;
+  final int preparationRemainingTime;
+  final double progress;
 
-  const _AlarmGraphSection({super.key, required this.infoState});
+  const _AlarmGraphSection({
+    required this.preparationName,
+    required this.preparationRemainingTime,
+    required this.progress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -134,40 +167,32 @@ class _AlarmGraphSection extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          AlarmGraphAnimator(),
+          AlarmGraphAnimator(
+            progress: progress,
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 100),
-            child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-              builder: (context, timerState) {
-                final preparationName = infoState
-                    .preparationSteps[timerState.currentStepIndex]
-                    .preparationName;
-                final preparationRemainingTime =
-                    timerState.preparationRemainingTime;
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      preparationName,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xffDCE3FF),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      formatTimeTimer(preparationRemainingTime),
-                      style: const TextStyle(
-                        fontSize: 35,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                );
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  preparationName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xffDCE3FF),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  formatTimeTimer(preparationRemainingTime),
+                  style: const TextStyle(
+                    fontSize: 35,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -178,9 +203,15 @@ class _AlarmGraphSection extends StatelessWidget {
 
 /// 준비 단계 목록 컴포넌트
 class _PreparationStepListSection extends StatelessWidget {
-  final AlarmScreenPreparationLoadSuccess infoState;
+  final List<PreparationStepEntity> preparationSteps;
+  final int currentStepIndex;
+  final VoidCallback onSkip;
 
-  const _PreparationStepListSection({super.key, required this.infoState});
+  const _PreparationStepListSection({
+    required this.preparationSteps,
+    required this.currentStepIndex,
+    required this.onSkip,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -197,16 +228,13 @@ class _PreparationStepListSection extends StatelessWidget {
         ),
         Positioned(
           top: 15,
-          bottom: 80,
+          bottom: 0,
           left: MediaQuery.of(context).size.width * 0.06,
           right: MediaQuery.of(context).size.width * 0.06,
           child: PreparationStepListWidget(
-            preparations: infoState.preparationSteps,
-            onSkip: () {
-              context.read<AlarmTimerBloc>().add(
-                    const AlarmTimerStepSkipped(),
-                  );
-            },
+            preparationSteps: preparationSteps,
+            currentStepIndex: currentStepIndex,
+            onSkip: onSkip,
           ),
         ),
       ],

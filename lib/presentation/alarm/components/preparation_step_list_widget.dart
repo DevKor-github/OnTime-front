@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
-import 'package:on_time_front/presentation/alarm/components/alarm_screen/preparation_step_tile.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
+import 'package:on_time_front/presentation/alarm/components/preparation_step_tile.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

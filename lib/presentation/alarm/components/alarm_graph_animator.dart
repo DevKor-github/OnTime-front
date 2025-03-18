@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
-import 'package:on_time_front/presentation/alarm/components/alarm_screen/alarm_graph_component.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
+import 'package:on_time_front/presentation/alarm/components/alarm_graph_component.dart';
 
 class AlarmGraphAnimator extends StatefulWidget {
   const AlarmGraphAnimator({super.key});

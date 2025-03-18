@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:on_time_front/presentation/alarm/bloc/ealy_late_screen/early_late_screen_bloc.dart';
-import 'package:on_time_front/presentation/alarm/components/early_late_screen/check_list_item_widget.dart';
+import 'package:on_time_front/presentation/early_late/bloc/early_late_screen_bloc.dart';
+import 'package:on_time_front/presentation/early_late/components/check_list_item_widget.dart';
 
 class ChecklistBox extends StatelessWidget {
   final double screenWidth;

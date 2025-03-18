@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_line/dotted_line.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

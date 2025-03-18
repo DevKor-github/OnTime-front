@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 
-import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_screen_preparation_info/alarm_screen_preparation_info_bloc.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_screen/alarm_timer/alarm_timer_bloc.dart';
-import 'package:on_time_front/presentation/alarm/components/alarm_screen/alarm_graph_animator.dart';
-import 'package:on_time_front/presentation/alarm/components/alarm_screen/preparation_step_list_widget.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_screen_preparation_info/alarm_screen_preparation_info_bloc.dart';
+import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
+import 'package:on_time_front/presentation/alarm/components/alarm_graph_animator.dart';
+import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';

@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 
-class SignInMainScreen extends StatelessWidget {
+import '../components/google_sign_in_button/shared.dart';
+
+class SignInMainScreen extends StatefulWidget {
   const SignInMainScreen({super.key});
+
+  @override
+  State<SignInMainScreen> createState() => _SignInMainScreenState();
+}
+
+class _SignInMainScreenState extends State<SignInMainScreen> {
+  GoogleSignIn googleSignIn = GoogleSignIn();
+
+  @override
+  void initState() {
+    googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
+      if (account != null) {
+        getIt.get<UserRepository>().signInWithGoogle(account);
+      }
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,12 +32,12 @@ class SignInMainScreen extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             _Title(),
             SizedBox(height: 24),
             _CharacterImage(),
             SizedBox(height: 24),
-            _SocialSignInButtonRow()
+            GoogleSignInButton(),
           ],
         ),
       ),
@@ -58,60 +78,21 @@ class _CharacterImage extends StatelessWidget {
   }
 }
 
-class _SocialSignInButtonRow extends StatelessWidget {
-  const _SocialSignInButtonRow();
+// class _SocialSignInButtonRow extends StatelessWidget {
+//   const _SocialSignInButtonRow();
 
-  @override
-  Widget build(BuildContext context) {
-    final UserRepository authenticationRepository = getIt.get<UserRepository>();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GoogleSignInButton(
-          onPressed: () async {
-            await authenticationRepository.signInWithGoogle();
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class GoogleSignInButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  GoogleSignInButton({super.key, required this.onPressed});
-
-  final Widget googleIconSvg = SvgPicture.asset(
-    'assets/google_icon.svg',
-    semanticsLabel: 'Google Icon',
-    fit: BoxFit.contain,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Color(0xFF747775)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 2,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(9.0),
-          child: googleIconSvg,
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     final UserRepository authenticationRepository = getIt.get<UserRepository>();
+//     return Row(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         GoogleSignInButton(
+//           onPressed: () async {
+//             await authenticationRepository.signInWithGoogle();
+//           },
+//         ),
+//       ],
+//     );
+//   }
+// }

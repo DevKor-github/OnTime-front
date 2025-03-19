@@ -12,9 +12,16 @@ import 'package:rxdart/subjects.dart';
 class UserRepositoryImpl implements UserRepository {
   final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
   final TokenLocalDataSource _tokenLocalDataSource;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', 'profile'],
+    forceCodeForRefreshToken: true,
+  );
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(
     const UserEntity.empty(),
   );
+
+  @override
+  GoogleSignIn get googleSignIn => _googleSignIn;
 
   UserRepositoryImpl(
       this._authenticationRemoteDataSource, this._tokenLocalDataSource) {
@@ -70,29 +77,23 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<void> signInWithGoogle() async {
-    final GoogleSignIn googleSignIn =
-        GoogleSignIn(scopes: ['email', 'profile']);
+  Future<void> signInWithGoogle(GoogleSignInAccount googleUser) async {
     try {
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication;
-        final String? accessToken = googleAuth.accessToken;
-        if (accessToken != null) {
-          final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
-            accessToken: accessToken,
-          );
-          await _tokenLocalDataSource.deleteToken();
-          final result = await _authenticationRemoteDataSource
-              .signInWithGoogle(signInWithGoogleRequestModel);
-          await _tokenLocalDataSource.storeTokens(result.$2);
-          _userStreamController.add(result.$1);
-        } else {
-          throw Exception('Access Token is null');
-        }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+      if (idToken != null) {
+        final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
+          idToken: idToken,
+        );
+        print(idToken);
+        await _tokenLocalDataSource.deleteToken();
+        final result = await _authenticationRemoteDataSource
+            .signInWithGoogle(signInWithGoogleRequestModel);
+        await _tokenLocalDataSource.storeTokens(result.$2);
+        _userStreamController.add(result.$1);
       } else {
-        throw Exception('Google User is null');
+        throw Exception('Access Token is null');
       }
     } catch (e) {
       debugPrint(e.toString());

@@ -97,6 +97,8 @@ TextTheme textTheme = TextTheme(
 ThemeData themeData = ThemeData(
   colorScheme: colorScheme,
   brightness: Brightness.light,
+  splashFactory: NoSplash.splashFactory,
+  highlightColor: Colors.transparent,
   fontFamily: 'Pretendard',
   textTheme: textTheme,
   textButtonTheme: TextButtonThemeData(

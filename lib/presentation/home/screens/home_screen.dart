@@ -34,41 +34,36 @@ class _HomeScreenState extends State<HomeScreen> {
     return BlocProvider(
       create: (context) => getIt.get<WeeklySchedulesBloc>()
         ..add(WeeklySchedulesSubscriptionRequested(date: dateOfToday)),
-      child: Scaffold(
-        appBar: HomeAppBar(),
-        body: BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
-            builder: (context, state) {
-          return Column(
-            children: [
-              Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  _PunctualityIndicator(score: score),
-                  todaysScheduleOverlayBuilder(state),
-                ],
-              ),
-              Expanded(
-                child: Container(
-                  padding:
-                      const EdgeInsets.only(top: 50.0, left: 16.0, right: 16.0),
-                  decoration: BoxDecoration(
-                    color: AppColors.blue[100],
-                  ),
-                  child: _WeeklySchedule(
-                    weeklySchedulesState: state,
+      child: BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
+        builder: (context, state) {
+          return Container(
+            color: AppColors.white,
+            child: Column(
+              children: [
+                SizedBox(height: 58.0),
+                Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    _PunctualityIndicator(score: score),
+                    todaysScheduleOverlayBuilder(state),
+                  ],
+                ),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.only(
+                        top: 50.0, left: 16.0, right: 16.0),
+                    decoration: BoxDecoration(
+                      color: AppColors.blue[100],
+                    ),
+                    child: _WeeklySchedule(
+                      weeklySchedulesState: state,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
-        }),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            context.go('/scheduleCreate');
-          },
-          child: Icon(Icons.add),
-        ),
-        //bottomNavigationBar: CustomBottomNavigationBar(),
+        },
       ),
     );
   }

@@ -14,6 +14,7 @@ class UserRepositoryImpl implements UserRepository {
   final TokenLocalDataSource _tokenLocalDataSource;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    signInOption: SignInOption.standard,
     forceCodeForRefreshToken: true,
   );
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(

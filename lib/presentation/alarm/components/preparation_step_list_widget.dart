@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_tile.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 class PreparationStepListWidget extends StatefulWidget {
   final List<PreparationStepEntity> preparationSteps;
   final int currentStepIndex;
-
+  final List<int> stepElapsedTimes;
+  final List<PreparationStateEnum> preparationStepStates;
   final Function onSkip;
 
   const PreparationStepListWidget({
     super.key,
     required this.preparationSteps,
     required this.currentStepIndex,
+    required this.stepElapsedTimes,
+    required this.preparationStepStates,
     required this.onSkip,
   });
 
@@ -80,6 +84,8 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
               preparationTime:
                   formatTime(preparation.preparationTime.inSeconds),
               isLastItem: index == widget.preparationSteps.length - 1,
+              stepElapsedTime: widget.stepElapsedTimes[index],
+              preparationStepState: widget.preparationStepStates[index],
               onSkip: () => widget.onSkip(),
             );
           },

@@ -11,6 +11,7 @@ import 'package:on_time_front/presentation/alarm/components/alarm_graph_animator
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatelessWidget {
@@ -105,6 +106,8 @@ class AlarmScreen extends StatelessWidget {
                   return _PreparationStepListSection(
                     preparationSteps: timerState.preparationSteps,
                     currentStepIndex: timerState.currentStepIndex,
+                    stepElapsedTimes: timerState.stepElapsedTimes,
+                    preparationStepStates: timerState.preparationStepStates,
                     onSkip: () {
                       context
                           .read<AlarmTimerBloc>()
@@ -204,11 +207,15 @@ class _AlarmTimerGraphSection extends StatelessWidget {
 /// 준비 단계 목록 컴포넌트
 class _PreparationStepListSection extends StatelessWidget {
   final List<PreparationStepEntity> preparationSteps;
+  final List<int> stepElapsedTimes;
+  final List<PreparationStateEnum> preparationStepStates;
   final int currentStepIndex;
   final VoidCallback onSkip;
 
   const _PreparationStepListSection({
     required this.preparationSteps,
+    required this.stepElapsedTimes,
+    required this.preparationStepStates,
     required this.currentStepIndex,
     required this.onSkip,
   });
@@ -234,6 +241,8 @@ class _PreparationStepListSection extends StatelessWidget {
           child: PreparationStepListWidget(
             preparationSteps: preparationSteps,
             currentStepIndex: currentStepIndex,
+            stepElapsedTimes: stepElapsedTimes,
+            preparationStepStates: preparationStepStates,
             onSkip: onSkip,
           ),
         ),

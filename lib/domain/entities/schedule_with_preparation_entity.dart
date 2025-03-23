@@ -17,6 +17,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     required this.preparation,
   });
 
+  Duration get totalDuration => moveTime + preparation.totalDuration;
+
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(
       ScheduleEntity schedule, PreparationEntity preparation) {
     return ScheduleWithPreparationEntity(

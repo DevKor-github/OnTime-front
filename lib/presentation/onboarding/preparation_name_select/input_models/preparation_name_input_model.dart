@@ -7,7 +7,7 @@ enum PreparationNameValidationError {
 
 class PreparationNameInputModel
     extends FormzInput<String, PreparationNameValidationError> {
-  const PreparationNameInputModel.pure() : super.pure('');
+  const PreparationNameInputModel.pure([super.value = '']) : super.pure();
   const PreparationNameInputModel.dirty([super.value = '']) : super.dirty();
 
   @override

@@ -12,7 +12,7 @@ class ScheduleEntity extends Equatable {
   final Duration moveTime;
   final bool isChanged;
   final bool isStarted;
-  final Duration scheduleSpareTime;
+  final Duration? scheduleSpareTime;
   final String scheduleNote;
   final int latenessTime;
 

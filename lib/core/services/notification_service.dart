@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:on_time_front/core/services/notification_request_service/shared.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
@@ -20,7 +21,8 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     // Request permission
-    await _requestPermission();
+    final String authorizationStatus = await requestNotificationPermission();
+    print('Permission status: $authorizationStatus');
 
     // Setup message handlers
     await _setupMessageHandlers();
@@ -33,20 +35,6 @@ class NotificationService {
     // Get FCM token
     final token = await _messaging.getToken();
     print('FCM Token: $token');
-  }
-
-  Future<void> _requestPermission() async {
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-      announcement: false,
-      carPlay: false,
-      criticalAlert: false,
-    );
-
-    print('Permission status: ${settings.authorizationStatus}');
   }
 
   Future<void> setupFlutterNotifications() async {

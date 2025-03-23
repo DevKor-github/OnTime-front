@@ -11,7 +11,8 @@ class Schedules extends Table {
   IntColumn get moveTime => integer().map(DurationSqlConverter())();
   BoolColumn get isChanged => boolean().withDefault(const Constant(false))();
   BoolColumn get isStarted => boolean().withDefault(const Constant(false))();
-  IntColumn get scheduleSpareTime => integer().map(DurationSqlConverter())();
+  IntColumn get scheduleSpareTime =>
+      integer().nullable().map(DurationSqlConverter())();
   TextColumn get scheduleNote => text().nullable()();
   IntColumn get latenessTime => integer().withDefault(const Constant(-1))();
 

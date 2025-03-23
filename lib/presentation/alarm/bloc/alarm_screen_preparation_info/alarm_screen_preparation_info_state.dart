@@ -25,7 +25,7 @@ class AlarmScreenPreparationLoadSuccess
   /// 지금부터 몇분 뒤에 나가야하는지에 대한 시간. alarm screen 최상단에서 표시.
   int get beforeOutTime {
     final DateTime now = DateTime.now();
-    final Duration spareTime = schedule.scheduleSpareTime;
+    final Duration spareTime = schedule.scheduleSpareTime!;
     final DateTime scheduleTime = schedule.scheduleTime;
     final Duration moveTime = schedule.moveTime;
     final Duration remainingDuration =

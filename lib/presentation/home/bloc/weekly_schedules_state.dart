@@ -11,6 +11,15 @@ final class WeeklySchedulesState extends Equatable {
 
   List<DateTime> get dates =>
       schedules.map((schedule) => schedule.scheduleTime).toList();
+  ScheduleEntity? get todaySchedule => schedules
+      .where((schedule) {
+        final now = DateTime.now();
+        return schedule.scheduleTime.year == now.year &&
+            schedule.scheduleTime.month == now.month &&
+            schedule.scheduleTime.day == now.day;
+      })
+      .sortedBy((e) => e.scheduleTime)
+      .firstOrNull;
 
   WeeklySchedulesState copyWith({
     WeeklySchedulesStatus Function()? status,

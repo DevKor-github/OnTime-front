@@ -19,7 +19,7 @@ class AlarmScreenBottomSection extends StatelessWidget {
 }
 
 class _PreparationStepListSection extends StatelessWidget {
-  const _PreparationStepListSection({super.key});
+  const _PreparationStepListSection();
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +59,7 @@ class _PreparationStepListSection extends StatelessWidget {
 }
 
 class _EndPreparationButtonSection extends StatelessWidget {
-  const _EndPreparationButtonSection({super.key});
+  const _EndPreparationButtonSection();
 
   @override
   Widget build(BuildContext context) {

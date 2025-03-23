@@ -55,7 +55,7 @@ class _BeforeOutTimeText extends StatelessWidget {
 }
 
 class _AlarmGraphSection extends StatelessWidget {
-  const _AlarmGraphSection({super.key});
+  const _AlarmGraphSection();
 
   @override
   Widget build(BuildContext context) {

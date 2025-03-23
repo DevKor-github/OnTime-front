@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 
 import 'package:on_time_front/presentation/alarm/bloc/alarm_screen_preparation_info/alarm_screen_preparation_info_bloc.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
@@ -19,11 +19,9 @@ class AlarmScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AlarmScreenPreparationInfoBloc>(
-      create: (context) => AlarmScreenPreparationInfoBloc(
-        getPreparationByScheduleIdUseCase:
-            context.read<GetPreparationByScheduleIdUseCase>(),
-      )..add(
+    return BlocProvider(
+      create: (context) => getIt.get<AlarmScreenPreparationInfoBloc>()
+        ..add(
           AlarmScreenPreparationSubscriptionRequested(
             scheduleId: schedule.id,
             schedule: schedule,
@@ -68,7 +66,17 @@ class AlarmScreen extends StatelessWidget {
     return BlocListener<AlarmTimerBloc, AlarmTimerState>(
       listener: (context, timerState) {
         if (timerState is AlarmTimerPreparationCompletion) {
-          GoRouter.of(context).go('/earlyLate', extra: schedule);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              context.go(
+                '/earlyLate',
+                extra: {
+                  'earlyLateTime': infoState.beforeOutTime,
+                  'isLate': infoState.isLate,
+                },
+              );
+            }
+          });
         }
       },
       child: Scaffold(

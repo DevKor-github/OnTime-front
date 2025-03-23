@@ -141,6 +141,11 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   Future<void> _onStepFinalized(
       AlarmTimerStepFinalized event, Emitter<AlarmTimerState> emit) async {
     await _tickerSubscription?.cancel();
+
+    emit(state.copyWith(progress: 1.0));
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
     emit(AlarmTimerPreparationCompletion(
       preparationSteps: state.preparationSteps,
       currentStepIndex: state.currentStepIndex,

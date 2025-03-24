@@ -26,24 +26,23 @@ GoRouter goRouterConfig(AppBloc bloc) {
       final bool onOnbaordingStartScreen =
           state.fullPath == '/onboarding/start';
       final bool onOnboardingScreen = state.fullPath == '/onboarding';
-      return null;
 
-      // switch (status) {
-      //   case AppStatus.unauthenticated:
-      //     return '/signIn';
-      //   case AppStatus.authenticated:
-      //     if (onSignInScreen || onOnboardingScreen || onOnbaordingStartScreen) {
-      //       return '/home';
-      //     } else {
-      //       return null;
-      //     }
-      //   case AppStatus.onboardingNotCompleted:
-      //     if (onOnboardingScreen || onOnbaordingStartScreen) {
-      //       return null;
-      //     } else {
-      //       return '/onboarding/start';
-      //     }
-      // }
+      switch (status) {
+        case AppStatus.unauthenticated:
+          return '/signIn';
+        case AppStatus.authenticated:
+          if (onSignInScreen || onOnboardingScreen || onOnbaordingStartScreen) {
+            return '/home';
+          } else {
+            return null;
+          }
+        case AppStatus.onboardingNotCompleted:
+          if (onOnboardingScreen || onOnbaordingStartScreen) {
+            return null;
+          } else {
+            return '/onboarding/start';
+          }
+      }
     },
     initialLocation: '/home',
     routes: [

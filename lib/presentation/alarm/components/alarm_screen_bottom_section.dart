@@ -1,26 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 class AlarmScreenBottomSection extends StatelessWidget {
-  const AlarmScreenBottomSection({super.key});
+  final List<PreparationStepEntity> preparationSteps;
+  final int currentStepIndex;
+  final List<int> stepElapsedTimes;
+  final List<PreparationStateEnum> preparationStepStates;
+  final VoidCallback onSkip;
+  final VoidCallback onEndPreparation;
+
+  const AlarmScreenBottomSection({
+    super.key,
+    required this.preparationSteps,
+    required this.currentStepIndex,
+    required this.stepElapsedTimes,
+    required this.preparationStepStates,
+    required this.onSkip,
+    required this.onEndPreparation,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Expanded(child: _PreparationStepListSection()),
-        const _EndPreparationButtonSection(),
+        Expanded(
+            child: _PreparationStepListSection(
+          preparationSteps: preparationSteps,
+          currentStepIndex: currentStepIndex,
+          stepElapsedTimes: stepElapsedTimes,
+          preparationStepStates: preparationStepStates,
+          onSkip: onSkip,
+        )),
+        _EndPreparationButtonSection(
+          onEndPreparation: onEndPreparation,
+        ),
       ],
     );
   }
 }
 
 class _PreparationStepListSection extends StatelessWidget {
-  const _PreparationStepListSection();
+  final List<PreparationStepEntity> preparationSteps;
+  final int currentStepIndex;
+  final List<int> stepElapsedTimes;
+  final List<PreparationStateEnum> preparationStepStates;
+  final VoidCallback onSkip;
 
+  const _PreparationStepListSection({
+    required this.preparationSteps,
+    required this.currentStepIndex,
+    required this.stepElapsedTimes,
+    required this.preparationStepStates,
+    required this.onSkip,
+  });
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
@@ -42,13 +79,11 @@ class _PreparationStepListSection extends StatelessWidget {
               left: MediaQuery.of(context).size.width * 0.06,
               right: MediaQuery.of(context).size.width * 0.06,
               child: PreparationStepListWidget(
-                preparationSteps: timerState.preparationSteps,
-                currentStepIndex: timerState.currentStepIndex,
-                stepElapsedTimes: timerState.stepElapsedTimes,
-                preparationStepStates: timerState.preparationStepStates,
-                onSkip: () => context
-                    .read<AlarmTimerBloc>()
-                    .add(const AlarmTimerStepSkipped()),
+                preparationSteps: preparationSteps,
+                currentStepIndex: currentStepIndex,
+                stepElapsedTimes: stepElapsedTimes,
+                preparationStepStates: preparationStepStates,
+                onSkip: onSkip,
               ),
             ),
           ],
@@ -59,8 +94,11 @@ class _PreparationStepListSection extends StatelessWidget {
 }
 
 class _EndPreparationButtonSection extends StatelessWidget {
-  const _EndPreparationButtonSection();
+  final VoidCallback onEndPreparation;
 
+  const _EndPreparationButtonSection({
+    required this.onEndPreparation,
+  });
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -69,9 +107,7 @@ class _EndPreparationButtonSection extends StatelessWidget {
       child: Center(
         child: Button(
           text: '준비 종료',
-          onPressed: () {
-            context.read<AlarmTimerBloc>().add(const AlarmTimerStepFinalized());
-          },
+          onPressed: onEndPreparation,
         ),
       ),
     );

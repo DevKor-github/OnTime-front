@@ -19,15 +19,25 @@ class AlarmTimerStepTicked extends AlarmTimerEvent {
   final int preparationRemainingTime; // 남은 시간
   final int preparationElapsedTime; // 경과 시간
   final int totalRemainingTime;
+  final int beforeOutTime; // 나가기 전까지 남은 시간
+  final bool isLate; // 지각 여부
 
   const AlarmTimerStepTicked({
     required this.preparationRemainingTime,
     required this.preparationElapsedTime,
     required this.totalRemainingTime,
+    required this.beforeOutTime,
+    required this.isLate,
   });
 
   @override
-  List<Object?> get props => [preparationRemainingTime, preparationElapsedTime];
+  List<Object?> get props => [
+        preparationRemainingTime,
+        preparationElapsedTime,
+        totalRemainingTime,
+        beforeOutTime,
+        isLate,
+      ];
 }
 
 class AlarmTimerStepSkipped extends AlarmTimerEvent {

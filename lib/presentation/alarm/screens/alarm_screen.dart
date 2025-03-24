@@ -45,6 +45,8 @@ class AlarmScreen extends StatelessWidget {
             return BlocProvider<AlarmTimerBloc>(
               create: (context) => AlarmTimerBloc(
                 preparationSteps: infoState.preparationSteps,
+                beforeOutTime: infoState.beforeOutTime,
+                isLate: infoState.isLate,
               )..add(
                   AlarmTimerStepStarted(
                     infoState.preparationSteps.first.preparationTime.inSeconds,
@@ -81,15 +83,45 @@ class AlarmScreen extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: const Color(0xff5C79FB),
-        body: Column(
-          children: [
-            AlarmScreenTopSection(
-              isLate: infoState.isLate,
-              beforeOutTime: infoState.beforeOutTime,
-            ),
-            const SizedBox(height: 110),
-            const Expanded(child: AlarmScreenBottomSection()),
-          ],
+        body: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
+          builder: (context, timerState) {
+            final isLate = timerState.isLate;
+            final beforeOutTime = timerState.beforeOutTime;
+
+            final preparationName = timerState
+                .preparationSteps[timerState.currentStepIndex].preparationName;
+            final preparationRemainingTime =
+                timerState.preparationRemainingTime;
+
+            final progress = timerState.progress;
+
+            return Column(
+              children: [
+                AlarmScreenTopSection(
+                  isLate: isLate,
+                  beforeOutTime: beforeOutTime,
+                  preparationName: preparationName,
+                  preparationRemainingTime: preparationRemainingTime,
+                  progress: progress,
+                ),
+                const SizedBox(height: 110),
+                Expanded(
+                  child: AlarmScreenBottomSection(
+                    preparationSteps: timerState.preparationSteps,
+                    currentStepIndex: timerState.currentStepIndex,
+                    stepElapsedTimes: timerState.stepElapsedTimes,
+                    preparationStepStates: timerState.preparationStepStates,
+                    onSkip: () => context
+                        .read<AlarmTimerBloc>()
+                        .add(const AlarmTimerStepSkipped()),
+                    onEndPreparation: () => context
+                        .read<AlarmTimerBloc>()
+                        .add(const AlarmTimerStepFinalized()),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

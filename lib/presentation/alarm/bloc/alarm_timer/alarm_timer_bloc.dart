@@ -14,8 +14,11 @@ part 'alarm_timer_state.dart';
 class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   StreamSubscription<int>? _tickerSubscription;
 
-  AlarmTimerBloc({required List<PreparationStepEntity> preparationSteps})
-      : super(AlarmTimerInitial(
+  AlarmTimerBloc({
+    required List<PreparationStepEntity> preparationSteps,
+    required int beforeOutTime,
+    required bool isLate,
+  }) : super(AlarmTimerInitial(
           preparationSteps: preparationSteps,
           currentStepIndex: 0,
           stepElapsedTimes: List.generate(preparationSteps.length, (_) => 0),
@@ -28,6 +31,8 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
           totalPreparationTime: preparationSteps.fold(
               0, (sum, step) => sum + step.preparationTime.inSeconds),
           progress: 0.0,
+          beforeOutTime: beforeOutTime,
+          isLate: isLate,
         )) {
     on<AlarmTimerStepStarted>(_onStepStarted);
     on<AlarmTimerStepTicked>(_onStepTicked);
@@ -55,10 +60,15 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
         List<PreparationStateEnum>.from(state.preparationStepStates);
     updatedStates[state.currentStepIndex] = PreparationStateEnum.now;
 
+    final updatedBeforeOutTime = state.beforeOutTime;
+    final updatedIsLate = updatedBeforeOutTime <= 0;
+
     emit(state.copyWith(
       preparationStepStates: updatedStates,
       preparationRemainingTime: event.duration,
       stepElapsedTimes: List.from(state.stepElapsedTimes),
+      beforeOutTime: updatedBeforeOutTime,
+      isLate: updatedIsLate,
     ));
 
     _startTicker(event.duration, emit);
@@ -81,6 +91,8 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
         stepElapsedTimes: updatedStepElapsedTimes,
         totalRemainingTime: updatedTotalRemaining,
         progress: updatedProgress,
+        beforeOutTime: event.beforeOutTime,
+        isLate: event.isLate,
       ));
     } else {
       add(const AlarmTimerStepNextShifted());
@@ -155,6 +167,8 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       totalRemainingTime: 0,
       totalPreparationTime: state.totalPreparationTime,
       progress: 1.0,
+      beforeOutTime: state.beforeOutTime,
+      isLate: state.isLate,
     ));
   }
 
@@ -167,10 +181,15 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       final newRemaining = duration - newElapsed;
       final updatedTotalRemaining = state.totalRemainingTime - 1;
 
+      final updatedBeforeOutTime = state.beforeOutTime - 1;
+      final updatedIsLate = updatedBeforeOutTime <= 0;
+
       add(AlarmTimerStepTicked(
         preparationRemainingTime: newRemaining,
         preparationElapsedTime: newElapsed,
         totalRemainingTime: updatedTotalRemaining,
+        beforeOutTime: updatedBeforeOutTime,
+        isLate: updatedIsLate,
       ));
     });
   }

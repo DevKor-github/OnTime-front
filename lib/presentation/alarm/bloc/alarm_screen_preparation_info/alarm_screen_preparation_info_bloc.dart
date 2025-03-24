@@ -33,22 +33,9 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
           await getPreparationByScheduleIdUseCase(event.scheduleId);
 
       final List<PreparationStepEntity> steps = prepEntity.preparationStepList;
-      final int totalPreparationTime =
-          steps.fold(0, (sum, step) => sum + step.preparationTime.inSeconds);
-
-      final int totalRemainingTime = totalPreparationTime;
-      final List<bool> preparationCompleted =
-          List<bool>.filled(steps.length, false);
-
-      final int preparationRemainingTime =
-          steps.isNotEmpty ? steps[0].preparationTime.inSeconds : 0;
 
       emit(AlarmScreenPreparationLoadSuccess(
         preparationSteps: steps,
-        currentIndex: 0,
-        preparationRemainingTime: preparationRemainingTime,
-        totalPreparationRemainingTime: totalRemainingTime,
-        preparationCompleted: preparationCompleted,
         schedule: event.schedule,
       ));
     } catch (e) {

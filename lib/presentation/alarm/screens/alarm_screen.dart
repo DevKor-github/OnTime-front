@@ -62,7 +62,7 @@ class AlarmScreen extends StatelessWidget {
   }
 
   Widget _buildAlarmScreen(
-    AlarmScreenPreparationLoadSuccess infoState,
+    AlarmScreenPreparationLoadSuccess timerState,
     BuildContext context,
   ) {
     return BlocListener<AlarmTimerBloc, AlarmTimerState>(
@@ -73,8 +73,8 @@ class AlarmScreen extends StatelessWidget {
               context.go(
                 '/earlyLate',
                 extra: {
-                  'earlyLateTime': infoState.beforeOutTime,
-                  'isLate': infoState.isLate,
+                  'earlyLateTime': timerState.beforeOutTime,
+                  'isLate': timerState.isLate,
                 },
               );
             }

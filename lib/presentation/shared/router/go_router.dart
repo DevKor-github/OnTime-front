@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/alarm/screeens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screeens/early_late_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
@@ -17,6 +16,7 @@ import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaf
 import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dart';
 
 GoRouter goRouterConfig(AppBloc bloc) {
+  dynamic extra;
   return GoRouter(
     refreshListenable: StreamToListenable([bloc.stream]),
     redirect: (BuildContext context, GoRouterState state) {
@@ -41,6 +41,12 @@ GoRouter goRouterConfig(AppBloc bloc) {
           } else {
             return '/onboarding/start';
           }
+        case AppStatus.preparationStarted:
+          extra = bloc.state.schedule!;
+          //bloc.add(AppPreparationStarted());
+          return '/alarmScreen';
+        case AppStatus.preparationOnGoing:
+          return null;
       }
     },
     initialLocation: '/home',
@@ -86,8 +92,8 @@ GoRouter goRouterConfig(AppBloc bloc) {
       GoRoute(
         path: '/alarmScreen',
         builder: (context, state) {
-          final schedule = state.extra as ScheduleEntity;
-          return AlarmScreen(schedule: schedule);
+          // final schedule = state.extra as ScheduleEntity;
+          return AlarmScreen(schedule: extra);
         },
       ),
 

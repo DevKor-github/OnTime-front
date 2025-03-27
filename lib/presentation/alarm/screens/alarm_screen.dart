@@ -62,7 +62,7 @@ class AlarmScreen extends StatelessWidget {
   }
 
   Widget _buildAlarmScreen(
-    AlarmScreenPreparationLoadSuccess timerState,
+    AlarmScreenPreparationLoadSuccess infoState,
     BuildContext context,
   ) {
     return BlocListener<AlarmTimerBloc, AlarmTimerState>(

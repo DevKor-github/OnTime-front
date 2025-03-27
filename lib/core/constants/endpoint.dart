@@ -4,8 +4,8 @@ class Endpoint {
   //user
   static const _signIn = '/login';
   static const _signUp = '/sign-up';
-  static const _signInWithGoogle = '/oauth2/google/registerOrLogin';
-  static const _getUser = '/user/info';
+  static const _signInWithGoogle = '/oauth2/google/login';
+  static const _getUser = '/users/info';
 
   static get signIn => _signIn;
   static get signUp => _signUp;
@@ -13,22 +13,17 @@ class Endpoint {
   static get getUser => _getUser;
 
   // schedule
-  static const _getScheduleById = '/schedule/show/id?scheduleId=';
-  static const _getSchedulesByDate = '/schedule/show';
+  static const _schedules = '/schedules';
 
-  static const _createSchedule = '/schedule/add';
-  static const _updateSchedule = '/schedule/modify';
-  static const _deleteSchedule = '/schedule/delete';
+  static getScheduleById(String scheduleId) => '$_schedules/$scheduleId';
+  static get getSchedulesByDate => _schedules;
 
-  static getSchedule(String scheduleId) => '$_getScheduleById$scheduleId';
-  static get getSchedulesByDate => _getSchedulesByDate;
-
-  static get createSchedule => _createSchedule;
-  static get updateSchedule => _updateSchedule;
-  static deleteSchedule(String scheduleId) => '$_deleteSchedule/$scheduleId';
+  static get createSchedule => _schedules;
+  static get updateSchedule => _schedules;
+  static deleteScheduleById(String scheduleId) => '$_schedules/$scheduleId';
 
   // preparation
-  static const _createDefaultPreparation = '/user/onboarding'; // 사용자 준비과정 첫 세팅
+  static const _createDefaultPreparation = '/users/onboarding'; // 사용자 준비과정 첫 세팅
   static const _createCustomPreparation =
       '/preparationschedule/create'; // 스케줄별 준비과정 생성
 

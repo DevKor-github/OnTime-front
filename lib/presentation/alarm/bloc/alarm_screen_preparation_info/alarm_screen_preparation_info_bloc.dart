@@ -15,11 +15,11 @@ part 'alarm_screen_preparation_info_state.dart';
 @injectable
 class AlarmScreenPreparationInfoBloc extends Bloc<
     AlarmScreenPreparationInfoEvent, AlarmScreenPreparationInfoState> {
-  final GetPreparationByScheduleIdUseCase getPreparationByScheduleIdUseCase;
+  final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
 
   AlarmScreenPreparationInfoBloc(
-      {required this.getPreparationByScheduleIdUseCase})
-      : super(AlarmScreenPreparationInitial()) {
+    this._getPreparationByScheduleIdUseCase,
+  ) : super(AlarmScreenPreparationInitial()) {
     on<AlarmScreenPreparationSubscriptionRequested>(_onSubscriptionRequested);
   }
 
@@ -30,25 +30,12 @@ class AlarmScreenPreparationInfoBloc extends Bloc<
 
     try {
       final PreparationEntity prepEntity =
-          await getPreparationByScheduleIdUseCase(event.scheduleId);
+          await _getPreparationByScheduleIdUseCase(event.scheduleId);
 
       final List<PreparationStepEntity> steps = prepEntity.preparationStepList;
-      final int totalPreparationTime =
-          steps.fold(0, (sum, step) => sum + step.preparationTime.inSeconds);
-
-      final int totalRemainingTime = totalPreparationTime;
-      final List<bool> preparationCompleted =
-          List<bool>.filled(steps.length, false);
-
-      final int preparationRemainingTime =
-          steps.isNotEmpty ? steps[0].preparationTime.inSeconds : 0;
 
       emit(AlarmScreenPreparationLoadSuccess(
         preparationSteps: steps,
-        currentIndex: 0,
-        preparationRemainingTime: preparationRemainingTime,
-        totalPreparationRemainingTime: totalRemainingTime,
-        preparationCompleted: preparationCompleted,
         schedule: event.schedule,
       ));
     } catch (e) {

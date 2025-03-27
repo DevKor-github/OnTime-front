@@ -70,7 +70,7 @@ class ScheduleStart extends StatelessWidget {
             child: Button(
               text: '준비 시작',
               onPressed: () async {
-                GoRouter.of(context).go('/alarmScreen', extra: schedule);
+                context.go('/alarmScreen', extra: schedule);
               },
             ),
           ),

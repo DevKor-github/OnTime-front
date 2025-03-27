@@ -8,7 +8,7 @@ class LoadSchedulesForWeekUseCase {
 
   Future<void> call(DateTime date) async {
     final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
-    final endOfWeek = startOfWeek.add(Duration(days: 6));
+    final endOfWeek = startOfWeek.add(Duration(days: 7));
 
     await _scheduleRepository.getSchedulesByDate(startOfWeek, endOfWeek);
   }

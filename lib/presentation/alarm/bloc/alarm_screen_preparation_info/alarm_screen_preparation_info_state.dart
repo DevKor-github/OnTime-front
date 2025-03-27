@@ -33,7 +33,7 @@ class AlarmScreenPreparationLoadSuccess
     return remainingDuration.inSeconds;
   }
 
-  /// 지각 여부 (Getter)
+  /// 지각 여부
   bool get isLate => beforeOutTime < 0;
 
   AlarmScreenPreparationLoadSuccess copyWith({

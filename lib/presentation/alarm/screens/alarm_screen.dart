@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 
 import 'package:on_time_front/presentation/alarm/bloc/alarm_screen_preparation_info/alarm_screen_preparation_info_bloc.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
@@ -19,11 +19,9 @@ class AlarmScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AlarmScreenPreparationInfoBloc>(
-      create: (context) => AlarmScreenPreparationInfoBloc(
-        getPreparationByScheduleIdUseCase:
-            context.read<GetPreparationByScheduleIdUseCase>(),
-      )..add(
+    return BlocProvider(
+      create: (context) => getIt.get<AlarmScreenPreparationInfoBloc>()
+        ..add(
           AlarmScreenPreparationSubscriptionRequested(
             scheduleId: schedule.id,
             schedule: schedule,
@@ -47,6 +45,8 @@ class AlarmScreen extends StatelessWidget {
             return BlocProvider<AlarmTimerBloc>(
               create: (context) => AlarmTimerBloc(
                 preparationSteps: infoState.preparationSteps,
+                beforeOutTime: infoState.beforeOutTime,
+                isLate: infoState.isLate,
               )..add(
                   AlarmTimerStepStarted(
                     infoState.preparationSteps.first.preparationTime.inSeconds,
@@ -68,20 +68,60 @@ class AlarmScreen extends StatelessWidget {
     return BlocListener<AlarmTimerBloc, AlarmTimerState>(
       listener: (context, timerState) {
         if (timerState is AlarmTimerPreparationCompletion) {
-          GoRouter.of(context).go('/earlyLate', extra: schedule);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              context.go(
+                '/earlyLate',
+                extra: {
+                  'earlyLateTime': infoState.beforeOutTime,
+                  'isLate': infoState.isLate,
+                },
+              );
+            }
+          });
         }
       },
       child: Scaffold(
         backgroundColor: const Color(0xff5C79FB),
-        body: Column(
-          children: [
-            AlarmScreenTopSection(
-              isLate: infoState.isLate,
-              beforeOutTime: infoState.beforeOutTime,
-            ),
-            const SizedBox(height: 110),
-            const Expanded(child: AlarmScreenBottomSection()),
-          ],
+        body: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
+          builder: (context, timerState) {
+            final isLate = timerState.isLate;
+            final beforeOutTime = timerState.beforeOutTime;
+
+            final preparationName = timerState
+                .preparationSteps[timerState.currentStepIndex].preparationName;
+            final preparationRemainingTime =
+                timerState.preparationRemainingTime;
+
+            final progress = timerState.progress;
+
+            return Column(
+              children: [
+                AlarmScreenTopSection(
+                  isLate: isLate,
+                  beforeOutTime: beforeOutTime,
+                  preparationName: preparationName,
+                  preparationRemainingTime: preparationRemainingTime,
+                  progress: progress,
+                ),
+                const SizedBox(height: 110),
+                Expanded(
+                  child: AlarmScreenBottomSection(
+                    preparationSteps: timerState.preparationSteps,
+                    currentStepIndex: timerState.currentStepIndex,
+                    stepElapsedTimes: timerState.stepElapsedTimes,
+                    preparationStepStates: timerState.preparationStepStates,
+                    onSkip: () => context
+                        .read<AlarmTimerBloc>()
+                        .add(const AlarmTimerStepSkipped()),
+                    onEndPreparation: () => context
+                        .read<AlarmTimerBloc>()
+                        .add(const AlarmTimerStepFinalized()),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

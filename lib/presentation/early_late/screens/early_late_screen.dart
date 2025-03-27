@@ -8,8 +8,13 @@ import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class EarlyLateScreen extends StatelessWidget {
   final int earlyLateTime;
+  final bool isLate;
 
-  const EarlyLateScreen({super.key, required this.earlyLateTime});
+  const EarlyLateScreen({
+    super.key,
+    required this.earlyLateTime,
+    required this.isLate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +36,7 @@ class EarlyLateScreen extends StatelessWidget {
                         BlocBuilder<EarlyLateScreenBloc, EarlyLateScreenState>(
                           builder: (context, state) {
                             if (state is EarlyLateScreenLoadSuccess) {
-                              final textColor = state.isLate
+                              final textColor = isLate
                                   ? const Color(0xffFF6953)
                                   : const Color(0xff5C79FB);
 
@@ -47,8 +52,7 @@ class EarlyLateScreen extends StatelessWidget {
                                       ),
                                     ),
                                     TextSpan(
-                                      text:
-                                          state.isLate ? ' 지각했어요' : ' 일찍 준비했어요',
+                                      text: isLate ? ' 지각했어요' : ' 일찍 준비했어요',
                                       style: const TextStyle(
                                         fontSize: 34,
                                         fontWeight: FontWeight.bold,

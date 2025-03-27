@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
+import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/early_late/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
@@ -81,8 +82,13 @@ GoRouter goRouterConfig(AppBloc bloc) {
           path: '/preparationEdit',
           builder: (context, state) => PreparationEditForm(
               preparationEntity: state.extra as PreparationEntity)),
-
-      // alarm
+      GoRoute(
+        path: '/scheduleStart',
+        builder: (context, state) {
+          final schedule = state.extra as ScheduleEntity;
+          return ScheduleStart(schedule: schedule);
+        },
+      ),
       GoRoute(
         path: '/alarmScreen',
         builder: (context, state) {
@@ -90,12 +96,17 @@ GoRouter goRouterConfig(AppBloc bloc) {
           return AlarmScreen(schedule: schedule);
         },
       ),
-
       GoRoute(
         path: '/earlyLate',
         builder: (context, state) {
-          final earlyLateTime = state.extra as int;
-          return EarlyLateScreen(earlyLateTime: earlyLateTime);
+          final extra = state.extra as Map<String, dynamic>;
+          final earlyLateTime = extra['earlyLateTime'] as int;
+          final isLate = extra['isLate'] as bool;
+
+          return EarlyLateScreen(
+            earlyLateTime: earlyLateTime,
+            isLate: isLate,
+          );
         },
       ),
     ],

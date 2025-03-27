@@ -10,6 +10,8 @@ sealed class AlarmTimerState extends Equatable {
   final int totalPreparationTime;
 
   final double progress;
+  final int beforeOutTime;
+  final bool isLate;
 
   const AlarmTimerState({
     required this.preparationSteps,
@@ -20,6 +22,8 @@ sealed class AlarmTimerState extends Equatable {
     required this.totalRemainingTime,
     required this.totalPreparationTime,
     required this.progress,
+    required this.beforeOutTime,
+    required this.isLate,
   });
 
   @override
@@ -32,6 +36,8 @@ sealed class AlarmTimerState extends Equatable {
         totalRemainingTime,
         totalPreparationTime,
         progress,
+        beforeOutTime,
+        isLate,
       ];
 
   AlarmTimerState copyWith({
@@ -43,6 +49,8 @@ sealed class AlarmTimerState extends Equatable {
     int? totalRemainingTime,
     int? totalPreparationTime,
     double? progress,
+    int beforeOutTime,
+    bool isLate,
   });
 }
 
@@ -57,6 +65,8 @@ class AlarmTimerInitial extends AlarmTimerState {
     required super.totalRemainingTime,
     required super.totalPreparationTime,
     required super.progress,
+    required super.beforeOutTime,
+    required super.isLate,
   });
 
   @override
@@ -69,6 +79,8 @@ class AlarmTimerInitial extends AlarmTimerState {
     int? totalRemainingTime,
     int? totalPreparationTime,
     double? progress,
+    int? beforeOutTime,
+    bool? isLate,
   }) {
     return AlarmTimerInitial(
       preparationSteps: preparationSteps ?? this.preparationSteps,
@@ -81,6 +93,8 @@ class AlarmTimerInitial extends AlarmTimerState {
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
       progress: progress ?? this.progress,
+      beforeOutTime: beforeOutTime ?? this.beforeOutTime,
+      isLate: isLate ?? this.isLate,
     );
   }
 }
@@ -96,6 +110,8 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
     required super.totalRemainingTime,
     required super.totalPreparationTime,
     required super.progress,
+    required super.beforeOutTime,
+    required super.isLate,
   });
 
   @override
@@ -108,6 +124,8 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
     int? totalRemainingTime,
     int? totalPreparationTime,
     double? progress,
+    int? beforeOutTime,
+    bool? isLate,
   }) {
     return AlarmTimerRunInProgress(
       preparationSteps: preparationSteps ?? this.preparationSteps,
@@ -120,6 +138,8 @@ class AlarmTimerRunInProgress extends AlarmTimerState {
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
       progress: progress ?? this.progress,
+      beforeOutTime: beforeOutTime ?? this.beforeOutTime,
+      isLate: isLate ?? this.isLate,
     );
   }
 }
@@ -138,6 +158,8 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
     required super.totalRemainingTime,
     required super.totalPreparationTime,
     required super.progress,
+    required super.beforeOutTime,
+    required super.isLate,
   });
 
   @override
@@ -150,6 +172,8 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
     int? totalRemainingTime,
     int? totalPreparationTime,
     double? progress,
+    int? beforeOutTime,
+    bool? isLate,
   }) {
     return AlarmTimerPreparationStepCompletion(
       completedStepIndex: completedStepIndex,
@@ -163,6 +187,8 @@ class AlarmTimerPreparationStepCompletion extends AlarmTimerState {
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
       progress: progress ?? this.progress,
+      beforeOutTime: beforeOutTime ?? this.beforeOutTime,
+      isLate: isLate ?? this.isLate,
     );
   }
 }
@@ -178,6 +204,8 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
     required super.totalRemainingTime,
     required super.totalPreparationTime,
     required super.progress,
+    required super.beforeOutTime,
+    required super.isLate,
   });
 
   @override
@@ -190,6 +218,8 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
     int? totalRemainingTime,
     int? totalPreparationTime,
     double? progress,
+    int? beforeOutTime,
+    bool? isLate,
   }) {
     return AlarmTimerPreparationCompletion(
       preparationSteps: preparationSteps ?? this.preparationSteps,
@@ -202,6 +232,8 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
       totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
       progress: progress ?? this.progress,
+      beforeOutTime: beforeOutTime ?? this.beforeOutTime,
+      isLate: isLate ?? this.isLate,
     );
   }
 }

@@ -11,3 +11,17 @@ final class AppUserSubscriptionRequested extends AppEvent {
 final class AppSignOutPressed extends AppEvent {
   const AppSignOutPressed();
 }
+
+final class AppUpcomingScheduleSubscriptionRequested extends AppEvent {
+  const AppUpcomingScheduleSubscriptionRequested();
+}
+
+final class AppUpcomingScheduleReceived extends AppEvent {
+  final ScheduleWithPreparationEntity? nearestUpcomingSchedule;
+
+  const AppUpcomingScheduleReceived(this.nearestUpcomingSchedule);
+}
+
+final class AppPreparationStarted extends AppEvent {
+  const AppPreparationStarted();
+}

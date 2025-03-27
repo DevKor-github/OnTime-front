@@ -124,9 +124,9 @@ class AppBloc extends Bloc<AppEvent, AppState> {
 
   bool _isPreparationOnGoing(
       ScheduleWithPreparationEntity nearestUpcomingSchedule) {
-    return nearestUpcomingSchedule.scheduleTime.isAfter(
-            DateTime.now().subtract(nearestUpcomingSchedule.totalDuration)) &&
-        nearestUpcomingSchedule.scheduleTime.isBefore(DateTime.now());
+    return nearestUpcomingSchedule.preparationStartTime
+            .isBefore(DateTime.now()) &&
+        nearestUpcomingSchedule.scheduleTime.isAfter(DateTime.now());
   }
 
   FutureOr<void> _appPreparationStarted(

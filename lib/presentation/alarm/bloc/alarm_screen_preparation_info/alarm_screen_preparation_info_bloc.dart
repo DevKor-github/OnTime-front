@@ -12,7 +12,7 @@ import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_us
 part 'alarm_screen_preparation_info_event.dart';
 part 'alarm_screen_preparation_info_state.dart';
 
-@injectable
+@Injectable()
 class AlarmScreenPreparationInfoBloc extends Bloc<
     AlarmScreenPreparationInfoEvent, AlarmScreenPreparationInfoState> {
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;

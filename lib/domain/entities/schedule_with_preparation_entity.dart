@@ -17,7 +17,12 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     required this.preparation,
   });
 
+  ///Returns the total duration of the schedule including the moving time and the preparation time.
   Duration get totalDuration => moveTime + preparation.totalDuration;
+
+  ///Returns the time when the preparation starts.
+  DateTime get preparationStartTime =>
+      scheduleTime.subtract(preparation.totalDuration);
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(
       ScheduleEntity schedule, PreparationEntity preparation) {

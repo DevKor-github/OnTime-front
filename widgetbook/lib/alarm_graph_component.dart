@@ -11,12 +11,16 @@ Widget alarmGraphComponentUseCase(BuildContext context) {
   final progress = context.knobs.double.slider(
     label: 'Progress',
     initialValue: 0.5,
-    max: 1,
     min: 0,
+    max: 1,
   );
 
-  return CustomPaint(
-    size: const Size(230, 115),
-    painter: AlarmGraphComponent(progress: progress),
+  return Container(
+    color: const Color(0xff5C79FB),
+    alignment: Alignment.center,
+    child: CustomPaint(
+      size: const Size(230, 115),
+      painter: AlarmGraphComponent(progress: progress),
+    ),
   );
 }

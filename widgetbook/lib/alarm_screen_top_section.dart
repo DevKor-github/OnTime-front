@@ -9,12 +9,22 @@ import 'package:on_time_front/presentation/alarm/components/alarm_screen_top_sec
 )
 Widget alarmScreenTopSectionUseCase(BuildContext context) {
   final isLate = context.knobs.boolean(label: 'Is Late', initialValue: false);
-  final beforeOutTime = context.knobs.int
-      .input(label: 'Before Out Time (sec)', initialValue: 180);
-  final preparationName =
-      context.knobs.string(label: 'Preparation Name', initialValue: '세수하기');
-  final remainingTime =
-      context.knobs.int.input(label: 'Remaining Time (sec)', initialValue: 120);
+  final beforeOutTime = context.knobs.int.slider(
+    label: 'Before Out Time (sec)',
+    initialValue: 180,
+    min: 0,
+    max: 600,
+  );
+  final preparationName = context.knobs.string(
+    label: 'Preparation Name',
+    initialValue: '세수하기',
+  );
+  final remainingTime = context.knobs.int.slider(
+    label: 'Remaining Time (sec)',
+    initialValue: 120,
+    min: 0,
+    max: 600,
+  );
   final progress = context.knobs.double.slider(
     label: 'Progress',
     initialValue: 0.5,

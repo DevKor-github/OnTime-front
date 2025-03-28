@@ -3,6 +3,7 @@ part of 'app_bloc.dart';
 enum AppStatus {
   authenticated,
   unauthenticated,
+  preparationStarted,
   onboardingNotCompleted,
 }
 
@@ -19,15 +20,22 @@ class AppState extends Equatable {
         );
 
   const AppState._(
-      {required this.status, this.user = const UserEntity.empty()});
+      {required this.status,
+      this.user = const UserEntity.empty(),
+      this.schedule});
 
   final AppStatus status;
   final UserEntity user;
+  final ScheduleWithPreparationEntity? schedule;
 
-  AppState copyWith({AppStatus? status, UserEntity? user}) {
+  AppState copyWith(
+      {AppStatus? status,
+      UserEntity? user,
+      ScheduleWithPreparationEntity? schedule}) {
     return AppState._(
       status: status ?? this.status,
       user: user ?? this.user,
+      schedule: schedule ?? this.schedule,
     );
   }
 

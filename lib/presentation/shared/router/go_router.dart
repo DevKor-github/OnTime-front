@@ -1,8 +1,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
+import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/early_late/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
@@ -16,9 +19,12 @@ import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit
 import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
 import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
+
 GoRouter goRouterConfig(AppBloc bloc) {
   return GoRouter(
     refreshListenable: StreamToListenable([bloc.stream]),
+    navigatorKey: getIt.get<NavigationService>().navigatorKey,
     redirect: (BuildContext context, GoRouterState state) {
       final status = bloc.state.status;
       final bool onSignInScreen = state.fullPath == '/signIn';
@@ -41,6 +47,8 @@ GoRouter goRouterConfig(AppBloc bloc) {
           } else {
             return '/onboarding/start';
           }
+        case AppStatus.preparationStarted:
+          return null;
       }
     },
     initialLocation: '/home',
@@ -81,8 +89,13 @@ GoRouter goRouterConfig(AppBloc bloc) {
           path: '/preparationEdit',
           builder: (context, state) => PreparationEditForm(
               preparationEntity: state.extra as PreparationEntity)),
-
-      // alarm
+      GoRoute(
+        path: '/scheduleStart',
+        name: 'scheduleStart',
+        builder: (context, state) {
+          return ScheduleStart(schedule: state.extra as ScheduleEntity);
+        },
+      ),
       GoRoute(
         path: '/alarmScreen',
         builder: (context, state) {
@@ -90,12 +103,17 @@ GoRouter goRouterConfig(AppBloc bloc) {
           return AlarmScreen(schedule: schedule);
         },
       ),
-
       GoRoute(
         path: '/earlyLate',
         builder: (context, state) {
-          final earlyLateTime = state.extra as int;
-          return EarlyLateScreen(earlyLateTime: earlyLateTime);
+          final extra = state.extra as Map<String, dynamic>;
+          final earlyLateTime = extra['earlyLateTime'] as int;
+          final isLate = extra['isLate'] as bool;
+
+          return EarlyLateScreen(
+            earlyLateTime: earlyLateTime,
+            isLate: isLate,
+          );
         },
       ),
     ],

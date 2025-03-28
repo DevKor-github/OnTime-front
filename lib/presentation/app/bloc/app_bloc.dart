@@ -73,6 +73,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _signOutUseCase();
   }
 
+  /// This method is called when the user is authenticated and the app is
+  /// waiting for the nearest upcoming schedule.
   FutureOr<void> _appUpcomingScheduleSubscriptionRequested(
       AppUpcomingScheduleSubscriptionRequested event,
       Emitter<AppState> emit) async {
@@ -80,14 +82,22 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         .listen((schedule) => add(AppUpcomingScheduleReceived(schedule)));
   }
 
+  /// This method is called when the nearest upcoming schedule is received.
   void _appUpcomingScheduleReceived(
       AppUpcomingScheduleReceived event, Emitter<AppState> emit) {
     final nearestUpcomingSchedule = event.nearestUpcomingSchedule;
 
+    // If the app is in preparation started state, we only need to update the schedule.
     if (state.status == AppStatus.preparationStarted) {
+      emit(
+        state.copyWith(
+          schedule: nearestUpcomingSchedule,
+        ),
+      );
       return;
     }
 
+    // If there is no upcoming schedule or the schedule is in the past, the app
     if (nearestUpcomingSchedule == null ||
         nearestUpcomingSchedule.scheduleTime.isBefore(DateTime.now())) {
       emit(
@@ -97,6 +107,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       );
       return;
     }
+
+    // If the preparation is ongoing, we need to update the state
     if (_isPreparationOnGoing(nearestUpcomingSchedule)) {
       emit(
         state.copyWith(
@@ -107,6 +119,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       return;
     }
 
+    // If the preparation is not ongoing, we need to set a timer for the preparation start time
     final durationUntilSchedule =
         nearestUpcomingSchedule.preparationStartTime.difference(DateTime.now());
     assert(!durationUntilSchedule.isNegative);

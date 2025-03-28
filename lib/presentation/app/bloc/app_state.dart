@@ -4,7 +4,6 @@ enum AppStatus {
   authenticated,
   unauthenticated,
   preparationStarted,
-  preparationOnGoing,
   onboardingNotCompleted,
 }
 

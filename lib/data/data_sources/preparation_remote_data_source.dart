@@ -25,9 +25,6 @@ abstract interface class PreparationRemoteDataSource {
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
   Future<PreparationEntity> getDefualtPreparation();
-
-  Future<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId);
 }
 
 @Injectable(as: PreparationRemoteDataSource)
@@ -118,27 +115,6 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
   }
 
   @override
-  Future<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId) async {
-    try {
-      final result = await dio.get(
-        Endpoint.getPreparationStepById,
-        queryParameters: {"preparationStepId": preparationStepId},
-      );
-
-      if (result.statusCode == 200) {
-        final responseModel =
-            GetPreparationStepResponseModel.fromJson(result.data["data"]);
-        return responseModel.toEntity();
-      } else {
-        throw Exception('Error fetching preparation step by ID');
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
   Future<void> updateDefaultPreparation(
       PreparationEntity preparationEntity) async {
     try {
@@ -161,14 +137,14 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
   @override
   Future<void> updatePreparationByScheduleId(
-      PreparationEntity preparationEntity, String preparationId) async {
+      PreparationEntity preparationEntity, String scheduleId) async {
     try {
       final updateModel =
           PreparationScheduleModifyRequestModelListExtension.fromEntityList(
               preparationEntity.preparationStepList);
 
       final result = await dio.post(
-        Endpoint.updatePreparationByScheduleId(preparationId),
+        Endpoint.updatePreparationByScheduleId(scheduleId),
         data: updateModel.map((model) => model.toJson()).toList(),
       );
 

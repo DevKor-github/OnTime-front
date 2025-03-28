@@ -48,7 +48,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     try {
       UpdateScheduleRequestModel updateScheduleModel =
           UpdateScheduleRequestModel.fromEntity(schedule);
-      final result = await dio.put(Endpoint.updateSchedule,
+      final result = await dio.put(Endpoint.updateSchedule(schedule.id),
           data: updateScheduleModel.toJson());
       if (result.statusCode == 200) {
         return;
@@ -63,7 +63,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   @override
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
     try {
-      final result = await dio.delete(Endpoint.deleteSchedule(schedule.id));
+      final result = await dio.delete(Endpoint.deleteScheduleById(schedule.id));
       if (result.statusCode == 200) {
         return;
       } else {
@@ -77,7 +77,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   @override
   Future<ScheduleEntity> getScheduleById(String id) async {
     try {
-      final result = await dio.get(Endpoint.getSchedule(id));
+      final result = await dio.get(Endpoint.getScheduleById(id));
       if (result.statusCode == 200) {
         final GetScheduleResponseModel schedule =
             GetScheduleResponseModel.fromJson(result.data["data"]);

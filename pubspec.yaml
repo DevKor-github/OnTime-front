@@ -78,6 +78,8 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   google_sign_in_web: ^0.12.4+4
   google_sign_in_platform_interface: ^2.5.0
+  widgetbook: ^3.11.0
+  widgetbook_annotation: ^3.3.0
 
 
 

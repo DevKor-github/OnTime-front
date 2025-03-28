@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
@@ -16,7 +17,7 @@ part 'app_state.dart';
 @Injectable()
 class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase,
-      this._getNearestUpcomingScheduleUseCase)
+      this._getNearestUpcomingScheduleUseCase, this._navigationService)
       : super(AppState(user: const UserEntity.empty())) {
     on<AppUserSubscriptionRequested>(_appUserSubscriptionRequested);
     on<AppSignOutPressed>(_appLogoutPressed);
@@ -35,6 +36,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final LoadUserUseCase _loadUserUseCase;
   final SignOutUseCase _signOutUseCase;
   final GetNearestUpcomingScheduleUseCase _getNearestUpcomingScheduleUseCase;
+  final NavigationService _navigationService;
   Timer? _timer;
 
   Future<void> _appUserSubscriptionRequested(
@@ -82,44 +84,41 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       AppUpcomingScheduleReceived event, Emitter<AppState> emit) {
     final nearestUpcomingSchedule = event.nearestUpcomingSchedule;
 
+    if (state.status == AppStatus.preparationStarted) {
+      return;
+    }
+
     if (nearestUpcomingSchedule == null ||
-        nearestUpcomingSchedule.scheduleTime
-            .add(nearestUpcomingSchedule.totalDuration)
-            .isBefore(DateTime.now())) {
+        nearestUpcomingSchedule.scheduleTime.isBefore(DateTime.now())) {
       emit(
         state.copyWith(
           status: AppStatus.authenticated,
         ),
       );
-    } else {
-      if (_isPreparationOnGoing(nearestUpcomingSchedule)) {
-        emit(
-          state.copyWith(
-            status: AppStatus.preparationStarted,
-            schedule: nearestUpcomingSchedule,
-          ),
-        );
-      } else {
-        final durationUntilSchedule = nearestUpcomingSchedule.scheduleTime
-            .subtract(nearestUpcomingSchedule.totalDuration)
-            .difference(DateTime.now());
-        assert(!durationUntilSchedule.isNegative);
-        _timer?.cancel();
-        _timer = Timer(durationUntilSchedule, () {
-          emit(
-            state.copyWith(
-              status: AppStatus.preparationStarted,
-              schedule: nearestUpcomingSchedule,
-            ),
-          );
-        });
-        emit(
-          state.copyWith(
-            status: AppStatus.authenticated,
-          ),
-        );
-      }
+      return;
     }
+    if (_isPreparationOnGoing(nearestUpcomingSchedule)) {
+      emit(
+        state.copyWith(
+          status: AppStatus.preparationStarted,
+          schedule: nearestUpcomingSchedule,
+        ),
+      );
+      return;
+    }
+
+    final durationUntilSchedule =
+        nearestUpcomingSchedule.preparationStartTime.difference(DateTime.now());
+    assert(!durationUntilSchedule.isNegative);
+    _timer?.cancel();
+    _timer = Timer(durationUntilSchedule, () {
+      add(AppPreparationStarted(nearestUpcomingSchedule));
+    });
+    emit(
+      state.copyWith(
+        status: AppStatus.authenticated,
+      ),
+    );
   }
 
   bool _isPreparationOnGoing(
@@ -129,11 +128,13 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         nearestUpcomingSchedule.scheduleTime.isAfter(DateTime.now());
   }
 
-  FutureOr<void> _appPreparationStarted(
-      AppPreparationStarted event, Emitter<AppState> emit) {
+  void _appPreparationStarted(
+      AppPreparationStarted event, Emitter<AppState> emit) async {
+    _navigationService.push('/scheduleStart', extra: event.schedule);
     emit(
       state.copyWith(
-        status: AppStatus.preparationOnGoing,
+        status: AppStatus.preparationStarted,
+        schedule: event.schedule,
       ),
     );
   }

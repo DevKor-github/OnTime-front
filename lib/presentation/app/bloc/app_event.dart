@@ -23,5 +23,7 @@ final class AppUpcomingScheduleReceived extends AppEvent {
 }
 
 final class AppPreparationStarted extends AppEvent {
-  const AppPreparationStarted();
+  final ScheduleWithPreparationEntity schedule;
+
+  const AppPreparationStarted(this.schedule);
 }

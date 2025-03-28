@@ -8,6 +8,13 @@ class PreparationEntity extends Equatable {
     required this.preparationStepList,
   });
 
+  Duration get totalDuration {
+    return preparationStepList.fold(
+      Duration.zero,
+      (previousValue, element) => previousValue + element.preparationTime,
+    );
+  }
+
   @override
   String toString() {
     return 'PreparationEntity(preparationStepList: ${preparationStepList.toString()})';

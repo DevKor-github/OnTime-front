@@ -13,7 +13,7 @@ final class WeeklySchedulesSubscriptionRequested extends WeeklySchedulesEvent {
   const WeeklySchedulesSubscriptionRequested({required this.date});
 
   DateTime get startDate => date.subtract(Duration(days: date.weekday - 1));
-  DateTime get endDate => startDate.add(Duration(days: 6));
+  DateTime get endDate => startDate.add(Duration(days: 7));
 
   @override
   List<Object> get props => [startDate, endDate];

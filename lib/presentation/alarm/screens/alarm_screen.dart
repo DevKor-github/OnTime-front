@@ -73,8 +73,8 @@ class AlarmScreen extends StatelessWidget {
               context.go(
                 '/earlyLate',
                 extra: {
-                  'earlyLateTime': infoState.beforeOutTime,
-                  'isLate': infoState.isLate,
+                  'earlyLateTime': timerState.beforeOutTime,
+                  'isLate': timerState.isLate,
                 },
               );
             }

@@ -137,14 +137,14 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
   @override
   Future<void> updatePreparationByScheduleId(
-      PreparationEntity preparationEntity, String preparationId) async {
+      PreparationEntity preparationEntity, String scheduleId) async {
     try {
       final updateModel =
           PreparationScheduleModifyRequestModelListExtension.fromEntityList(
               preparationEntity.preparationStepList);
 
       final result = await dio.post(
-        Endpoint.updatePreparationByScheduleId(preparationId),
+        Endpoint.updatePreparationByScheduleId(scheduleId),
         data: updateModel.map((model) => model.toJson()).toList(),
       );
 

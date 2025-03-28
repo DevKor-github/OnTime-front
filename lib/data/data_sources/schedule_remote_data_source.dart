@@ -48,7 +48,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     try {
       UpdateScheduleRequestModel updateScheduleModel =
           UpdateScheduleRequestModel.fromEntity(schedule);
-      final result = await dio.put(Endpoint.updateSchedule,
+      final result = await dio.put(Endpoint.updateSchedule(schedule.id),
           data: updateScheduleModel.toJson());
       if (result.statusCode == 200) {
         return;

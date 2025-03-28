@@ -18,11 +18,11 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   });
 
   ///Returns the total duration of the schedule including the moving time and the preparation time.
-  Duration get totalDuration => moveTime + preparation.totalDuration;
+  Duration get totalDuration =>
+      moveTime + preparation.totalDuration + scheduleSpareTime!;
 
   ///Returns the time when the preparation starts.
-  DateTime get preparationStartTime =>
-      scheduleTime.subtract(preparation.totalDuration);
+  DateTime get preparationStartTime => scheduleTime.subtract(totalDuration);
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(
       ScheduleEntity schedule, PreparationEntity preparation) {

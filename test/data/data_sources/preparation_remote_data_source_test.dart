@@ -37,9 +37,6 @@ void main() {
     preparationStepList: [preparationStep1, preparationStep2],
   );
 
-  final tUpdateRequestModel =
-      PreparationUserModifyRequestModel.fromEntity(preparationStep1);
-
   final tCreateDefualtPreparationRequestModel =
       CreateDefaultPreparationRequestModel.fromEntity(
           preparationEntity: preparationEntity,
@@ -213,62 +210,6 @@ void main() {
 
       // assert
       expect(() => call(scheduleId), throwsException);
-    });
-  });
-
-  group('getPreparationStepById', () {
-    test('should return PreparationStepEntity when the response is successful',
-        () async {
-      // arrange
-      when(dio.get(
-        Endpoint.getPreparationStepById,
-        queryParameters: {"preparationStepId": preparationStep1.id},
-      )).thenAnswer(
-        (_) async => Response(
-          statusCode: 200,
-          data: {
-            "data": {
-              "preparationId": preparationStep1.id,
-              "preparationName": preparationStep1.preparationName,
-              "preparationTime": preparationStep1.preparationTime.inMinutes,
-              "nextPreparationId": preparationStep1.nextPreparationId,
-            }
-          },
-          requestOptions: RequestOptions(
-            path: Endpoint.getPreparationStepById,
-          ),
-        ),
-      );
-
-      // act
-      final result =
-          await remoteDataSource.getPreparationStepById(preparationStep1.id);
-
-      // assert
-      expect(result.id, preparationStep1.id);
-      expect(result.preparationName, preparationStep1.preparationName);
-    });
-
-    test('should throw an exception when the response code is not 200',
-        () async {
-      // arrange
-      when(dio.get(
-        Endpoint.getPreparationStepById,
-        queryParameters: {"preparationStepId": preparationStep1.id},
-      )).thenAnswer(
-        (_) async => Response(
-          statusCode: 404,
-          requestOptions: RequestOptions(
-            path: Endpoint.getPreparationStepById,
-          ),
-        ),
-      );
-
-      // act
-      final call = remoteDataSource.getPreparationStepById;
-
-      // assert
-      expect(() => call(preparationStep1.id), throwsException);
     });
   });
 

@@ -60,18 +60,6 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }
 
   @override
-  Future<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId) async {
-    try {
-      final remoteStep = await preparationRemoteDataSource
-          .getPreparationStepById(preparationStepId);
-      return remoteStep;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
   Future<PreparationEntity> getDefualtPreparation() async {
     try {
       final remotePreparation =

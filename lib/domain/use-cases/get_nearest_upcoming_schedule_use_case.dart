@@ -22,9 +22,8 @@ class GetNearestUpcomingScheduleUseCase {
 
     _loadSchedulesForWeekUseCase(now);
 
-    final upcomingScheduleStream = _getScheduleByDateUseCase(
-        now.subtract(const Duration(days: 1)),
-        now.add(const Duration(days: 2)));
+    final upcomingScheduleStream =
+        _getScheduleByDateUseCase(now, now.add(const Duration(days: 2)));
     await for (final upcomingSchedule in upcomingScheduleStream) {
       if (upcomingSchedule.isNotEmpty) {
         final preparation =

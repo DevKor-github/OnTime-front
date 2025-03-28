@@ -29,14 +29,18 @@ class Endpoint {
 
   static get createDefaultPreparation => _createDefaultPreparation;
 
-  static getCreateCustomPreparation(String scheduleId) =>
+  static _prepartionByScheduleId(String scheduleId) =>
       '$_schedules/$scheduleId/preparations';
+
+  static getCreateCustomPreparation(String scheduleId) =>
+      _prepartionByScheduleId(scheduleId);
 
   static getPreparationByScheduleId(String scheduleId) =>
-      '$_schedules/$scheduleId/preparation';
+      _prepartionByScheduleId(scheduleId);
 
   static updatePreparationByScheduleId(String scheduleId) =>
-      '$_schedules/$scheduleId/preparations';
+      _prepartionByScheduleId(scheduleId);
+
   static get getDefaultPreparation => _defaultPreparation;
 
   static get updateDefaultPreparation => _defaultPreparation;

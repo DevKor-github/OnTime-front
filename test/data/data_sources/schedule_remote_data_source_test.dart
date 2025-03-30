@@ -136,11 +136,12 @@ void main() {
     test('should perform a DELETE request on the /schedule/delete endpoint',
         () async {
       // arrange
-      when(dio.delete(Endpoint.deleteSchedule(scheduleEntityId))).thenAnswer(
+      when(dio.delete(Endpoint.deleteScheduleById(scheduleEntityId)))
+          .thenAnswer(
         (_) async => Response(
           statusCode: 200,
-          requestOptions:
-              RequestOptions(path: Endpoint.deleteSchedule(scheduleEntityId)),
+          requestOptions: RequestOptions(
+              path: Endpoint.deleteScheduleById(scheduleEntityId)),
         ),
       );
 
@@ -148,16 +149,18 @@ void main() {
       await scheduleRemoteDataSourceImpl.deleteSchedule(tScheduleEntity);
 
       // assert
-      verify(dio.delete(Endpoint.deleteSchedule(scheduleEntityId))).called(1);
+      verify(dio.delete(Endpoint.deleteScheduleById(scheduleEntityId)))
+          .called(1);
     });
 
     test('should throw an exception when the response code is not 204',
         () async {
-      when(dio.delete(Endpoint.deleteSchedule(scheduleEntityId))).thenAnswer(
+      when(dio.delete(Endpoint.deleteScheduleById(scheduleEntityId)))
+          .thenAnswer(
         (_) async => Response(
           statusCode: 400,
-          requestOptions:
-              RequestOptions(path: Endpoint.deleteSchedule(scheduleEntityId)),
+          requestOptions: RequestOptions(
+              path: Endpoint.deleteScheduleById(scheduleEntityId)),
         ),
       );
 

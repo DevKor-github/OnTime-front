@@ -82,6 +82,13 @@ Widget preparationStepListWidgetUseCase(BuildContext context) {
             : PreparationStateEnum.yet),
   );
 
+  final width = context.knobs.double.slider(
+    label: 'Width',
+    initialValue: 400,
+    min: 200,
+    max: 600,
+  );
+
   return Scaffold(
     backgroundColor: const Color.fromARGB(255, 243, 241, 241),
     body: BlocProvider(
@@ -94,6 +101,7 @@ Widget preparationStepListWidgetUseCase(BuildContext context) {
         builder: (context, state) {
           return Center(
             child: SizedBox(
+              width: width,
               height: 400,
               child: PreparationStepListWidget(
                 preparationSteps: preparationSteps,

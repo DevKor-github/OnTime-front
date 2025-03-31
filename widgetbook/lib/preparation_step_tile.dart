@@ -34,13 +34,20 @@ Widget preparationStepTileUseCase(BuildContext context) {
     initialValue: false,
   );
 
+  final width = context.knobs.double.slider(
+    label: 'Width',
+    initialValue: 400,
+    min: 200,
+    max: 600,
+  );
+
   return Scaffold(
     backgroundColor: const Color.fromARGB(255, 243, 241, 241),
     body: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Center(
         child: SizedBox(
-          width: 400,
+          width: width,
           height: 200,
           child: PreparationStepTile(
             stepIndex: index,

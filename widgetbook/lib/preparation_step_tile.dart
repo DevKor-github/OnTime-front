@@ -29,13 +29,22 @@ Widget preparationStepTileUseCase(BuildContext context) {
     initialOption: PreparationStateEnum.now,
   );
 
-  return PreparationStepTile(
-    stepIndex: index,
-    preparationName: '가방 챙기기',
-    preparationTime: '01:20',
-    isLastItem: false,
-    onSkip: () {},
-    stepElapsedTime: elapsed,
-    preparationStepState: state,
+  return Scaffold(
+    backgroundColor: const Color.fromARGB(255, 243, 241, 241),
+    body: Center(
+      child: SizedBox(
+        width: 400,
+        height: 200,
+        child: PreparationStepTile(
+          stepIndex: index,
+          preparationName: '가방 챙기기',
+          preparationTime: '01:20',
+          isLastItem: false,
+          onSkip: () {},
+          stepElapsedTime: elapsed,
+          preparationStepState: state,
+        ),
+      ),
+    ),
   );
 }

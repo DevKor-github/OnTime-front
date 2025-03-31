@@ -15,12 +15,16 @@ Widget alarmGraphComponentUseCase(BuildContext context) {
     max: 1,
   );
 
-  return Container(
-    color: const Color(0xff5C79FB),
-    alignment: Alignment.center,
-    child: CustomPaint(
-      size: const Size(230, 115),
-      painter: AlarmGraphComponent(progress: progress),
+  return Scaffold(
+    backgroundColor: const Color(0xff5C79FB),
+    body: SizedBox(
+      height: 700,
+      child: Center(
+        child: CustomPaint(
+          size: const Size(230, 115),
+          painter: AlarmGraphComponent(progress: progress),
+        ),
+      ),
     ),
   );
 }

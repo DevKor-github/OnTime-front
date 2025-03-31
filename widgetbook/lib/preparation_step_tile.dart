@@ -29,20 +29,28 @@ Widget preparationStepTileUseCase(BuildContext context) {
     initialOption: PreparationStateEnum.now,
   );
 
+  final isLastItem = context.knobs.boolean(
+    label: 'Is Last Item',
+    initialValue: false,
+  );
+
   return Scaffold(
     backgroundColor: const Color.fromARGB(255, 243, 241, 241),
-    body: Center(
-      child: SizedBox(
-        width: 400,
-        height: 200,
-        child: PreparationStepTile(
-          stepIndex: index,
-          preparationName: '가방 챙기기',
-          preparationTime: '01:20',
-          isLastItem: false,
-          onSkip: () {},
-          stepElapsedTime: elapsed,
-          preparationStepState: state,
+    body: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Center(
+        child: SizedBox(
+          width: 400,
+          height: 200,
+          child: PreparationStepTile(
+            stepIndex: index,
+            preparationName: '가방 챙기기',
+            preparationTime: '01:20',
+            isLastItem: isLastItem,
+            onSkip: () {},
+            stepElapsedTime: elapsed,
+            preparationStepState: state,
+          ),
         ),
       ),
     ),

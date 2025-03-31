@@ -18,30 +18,35 @@ Widget preparationStepListWidgetUseCase(BuildContext context) {
     max: 1,
   );
 
-  return SizedBox(
-    height: 400,
-    child: PreparationStepListWidget(
-      preparationSteps: [
-        PreparationStepEntity(
-          id: const Uuid().v7(),
-          preparationName: '양치하기',
-          preparationTime: const Duration(seconds: 60),
-          nextPreparationId: const Uuid().v7(),
+  return Scaffold(
+    backgroundColor: const Color.fromARGB(255, 243, 241, 241),
+    body: Center(
+      child: SizedBox(
+        height: 400,
+        child: PreparationStepListWidget(
+          preparationSteps: [
+            PreparationStepEntity(
+              id: const Uuid().v7(),
+              preparationName: '양치하기',
+              preparationTime: const Duration(seconds: 60),
+              nextPreparationId: const Uuid().v7(),
+            ),
+            PreparationStepEntity(
+              id: const Uuid().v7(),
+              preparationName: '가방 챙기기',
+              preparationTime: const Duration(seconds: 60),
+              nextPreparationId: const Uuid().v7(),
+            ),
+          ],
+          currentStepIndex: currentStepIndex,
+          stepElapsedTimes: const [15, 0],
+          preparationStepStates: const [
+            PreparationStateEnum.now,
+            PreparationStateEnum.yet,
+          ],
+          onSkip: () {},
         ),
-        PreparationStepEntity(
-          id: const Uuid().v7(),
-          preparationName: '가방 챙기기',
-          preparationTime: const Duration(seconds: 60),
-          nextPreparationId: const Uuid().v7(),
-        ),
-      ],
-      currentStepIndex: currentStepIndex,
-      stepElapsedTimes: const [15, 0],
-      preparationStepStates: const [
-        PreparationStateEnum.now,
-        PreparationStateEnum.yet,
-      ],
-      onSkip: () {},
+      ),
     ),
   );
 }

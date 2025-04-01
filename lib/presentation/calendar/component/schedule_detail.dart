@@ -12,7 +12,8 @@ class ScheduleDetail extends StatefulWidget {
   final VoidCallback? onDeleted;
 
   final meatballsIcon = SvgPicture.asset(
-    'assets/meatballs.svg',
+    'meatballs.svg',
+    package: 'assets',
   );
 
   @override

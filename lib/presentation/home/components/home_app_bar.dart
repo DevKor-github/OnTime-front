@@ -11,14 +11,16 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
 
   final bellSvg = SvgPicture.asset(
-    'assets/bell.svg',
+    'bell.svg',
+    package: 'assets',
     semanticsLabel: 'bell',
     height: 21,
     fit: BoxFit.contain,
   );
 
   final friendsSvg = SvgPicture.asset(
-    'assets/friends.svg',
+    'friends.svg',
+    package: 'assets',
     semanticsLabel: 'friends',
     height: 21,
     fit: BoxFit.contain,

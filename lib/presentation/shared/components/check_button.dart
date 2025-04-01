@@ -5,7 +5,8 @@ class CheckButton extends StatelessWidget {
   CheckButton({super.key, required this.isChecked, required this.onPressed});
 
   final Widget svg = SvgPicture.asset(
-    'assets/check.svg',
+    'check.svg',
+    package: 'assets',
     semanticsLabel: 'check',
   );
 

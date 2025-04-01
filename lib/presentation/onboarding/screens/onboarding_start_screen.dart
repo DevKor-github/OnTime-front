@@ -62,7 +62,8 @@ class _OnboardingCharacterImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SvgPicture.asset(
-      'assets/characters/onboarding_character.svg',
+      'characters/onboarding_character.svg',
+      package: 'assets',
       semanticsLabel: 'character onboarding',
       height: 271,
       width: 280,

@@ -15,27 +15,6 @@ class BottomNavBarScaffold extends StatefulWidget {
 class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
   int selectedIndex = 0;
 
-  final homeIcon = SvgPicture.asset(
-    'assets/Home.svg',
-    semanticsLabel: 'home',
-    height: 24,
-    fit: BoxFit.contain,
-  );
-
-  final myIcon = SvgPicture.asset(
-    'assets/My.svg',
-    semanticsLabel: 'my',
-    height: 24,
-    fit: BoxFit.contain,
-  );
-
-  final plusIcon = SvgPicture.asset(
-    'assets/Plus.svg',
-    semanticsLabel: 'plus',
-    height: 50,
-    fit: BoxFit.contain,
-  );
-
   void onDestinationSelected(int index) {
     setState(() {
       selectedIndex = index;
@@ -100,7 +79,7 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
               shape: CircleBorder(),
               padding: EdgeInsets.all(13),
             ),
-            child: plusIcon,
+            child: _PlusIcon(),
           ),
         ),
       ),
@@ -116,7 +95,8 @@ class _HomeIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconTheme = IconTheme.of(context);
     return SvgPicture.asset(
-      'assets/Home.svg',
+      'Home.svg',
+      package: 'assets',
       semanticsLabel: 'home',
       height: iconTheme.size,
       fit: BoxFit.contain,
@@ -135,7 +115,8 @@ class _MyIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconTheme = IconTheme.of(context);
     return SvgPicture.asset(
-      'assets/My.svg',
+      'My.svg',
+      package: 'assets',
       semanticsLabel: 'myPage',
       height: iconTheme.size,
       fit: BoxFit.contain,
@@ -143,6 +124,21 @@ class _MyIcon extends StatelessWidget {
         iconTheme.color!,
         BlendMode.srcIn,
       ),
+    );
+  }
+}
+
+class _PlusIcon extends StatelessWidget {
+  const _PlusIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return SvgPicture.asset(
+      'Plus.svg',
+      package: 'assets',
+      semanticsLabel: 'plus',
+      height: 50,
+      fit: BoxFit.contain,
     );
   }
 }

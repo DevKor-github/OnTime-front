@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -54,8 +55,9 @@ class ScheduleStart extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 20),
-                    child: Image.asset(
-                      'assets/character.png',
+                    child: SvgPicture.asset(
+                      'characters/character.svg',
+                      package: 'assets',
                       width: 204,
                       height: 269,
                     ),

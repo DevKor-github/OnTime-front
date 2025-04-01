@@ -180,7 +180,8 @@ class _AppBar extends StatelessWidget {
   final void Function(int) onUpdateCurrentPageIndex;
 
   final SvgPicture _previousIcon = SvgPicture.asset(
-    'assets/chevron_left.svg',
+    'chevron_left.svg',
+    package: 'assets',
     semanticsLabel: 'Previous Icon',
     fit: BoxFit.contain,
   );

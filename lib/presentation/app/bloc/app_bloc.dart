@@ -46,7 +46,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     _loadUserUseCase();
     return emit.onEach(
       _streamUserUseCase.call(),
-      onData: (user) {
+      onData: (user) async {
         emit(
           state.copyWith(
             user: user,
@@ -58,7 +58,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
             ),
           ),
         );
-        if (user != UserEntity.empty()) {
+        await Future.delayed(const Duration(milliseconds: 0));
+        if (state.status == AppStatus.authenticated) {
           add(const AppUpcomingScheduleSubscriptionRequested());
         }
       },

@@ -1,5 +1,42 @@
 import 'package:flutter/material.dart';
 
+/// A widget that displays an error message bubble with an optional action button
+/// and a customizable tail position.
+///
+/// The `ErrorMessageBubble` widget is used to show error messages in a visually
+/// distinct bubble format. It supports adding an action button for user interaction
+/// (e.g., retrying an operation) and allows specifying the position of the bubble's
+/// tail.
+///
+/// Example usage:
+/// ```dart
+/// ErrorMessageBubble(
+///   errorMessage: const Text('An error occurred. Please try again.'),
+///   action: TextButton(
+///     onPressed: () {
+///       // Handle retry action
+///     },
+///     child: const Text('Retry'),
+///   ),
+///   tailPosition: TailPosition.bottom,
+/// )
+/// ```
+/// The [ErrorMessageBubble] widget is designed to show error messages in a
+/// visually distinct bubble with a tail pointing to the source of the error.
+/// It supports customization of the error message content, an optional action
+/// button, and the position of the tail (top or bottom).
+///
+/// The [errorMessage] parameter is required and specifies the content of the
+/// error message. The [action] parameter is optional and can be used to provide
+/// a button for user interaction. The [tailPosition] parameter determines whether
+/// the tail is displayed at the top or bottom of the bubble. The [padding]
+/// parameter allows customization of the padding around the tail.
+///
+/// By default, the widget uses the app's [ThemeData] to style the text and
+/// colors. The error message text adopts the `bodyLarge` style from the
+/// theme, with the color set to the `error` color from the theme's
+/// [ColorScheme]. The bubble background uses the `errorContainer` color
+/// from the theme, ensuring consistency with the app's design system.
 class ErrorMessageBubble extends StatelessWidget {
   const ErrorMessageBubble({
     super.key,

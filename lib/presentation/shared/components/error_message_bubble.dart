@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 class ErrorMessageBubble extends StatelessWidget {
-  const ErrorMessageBubble({super.key, required this.errorMessage});
-  final String errorMessage;
+  const ErrorMessageBubble(
+      {super.key, required this.errorMessage, this.action});
+  final Widget errorMessage;
+  final TextButton? action;
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -13,8 +15,15 @@ class ErrorMessageBubble extends StatelessWidget {
           padding: const EdgeInsets.only(left: 72.0),
           child: _MessageBubbleTail(),
         ),
-        _MessageBubbleBody(
-          errorMessage: errorMessage,
+        DefaultTextStyle(
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                color: Theme.of(context).colorScheme.error,
+                decorationColor: Theme.of(context).colorScheme.error,
+              ),
+          child: _MessageBubbleBody(
+            errorMessage: errorMessage,
+            action: action,
+          ),
         ),
       ],
     );
@@ -61,25 +70,43 @@ class _MessageBubbleTailPainter extends CustomPainter {
 class _MessageBubbleBody extends StatelessWidget {
   const _MessageBubbleBody({
     required this.errorMessage,
+    required this.action,
   });
 
-  final String errorMessage;
+  final Widget errorMessage;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 13.5),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: colorScheme.errorContainer,
       ),
-      child: Text(
-        errorMessage,
-        style: textTheme.bodyLarge?.copyWith(
-          color: colorScheme.error,
-        ),
+      child: Row(
+        children: [
+          errorMessage,
+          TextButtonTheme(
+              data: TextButtonThemeData(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(
+                    Colors.transparent,
+                  ),
+                  overlayColor: WidgetStateProperty.all(
+                    Colors.transparent,
+                  ),
+                  elevation: WidgetStateProperty.all(0),
+                  foregroundColor: WidgetStateProperty.all(
+                    Theme.of(context).colorScheme.error,
+                  ),
+                  textStyle: WidgetStateProperty.all(
+                      DefaultTextStyle.of(context).style),
+                ),
+              ),
+              child: action ?? const SizedBox.shrink())
+        ],
       ),
     );
   }

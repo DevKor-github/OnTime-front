@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class EarlyLateMessageImageWidget extends StatelessWidget {
   final double screenHeight;
@@ -24,8 +25,9 @@ class EarlyLateMessageImageWidget extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
-        Image.asset(
-          'assets/character.png',
+        SvgPicture.asset(
+          'characters/character.svg',
+          package: 'assets',
           height: screenHeight * 0.25,
         ),
       ],

@@ -23,9 +23,10 @@ class Endpoint {
   static deleteScheduleById(String scheduleId) => '$_schedules/$scheduleId';
 
   // preparation
-  static const _createDefaultPreparation = '/users/onboarding'; // 사용자 준비과정 첫 세팅
+  static const _createDefaultPreparation =
+      '$_getUser/onboarding'; // 사용자 준비과정 첫 세팅
 
-  static const _defaultPreparation = '/users/me/preparations'; // 사용자 기본 준비과정 조회
+  static const _defaultPreparation = '/users/preparations'; // 사용자 기본 준비과정 조회
 
   static get createDefaultPreparation => _createDefaultPreparation;
 

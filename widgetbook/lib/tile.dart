@@ -24,7 +24,8 @@ Widget tile(BuildContext context) {
     ),
     trailing: trailing
         ? SvgPicture.asset(
-            'assets/drag_indicator.svg',
+            'drag_indicator.svg',
+            package: 'assets',
             semanticsLabel: 'drag indicator',
             height: 14,
             width: 14,

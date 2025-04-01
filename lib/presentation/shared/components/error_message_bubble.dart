@@ -1,43 +1,66 @@
 import 'package:flutter/material.dart';
 
 class ErrorMessageBubble extends StatelessWidget {
-  const ErrorMessageBubble(
-      {super.key, required this.errorMessage, this.action});
+  const ErrorMessageBubble({
+    super.key,
+    required this.errorMessage,
+    this.action,
+    this.tailPosition = TailPosition.bottom,
+    this.padding = const EdgeInsets.only(left: 72.0),
+  });
+
+  final EdgeInsets padding;
+
   final Widget errorMessage;
   final TextButton? action;
+  final TailPosition tailPosition;
+
   @override
   Widget build(BuildContext context) {
+    final tail = Padding(
+      padding: padding,
+      child: _MessageBubbleTail(
+        isTop: tailPosition == TailPosition.top,
+      ),
+    );
+
+    final body = DefaultTextStyle(
+      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            color: Theme.of(context).colorScheme.error,
+            decorationColor: Theme.of(context).colorScheme.error,
+          ),
+      child: _MessageBubbleBody(
+        errorMessage: errorMessage,
+        action: action,
+      ),
+    );
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 72.0),
-          child: _MessageBubbleTail(),
-        ),
-        DefaultTextStyle(
-          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                color: Theme.of(context).colorScheme.error,
-                decorationColor: Theme.of(context).colorScheme.error,
-              ),
-          child: _MessageBubbleBody(
-            errorMessage: errorMessage,
-            action: action,
-          ),
-        ),
-      ],
+      children: tailPosition == TailPosition.top ? [tail, body] : [body, tail],
     );
   }
 }
 
+/// Specifies the position of the bubble's tail (top or bottom).
+///
+/// Used to determine where the tail of the error message bubble is displayed.
+enum TailPosition { top, bottom }
+
 class _MessageBubbleTail extends StatelessWidget {
-  const _MessageBubbleTail();
+  const _MessageBubbleTail({required this.isTop});
+
+  final bool isTop;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return CustomPaint(
-      painter: _MessageBubbleTailPainter(colorScheme.errorContainer),
+      painter: _MessageBubbleTailPainter(
+        color: colorScheme.errorContainer,
+        isTop: isTop,
+      ),
       child: const SizedBox(
         height: 15,
         width: 15,
@@ -47,19 +70,32 @@ class _MessageBubbleTail extends StatelessWidget {
 }
 
 class _MessageBubbleTailPainter extends CustomPainter {
-  _MessageBubbleTailPainter(this.backgroundColor);
-  final Color backgroundColor;
+  _MessageBubbleTailPainter({required this.color, required this.isTop});
+
+  final Color color;
+  final bool isTop;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = backgroundColor
+      ..color = color
       ..style = PaintingStyle.fill;
-    final path = Path()
-      ..moveTo(0, size.height)
-      ..lineTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
-      ..close();
+
+    final path = Path();
+    if (isTop) {
+      path
+        ..moveTo(0, size.height)
+        ..lineTo(size.width / 2, 0)
+        ..lineTo(size.width, size.height)
+        ..close();
+    } else {
+      path
+        ..moveTo(0, 0)
+        ..lineTo(size.width / 2, size.height)
+        ..lineTo(size.width, 0)
+        ..close();
+    }
+
     canvas.drawPath(path, paint);
   }
 
@@ -86,6 +122,7 @@ class _MessageBubbleBody extends StatelessWidget {
         color: colorScheme.errorContainer,
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           errorMessage,
           TextButtonTheme(
@@ -102,7 +139,12 @@ class _MessageBubbleBody extends StatelessWidget {
                     Theme.of(context).colorScheme.error,
                   ),
                   textStyle: WidgetStateProperty.all(
-                      DefaultTextStyle.of(context).style),
+                    DefaultTextStyle.of(context).style,
+                  ),
+                  padding: WidgetStateProperty.all(
+                    const EdgeInsets.symmetric(horizontal: 0),
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
               child: action ?? const SizedBox.shrink())

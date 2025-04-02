@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
+import 'package:on_time_front/presentation/shared/components/modalComponent.dart';
 
-class ScheduleStartScreen extends StatelessWidget {
+import 'package:on_time_front/presentation/shared/theme/theme.dart';
+
+class ScheduleStartScreen extends StatefulWidget {
   final ScheduleEntity schedule;
 
   const ScheduleStartScreen({
@@ -14,66 +17,108 @@ class ScheduleStartScreen extends StatelessWidget {
   });
 
   @override
+  State<ScheduleStartScreen> createState() => _ScheduleStartScreenState();
+}
+
+class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
+  bool isModalVisible = false;
+
+  void _showModal() {
+    setState(() {
+      isModalVisible = true;
+    });
+  }
+
+  void _hideModal() {
+    setState(() {
+      isModalVisible = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-      ),
-      body: Column(
+      body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 90),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    schedule.scheduleName,
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff5C79FB),
-                    ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 60),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.schedule.scheduleName,
+                        style: const TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xff5C79FB),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.schedule.place.placeName,
+                        style: const TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        '지금 준비 시작 안하면 늦어요!',
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Image.asset(
+                          'assets/character.png',
+                          width: 204,
+                          height: 269,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    schedule.place.placeName,
-                    style: const TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    '지금 준비 시작 안하면 늦어요!',
-                    style: const TextStyle(
-                      fontSize: 15,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Image.asset(
-                      'assets/character.png',
-                      width: 204,
-                      height: 269,
-                    ),
-                  )
-                ],
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 30),
+                child: Button(
+                  text: '준비 시작',
+                  onPressed: () async {
+                    context.go('/alarmScreen', extra: widget.schedule);
+                  },
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: CloseButton(onPressed: _showModal),
+          ),
+          if (isModalVisible)
+            Center(
+              child: ModalComponent(
+                modalTitleText: '정말 나가시겠어요?',
+                modalDetailText: '이 화면을 나가면 \n함께 약속을 준비할 수 없게 돼요',
+                leftButtonText: '나갈래요',
+                leftPressed: () {
+                  context.go('/home'); // 홈 화면으로 이동
+                },
+                leftButtonColor: colorScheme.surfaceContainer,
+                leftButtonTextColor: colorScheme.outline,
+                rightButtonText: '있을래요',
+                rightPressed: _hideModal,
+                rightButtonColor: colorScheme.primary,
+                rightButtonTextColor: colorScheme.onPrimary,
               ),
             ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 30),
-            child: Button(
-              text: '준비 시작',
-              onPressed: () async {
-                context.go('/alarmScreen', extra: schedule);
-              },
-            ),
-          ),
         ],
       ),
     );

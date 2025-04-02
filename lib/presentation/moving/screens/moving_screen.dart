@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class MovingScreen extends StatelessWidget {
@@ -45,7 +46,9 @@ class MovingScreen extends StatelessWidget {
             right: 10,
             child: IconButton(
               icon: const Icon(Icons.close),
-              onPressed: () {},
+              onPressed: () {
+                context.go('/home');
+              },
             ),
           ),
         ],

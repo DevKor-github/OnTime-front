@@ -26,7 +26,6 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
       builder: (BuildContext context) {
         return ModalComponent(
           leftPressed: () {
-            Navigator.of(context).pop();
             context.go('/home');
           },
           rightPressed: () => Navigator.of(context).pop(),

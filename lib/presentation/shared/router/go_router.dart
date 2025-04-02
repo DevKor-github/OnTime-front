@@ -11,6 +11,7 @@ import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
+import 'package:on_time_front/presentation/moving/screens/moving_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_start_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/screens/preparation_edit_form.dart';
@@ -115,6 +116,10 @@ GoRouter goRouterConfig(AppBloc bloc) {
             isLate: isLate,
           );
         },
+      ),
+      GoRoute(
+        path: '/moving',
+        builder: (context, state) => MovingScreen(),
       ),
     ],
   );

@@ -21,13 +21,15 @@ class EarlyLateScreenBloc
     int absSeconds = event.earlyLateTime.abs();
     int minuteValue = (absSeconds / 60).ceil();
 
-    String earlylateMessage =
-        isLate ? getLateMessage() : getEarlyMessage(minuteValue);
+    Map<String, String> messageData = isLate
+        ? getLateMessage() // { "message": "문구", "image": "파일명" }
+        : getEarlyMessage(minuteValue); // { "message": "문구", "image": "파일명" }
 
     emit(EarlyLateScreenLoadSuccess(
       checklist: List.generate(3, (index) => false),
       isLate: isLate,
-      earlylateMessage: earlylateMessage,
+      earlylateMessage: messageData['message']!,
+      earlylateImage: messageData['image']!,
     ));
   }
 
@@ -39,6 +41,7 @@ class EarlyLateScreenBloc
         checklist: event.checklist,
         isLate: currentState.isLate,
         earlylateMessage: currentState.earlylateMessage,
+        earlylateImage: currentState.earlylateImage,
       ));
     }
   }
@@ -54,6 +57,7 @@ class EarlyLateScreenBloc
         checklist: updatedChecklist,
         isLate: currentState.isLate,
         earlylateMessage: currentState.earlylateMessage,
+        earlylateImage: currentState.earlylateImage,
       ));
     }
   }

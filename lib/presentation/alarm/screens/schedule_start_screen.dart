@@ -3,11 +3,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-
 import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/shared/components/modal_component.dart';
-
-import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class ScheduleStartScreen extends StatefulWidget {
   final ScheduleEntity schedule;
@@ -22,18 +19,28 @@ class ScheduleStartScreen extends StatefulWidget {
 }
 
 class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
-  bool isModalVisible = false;
-
-  void _showModal() {
-    setState(() {
-      isModalVisible = true;
-    });
-  }
-
-  void _hideModal() {
-    setState(() {
-      isModalVisible = false;
-    });
+  void _showModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ModalComponent(
+          leftPressed: () {
+            Navigator.of(context).pop();
+            context.go('/home');
+          },
+          rightPressed: () => Navigator.of(context).pop(),
+          modalTitleText: '정말 나가시겠어요?',
+          modalDetailText: '이 화면을 나가면\n함께 약속을 준비할 수 없게 돼요.',
+          leftButtonText: '나갈래요',
+          leftButtonColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          leftButtonTextColor: Theme.of(context).colorScheme.outline,
+          rightButtonText: '있을래요',
+          rightButtonColor: Theme.of(context).colorScheme.primary,
+          rightButtonTextColor: Theme.of(context).colorScheme.onPrimary,
+        );
+      },
+    );
   }
 
   @override
@@ -75,7 +82,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                         textAlign: TextAlign.center,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(top: 20),
+                        padding: const EdgeInsets.only(top: 50),
                         child: SvgPicture.asset(
                           'characters/character.svg',
                           package: 'assets',
@@ -102,26 +109,11 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
           Positioned(
             top: 10,
             right: 10,
-            child: CloseButton(onPressed: _showModal),
-          ),
-          if (isModalVisible)
-            Center(
-              child: ModalComponent(
-                modalTitleText: '정말 나가시겠어요?',
-                modalDetailText: '이 화면을 나가면 \n함께 약속을 준비할 수 없게 돼요',
-                leftButtonText: '나갈래요',
-                leftPressed: () {
-                  context.push('/home'); // 홈 화면으로 이동
-                },
-                leftButtonColor: colorScheme.surfaceContainer,
-                leftButtonTextColor: colorScheme.outline,
-                rightButtonText: '있을래요',
-                rightPressed: _hideModal,
-                rightButtonColor: colorScheme.primary,
-                rightButtonTextColor: colorScheme.onPrimary,
-                containerWidth: 276,
-              ),
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => _showModal(context),
             ),
+          ),
         ],
       ),
     );

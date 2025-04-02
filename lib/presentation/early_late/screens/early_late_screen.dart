@@ -39,6 +39,7 @@ class EarlyLateScreen extends StatelessWidget {
                           isLate: isLate,
                           screenHeight: MediaQuery.of(context).size.height,
                           earlylateMessage: state.earlylateMessage,
+                          earlylateImage: state.earlylateImage,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -72,12 +73,14 @@ class _EarlyLateSection extends StatelessWidget {
   final bool isLate;
   final double screenHeight;
   final String earlylateMessage;
+  final String earlylateImage;
 
   const _EarlyLateSection({
     required this.earlyLateTime,
     required this.isLate,
     required this.screenHeight,
     required this.earlylateMessage,
+    required this.earlylateImage,
   });
 
   @override
@@ -93,6 +96,7 @@ class _EarlyLateSection extends StatelessWidget {
           EarlyLateMessageImageWidget(
             screenHeight: screenHeight,
             earlylateMessage: earlylateMessage,
+            earlylateImage: earlylateImage,
           ),
         ],
       ),

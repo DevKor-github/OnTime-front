@@ -93,7 +93,7 @@ GoRouter goRouterConfig(AppBloc bloc) {
         path: '/scheduleStart',
         name: 'scheduleStart',
         builder: (context, state) {
-          return ScheduleStart(schedule: state.extra as ScheduleEntity);
+          return ScheduleStartScreen(schedule: state.extra as ScheduleEntity);
         },
       ),
       GoRoute(

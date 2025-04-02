@@ -31,7 +31,8 @@ class PreparationFormListField extends StatefulWidget {
 class _PreparationFormListFieldState extends State<PreparationFormListField> {
   final FocusNode focusNode = FocusNode();
   final dragIndicatorSvg = SvgPicture.asset(
-    'assets/drag_indicator.svg',
+    'drag_indicator.svg',
+    package: 'assets',
     semanticsLabel: 'drag indicator',
     height: 14,
     width: 14,

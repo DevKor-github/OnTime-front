@@ -140,7 +140,8 @@ class _WeeklyScheduleHeader extends StatelessWidget {
   _WeeklyScheduleHeader();
 
   final arrowRightSvg = SvgPicture.asset(
-    'assets/arrow_right.svg',
+    'arrow_right.svg',
+    package: 'assets',
     semanticsLabel: 'arrow right',
     height: 24,
     fit: BoxFit.contain,
@@ -300,7 +301,12 @@ class _Character extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(height: 270.3, child: Image.asset('assets/character.png'));
+    return SizedBox(
+        height: 270.3,
+        child: SvgPicture.asset(
+          'characters/character.svg',
+          package: 'assets',
+        ));
   }
 }
 

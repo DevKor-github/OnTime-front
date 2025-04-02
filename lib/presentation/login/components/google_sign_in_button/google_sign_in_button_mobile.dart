@@ -7,7 +7,8 @@ class GoogleSignInButton extends StatelessWidget {
   GoogleSignInButton({super.key});
 
   final Widget googleIconSvg = SvgPicture.asset(
-    'assets/google_icon.svg',
+    'google_icon.svg',
+    package: 'assets',
     semanticsLabel: 'Google Icon',
     fit: BoxFit.contain,
   );

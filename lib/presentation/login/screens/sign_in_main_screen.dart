@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
@@ -74,7 +75,12 @@ class _CharacterImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(height: 280, child: Image.asset('assets/character.png'));
+    return SizedBox(
+        height: 280,
+        child: SvgPicture.asset(
+          'characters/character.svg',
+          package: 'assets',
+        ));
   }
 }
 

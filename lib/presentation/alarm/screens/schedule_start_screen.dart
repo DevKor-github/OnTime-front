@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 import 'package:on_time_front/presentation/shared/components/button.dart';
-import 'package:on_time_front/presentation/shared/components/modalComponent.dart';
+import 'package:on_time_front/presentation/shared/components/modal_component.dart';
 
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
@@ -109,7 +109,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                 modalDetailText: '이 화면을 나가면 \n함께 약속을 준비할 수 없게 돼요',
                 leftButtonText: '나갈래요',
                 leftPressed: () {
-                  context.go('/home'); // 홈 화면으로 이동
+                  context.push('/home'); // 홈 화면으로 이동
                 },
                 leftButtonColor: colorScheme.surfaceContainer,
                 leftButtonTextColor: colorScheme.outline,
@@ -117,6 +117,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                 rightPressed: _hideModal,
                 rightButtonColor: colorScheme.primary,
                 rightButtonTextColor: colorScheme.onPrimary,
+                containerWidth: 276,
               ),
             ),
         ],

@@ -5,17 +5,10 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 @widgetbook.UseCase(
-  name: 'default',
+  name: 'Modal Default',
   type: ModalComponent,
 )
 Widget useCaseModalComponent(BuildContext context) {
-  final double containerWidth = context.knobs.double.slider(
-    label: 'Container Width',
-    initialValue: 276,
-    min: 200,
-    max: 400,
-  );
-
   final String modalTitleText = context.knobs.string(
     label: 'Modal Title Text',
     initialValue: 'Title Text',
@@ -38,23 +31,22 @@ Widget useCaseModalComponent(BuildContext context) {
 
   final Color leftButtonColor = context.knobs.list<Color>(
     label: 'Left Button Color',
-    initialOption: colorScheme.surfaceDim,
+    initialOption: colorScheme.surfaceContainerLow,
     options: [
       colorScheme.primary,
       colorScheme.secondary,
+      colorScheme.surfaceContainerLow,
       colorScheme.error,
-      colorScheme.surfaceDim,
     ],
   );
 
   final Color leftButtonTextColor = context.knobs.list<Color>(
     label: 'Left Button Text Color',
-    initialOption: colorScheme.onSurface,
     options: [
       colorScheme.onPrimary,
       colorScheme.onSecondary,
+      colorScheme.onSurfaceVariant,
       colorScheme.onError,
-      colorScheme.onSurface,
     ],
   );
 
@@ -63,19 +55,18 @@ Widget useCaseModalComponent(BuildContext context) {
     options: [
       colorScheme.primary,
       colorScheme.secondary,
+      colorScheme.surfaceContainerLow,
       colorScheme.error,
-      colorScheme.surface,
     ],
   );
 
   final Color rightButtonTextColor = context.knobs.list<Color>(
     label: 'Right Button Text Color',
-    initialOption: colorScheme.onPrimary,
     options: [
       colorScheme.onPrimary,
       colorScheme.onSecondary,
+      colorScheme.onSurfaceVariant,
       colorScheme.onError,
-      colorScheme.onSurface,
     ],
   );
 
@@ -94,7 +85,6 @@ Widget useCaseModalComponent(BuildContext context) {
           leftButtonTextColor: leftButtonTextColor,
           rightButtonColor: rightButtonColor,
           rightButtonTextColor: rightButtonTextColor,
-          containerWidth: containerWidth,
         ),
       ),
     ),

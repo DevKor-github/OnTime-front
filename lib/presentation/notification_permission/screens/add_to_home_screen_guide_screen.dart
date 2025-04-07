@@ -27,7 +27,7 @@ class AddToHomeScreenGuideScreen extends StatelessWidget {
 }
 
 class _TitleContainer extends StatelessWidget {
-  const _TitleContainer({super.key});
+  const _TitleContainer();
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +72,7 @@ class _SubTitle extends StatelessWidget {
 }
 
 class _StepListContainer extends StatelessWidget {
-  const _StepListContainer({super.key});
+  const _StepListContainer();
 
   @override
   Widget build(BuildContext context) {

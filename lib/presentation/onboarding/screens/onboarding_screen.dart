@@ -46,19 +46,30 @@ class _OnboardingFormState extends State<_OnboardingForm>
     PreparationTimeCubit,
     ScheduleSpareTimeCubit,
   ];
+  final ValueNotifier<double> _currentPageNotifier = ValueNotifier<double>(0);
 
   @override
   void initState() {
     super.initState();
     _pageViewController = PageController();
+    _pageViewController.addListener(_onPageChanged);
     _tabController = TabController(length: _pageCubitTypes.length, vsync: this);
   }
 
   @override
   void dispose() {
     super.dispose();
+    _tabController.removeListener(_onPageChanged);
     _pageViewController.dispose();
     _tabController.dispose();
+  }
+
+  void _onPageChanged() {
+    // Detect when the transition ends
+    double newPage = _pageViewController.page!;
+    if (_currentPageNotifier.value != newPage) {
+      _currentPageNotifier.value = newPage;
+    }
   }
 
   @override
@@ -96,17 +107,20 @@ class _OnboardingFormState extends State<_OnboardingForm>
                   tabController: _tabController,
                   onUpdateCurrentPageIndex: _updateCurrentPageIndex,
                 ),
-                Expanded(
-                  child: PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    controller: _pageViewController,
-                    onPageChanged: _handlePageViewChanged,
-                    children: <Widget>[
-                      PreparationNameForm(),
-                      PreparationOrderForm(),
-                      PreparationTimeForm(),
-                      ScheduleSpareTimeForm(),
-                    ],
+                PageNotifierProvider(
+                  notifier: _currentPageNotifier,
+                  child: Expanded(
+                    child: PageView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller: _pageViewController,
+                      onPageChanged: _handlePageViewChanged,
+                      children: <Widget>[
+                        PreparationNameForm(),
+                        PreparationOrderForm(),
+                        PreparationTimeForm(),
+                        ScheduleSpareTimeForm(),
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -215,4 +229,24 @@ class _AppBar extends StatelessWidget {
       ],
     );
   }
+}
+
+class PageNotifierProvider extends InheritedWidget {
+  final ValueNotifier<double> notifier;
+
+  const PageNotifierProvider({
+    super.key,
+    required super.child,
+    required this.notifier,
+  });
+
+  static ValueNotifier<double> of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<PageNotifierProvider>()!
+        .notifier;
+  }
+
+  @override
+  bool updateShouldNotify(PageNotifierProvider oldWidget) =>
+      notifier != oldWidget.notifier;
 }

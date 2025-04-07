@@ -4,6 +4,7 @@ import 'package:on_time_front/core/mixins/overlay_state_mixin.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/components/shcedule_spare_time_field.dart';
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/shared/components/error_message_bubble.dart';
 
 class ScheduleSpareTimeForm extends StatefulWidget {
@@ -18,11 +19,7 @@ class ScheduleSpareTimeForm extends StatefulWidget {
 class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm>
     with OverlayStateMixin {
   late Duration spareTime;
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  final GlobalKey _fieldKey = GlobalKey(); // Add a GlobalKey for the field
 
   @override
   void dispose() {
@@ -31,15 +28,10 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm>
   }
 
   @override
-  void didChangeDependencies() {
-    removeOverlay();
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
     return OnboardingPageViewLayout(
       title: '여유시간을 설정해주세요',
       subTitle: RichText(
@@ -65,29 +57,8 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm>
               context.read<ScheduleSpareTimeCubit>().lowerBound;
 
           // Defer overlay logic to after the build phase
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (state.spareTime <= spareTimeLowerBound) {
-              if (!isOverlayShown) {
-                showOverlay(
-                  Positioned(
-                    top: 420,
-                    left: 50,
-                    child: ErrorMessageBubble(
-                      errorMessage: Text(
-                          '여유시간은 ${spareTimeLowerBound.inMinutes}분 아래로 설정할 수 없어요 '),
-                      tailPosition: TailPosition.top,
-                    ),
-                  ),
-                );
-              }
-            } else {
-              if (isOverlayShown) {
-                removeOverlay();
-              }
-            }
-          });
-
           return ScheduleSpareTimeField(
+            key: _fieldKey, // Assign the GlobalKey here
             lowerBound: spareTimeLowerBound,
             spareTime: state.spareTime,
             onSpareTimeDecreased: () {

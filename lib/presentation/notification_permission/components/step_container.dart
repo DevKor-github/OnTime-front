@@ -24,8 +24,11 @@ class StepContainer extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _Title(step: step, title: title),
-            const SizedBox(height: 15),
+            _Title(
+              step: step,
+              title: title,
+            ),
+            const SizedBox(height: 12),
             image,
           ],
         ),

@@ -52,10 +52,7 @@ class WidgetbookApp extends StatelessWidget {
               height: double.infinity,
               width: double.infinity,
               color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: child,
-              ),
+              child: child,
             );
           },
         ),

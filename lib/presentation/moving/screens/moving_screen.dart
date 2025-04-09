@@ -20,7 +20,7 @@ class MovingScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 50),
                     child: SvgPicture.asset(
-                      'characters/character_success_1.svg',
+                      'characters/character_whistle.svg',
                       package: 'assets',
                       width: 204,
                       height: 269,

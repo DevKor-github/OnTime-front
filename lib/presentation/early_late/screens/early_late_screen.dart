@@ -183,7 +183,7 @@ class _ButtonSection extends StatelessWidget {
         child: Button(
           text: '까먹지 않고 출발',
           onPressed: () {
-            context.go('/moving');
+            context.go('/home');
           },
         ),
       ),

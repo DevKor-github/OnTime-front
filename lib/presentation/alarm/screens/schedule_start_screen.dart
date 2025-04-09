@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/shared/components/button.dart';
+import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 import 'package:on_time_front/presentation/shared/components/modal_component.dart';
 
 class ScheduleStartScreen extends StatefulWidget {
@@ -24,20 +25,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return ModalComponent(
-          leftPressed: () {
-            context.go('/home');
-          },
-          rightPressed: () => Navigator.of(context).pop(),
-          modalTitleText: '정말 나가시겠어요?',
-          modalDetailText: '이 화면을 나가면\n함께 약속을 준비할 수 없게 돼요.',
-          leftButtonText: '나갈래요',
-          leftButtonColor: Theme.of(context).colorScheme.surfaceContainerLow,
-          leftButtonTextColor: Theme.of(context).colorScheme.outline,
-          rightButtonText: '있을래요',
-          rightButtonColor: Theme.of(context).colorScheme.primary,
-          rightButtonTextColor: Theme.of(context).colorScheme.onPrimary,
-        );
+        return _ScheduleStartScreenModal();
       },
     );
   }
@@ -115,6 +103,37 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ScheduleStartScreenModal extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ModalComponent(
+      title: const Text(
+        '정말 나가시겠어요?',
+      ),
+      content: const Text(
+        '이 화면을 나가면\n함께 약속을 준비할 수 없게 돼요',
+      ),
+      actions: [
+        ModalButton(
+          onPressed: () => context.go('/home'),
+          text: '나갈래요',
+          color: Theme.of(context).colorScheme.surfaceContainerLow,
+          textColor: Theme.of(context).colorScheme.outline,
+        ),
+        SizedBox(
+          width: 2,
+        ),
+        ModalButton(
+          onPressed: () => Navigator.pop(context),
+          text: '있을래요',
+          color: Theme.of(context).colorScheme.primary,
+          textColor: Theme.of(context).colorScheme.onPrimary,
+        ),
+      ],
     );
   }
 }

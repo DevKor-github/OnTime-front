@@ -143,3 +143,22 @@ ThemeData themeData = ThemeData(
     ),
   ],
 );
+
+final ThemeData appTheme = ThemeData(
+  colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+  dialogTheme: DialogTheme(
+    backgroundColor: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    titleTextStyle: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    ),
+    contentTextStyle: TextStyle(
+      fontSize: 13,
+      color: Colors.black,
+    ),
+  ),
+);

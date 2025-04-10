@@ -25,8 +25,8 @@ class TopBar extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium)),
         ),
         TextButton(
-          child: const Text('다음'),
           onPressed: onNextPageButtonClicked,
+          child: const Text('다음'),
         ),
       ],
     );

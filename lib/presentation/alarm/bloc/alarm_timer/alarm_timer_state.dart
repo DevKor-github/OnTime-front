@@ -208,6 +208,7 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
     required super.isLate,
   });
 
+// 준비 완료 상태
   @override
   AlarmTimerPreparationCompletion copyWith({
     List<PreparationStepEntity>? preparationSteps,
@@ -222,6 +223,51 @@ class AlarmTimerPreparationCompletion extends AlarmTimerState {
     bool? isLate,
   }) {
     return AlarmTimerPreparationCompletion(
+      preparationSteps: preparationSteps ?? this.preparationSteps,
+      currentStepIndex: currentStepIndex ?? this.currentStepIndex,
+      stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,
+      preparationStepStates:
+          preparationStepStates ?? this.preparationStepStates,
+      preparationRemainingTime:
+          preparationRemainingTime ?? this.preparationRemainingTime,
+      totalRemainingTime: totalRemainingTime ?? this.totalRemainingTime,
+      totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
+      progress: progress ?? this.progress,
+      beforeOutTime: beforeOutTime ?? this.beforeOutTime,
+      isLate: isLate ?? this.isLate,
+    );
+  }
+}
+
+// 준비 시간 만료 상태
+class AlarmTimerPreparationsTimeOver extends AlarmTimerState {
+  const AlarmTimerPreparationsTimeOver({
+    required super.preparationSteps,
+    required super.currentStepIndex,
+    required super.stepElapsedTimes,
+    required super.preparationStepStates,
+    required super.preparationRemainingTime,
+    required super.totalRemainingTime,
+    required super.totalPreparationTime,
+    required super.progress,
+    required super.beforeOutTime,
+    required super.isLate,
+  });
+
+  @override
+  AlarmTimerPreparationsTimeOver copyWith({
+    List<PreparationStepEntity>? preparationSteps,
+    int? currentStepIndex,
+    List<int>? stepElapsedTimes,
+    List<PreparationStateEnum>? preparationStepStates,
+    int? preparationRemainingTime,
+    int? totalRemainingTime,
+    int? totalPreparationTime,
+    double? progress,
+    int? beforeOutTime,
+    bool? isLate,
+  }) {
+    return AlarmTimerPreparationsTimeOver(
       preparationSteps: preparationSteps ?? this.preparationSteps,
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
       stepElapsedTimes: stepElapsedTimes ?? this.stepElapsedTimes,

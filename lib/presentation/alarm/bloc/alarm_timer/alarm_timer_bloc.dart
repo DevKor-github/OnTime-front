@@ -40,6 +40,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     on<AlarmTimerStepNextShifted>(_onStepNext);
     on<AlarmTimerStepFinalized>(_onStepFinalized);
     on<AlarmTimerStepsUpdated>(_onStepUpdated);
+    on<AlarmTimerPreparationsTimeOvered>(_onPreparationsTimeOvered);
   }
 
   void _onStepUpdated(
@@ -99,6 +100,28 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     }
   }
 
+  void _startTicker(int duration, Emitter<AlarmTimerState> emit) {
+    _tickerSubscription?.cancel();
+    _tickerSubscription = Stream.periodic(const Duration(seconds: 1), (x) => x)
+        .take(duration)
+        .listen((tick) {
+      final newElapsed = tick + 1;
+      final newRemaining = duration - newElapsed;
+      final updatedTotalRemaining = state.totalRemainingTime - 1;
+
+      final updatedBeforeOutTime = state.beforeOutTime - 1;
+      final updatedIsLate = updatedBeforeOutTime <= 0;
+
+      add(AlarmTimerStepTicked(
+        preparationRemainingTime: newRemaining,
+        preparationElapsedTime: newElapsed,
+        totalRemainingTime: updatedTotalRemaining,
+        beforeOutTime: updatedBeforeOutTime,
+        isLate: updatedIsLate,
+      ));
+    });
+  }
+
   void _onStepSkipped(
       AlarmTimerStepSkipped event, Emitter<AlarmTimerState> emit) {
     final updatedStates =
@@ -121,13 +144,44 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     add(const AlarmTimerStepNextShifted());
   }
 
+  // void _onStepNext(
+  //     AlarmTimerStepNextShifted event, Emitter<AlarmTimerState> emit) {
+  //   _tickerSubscription?.cancel();
+
+  //   if (state.currentStepIndex + 1 < state.preparationSteps.length) {
+  //     final nextStepIndex = state.currentStepIndex + 1;
+
+  //     final nextStepDuration =
+  //         state.preparationSteps[nextStepIndex].preparationTime.inSeconds;
+
+  //     final updatedStepStates =
+  //         List<PreparationStateEnum>.from(state.preparationStepStates);
+
+  //     updatedStepStates[state.currentStepIndex] = PreparationStateEnum.done;
+
+  //     updatedStepStates[nextStepIndex] = PreparationStateEnum.now;
+
+  //     emit(state.copyWith(
+  //       currentStepIndex: nextStepIndex,
+  //       preparationStepStates: updatedStepStates,
+  //       preparationRemainingTime: nextStepDuration,
+  //     ));
+
+  //     add(AlarmTimerStepStarted(nextStepDuration));
+  //   } else {
+  //     add(const AlarmTimerStepFinalized());
+  //   }
+  // }
+
   void _onStepNext(
       AlarmTimerStepNextShifted event, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
 
-    if (state.currentStepIndex + 1 < state.preparationSteps.length) {
-      final nextStepIndex = state.currentStepIndex + 1;
+    final isLastStep =
+        state.currentStepIndex + 1 >= state.preparationSteps.length;
 
+    if (!isLastStep) {
+      final nextStepIndex = state.currentStepIndex + 1;
       final nextStepDuration =
           state.preparationSteps[nextStepIndex].preparationTime.inSeconds;
 
@@ -135,7 +189,6 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
           List<PreparationStateEnum>.from(state.preparationStepStates);
 
       updatedStepStates[state.currentStepIndex] = PreparationStateEnum.done;
-
       updatedStepStates[nextStepIndex] = PreparationStateEnum.now;
 
       emit(state.copyWith(
@@ -146,7 +199,13 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
       add(AlarmTimerStepStarted(nextStepDuration));
     } else {
-      add(const AlarmTimerStepFinalized());
+      final wasSkipped = state.preparationStepStates[state.currentStepIndex] ==
+          PreparationStateEnum.done;
+      if (wasSkipped) {
+        add(const AlarmTimerStepFinalized());
+      } else {
+        add(const AlarmTimerPreparationsTimeOvered());
+      }
     }
   }
 
@@ -172,31 +231,31 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     ));
   }
 
-  void _startTicker(int duration, Emitter<AlarmTimerState> emit) {
-    _tickerSubscription?.cancel();
-    _tickerSubscription = Stream.periodic(const Duration(seconds: 1), (x) => x)
-        .take(duration)
-        .listen((tick) {
-      final newElapsed = tick + 1;
-      final newRemaining = duration - newElapsed;
-      final updatedTotalRemaining = state.totalRemainingTime - 1;
-
-      final updatedBeforeOutTime = state.beforeOutTime - 1;
-      final updatedIsLate = updatedBeforeOutTime <= 0;
-
-      add(AlarmTimerStepTicked(
-        preparationRemainingTime: newRemaining,
-        preparationElapsedTime: newElapsed,
-        totalRemainingTime: updatedTotalRemaining,
-        beforeOutTime: updatedBeforeOutTime,
-        isLate: updatedIsLate,
-      ));
-    });
-  }
-
   @override
   Future<void> close() {
     _tickerSubscription?.cancel();
     return super.close();
+  }
+
+  void _onPreparationsTimeOvered(
+    AlarmTimerPreparationsTimeOvered event,
+    Emitter<AlarmTimerState> emit,
+  ) {
+    final updatedStates =
+        List<PreparationStateEnum>.from(state.preparationStepStates);
+    updatedStates[state.currentStepIndex] = PreparationStateEnum.done;
+
+    emit(AlarmTimerPreparationsTimeOver(
+      preparationSteps: state.preparationSteps,
+      currentStepIndex: state.currentStepIndex,
+      stepElapsedTimes: state.stepElapsedTimes,
+      preparationStepStates: updatedStates,
+      preparationRemainingTime: 0,
+      totalRemainingTime: 0,
+      totalPreparationTime: state.totalPreparationTime,
+      progress: 1.0,
+      beforeOutTime: state.beforeOutTime,
+      isLate: state.isLate,
+    ));
   }
 }

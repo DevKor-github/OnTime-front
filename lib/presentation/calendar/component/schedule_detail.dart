@@ -26,54 +26,66 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
-      child: CupertinoContextMenu(
-        actions: [
-          CupertinoContextMenuAction(
-            onPressed: () {
-              widget.onEdit?.call();
-              Navigator.pop(context);
-            },
-            trailingIcon: CupertinoIcons.square_pencil_fill,
-            child: const Text('Edit'),
-          ),
-          CupertinoContextMenuAction(
-            onPressed: () {
-              widget.onDeleted?.call();
-              Navigator.pop(context);
-            },
-            isDestructiveAction: true,
-            trailingIcon: CupertinoIcons.delete,
-            child: const Text('Delete'),
-          ),
-        ],
-        child: Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(11),
-          ),
-          width: MediaQuery.of(context).size.width - 32,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
+      child: Container(
+        height: 82,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.5),
+          child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.schedule.scheduleName,
-                      style: theme.textTheme.titleSmall,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.schedule.scheduleTime.hour.toString(),
+                        style: theme.textTheme.titleSmall,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "PM",
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  color: theme.colorScheme.surfaceContainer,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0) +
+                        const EdgeInsets.only(top: 4.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.schedule.scheduleName,
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        Text(
+                          widget.schedule.place.placeName,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.outline,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      widget.schedule.scheduleTime.toString(),
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    Text(
-                      widget.schedule.place.placeName,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),

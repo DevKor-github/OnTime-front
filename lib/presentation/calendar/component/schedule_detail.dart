@@ -77,19 +77,19 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     final theme = Theme.of(context);
     return [
       SwipeAction(
-        onTap: (controller) => widget.onDeleted?.call(),
-        color: Colors.transparent,
-        content: _SwipeActionContent(
-          icon: const _TrashCanSvg(),
-          color: theme.colorScheme.error,
-        ),
-      ),
-      SwipeAction(
         onTap: (controller) => widget.onEdit?.call(),
         color: Colors.transparent,
         content: _SwipeActionContent(
           icon: const _EditPencilSvg(),
           color: theme.colorScheme.outline,
+        ),
+      ),
+      SwipeAction(
+        onTap: (controller) => widget.onDeleted?.call(),
+        color: Colors.transparent,
+        content: _SwipeActionContent(
+          icon: const _TrashCanSvg(),
+          color: theme.colorScheme.error,
         ),
       ),
     ];

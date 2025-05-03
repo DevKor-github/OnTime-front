@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
+import 'package:on_time_front/presentation/shared/components/modal_error_button.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
@@ -27,6 +29,9 @@ Widget customAlertDialog(BuildContext context) {
     child: CustomAlertDialog(
       title: Text(
         titleText,
+        style: const TextStyle(
+          fontSize: 16,
+        ),
       ),
       content: Text(
         contentText,
@@ -34,17 +39,17 @@ Widget customAlertDialog(BuildContext context) {
       actionsAlignment: MainAxisAlignment.spaceBetween,
       alignment: Alignment.center,
       actions: [
-        FilledButton(
+        ModalButton(
           onPressed: () {},
-          child: const Text(
-            '나갈래',
-          ),
+          text: '나갈래요',
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          textColor: Theme.of(context).colorScheme.onSurface,
         ),
-        FilledButton(
+        ModalButton(
           onPressed: () {},
-          child: const Text(
-            '있을래',
-          ),
+          text: '있을게요',
+          color: Theme.of(context).colorScheme.primary,
+          textColor: Theme.of(context).colorScheme.surface,
         )
       ],
     ),
@@ -75,6 +80,9 @@ Widget errorCusmtomAlertDialog(BuildContext context) {
     child: CustomAlertDialog.error(
       title: Text(
         titleText,
+        style: const TextStyle(
+          fontSize: 16,
+        ),
       ),
       content: Text(
         contentText,
@@ -82,16 +90,12 @@ Widget errorCusmtomAlertDialog(BuildContext context) {
       actionsAlignment: MainAxisAlignment.spaceBetween,
       alignment: Alignment.center,
       actions: [
-        FilledButton(
+        ModalErrorButton(
           onPressed: () {},
-          style: FilledButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.error,
-            foregroundColor: Theme.of(context).colorScheme.onError,
-          ),
-          child: const Text(
-            '확인',
-          ),
-        ),
+          text: '확인',
+          color: Theme.of(context).colorScheme.error,
+          textColor: Theme.of(context).colorScheme.surface,
+        )
       ],
     ),
   );

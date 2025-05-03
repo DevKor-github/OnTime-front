@@ -126,9 +126,6 @@ class _ScheduleStartScreenModal extends StatelessWidget {
           color: Theme.of(context).colorScheme.surfaceContainerLow,
           textColor: Theme.of(context).colorScheme.outline,
         ),
-        SizedBox(
-          width: 2,
-        ),
         ModalButton(
           onPressed: () => Navigator.pop(context),
           text: '있을래요',

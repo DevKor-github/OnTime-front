@@ -277,7 +277,9 @@ class _DialogDefaults extends DialogThemeData {
   Color? get surfaceTintColor => Colors.transparent;
 
   @override
-  TextStyle? get titleTextStyle => _textTheme.headlineSmall;
+  TextStyle? get titleTextStyle => _textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+      );
 
   @override
   TextStyle? get contentTextStyle => _textTheme.bodyMedium;

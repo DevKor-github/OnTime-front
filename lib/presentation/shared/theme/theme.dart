@@ -124,6 +124,15 @@ ThemeData themeData = ThemeData(
     shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
   )),
+  dialogTheme: DialogTheme(
+    backgroundColor: colorScheme.surface,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+    titleTextStyle:
+        textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
+    contentTextStyle: textTheme.bodyMedium,
+  ),
   extensions: <ThemeExtension<dynamic>>[
     TileStyle(
       backgroundColor: colorScheme.surfaceContainerLow,

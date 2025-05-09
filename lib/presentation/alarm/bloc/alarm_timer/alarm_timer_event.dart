@@ -60,3 +60,7 @@ class AlarmTimerStepsUpdated extends AlarmTimerEvent {
   @override
   List<Object?> get props => [preparationSteps];
 }
+
+class AlarmTimerPreparationsTimeOvered extends AlarmTimerEvent {
+  const AlarmTimerPreparationsTimeOvered();
+}

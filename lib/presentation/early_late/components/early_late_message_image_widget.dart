@@ -24,11 +24,11 @@ class EarlyLateMessageImageWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 100),
         SvgPicture.asset(
           'characters/character.svg',
           package: 'assets',
-          height: screenHeight * 0.25,
+          height: screenHeight * 0.4,
         ),
       ],
     );

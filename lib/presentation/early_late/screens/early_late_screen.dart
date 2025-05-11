@@ -41,17 +41,6 @@ class EarlyLateScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _CheckListBoxSection(
-                        screenWidth: MediaQuery.of(context).size.width,
-                        screenHeight: MediaQuery.of(context).size.height,
-                        checkList: ["우산 챙기기", "지갑 챙기기", "문 잠그기"],
-                        checkedStates: state.checklist,
-                        onItemToggled: (index) {
-                          context
-                              .read<EarlyLateScreenBloc>()
-                              .add(ChecklistItemToggled(index));
-                        },
-                      ),
                     ],
                   );
                 }

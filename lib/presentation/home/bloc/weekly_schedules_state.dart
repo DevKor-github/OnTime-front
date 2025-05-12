@@ -2,7 +2,7 @@ part of 'weekly_schedules_bloc.dart';
 
 enum WeeklySchedulesStatus { initial, loading, success, error }
 
-final class WeeklySchedulesState extends Equatable {
+final class WeeklySchedulesState {
   const WeeklySchedulesState(
       {this.status = WeeklySchedulesStatus.initial, this.schedules = const []});
 
@@ -32,8 +32,9 @@ final class WeeklySchedulesState extends Equatable {
   }
 
   @override
-  List<Object> get props => [
-        status,
-        ...schedules,
-      ];
+  operator ==(Object other) {
+    return other is WeeklySchedulesState &&
+        other.status == status &&
+        other.schedules == schedules;
+  }
 }

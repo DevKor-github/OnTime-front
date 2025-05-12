@@ -37,9 +37,15 @@ class NotificationService {
     }
   }
 
+  Future<AuthorizationStatus> checkNotificationPermission() async {
+    final settings = await _messaging.getNotificationSettings();
+    return settings.authorizationStatus;
+  }
+
   Future<void> requestNotificationToken() async {
-    if (kIsWeb) {
-      return;
+    final notificationAuthorizationStatus = await checkNotificationPermission();
+    if (notificationAuthorizationStatus != AuthorizationStatus.authorized) {
+      initialize();
     }
     // Get FCM token
     final token = await _messaging.getToken();

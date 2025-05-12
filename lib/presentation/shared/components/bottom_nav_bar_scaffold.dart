@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
+import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class BottomNavBarScaffold extends StatefulWidget {
@@ -73,6 +77,7 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           width: 76,
           child: FilledButton(
             onPressed: () {
+              NotificationService.instance.requestNotificationToken();
               context.go('/scheduleCreate');
             },
             style: FilledButton.styleFrom(

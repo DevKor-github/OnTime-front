@@ -4,7 +4,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/notification_request_service/shared.dart';
+import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
+import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
@@ -32,9 +35,22 @@ class NotificationService {
         print('APNs Token: $APNSToken');
       }
     }
+  }
+
+  Future<void> requestNotificationToken() async {
+    if (kIsWeb) {
+      return;
+    }
     // Get FCM token
     final token = await _messaging.getToken();
     print('FCM Token: $token');
+    if (token != null) {
+      // Register FCM token with your server
+      print('Registering FCM token: $token');
+      getIt.get<NotificationRemoteDataSource>().fcmTokenRegister(
+            FcmTokenRegisterRequestModel(firebaseToken: token),
+          );
+    }
   }
 
   Future<void> setupFlutterNotifications() async {

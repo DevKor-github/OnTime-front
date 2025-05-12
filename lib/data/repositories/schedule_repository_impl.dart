@@ -81,9 +81,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> updateSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.updateSchedule(schedule);
-      _scheduleStreamController.add(Set.from(_scheduleStreamController.value)
-        ..remove(schedule)
-        ..add(schedule));
+      final newSchedules =
+          Set<ScheduleEntity>.from(_scheduleStreamController.value);
+      newSchedules.removeWhere((s) => s.id == schedule.id);
+      newSchedules.add(schedule);
+      _scheduleStreamController.add(newSchedules);
       //await scheduleLocalDataSource.updateSchedule(schedule);
     } catch (e) {
       rethrow;

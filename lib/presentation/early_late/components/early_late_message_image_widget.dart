@@ -4,11 +4,13 @@ import 'package:flutter_svg/svg.dart';
 class EarlyLateMessageImageWidget extends StatelessWidget {
   final double screenHeight;
   final String earlylateMessage;
+  final String earlylateImage;
 
   const EarlyLateMessageImageWidget({
     super.key,
     required this.screenHeight,
     required this.earlylateMessage,
+    required this.earlylateImage,
   });
 
   @override
@@ -24,11 +26,11 @@ class EarlyLateMessageImageWidget extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 100),
         SvgPicture.asset(
-          'characters/character.svg',
+          'characters/$earlylateImage',
           package: 'assets',
-          height: screenHeight * 0.25,
+          height: screenHeight * 0.4,
         ),
       ],
     );

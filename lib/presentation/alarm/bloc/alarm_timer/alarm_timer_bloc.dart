@@ -14,11 +14,18 @@ part 'alarm_timer_state.dart';
 class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   StreamSubscription<int>? _tickerSubscription;
 
+  // 타이머 시작 기준 시각
+  DateTime? _stepStartTime;
+  DateTime? _beforeOutStartTime;
+
+  final int _initialBeforeOutTime;
+
   AlarmTimerBloc({
     required List<PreparationStepEntity> preparationSteps,
     required int beforeOutTime,
     required bool isLate,
-  }) : super(AlarmTimerInitial(
+  })  : _initialBeforeOutTime = beforeOutTime,
+        super(AlarmTimerInitial(
           preparationSteps: preparationSteps,
           currentStepIndex: 0,
           stepElapsedTimes: List.generate(preparationSteps.length, (_) => 0),
@@ -57,6 +64,11 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
 
   void _onStepStarted(
       AlarmTimerStepStarted event, Emitter<AlarmTimerState> emit) {
+    // 실제 시작 시간 저장
+    _stepStartTime = DateTime.now();
+    // 최초 기록
+    _beforeOutStartTime ??= DateTime.now();
+
     final updatedStates =
         List<PreparationStateEnum>.from(state.preparationStepStates);
     updatedStates[state.currentStepIndex] = PreparationStateEnum.now;
@@ -100,25 +112,42 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     }
   }
 
+  // 타이머 시작 메서드
   void _startTicker(int duration, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
-    _tickerSubscription = Stream.periodic(const Duration(seconds: 1), (x) => x)
-        .take(duration)
-        .listen((tick) {
-      final newElapsed = tick + 1;
-      final newRemaining = duration - newElapsed;
-      final updatedTotalRemaining = state.totalRemainingTime - 1;
 
-      final updatedBeforeOutTime = state.beforeOutTime - 1;
+    if (_stepStartTime == null || _beforeOutStartTime == null) {
+      print("_stepStartTime or _beforeOutStartTime is null");
+      return;
+    }
+
+    _tickerSubscription =
+        Stream<int>.periodic(const Duration(seconds: 1), (tick) => tick)
+            .listen((_) {
+      if (isClosed) return;
+
+      final now = DateTime.now();
+      final elapsed = now.difference(_stepStartTime!).inSeconds;
+      final newRemaining = duration - elapsed;
+      final totalRemaining = state.totalPreparationTime - elapsed;
+
+      final beforeOutElapsed = now.difference(_beforeOutStartTime!).inSeconds;
+      final updatedBeforeOutTime = _initialBeforeOutTime - beforeOutElapsed;
       final updatedIsLate = updatedBeforeOutTime <= 0;
 
-      add(AlarmTimerStepTicked(
-        preparationRemainingTime: newRemaining,
-        preparationElapsedTime: newElapsed,
-        totalRemainingTime: updatedTotalRemaining,
-        beforeOutTime: updatedBeforeOutTime,
-        isLate: updatedIsLate,
-      ));
+      if (newRemaining >= 0) {
+        print("타이머 tick: $newRemaining초 남음");
+        add(AlarmTimerStepTicked(
+          preparationRemainingTime: newRemaining,
+          preparationElapsedTime: elapsed,
+          totalRemainingTime: totalRemaining,
+          beforeOutTime: updatedBeforeOutTime,
+          isLate: updatedIsLate,
+        ));
+      } else {
+        print("타이머 완료됨");
+        add(const AlarmTimerStepNextShifted());
+      }
     });
   }
 
@@ -181,25 +210,31 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
   }
 
   Future<void> _onStepFinalized(
-      AlarmTimerStepFinalized event, Emitter<AlarmTimerState> emit) async {
+    AlarmTimerStepFinalized event,
+    Emitter<AlarmTimerState> emit,
+  ) async {
     await _tickerSubscription?.cancel();
 
-    emit(state.copyWith(progress: 1.0));
+    if (!emit.isDone) {
+      emit(state.copyWith(progress: 1.0));
+    }
 
     await Future.delayed(const Duration(milliseconds: 500));
 
-    emit(AlarmTimerPreparationCompletion(
-      preparationSteps: state.preparationSteps,
-      currentStepIndex: state.currentStepIndex,
-      stepElapsedTimes: state.stepElapsedTimes,
-      preparationStepStates: state.preparationStepStates,
-      preparationRemainingTime: 0,
-      totalRemainingTime: 0,
-      totalPreparationTime: state.totalPreparationTime,
-      progress: 1.0,
-      beforeOutTime: state.beforeOutTime,
-      isLate: state.isLate,
-    ));
+    if (!emit.isDone) {
+      emit(AlarmTimerPreparationCompletion(
+        preparationSteps: state.preparationSteps,
+        currentStepIndex: state.currentStepIndex,
+        stepElapsedTimes: state.stepElapsedTimes,
+        preparationStepStates: state.preparationStepStates,
+        preparationRemainingTime: 0,
+        totalRemainingTime: 0,
+        totalPreparationTime: state.totalPreparationTime,
+        progress: 1.0,
+        beforeOutTime: state.beforeOutTime,
+        isLate: state.isLate,
+      ));
+    }
   }
 
   @override

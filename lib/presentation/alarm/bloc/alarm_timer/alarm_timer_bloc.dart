@@ -136,7 +136,6 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       final updatedIsLate = updatedBeforeOutTime <= 0;
 
       if (newRemaining >= 0) {
-        print("타이머 tick: $newRemaining초 남음");
         add(AlarmTimerStepTicked(
           preparationRemainingTime: newRemaining,
           preparationElapsedTime: elapsed,
@@ -145,7 +144,6 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
           isLate: updatedIsLate,
         ));
       } else {
-        print("타이머 완료됨");
         add(const AlarmTimerStepNextShifted());
       }
     });

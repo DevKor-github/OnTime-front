@@ -111,7 +111,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       add(const AlarmTimerStepNextShifted());
     }
   }
-  
+
   // 타이머 시작 메서드
   void _startTicker(int duration, Emitter<AlarmTimerState> emit) {
     _tickerSubscription?.cancel();
@@ -136,6 +136,7 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       final updatedIsLate = updatedBeforeOutTime <= 0;
 
       if (newRemaining >= 0) {
+        print("타이머 tick: $newRemaining초 남음");
         add(AlarmTimerStepTicked(
           preparationRemainingTime: newRemaining,
           preparationElapsedTime: elapsed,
@@ -144,9 +145,9 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
           isLate: updatedIsLate,
         ));
       } else {
+        print("타이머 완료됨");
         add(const AlarmTimerStepNextShifted());
       }
-
     });
   }
 
@@ -263,33 +264,6 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
       isLate: state.isLate,
     ));
 
-@override
-  Future<void> close() {
-    _tickerSubscription?.cancel();
-    return super.close();
-  }
-
-  void _onPreparationsTimeOvered(
-    AlarmTimerPreparationsTimeOvered event,
-    Emitter<AlarmTimerState> emit,
-  ) {
-    final updatedStates =
-        List<PreparationStateEnum>.from(state.preparationStepStates);
-    updatedStates[state.currentStepIndex] = PreparationStateEnum.done;
-
-    emit(AlarmTimerPreparationsTimeOver(
-      preparationSteps: state.preparationSteps,
-      currentStepIndex: state.currentStepIndex,
-      stepElapsedTimes: state.stepElapsedTimes,
-      preparationStepStates: updatedStates,
-      preparationRemainingTime: 0,
-      totalRemainingTime: 0,
-      totalPreparationTime: state.totalPreparationTime,
-      progress: 1.0,
-      beforeOutTime: state.beforeOutTime,
-      isLate: state.isLate,
-    ));
-
     _tickerSubscription?.cancel();
     _tickerSubscription =
         Stream.periodic(const Duration(seconds: 1), (x) => x).listen((tick) {
@@ -305,4 +279,3 @@ class AlarmTimerBloc extends Bloc<AlarmTimerEvent, AlarmTimerState> {
     });
   }
 }
-

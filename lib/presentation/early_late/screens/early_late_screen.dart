@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/early_late/bloc/early_late_screen_bloc.dart';
 import 'package:on_time_front/presentation/early_late/components/check_list_box_widget.dart';
 import 'package:on_time_front/presentation/early_late/components/early_late_message_image_widget.dart';
@@ -38,19 +39,8 @@ class EarlyLateScreen extends StatelessWidget {
                           isLate: isLate,
                           screenHeight: MediaQuery.of(context).size.height,
                           earlylateMessage: state.earlylateMessage,
+                          earlylateImage: state.earlylateImage,
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      _CheckListBoxSection(
-                        screenWidth: MediaQuery.of(context).size.width,
-                        screenHeight: MediaQuery.of(context).size.height,
-                        checkList: ["우산 챙기기", "지갑 챙기기", "문 잠그기"],
-                        checkedStates: state.checklist,
-                        onItemToggled: (index) {
-                          context
-                              .read<EarlyLateScreenBloc>()
-                              .add(ChecklistItemToggled(index));
-                        },
                       ),
                     ],
                   );
@@ -71,12 +61,14 @@ class _EarlyLateSection extends StatelessWidget {
   final bool isLate;
   final double screenHeight;
   final String earlylateMessage;
+  final String earlylateImage;
 
   const _EarlyLateSection({
     required this.earlyLateTime,
     required this.isLate,
     required this.screenHeight,
     required this.earlylateMessage,
+    required this.earlylateImage,
   });
 
   @override
@@ -92,6 +84,7 @@ class _EarlyLateSection extends StatelessWidget {
           EarlyLateMessageImageWidget(
             screenHeight: screenHeight,
             earlylateMessage: earlylateMessage,
+            earlylateImage: earlylateImage,
           ),
         ],
       ),
@@ -177,7 +170,9 @@ class _ButtonSection extends StatelessWidget {
       child: Center(
         child: Button(
           text: '까먹지 않고 출발',
-          onPressed: () {},
+          onPressed: () {
+            context.go('/home');
+          },
         ),
       ),
     );

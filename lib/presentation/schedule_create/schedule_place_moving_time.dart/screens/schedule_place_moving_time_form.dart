@@ -38,6 +38,9 @@ class _SchedulePlaceMovingTimeFormState
           TextFormField(
             decoration: InputDecoration(
                 labelText: '약속 장소',
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 floatingLabelBehavior: FloatingLabelBehavior.always),
             initialValue: state.placeName.value,
             focusNode: _placeFocusNode,
@@ -48,12 +51,20 @@ class _SchedulePlaceMovingTimeFormState
                   .placeNameChanged(newValue);
             },
           ),
+          SizedBox(
+            height: 15,
+          ),
           Row(
             children: [
               Expanded(
                 child: TextField(
                   readOnly: true,
-                  decoration: InputDecoration(labelText: '이동 소요 시간'),
+                  decoration: InputDecoration(
+                    labelText: '이동 소요 시간',
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                   focusNode: _timeFocusNode,
                   textInputAction: TextInputAction.done,
                   controller: TextEditingController(

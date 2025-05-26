@@ -19,7 +19,6 @@ void main() async {
   } else {
     await Firebase.initializeApp();
   }
-  NotificationService.instance.initialize();
   debugPrint(DeviceInfoService.isInStandaloneMode.toString());
   runApp(App());
 }

@@ -124,6 +124,23 @@ ThemeData themeData = ThemeData(
     shape: WidgetStatePropertyAll(
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
   )),
+  filledButtonTheme: FilledButtonThemeData(
+    style: ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return colorScheme.surfaceDim;
+          } else {
+            return colorScheme.primary;
+          }
+        },
+      ),
+      foregroundColor: WidgetStatePropertyAll(colorScheme.onPrimary),
+      textStyle: WidgetStatePropertyAll(textTheme.titleSmall),
+      shape: WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+    ),
+  ),
   dialogTheme: DialogTheme(
     backgroundColor: colorScheme.surface,
     shape: RoundedRectangleBorder(

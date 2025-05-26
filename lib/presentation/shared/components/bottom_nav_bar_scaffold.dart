@@ -77,7 +77,6 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           width: 76,
           child: FilledButton(
             onPressed: () {
-              NotificationService.instance.requestNotificationToken();
               context.go('/scheduleCreate');
             },
             style: FilledButton.styleFrom(

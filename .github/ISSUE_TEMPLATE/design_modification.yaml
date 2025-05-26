@@ -1,0 +1,35 @@
+name: UI Compoent Design Modification
+description: File a design modification
+projects: ["DevKor-github/3"]
+title: "[Feature]: (컴포넌트(페이지) 이름) (수정 사항)"
+labels: ["component"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        디자인 수정사항에 대해서 작성해 주세요~~ 😊
+  - type: input
+    attributes:
+      label: 컴포넌트(화면) 이름
+      description: 변경사항이 있는 면포넌트 이름을 입력해 주세요. 피그마에서 어디서 확인할 수 있는지도 입력해 주시면 감사하겠습니다.
+      placeholder: Tile (Figma 디자인시스템 페이지 -> List)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 수정 사항
+      description: 수정된 사항에 대해서 설명해주세요
+      placeholder: 배경 색상이 primary에서 primary container로 변경되었습니다.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 이미지
+      description: 가능하다면 해당 피그마를 이미지로 복사하여 붙여넣기 해주세요.
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        감사합니다. 최대한 빠르게 수정하도록 하겠습니다. ❤️
+  

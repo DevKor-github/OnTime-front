@@ -29,5 +29,5 @@ function showNotification(title, body) {
 self.addEventListener("push", (event) => {
   const data = event.data.json();
   console.log("New notification", data.data);
-  //event.waitUntil(showNotification(data.data.title, data.data.content));
+  event.waitUntil(showNotification(data.data.title, data.data.content));
 });

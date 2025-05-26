@@ -1,7 +1,9 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
+import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
@@ -12,6 +14,7 @@ import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
 import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
 import 'package:on_time_front/presentation/moving/screens/moving_screen.dart';
+import 'package:on_time_front/presentation/notification_allow/screens/notification_allow_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_start_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/screens/preparation_edit_form.dart';
@@ -26,7 +29,7 @@ GoRouter goRouterConfig(AppBloc bloc) {
   return GoRouter(
     refreshListenable: StreamToListenable([bloc.stream]),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
-    redirect: (BuildContext context, GoRouterState state) {
+    redirect: (BuildContext context, GoRouterState state) async {
       final status = bloc.state.status;
       final bool onSignInScreen = state.fullPath == '/signIn';
       final bool onOnbaordingStartScreen =
@@ -38,6 +41,11 @@ GoRouter goRouterConfig(AppBloc bloc) {
           return '/signIn';
         case AppStatus.authenticated:
           if (onSignInScreen || onOnboardingScreen || onOnbaordingStartScreen) {
+            final permission = await NotificationService.instance
+                .checkNotificationPermission();
+            if (permission != AuthorizationStatus.authorized) {
+              return '/allowNotification';
+            }
             return '/home';
           } else {
             return null;
@@ -54,6 +62,12 @@ GoRouter goRouterConfig(AppBloc bloc) {
     },
     initialLocation: '/home',
     routes: [
+      GoRoute(
+        path: '/allowNotification',
+        builder: (context, state) {
+          return NotificationAllowScreen();
+        },
+      ),
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => OnboardingScreen(),

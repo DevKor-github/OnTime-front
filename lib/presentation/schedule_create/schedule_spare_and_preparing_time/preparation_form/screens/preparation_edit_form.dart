@@ -40,6 +40,9 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                             context.pop(state.toPreparationEntity());
                           }
                         : null,
+                    // 버튼 활성화 여부 상태
+                    isNextButtonEnabled: state.isValid,
+
                     onPreviousPageButtonClicked: context.pop,
                   ),
                   Expanded(

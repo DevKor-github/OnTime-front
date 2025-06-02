@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
 class TopBar extends StatelessWidget {
-  const TopBar(
-      {super.key,
-      required this.onNextPageButtonClicked,
-      required this.onPreviousPageButtonClicked});
+  const TopBar({
+    super.key,
+    required this.onNextPageButtonClicked,
+    required this.onPreviousPageButtonClicked,
+    required this.isNextButtonEnabled,
+  });
 
   final void Function()? onNextPageButtonClicked;
   final void Function() onPreviousPageButtonClicked;
+  final bool isNextButtonEnabled; // 버튼 활성화 여부
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +28,8 @@ class TopBar extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium)),
         ),
         TextButton(
-          child: const Text('다음'),
           onPressed: onNextPageButtonClicked,
+          child: const Text('다음'),
         ),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class BottomNavBarScaffold extends StatefulWidget {
@@ -72,8 +73,16 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           height: 76,
           width: 76,
           child: FilledButton(
+            // onPressed: () {
+            //   context.go('/scheduleCreate');
+            // },
             onPressed: () {
-              context.go('/scheduleCreate');
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => ScheduleCreateScreen(),
+              );
             },
             style: FilledButton.styleFrom(
               shape: CircleBorder(),

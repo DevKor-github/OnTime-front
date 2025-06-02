@@ -83,6 +83,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                   onNextPageButtonClicked: state.isValid
                       ? () => _onNextPageButtonClicked(context)
                       : null,
+                  isNextButtonEnabled: state.isValid,
                   onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
                 ),
                 StepProgress(
@@ -130,7 +131,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
       widget.onSaved?.call();
-      context.go('/home');
+      // context.go('/home');
+      Navigator.of(context).pop(); // Close the form
     }
   }
 
@@ -138,7 +140,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     if (_tabController.index > 0) {
       _updateCurrentPageIndex(_tabController.index - 1);
     } else {
-      context.go('/home');
+      // context.go('/home');
+      Navigator.of(context).pop(); // Close the form
     }
   }
 

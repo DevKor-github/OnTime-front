@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
+import 'package:on_time_front/presentation/shared/theme/button_styles.dart';
 
 ColorScheme _colorScheme = ColorScheme(
   brightness: Brightness.light,
@@ -137,22 +138,8 @@ ThemeData themeData = ThemeData(
     padding: WidgetStatePropertyAll(const EdgeInsets.all(0.0)),
   )),
   elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-    backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-      (Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return _colorScheme.surfaceDim;
-        } else {
-          return _colorScheme.primary;
-        }
-      },
-    ),
-    foregroundColor: WidgetStatePropertyAll(_colorScheme.onPrimary),
-    textStyle: WidgetStatePropertyAll(_textTheme.titleSmall),
-    maximumSize: WidgetStatePropertyAll(const Size(double.infinity, 50)),
-    shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-  )),
+    style: AppButtonStyles.primary(_colorScheme, _textTheme),
+  ),
   dialogTheme: DialogTheme(
     backgroundColor: _colorScheme.surface,
     shape: RoundedRectangleBorder(

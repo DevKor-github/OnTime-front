@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
+import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class OnboardingStartScreen extends StatelessWidget {
   const OnboardingStartScreen({super.key});

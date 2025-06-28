@@ -3,7 +3,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
 
@@ -85,11 +84,11 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 30),
-                  child: Button(
-                    text: '준비 시작',
+                  child: ElevatedButton(
                     onPressed: () async {
                       context.go('/alarmScreen', extra: widget.schedule);
                     },
+                    child: const Text('준비 시작'),
                   ),
                 ),
               ],

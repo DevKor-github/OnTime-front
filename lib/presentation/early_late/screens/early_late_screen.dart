@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/early_late/bloc/early_late_screen_bloc.dart';
 import 'package:on_time_front/presentation/early_late/components/check_list_box_widget.dart';
 import 'package:on_time_front/presentation/early_late/components/early_late_message_image_widget.dart';
-import 'package:on_time_front/presentation/shared/components/button.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class EarlyLateScreen extends StatelessWidget {
@@ -168,11 +167,11 @@ class _ButtonSection extends StatelessWidget {
       left: 0,
       right: 0,
       child: Center(
-        child: Button(
-          text: '까먹지 않고 출발',
+        child: ElevatedButton(
           onPressed: () {
             context.go('/home');
           },
+          child: const Text('까먹지 않고 출발'),
         ),
       ),
     );

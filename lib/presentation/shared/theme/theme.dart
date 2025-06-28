@@ -4,6 +4,7 @@ import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 import 'package:on_time_front/presentation/shared/theme/button_styles.dart';
 import 'package:on_time_front/presentation/shared/theme/text_theme.dart';
+import 'package:on_time_front/presentation/shared/theme/input_decoration_theme.dart';
 
 ColorScheme _colorScheme = ColorScheme(
   brightness: Brightness.light,
@@ -32,8 +33,8 @@ ColorScheme _colorScheme = ColorScheme(
   surfaceContainerHigh: AppColors.grey.shade300,
   surfaceContainerHighest: AppColors.grey.shade400,
   onSurface: AppColors.grey[950]!,
-  outline: AppColors.grey.shade600,
   outlineVariant: AppColors.grey.shade400,
+  outline: AppColors.grey.shade600,
 );
 
 TextTheme _textTheme = AppTextTheme.create(_colorScheme);
@@ -54,6 +55,8 @@ ThemeData themeData = ThemeData(
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: AppButtonStyles.primary(_colorScheme, _textTheme),
   ),
+  inputDecorationTheme:
+      AppInputDecorationTheme.create(_colorScheme, _textTheme),
   dialogTheme: DialogTheme(
     backgroundColor: _colorScheme.surface,
     shape: RoundedRectangleBorder(

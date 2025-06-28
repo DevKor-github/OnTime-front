@@ -17,10 +17,7 @@ class _ScheduleNameFormState extends State<ScheduleNameForm> {
     return BlocBuilder<ScheduleNameCubit, ScheduleNameState>(
         builder: (context, state) {
       return TextFormField(
-        decoration: InputDecoration(
-            labelText: '약속 이름',
-            floatingLabelBehavior: FloatingLabelBehavior.always,
-            hintText: 'adsflksdfj'),
+        decoration: InputDecoration(labelText: '약속 이름', hintText: '예) OO과 데이트'),
         textInputAction: TextInputAction.done,
         initialValue: state.scheduleName.value,
         onChanged: (scheduleName) {

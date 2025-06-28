@@ -24,7 +24,6 @@ class ScheduleDateTimeForm extends StatelessWidget {
               readOnly: true,
               decoration: InputDecoration(
                 labelText: '약속 시간',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
                 hintText:
                     '${DateTime.now().year}년 ${DateTime.now().month}월 ${DateTime.now().day}일',
               ),
@@ -56,7 +55,6 @@ class ScheduleDateTimeForm extends StatelessWidget {
               readOnly: true,
               decoration: InputDecoration(
                   labelText: '',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
                   hintText:
                       '${DateTime.now().hour}시 ${DateTime.now().minute}분'),
               controller: TextEditingController(

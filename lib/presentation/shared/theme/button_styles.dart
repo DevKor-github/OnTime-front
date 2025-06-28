@@ -6,8 +6,9 @@ class AppButtonStyles {
 
   // Method to create button styles with the provided theme data
   static ButtonStyle _baseButtonStyle(TextTheme textTheme) => ButtonStyle(
+        padding: WidgetStatePropertyAll(const EdgeInsets.all(16.0)),
+        visualDensity: VisualDensity.standard,
         textStyle: WidgetStatePropertyAll(textTheme.titleMedium),
-        maximumSize: const WidgetStatePropertyAll(Size(double.infinity, 50)),
         shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         elevation: const WidgetStatePropertyAll(0),
@@ -26,15 +27,7 @@ class AppButtonStyles {
           }
         },
       ),
-      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return colorScheme.onSurface.withOpacity(0.38);
-          } else {
-            return colorScheme.onPrimary;
-          }
-        },
-      ),
+      foregroundColor: WidgetStateProperty.all(colorScheme.onPrimary),
     );
   }
 

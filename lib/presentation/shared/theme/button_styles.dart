@@ -6,7 +6,7 @@ class AppButtonStyles {
 
   // Method to create button styles with the provided theme data
   static ButtonStyle _baseButtonStyle(TextTheme textTheme) => ButtonStyle(
-        textStyle: WidgetStatePropertyAll(textTheme.titleSmall),
+        textStyle: WidgetStatePropertyAll(textTheme.titleMedium),
         maximumSize: const WidgetStatePropertyAll(Size(double.infinity, 50)),
         shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
@@ -14,7 +14,8 @@ class AppButtonStyles {
       );
 
   // Primary button style (colorScheme.primary)
-  static ButtonStyle primary(ColorScheme colorScheme, TextTheme textTheme) {
+  static ButtonStyle elevatedPrimary(
+      ColorScheme colorScheme, TextTheme textTheme) {
     return _baseButtonStyle(textTheme).copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color?>(
         (Set<WidgetState> states) {
@@ -38,7 +39,8 @@ class AppButtonStyles {
   }
 
   // Primary container variant style (colorScheme.primaryContainer)
-  static ButtonStyle secondary(ColorScheme colorScheme, TextTheme textTheme) {
+  static ButtonStyle elevatedSecondary(
+      ColorScheme colorScheme, TextTheme textTheme) {
     return _baseButtonStyle(textTheme).copyWith(
       backgroundColor: WidgetStateProperty.resolveWith<Color?>(
         (Set<WidgetState> states) {
@@ -55,6 +57,22 @@ class AppButtonStyles {
             return colorScheme.onSurface.withOpacity(0.38);
           } else {
             return colorScheme.onPrimaryContainer;
+          }
+        },
+      ),
+    );
+  }
+
+  static ButtonStyle textPrimary(ColorScheme colorScheme, TextTheme textTheme) {
+    return _baseButtonStyle(textTheme).copyWith(
+      textStyle: WidgetStateProperty.all(textTheme.titleLarge),
+      padding: WidgetStatePropertyAll(const EdgeInsets.all(0.0)),
+      foregroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return colorScheme.outlineVariant.withOpacity(0.38);
+          } else {
+            return colorScheme.primary;
           }
         },
       ),

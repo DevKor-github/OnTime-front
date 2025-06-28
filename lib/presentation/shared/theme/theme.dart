@@ -47,13 +47,10 @@ ThemeData themeData = ThemeData(
   fontFamily: 'Pretendard',
   textTheme: _textTheme,
   textButtonTheme: TextButtonThemeData(
-      style: ButtonStyle(
-    foregroundColor: WidgetStatePropertyAll(_colorScheme.primary),
-    textStyle: WidgetStatePropertyAll(_textTheme.titleSmall),
-    padding: WidgetStatePropertyAll(const EdgeInsets.all(0.0)),
-  )),
+    style: AppButtonStyles.textPrimary(_colorScheme, _textTheme),
+  ),
   elevatedButtonTheme: ElevatedButtonThemeData(
-    style: AppButtonStyles.primary(_colorScheme, _textTheme),
+    style: AppButtonStyles.elevatedPrimary(_colorScheme, _textTheme),
   ),
   inputDecorationTheme:
       AppInputDecorationTheme.create(_colorScheme, _textTheme),

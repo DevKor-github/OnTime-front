@@ -4,7 +4,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/services/js_interop_service.dart';
 import 'package:on_time_front/core/services/notification_request_service/shared.dart';
+import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
+import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
@@ -20,12 +24,36 @@ class NotificationService {
   Future<void> initialize() async {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // Request permission
-    final String authorizationStatus = await requestNotificationPermission();
-    print('Permission status: $authorizationStatus');
-
+    await _requestPermission();
     // Setup message handlers
     await _setupMessageHandlers();
+  }
+
+  Future<AuthorizationStatus> checkNotificationPermission() async {
+    final settings = await _messaging.getNotificationSettings();
+    return settings.authorizationStatus;
+  }
+
+  Future<void> _requestPermission() async {
+    if (kIsWeb) {
+      final permission = await JsInteropService.requestNotificationPermission();
+      print('Permission status: $permission');
+    } else {
+      final settings = await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+        announcement: false,
+        carPlay: false,
+        criticalAlert: false,
+      );
+
+      print('Permission status: ${settings.authorizationStatus}');
+    }
+  }
+
+  Future<void> requestNotificationToken() async {
     if (!kIsWeb) {
       if (Platform.isIOS) {
         final APNSToken = await _messaging.getAPNSToken();
@@ -34,7 +62,15 @@ class NotificationService {
     }
     // Get FCM token
     final token = await _messaging.getToken();
+
     print('FCM Token: $token');
+    if (token != null) {
+      // Register FCM token with your server
+      print('Registering FCM token: $token');
+      getIt.get<NotificationRemoteDataSource>().fcmTokenRegister(
+            FcmTokenRegisterRequestModel(firebaseToken: token),
+          );
+    }
   }
 
   Future<void> setupFlutterNotifications() async {

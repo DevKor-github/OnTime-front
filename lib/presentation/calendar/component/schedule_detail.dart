@@ -99,7 +99,6 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   Widget _buildScheduleContent(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      height: 82,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
@@ -120,13 +119,9 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
               ),
               const _VerticalDivider(),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0) +
-                      const EdgeInsets.only(top: 4.0),
-                  child: _ScheduleDetailsColumn(
-                    scheduleName: widget.schedule.scheduleName,
-                    placeName: widget.schedule.place.placeName,
-                  ),
+                child: _ScheduleDetailsColumn(
+                  schedule: widget.schedule,
+                  placeName: widget.schedule.place.placeName,
                 ),
               ),
             ],
@@ -170,26 +165,30 @@ class _ScheduleTimeColumn extends StatelessWidget {
 
 class _ScheduleDetailsColumn extends StatelessWidget {
   const _ScheduleDetailsColumn(
-      {required this.scheduleName, required this.placeName});
+      {required this.schedule, required this.placeName});
 
-  final String scheduleName;
+  final ScheduleEntity schedule;
   final String placeName;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Text(
-          scheduleName,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0) +
+          const EdgeInsets.only(top: 4.0),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(bottom: 8.0),
+        shape: const Border(),
+        collapsedShape: const Border(),
+        title: Text(
+          schedule.scheduleName,
           style: theme.textTheme.titleLarge,
         ),
-        const SizedBox(height: 4),
-        Row(
+        subtitle: Row(
           children: [
             const _MapPinFillSvg(),
+            const SizedBox(width: 4),
             Text(
               placeName,
               style: theme.textTheme.bodySmall?.copyWith(
@@ -197,6 +196,72 @@ class _ScheduleDetailsColumn extends StatelessWidget {
               ),
             ),
           ],
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 0.0),
+            child: Column(
+              children: [
+                ScheduleInfoTile(
+                  label: '이동시간',
+                  value:
+                      '${schedule.scheduleTime.hour}시간 ${schedule.scheduleTime.minute}분',
+                ),
+                //TODO: add preparation time
+                ScheduleInfoTile(
+                  label: '여유시간',
+                  value: '${schedule.scheduleSpareTime?.inMinutes}분',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ScheduleInfoTile extends StatelessWidget {
+  const ScheduleInfoTile({super.key, required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          height: 22.18,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 18,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: const Color(0xFF777777),
+                  fontSize: 12,
+                  fontFamily: 'Pretendard',
+                  fontWeight: FontWeight.w400,
+                  height: 1.40,
+                ),
+              ),
+              Text(
+                value,
+                style: TextStyle(
+                  color: const Color(0xFF111111),
+                  fontSize: 13,
+                  fontFamily: 'Pretendard',
+                  fontWeight: FontWeight.w400,
+                  height: 1.40,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

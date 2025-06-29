@@ -99,6 +99,8 @@ ThemeData themeData = ThemeData(
   brightness: Brightness.light,
   splashFactory: NoSplash.splashFactory,
   highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+  splashColor: Colors.transparent,
   fontFamily: 'Pretendard',
   textTheme: textTheme,
   textButtonTheme: TextButtonThemeData(

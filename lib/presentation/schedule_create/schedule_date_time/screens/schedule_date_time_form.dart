@@ -48,7 +48,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: 16,
+            width: 30,
           ),
           Expanded(
             flex: 1,
@@ -57,12 +57,25 @@ class ScheduleDateTimeForm extends StatelessWidget {
               decoration: InputDecoration(
                   labelText: '',
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  hintText:
-                      '${DateTime.now().hour}시 ${DateTime.now().minute}분'),
+                  hintText: () {
+                    final now = DateTime.now();
+                    final period = now.hour >= 12 ? '오후' : '오전';
+                    final hour12 = now.hour % 12 == 0 ? 12 : now.hour % 12;
+                    final minute = now.minute.toString().padLeft(2, '0');
+                    return '$period $hour12:$minute';
+                  }()),
               controller: TextEditingController(
-                  text: state.scheduleTime.value == null
-                      ? null
-                      : '${state.scheduleTime.value!.hour > 12 ? '오후' : '오전'} ${state.scheduleTime.value!.hour % 12}:${state.scheduleTime.value!.minute}'),
+                text: state.scheduleTime.value == null
+                    ? null
+                    : () {
+                        final time = state.scheduleTime.value!;
+                        final period = time.hour >= 12 ? '오후' : '오전';
+                        final hour12 =
+                            time.hour % 12 == 0 ? 12 : time.hour % 12;
+                        final minute = time.minute.toString().padLeft(2, '0');
+                        return '$period $hour12:$minute';
+                      }(),
+              ),
               onTap: () {
                 context.showCupertinoDatePickerModal(
                   title: '시간을 입력해주세요.',

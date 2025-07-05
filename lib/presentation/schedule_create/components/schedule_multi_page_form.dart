@@ -132,7 +132,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
       widget.onSaved?.call();
-      context.go('/home');
+      Navigator.of(context).pop(); // Close the form
+      // context.go('/home');
     }
   }
 
@@ -140,7 +141,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     if (_tabController.index > 0) {
       _updateCurrentPageIndex(_tabController.index - 1);
     } else {
-      context.go('/home');
+      Navigator.of(context).pop(); // Close the form
+      // context.go('/home');
     }
   }
 

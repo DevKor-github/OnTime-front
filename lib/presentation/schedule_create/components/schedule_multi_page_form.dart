@@ -83,6 +83,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                   onNextPageButtonClicked: state.isValid
                       ? () => _onNextPageButtonClicked(context)
                       : null,
+                  // 버튼 활성화 판별
+                  isNextButtonEnabled: state.isValid,
                   onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
                 ),
                 StepProgress(

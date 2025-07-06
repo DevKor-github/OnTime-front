@@ -19,7 +19,6 @@ class _ScheduleNameFormState extends State<ScheduleNameForm> {
       return TextFormField(
         decoration: InputDecoration(
           labelText: '약속 이름',
-          floatingLabelBehavior: FloatingLabelBehavior.always,
           hintText: '예) 영화 보기',
         ),
         textInputAction: TextInputAction.done,

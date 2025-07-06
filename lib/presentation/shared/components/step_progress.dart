@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
+import 'package:on_time_front/presentation/shared/theme/text_theme.dart';
 
 class StepProgress extends StatelessWidget {
   const StepProgress(

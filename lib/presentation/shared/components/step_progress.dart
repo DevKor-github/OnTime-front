@@ -15,7 +15,6 @@ class StepProgress extends StatelessWidget {
   final bool singleLine;
 
   final double circleRadius = 11;
-  final double lineWidth = 57;
 
   Color _getIndicatorColor(BuildContext context, int index) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -26,78 +25,74 @@ class StepProgress extends StatelessWidget {
     }
   }
 
-  List<Widget> _buildIndicator(BuildContext context, int index) {
-    return [
-      if (index != 0)
-        _IndicatorLine(
-          color: _getIndicatorColor(context, index),
-          lineWidth: lineWidth,
-        ),
-      Padding(
-        padding: EdgeInsets.all(circleRadius / 2),
-        child: _IndicatorCircle(
+  Widget _buildIndicator(BuildContext context, int index) {
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          child: _IndicatorCircle(
             color: _getIndicatorColor(context, index),
             radius: circleRadius,
-            filled: index != currentStep),
-      ),
-    ];
+            filled: index != currentStep,
+          ),
+        ),
+        if (index != totalSteps - 1)
+          Expanded(
+            child: _IndicatorLine(
+              color: _getIndicatorColor(context, index + 1),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: totalSteps * (lineWidth + circleRadius + circleRadius) -
-            lineWidth +
-            10.0,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final textPainter = TextPainter(
-                text: TextSpan(
-                  text: 'STEP${singleLine ? ' ' : '\n'}1',
-                  style: textTheme.bodyExtraSmall,
-                ),
-                textDirection: TextDirection.ltr,
-              )..layout();
-              final textWidth = textPainter.size.width;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final textPainter = TextPainter(
+              text: TextSpan(
+                text: 'STEP${singleLine ? ' ' : '\n'}1',
+                style: textTheme.bodyExtraSmall,
+              ),
+              textDirection: TextDirection.ltr,
+            )..layout();
+            final textWidth = textPainter.size.width;
 
-              return Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: textWidth / 2 - circleRadius),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (int i = 0; i < totalSteps; i++)
-                      ..._buildIndicator(context, i),
-                  ],
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: textWidth / 2 - circleRadius / 2 - 6),
+              child: Row(
+                children: [
+                  for (int i = 0; i < totalSteps - 1; i++)
+                    Expanded(child: _buildIndicator(context, i)),
+                  _buildIndicator(context, totalSteps - 1)
+                ],
+              ),
+            );
+          },
+        ),
+        SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            for (int i = 0; i < totalSteps; i++)
+              _StepText(
+                step: i + 1,
+                singleLine: singleLine,
+                style: textTheme.bodyExtraSmall.copyWith(
+                  color: _getIndicatorColor(context, i),
                 ),
-              );
-            },
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (int i = 0; i < totalSteps; i++)
-                _StepText(
-                  step: i + 1,
-                  singleLine: singleLine,
-                  style: textTheme.bodyExtraSmall.copyWith(
-                    color: _getIndicatorColor(context, i),
-                  ),
-                )
-            ],
-          )
-        ],
-      ),
+              )
+          ],
+        )
+      ],
     );
   }
 }
@@ -124,19 +119,15 @@ class _StepText extends StatelessWidget {
 }
 
 class _IndicatorLine extends StatelessWidget {
-  const _IndicatorLine({required this.color, required this.lineWidth});
+  const _IndicatorLine({required this.color});
 
   final Color color;
-  final double lineWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Container(
-        height: 2,
-        color: color,
-        constraints: BoxConstraints(maxWidth: lineWidth, minWidth: 10.0),
-      ),
+    return Container(
+      height: 2,
+      color: color,
     );
   }
 }

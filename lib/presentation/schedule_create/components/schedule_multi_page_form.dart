@@ -77,33 +77,37 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             ),
           ],
           child: Builder(builder: (context) {
-            return Column(
-              children: [
-                TopBar(
-                  onNextPageButtonClicked: state.isValid
-                      ? () => _onNextPageButtonClicked(context)
-                      : null,
-                  // 버튼 활성화 판별
-                  isNextButtonEnabled: state.isValid,
-                  onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
-                ),
-                StepProgress(
-                  currentStep: _tabController.index,
-                  totalSteps: _tabController.length,
-                ),
-                Expanded(
-                    child: PageView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: _pageViewController,
-                  onPageChanged: _handlePageViewChanged,
-                  children: [
-                    ScheduleNameForm(),
-                    ScheduleDateTimeForm(),
-                    SchedulePlaceMovingTimeForm(),
-                    ScheduleSpareAndPreparingTimeForm(),
-                  ],
-                )),
-              ],
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Column(
+                children: [
+                  TopBar(
+                    onNextPageButtonClicked: state.isValid
+                        ? () => _onNextPageButtonClicked(context)
+                        : null,
+                    // 버튼 활성화 판별
+                    isNextButtonEnabled: state.isValid,
+                    onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
+                  ),
+                  StepProgress(
+                    currentStep: _tabController.index,
+                    totalSteps: _tabController.length,
+                    singleLine: true,
+                  ),
+                  Expanded(
+                      child: PageView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    controller: _pageViewController,
+                    onPageChanged: _handlePageViewChanged,
+                    children: [
+                      ScheduleNameForm(),
+                      ScheduleDateTimeForm(),
+                      SchedulePlaceMovingTimeForm(),
+                      ScheduleSpareAndPreparingTimeForm(),
+                    ],
+                  )),
+                ],
+              ),
             );
           }),
         );

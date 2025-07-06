@@ -14,10 +14,16 @@ class TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Row(
       children: [
         IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(
+            Icons.arrow_back_ios_rounded,
+            color: colorScheme.outlineVariant,
+          ),
           onPressed: () {
             onPreviousPageButtonClicked();
           },
@@ -25,7 +31,7 @@ class TopBar extends StatelessWidget {
         Expanded(
           child: Center(
               child: Text('약속 추가하기',
-                  style: Theme.of(context).textTheme.titleMedium)),
+                  style: Theme.of(context).textTheme.titleLarge)),
         ),
         // 다음 페이지 버튼
         // 버튼 활성화 여부에 따라 색상 변화 추후 추가 가능

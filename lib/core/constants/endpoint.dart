@@ -45,4 +45,7 @@ class Endpoint {
   static get getDefaultPreparation => _defaultPreparation;
 
   static get updateDefaultPreparation => _defaultPreparation;
+
+  static const _fcmToken = '/firebase-token'; // 사용자 fcm 토큰 등록
+  static get fcmTokenRegister => _fcmToken;
 }

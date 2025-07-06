@@ -89,11 +89,13 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                     isNextButtonEnabled: state.isValid,
                     onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
                   ),
+                  SizedBox(height: 26),
                   StepProgress(
                     currentStep: _tabController.index,
                     totalSteps: _tabController.length,
                     singleLine: true,
                   ),
+                  SizedBox(height: 41),
                   Expanded(
                       child: PageView(
                     physics: const NeverScrollableScrollPhysics(),

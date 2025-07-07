@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
-import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class HomeScreenTmp extends StatefulWidget {
@@ -31,6 +28,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
         DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
     final double score = context.select((AppBloc bloc) =>
         bloc.state.user.mapOrNull((user) => user.score) ?? -1);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return BlocProvider(
       create: (context) => getIt.get<MonthlySchedulesBloc>()
@@ -39,6 +37,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
         builder: (context, state) {
           return SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.max,
               children: [
                 Container(
                   color: colorScheme.primary,
@@ -71,6 +70,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
 
   Widget todaysScheduleOverlayBuilder(MonthlySchedulesState state) {
     final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (state.status == MonthlySchedulesStatus.success) {
       final today = DateTime.now();
@@ -371,6 +371,7 @@ class _Slogan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Text(
       comment,

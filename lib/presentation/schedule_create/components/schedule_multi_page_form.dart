@@ -77,31 +77,39 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             ),
           ],
           child: Builder(builder: (context) {
-            return Column(
-              children: [
-                TopBar(
-                  onNextPageButtonClicked: state.isValid
-                      ? () => _onNextPageButtonClicked(context)
-                      : null,
-                  onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
-                ),
-                StepProgress(
-                  currentStep: _tabController.index,
-                  totalSteps: _tabController.length,
-                ),
-                Expanded(
-                    child: PageView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: _pageViewController,
-                  onPageChanged: _handlePageViewChanged,
-                  children: [
-                    ScheduleNameForm(),
-                    ScheduleDateTimeForm(),
-                    SchedulePlaceMovingTimeForm(),
-                    ScheduleSpareAndPreparingTimeForm(),
-                  ],
-                )),
-              ],
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Column(
+                children: [
+                  TopBar(
+                    onNextPageButtonClicked: state.isValid
+                        ? () => _onNextPageButtonClicked(context)
+                        : null,
+                    // 버튼 활성화 판별
+                    isNextButtonEnabled: state.isValid,
+                    onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
+                  ),
+                  SizedBox(height: 26),
+                  StepProgress(
+                    currentStep: _tabController.index,
+                    totalSteps: _tabController.length,
+                    singleLine: true,
+                  ),
+                  SizedBox(height: 41),
+                  Expanded(
+                      child: PageView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    controller: _pageViewController,
+                    onPageChanged: _handlePageViewChanged,
+                    children: [
+                      ScheduleNameForm(),
+                      ScheduleDateTimeForm(),
+                      SchedulePlaceMovingTimeForm(),
+                      ScheduleSpareAndPreparingTimeForm(),
+                    ],
+                  )),
+                ],
+              ),
             );
           }),
         );
@@ -130,7 +138,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
       widget.onSaved?.call();
-      context.go('/home');
+      Navigator.of(context).pop(); // Close the form
+      // context.go('/home');
     }
   }
 
@@ -138,7 +147,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     if (_tabController.index > 0) {
       _updateCurrentPageIndex(_tabController.index - 1);
     } else {
-      context.go('/home');
+      Navigator.of(context).pop(); // Close the form
+      // context.go('/home');
     }
   }
 

@@ -12,6 +12,7 @@ import 'package:on_time_front/presentation/early_late/screens/early_late_screen.
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen.dart';
+import 'package:on_time_front/presentation/home/screens/home_screen_tmp.dart';
 import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
 import 'package:on_time_front/presentation/moving/screens/moving_screen.dart';
 import 'package:on_time_front/presentation/notification_allow/screens/notification_allow_screen.dart';
@@ -83,7 +84,7 @@ GoRouter goRouterConfig(AppBloc bloc) {
         routes: [
           GoRoute(
             path: '/home',
-            builder: (context, state) => HomeScreen(),
+            builder: (context, state) => HomeScreenTmp(),
           ),
           GoRoute(
             path: '/myPage',

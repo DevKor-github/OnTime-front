@@ -72,60 +72,56 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
     final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (state.status == MonthlySchedulesStatus.success) {
-      final today = DateTime.now();
-      final todayKey = DateTime(today.year, today.month, today.day);
-      final todaySchedules = state.schedules[todayKey] ?? [];
-      final todaySchedule =
-          todaySchedules.isNotEmpty ? todaySchedules.first : null;
+    final today = DateTime.now();
+    final todayKey = DateTime(today.year, today.month, today.day);
+    final todaySchedules = state.schedules[todayKey] ?? [];
+    final todaySchedule =
+        todaySchedules.isNotEmpty ? todaySchedules.first : null;
 
-      return Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Positioned.fill(
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Positioned.fill(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 49.0),
+            child: Container(
+              decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16))),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0) +
+              EdgeInsets.only(bottom: 20.0),
+          child: Material(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            color: theme.colorScheme.surface,
+            elevation: 2,
             child: Padding(
-              padding: const EdgeInsets.only(top: 49.0),
-              child: Container(
-                decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16))),
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '오늘의 약속',
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  SizedBox(height: 21.0),
+                  TodaysScheduleTile(
+                    schedule: todaySchedule,
+                  )
+                ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0) +
-                EdgeInsets.only(bottom: 20.0),
-            child: Material(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              color: theme.colorScheme.surface,
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '오늘의 약속',
-                      style: theme.textTheme.titleMedium,
-                    ),
-                    SizedBox(height: 21.0),
-                    TodaysScheduleTile(
-                      schedule: todaySchedule,
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    } else {
-      return CircularProgressIndicator();
-    }
+        ),
+      ],
+    );
   }
 }
 

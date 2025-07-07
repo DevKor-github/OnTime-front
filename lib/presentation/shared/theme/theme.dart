@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
-
-part 'custom_text_theme.dart';
+import 'package:on_time_front/presentation/shared/theme/button_styles.dart';
+import 'package:on_time_front/presentation/shared/theme/text_theme.dart';
+import 'package:on_time_front/presentation/shared/theme/input_decoration_theme.dart';
 
 ColorScheme _colorScheme = ColorScheme(
   brightness: Brightness.light,
@@ -32,69 +33,11 @@ ColorScheme _colorScheme = ColorScheme(
   surfaceContainerHigh: AppColors.grey.shade300,
   surfaceContainerHighest: AppColors.grey.shade400,
   onSurface: AppColors.grey[950]!,
-  outline: AppColors.grey.shade600,
   outlineVariant: AppColors.grey.shade400,
+  outline: AppColors.grey.shade600,
 );
 
-TextTheme _textTheme = TextTheme(
-  headlineLarge: TextStyle(
-    fontSize: 40,
-    color: _colorScheme.onSurface,
-    fontWeight: FontWeight.w800,
-    fontStyle: FontStyle.normal,
-    height: 1.2,
-  ),
-  headlineMedium: TextStyle(
-    fontSize: 34,
-    color: _colorScheme.onSurface,
-    fontWeight: FontWeight.w700,
-    fontStyle: FontStyle.normal,
-    height: 1.2,
-  ),
-  headlineSmall: TextStyle(
-    fontSize: 30,
-    color: _colorScheme.onSurface,
-    fontWeight: FontWeight.w700,
-    fontStyle: FontStyle.normal,
-    height: 1.3,
-  ),
-  titleLarge: TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: _colorScheme.onSurface,
-    height: 1.4,
-  ),
-  titleMedium: TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
-    color: _colorScheme.onSurface,
-    height: 1.4,
-  ),
-  titleSmall: TextStyle(
-    fontSize: 16,
-    color: _colorScheme.onSurface,
-    fontWeight: FontWeight.w500,
-    height: 1.4,
-  ),
-  bodyLarge: TextStyle(
-    fontSize: 16,
-    color: _colorScheme.onSurface,
-    fontWeight: FontWeight.w400,
-    height: 1.4,
-  ),
-  bodyMedium: TextStyle(
-    fontSize: 14,
-    color: _colorScheme.onSurface,
-    fontWeight: FontWeight.w400,
-    height: 1.4,
-  ),
-  bodySmall: TextStyle(
-    fontSize: 13,
-    color: _colorScheme.onSurface,
-    fontWeight: FontWeight.w400,
-    height: 1.4,
-  ),
-);
+TextTheme _textTheme = AppTextTheme.create(_colorScheme);
 
 ThemeData themeData = ThemeData(
   colorScheme: _colorScheme,
@@ -104,45 +47,13 @@ ThemeData themeData = ThemeData(
   fontFamily: 'Pretendard',
   textTheme: _textTheme,
   textButtonTheme: TextButtonThemeData(
-      style: ButtonStyle(
-    foregroundColor: WidgetStatePropertyAll(_colorScheme.primary),
-    textStyle: WidgetStatePropertyAll(_textTheme.titleSmall),
-    padding: WidgetStatePropertyAll(const EdgeInsets.all(0.0)),
-  )),
-  elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-    backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-      (Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return _colorScheme.surfaceDim;
-        } else {
-          return _colorScheme.primary;
-        }
-      },
-    ),
-    foregroundColor: WidgetStatePropertyAll(_colorScheme.onPrimary),
-    textStyle: WidgetStatePropertyAll(_textTheme.titleSmall),
-    maximumSize: WidgetStatePropertyAll(const Size(double.infinity, 50)),
-    shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-  )),
-  filledButtonTheme: FilledButtonThemeData(
-    style: ButtonStyle(
-      backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return _colorScheme.surfaceDim;
-          } else {
-            return _colorScheme.primary;
-          }
-        },
-      ),
-      foregroundColor: WidgetStatePropertyAll(_colorScheme.onPrimary),
-      textStyle: WidgetStatePropertyAll(_textTheme.titleSmall),
-      shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-    ),
+    style: AppButtonStyles.textPrimary(_colorScheme, _textTheme),
   ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: AppButtonStyles.elevatedPrimary(_colorScheme, _textTheme),
+  ),
+  inputDecorationTheme:
+      AppInputDecorationTheme.create(_colorScheme, _textTheme),
   dialogTheme: DialogTheme(
     backgroundColor: _colorScheme.surface,
     shape: RoundedRectangleBorder(

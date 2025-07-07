@@ -37,8 +37,8 @@ class _SchedulePlaceMovingTimeFormState
         children: [
           TextFormField(
             decoration: InputDecoration(
-                labelText: '약속 장소',
-                floatingLabelBehavior: FloatingLabelBehavior.always),
+              labelText: '약속 장소',
+            ),
             initialValue: state.placeName.value,
             focusNode: _placeFocusNode,
             textInputAction: TextInputAction.next,

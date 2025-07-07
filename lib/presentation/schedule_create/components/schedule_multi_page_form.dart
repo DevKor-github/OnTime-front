@@ -118,6 +118,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   }
 
   void _onNextPageButtonClicked(BuildContext context) {
+    // Revalidate the current step before proceeding
+
     switch (_pageCubitTypes[_tabController.index]) {
       case const (ScheduleNameCubit):
         context.read<ScheduleNameCubit>().scheduleNameSubmitted();
@@ -136,6 +138,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     }
     if (_tabController.index < _tabController.length - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
+      _revalidateCurrentStep(context);
     } else {
       widget.onSaved?.call();
       Navigator.of(context).pop(); // Close the form
@@ -144,6 +147,9 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   }
 
   void _onPreviousPageButtonClicked() {
+    // Set validity to true when going to previous page
+    context.read<ScheduleFormBloc>().add(ScheduleFormValidated(isValid: true));
+
     if (_tabController.index > 0) {
       _updateCurrentPageIndex(_tabController.index - 1);
     } else {
@@ -160,11 +166,41 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   }
 
   void _updateCurrentPageIndex(int index) {
+    final previousIndex = _tabController.index;
     _tabController.index = index;
     _pageViewController.animateToPage(
       index,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
     );
+  }
+
+  void _revalidateCurrentStep(BuildContext context) {
+    switch (_pageCubitTypes[_tabController.index]) {
+      case const (ScheduleNameCubit):
+        final currentState = context.read<ScheduleNameCubit>().state;
+        context
+            .read<ScheduleFormBloc>()
+            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        break;
+      case const (ScheduleDateTimeCubit):
+        final currentState = context.read<ScheduleDateTimeCubit>().state;
+        context
+            .read<ScheduleFormBloc>()
+            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        break;
+      case const (SchedulePlaceMovingTimeCubit):
+        final currentState = context.read<SchedulePlaceMovingTimeCubit>().state;
+        context
+            .read<ScheduleFormBloc>()
+            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        break;
+      case const (ScheduleFormSpareTimeCubit):
+        final currentState = context.read<ScheduleFormSpareTimeCubit>().state;
+        context
+            .read<ScheduleFormBloc>()
+            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        break;
+    }
   }
 }

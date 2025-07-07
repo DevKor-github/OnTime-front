@@ -6,10 +6,16 @@ import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
 import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class BottomNavBarScaffold extends StatefulWidget {
-  const BottomNavBarScaffold({super.key, required this.child});
+  const BottomNavBarScaffold({
+    super.key,
+    required this.child,
+    this.backgroundColor,
+  });
   final Widget child;
+  final Color? backgroundColor;
 
   @override
   State<BottomNavBarScaffold> createState() =>
@@ -33,12 +39,31 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
     }
   }
 
+  Color _getBackgroundColor(BuildContext context) {
+    // If backgroundColor is explicitly provided, use it
+    if (widget.backgroundColor != null) {
+      return widget.backgroundColor!;
+    }
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Otherwise, determine background color based on current route
+    final currentLocation = GoRouterState.of(context).uri.path;
+    switch (currentLocation) {
+      case '/home':
+        return colorScheme.surfaceContainerLowest;
+      case '/myPage':
+        return Colors.grey[50]!; // Example: different color for myPage
+      default:
+        return AppColors.blue[100]!; // Default fallback
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.blue[100],
       body: widget.child,
+      backgroundColor: _getBackgroundColor(context),
       bottomNavigationBar: ClipRRect(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16.0),

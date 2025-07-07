@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
-import 'package:kakao_flutter_sdk/kakao_flutter_sdk_template.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/presentation/shared/theme/custom_text_theme.dart';
 
 // Helper widget for swipe actions
 class _SwipeActionContent extends StatelessWidget {
@@ -39,7 +37,6 @@ class _VerticalDivider extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       width: 1,
-      height: 56, // Matches typical ListTile/ExpansionTile height
       color: theme.colorScheme.surfaceContainer,
     );
   }
@@ -67,16 +64,11 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SwipeActionCell(
-            key: ValueKey<String>(widget.schedule.id),
-            backgroundColor: Colors.transparent,
-            trailingActions: _buildSwipeActions(context),
-            child: _buildScheduleContent(context),
-          ),
-        ],
+      child: SwipeActionCell(
+        key: ValueKey<String>(widget.schedule.id),
+        backgroundColor: Colors.transparent,
+        trailingActions: _buildSwipeActions(context),
+        child: _buildScheduleContent(context),
       ),
     );
   }
@@ -112,10 +104,10 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0),
-        child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6.5),
+        child: IntrinsicHeight(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
@@ -125,7 +117,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
                   period: "PM",
                 ),
               ),
-              const VerticalDivider(),
+              const _VerticalDivider(),
               Expanded(
                 child: _ScheduleDetailsColumn(
                   schedule: widget.schedule,
@@ -182,14 +174,13 @@ class _ScheduleDetailsColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0) +
+          const EdgeInsets.only(top: 4.0),
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(vertical: 2.0),
-        childrenPadding: const EdgeInsets.all(20.0),
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(bottom: 8.0),
         shape: const Border(),
         collapsedShape: const Border(),
-        dense: true,
-        visualDensity: VisualDensity.compact,
         title: Text(
           schedule.scheduleName,
           style: theme.textTheme.titleLarge,
@@ -207,19 +198,22 @@ class _ScheduleDetailsColumn extends StatelessWidget {
           ],
         ),
         children: [
-          Column(
-            children: [
-              ScheduleInfoTile(
-                label: '이동시간',
-                value:
-                    '${schedule.moveTime.inHours}시간 ${schedule.moveTime.inMinutes - schedule.moveTime.inHours * 60}분',
-              ),
-              //TODO: add preparation time
-              ScheduleInfoTile(
-                label: '여유시간',
-                value: '${schedule.scheduleSpareTime?.inMinutes}분',
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(left: 0.0),
+            child: Column(
+              children: [
+                ScheduleInfoTile(
+                  label: '이동시간',
+                  value:
+                      '${schedule.scheduleTime.hour}시간 ${schedule.scheduleTime.minute}분',
+                ),
+                //TODO: add preparation time
+                ScheduleInfoTile(
+                  label: '여유시간',
+                  value: '${schedule.scheduleSpareTime?.inMinutes}분',
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -235,28 +229,41 @@ class ScheduleInfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-    return SizedBox(
-      width: double.infinity,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: textTheme.bodyExtraSmall.copyWith(
-              color: colorScheme.outline,
-            ),
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          height: 22.18,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 18,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: const Color(0xFF777777),
+                  fontSize: 12,
+                  fontFamily: 'Pretendard',
+                  fontWeight: FontWeight.w400,
+                  height: 1.40,
+                ),
+              ),
+              Text(
+                value,
+                style: TextStyle(
+                  color: const Color(0xFF111111),
+                  fontSize: 13,
+                  fontFamily: 'Pretendard',
+                  fontWeight: FontWeight.w400,
+                  height: 1.40,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 18),
-          Text(
-            value,
-            style: textTheme.bodySmall,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

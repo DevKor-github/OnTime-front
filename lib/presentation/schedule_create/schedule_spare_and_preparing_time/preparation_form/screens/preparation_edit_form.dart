@@ -41,6 +41,7 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                           }
                         : null,
                     onPreviousPageButtonClicked: context.pop,
+                    isNextButtonEnabled: state.isValid,
                   ),
                   Expanded(
                     child: PreparationFormCreateList(

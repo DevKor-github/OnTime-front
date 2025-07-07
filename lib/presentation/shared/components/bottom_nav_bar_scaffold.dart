@@ -5,6 +5,7 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
 import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class BottomNavBarScaffold extends StatefulWidget {
@@ -77,8 +78,16 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           width: 76,
           child: FilledButton(
             onPressed: () {
-              context.go('/scheduleCreate');
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => ScheduleCreateScreen(),
+              );
             },
+            // onPressed: () {
+            //   context.go('/scheduleCreate');
+            // },
             style: FilledButton.styleFrom(
               shape: CircleBorder(),
               padding: EdgeInsets.all(13),

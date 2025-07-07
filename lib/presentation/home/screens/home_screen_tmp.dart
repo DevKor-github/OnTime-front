@@ -109,7 +109,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
                 children: [
                   Text(
                     '오늘의 약속',
-                    style: theme.textTheme.titleMedium,
+                    style: theme.textTheme.titleLarge,
                   ),
                   SizedBox(height: 21.0),
                   TodaysScheduleTile(

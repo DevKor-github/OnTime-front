@@ -55,6 +55,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
               readOnly: true,
               decoration: InputDecoration(
                   labelText: '',
+
                   hintText: () {
                     final now = DateTime.now();
                     final period = now.hour >= 12 ? '오후' : '오전';

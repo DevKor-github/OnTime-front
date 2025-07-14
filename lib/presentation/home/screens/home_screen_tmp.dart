@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
@@ -140,7 +141,6 @@ class _MonthlySchedule extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _MonthlyScheduleHeader(),
-        SizedBox(height: 23.0),
         _MonthCalendar(
           monthlySchedulesState: monthlySchedulesState,
         ),
@@ -163,9 +163,31 @@ class _MonthlyScheduleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Text(
-      "캘린더",
-      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          Text(
+            "캘린더",
+            style: theme.textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          Spacer(),
+          TextButton(
+            onPressed: () {
+              context.go('/calendar');
+            },
+            child: Row(
+              children: [
+                Text('캘린더 보기',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.colorScheme.outlineVariant)),
+                arrowRightSvg,
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -219,7 +241,6 @@ class _MonthCalendarState extends State<_MonthCalendar> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
         borderRadius: BorderRadius.circular(11),
       ),
       child: TableCalendar(

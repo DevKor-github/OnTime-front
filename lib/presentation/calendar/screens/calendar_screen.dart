@@ -63,70 +63,78 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(11),
+                  color: colorScheme.surface,
                 ),
-                child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
-                  builder: (context, state) {
-                    if (state.status == MonthlySchedulesStatus.error) {
-                      return Text('Error');
-                    }
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 16.0, horizontal: 8.0),
+                  child:
+                      BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
+                    builder: (context, state) {
+                      if (state.status == MonthlySchedulesStatus.error) {
+                        return Text('Error');
+                      }
 
-                    return TableCalendar(
-                      daysOfWeekHeight: 40,
-                      eventLoader: (day) {
-                        day = DateTime(day.year, day.month, day.day);
-                        return state.schedules[day] ?? [];
-                      },
-                      focusedDay: _selectedDate,
-                      firstDay: DateTime(2024, 12, 1),
-                      lastDay: DateTime(2025, 12, 31),
-                      calendarFormat: CalendarFormat.month,
-                      headerStyle: calendarTheme.headerStyle,
-                      daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
-                      calendarStyle: calendarTheme.calendarStyle,
-                      onDaySelected: (selectedDay, focusedDay) {
-                        setState(() {
-                          _selectedDate = DateTime(selectedDay.year,
-                              selectedDay.month, selectedDay.day);
-                        });
-                        debugPrint(selectedDay.toIso8601String());
-                      },
-                      onPageChanged: (focusedDay) {
-                        setState(() {
-                          _selectedDate = DateTime(focusedDay.year,
-                              focusedDay.month, focusedDay.day);
-                        });
-                        debugPrint(_selectedDate.toIso8601String());
-                        context.read<MonthlySchedulesBloc>().add(
-                            MonthlySchedulesMonthAdded(
-                                date: DateTime(focusedDay.year,
-                                    focusedDay.month, focusedDay.day)));
-                      },
-                      calendarBuilders: CalendarBuilders(
-                        headerTitleBuilder: (context, date) {
-                          return CenteredCalendarHeader(
-                            focusedMonth: date,
-                            onLeftArrowTap: _onLeftArrowTap,
-                            onRightArrowTap: _onRightArrowTap,
-                            titleTextStyle:
-                                calendarTheme.headerStyle.titleTextStyle,
-                            leftIcon: Icon(Icons.chevron_left),
-                            rightIcon: Icon(Icons.chevron_right),
-                          );
+                      return TableCalendar(
+                        daysOfWeekHeight: 40,
+                        eventLoader: (day) {
+                          day = DateTime(day.year, day.month, day.day);
+                          return state.schedules[day] ?? [];
                         },
-                        todayBuilder: (context, day, focusedDay) => Container(
-                          margin: const EdgeInsets.all(4.0),
-                          alignment: Alignment.center,
-                          decoration: calendarTheme.todayDecoration,
-                          child: Text(
-                            day.day.toString(),
-                            style: textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onPrimary,
+                        focusedDay: _selectedDate,
+                        firstDay: DateTime(2024, 12, 1),
+                        lastDay: DateTime(2025, 12, 31),
+                        calendarFormat: CalendarFormat.month,
+                        headerStyle: calendarTheme.headerStyle,
+                        daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
+                        calendarStyle: calendarTheme.calendarStyle,
+                        onDaySelected: (selectedDay, focusedDay) {
+                          setState(() {
+                            _selectedDate = DateTime(selectedDay.year,
+                                selectedDay.month, selectedDay.day);
+                          });
+                          debugPrint(selectedDay.toIso8601String());
+                        },
+                        onPageChanged: (focusedDay) {
+                          setState(() {
+                            _selectedDate = DateTime(focusedDay.year,
+                                focusedDay.month, focusedDay.day);
+                          });
+                          debugPrint(_selectedDate.toIso8601String());
+                          context.read<MonthlySchedulesBloc>().add(
+                              MonthlySchedulesMonthAdded(
+                                  date: DateTime(focusedDay.year,
+                                      focusedDay.month, focusedDay.day)));
+                        },
+                        calendarBuilders: CalendarBuilders(
+                          headerTitleBuilder: (context, date) {
+                            return CenteredCalendarHeader(
+                              focusedMonth: date,
+                              onLeftArrowTap: _onLeftArrowTap,
+                              onRightArrowTap: _onRightArrowTap,
+                              titleTextStyle:
+                                  calendarTheme.headerStyle.titleTextStyle,
+                              leftIcon:
+                                  calendarTheme.headerStyle.leftChevronIcon,
+                              rightIcon:
+                                  calendarTheme.headerStyle.rightChevronIcon,
+                            );
+                          },
+                          todayBuilder: (context, day, focusedDay) => Container(
+                            margin: const EdgeInsets.all(4.0),
+                            alignment: Alignment.center,
+                            decoration: calendarTheme.todayDecoration,
+                            child: Text(
+                              day.day.toString(),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
               ),
               SizedBox(height: 18.0),

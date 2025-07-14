@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/calendar/component/schedule_detail.dart';
+import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
+import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -18,6 +20,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _selectedDate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
+  void _onLeftArrowTap() {
+    setState(() {
+      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+    });
+  }
+
+  void _onRightArrowTap() {
+    setState(() {
+      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -25,6 +39,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final colorScheme = theme.colorScheme;
     final todaysDate = DateTime(
         DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
+    final calendarTheme = theme.extension<CalendarTheme>()!;
 
     return BlocProvider(
       create: (context) => getIt.get<MonthlySchedulesBloc>()
@@ -47,7 +62,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(11),
                 ),
                 child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
@@ -57,6 +71,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     }
 
                     return TableCalendar(
+                      daysOfWeekHeight: 40,
                       eventLoader: (day) {
                         day = DateTime(day.year, day.month, day.day);
                         return state.schedules[day] ?? [];
@@ -65,24 +80,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       firstDay: DateTime(2024, 12, 1),
                       lastDay: DateTime(2025, 12, 31),
                       calendarFormat: CalendarFormat.month,
-                      headerStyle: HeaderStyle(
-                        formatButtonVisible: false,
-                        titleCentered: true,
-                      ),
-                      daysOfWeekStyle: DaysOfWeekStyle(
-                        weekdayStyle: textTheme.bodySmall!,
-                        weekendStyle: textTheme.bodySmall!,
-                      ),
-                      calendarStyle: CalendarStyle(
-                        outsideDaysVisible: false,
-                        weekendTextStyle: textTheme.bodySmall!,
-                        defaultTextStyle: textTheme.bodySmall!,
-                        markerDecoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        markerMargin: EdgeInsets.symmetric(horizontal: 1.0),
-                      ),
+                      headerStyle: calendarTheme.headerStyle,
+                      daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
+                      calendarStyle: calendarTheme.calendarStyle,
                       onDaySelected: (selectedDay, focusedDay) {
                         setState(() {
                           _selectedDate = DateTime(selectedDay.year,
@@ -102,13 +102,21 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                     focusedDay.month, focusedDay.day)));
                       },
                       calendarBuilders: CalendarBuilders(
+                        headerTitleBuilder: (context, date) {
+                          return CenteredCalendarHeader(
+                            focusedMonth: date,
+                            onLeftArrowTap: _onLeftArrowTap,
+                            onRightArrowTap: _onRightArrowTap,
+                            titleTextStyle:
+                                calendarTheme.headerStyle.titleTextStyle,
+                            leftIcon: Icon(Icons.chevron_left),
+                            rightIcon: Icon(Icons.chevron_right),
+                          );
+                        },
                         todayBuilder: (context, day, focusedDay) => Container(
                           margin: const EdgeInsets.all(4.0),
                           alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
+                          decoration: calendarTheme.todayDecoration,
                           child: Text(
                             day.day.toString(),
                             style: textTheme.bodySmall?.copyWith(

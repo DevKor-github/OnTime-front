@@ -7,6 +7,7 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/calendar/component/schedule_detail.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -163,8 +164,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         return ScheduleDetail(
                           schedule: schedule,
                           onEdit: () {
-                            context.go(
-                              '/scheduleEdit/${schedule.id}',
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => ScheduleEditScreen(
+                                scheduleId: schedule.id,
+                              ),
                             );
                           },
                           onDeleted: () {

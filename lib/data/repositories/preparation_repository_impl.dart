@@ -6,7 +6,6 @@ import 'package:on_time_front/data/data_sources/preparation_remote_data_source.d
 import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 

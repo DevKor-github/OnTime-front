@@ -5,7 +5,6 @@ import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/data/models/update_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/update_preparation_user_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 import 'package:on_time_front/data/models/get_preparation_step_response_model.dart';

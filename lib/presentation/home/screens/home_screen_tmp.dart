@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
+import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 
 class HomeScreenTmp extends StatefulWidget {
   const HomeScreenTmp({super.key});
@@ -139,7 +142,6 @@ class _MonthlySchedule extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _MonthlyScheduleHeader(),
-        SizedBox(height: 23.0),
         _MonthCalendar(
           monthlySchedulesState: monthlySchedulesState,
         ),
@@ -162,9 +164,31 @@ class _MonthlyScheduleHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Text(
-      AppLocalizations.of(context)!.calendarTitle,
-      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        children: [
+          Text(
+            AppLocalizations.of(context)!.calendarTitle,
+            style: theme.textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          Spacer(),
+          TextButton(
+            onPressed: () {
+              context.go('/calendar');
+            },
+            child: Row(
+              children: [
+                Text('캘린더 보기',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: theme.colorScheme.outlineVariant)),
+                arrowRightSvg,
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -187,11 +211,24 @@ class _MonthCalendarState extends State<_MonthCalendar> {
     _focusedDay = DateTime.now();
   }
 
+  void _onLeftArrowTap() {
+    setState(() {
+      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
+    });
+  }
+
+  void _onRightArrowTap() {
+    setState(() {
+      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
+    final calendarTheme = theme.extension<CalendarTheme>()!;
 
     if (widget.monthlySchedulesState.schedules.isEmpty) {
       if (widget.monthlySchedulesState.status ==
@@ -205,7 +242,6 @@ class _MonthCalendarState extends State<_MonthCalendar> {
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(11),
       ),
       child: TableCalendar(
@@ -217,24 +253,10 @@ class _MonthCalendarState extends State<_MonthCalendar> {
         firstDay: DateTime(2024, 1, 1),
         lastDay: DateTime(2025, 12, 31),
         calendarFormat: CalendarFormat.month,
-        headerStyle: HeaderStyle(
-          formatButtonVisible: false,
-          titleCentered: true,
-        ),
-        daysOfWeekStyle: DaysOfWeekStyle(
-          weekdayStyle: textTheme.bodySmall!,
-          weekendStyle: textTheme.bodySmall!,
-        ),
-        calendarStyle: CalendarStyle(
-          outsideDaysVisible: false,
-          weekendTextStyle: textTheme.bodySmall!,
-          defaultTextStyle: textTheme.bodySmall!,
-          markerDecoration: BoxDecoration(
-            color: colorScheme.primary,
-            shape: BoxShape.circle,
-          ),
-          markerMargin: EdgeInsets.symmetric(horizontal: 1.0),
-        ),
+        headerStyle: calendarTheme.headerStyle,
+        daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
+        daysOfWeekHeight: 40,
+        calendarStyle: calendarTheme.calendarStyle,
         onDaySelected: (selectedDay, focusedDay) {
           // Handle day selection if needed
         },
@@ -247,13 +269,20 @@ class _MonthCalendarState extends State<_MonthCalendar> {
                   DateTime(focusedDay.year, focusedDay.month, focusedDay.day)));
         },
         calendarBuilders: CalendarBuilders(
+          headerTitleBuilder: (context, date) {
+            return CenteredCalendarHeader(
+              focusedMonth: date,
+              onLeftArrowTap: _onLeftArrowTap,
+              onRightArrowTap: _onRightArrowTap,
+              titleTextStyle: calendarTheme.headerStyle.titleTextStyle,
+              leftIcon: calendarTheme.headerStyle.leftChevronIcon,
+              rightIcon: calendarTheme.headerStyle.rightChevronIcon,
+            );
+          },
           todayBuilder: (context, day, focusedDay) => Container(
             margin: const EdgeInsets.all(4.0),
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
+            decoration: calendarTheme.todayDecoration,
             child: Text(
               day.day.toString(),
               style: textTheme.bodySmall?.copyWith(

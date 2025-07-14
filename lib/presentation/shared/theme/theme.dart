@@ -26,7 +26,7 @@ ThemeData themeData = ThemeData(
   ),
   inputDecorationTheme:
       AppInputDecorationTheme.create(_colorScheme, _textTheme),
-  dialogTheme: DialogTheme(
+  dialogTheme: DialogThemeData(
     backgroundColor: _colorScheme.surface,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),

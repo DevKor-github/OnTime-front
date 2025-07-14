@@ -21,10 +21,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setSpareTimeTitle => 'Set your spare time';
 
   @override
-  String get setSpareTimeDescription => 'You can arrive early by the spare time you set.';
+  String get setSpareTimeDescription =>
+      'You can arrive early by the spare time you set.';
 
   @override
-  String get setSpareTimeWarning => 'You must set a spare time in case of unexpected situations.';
+  String get setSpareTimeWarning =>
+      'You must set a spare time in case of unexpected situations.';
 
   @override
   String get todaysAppointments => 'Today\'s Appointments';
@@ -51,7 +53,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pleaseAllowNotifications => 'Please allow notifications';
 
   @override
-  String get notificationPermissionDescription => 'OnTime needs notifications to help you get ready';
+  String get notificationPermissionDescription =>
+      'OnTime needs notifications to help you get ready';
 
   @override
   String get late => ' late';
@@ -66,7 +69,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get areYouRunningLate => 'Are you running late?';
 
   @override
-  String get runningLateDescription => 'If you\'re not ready yet, you can stay and continue preparing.\nBut you might be late!';
+  String get runningLateDescription =>
+      'If you\'re not ready yet, you can stay and continue preparing.\nBut you might be late!';
 
   @override
   String get continuePreparing => 'Continue Preparing';
@@ -81,22 +85,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcome => 'Welcome!';
 
   @override
-  String get onboardingStartSubtitle => 'To get ready with OnTime,\nplease tell us about your usual preparation process.';
+  String get onboardingStartSubtitle =>
+      'To get ready with OnTime,\nplease tell us about your usual preparation process.';
 
   @override
   String get start => 'Start';
 
   @override
-  String get preparationOrderTitle => 'Please tell us the order of the preparation process you selected.';
+  String get preparationOrderTitle =>
+      'Please tell us the order of the preparation process you selected.';
 
   @override
-  String get preparationNameTitle => 'Please select your usual preparation process.';
+  String get preparationNameTitle =>
+      'Please select your usual preparation process.';
 
   @override
   String get multipleSelection => '(Multiple selection)';
 
   @override
-  String get preparationTimeTitle => 'Please tell us the time required for each step.';
+  String get preparationTimeTitle =>
+      'Please tell us the time required for each step.';
 
   @override
   String get addAppointment => 'Add appointment';
@@ -160,7 +168,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ok => 'OK';
 
   @override
-  String get youWillBeLate => 'If you don\'t start preparing now, you\'ll be late!';
+  String get youWillBeLate =>
+      'If you don\'t start preparing now, you\'ll be late!';
 
   @override
   String get startPreparing => 'Start Preparing';
@@ -169,7 +178,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmLeave => 'Are you sure you want to leave?';
 
   @override
-  String get confirmLeaveDescription => 'If you leave this screen,\nwe won\'t be able to prepare for the appointment together.';
+  String get confirmLeaveDescription =>
+      'If you leave this screen,\nwe won\'t be able to prepare for the appointment together.';
 
   @override
   String get leave => 'I\'m leaving';
@@ -197,4 +207,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get schedule => 'Schedule';
+
+  @override
+  String hourFormatted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours',
+      one: '$count hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String minuteFormatted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '$count minute',
+    );
+    return '$_temp0';
+  }
 }

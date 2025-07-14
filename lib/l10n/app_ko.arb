@@ -28,7 +28,7 @@
     "preparationOrderTitle": "앞에서 고른 준비 과정의 순서를\n알려주세요",
     "preparationNameTitle": "주로 하는 준비 과정을\n선택해주세요 ",
     "multipleSelection": "(복수 선택)",
-    "preparationTimeTitle": "과정별로 소요되는 시간을\n알려주세요",
+    "preparationTimeTitle": "준비 시간",
     "addAppointment": "약속 추가하기",
     "next": "다음",
     "appointmentName": "약속 이름",
@@ -60,5 +60,7 @@
     "home": "홈",
     "myPage": "마이",
     "plus": "플러스",
-    "schedule": "일정"
+    "schedule": "일정",
+    "hourFormatted": "{count}시간",
+    "minuteFormatted": "{count}분"
 } 

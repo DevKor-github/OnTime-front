@@ -3,6 +3,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
+import 'package:intl/intl.dart';
 
 // Helper widget for swipe actions
 class _SwipeActionContent extends StatelessWidget {
@@ -114,8 +116,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: _ScheduleTimeColumn(
-                  hour: widget.schedule.scheduleTime.hour,
-                  period: "PM",
+                  scheduleTime: widget.schedule.scheduleTime,
                 ),
               ),
               const _VerticalDivider(),
@@ -134,26 +135,26 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 }
 
 class _ScheduleTimeColumn extends StatelessWidget {
-  const _ScheduleTimeColumn({required this.hour, required this.period});
+  const _ScheduleTimeColumn({required this.scheduleTime});
 
-  final int hour;
-  final String period;
+  final DateTime scheduleTime;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final locale = AppLocalizations.of(context)!.localeName;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          hour.toString(),
+          DateFormat.j(locale).format(scheduleTime),
           style: theme.textTheme.titleSmall,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),
         Text(
-          period,
+          DateFormat('a', locale).format(scheduleTime),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -205,14 +206,13 @@ class _ScheduleDetailsColumn extends StatelessWidget {
               children: [
                 ScheduleInfoTile(
                   label: AppLocalizations.of(context)!.travelTime,
-                  value:
-                      '${schedule.scheduleTime.hour}${AppLocalizations.of(context)!.hours} ${schedule.scheduleTime.minute}${AppLocalizations.of(context)!.minutes}',
+                  value: formatDuration(context, schedule.moveTime),
                 ),
                 //TODO: add preparation time
                 ScheduleInfoTile(
                   label: AppLocalizations.of(context)!.spareTime,
-                  value:
-                      '${schedule.scheduleSpareTime?.inMinutes}${AppLocalizations.of(context)!.minutes}',
+                  value: formatDuration(
+                      context, schedule.scheduleSpareTime ?? Duration.zero),
                 ),
               ],
             ),

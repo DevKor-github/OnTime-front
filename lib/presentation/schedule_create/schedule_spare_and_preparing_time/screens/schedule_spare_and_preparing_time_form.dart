@@ -7,6 +7,7 @@ import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bl
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
 
 class ScheduleSpareAndPreparingTimeForm extends StatefulWidget {
   const ScheduleSpareAndPreparingTimeForm({
@@ -41,7 +42,7 @@ class _ScheduleSpareAndPreparingTimeFormState
                     labelText:
                         AppLocalizations.of(context)!.preparationTimeTitle),
                 controller: TextEditingController(
-                    text: state.totalPreparationTime.toString()),
+                    text: formatDuration(context, state.totalPreparationTime)),
                 onTap: () async {
                   final PreparationEntity? updatedPreparation = await context
                       .push('/preparationEdit', extra: state.preparation);
@@ -67,10 +68,10 @@ class _ScheduleSpareAndPreparingTimeFormState
               flex: 1,
               child: TextField(
                 readOnly: true,
-                decoration: InputDecoration(labelText: ''),
+                decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.spareTime),
                 controller: TextEditingController(
-                    text:
-                        '${spareTime.inHours}${AppLocalizations.of(context)!.hours} ${spareTime.inMinutes.remainder(60)}${AppLocalizations.of(context)!.minutes}'),
+                    text: formatDuration(context, spareTime)),
                 onTap: () {
                   context.showCupertinoMinutePickerModal(
                       title: AppLocalizations.of(context)!.enterTime,

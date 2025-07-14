@@ -256,5 +256,23 @@
     "schedule": "Schedule",
     "@schedule": {
         "description": "Label for the schedule button in the bottom navigation bar"
+    },
+    "hourFormatted": "{count,plural, =1{{count} hour} other{{count} hours}}",
+    "@hourFormatted": {
+      "description": "A formatted string for hours, handling pluralization.",
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
+    },
+    "minuteFormatted": "{count,plural, =1{{count} minute} other{{count} minutes}}",
+    "@minuteFormatted": {
+      "description": "A formatted string for minutes, handling pluralization.",
+      "placeholders": {
+        "count": {
+          "type": "int"
+        }
+      }
     }
 } 

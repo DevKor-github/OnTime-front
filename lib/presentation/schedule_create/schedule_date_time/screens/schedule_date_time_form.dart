@@ -26,16 +26,13 @@ class ScheduleDateTimeForm extends StatelessWidget {
               readOnly: true,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.appointmentTime,
-                hintText:
-                    DateFormat.yMd(Localizations.localeOf(context).toString())
-                        .format(DateTime.now()),
+                hintText: _localizedDateString(context, DateTime.now()),
               ),
               controller: TextEditingController(
                   text: state.scheduleDate.value == null
                       ? null
-                      : DateFormat.yMd(
-                              Localizations.localeOf(context).toString())
-                          .format(state.scheduleDate.value!)),
+                      : _localizedDateString(
+                          context, state.scheduleDate.value!)),
               onTap: () {
                 context.showCupertinoDatePickerModal(
                   title: AppLocalizations.of(context)!.enterDate,
@@ -87,5 +84,15 @@ class ScheduleDateTimeForm extends StatelessWidget {
         ],
       );
     });
+  }
+}
+
+String _localizedDateString(BuildContext context, DateTime date) {
+  final locale = Localizations.localeOf(context).languageCode;
+  if (locale == 'ko') {
+    return DateFormat('yyyy년 MM월 dd일', 'ko').format(date);
+  } else {
+    return DateFormat('yyyy.mm.dd.', Localizations.localeOf(context).toString())
+        .format(date);
   }
 }

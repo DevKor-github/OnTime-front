@@ -96,7 +96,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get multipleSelection => '(복수 선택)';
 
   @override
-  String get preparationTimeTitle => '과정별로 소요되는 시간을\n알려주세요';
+  String get preparationTimeTitle => '준비 시간';
 
   @override
   String get addAppointment => '약속 추가하기';
@@ -197,4 +197,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get schedule => '일정';
+
+  @override
+  String hourFormatted(int count) {
+    return '$count시간';
+  }
+
+  @override
+  String minuteFormatted(int count) {
+    return '$count분';
+  }
 }

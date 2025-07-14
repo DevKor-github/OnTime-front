@@ -466,6 +466,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Schedule'**
   String get schedule;
+
+  /// A formatted string for hours, handling pluralization.
+  ///
+  /// In en, this message translates to:
+  /// **'{count,plural, =1{{count} hour} other{{count} hours}}'**
+  String hourFormatted(int count);
+
+  /// A formatted string for minutes, handling pluralization.
+  ///
+  /// In en, this message translates to:
+  /// **'{count,plural, =1{{count} minute} other{{count} minutes}}'**
+  String minuteFormatted(int count);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -8,6 +8,7 @@ import 'package:on_time_front/data/models/fcm_token_register_request_model.dart'
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class BottomNavBarScaffold extends StatefulWidget {
   const BottomNavBarScaffold({
@@ -78,11 +79,11 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
               items: [
                 BottomNavigationBarItem(
                   icon: _HomeIcon(),
-                  label: 'Home',
+                  label: AppLocalizations.of(context)!.home,
                 ),
                 BottomNavigationBarItem(
                   icon: _MyIcon(),
-                  label: 'My',
+                  label: AppLocalizations.of(context)!.myPage,
                 ),
               ],
               currentIndex: selectedIndex,
@@ -135,7 +136,7 @@ class _HomeIcon extends StatelessWidget {
     return SvgPicture.asset(
       'Home.svg',
       package: 'assets',
-      semanticsLabel: 'home',
+      semanticsLabel: AppLocalizations.of(context)!.home,
       height: iconTheme.size,
       fit: BoxFit.contain,
       colorFilter: ColorFilter.mode(
@@ -155,7 +156,7 @@ class _MyIcon extends StatelessWidget {
     return SvgPicture.asset(
       'My.svg',
       package: 'assets',
-      semanticsLabel: 'myPage',
+      semanticsLabel: AppLocalizations.of(context)!.myPage,
       height: iconTheme.size,
       fit: BoxFit.contain,
       colorFilter: ColorFilter.mode(
@@ -174,7 +175,7 @@ class _PlusIcon extends StatelessWidget {
     return SvgPicture.asset(
       'Plus.svg',
       package: 'assets',
-      semanticsLabel: 'plus',
+      semanticsLabel: AppLocalizations.of(context)!.plus,
       height: 50,
       fit: BoxFit.contain,
     );

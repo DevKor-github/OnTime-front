@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class CenteredCalendarHeader extends StatelessWidget {
   final DateTime focusedMonth;
@@ -41,7 +42,8 @@ class CenteredCalendarHeader extends StatelessWidget {
             onPressed: onLeftArrowTap,
           ),
           Text(
-            '${focusedMonth.year}년 ${focusedMonth.month}월',
+            DateFormat.yMMMM(AppLocalizations.of(context)!.localeName)
+                .format(focusedMonth),
             style: titleTextStyle,
           ),
           IconButton(

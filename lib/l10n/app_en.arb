@@ -236,5 +236,25 @@
     "appName": "OnTime",
     "@appName": {
         "description": "The name of the application"
+    },
+    "spareTime": "Spare Time",
+    "@spareTime": {
+        "description": "Label for spare time"
+    },
+    "home": "Home",
+    "@home": {
+        "description": "Label for the home button in the bottom navigation bar"
+    },
+    "myPage": "My",
+    "@myPage": {
+        "description": "Label for the my page button in the bottom navigation bar"
+    },
+    "plus": "plus",
+    "@plus": {
+        "description": "Semantics label for the plus icon"
+    },
+    "schedule": "Schedule",
+    "@schedule": {
+        "description": "Label for the schedule button in the bottom navigation bar"
     }
 } 

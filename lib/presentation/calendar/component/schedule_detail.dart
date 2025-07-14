@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 // Helper widget for swipe actions
 class _SwipeActionContent extends StatelessWidget {
@@ -203,14 +204,15 @@ class _ScheduleDetailsColumn extends StatelessWidget {
             child: Column(
               children: [
                 ScheduleInfoTile(
-                  label: '이동시간',
+                  label: AppLocalizations.of(context)!.travelTime,
                   value:
-                      '${schedule.scheduleTime.hour}시간 ${schedule.scheduleTime.minute}분',
+                      '${schedule.scheduleTime.hour}${AppLocalizations.of(context)!.hours} ${schedule.scheduleTime.minute}${AppLocalizations.of(context)!.minutes}',
                 ),
                 //TODO: add preparation time
                 ScheduleInfoTile(
-                  label: '여유시간',
-                  value: '${schedule.scheduleSpareTime?.inMinutes}분',
+                  label: AppLocalizations.of(context)!.spareTime,
+                  value:
+                      '${schedule.scheduleSpareTime?.inMinutes}${AppLocalizations.of(context)!.minutes}',
                 ),
               ],
             ),

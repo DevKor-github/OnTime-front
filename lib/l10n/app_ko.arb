@@ -55,5 +55,10 @@
     "leave": "나갈래요",
     "stay": "있을래요",
     "untilAppointment": "약속까지",
-    "appName": "온타임"
+    "appName": "OnTime",
+    "spareTime": "여유시간",
+    "home": "홈",
+    "myPage": "마이",
+    "plus": "플러스",
+    "schedule": "일정"
 } 

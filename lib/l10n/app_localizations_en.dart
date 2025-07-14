@@ -182,4 +182,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appName => 'OnTime';
+
+  @override
+  String get spareTime => 'Spare Time';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get myPage => 'My';
+
+  @override
+  String get plus => 'plus';
+
+  @override
+  String get schedule => 'Schedule';
 }

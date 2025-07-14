@@ -180,7 +180,7 @@ class _MonthlyScheduleHeader extends StatelessWidget {
             },
             child: Row(
               children: [
-                Text('캘린더 보기',
+                Text(AppLocalizations.of(context)!.viewCalendar,
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: theme.colorScheme.outlineVariant)),
                 arrowRightSvg,

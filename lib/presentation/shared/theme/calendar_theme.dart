@@ -58,7 +58,7 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
         titleTextStyle: textTheme.titleMedium!,
       ),
       daysOfWeekStyle: DaysOfWeekStyle(
-        dowTextFormatter: (date, locale) => DateFormat.E('ko_KR').format(date),
+        dowTextFormatter: (date, locale) => DateFormat.E(locale).format(date),
         weekdayStyle: textTheme.bodyLarge!,
         weekendStyle: textTheme.bodyLarge!,
       ),

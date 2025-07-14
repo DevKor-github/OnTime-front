@@ -436,6 +436,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OnTime'**
   String get appName;
+
+  /// Label for spare time
+  ///
+  /// In en, this message translates to:
+  /// **'Spare Time'**
+  String get spareTime;
+
+  /// Label for the home button in the bottom navigation bar
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// Label for the my page button in the bottom navigation bar
+  ///
+  /// In en, this message translates to:
+  /// **'My'**
+  String get myPage;
+
+  /// Semantics label for the plus icon
+  ///
+  /// In en, this message translates to:
+  /// **'plus'**
+  String get plus;
+
+  /// Label for the schedule button in the bottom navigation bar
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get schedule;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

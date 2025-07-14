@@ -181,5 +181,20 @@ class AppLocalizationsKo extends AppLocalizations {
   String get untilAppointment => '약속까지';
 
   @override
-  String get appName => '온타임';
+  String get appName => 'OnTime';
+
+  @override
+  String get spareTime => '여유시간';
+
+  @override
+  String get home => '홈';
+
+  @override
+  String get myPage => '마이';
+
+  @override
+  String get plus => '플러스';
+
+  @override
+  String get schedule => '일정';
 }

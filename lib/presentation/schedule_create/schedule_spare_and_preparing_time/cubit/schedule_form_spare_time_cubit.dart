@@ -9,7 +9,9 @@ part 'schedule_form_spare_time_state.dart';
 class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
   ScheduleFormSpareTimeCubit({
     required this.scheduleFormBloc,
-  }) : super(ScheduleFormSpareTimeState());
+  }) : super(ScheduleFormSpareTimeState()) {
+    initialize();
+  }
 
   final ScheduleFormBloc scheduleFormBloc;
 

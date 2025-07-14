@@ -33,8 +33,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   
-  intl: ^0.19.0
-  
   assets:
     path: assets
 
@@ -84,7 +82,7 @@ dependencies:
   google_sign_in_platform_interface: ^2.5.0
   widgetbook: ^3.11.0
   widgetbook_annotation: ^3.3.0
-  intl: ^0.20.2
+  intl: ^0.19.0
 
 
 

@@ -27,7 +27,7 @@
     "@todaysAppointments": {
         "description": "Title for today's appointments section on the home screen"
     },
-    "slogan": "A little preparation\\nmakes a lot of leeway!",
+    "slogan": "A little preparation\nmakes a lot of leeway!",
     "@slogan": {
         "description": "Slogan displayed on the home screen"
     },
@@ -75,7 +75,7 @@
     "@areYouRunningLate": {
         "description": "Modal title when the preparation time is over"
     },
-    "runningLateDescription": "If you're not ready yet, you can stay and continue preparing.\\nBut you might be late!",
+    "runningLateDescription": "If you're not ready yet, you can stay and continue preparing.\nBut you might be late!",
     "@runningLateDescription": {
         "description": "Modal content when the preparation time is over"
     },
@@ -95,7 +95,7 @@
     "@welcome": {
         "description": "Title on the onboarding start screen"
     },
-    "onboardingStartSubtitle": "To get ready with OnTime,\\nplease tell us about your usual preparation process.",
+    "onboardingStartSubtitle": "To get ready with OnTime,\nplease tell us about your usual preparation process.",
     "@onboardingStartSubtitle": {
         "description": "Subtitle on the onboarding start screen"
     },
@@ -184,7 +184,7 @@
             }
         }
     },
-    "punctualityComment": "Your punctuality score has increased by {score} points!\\nYou're doing a great job keeping your appointments.",
+    "punctualityComment": "Your punctuality score has increased by {score} points!\nYou're doing a great job keeping your appointments.",
     "@punctualityComment": {
         "description": "Comment on the user's punctuality score",
         "placeholders": {
@@ -217,7 +217,7 @@
     "@confirmLeave": {
         "description": "Modal title to confirm leaving the screen"
     },
-    "confirmLeaveDescription": "If you leave this screen,\\we won't be able to prepare for the appointment together.",
+    "confirmLeaveDescription": "If you leave this screen,\nwe won't be able to prepare for the appointment together.",
     "@confirmLeaveDescription": {
         "description": "Modal content to confirm leaving the screen"
     },
@@ -228,6 +228,10 @@
     "stay": "I'll stay",
     "@stay": {
         "description": "Button text to stay on the screen"
+    },
+    "untilAppointment": "Until\nAppointment",
+    "@untilAppointment": {
+        "description": "Label for the time remaining until an appointment"
     },
     "appName": "OnTime",
     "@appName": {

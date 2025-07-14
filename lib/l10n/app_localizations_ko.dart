@@ -30,7 +30,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get todaysAppointments => '오늘의 약속';
 
   @override
-  String get slogan => '작은 준비가\\n큰 여유를 만들어요!';
+  String get slogan => '작은 준비가\n큰 여유를 만들어요!';
 
   @override
   String get noAppointments => '약속이 없는 날이에요';
@@ -51,7 +51,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pleaseAllowNotifications => '알림을 허용해주세요';
 
   @override
-  String get notificationPermissionDescription => '알림을 허용해야 온타임이 준비를 \\n도와드릴 수 있어요';
+  String get notificationPermissionDescription => '알림을 허용해야 온타임이 준비를 \n도와드릴 수 있어요';
 
   @override
   String get late => ' 지각했어요';
@@ -66,7 +66,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get areYouRunningLate => '준비가 늦어졌나요?';
 
   @override
-  String get runningLateDescription => '아직 준비가 늦었다면 남아서 계속 준비하세요.\\n하지만 늦을 지도 몰라요!';
+  String get runningLateDescription => '아직 준비가 늦었다면 남아서 계속 준비하세요.\n하지만 늦을 지도 몰라요!';
 
   @override
   String get continuePreparing => '계속 준비';
@@ -81,22 +81,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcome => '반가워요!';
 
   @override
-  String get onboardingStartSubtitle => 'Ontime과 함께 준비하기 위해서\\n평소 본인의 준비 과정을 알려주세요';
+  String get onboardingStartSubtitle => 'Ontime과 함께 준비하기 위해서\n평소 본인의 준비 과정을 알려주세요';
 
   @override
   String get start => '시작하기';
 
   @override
-  String get preparationOrderTitle => '앞에서 고른 준비 과정의 순서를\\n알려주세요';
+  String get preparationOrderTitle => '앞에서 고른 준비 과정의 순서를\n알려주세요';
 
   @override
-  String get preparationNameTitle => '주로 하는 준비 과정을\\n선택해주세요 ';
+  String get preparationNameTitle => '주로 하는 준비 과정을\n선택해주세요 ';
 
   @override
   String get multipleSelection => '(복수 선택)';
 
   @override
-  String get preparationTimeTitle => '과정별로 소요되는 시간을\\n알려주세요';
+  String get preparationTimeTitle => '과정별로 소요되는 시간을\n알려주세요';
 
   @override
   String get addAppointment => '약속 추가하기';
@@ -147,7 +147,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String punctualityComment(int score) {
-    return '성실도 점수 $score점 올랐어요!\\n약속을 잘 지키고 있네요';
+    return '성실도 점수 $score점 올랐어요!\n약속을 잘 지키고 있네요';
   }
 
   @override
@@ -169,13 +169,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get confirmLeave => '정말 나가시겠어요?';
 
   @override
-  String get confirmLeaveDescription => '이 화면을 나가면\\n함께 약속을 준비할 수 없게 돼요';
+  String get confirmLeaveDescription => '이 화면을 나가면\n함께 약속을 준비할 수 없게 돼요';
 
   @override
   String get leave => '나갈래요';
 
   @override
   String get stay => '있을래요';
+
+  @override
+  String get untilAppointment => '약속까지';
 
   @override
   String get appName => '온타임';

@@ -140,7 +140,7 @@ abstract class AppLocalizations {
   /// Slogan displayed on the home screen
   ///
   /// In en, this message translates to:
-  /// **'A little preparation\\nmakes a lot of leeway!'**
+  /// **'A little preparation\nmakes a lot of leeway!'**
   String get slogan;
 
   /// Text displayed when there are no appointments for the day
@@ -212,7 +212,7 @@ abstract class AppLocalizations {
   /// Modal content when the preparation time is over
   ///
   /// In en, this message translates to:
-  /// **'If you\'re not ready yet, you can stay and continue preparing.\\nBut you might be late!'**
+  /// **'If you\'re not ready yet, you can stay and continue preparing.\nBut you might be late!'**
   String get runningLateDescription;
 
   /// Button text to continue preparing
@@ -242,7 +242,7 @@ abstract class AppLocalizations {
   /// Subtitle on the onboarding start screen
   ///
   /// In en, this message translates to:
-  /// **'To get ready with OnTime,\\nplease tell us about your usual preparation process.'**
+  /// **'To get ready with OnTime,\nplease tell us about your usual preparation process.'**
   String get onboardingStartSubtitle;
 
   /// Button text to start onboarding
@@ -368,7 +368,7 @@ abstract class AppLocalizations {
   /// Comment on the user's punctuality score
   ///
   /// In en, this message translates to:
-  /// **'Your punctuality score has increased by {score} points!\\nYou\'re doing a great job keeping your appointments.'**
+  /// **'Your punctuality score has increased by {score} points!\nYou\'re doing a great job keeping your appointments.'**
   String punctualityComment(int score);
 
   /// Title for the moving screen
@@ -410,7 +410,7 @@ abstract class AppLocalizations {
   /// Modal content to confirm leaving the screen
   ///
   /// In en, this message translates to:
-  /// **'If you leave this screen,\\we won\'t be able to prepare for the appointment together.'**
+  /// **'If you leave this screen,\nwe won\'t be able to prepare for the appointment together.'**
   String get confirmLeaveDescription;
 
   /// Button text to leave the screen
@@ -424,6 +424,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'I\'ll stay'**
   String get stay;
+
+  /// Label for the time remaining until an appointment
+  ///
+  /// In en, this message translates to:
+  /// **'Until\nAppointment'**
+  String get untilAppointment;
 
   /// The name of the application
   ///

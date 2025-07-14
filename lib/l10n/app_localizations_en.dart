@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todaysAppointments => 'Today\'s Appointments';
 
   @override
-  String get slogan => 'A little preparation\\nmakes a lot of leeway!';
+  String get slogan => 'A little preparation\nmakes a lot of leeway!';
 
   @override
   String get noAppointments => 'No appointments today';
@@ -66,7 +66,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get areYouRunningLate => 'Are you running late?';
 
   @override
-  String get runningLateDescription => 'If you\'re not ready yet, you can stay and continue preparing.\\nBut you might be late!';
+  String get runningLateDescription => 'If you\'re not ready yet, you can stay and continue preparing.\nBut you might be late!';
 
   @override
   String get continuePreparing => 'Continue Preparing';
@@ -81,7 +81,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcome => 'Welcome!';
 
   @override
-  String get onboardingStartSubtitle => 'To get ready with OnTime,\\nplease tell us about your usual preparation process.';
+  String get onboardingStartSubtitle => 'To get ready with OnTime,\nplease tell us about your usual preparation process.';
 
   @override
   String get start => 'Start';
@@ -147,7 +147,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String punctualityComment(int score) {
-    return 'Your punctuality score has increased by $score points!\\nYou\'re doing a great job keeping your appointments.';
+    return 'Your punctuality score has increased by $score points!\nYou\'re doing a great job keeping your appointments.';
   }
 
   @override
@@ -169,13 +169,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmLeave => 'Are you sure you want to leave?';
 
   @override
-  String get confirmLeaveDescription => 'If you leave this screen,\\we won\'t be able to prepare for the appointment together.';
+  String get confirmLeaveDescription => 'If you leave this screen,\nwe won\'t be able to prepare for the appointment together.';
 
   @override
   String get leave => 'I\'m leaving';
 
   @override
   String get stay => 'I\'ll stay';
+
+  @override
+  String get untilAppointment => 'Until\nAppointment';
 
   @override
   String get appName => 'OnTime';

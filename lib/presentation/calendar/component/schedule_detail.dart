@@ -233,7 +233,7 @@ class ScheduleInfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
+        SizedBox(
           width: double.infinity,
           height: 22.18,
           child: Row(

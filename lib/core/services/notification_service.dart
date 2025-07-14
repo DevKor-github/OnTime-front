@@ -6,7 +6,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/js_interop_service.dart';
-import 'package:on_time_front/core/services/notification_request_service/shared.dart';
 import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
 import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
 

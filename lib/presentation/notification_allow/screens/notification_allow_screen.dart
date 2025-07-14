@@ -90,9 +90,7 @@ class _Buttons extends StatelessWidget {
 }
 
 class _Title extends StatelessWidget {
-  const _Title({
-    super.key,
-  });
+  const _Title();
 
   @override
   Widget build(BuildContext context) {
@@ -127,9 +125,7 @@ class _Title extends StatelessWidget {
 }
 
 class _Image extends StatelessWidget {
-  const _Image({
-    super.key,
-  });
+  const _Image();
 
   @override
   Widget build(BuildContext context) {

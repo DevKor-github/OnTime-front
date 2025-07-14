@@ -12,11 +12,14 @@ class GetSchedulesByDateUseCase {
       DateTime startDate, DateTime endDate) async* {
     final schedulesStream = _scheduleRepository.scheduleStream;
     await for (final schedules in schedulesStream) {
-      yield schedules
+      final filteredSchedules = schedules
           .where((schedule) =>
               schedule.scheduleTime.compareTo(startDate) >= 0 &&
               schedule.scheduleTime.isBefore(endDate))
           .toList();
+      filteredSchedules
+          .sort((a, b) => a.scheduleTime.compareTo(b.scheduleTime));
+      yield filteredSchedules;
     }
   }
 }

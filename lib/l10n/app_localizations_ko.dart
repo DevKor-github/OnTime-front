@@ -51,7 +51,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pleaseAllowNotifications => '알림을 허용해주세요';
 
   @override
-  String get notificationPermissionDescription => '알림을 허용해야 온타임이 준비를 \n도와드릴 수 있어요';
+  String get notificationPermissionDescription =>
+      '알림을 허용해야 온타임이 준비를 \n도와드릴 수 있어요';
 
   @override
   String get late => ' 지각했어요';
@@ -66,7 +67,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get areYouRunningLate => '준비가 늦어졌나요?';
 
   @override
-  String get runningLateDescription => '아직 준비가 늦었다면 남아서 계속 준비하세요.\n하지만 늦을 지도 몰라요!';
+  String get runningLateDescription =>
+      '아직 준비가 늦었다면 남아서 계속 준비하세요.\n하지만 늦을 지도 몰라요!';
 
   @override
   String get continuePreparing => '계속 준비';
@@ -81,7 +83,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get welcome => '반가워요!';
 
   @override
-  String get onboardingStartSubtitle => 'Ontime과 함께 준비하기 위해서\n평소 본인의 준비 과정을 알려주세요';
+  String get onboardingStartSubtitle =>
+      'Ontime과 함께 준비하기 위해서\n평소 본인의 준비 과정을 알려주세요';
 
   @override
   String get start => '시작하기';

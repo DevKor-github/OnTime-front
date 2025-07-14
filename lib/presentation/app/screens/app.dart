@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/shared/router/go_router.dart';
+import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class App extends StatelessWidget {
@@ -13,7 +15,7 @@ class App extends StatelessWidget {
     return BlocProvider<AppBloc>(
       create: (context) =>
           getIt.get<AppBloc>()..add(const AppUserSubscriptionRequested()),
-      child: AppView(),
+      child: const AppView(),
     );
   }
 }

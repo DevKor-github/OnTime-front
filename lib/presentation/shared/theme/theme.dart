@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 import 'package:on_time_front/presentation/shared/theme/button_styles.dart';
 import 'package:on_time_front/presentation/shared/theme/input_decoration_theme.dart';
@@ -35,6 +36,7 @@ ThemeData themeData = ThemeData(
     contentTextStyle: _textTheme.bodyMedium,
   ),
   extensions: <ThemeExtension<dynamic>>[
+    CalendarTheme.from(_colorScheme, _textTheme),
     TileStyle(
       backgroundColor: _colorScheme.surfaceContainerLow,
       borderRadius: BorderRadius.circular(100),

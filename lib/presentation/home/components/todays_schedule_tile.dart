@@ -1,171 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class TodaysScheduleTile extends StatelessWidget {
-  const TodaysScheduleTile({super.key, this.schedule});
+  const TodaysScheduleTile({
+    super.key,
+    this.schedule,
+  });
 
   final ScheduleEntity? schedule;
 
-  Widget _noSchedule(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Text(
-        '약속이 없는 날이에요',
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.outlineVariant,
-        ),
-      ),
-    );
-  }
-
-  Widget _scheduleExists(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final scheduleTime = schedule!.scheduleTime;
-    final now = DateTime.now();
-    final difference = scheduleTime.difference(now);
-
-    // Calculate hours and minutes until schedule
-    final hoursUntil = difference.inHours;
-    final minutesUntil = difference.inMinutes % 60;
-
-    // Determine AM/PM and format hour
-    final hour = scheduleTime.hour;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: _ScheduleLeftTimeColumn(
-              scheduleTime: schedule!.scheduleTime,
-            ),
-          ),
-          VerticalDivider(
-            width: 1,
-            color: colorScheme.primary,
-          ),
-          Expanded(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 21.0, vertical: 11.0),
-              child: _ScheduleDetailsColumn(
-                schedule: schedule!,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    if (schedule == null) {
+      return Text(AppLocalizations.of(context)!.noAppointments);
+    }
     return Container(
-      decoration: BoxDecoration(
-        color: schedule == null
-            ? theme.colorScheme.surfaceContainerLow
-            : theme.colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 24,
       ),
-      width: double.infinity,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.5),
-        child:
-            schedule == null ? _noSchedule(context) : _scheduleExists(context),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _Time(schedule: schedule!),
+              SvgPicture.asset(
+                'assets/arrow_right.svg',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _Location(schedule: schedule!),
+        ],
       ),
     );
   }
 }
 
-class _ScheduleDetailsColumn extends StatelessWidget {
-  const _ScheduleDetailsColumn({required this.schedule});
+class _Time extends StatelessWidget {
+  const _Time({
+    required this.schedule,
+  });
 
   final ScheduleEntity schedule;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-    final hour = schedule.scheduleTime.hour;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          schedule.scheduleName,
-          style: textTheme.titleLarge?.copyWith(color: colorScheme.primary),
-        ),
-        //time PM H:MM
-        Text(
-          '$period ${displayHour.toString().padLeft(2, '0')}:${schedule.scheduleTime.minute.toString().padLeft(2, '0')}',
-          style: textTheme.bodySmall?.copyWith(color: colorScheme.primary),
-        ),
-      ],
+    return Text(
+      DateFormat.jm(Localizations.localeOf(context).toString())
+          .format(schedule.scheduleTime),
+      style: theme.textTheme.bodyLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 }
 
-class _ScheduleLeftTimeColumn extends StatelessWidget {
-  const _ScheduleLeftTimeColumn({required this.scheduleTime});
-
-  final DateTime scheduleTime;
-
-  @override
-  Widget build(BuildContext context) {
-    final leftTime = scheduleTime.difference(DateTime.now());
-    //약속까지 hh:mm
-    final hours = leftTime.inHours;
-    final minutes = leftTime.inMinutes % 60;
-
-    return _TimeColumn(
-      hour: hours,
-      minute: minutes,
-    );
-  }
-}
-
-class _TimeColumn extends StatelessWidget {
-  const _TimeColumn({
-    required this.hour,
-    required this.minute,
+class _Location extends StatelessWidget {
+  const _Location({
+    required this.schedule,
   });
 
-  final int hour;
-  final int minute;
+  final ScheduleEntity schedule;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Row(
       children: [
-        Text(
-          "약속까지",
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.primary,
-          ),
-          textAlign: TextAlign.center,
+        SvgPicture.asset(
+          'assets/location.svg',
         ),
-        const SizedBox(height: 4),
+        const SizedBox(width: 8),
         Text(
-          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: colorScheme.primary,
-          ),
-          textAlign: TextAlign.center,
+          schedule.place.placeName,
+          style: theme.textTheme.bodyMedium,
         ),
       ],
     );

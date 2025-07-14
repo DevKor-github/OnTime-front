@@ -12,6 +12,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_place_moving
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
   const ScheduleMultiPageForm({super.key, this.onSaved});
@@ -48,7 +49,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     return BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
       builder: (context, state) {
         if (state.status == ScheduleFormStatus.error) {
-          return const Text('Error');
+          return Text(AppLocalizations.of(context)!.error);
         } else if (state.status == ScheduleFormStatus.loading) {
           return const Center(child: CircularProgressIndicator());
         }

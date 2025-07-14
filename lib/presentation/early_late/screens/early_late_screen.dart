@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/early_late/bloc/early_late_screen_bloc.dart';
 import 'package:on_time_front/presentation/early_late/components/check_list_box_widget.dart';
 import 'package:on_time_front/presentation/early_late/components/early_late_message_image_widget.dart';
@@ -116,7 +117,9 @@ class _EarlyLateText extends StatelessWidget {
             ),
           ),
           TextSpan(
-            text: isLate ? ' 지각했어요' : ' 일찍 준비했어요',
+            text: isLate
+                ? AppLocalizations.of(context)!.late
+                : AppLocalizations.of(context)!.early,
             style: const TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
@@ -171,7 +174,7 @@ class _ButtonSection extends StatelessWidget {
           onPressed: () {
             context.go('/home');
           },
-          child: const Text('까먹지 않고 출발'),
+          child: Text(AppLocalizations.of(context)!.letsGo),
         ),
       ),
     );

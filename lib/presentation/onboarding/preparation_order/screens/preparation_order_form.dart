@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/components/preparation_reorderable_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class PreparationOrderForm extends StatefulWidget {
   const PreparationOrderForm({
@@ -23,7 +24,7 @@ class _PreparationOrderFormState extends State<PreparationOrderForm> {
   @override
   Widget build(BuildContext context) {
     return OnboardingPageViewLayout(
-      title: '앞에서 고른 준비 과정의 순서를\n알려주세요',
+      title: AppLocalizations.of(context)!.preparationOrderTitle,
       child: BlocBuilder<PreparationOrderCubit, PreparationOrderState>(
         builder: (context, state) {
           return PreparationReorderableList(

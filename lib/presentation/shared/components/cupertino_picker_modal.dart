@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 extension ModalBottomSheetExtension on BuildContext {
   void showCupertinoTimerPickerModal({
@@ -51,7 +52,7 @@ extension ModalBottomSheetExtension on BuildContext {
                             foregroundColor: WidgetStatePropertyAll(
                                 Color.fromARGB(255, 92, 121, 251)),
                           ),
-                          child: Text('취소')),
+                          child: Text(AppLocalizations.of(this)!.cancel)),
                     ),
                     SizedBox(width: 20.0),
                     Expanded(
@@ -62,7 +63,7 @@ extension ModalBottomSheetExtension on BuildContext {
                           onSaved(duration);
                           onDisposed?.call();
                         },
-                        child: Text('확인'),
+                        child: Text(AppLocalizations.of(this)!.ok),
                       ),
                     ),
                   ],
@@ -137,7 +138,7 @@ extension ModalBottomSheetExtension on BuildContext {
                               foregroundColor: WidgetStatePropertyAll(
                                   Color.fromARGB(255, 92, 121, 251)),
                             ),
-                            child: Text('취소')),
+                            child: Text(AppLocalizations.of(this)!.cancel)),
                       ),
                       SizedBox(width: 20.0),
                       Expanded(
@@ -148,7 +149,7 @@ extension ModalBottomSheetExtension on BuildContext {
                             onSaved(Duration(minutes: minutes));
                             onDisposed?.call();
                           },
-                          child: Text('확인'),
+                          child: Text(AppLocalizations.of(this)!.ok),
                         ),
                       ),
                     ],
@@ -213,7 +214,7 @@ extension ModalBottomSheetExtension on BuildContext {
                             foregroundColor: WidgetStatePropertyAll(
                                 Color.fromARGB(255, 92, 121, 251)),
                           ),
-                          child: Text('취소')),
+                          child: Text(AppLocalizations.of(this)!.cancel)),
                     ),
                     SizedBox(width: 20.0),
                     Expanded(
@@ -224,7 +225,7 @@ extension ModalBottomSheetExtension on BuildContext {
                           onSaved(dateTime);
                           onDisposed?.call();
                         },
-                        child: Text('확인'),
+                        child: Text(AppLocalizations.of(this)!.ok),
                       ),
                     ),
                   ],

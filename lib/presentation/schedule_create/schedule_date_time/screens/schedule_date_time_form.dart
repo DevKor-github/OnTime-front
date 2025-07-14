@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 
@@ -23,17 +25,20 @@ class ScheduleDateTimeForm extends StatelessWidget {
             child: TextField(
               readOnly: true,
               decoration: InputDecoration(
-                labelText: '약속 시간',
+                labelText: AppLocalizations.of(context)!.appointmentTime,
                 hintText:
-                    '${DateTime.now().year}년 ${DateTime.now().month}월 ${DateTime.now().day}일',
+                    DateFormat.yMd(Localizations.localeOf(context).toString())
+                        .format(DateTime.now()),
               ),
               controller: TextEditingController(
                   text: state.scheduleDate.value == null
                       ? null
-                      : '${state.scheduleDate.value!.year}년 ${state.scheduleDate.value!.month}월 ${state.scheduleDate.value!.day}일'),
+                      : DateFormat.yMd(
+                              Localizations.localeOf(context).toString())
+                          .format(state.scheduleDate.value!)),
               onTap: () {
                 context.showCupertinoDatePickerModal(
-                  title: '날짜를 입력해주세요.',
+                  title: AppLocalizations.of(context)!.enterDate,
                   mode: CupertinoDatePickerMode.date,
                   initialValue: state.scheduleDate.value ?? DateTime.now(),
                   onDisposed: () {},
@@ -55,29 +60,18 @@ class ScheduleDateTimeForm extends StatelessWidget {
               readOnly: true,
               decoration: InputDecoration(
                   labelText: '',
-
-                  hintText: () {
-                    final now = DateTime.now();
-                    final period = now.hour >= 12 ? '오후' : '오전';
-                    final hour12 = now.hour % 12 == 0 ? 12 : now.hour % 12;
-                    final minute = now.minute.toString().padLeft(2, '0');
-                    return '$period $hour12:$minute';
-                  }()),
+                  hintText:
+                      DateFormat.jm(Localizations.localeOf(context).toString())
+                          .format(DateTime.now())),
               controller: TextEditingController(
                 text: state.scheduleTime.value == null
                     ? null
-                    : () {
-                        final time = state.scheduleTime.value!;
-                        final period = time.hour >= 12 ? '오후' : '오전';
-                        final hour12 =
-                            time.hour % 12 == 0 ? 12 : time.hour % 12;
-                        final minute = time.minute.toString().padLeft(2, '0');
-                        return '$period $hour12:$minute';
-                      }(),
+                    : DateFormat.jm(Localizations.localeOf(context).toString())
+                        .format(state.scheduleTime.value!),
               ),
               onTap: () {
                 context.showCupertinoDatePickerModal(
-                  title: '시간을 입력해주세요.',
+                  title: AppLocalizations.of(context)!.enterTime,
                   mode: CupertinoDatePickerMode.time,
                   initialValue: state.scheduleTime.value ?? DateTime.now(),
                   onDisposed: () {},

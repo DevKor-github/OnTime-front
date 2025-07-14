@@ -1,0 +1,236 @@
+{
+    "calendarTitle": "Calendar",
+    "@calendarTitle": {
+        "description": "The title of the calendar screen"
+    },
+    "error": "Error",
+    "@error": {
+        "description": "Generic error message"
+    },
+    "noSchedules": "No schedules",
+    "@noSchedules": {
+        "description": "Text shown when there are no schedules on a selected date"
+    },
+    "setSpareTimeTitle": "Set your spare time",
+    "@setSpareTimeTitle": {
+        "description": "Title for setting spare time during onboarding"
+    },
+    "setSpareTimeDescription": "You can arrive early by the spare time you set.",
+    "@setSpareTimeDescription": {
+        "description": "Description for setting spare time during onboarding"
+    },
+    "setSpareTimeWarning": "You must set a spare time in case of unexpected situations.",
+    "@setSpareTimeWarning": {
+        "description": "Warning for setting spare time during onboarding"
+    },
+    "todaysAppointments": "Today's Appointments",
+    "@todaysAppointments": {
+        "description": "Title for today's appointments section on the home screen"
+    },
+    "slogan": "A little preparation\\nmakes a lot of leeway!",
+    "@slogan": {
+        "description": "Slogan displayed on the home screen"
+    },
+    "noAppointments": "No appointments today",
+    "@noAppointments": {
+        "description": "Text displayed when there are no appointments for the day"
+    },
+    "am": "AM",
+    "@am": {
+        "description": "AM part of a time"
+    },
+    "pm": "PM",
+    "@pm": {
+        "description": "PM part of a time"
+    },
+    "allowNotifications": "Allow notifications",
+    "@allowNotifications": {
+        "description": "Button text to allow notifications"
+    },
+    "doItLater": "I'll do it later.",
+    "@doItLater": {
+        "description": "Button text to skip a step and do it later"
+    },
+    "pleaseAllowNotifications": "Please allow notifications",
+    "@pleaseAllowNotifications": {
+        "description": "Title asking the user to allow notifications"
+    },
+    "notificationPermissionDescription": "OnTime needs notifications to help you get ready",
+    "@notificationPermissionDescription": {
+        "description": "Description explaining why notification permission is needed"
+    },
+    "late": " late",
+    "@late": {
+        "description": "Appended to the time when the user is late"
+    },
+    "early": " early",
+    "@early": {
+        "description": "Appended to the time when the user is early"
+    },
+    "letsGo": "Let's go without forgetting",
+    "@letsGo": {
+        "description": "Button text on the early/late screen"
+    },
+    "areYouRunningLate": "Are you running late?",
+    "@areYouRunningLate": {
+        "description": "Modal title when the preparation time is over"
+    },
+    "runningLateDescription": "If you're not ready yet, you can stay and continue preparing.\\nBut you might be late!",
+    "@runningLateDescription": {
+        "description": "Modal content when the preparation time is over"
+    },
+    "continuePreparing": "Continue Preparing",
+    "@continuePreparing": {
+        "description": "Button text to continue preparing"
+    },
+    "finishPreparation": "Finish Preparation",
+    "@finishPreparation": {
+        "description": "Button text to finish preparing"
+    },
+    "signInSlogan": "We'll find your lost leisure.",
+    "@signInSlogan": {
+        "description": "Slogan on the sign-in screen"
+    },
+    "welcome": "Welcome!",
+    "@welcome": {
+        "description": "Title on the onboarding start screen"
+    },
+    "onboardingStartSubtitle": "To get ready with OnTime,\\nplease tell us about your usual preparation process.",
+    "@onboardingStartSubtitle": {
+        "description": "Subtitle on the onboarding start screen"
+    },
+    "start": "Start",
+    "@start": {
+        "description": "Button text to start onboarding"
+    },
+    "preparationOrderTitle": "Please tell us the order of the preparation process you selected.",
+    "@preparationOrderTitle": {
+        "description": "Title on the preparation order screen"
+    },
+    "preparationNameTitle": "Please select your usual preparation process.",
+    "@preparationNameTitle": {
+        "description": "Title on the preparation name selection screen"
+    },
+    "multipleSelection": "(Multiple selection)",
+    "@multipleSelection": {
+        "description": "Hint for multiple selection"
+    },
+    "preparationTimeTitle": "Please tell us the time required for each step.",
+    "@preparationTimeTitle": {
+        "description": "Title on the preparation time screen"
+    },
+    "addAppointment": "Add appointment",
+    "@addAppointment": {
+        "description": "Title for adding an appointment"
+    },
+    "next": "Next",
+    "@next": {
+        "description": "Button text to go to the next page"
+    },
+    "appointmentName": "Appointment Name",
+    "@appointmentName": {
+        "description": "Label for the appointment name text field"
+    },
+    "appointmentNameHint": "e.g. Watch a movie",
+    "@appointmentNameHint": {
+        "description": "Hint for the appointment name text field"
+    },
+    "appointmentPlace": "Appointment Place",
+    "@appointmentPlace": {
+        "description": "Label for the appointment place text field"
+    },
+    "travelTime": "Travel Time",
+    "@travelTime": {
+        "description": "Label for the travel time text field"
+    },
+    "hours": "hours",
+    "@hours": {
+        "description": "Unit of time"
+    },
+    "minutes": "minutes",
+    "@minutes": {
+        "description": "Unit of time"
+    },
+    "selectTime": "Please select a time",
+    "@selectTime": {
+        "description": "Title for the time picker modal"
+    },
+    "appointmentTime": "Appointment Time",
+    "@appointmentTime": {
+        "description": "Label for the appointment time text field"
+    },
+    "enterDate": "Please enter a date.",
+    "@enterDate": {
+        "description": "Title for the date picker modal"
+    },
+    "enterTime": "Please enter a time.",
+    "@enterTime": {
+        "description": "Title for the time picker modal"
+    },
+    "thisWeeksAppointments": "This week's appointments",
+    "@thisWeeksAppointments": {
+        "description": "Title for this week's appointments section on the home screen"
+    },
+    "viewCalendar": "View calendar",
+    "@viewCalendar": {
+        "description": "Button text to view the calendar"
+    },
+    "points": "{score} points",
+    "@points": {
+        "description": "Punctuality score",
+        "placeholders": {
+            "score": {
+                "type": "int"
+            }
+        }
+    },
+    "punctualityComment": "Your punctuality score has increased by {score} points!\\nYou're doing a great job keeping your appointments.",
+    "@punctualityComment": {
+        "description": "Comment on the user's punctuality score",
+        "placeholders": {
+            "score": {
+                "type": "int"
+            }
+        }
+    },
+    "movingScreenTitle": "this is moving screen",
+    "@movingScreenTitle": {
+        "description": "Title for the moving screen"
+    },
+    "cancel": "Cancel",
+    "@cancel": {
+        "description": "Button text to cancel an action"
+    },
+    "ok": "OK",
+    "@ok": {
+        "description": "Button text to confirm an action"
+    },
+    "youWillBeLate": "If you don't start preparing now, you'll be late!",
+    "@youWillBeLate": {
+        "description": "Warning on the schedule start screen"
+    },
+    "startPreparing": "Start Preparing",
+    "@startPreparing": {
+        "description": "Button text to start preparing"
+    },
+    "confirmLeave": "Are you sure you want to leave?",
+    "@confirmLeave": {
+        "description": "Modal title to confirm leaving the screen"
+    },
+    "confirmLeaveDescription": "If you leave this screen,\\we won't be able to prepare for the appointment together.",
+    "@confirmLeaveDescription": {
+        "description": "Modal content to confirm leaving the screen"
+    },
+    "leave": "I'm leaving",
+    "@leave": {
+        "description": "Button text to leave the screen"
+    },
+    "stay": "I'll stay",
+    "@stay": {
+        "description": "Button text to stay on the screen"
+    },
+    "appName": "OnTime",
+    "@appName": {
+        "description": "The name of the application"
+    }
+} 

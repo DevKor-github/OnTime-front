@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class HomeScreenTmp extends StatefulWidget {
   const HomeScreenTmp({super.key});
@@ -108,7 +109,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '오늘의 약속',
+                    AppLocalizations.of(context)!.todaysAppointments,
                     style: theme.textTheme.titleLarge,
                   ),
                   SizedBox(height: 21.0),
@@ -162,7 +163,7 @@ class _MonthlyScheduleHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Text(
-      "캘린더",
+      AppLocalizations.of(context)!.calendarTitle,
       style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
     );
   }
@@ -284,7 +285,7 @@ class _CharacterSection extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 27.0),
-            child: _Slogan(comment: '작은 준비가\n큰 여유를 만들어요!'),
+            child: _Slogan(comment: AppLocalizations.of(context)!.slogan),
           ),
           _Character(),
         ],
@@ -347,12 +348,38 @@ class _Character extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 176,
-      height: 247.57,
-      child: SvgPicture.asset(
-        'characters/character.svg',
-        package: 'assets',
+    return Expanded(
+      child: Stack(
+        children: [
+          Positioned(
+            top: 20,
+            left: 20,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: _Slogan(comment: AppLocalizations.of(context)!.slogan),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: SvgPicture.asset(
+              'characters/character.svg',
+              package: 'assets',
+            ),
+          ),
+        ],
       ),
     );
   }

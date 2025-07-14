@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 import '../components/google_sign_in_button/shared.dart';
 
@@ -29,6 +30,7 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Center(
         child: Column(
@@ -54,13 +56,13 @@ class _Title extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Text('OnTime',
+        Text(AppLocalizations.of(context)!.appName,
             style: TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.w700,
               color: colorScheme.primary,
             )),
-        Text('당신의 잃어버린 여유를 찾아드립니다.',
+        Text(AppLocalizations.of(context)!.signInSlogan,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w400,

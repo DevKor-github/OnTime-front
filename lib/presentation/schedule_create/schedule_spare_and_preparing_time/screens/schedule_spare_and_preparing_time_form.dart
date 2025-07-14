@@ -6,6 +6,7 @@ import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class ScheduleSpareAndPreparingTimeForm extends StatefulWidget {
   const ScheduleSpareAndPreparingTimeForm({
@@ -36,7 +37,9 @@ class _ScheduleSpareAndPreparingTimeFormState
               initialValue: Duration.zero,
               builder: (field) => TextField(
                 readOnly: true,
-                decoration: InputDecoration(labelText: '준비 시간'),
+                decoration: InputDecoration(
+                    labelText:
+                        AppLocalizations.of(context)!.preparationTimeTitle),
                 controller: TextEditingController(
                     text: state.totalPreparationTime.toString()),
                 onTap: () async {
@@ -67,10 +70,10 @@ class _ScheduleSpareAndPreparingTimeFormState
                 decoration: InputDecoration(labelText: ''),
                 controller: TextEditingController(
                     text:
-                        '${spareTime.inHours}시간 ${spareTime.inMinutes.remainder(60)}분'),
+                        '${spareTime.inHours}${AppLocalizations.of(context)!.hours} ${spareTime.inMinutes.remainder(60)}${AppLocalizations.of(context)!.minutes}'),
                 onTap: () {
                   context.showCupertinoMinutePickerModal(
-                      title: '시간을 입력해주세요',
+                      title: AppLocalizations.of(context)!.enterTime,
                       initialValue: spareTime,
                       onSaved: (value) {
                         context

@@ -4,6 +4,7 @@ import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class AlarmScreenBottomSection extends StatelessWidget {
   final List<PreparationStepEntity> preparationSteps;
@@ -106,7 +107,7 @@ class _EndPreparationButtonSection extends StatelessWidget {
       child: Center(
         child: ElevatedButton(
           onPressed: onEndPreparation,
-          child: const Text('준비 종료'),
+          child: Text(AppLocalizations.of(context)!.finishPreparation),
         ),
       ),
     );

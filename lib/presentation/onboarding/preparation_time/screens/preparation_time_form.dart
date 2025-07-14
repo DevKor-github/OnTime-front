@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/onboarding/components/onboarding_page_view_layout.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/components/preparation_time_input_list.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
@@ -21,7 +22,7 @@ class _PreparationTimeFormState extends State<PreparationTimeForm> {
   @override
   Widget build(BuildContext context) {
     return OnboardingPageViewLayout(
-      title: '과정별로 소요되는 시간을\n알려주세요',
+      title: AppLocalizations.of(context)!.preparationTimeTitle,
       child: BlocBuilder<PreparationTimeCubit, PreparationTimeState>(
         builder: (context, state) {
           return PreparationTimeInputFieldList(

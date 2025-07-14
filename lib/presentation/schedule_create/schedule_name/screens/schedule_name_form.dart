@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class ScheduleNameForm extends StatefulWidget {
   const ScheduleNameForm({
@@ -18,8 +19,8 @@ class _ScheduleNameFormState extends State<ScheduleNameForm> {
         builder: (context, state) {
       return TextFormField(
         decoration: InputDecoration(
-          labelText: '약속 이름',
-          hintText: '예) 영화 보기',
+          labelText: AppLocalizations.of(context)!.appointmentName,
+          hintText: AppLocalizations.of(context)!.appointmentNameHint,
         ),
         textInputAction: TextInputAction.done,
         initialValue: state.scheduleName.value,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/home/bloc/schedule_timer_bloc.dart';
 
 class TodaysScheduleTile extends StatelessWidget {
   const TodaysScheduleTile({super.key, this.schedule});
@@ -23,18 +23,6 @@ class TodaysScheduleTile extends StatelessWidget {
   Widget _scheduleExists(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final scheduleTime = schedule!.scheduleTime;
-    final now = DateTime.now();
-    final difference = scheduleTime.difference(now);
-
-    // Calculate hours and minutes until schedule
-    final hoursUntil = difference.inHours;
-    final minutesUntil = difference.inMinutes % 60;
-
-    // Determine AM/PM and format hour
-    final hour = scheduleTime.hour;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
 
     return IntrinsicHeight(
       child: Row(
@@ -123,14 +111,31 @@ class _ScheduleLeftTimeColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final leftTime = scheduleTime.difference(DateTime.now());
-    //약속까지 hh:mm
-    final hours = leftTime.inHours;
-    final minutes = leftTime.inMinutes % 60;
+    return BlocProvider(
+      create: (context) =>
+          ScheduleTimerBloc()..add(ScheduleTimerStarted(scheduleTime)),
+      child: BlocBuilder<ScheduleTimerBloc, ScheduleTimerState>(
+        builder: (context, state) {
+          Duration leftTime;
 
-    return _TimeColumn(
-      hour: hours,
-      minute: minutes,
+          if (state is ScheduleTimerRunning) {
+            leftTime = state.remainingDuration;
+          } else if (state is ScheduleTimerFinished) {
+            leftTime = Duration.zero;
+          } else {
+            // Initial state - calculate immediately
+            leftTime = scheduleTime.difference(DateTime.now());
+          }
+
+          final hours = leftTime.inHours;
+          final minutes = leftTime.inMinutes % 60;
+
+          return _TimeColumn(
+            hour: hours,
+            minute: minutes,
+          );
+        },
+      ),
     );
   }
 }

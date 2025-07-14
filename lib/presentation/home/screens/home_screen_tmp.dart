@@ -245,6 +245,7 @@ class _MonthCalendarState extends State<_MonthCalendar> {
         borderRadius: BorderRadius.circular(11),
       ),
       child: TableCalendar(
+        locale: Localizations.localeOf(context).toString(),
         eventLoader: (day) {
           day = DateTime(day.year, day.month, day.day);
           return widget.monthlySchedulesState.schedules[day] ?? [];

@@ -78,6 +78,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       }
 
                       return TableCalendar(
+                        locale: Localizations.localeOf(context).toString(),
                         daysOfWeekHeight: 40,
                         eventLoader: (day) {
                           day = DateTime(day.year, day.month, day.day);

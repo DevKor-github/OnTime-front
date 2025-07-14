@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/home/bloc/weekly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
@@ -92,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '오늘의 약속',
+                      AppLocalizations.of(context)!.todaysAppointments,
                       style: theme.textTheme.titleMedium,
                     ),
                     SizedBox(height: 21.0),
@@ -153,14 +154,15 @@ class _WeeklyScheduleHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('이번 주 약속', style: theme.textTheme.titleSmall),
+        Text(AppLocalizations.of(context)!.thisWeeksAppointments,
+            style: theme.textTheme.titleSmall),
         TextButton(
           onPressed: () {
             context.go('/calendar');
           },
           child: Row(
             children: [
-              Text('캘린더 보기',
+              Text(AppLocalizations.of(context)!.viewCalendar,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: theme.colorScheme.outlineVariant)),
               arrowRightSvg,
@@ -220,7 +222,8 @@ class _PunctualityIndicator extends StatelessWidget {
                   _PunctualityScore(score: score),
                   SizedBox(height: 6.0),
                   _PunctualityComment(
-                      comment: '성실도 점수 30점 올랐어요!\n약속을 잘 지키고 있네요'),
+                      comment:
+                          AppLocalizations.of(context)!.punctualityComment(30)),
                   SizedBox(height: 6.0),
                   _Character(),
                 ],
@@ -292,7 +295,8 @@ class _PunctualityScore extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Text('${score.toInt()}점', style: textTheme.displaySmall);
+    return Text(AppLocalizations.of(context)!.points(score.toInt()),
+        style: textTheme.displaySmall);
   }
 }
 

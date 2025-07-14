@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class OnboardingStartScreen extends StatelessWidget {
   const OnboardingStartScreen({super.key});
@@ -44,10 +45,10 @@ class _Title extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('반가워요!',
+        Text(AppLocalizations.of(context)!.welcome,
             key: Key('onboarding_start_title'), style: textTheme.headlineSmall),
         SizedBox(height: 9),
-        Text('Ontime과 함께 준비하기 위해서\n평소 본인의 준비 과정을 알려주세요',
+        Text(AppLocalizations.of(context)!.onboardingStartSubtitle,
             textAlign: TextAlign.center,
             key: Key('onboarding_start_subtitle'),
             style: textTheme.titleExtraSmall),
@@ -85,7 +86,7 @@ class _OnboardingStartButton extends StatelessWidget {
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('시작하기'),
+          child: Text(AppLocalizations.of(context)!.start),
         ),
       ),
     );

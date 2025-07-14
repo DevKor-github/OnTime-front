@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/home/bloc/schedule_timer_bloc.dart';
 
 class TodaysScheduleTile extends StatelessWidget {
@@ -12,7 +16,7 @@ class TodaysScheduleTile extends StatelessWidget {
     final theme = Theme.of(context);
     return Center(
       child: Text(
-        '약속이 없는 날이에요',
+        AppLocalizations.of(context)!.noAppointments,
         style: theme.textTheme.bodyLarge?.copyWith(
           color: theme.colorScheme.outlineVariant,
         ),
@@ -83,9 +87,9 @@ class _ScheduleDetailsColumn extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final hour = schedule.scheduleTime.hour;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    final formattedTime = DateFormat.jm(
+      AppLocalizations.of(context)!.localeName,
+    ).format(schedule.scheduleTime);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +100,7 @@ class _ScheduleDetailsColumn extends StatelessWidget {
         ),
         //time PM H:MM
         Text(
-          '$period ${displayHour.toString().padLeft(2, '0')}:${schedule.scheduleTime.minute.toString().padLeft(2, '0')}',
+          formattedTime,
           style: textTheme.bodySmall?.copyWith(color: colorScheme.primary),
         ),
       ],
@@ -158,7 +162,7 @@ class _TimeColumn extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "약속까지",
+          AppLocalizations.of(context)!.untilAppointment,
           style: theme.textTheme.bodySmall?.copyWith(
             color: colorScheme.primary,
           ),

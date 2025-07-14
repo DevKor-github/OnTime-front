@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/calendar/component/schedule_detail.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
@@ -47,7 +49,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       child: Scaffold(
         backgroundColor: colorScheme.surfaceContainerLow,
         appBar: AppBar(
-          title: const Text('Calendar'),
+          title: Text(AppLocalizations.of(context)!.calendarTitle),
           backgroundColor: colorScheme.surfaceContainerLow,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -72,10 +74,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                     builder: (context, state) {
                       if (state.status == MonthlySchedulesStatus.error) {
-                        return Text('Error');
+                        return Text(AppLocalizations.of(context)!.error);
                       }
 
                       return TableCalendar(
+                        locale: Localizations.localeOf(context).toString(),
                         daysOfWeekHeight: 40,
                         eventLoader: (day) {
                           day = DateTime(day.year, day.month, day.day);
@@ -125,7 +128,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                             alignment: Alignment.center,
                             decoration: calendarTheme.todayDecoration,
                             child: Text(
-                              day.day.toString(),
+                              DateFormat.d(Localizations.localeOf(context)
+                                      .toString())
+                                  .format(day),
                               style: textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onPrimary,
                               ),
@@ -137,7 +142,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 18.0),
+              const SizedBox(height: 18.0),
               BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                 builder: (context, state) {
                   if (state.schedules[_selectedDate]?.isEmpty ?? true) {
@@ -146,7 +151,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     } else if (state.status != MonthlySchedulesStatus.success) {
                       return const SizedBox();
                     } else {
-                      return Text('No schedules');
+                      return Text(AppLocalizations.of(context)!.noSchedules);
                     }
                   }
 

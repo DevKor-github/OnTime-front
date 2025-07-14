@@ -10,6 +10,7 @@ import 'package:on_time_front/presentation/alarm/components/alarm_screen_bottom_
 import 'package:on_time_front/presentation/alarm/components/alarm_screen_top_section.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/modal_button.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class AlarmScreen extends StatefulWidget {
   final ScheduleEntity schedule;
@@ -164,23 +165,23 @@ class TimeoutModalSection extends StatelessWidget {
         ),
         Center(
           child: CustomAlertDialog(
-            title: const Text(
-              "준비가 늦어졌나요?",
+            title: Text(
+              AppLocalizations.of(context)!.areYouRunningLate,
             ),
-            content: const Text(
-              "아직 준비가 늦었다면 남아서 계속 준비하세요.\n하지만 늦을 지도 몰라요!",
+            content: Text(
+              AppLocalizations.of(context)!.runningLateDescription,
             ),
             actionsAlignment: MainAxisAlignment.spaceBetween,
             actions: [
               ModalButton(
                 onPressed: onContinue,
-                text: "계속 준비",
+                text: AppLocalizations.of(context)!.continuePreparing,
                 color: Theme.of(context).colorScheme.primaryContainer,
                 textColor: Theme.of(context).colorScheme.primary,
               ),
               ModalButton(
                 onPressed: onFinish,
-                text: "준비 종료",
+                text: AppLocalizations.of(context)!.finishPreparation,
                 color: Theme.of(context).colorScheme.primary,
                 textColor: Theme.of(context).colorScheme.surface,
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class NotificationAllowScreen extends StatelessWidget {
@@ -64,7 +65,7 @@ class _Buttons extends StatelessWidget {
             }
           },
           child: Text(
-            '알림 허용하기',
+            AppLocalizations.of(context)!.allowNotifications,
             textAlign: TextAlign.center,
             style: textTheme.titleMedium?.copyWith(
               color: colorScheme.onPrimary,
@@ -74,7 +75,7 @@ class _Buttons extends StatelessWidget {
         SizedBox(
           width: 358,
           child: Text(
-            '나중에 할게요.',
+            AppLocalizations.of(context)!.doItLater,
             textAlign: TextAlign.center,
             style: textTheme.bodyLarge?.copyWith(
               color: AppColors.grey[400],
@@ -104,7 +105,7 @@ class _Title extends StatelessWidget {
       spacing: 12,
       children: [
         Text(
-          '알림을 허용해주세요',
+          AppLocalizations.of(context)!.pleaseAllowNotifications,
           textAlign: TextAlign.center,
           style: textTheme.headlineMedium?.copyWith(
             color: colorScheme.primary,
@@ -113,7 +114,7 @@ class _Title extends StatelessWidget {
         SizedBox(
           width: 282,
           child: Text(
-            '알림을 허용해야 온타임이 준비를 \n도와드릴 수 있어요',
+            AppLocalizations.of(context)!.notificationPermissionDescription,
             textAlign: TextAlign.center,
             style: textTheme.titleMedium?.copyWith(
               color: colorScheme.outline,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   const CustomBottomNavigationBar({super.key});
@@ -6,18 +7,18 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      items: const [
+      items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
-          label: '홈',
+          label: AppLocalizations.of(context)!.home,
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.calendar_today),
-          label: '일정',
+          label: AppLocalizations.of(context)!.schedule,
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person),
-          label: '마이페이지',
+          label: AppLocalizations.of(context)!.myPage,
         ),
       ],
     );

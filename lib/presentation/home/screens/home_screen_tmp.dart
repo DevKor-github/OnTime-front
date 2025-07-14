@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
@@ -111,7 +112,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '오늘의 약속',
+                    AppLocalizations.of(context)!.todaysAppointments,
                     style: theme.textTheme.titleLarge,
                   ),
                   SizedBox(height: 21.0),
@@ -168,7 +169,7 @@ class _MonthlyScheduleHeader extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            "캘린더",
+            AppLocalizations.of(context)!.calendarTitle,
             style: theme.textTheme.titleLarge
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
@@ -179,7 +180,7 @@ class _MonthlyScheduleHeader extends StatelessWidget {
             },
             child: Row(
               children: [
-                Text('캘린더 보기',
+                Text(AppLocalizations.of(context)!.viewCalendar,
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: theme.colorScheme.outlineVariant)),
                 arrowRightSvg,
@@ -244,6 +245,7 @@ class _MonthCalendarState extends State<_MonthCalendar> {
         borderRadius: BorderRadius.circular(11),
       ),
       child: TableCalendar(
+        locale: Localizations.localeOf(context).toString(),
         eventLoader: (day) {
           day = DateTime(day.year, day.month, day.day);
           return widget.monthlySchedulesState.schedules[day] ?? [];
@@ -313,7 +315,7 @@ class _CharacterSection extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 27.0),
-            child: _Slogan(comment: '작은 준비가\n큰 여유를 만들어요!'),
+            child: _Slogan(comment: AppLocalizations.of(context)!.slogan),
           ),
           _Character(),
         ],

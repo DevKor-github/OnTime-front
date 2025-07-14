@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 
@@ -37,7 +38,7 @@ class _SchedulePlaceMovingTimeFormState
         children: [
           TextFormField(
             decoration: InputDecoration(
-              labelText: '약속 장소',
+              labelText: AppLocalizations.of(context)!.appointmentPlace,
             ),
             initialValue: state.placeName.value,
             focusNode: _placeFocusNode,
@@ -53,15 +54,16 @@ class _SchedulePlaceMovingTimeFormState
               Expanded(
                 child: TextField(
                   readOnly: true,
-                  decoration: InputDecoration(labelText: '이동 소요 시간'),
+                  decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.travelTime),
                   focusNode: _timeFocusNode,
                   textInputAction: TextInputAction.done,
                   controller: TextEditingController(
                       text:
-                          '${state.moveTime.value.inHours}시간 ${state.moveTime.value.inMinutes % 60}분'),
+                          '${state.moveTime.value.inHours}${AppLocalizations.of(context)!.hours} ${state.moveTime.value.inMinutes % 60}${AppLocalizations.of(context)!.minutes}'),
                   onTap: () {
                     context.showCupertinoTimerPickerModal(
-                        title: '시간을 선택해 주세요',
+                        title: AppLocalizations.of(context)!.selectTime,
                         mode: CupertinoTimerPickerMode.hm,
                         initialValue: state.moveTime.value,
                         onSaved: (Duration newTime) {

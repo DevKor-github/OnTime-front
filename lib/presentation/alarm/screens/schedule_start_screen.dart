@@ -3,8 +3,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/presentation/shared/components/modal_button.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
+import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 
 class ScheduleStartScreen extends StatefulWidget {
   final ScheduleEntity schedule;
@@ -62,7 +63,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                         ),
                         const SizedBox(height: 15),
                         Text(
-                          '지금 준비 시작 안하면 늦어요!',
+                          AppLocalizations.of(context)!.youWillBeLate,
                           style: const TextStyle(
                             fontSize: 15,
                           ),
@@ -88,7 +89,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                     onPressed: () async {
                       context.go('/alarmScreen', extra: widget.schedule);
                     },
-                    child: const Text('준비 시작'),
+                    child: Text(AppLocalizations.of(context)!.startPreparing),
                   ),
                 ),
               ],
@@ -112,22 +113,22 @@ class _ScheduleStartScreenModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomAlertDialog(
-      title: const Text(
-        '정말 나가시겠어요?',
+      title: Text(
+        AppLocalizations.of(context)!.confirmLeave,
       ),
-      content: const Text(
-        '이 화면을 나가면\n함께 약속을 준비할 수 없게 돼요',
+      content: Text(
+        AppLocalizations.of(context)!.confirmLeaveDescription,
       ),
       actions: [
         ModalButton(
           onPressed: () => context.go('/home'),
-          text: '나갈래요',
+          text: AppLocalizations.of(context)!.leave,
           color: Theme.of(context).colorScheme.surfaceContainerLow,
           textColor: Theme.of(context).colorScheme.outline,
         ),
         ModalButton(
           onPressed: () => Navigator.pop(context),
-          text: '있을래요',
+          text: AppLocalizations.of(context)!.stay,
           color: Theme.of(context).colorScheme.primary,
           textColor: Theme.of(context).colorScheme.onPrimary,
         ),

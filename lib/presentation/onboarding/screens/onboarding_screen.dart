@@ -13,6 +13,7 @@ import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screen
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -117,7 +118,7 @@ class _OnboardingFormState extends State<_OnboardingForm>
                               (OnboardingCubit cubit) => cubit.state.isValid)
                           ? () => _onNextPageButtonClicked(context)
                           : null,
-                      child: const Text('다음'),
+                      child: Text(AppLocalizations.of(context)!.next),
                     )),
               ],
             );

@@ -62,5 +62,10 @@
     "plus": "플러스",
     "schedule": "일정",
     "hourFormatted": "{count}시간",
-    "minuteFormatted": "{count}분"
+    "minuteFormatted": "{count}분",
+    "myPageTitle": "마이페이지",
+    "myAccount": "내 계정",
+    "appSettings": "앱 설정",
+    "editDefaultPreparation": "기본 준비과정 / 여유시간 수정",
+    "allowAppNotifications": "앱 알림 허용"
 } 

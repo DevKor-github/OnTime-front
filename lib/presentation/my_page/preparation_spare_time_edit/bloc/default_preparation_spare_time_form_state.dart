@@ -11,16 +11,14 @@ class DefaultPreparationSpareTimeFormState extends Equatable {
   const DefaultPreparationSpareTimeFormState({
     this.status = DefaultPreparationSpareTimeStatus.initial,
     this.spareTime,
-    this.isValid = false,
     this.preparation,
   });
   final DefaultPreparationSpareTimeStatus status;
   final Duration? spareTime;
-  final bool isValid;
   final PreparationEntity? preparation;
 
   @override
-  List<Object?> get props => [status, spareTime, isValid, preparation];
+  List<Object?> get props => [status, spareTime, preparation];
 
   DefaultPreparationSpareTimeFormState copyWith({
     DefaultPreparationSpareTimeStatus? status,

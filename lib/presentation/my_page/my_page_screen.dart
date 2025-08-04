@@ -32,7 +32,7 @@ class MyPageScreen extends StatelessWidget {
                   title: AppLocalizations.of(context)!.editDefaultPreparation,
                   onTap: () async {
                     final PreparationEntity? updatedPreparation =
-                        await context.push('/defualtPreparationSpareTimeEdit');
+                        await context.push('/defaultPreparationSpareTimeEdit');
                     if (updatedPreparation != null) {}
                   },
                 ),

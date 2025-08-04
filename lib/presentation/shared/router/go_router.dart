@@ -15,7 +15,7 @@ import 'package:on_time_front/presentation/home/screens/home_screen_tmp.dart';
 import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
 import 'package:on_time_front/presentation/moving/screens/moving_screen.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
-import 'package:on_time_front/presentation/my_page/prepartion_spare_time_edit/screen/prepartion_spare_time_edit_screen.dart';
+import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen.dart';
 import 'package:on_time_front/presentation/notification_allow/screens/notification_allow_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_start_screen.dart';
@@ -94,8 +94,8 @@ GoRouter goRouterConfig(AppBloc bloc) {
         ],
       ),
       GoRoute(
-        path: '/defualtPreparationSpareTimeEdit',
-        builder: (context, state) => PrepartionSpareTimeEditScreen(),
+        path: '/defaultPreparationSpareTimeEdit',
+        builder: (context, state) => PreparationSpareTimeEditScreen(),
       ),
       GoRoute(path: '/signIn', builder: (context, state) => SignInMainScreen()),
       GoRoute(path: '/calendar', builder: (context, state) => CalendarScreen()),

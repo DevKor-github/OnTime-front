@@ -46,8 +46,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
                 Container(
                   color: colorScheme.primary,
                   padding: const EdgeInsets.only(top: 58.0),
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
+                  child: Column(
                     children: [
                       _CharacterSection(score: score),
                       todaysScheduleOverlayBuilder(state),
@@ -307,8 +306,7 @@ class _CharacterSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 40.0) +
-          EdgeInsets.symmetric(horizontal: 17.0),
+      padding: const EdgeInsets.symmetric(horizontal: 17.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -380,9 +378,9 @@ class _Character extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 176,
-      height: 247.57,
+      height: 130,
       child: SvgPicture.asset(
-        'characters/character.svg',
+        'characters/half_character.svg',
         package: 'assets',
       ),
     );

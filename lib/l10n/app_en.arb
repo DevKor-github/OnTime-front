@@ -294,5 +294,17 @@
     "allowAppNotifications": "Allow App Notifications",
     "@allowAppNotifications": {
         "description": "Setting tile for allowing app notifications"
+    },
+    "editSpareTime": "Edit spare time",
+    "@editSpareTime": {
+        "description": "Section title for editing spare time"
+    },
+    "editPreparationTime": "Edit preparation time",
+    "@editPreparationTime": {
+        "description": "Section title for editing preparation time"
+    },
+    "totalTime": "Total time: ",
+    "@totalTime": {
+        "description": "Label for total preparation time"
     }
 } 

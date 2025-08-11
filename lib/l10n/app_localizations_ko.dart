@@ -225,4 +225,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get allowAppNotifications => '앱 알림 허용';
+
+  @override
+  String get editSpareTime => '여유시간 수정';
+
+  @override
+  String get editPreparationTime => '준비시간 수정';
+
+  @override
+  String get totalTime => '총 시간: ';
 }

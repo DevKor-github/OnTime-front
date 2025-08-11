@@ -511,6 +511,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow App Notifications'**
   String get allowAppNotifications;
+
+  /// Section title for editing spare time
+  ///
+  /// In en, this message translates to:
+  /// **'Edit spare time'**
+  String get editSpareTime;
+
+  /// Section title for editing preparation time
+  ///
+  /// In en, this message translates to:
+  /// **'Edit preparation time'**
+  String get editPreparationTime;
+
+  /// Label for total preparation time
+  ///
+  /// In en, this message translates to:
+  /// **'Total time: '**
+  String get totalTime;
 }
 
 class _AppLocalizationsDelegate

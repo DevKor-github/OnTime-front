@@ -68,4 +68,8 @@
     "appSettings": "앱 설정",
     "editDefaultPreparation": "기본 준비과정 / 여유시간 수정",
     "allowAppNotifications": "앱 알림 허용"
-} 
+,
+    "editSpareTime": "여유시간 수정",
+    "editPreparationTime": "준비시간 수정",
+    "totalTime": "총 시간: "
+}

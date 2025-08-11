@@ -244,4 +244,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allowAppNotifications => 'Allow App Notifications';
+
+  @override
+  String get editSpareTime => 'Edit spare time';
+
+  @override
+  String get editPreparationTime => 'Edit preparation time';
+
+  @override
+  String get totalTime => 'Total time: ';
 }

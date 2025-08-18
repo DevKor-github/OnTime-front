@@ -22,6 +22,8 @@ class CenteredCalendarHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -44,7 +46,7 @@ class CenteredCalendarHeader extends StatelessWidget {
           Text(
             DateFormat.yMMMM(AppLocalizations.of(context)!.localeName)
                 .format(focusedMonth),
-            style: titleTextStyle,
+            style: textTheme.titleSmall,
           ),
           IconButton(
             padding: EdgeInsets.zero,

@@ -37,7 +37,7 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _Title(),
-            SizedBox(height: 24),
+            SizedBox(height: 48),
             _CharacterImage(),
             SizedBox(height: 24),
             GoogleSignInButton(),
@@ -55,6 +55,7 @@ class _Title extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
+      spacing: 8,
       children: [
         Text(AppLocalizations.of(context)!.appName,
             style: TextStyle(
@@ -78,7 +79,7 @@ class _CharacterImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        height: 280,
+        height: 241,
         child: SvgPicture.asset(
           'characters/character.svg',
           package: 'assets',

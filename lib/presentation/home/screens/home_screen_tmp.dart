@@ -104,7 +104,8 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
               borderRadius: BorderRadius.circular(20),
             ),
             color: theme.colorScheme.surface,
-            elevation: 2,
+            elevation: 6,
+            shadowColor: Colors.black.withOpacity(0.4),
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -112,7 +113,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.todaysAppointments,
-                    style: theme.textTheme.titleLarge,
+                    style: theme.textTheme.titleMedium,
                   ),
                   SizedBox(height: 21.0),
                   TodaysScheduleTile(

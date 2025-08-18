@@ -274,5 +274,37 @@
           "type": "int"
         }
       }
+    },
+    "myPageTitle": "My Page",
+    "@myPageTitle": {
+        "description": "Title for the my page screen"
+    },
+    "myAccount": "My Account",
+    "@myAccount": {
+        "description": "Title for the my account section"
+    },
+    "appSettings": "App Settings",
+    "@appSettings": {
+        "description": "Title for the app settings section"
+    },
+    "editDefaultPreparation": "Edit Default Preparation / Spare Time",
+    "@editDefaultPreparation": {
+        "description": "Setting tile for editing default preparation and spare time"
+    },
+    "allowAppNotifications": "Allow App Notifications",
+    "@allowAppNotifications": {
+        "description": "Setting tile for allowing app notifications"
+    },
+    "editSpareTime": "Edit spare time",
+    "@editSpareTime": {
+        "description": "Section title for editing spare time"
+    },
+    "editPreparationTime": "Edit preparation time",
+    "@editPreparationTime": {
+        "description": "Section title for editing preparation time"
+    },
+    "totalTime": "Total time: ",
+    "@totalTime": {
+        "description": "Label for total preparation time"
     }
 } 

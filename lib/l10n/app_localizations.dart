@@ -481,6 +481,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count,plural, =1{{count} minute} other{{count} minutes}}'**
   String minuteFormatted(int count);
+
+  /// Title for the my page screen
+  ///
+  /// In en, this message translates to:
+  /// **'My Page'**
+  String get myPageTitle;
+
+  /// Title for the my account section
+  ///
+  /// In en, this message translates to:
+  /// **'My Account'**
+  String get myAccount;
+
+  /// Title for the app settings section
+  ///
+  /// In en, this message translates to:
+  /// **'App Settings'**
+  String get appSettings;
+
+  /// Setting tile for editing default preparation and spare time
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Default Preparation / Spare Time'**
+  String get editDefaultPreparation;
+
+  /// Setting tile for allowing app notifications
+  ///
+  /// In en, this message translates to:
+  /// **'Allow App Notifications'**
+  String get allowAppNotifications;
+
+  /// Section title for editing spare time
+  ///
+  /// In en, this message translates to:
+  /// **'Edit spare time'**
+  String get editSpareTime;
+
+  /// Section title for editing preparation time
+  ///
+  /// In en, this message translates to:
+  /// **'Edit preparation time'**
+  String get editPreparationTime;
+
+  /// Label for total preparation time
+  ///
+  /// In en, this message translates to:
+  /// **'Total time: '**
+  String get totalTime;
 }
 
 class _AppLocalizationsDelegate

@@ -12,7 +12,8 @@ class TodaysScheduleTile extends StatelessWidget {
 
   Widget _noSchedule(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 16.0),
       child: Text(
         AppLocalizations.of(context)!.noAppointments,
         style: theme.textTheme.bodyLarge?.copyWith(
@@ -63,14 +64,10 @@ class TodaysScheduleTile extends StatelessWidget {
         color: schedule == null
             ? theme.colorScheme.surfaceContainerLow
             : theme.colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
       ),
       width: double.infinity,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.5),
-        child:
-            schedule == null ? _noSchedule(context) : _scheduleExists(context),
-      ),
+      child: schedule == null ? _noSchedule(context) : _scheduleExists(context),
     );
   }
 }

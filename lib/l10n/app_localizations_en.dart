@@ -229,4 +229,28 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get myPageTitle => 'My Page';
+
+  @override
+  String get myAccount => 'My Account';
+
+  @override
+  String get appSettings => 'App Settings';
+
+  @override
+  String get editDefaultPreparation => 'Edit Default Preparation / Spare Time';
+
+  @override
+  String get allowAppNotifications => 'Allow App Notifications';
+
+  @override
+  String get editSpareTime => 'Edit spare time';
+
+  @override
+  String get editPreparationTime => 'Edit preparation time';
+
+  @override
+  String get totalTime => 'Total time: ';
 }

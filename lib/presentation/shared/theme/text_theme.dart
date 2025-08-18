@@ -30,7 +30,7 @@ TextTheme _textTheme = TextTheme(
   ),
   titleMedium: TextStyle(
     fontSize: 18,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     color: _colorScheme.onSurface,
     height: 1.4,
   ),

@@ -1,19 +1,2 @@
-import 'dart:js_interop';
-
-@JS()
-external JSPromise<JSString> _requestNotificationPermission();
-
-@JS()
-external JSBoolean _isInStandaloneMode();
-
-class JsInteropService {
-  static Future<String> requestNotificationPermission() {
-    return _requestNotificationPermission()
-        .toDart
-        .then((jsString) => jsString.toString());
-  }
-
-  static bool isInStandaloneMode() {
-    return _isInStandaloneMode().toDart;
-  }
-}
+export 'js_interop_service_stub.dart'
+    if (dart.library.js_interop) 'js_interop_service_web.dart';

@@ -30,7 +30,6 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Center(
         child: Column(
@@ -53,16 +52,14 @@ class _Title extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Column(
-      spacing: 8,
+      spacing: 28,
       children: [
-        Text(AppLocalizations.of(context)!.appName,
-            style: TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w700,
-              color: colorScheme.primary,
-            )),
+        Image.asset(
+          'logo.png',
+          package: 'assets',
+          width: 167,
+        ),
         Text(AppLocalizations.of(context)!.signInSlogan,
             style: TextStyle(
               fontSize: 20,

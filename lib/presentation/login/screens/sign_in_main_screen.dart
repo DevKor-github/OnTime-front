@@ -38,7 +38,7 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
             _Title(),
             SizedBox(height: 48),
             _CharacterImage(),
-            SizedBox(height: 24),
+            SizedBox(height: 41),
             GoogleSignInButton(),
           ],
         ),

@@ -47,7 +47,7 @@ class AppButtonStyles {
       foregroundColor: WidgetStateProperty.resolveWith<Color?>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return colorScheme.onSurface.withOpacity(0.38);
+            return colorScheme.onSurface.withValues(alpha: 0.38);
           } else {
             return colorScheme.onPrimaryContainer;
           }
@@ -63,7 +63,7 @@ class AppButtonStyles {
       foregroundColor: WidgetStateProperty.resolveWith<Color?>(
         (Set<WidgetState> states) {
           if (states.contains(WidgetState.disabled)) {
-            return colorScheme.outlineVariant.withOpacity(0.38);
+            return colorScheme.outlineVariant.withValues(alpha: 0.38);
           } else {
             return colorScheme.primary;
           }

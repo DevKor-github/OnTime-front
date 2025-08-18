@@ -160,7 +160,7 @@ class TimeoutModalSection extends StatelessWidget {
         Positioned.fill(
           // 배경 딤 처리
           child: Container(
-            color: Colors.black.withOpacity(0.4), // 딤 처리
+            color: Colors.black.withValues(alpha: 0.4), // 딤 처리
           ),
         ),
         Center(

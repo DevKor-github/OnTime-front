@@ -55,7 +55,7 @@ class AppInputDecorationTheme {
       // Disabled border
       disabledBorder: UnderlineInputBorder(
         borderSide: BorderSide(
-          color: colorScheme.outline.withOpacity(0.38),
+          color: colorScheme.outline.withValues(alpha: 0.38),
           width: 1.0,
         ),
       ),

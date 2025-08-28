@@ -57,7 +57,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
                   padding: const EdgeInsets.only(
                       top: 0.0, left: 16.0, right: 16.0, bottom: 24.0),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLowest,
+                    color: colorScheme.surface,
                   ),
                   child: _MonthlySchedule(
                     monthlySchedulesState: state,
@@ -89,7 +89,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
             padding: const EdgeInsets.only(top: 49.0),
             child: Container(
               decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLowest,
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16))),
@@ -105,7 +105,7 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
             ),
             color: theme.colorScheme.surface,
             elevation: 6,
-            shadowColor: Colors.black.withOpacity(0.4),
+            shadowColor: Colors.black.withValues(alpha: 0.4),
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -227,7 +227,6 @@ class _MonthCalendarState extends State<_MonthCalendar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
     final calendarTheme = theme.extension<CalendarTheme>()!;
 
     if (widget.monthlySchedulesState.schedules.isEmpty) {

@@ -132,8 +132,9 @@ Widget multipleScheduleDetailsUseCase(BuildContext context) {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
-          child: ListView.builder(
+          child: ListView.separated(
             itemCount: schedules.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
               return ScheduleDetail(
                 schedule: schedules[index],

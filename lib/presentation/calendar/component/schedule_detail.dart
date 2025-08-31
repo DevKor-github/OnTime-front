@@ -65,14 +65,11 @@ class ScheduleDetail extends StatefulWidget {
 class _ScheduleDetailState extends State<ScheduleDetail> {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 60.0),
-      child: SwipeActionCell(
-        key: ValueKey<String>(widget.schedule.id),
-        backgroundColor: Colors.transparent,
-        trailingActions: _buildSwipeActions(context),
-        child: _buildScheduleContent(context),
-      ),
+    return SwipeActionCell(
+      key: ValueKey<String>(widget.schedule.id),
+      backgroundColor: Colors.transparent,
+      trailingActions: _buildSwipeActions(context),
+      child: _buildScheduleContent(context),
     );
   }
 

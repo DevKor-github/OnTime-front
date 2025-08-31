@@ -66,7 +66,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
+      padding: const EdgeInsets.only(bottom: 60.0),
       child: SwipeActionCell(
         key: ValueKey<String>(widget.schedule.id),
         backgroundColor: Colors.transparent,
@@ -107,14 +107,14 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.5),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: _ScheduleTimeColumn(
                   scheduleTime: widget.schedule.scheduleTime,
                 ),
@@ -148,13 +148,13 @@ class _ScheduleTimeColumn extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          DateFormat.j(locale).format(scheduleTime),
+          DateFormat.Hm(locale).format(scheduleTime),
           style: theme.textTheme.titleSmall,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),
         Text(
-          DateFormat('a', locale).format(scheduleTime),
+          DateFormat('a', 'en').format(scheduleTime),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -176,61 +176,79 @@ class _ScheduleDetailsColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0) +
-          const EdgeInsets.only(top: 4.0),
-      child: ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        childrenPadding: const EdgeInsets.only(bottom: 8.0),
-        shape: const Border(),
-        collapsedShape: const Border(),
-        title: Text(
-          schedule.scheduleName,
-          style: theme.textTheme.titleLarge,
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          visualDensity:
+              const VisualDensity(vertical: VisualDensity.minimumDensity),
+          listTileTheme: const ListTileThemeData(
+            dense: true,
+            minVerticalPadding: 0,
+            contentPadding: EdgeInsets.zero,
+          ),
         ),
-        subtitle: Row(
-          children: [
-            const _MapPinFillSvg(),
-            const SizedBox(width: 4),
-            Text(
-              placeName,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
-              ),
-            ),
-          ],
-        ),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 0.0),
-            child: Column(
+        child: ExpansionTile(
+          shape: const Border(),
+          collapsedShape: const Border(),
+          title: Text(
+            schedule.scheduleName,
+            style: theme.textTheme.titleLarge,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          childrenPadding: const EdgeInsets.only(top: 16.0),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Row(
               children: [
-                ScheduleInfoTile(
+                const _MapPinFillSvg(),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    placeName,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          children: [
+            Column(
+              children: [
+                _ScheduleInfoTile(
                   label: AppLocalizations.of(context)!.travelTime,
                   value: formatDuration(context, schedule.moveTime),
                 ),
-                //TODO: add preparation time
-                ScheduleInfoTile(
+                _ScheduleInfoTile(
                   label: AppLocalizations.of(context)!.spareTime,
                   value: formatDuration(
                       context, schedule.scheduleSpareTime ?? Duration.zero),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class ScheduleInfoTile extends StatelessWidget {
-  const ScheduleInfoTile({super.key, required this.label, required this.value});
+class _ScheduleInfoTile extends StatelessWidget {
+  const _ScheduleInfoTile(
+      {super.key, required this.label, required this.value});
 
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
     return Column(
       children: [
         SizedBox(
@@ -244,22 +262,14 @@ class ScheduleInfoTile extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  color: const Color(0xFF777777),
-                  fontSize: 12,
-                  fontFamily: 'Pretendard',
-                  fontWeight: FontWeight.w400,
-                  height: 1.40,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.outline,
                 ),
               ),
               Text(
                 value,
-                style: TextStyle(
-                  color: const Color(0xFF111111),
-                  fontSize: 13,
-                  fontFamily: 'Pretendard',
-                  fontWeight: FontWeight.w400,
-                  height: 1.40,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
                 ),
               ),
             ],

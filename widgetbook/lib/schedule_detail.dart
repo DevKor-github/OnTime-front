@@ -57,18 +57,26 @@ Widget scheduleDetailUseCase(BuildContext context) {
     latenessTime: 0,
   );
 
-  return ScheduleDetail(
-    schedule: schedule,
-    onEdit: () {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Edit tapped')),
-      );
-    },
-    onDeleted: () {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Delete tapped')),
-      );
-    },
+  return Scaffold(
+    backgroundColor: const Color(0xFFF5F5F5),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ScheduleDetail(
+          schedule: schedule,
+          onEdit: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Edit tapped')),
+            );
+          },
+          onDeleted: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Delete tapped')),
+            );
+          },
+        ),
+      ),
+    ),
   );
 }
 
@@ -142,55 +150,6 @@ Widget multipleScheduleDetailsUseCase(BuildContext context) {
                             Text('Delete ${schedules[index].scheduleName}')),
                   );
                 },
-              );
-            },
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-@widgetbook.UseCase(
-  name: 'Long Text Content',
-  type: ScheduleDetail,
-)
-Widget longTextScheduleDetailUseCase(BuildContext context) {
-  final place = PlaceEntity(
-    id: 'place_long',
-    placeName: '서울특별시 강남구 테헤란로 427 위워크 선릉2호점 15층 회의실',
-  );
-
-  final schedule = ScheduleEntity(
-    id: 'schedule_long',
-    place: place,
-    scheduleName: '매우 중요한 분기별 전략 회의 및 프로젝트 진행 상황 점검 미팅',
-    scheduleTime: DateTime(2024, 1, 15, 16, 45),
-    moveTime: const Duration(hours: 2, minutes: 15),
-    isChanged: false,
-    isStarted: false,
-    scheduleSpareTime: const Duration(minutes: 45),
-    scheduleNote: '준비물: 노트북, 자료집, 프로젝트 문서, 차트, 그래프 등 모든 관련 문서',
-    latenessTime: 0,
-  );
-
-  return Scaffold(
-    backgroundColor: const Color(0xFFF5F5F5),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: ScheduleDetail(
-            schedule: schedule,
-            onEdit: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit long content schedule')),
-              );
-            },
-            onDeleted: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Delete long content schedule')),
               );
             },
           ),

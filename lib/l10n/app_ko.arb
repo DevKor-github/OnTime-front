@@ -34,7 +34,7 @@
     "appointmentName": "약속 이름",
     "appointmentNameHint": "예) 영화 보기",
     "appointmentPlace": "약속 장소",
-    "travelTime": "이동 소요 시간",
+    "travelTime": "이동시간",
     "hours": "시간",
     "minutes": "분",
     "selectTime": "시간을 선택해 주세요",

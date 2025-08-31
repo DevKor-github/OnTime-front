@@ -184,53 +184,58 @@ class _ScheduleDetailsColumn extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
           ),
         ),
-        child: ExpansionTile(
-          shape: const Border(),
-          collapsedShape: const Border(),
-          iconColor: theme.colorScheme.onSurfaceVariant, // Color when expanded
-          collapsedIconColor:
-              theme.colorScheme.onSurfaceVariant, // Color when collapsed
-          title: Text(
-            schedule.scheduleName,
-            style: theme.textTheme.titleLarge,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          childrenPadding: const EdgeInsets.only(top: 16.0),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 4.0),
-            child: Row(
-              children: [
-                const _MapPinFillSvg(),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    placeName,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
+        child: IconTheme(
+          data: IconTheme.of(context).copyWith(size: 32),
+          child: ExpansionTile(
+            shape: const Border(),
+            collapsedShape: const Border(),
+            iconColor:
+                theme.colorScheme.onSurfaceVariant, // Color when expanded
+            // icon size provided by IconTheme above
+            collapsedIconColor:
+                theme.colorScheme.onSurfaceVariant, // Color when collapsed
+            title: Text(
+              schedule.scheduleName,
+              style: theme.textTheme.titleLarge,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            childrenPadding: const EdgeInsets.only(top: 16.0),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Row(
+                children: [
+                  const _MapPinFillSvg(),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      placeName,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.outline,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+            children: [
+              Column(
+                children: [
+                  _ScheduleInfoTile(
+                    label: AppLocalizations.of(context)!.travelTime,
+                    value: formatDuration(context, schedule.moveTime),
+                  ),
+                  _ScheduleInfoTile(
+                    label: AppLocalizations.of(context)!.spareTime,
+                    value: formatDuration(
+                        context, schedule.scheduleSpareTime ?? Duration.zero),
+                  ),
+                ],
+              ),
+            ],
           ),
-          children: [
-            Column(
-              children: [
-                _ScheduleInfoTile(
-                  label: AppLocalizations.of(context)!.travelTime,
-                  value: formatDuration(context, schedule.moveTime),
-                ),
-                _ScheduleInfoTile(
-                  label: AppLocalizations.of(context)!.spareTime,
-                  value: formatDuration(
-                      context, schedule.scheduleSpareTime ?? Duration.zero),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );
@@ -238,8 +243,7 @@ class _ScheduleDetailsColumn extends StatelessWidget {
 }
 
 class _ScheduleInfoTile extends StatelessWidget {
-  const _ScheduleInfoTile(
-      {super.key, required this.label, required this.value});
+  const _ScheduleInfoTile({required this.label, required this.value});
 
   final String label;
   final String value;

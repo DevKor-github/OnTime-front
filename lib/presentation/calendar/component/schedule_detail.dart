@@ -187,6 +187,9 @@ class _ScheduleDetailsColumn extends StatelessWidget {
         child: ExpansionTile(
           shape: const Border(),
           collapsedShape: const Border(),
+          iconColor: theme.colorScheme.onSurfaceVariant, // Color when expanded
+          collapsedIconColor:
+              theme.colorScheme.onSurfaceVariant, // Color when collapsed
           title: Text(
             schedule.scheduleName,
             style: theme.textTheme.titleLarge,

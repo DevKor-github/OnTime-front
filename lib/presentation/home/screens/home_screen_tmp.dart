@@ -7,11 +7,9 @@ import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
-import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
+import 'package:on_time_front/presentation/home/components/month_calendar.dart';
 
 class HomeScreenTmp extends StatefulWidget {
   const HomeScreenTmp({super.key});
@@ -89,10 +87,12 @@ class _HomeScreenTmpState extends State<HomeScreenTmp> {
             padding: const EdgeInsets.only(top: 49.0),
             child: Container(
               decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      topRight: Radius.circular(16))),
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
             ),
           ),
         ),
@@ -142,7 +142,7 @@ class _MonthlySchedule extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _MonthlyScheduleHeader(),
-        _MonthCalendar(
+        MonthCalendar(
           monthlySchedulesState: monthlySchedulesState,
         ),
       ],
@@ -193,108 +193,7 @@ class _MonthlyScheduleHeader extends StatelessWidget {
   }
 }
 
-class _MonthCalendar extends StatefulWidget {
-  const _MonthCalendar({required this.monthlySchedulesState});
-
-  final MonthlySchedulesState monthlySchedulesState;
-
-  @override
-  State<_MonthCalendar> createState() => _MonthCalendarState();
-}
-
-class _MonthCalendarState extends State<_MonthCalendar> {
-  late DateTime _focusedDay;
-
-  @override
-  void initState() {
-    super.initState();
-    _focusedDay = DateTime.now();
-  }
-
-  void _onLeftArrowTap() {
-    setState(() {
-      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
-    });
-  }
-
-  void _onRightArrowTap() {
-    setState(() {
-      _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final calendarTheme = theme.extension<CalendarTheme>()!;
-
-    if (widget.monthlySchedulesState.schedules.isEmpty) {
-      if (widget.monthlySchedulesState.status ==
-          MonthlySchedulesStatus.loading) {
-        return CircularProgressIndicator();
-      } else if (widget.monthlySchedulesState.status !=
-          MonthlySchedulesStatus.success) {
-        return const SizedBox();
-      }
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: TableCalendar(
-        locale: Localizations.localeOf(context).toString(),
-        eventLoader: (day) {
-          day = DateTime(day.year, day.month, day.day);
-          return widget.monthlySchedulesState.schedules[day] ?? [];
-        },
-        focusedDay: _focusedDay,
-        firstDay: DateTime(2024, 1, 1),
-        lastDay: DateTime(2025, 12, 31),
-        calendarFormat: CalendarFormat.month,
-        headerStyle: calendarTheme.headerStyle,
-        daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
-        daysOfWeekHeight: 40,
-        calendarStyle: calendarTheme.calendarStyle,
-        onDaySelected: (selectedDay, focusedDay) {
-          // Handle day selection if needed
-        },
-        onPageChanged: (focusedDay) {
-          setState(() {
-            _focusedDay = focusedDay;
-          });
-          context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
-              date:
-                  DateTime(focusedDay.year, focusedDay.month, focusedDay.day)));
-        },
-        calendarBuilders: CalendarBuilders(
-          headerTitleBuilder: (context, date) {
-            return CenteredCalendarHeader(
-              focusedMonth: date,
-              onLeftArrowTap: _onLeftArrowTap,
-              onRightArrowTap: _onRightArrowTap,
-              titleTextStyle: calendarTheme.headerStyle.titleTextStyle,
-              leftIcon: calendarTheme.headerStyle.leftChevronIcon,
-              rightIcon: calendarTheme.headerStyle.rightChevronIcon,
-            );
-          },
-          todayBuilder: (context, day, focusedDay) => Container(
-            margin: const EdgeInsets.all(4.0),
-            alignment: Alignment.center,
-            decoration: calendarTheme.todayDecoration,
-            child: Text(
-              day.day.toString(),
-              style: textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onPrimary,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// Moved MonthCalendar into components/month_calendar.dart
 
 class _CharacterSection extends StatelessWidget {
   const _CharacterSection({

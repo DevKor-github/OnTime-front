@@ -9,6 +9,7 @@ part 'schedule_timer_state.dart';
 
 class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
   StreamSubscription<DateTime>? _tickerSubscription;
+  Timer? _initialTimer;
   DateTime? _scheduleTime;
 
   ScheduleTimerBloc() : super(const ScheduleTimerInitial()) {
@@ -21,6 +22,7 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
   @override
   Future<void> close() {
     _tickerSubscription?.cancel();
+    _initialTimer?.cancel();
     return super.close();
   }
 
@@ -28,6 +30,7 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
       ScheduleTimerStarted event, Emitter<ScheduleTimerState> emit) {
     _scheduleTime = event.scheduleTime;
     _tickerSubscription?.cancel();
+    _initialTimer?.cancel();
 
     // Calculate initial time difference
     final now = DateTime.now();
@@ -48,7 +51,10 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
     final secondsUntilNextMinute = 60 - now.second;
 
     // Create an initial timer to sync with minute boundaries
-    Timer(Duration(seconds: secondsUntilNextMinute), () {
+    _initialTimer = Timer(Duration(seconds: secondsUntilNextMinute), () {
+      // Check if bloc is still active before adding events
+      if (isClosed) return;
+
       // After the initial sync, start the regular minute timer
       add(ScheduleTimerTicked(DateTime.now()));
 
@@ -57,7 +63,10 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
         const Duration(minutes: 1),
         (_) => DateTime.now(),
       ).listen((currentTime) {
-        add(ScheduleTimerTicked(currentTime));
+        // Check if bloc is still active before adding events
+        if (!isClosed) {
+          add(ScheduleTimerTicked(currentTime));
+        }
       });
     });
   }
@@ -83,6 +92,7 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
   void _onTimerStopped(
       ScheduleTimerStopped event, Emitter<ScheduleTimerState> emit) {
     _tickerSubscription?.cancel();
+    _initialTimer?.cancel();
     _scheduleTime = null;
     emit(const ScheduleTimerInitial());
   }
@@ -91,6 +101,7 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
       ScheduleTimerUpdated event, Emitter<ScheduleTimerState> emit) {
     if (event.scheduleTime == null) {
       _tickerSubscription?.cancel();
+      _initialTimer?.cancel();
       _scheduleTime = null;
       emit(const ScheduleTimerInitial());
     } else {

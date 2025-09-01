@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:widgetbook/widgetbook.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
 // This file does not exist yet,
@@ -9,6 +10,7 @@ import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 import 'main.directories.g.dart';
 
 void main() {
+  configureDependencies();
   runApp(const WidgetbookApp());
 }
 
@@ -44,11 +46,22 @@ class WidgetbookApp extends StatelessWidget {
         BuilderAddon(
           name: 'background',
           builder: (context, child) {
+            final mediaQuery = MediaQuery.maybeOf(context);
+            final wrappedChild = mediaQuery == null
+                ? child
+                : MediaQuery(
+                    data: mediaQuery.copyWith(
+                      padding: EdgeInsets.zero,
+                      viewPadding: EdgeInsets.zero,
+                    ),
+                    child: child,
+                  );
+
             return Container(
               height: double.infinity,
               width: double.infinity,
               color: Colors.white,
-              child: child,
+              child: wrappedChild,
             );
           },
         ),

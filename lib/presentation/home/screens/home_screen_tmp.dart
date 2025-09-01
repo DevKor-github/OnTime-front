@@ -11,65 +11,84 @@ import 'package:on_time_front/presentation/shared/components/arc_indicator.dart'
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:on_time_front/presentation/home/components/month_calendar.dart';
 
-class HomeScreenTmp extends StatefulWidget {
+/// Wrapper widget that provides the BlocProvider for HomeScreenTmp
+class HomeScreenTmp extends StatelessWidget {
   const HomeScreenTmp({super.key});
-
-  @override
-  State<HomeScreenTmp> createState() => _HomeScreenTmpState();
-}
-
-class _HomeScreenTmpState extends State<HomeScreenTmp> {
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     final dateOfToday = DateTime(
         DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
-    final double score = context.select((AppBloc bloc) =>
-        bloc.state.user.mapOrNull((user) => user.score) ?? -1);
-    final colorScheme = Theme.of(context).colorScheme;
 
     return BlocProvider(
       create: (context) => getIt.get<MonthlySchedulesBloc>()
         ..add(MonthlySchedulesSubscriptionRequested(date: dateOfToday)),
       child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
         builder: (context, state) {
-          return SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Container(
-                  color: colorScheme.primary,
-                  padding: const EdgeInsets.only(top: 58.0),
-                  child: Column(
-                    children: [
-                      _CharacterSection(score: score),
-                      todaysScheduleOverlayBuilder(state),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.only(
-                      top: 0.0, left: 16.0, right: 16.0, bottom: 24.0),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                  ),
-                  child: _MonthlySchedule(
-                    monthlySchedulesState: state,
-                  ),
-                ),
-              ],
-            ),
-          );
+          return HomeScreenContent(state: state);
         },
       ),
     );
   }
+}
 
-  Widget todaysScheduleOverlayBuilder(MonthlySchedulesState state) {
+/// The actual home screen content that can be tested independently
+class HomeScreenContent extends StatelessWidget {
+  const HomeScreenContent({
+    super.key,
+    required this.state,
+    this.userScore,
+  });
+
+  final MonthlySchedulesState state;
+  final double? userScore;
+
+  @override
+  Widget build(BuildContext context) {
+    final double score = userScore ??
+        context.select((AppBloc bloc) =>
+            bloc.state.user.mapOrNull((user) => user.score) ?? -1);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Container(
+            color: colorScheme.primary,
+            padding: const EdgeInsets.only(top: 58.0),
+            child: Column(
+              children: [
+                _CharacterSection(score: score),
+                _TodaysScheduleOverlay(state: state),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.only(
+                top: 0.0, left: 16.0, right: 16.0, bottom: 24.0),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+            ),
+            child: _MonthlySchedule(
+              monthlySchedulesState: state,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TodaysScheduleOverlay extends StatelessWidget {
+  const _TodaysScheduleOverlay({
+    required this.state,
+  });
+
+  final MonthlySchedulesState state;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -204,20 +223,7 @@ class _CharacterSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 17.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 27.0),
-            child: _Slogan(comment: AppLocalizations.of(context)!.slogan),
-          ),
-          _Character(),
-        ],
-      ),
-    );
+    return Image.asset('home_banner.png', package: 'assets');
   }
 }
 

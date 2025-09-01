@@ -91,45 +91,55 @@ lib/
 ## 🛠️ Technology Stack
 
 ### Core Framework & Language
+
 - **Flutter**: Cross-platform mobile framework
 - **Dart**: Programming language
 
 ### State Management
+
 - **BLoC/Cubit**: Business Logic Component pattern for state management
 - **Riverpod**: Additional state management for specific use cases
 - **Equatable**: Value equality for state objects
 
 ### Dependency Injection
+
 - **Injectable**: Code generation for dependency injection
 - **GetIt**: Service locator pattern
 
 ### Database & Persistence
+
 - **Drift**: Type-safe SQL database library
 - **SharedPreferences**: Simple key-value storage
 - **FlutterSecureStorage**: Secure token storage
 
 ### Networking
+
 - **Dio**: HTTP client with interceptors
 - **JSON Annotation**: JSON serialization code generation
 
 ### Navigation
+
 - **GoRouter**: Declarative routing solution
 
 ### UI Components
+
 - **Material Design**: Google's design system
 - **Flutter SVG**: SVG asset support
 - **TableCalendar**: Calendar widget
 
 ### Authentication
+
 - **Google Sign-In**: Google OAuth integration
 - **Kakao SDK**: Kakao social login
 - **Firebase Auth**: Authentication backend
 
 ### Notifications
+
 - **Firebase Messaging**: Push notifications
 - **Flutter Local Notifications**: Local notifications
 
 ### Development Tools
+
 - **Freezed**: Code generation for immutable classes
 - **Build Runner**: Code generation runner
 - **Widgetbook**: Component development environment
@@ -139,17 +149,20 @@ lib/
 ### 1. Clean Architecture Layers
 
 #### **Presentation Layer**
+
 - **Screens**: Full-screen widgets representing app pages
 - **Components**: Reusable UI widgets
 - **BLoC/Cubit**: State management following BLoC pattern
 - **Navigation**: Declarative routing with GoRouter
 
 #### **Domain Layer**
+
 - **Entities**: Core business objects using Freezed for immutability
 - **Use Cases**: Single-responsibility business logic operations
 - **Repository Interfaces**: Contracts for data access
 
 #### **Data Layer**
+
 - **Repository Implementations**: Concrete implementations of domain interfaces
 - **Data Sources**: Abstraction over remote APIs and local storage
 - **Models**: Data transfer objects with JSON serialization
@@ -192,7 +205,7 @@ class GetUserResponseModel {
   final int userId;
   final String email;
   final String name;
-  
+
   // Conversion to domain entity
   UserEntity toEntity() {
     return UserEntity(
@@ -211,7 +224,7 @@ class GetUserResponseModel {
 class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 3;
-  
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async => await m.createAll(),
@@ -222,6 +235,7 @@ class AppDatabase extends _$AppDatabase {
 ## 🔄 Data Flow
 
 ### 1. User Interaction Flow
+
 ```
 User Input → Widget → BLoC Event → Use Case → Repository → Data Source → API/DB
                 ↓
@@ -229,6 +243,7 @@ Widget ← BLoC State ← Use Case ← Repository ← Data Source ← Response
 ```
 
 ### 2. Authentication Flow
+
 ```
 Login Screen → AppBloc → SignInUseCase → UserRepository → AuthDataSource → API
       ↓
@@ -236,6 +251,7 @@ Navigation ← AppBloc ← UserEntity ← UserRepository ← AuthDataSource ← 
 ```
 
 ### 3. Schedule Management Flow
+
 ```
 Schedule Form → ScheduleBloc → CreateScheduleUseCase → ScheduleRepository
                      ↓
@@ -245,23 +261,27 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 ## 🎯 Key Features Architecture
 
 ### 1. **Authentication System**
+
 - **Google OAuth** and **Kakao Login** integration
 - **JWT token** management with secure storage
 - **Stream-based** user state management
 - **Automatic token refresh** via interceptors
 
 ### 2. **Schedule Management**
+
 - **CRUD operations** for schedules
 - **Calendar integration** with multiple view modes
 - **Preparation time calculation** and management
 - **Real-time synchronization** between local and remote data
 
 ### 3. **Notification System**
+
 - **Firebase push notifications** for schedule reminders
 - **Local notifications** for preparation alerts
 - **Permission handling** for notification access
 
 ### 4. **Offline Support**
+
 - **Local database** with Drift for offline data access
 - **Synchronization strategy** for online/offline data consistency
 - **Caching mechanisms** for improved performance
@@ -269,6 +289,7 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 ## 🧪 Testing Strategy
 
 ### Structure
+
 ```
 test/
 ├── config/              # Test configuration
@@ -277,6 +298,7 @@ test/
 ```
 
 ### Testing Approach
+
 - **Unit Tests**: Use cases, repositories, and business logic
 - **Widget Tests**: UI components and screen interactions
 - **Integration Tests**: End-to-end user flows
@@ -285,20 +307,23 @@ test/
 ## 📦 Build & Deployment
 
 ### Development Environment
+
 - **Flutter SDK**: ^3.5.4
 - **Dart SDK**: Latest stable
 - **Build Tools**: build_runner for code generation
 
 ### Code Generation Commands
+
 ```bash
 # Generate all code (models, dependency injection, etc.)
-flutter packages pub run build_runner build
+dart run build_runner build
 
 # Watch for changes and regenerate
-flutter packages pub run build_runner watch
+dart run build_runner watch
 ```
 
 ### Platform Support
+
 - **Android**: Native Android build
 - **iOS**: Native iOS build
 - **Web**: Progressive Web App support
@@ -306,21 +331,25 @@ flutter packages pub run build_runner watch
 ## 🔧 Development Guidelines
 
 ### 1. **Code Organization**
+
 - Follow **Clean Architecture** principles
 - Separate concerns across layers
 - Use **feature-based** folder structure in presentation layer
 
 ### 2. **State Management**
+
 - Use **BLoC pattern** for complex state management
 - Use **Cubit** for simpler state scenarios
 - Keep business logic in **use cases**, not in BLoCs
 
 ### 3. **Data Handling**
+
 - Always use **entities** in the domain layer
 - Convert **models to entities** at repository boundaries
 - Implement **proper error handling** throughout the layers
 
 ### 4. **Naming Conventions**
+
 - **Entities**: `UserEntity`, `ScheduleEntity`
 - **Use Cases**: `GetUserUseCase`, `CreateScheduleUseCase`
 - **Repositories**: `UserRepository`, `ScheduleRepository`
@@ -328,6 +357,7 @@ flutter packages pub run build_runner watch
 - **Models**: `GetUserResponseModel`, `CreateScheduleRequestModel`
 
 ### 5. **Dependencies**
+
 - Register all dependencies using **@Injectable()** annotation
 - Use **interfaces** for repository contracts
 - Avoid direct dependencies between layers
@@ -335,19 +365,23 @@ flutter packages pub run build_runner watch
 ## 🚀 Getting Started for New Developers
 
 1. **Setup Environment**
+
    - Install Flutter SDK
    - Configure IDE (VS Code/Android Studio)
    - Run `flutter pub get` to install dependencies
 
 2. **Code Generation**
-   - Run `flutter packages pub run build_runner build`
+
+   - Run `dart run build_runner build`
    - This generates dependency injection, JSON serialization, and Freezed code
 
 3. **Database Setup**
+
    - Database migrations are handled automatically
    - Local database files are created on first run
 
 4. **Understanding the Flow**
+
    - Start with `main.dart` to understand app initialization
    - Explore `presentation/app/` for global app state
    - Check `domain/use-cases/` for business logic
@@ -362,4 +396,4 @@ flutter packages pub run build_runner watch
 
 ---
 
-*This architecture documentation is maintained alongside the codebase. Please update it when making significant architectural changes.*
+_This architecture documentation is maintained alongside the codebase. Please update it when making significant architectural changes._

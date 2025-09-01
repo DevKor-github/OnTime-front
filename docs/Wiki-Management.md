@@ -5,6 +5,7 @@ This guide explains how to modify, create, and upload wiki documentation for the
 ## 📖 Overview
 
 Our project wiki is integrated directly into the main repository using Git subtrees. This means:
+
 - Wiki content is stored in the `docs/` folder
 - Changes are version-controlled with the main codebase
 - Documentation stays in sync with code changes
@@ -13,11 +14,13 @@ Our project wiki is integrated directly into the main repository using Git subtr
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Git configured with your GitHub account
 - Access to the OnTime-front repository
 - Basic knowledge of Markdown
 
 ### Current Wiki Structure
+
 ```
 docs/
 ├── Architecture.md      # Project structure and architecture
@@ -29,6 +32,7 @@ docs/
 ## ✏️ Modifying Existing Wiki Pages
 
 ### 1. Edit Files Locally
+
 Navigate to the `docs/` folder and edit any `.md` file:
 
 ```bash
@@ -44,9 +48,11 @@ nano Git.md
 ```
 
 ### 2. Preview Your Changes
+
 Use any Markdown preview tool or your IDE's built-in preview to review changes before committing.
 
 ### 3. Commit Changes to Main Repository
+
 ```bash
 # From project root
 git add docs/
@@ -56,15 +62,17 @@ git commit -m "docs: update [filename] with [brief description]"
 ## 📝 Creating New Wiki Pages
 
 ### 1. Create New Markdown File
+
 ```bash
 # From project root
 touch docs/New-Page-Name.md
 ```
 
 ### 2. Add Content
+
 Use standard Markdown syntax. Here's a template:
 
-```markdown
+````markdown
 # Page Title
 
 Brief description of what this page covers.
@@ -82,7 +90,7 @@ More detailed content...
 \```dart
 // Flutter/Dart code examples
 void main() {
-  print('Hello OnTime!');
+print('Hello OnTime!');
 }
 \```
 
@@ -90,9 +98,10 @@ void main() {
 
 - [Internal Link](./Other-Page.md)
 - [External Link](https://flutter.dev)
-```
+````
 
 ### 3. Update Navigation
+
 If creating a major new page, consider updating `Home.md` to include a link to your new page.
 
 ## 🔄 Syncing with GitHub Wiki
@@ -109,6 +118,7 @@ git subtree push --prefix=docs wiki master
 ```
 
 **What this does:**
+
 - Takes all changes from the `docs/` folder
 - Pushes them to the GitHub wiki repository
 - Updates the online wiki at `https://github.com/DevKor-github/OnTime-front/wiki`
@@ -123,6 +133,7 @@ git subtree pull --prefix=docs wiki master --squash
 ```
 
 **When to use this:**
+
 - Someone edited wiki pages directly on GitHub
 - You want to sync external wiki changes to your local repository
 - Before starting major documentation work (to avoid conflicts)
@@ -132,6 +143,7 @@ git subtree pull --prefix=docs wiki master --squash
 ### Working on Documentation-Heavy Features
 
 1. **Create a documentation branch:**
+
    ```bash
    git checkout -b docs/feature-name
    ```
@@ -139,6 +151,7 @@ git subtree pull --prefix=docs wiki master --squash
 2. **Make your documentation changes**
 
 3. **Commit and push to main repository:**
+
    ```bash
    git add docs/
    git commit -m "docs: add documentation for feature-name"
@@ -172,11 +185,13 @@ If you encounter conflicts when pulling from the wiki:
 ## 📋 Documentation Best Practices
 
 ### File Naming Convention
+
 - Use kebab-case: `Getting-Started.md`, `API-Guide.md`
 - Be descriptive but concise
 - Avoid spaces and special characters
 
 ### Content Guidelines
+
 1. **Start with a clear title and overview**
 2. **Use consistent heading hierarchy (H1 → H2 → H3)**
 3. **Include code examples where relevant**
@@ -184,6 +199,7 @@ If you encounter conflicts when pulling from the wiki:
 5. **Keep content up-to-date with code changes**
 
 ### Markdown Tips
+
 - Use `backticks` for inline code
 - Use triple backticks with language for code blocks
 - Use `**bold**` for emphasis
@@ -195,6 +211,7 @@ If you encounter conflicts when pulling from the wiki:
 ### Common Issues
 
 **Issue: `fatal: working tree has modifications`**
+
 ```bash
 # Solution: Commit or stash changes first
 git add .
@@ -204,18 +221,21 @@ git stash
 ```
 
 **Issue: Wiki changes not appearing on GitHub**
+
 ```bash
 # Solution: Ensure you pushed to the wiki remote
 git subtree push --prefix=docs wiki master
 ```
 
 **Issue: Local docs out of sync**
+
 ```bash
 # Solution: Pull latest changes from wiki
 git subtree pull --prefix=docs wiki master --squash
 ```
 
 ### Getting Help
+
 - Check Git status: `git status`
 - View recent commits: `git log --oneline -10`
 - Check remotes: `git remote -v`
@@ -232,14 +252,3 @@ For new developers, consider creating these essential pages:
 - [ ] **Deployment.md** - Build and deployment procedures
 - [ ] **Contributing.md** - Contribution guidelines
 - [ ] **Troubleshooting.md** - Common issues and solutions
-
-## 📚 Resources
-
-- [Markdown Guide](https://www.markdownguide.org/)
-- [GitHub Wiki Documentation](https://docs.github.com/en/communities/documenting-your-project-with-wikis)
-- [Git Subtree Documentation](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge)
-
----
-
-*Last updated: $(date)*
-*Maintainer: OnTime Development Team*

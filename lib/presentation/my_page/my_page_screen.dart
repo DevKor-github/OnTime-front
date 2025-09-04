@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/auth/app_bloc.dart';
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({super.key});

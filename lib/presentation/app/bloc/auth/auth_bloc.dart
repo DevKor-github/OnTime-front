@@ -11,23 +11,23 @@ import 'package:on_time_front/domain/use-cases/load_user_use_case.dart';
 import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
 import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
 
-part 'app_event.dart';
-part 'app_state.dart';
+part 'auth_event.dart';
+part 'auth_state.dart';
 
 @Injectable()
-class AppBloc extends Bloc<AppEvent, AppState> {
-  AppBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase,
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  AuthBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase,
       this._getNearestUpcomingScheduleUseCase, this._navigationService)
-      : super(AppState(user: const UserEntity.empty())) {
-    on<AppUserSubscriptionRequested>(_appUserSubscriptionRequested);
-    on<AppSignOutPressed>(_appLogoutPressed);
-    on<AppUpcomingScheduleSubscriptionRequested>(
+      : super(AuthState(user: const UserEntity.empty())) {
+    on<AuthUserSubscriptionRequested>(_appUserSubscriptionRequested);
+    on<AuthSignOutPressed>(_appLogoutPressed);
+    on<AuthUpcomingScheduleSubscriptionRequested>(
       _appUpcomingScheduleSubscriptionRequested,
     );
-    on<AppUpcomingScheduleReceived>(
+    on<AuthUpcomingScheduleReceived>(
       _appUpcomingScheduleReceived,
     );
-    on<AppPreparationStarted>(
+    on<AuthPreparationStarted>(
       _appPreparationStarted,
     );
   }
@@ -42,8 +42,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       _upcomingScheduleSubscription;
 
   Future<void> _appUserSubscriptionRequested(
-    AppUserSubscriptionRequested event,
-    Emitter<AppState> emit,
+    AuthUserSubscriptionRequested event,
+    Emitter<AuthState> emit,
   ) {
     _loadUserUseCase();
     return emit.onEach(
@@ -52,17 +52,17 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         emit(
           state.copyWith(
             user: user,
-            status: user.map<AppStatus>(
+            status: user.map<AuthStatus>(
               (entity) => entity.isOnboardingCompleted
-                  ? AppStatus.authenticated
-                  : AppStatus.onboardingNotCompleted,
-              empty: (_) => AppStatus.unauthenticated,
+                  ? AuthStatus.authenticated
+                  : AuthStatus.onboardingNotCompleted,
+              empty: (_) => AuthStatus.unauthenticated,
             ),
           ),
         );
         await Future.delayed(const Duration(milliseconds: 0));
-        if (state.status == AppStatus.authenticated) {
-          add(const AppUpcomingScheduleSubscriptionRequested());
+        if (state.status == AuthStatus.authenticated) {
+          add(const AuthUpcomingScheduleSubscriptionRequested());
         }
       },
       onError: addError,
@@ -70,8 +70,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   void _appLogoutPressed(
-    AppSignOutPressed event,
-    Emitter<AppState> emit,
+    AuthSignOutPressed event,
+    Emitter<AuthState> emit,
   ) {
     _signOutUseCase();
   }
@@ -79,20 +79,20 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   /// This method is called when the user is authenticated and the app is
   /// waiting for the nearest upcoming schedule.
   FutureOr<void> _appUpcomingScheduleSubscriptionRequested(
-      AppUpcomingScheduleSubscriptionRequested event,
-      Emitter<AppState> emit) async {
+      AuthUpcomingScheduleSubscriptionRequested event,
+      Emitter<AuthState> emit) async {
     await _upcomingScheduleSubscription?.cancel();
     _upcomingScheduleSubscription = _getNearestUpcomingScheduleUseCase()
-        .listen((schedule) => add(AppUpcomingScheduleReceived(schedule)));
+        .listen((schedule) => add(AuthUpcomingScheduleReceived(schedule)));
   }
 
   /// This method is called when the nearest upcoming schedule is received.
   void _appUpcomingScheduleReceived(
-      AppUpcomingScheduleReceived event, Emitter<AppState> emit) {
+      AuthUpcomingScheduleReceived event, Emitter<AuthState> emit) {
     final nearestUpcomingSchedule = event.nearestUpcomingSchedule;
 
     // If the app is in preparation started state, we only need to update the schedule.
-    if (state.status == AppStatus.preparationStarted) {
+    if (state.status == AuthStatus.preparationStarted) {
       emit(
         state.copyWith(
           schedule: nearestUpcomingSchedule,
@@ -106,7 +106,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         nearestUpcomingSchedule.scheduleTime.isBefore(DateTime.now())) {
       emit(
         state.copyWith(
-          status: AppStatus.authenticated,
+          status: AuthStatus.authenticated,
         ),
       );
       return;
@@ -116,7 +116,7 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     if (_isPreparationOnGoing(nearestUpcomingSchedule)) {
       emit(
         state.copyWith(
-          status: AppStatus.preparationStarted,
+          status: AuthStatus.preparationStarted,
           schedule: nearestUpcomingSchedule,
         ),
       );
@@ -129,11 +129,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
     assert(!durationUntilSchedule.isNegative);
     _timer?.cancel();
     _timer = Timer(durationUntilSchedule, () {
-      add(AppPreparationStarted(nearestUpcomingSchedule));
+      add(AuthPreparationStarted(nearestUpcomingSchedule));
     });
     emit(
       state.copyWith(
-        status: AppStatus.authenticated,
+        status: AuthStatus.authenticated,
       ),
     );
   }
@@ -146,11 +146,11 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   }
 
   void _appPreparationStarted(
-      AppPreparationStarted event, Emitter<AppState> emit) async {
+      AuthPreparationStarted event, Emitter<AuthState> emit) async {
     _navigationService.push('/scheduleStart', extra: event.schedule);
     emit(
       state.copyWith(
-        status: AppStatus.preparationStarted,
+        status: AuthStatus.preparationStarted,
         schedule: event.schedule,
       ),
     );

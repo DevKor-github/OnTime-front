@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/app/bloc/auth/app_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({super.key});
@@ -56,9 +56,9 @@ class _MyAccountView extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return BlocBuilder<AppBloc, AppState>(
+    return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
-        if (state.status == AppStatus.authenticated) {
+        if (state.status == AuthStatus.authenticated) {
           final user = state.user.mapOrNull(
             (user) => user,
             empty: (_) => null,

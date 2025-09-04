@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/presentation/app/bloc/auth/app_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
@@ -62,7 +62,7 @@ class _ScheduleSpareAndPreparingTimeFormState
               builder: (context, spareTimeState) {
             final Duration spareTime = spareTimeState.spareTime.value ??
                 spareTimeState.spareTime.value ??
-                context.select((AppBloc appBloc) =>
+                context.select((AuthBloc appBloc) =>
                     appBloc.state.user.mapOrNull((user) => user.spareTime))!;
             return Expanded(
               flex: 1,

@@ -51,6 +51,7 @@ class HomeScreenContent extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [

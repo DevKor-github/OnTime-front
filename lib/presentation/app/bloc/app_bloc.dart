@@ -38,6 +38,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   final GetNearestUpcomingScheduleUseCase _getNearestUpcomingScheduleUseCase;
   final NavigationService _navigationService;
   Timer? _timer;
+  StreamSubscription<ScheduleWithPreparationEntity?>?
+      _upcomingScheduleSubscription;
 
   Future<void> _appUserSubscriptionRequested(
     AppUserSubscriptionRequested event,
@@ -79,7 +81,8 @@ class AppBloc extends Bloc<AppEvent, AppState> {
   FutureOr<void> _appUpcomingScheduleSubscriptionRequested(
       AppUpcomingScheduleSubscriptionRequested event,
       Emitter<AppState> emit) async {
-    _getNearestUpcomingScheduleUseCase()
+    await _upcomingScheduleSubscription?.cancel();
+    _upcomingScheduleSubscription = _getNearestUpcomingScheduleUseCase()
         .listen((schedule) => add(AppUpcomingScheduleReceived(schedule)));
   }
 
@@ -151,5 +154,12 @@ class AppBloc extends Bloc<AppEvent, AppState> {
         schedule: event.schedule,
       ),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _timer?.cancel();
+    _upcomingScheduleSubscription?.cancel();
+    return super.close();
   }
 }

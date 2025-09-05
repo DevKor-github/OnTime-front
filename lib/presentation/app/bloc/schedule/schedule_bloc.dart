@@ -41,17 +41,16 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     // Cancel any existing timer
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
-
     if (event.upcomingSchedule == null ||
         event.upcomingSchedule!.scheduleTime.isBefore(DateTime.now())) {
       emit(const ScheduleState.notExists());
       _currentScheduleId = null;
     } else if (_isPreparationOnGoing(event.upcomingSchedule!)) {
       emit(ScheduleState.ongoing(event.upcomingSchedule!));
-      _currentScheduleId = event.upcomingSchedule!.id;
-      _startScheduleTimer(event.upcomingSchedule!);
+      print('ongoingSchedule: ${event.upcomingSchedule}');
     } else {
       emit(ScheduleState.upcoming(event.upcomingSchedule!));
+      print('upcomingSchedule: ${event.upcomingSchedule}');
       _currentScheduleId = event.upcomingSchedule!.id;
       _startScheduleTimer(event.upcomingSchedule!);
     }
@@ -62,31 +61,24 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     // Only process if this event is for the current schedule
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       // Mark the schedule as started by updating the state
+      print('schedule started: ${state.schedule}');
       emit(ScheduleState.started(state.schedule!));
     }
   }
 
   void _startScheduleTimer(ScheduleWithPreparationEntity schedule) {
     final now = DateTime.now();
-    final scheduleTime = schedule.scheduleTime;
-
-    // Calculate time until the next minute boundary at schedule time
-    final targetTime = DateTime(
-      scheduleTime.year,
-      scheduleTime.month,
-      scheduleTime.day,
-      scheduleTime.hour,
-      scheduleTime.minute,
-      0, // Always trigger at 00 seconds
-      0, // 0 milliseconds
-    );
+    final preparationStartTime = schedule.preparationStartTime;
 
     // If the target time is in the past or now, don't set a timer
-    if (targetTime.isBefore(now) || targetTime.isAtSameMomentAs(now)) {
+    if (preparationStartTime.isBefore(now) ||
+        preparationStartTime.isAtSameMomentAs(now)) {
       return;
     }
 
-    final duration = targetTime.difference(now);
+    final duration = preparationStartTime.difference(now);
+
+    print('duration: $duration');
 
     _scheduleStartTimer = Timer(duration, () {
       // Only add event if bloc is still active and schedule ID matches

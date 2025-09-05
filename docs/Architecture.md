@@ -273,6 +273,9 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 - **Calendar integration** with multiple view modes
 - **Preparation time calculation** and management
 - **Real-time synchronization** between local and remote data
+- **Automatic timer system** for schedule start notifications
+
+📖 **Detailed Documentation**: For comprehensive information about the automatic timer system, see [Schedule Timer System](./Schedule-Timer-System.md)
 
 ### 3. **Notification System**
 

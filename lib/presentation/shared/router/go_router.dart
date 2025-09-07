@@ -9,6 +9,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/presentation/early_late/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen_tmp.dart';
@@ -27,18 +28,21 @@ import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dar
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
-GoRouter goRouterConfig(AuthBloc bloc) {
+GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
   return GoRouter(
-    refreshListenable: StreamToListenable([bloc.stream]),
+    refreshListenable:
+        StreamToListenable([scheduleBloc.stream, authBloc.stream]),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
     redirect: (BuildContext context, GoRouterState state) async {
-      final status = bloc.state.status;
+      print('state.fullPath: ${state.fullPath}');
+      final authStatus = authBloc.state.status;
+      final scheduleStatus = scheduleBloc.state.status;
       final bool onSignInScreen = state.fullPath == '/signIn';
       final bool onOnbaordingStartScreen =
           state.fullPath == '/onboarding/start';
       final bool onOnboardingScreen = state.fullPath == '/onboarding';
 
-      switch (status) {
+      switch (authStatus) {
         case AuthStatus.unauthenticated:
           return '/signIn';
         case AuthStatus.authenticated:
@@ -49,6 +53,8 @@ GoRouter goRouterConfig(AuthBloc bloc) {
               return '/allowNotification';
             }
             return '/home';
+          } else if (scheduleStatus == ScheduleStatus.starting) {
+            return '/scheduleStart';
           } else {
             return null;
           }
@@ -58,8 +64,6 @@ GoRouter goRouterConfig(AuthBloc bloc) {
           } else {
             return '/onboarding/start';
           }
-        case AuthStatus.preparationStarted:
-          return null;
       }
     },
     initialLocation: '/home',

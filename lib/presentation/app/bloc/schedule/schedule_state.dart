@@ -5,6 +5,7 @@ enum ScheduleStatus {
   notExists,
   upcoming,
   ongoing,
+  starting,
   started,
 }
 
@@ -23,6 +24,9 @@ class ScheduleState extends Equatable {
 
   const ScheduleState.ongoing(ScheduleWithPreparationEntity schedule)
       : this._(status: ScheduleStatus.ongoing, schedule: schedule);
+
+  const ScheduleState.starting(ScheduleWithPreparationEntity schedule)
+      : this._(status: ScheduleStatus.starting, schedule: schedule);
 
   const ScheduleState.started(ScheduleWithPreparationEntity schedule)
       : this._(status: ScheduleStatus.started, schedule: schedule);

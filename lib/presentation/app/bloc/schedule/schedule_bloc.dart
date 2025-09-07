@@ -9,7 +9,7 @@ import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use
 part 'schedule_event.dart';
 part 'schedule_state.dart';
 
-@Injectable()
+@Singleton()
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   ScheduleBloc(this._getNearestUpcomingScheduleUseCase)
       : super(const ScheduleState.initial()) {
@@ -62,7 +62,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       // Mark the schedule as started by updating the state
       print('schedule started: ${state.schedule}');
-      emit(ScheduleState.started(state.schedule!));
+      emit(ScheduleState.starting(state.schedule!));
     }
   }
 

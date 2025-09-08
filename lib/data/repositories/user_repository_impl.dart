@@ -27,7 +27,7 @@ class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl(
       this._authenticationRemoteDataSource, this._tokenLocalDataSource) {
     _tokenLocalDataSource.authenticationStream.listen((state) {
-      if (state) {
+      if (!state) {
         _userStreamController.add(const UserEntity.empty());
       }
     });

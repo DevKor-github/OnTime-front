@@ -29,3 +29,10 @@ final class ScheduleStarted extends ScheduleEvent {
   @override
   List<Object?> get props => [];
 }
+
+final class SchedulePreparationStarted extends ScheduleEvent {
+  const SchedulePreparationStarted();
+
+  @override
+  List<Object?> get props => [];
+}

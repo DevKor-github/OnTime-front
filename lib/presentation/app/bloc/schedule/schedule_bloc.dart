@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/services/navigation_service.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
 
@@ -11,7 +14,7 @@ part 'schedule_state.dart';
 
 @Singleton()
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
-  ScheduleBloc(this._getNearestUpcomingScheduleUseCase)
+  ScheduleBloc(this._getNearestUpcomingScheduleUseCase, this._navigationService)
       : super(const ScheduleState.initial()) {
     on<ScheduleSubscriptionRequested>(_onSubscriptionRequested);
     on<ScheduleUpcomingReceived>(_onUpcomingReceived);
@@ -19,6 +22,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   final GetNearestUpcomingScheduleUseCase _getNearestUpcomingScheduleUseCase;
+  final NavigationService _navigationService;
   StreamSubscription<ScheduleWithPreparationEntity?>?
       _upcomingScheduleSubscription;
   Timer? _scheduleStartTimer;
@@ -31,7 +35,10 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         _getNearestUpcomingScheduleUseCase().listen((upcomingSchedule) {
       // ✅ Safety check: Only add events if bloc is still active
       if (!isClosed) {
-        add(ScheduleUpcomingReceived(upcomingSchedule));
+        final scheduleWithTimePreparation = upcomingSchedule != null
+            ? _convertToScheduleWithTimePreparation(upcomingSchedule)
+            : null;
+        add(ScheduleUpcomingReceived(scheduleWithTimePreparation));
       }
     });
   }
@@ -46,8 +53,13 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       emit(const ScheduleState.notExists());
       _currentScheduleId = null;
     } else if (_isPreparationOnGoing(event.upcomingSchedule!)) {
-      emit(ScheduleState.ongoing(event.upcomingSchedule!));
-      print('ongoingSchedule: ${event.upcomingSchedule}');
+      final currentStep = _findCurrentPreparationStep(
+        event.upcomingSchedule!,
+        DateTime.now(),
+      );
+      emit(ScheduleState.ongoing(event.upcomingSchedule!, currentStep));
+      print(
+          'ongoingSchedule: ${event.upcomingSchedule}, currentStep: $currentStep');
     } else {
       emit(ScheduleState.upcoming(event.upcomingSchedule!));
       print('upcomingSchedule: ${event.upcomingSchedule}');
@@ -61,8 +73,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     // Only process if this event is for the current schedule
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       // Mark the schedule as started by updating the state
-      print('schedule started: ${state.schedule}');
-      emit(ScheduleState.starting(state.schedule!));
+      print('scheddle started: ${state.schedule}');
+      emit(ScheduleState.started(state.schedule!));
+      _navigationService.push('/scheduleStart', extra: state.schedule);
     }
   }
 
@@ -101,5 +114,56 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     return nearestUpcomingSchedule.preparationStartTime
             .isBefore(DateTime.now()) &&
         nearestUpcomingSchedule.scheduleTime.isAfter(DateTime.now());
+  }
+
+  PreparationStepEntity _findCurrentPreparationStep(
+      ScheduleWithPreparationEntity schedule, DateTime now) {
+    final List<PreprationStepWithTime> steps =
+        schedule.preparation.preparationStepList.cast<PreprationStepWithTime>();
+
+    if (steps.isEmpty) {
+      throw StateError('Preparation steps are empty');
+    }
+
+    final DateTime preparationStartTime = schedule.preparationStartTime;
+
+    // If called when not in preparation window, clamp to bounds
+    if (now.isBefore(preparationStartTime)) {
+      return steps.first;
+    }
+
+    Duration elapsed = now.difference(preparationStartTime);
+
+    for (final PreprationStepWithTime step in steps) {
+      if (elapsed < step.preparationTime) {
+        step.elapsedTime = elapsed;
+        return step;
+      }
+      elapsed -= step.preparationTime;
+      step.elapsedTime = step.preparationTime;
+    }
+
+    // If elapsed exceeds total preparation duration (e.g., during move/spare time),
+    // return the last preparation step as current by convention.
+    return steps.last;
+  }
+
+  ScheduleWithPreparationEntity _convertToScheduleWithTimePreparation(
+      ScheduleWithPreparationEntity schedule) {
+    final preparationWithTime = PreparationWithTime(
+      preparationStepList: schedule.preparation.preparationStepList
+          .map((step) => PreprationStepWithTime(
+                id: step.id,
+                preparationName: step.preparationName,
+                preparationTime: step.preparationTime,
+                nextPreparationId: step.nextPreparationId,
+              ))
+          .toList(),
+    );
+
+    return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+      schedule,
+      preparationWithTime,
+    );
   }
 }

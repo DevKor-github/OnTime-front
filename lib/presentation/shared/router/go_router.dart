@@ -53,8 +53,8 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
               return '/allowNotification';
             }
             return '/home';
-          } else if (scheduleStatus == ScheduleStatus.starting) {
-            return '/scheduleStart';
+          } else if (scheduleStatus == ScheduleStatus.started) {
+            return null;
           } else {
             return null;
           }

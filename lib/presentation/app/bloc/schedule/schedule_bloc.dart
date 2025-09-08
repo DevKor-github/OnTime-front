@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
@@ -58,11 +59,11 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         DateTime.now(),
       );
       emit(ScheduleState.ongoing(event.upcomingSchedule!, currentStep));
-      print(
+      debugPrint(
           'ongoingSchedule: ${event.upcomingSchedule}, currentStep: $currentStep');
     } else {
       emit(ScheduleState.upcoming(event.upcomingSchedule!));
-      print('upcomingSchedule: ${event.upcomingSchedule}');
+      debugPrint('upcomingSchedule: ${event.upcomingSchedule}');
       _currentScheduleId = event.upcomingSchedule!.id;
       _startScheduleTimer(event.upcomingSchedule!);
     }
@@ -73,7 +74,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     // Only process if this event is for the current schedule
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       // Mark the schedule as started by updating the state
-      print('scheddle started: ${state.schedule}');
+      debugPrint('scheddle started: ${state.schedule}');
       emit(ScheduleState.started(state.schedule!));
       _navigationService.push('/scheduleStart', extra: state.schedule);
     }
@@ -91,7 +92,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
     final duration = preparationStartTime.difference(now);
 
-    print('duration: $duration');
+    debugPrint('duration: $duration');
 
     _scheduleStartTimer = Timer(duration, () {
       // Only add event if bloc is still active and schedule ID matches

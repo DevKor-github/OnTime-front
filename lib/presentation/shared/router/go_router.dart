@@ -34,7 +34,6 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
         StreamToListenable([scheduleBloc.stream, authBloc.stream]),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
     redirect: (BuildContext context, GoRouterState state) async {
-      print('state.fullPath: ${state.fullPath}');
       final authStatus = authBloc.state.status;
       final scheduleStatus = scheduleBloc.state.status;
       final bool onSignInScreen = state.fullPath == '/signIn';

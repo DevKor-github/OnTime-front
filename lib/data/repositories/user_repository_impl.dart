@@ -25,13 +25,7 @@ class UserRepositoryImpl implements UserRepository {
   GoogleSignIn get googleSignIn => _googleSignIn;
 
   UserRepositoryImpl(
-      this._authenticationRemoteDataSource, this._tokenLocalDataSource) {
-    _tokenLocalDataSource.authenticationStream.listen((state) {
-      if (state) {
-        _userStreamController.add(const UserEntity.empty());
-      }
-    });
-  }
+      this._authenticationRemoteDataSource, this._tokenLocalDataSource);
 
   @override
   Future<UserEntity> getUser() async {

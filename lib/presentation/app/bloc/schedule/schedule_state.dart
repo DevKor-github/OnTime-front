@@ -52,17 +52,27 @@ class ScheduleState extends Equatable {
   List<Object?> get props => [status, schedule];
 }
 
-class PreprationStepWithTime extends PreparationStepEntity
+class PreparationStepWithTime extends PreparationStepEntity
     implements Equatable {
-  Duration elapsedTime;
+  final Duration elapsedTime;
 
-  PreprationStepWithTime({
+  const PreparationStepWithTime({
     required super.id,
     required super.preparationName,
     required super.preparationTime,
     required super.nextPreparationId,
     this.elapsedTime = Duration.zero,
   });
+
+  PreparationStepWithTime copyWithElapsed(Duration elapsed) {
+    return PreparationStepWithTime(
+      id: id,
+      preparationName: preparationName,
+      preparationTime: preparationTime,
+      nextPreparationId: nextPreparationId,
+      elapsedTime: elapsed,
+    );
+  }
 
   @override
   List<Object?> get props =>
@@ -71,12 +81,12 @@ class PreprationStepWithTime extends PreparationStepEntity
 
 class PreparationWithTime extends PreparationEntity implements Equatable {
   const PreparationWithTime({
-    required List<PreprationStepWithTime> preparationStepList,
+    required List<PreparationStepWithTime> preparationStepList,
   }) : super(preparationStepList: preparationStepList);
 
   @override
-  List<PreprationStepWithTime> get preparationStepList =>
-      super.preparationStepList.cast<PreprationStepWithTime>();
+  List<PreparationStepWithTime> get preparationStepList =>
+      super.preparationStepList.cast<PreparationStepWithTime>();
 
   @override
   List<Object?> get props => [preparationStepList];

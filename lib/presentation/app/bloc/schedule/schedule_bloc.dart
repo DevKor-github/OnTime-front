@@ -119,8 +119,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
   PreparationStepEntity _findCurrentPreparationStep(
       ScheduleWithPreparationEntity schedule, DateTime now) {
-    final List<PreprationStepWithTime> steps =
-        schedule.preparation.preparationStepList.cast<PreprationStepWithTime>();
+    final List<PreparationStepWithTime> steps = schedule
+        .preparation.preparationStepList
+        .cast<PreparationStepWithTime>();
 
     if (steps.isEmpty) {
       throw StateError('Preparation steps are empty');
@@ -135,25 +136,23 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
     Duration elapsed = now.difference(preparationStartTime);
 
-    for (final PreprationStepWithTime step in steps) {
+    for (final PreparationStepWithTime step in steps) {
       if (elapsed < step.preparationTime) {
-        step.elapsedTime = elapsed;
-        return step;
+        return step.copyWithElapsed(elapsed);
       }
       elapsed -= step.preparationTime;
-      step.elapsedTime = step.preparationTime;
     }
 
     // If elapsed exceeds total preparation duration (e.g., during move/spare time),
     // return the last preparation step as current by convention.
-    return steps.last;
+    return steps.last.copyWithElapsed(steps.last.preparationTime);
   }
 
   ScheduleWithPreparationEntity _convertToScheduleWithTimePreparation(
       ScheduleWithPreparationEntity schedule) {
     final preparationWithTime = PreparationWithTime(
       preparationStepList: schedule.preparation.preparationStepList
-          .map((step) => PreprationStepWithTime(
+          .map((step) => PreparationStepWithTime(
                 id: step.id,
                 preparationName: step.preparationName,
                 preparationTime: step.preparationTime,

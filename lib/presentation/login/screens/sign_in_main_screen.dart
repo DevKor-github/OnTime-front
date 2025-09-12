@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io' show Platform;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
 import '../components/google_sign_in_button/shared.dart';
+import '../components/google_sign_in_button/apple_sign_in_button_mobile.dart';
 
 class SignInMainScreen extends StatefulWidget {
   const SignInMainScreen({super.key});
@@ -39,6 +42,10 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
             SizedBox(height: 48),
             _CharacterImage(),
             SizedBox(height: 41),
+            if (!kIsWeb && Platform.isIOS) ...[
+              AppleSignInButton(),
+              SizedBox(height: 22),
+            ],
             GoogleSignInButton(),
           ],
         ),

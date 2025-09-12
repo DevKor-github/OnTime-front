@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
+import 'package:on_time_front/data/models/sign_in_with_apple_request_model.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
@@ -96,6 +97,31 @@ class UserRepositoryImpl implements UserRepository {
       } else {
         throw Exception('Access Token is null');
       }
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> signInWithApple({
+    required String idToken,
+    required String authCode,
+    required String fullName,
+    String? email,
+  }) async {
+    try {
+      final signInWithAppleRequestModel = SignInWithAppleRequestModel(
+        idToken: idToken,
+        authCode: authCode,
+        fullName: fullName,
+        email: email,
+      );
+      await _tokenLocalDataSource.deleteToken();
+      final result = await _authenticationRemoteDataSource
+          .signInWithApple(signInWithAppleRequestModel);
+      await _tokenLocalDataSource.storeTokens(result.$2);
+      _userStreamController.add(result.$1);
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

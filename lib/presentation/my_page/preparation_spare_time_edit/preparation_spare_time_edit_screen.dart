@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_bloc.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
@@ -17,7 +17,7 @@ class PreparationSpareTimeEditScreen extends StatelessWidget {
     return BlocProvider<DefaultPreparationSpareTimeFormBloc>(
       create: (context) {
         final spareTime = context
-                .read<AppBloc>()
+                .read<AuthBloc>()
                 .state
                 .user
                 .mapOrNull((user) => user.spareTime) ??

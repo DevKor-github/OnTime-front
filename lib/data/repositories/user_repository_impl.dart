@@ -24,8 +24,8 @@ class UserRepositoryImpl implements UserRepository {
   @override
   GoogleSignIn get googleSignIn => _googleSignIn;
 
-  UserRepositoryImpl(
-      this._authenticationRemoteDataSource, this._tokenLocalDataSource);
+  UserRepositoryImpl(this._authenticationRemoteDataSource, this._tokenLocalDataSource);
+
 
   @override
   Future<UserEntity> getUser() async {
@@ -81,7 +81,6 @@ class UserRepositoryImpl implements UserRepository {
         final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
           idToken: idToken,
         );
-        print(idToken);
         await _tokenLocalDataSource.deleteToken();
         final result = await _authenticationRemoteDataSource
             .signInWithGoogle(signInWithGoogleRequestModel);

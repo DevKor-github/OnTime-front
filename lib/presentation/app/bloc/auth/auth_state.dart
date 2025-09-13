@@ -1,38 +1,37 @@
-part of 'app_bloc.dart';
+part of 'auth_bloc.dart';
 
-enum AppStatus {
+enum AuthStatus {
   authenticated,
   unauthenticated,
-  preparationStarted,
   onboardingNotCompleted,
 }
 
-class AppState extends Equatable {
-  AppState({UserEntity user = const UserEntity.empty()})
+class AuthState extends Equatable {
+  AuthState({UserEntity user = const UserEntity.empty()})
       : this._(
-          status: user.map<AppStatus>(
+          status: user.map<AuthStatus>(
             (entity) => entity.isOnboardingCompleted
-                ? AppStatus.unauthenticated
-                : AppStatus.onboardingNotCompleted,
-            empty: (_) => AppStatus.unauthenticated,
+                ? AuthStatus.unauthenticated
+                : AuthStatus.onboardingNotCompleted,
+            empty: (_) => AuthStatus.unauthenticated,
           ),
           user: user,
         );
 
-  const AppState._(
+  const AuthState._(
       {required this.status,
       this.user = const UserEntity.empty(),
       this.schedule});
 
-  final AppStatus status;
+  final AuthStatus status;
   final UserEntity user;
   final ScheduleWithPreparationEntity? schedule;
 
-  AppState copyWith(
-      {AppStatus? status,
+  AuthState copyWith(
+      {AuthStatus? status,
       UserEntity? user,
       ScheduleWithPreparationEntity? schedule}) {
-    return AppState._(
+    return AuthState._(
       status: status ?? this.status,
       user: user ?? this.user,
       schedule: schedule ?? this.schedule,

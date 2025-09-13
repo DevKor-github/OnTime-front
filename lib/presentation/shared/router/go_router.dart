@@ -8,8 +8,9 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
+import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/presentation/early_late/screens/early_late_screen.dart';
-import 'package:on_time_front/presentation/app/bloc/app_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen_tmp.dart';
 import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
@@ -27,21 +28,23 @@ import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dar
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
-GoRouter goRouterConfig(AppBloc bloc) {
+GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
   return GoRouter(
-    refreshListenable: StreamToListenable([bloc.stream]),
+    refreshListenable:
+        StreamToListenable([scheduleBloc.stream, authBloc.stream]),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
     redirect: (BuildContext context, GoRouterState state) async {
-      final status = bloc.state.status;
+      final authStatus = authBloc.state.status;
+      final scheduleStatus = scheduleBloc.state.status;
       final bool onSignInScreen = state.fullPath == '/signIn';
       final bool onOnbaordingStartScreen =
           state.fullPath == '/onboarding/start';
       final bool onOnboardingScreen = state.fullPath == '/onboarding';
 
-      switch (status) {
-        case AppStatus.unauthenticated:
+      switch (authStatus) {
+        case AuthStatus.unauthenticated:
           return '/signIn';
-        case AppStatus.authenticated:
+        case AuthStatus.authenticated:
           if (onSignInScreen || onOnboardingScreen || onOnbaordingStartScreen) {
             final permission = await NotificationService.instance
                 .checkNotificationPermission();
@@ -49,17 +52,17 @@ GoRouter goRouterConfig(AppBloc bloc) {
               return '/allowNotification';
             }
             return '/home';
+          } else if (scheduleStatus == ScheduleStatus.started) {
+            return null;
           } else {
             return null;
           }
-        case AppStatus.onboardingNotCompleted:
+        case AuthStatus.onboardingNotCompleted:
           if (onOnboardingScreen || onOnbaordingStartScreen) {
             return null;
           } else {
             return '/onboarding/start';
           }
-        case AppStatus.preparationStarted:
-          return null;
       }
     },
     initialLocation: '/home',

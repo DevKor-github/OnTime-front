@@ -1,11 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
 
 class TokenInterceptor implements InterceptorsWrapper {
   final Dio dio;
   TokenInterceptor(this.dio);
-  final TokenLocalDataSource tokenLocalDataSource = TokenLocalDataSourceImpl();
+  final TokenLocalDataSource tokenLocalDataSource =
+      getIt.get<TokenLocalDataSource>();
 
   // when accessToken is expired & having multiple requests call
   // this variable to lock others request to make sure only trigger call refresh token 01 times
@@ -73,7 +76,12 @@ class TokenInterceptor implements InterceptorsWrapper {
         } else {
           _requestsNeedRetry.clear();
           // if refresh fail, force logout user here
-          await tokenLocalDataSource.deleteToken();
+          try {
+            await getIt.get<SignOutUseCase>().call();
+          } catch (_) {
+            await tokenLocalDataSource.deleteToken();
+          }
+          _isRefreshing = false;
         }
       } else {
         // if refresh flow is processing, add this request to queue and wait to retry later

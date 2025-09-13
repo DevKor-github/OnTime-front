@@ -4,6 +4,7 @@ import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/data/models/get_user_response_model.dart';
 import 'package:on_time_front/data/models/sign_in_user_response_model.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
+import 'package:on_time_front/data/models/sign_in_with_apple_request_model.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
@@ -15,6 +16,9 @@ abstract interface class AuthenticationRemoteDataSource {
 
   Future<(UserEntity, TokenEntity)> signInWithGoogle(
       SignInWithGoogleRequestModel signInWithGoogleRequestModel);
+
+  Future<(UserEntity, TokenEntity)> signInWithApple(
+      SignInWithAppleRequestModel signInWithAppleRequestModel);
 
   Future<UserEntity> getUser();
 }
@@ -86,6 +90,26 @@ class AuthenticationRemoteDataSourceImpl
         return (user.toEntity(), token);
       } else {
         throw Exception('Error signing in with Google');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<(UserEntity, TokenEntity)> signInWithApple(
+      SignInWithAppleRequestModel signInWithAppleRequestModel) async {
+    try {
+      final result = await dio.post(
+        Endpoint.signInWithApple,
+        data: signInWithAppleRequestModel.toJson(),
+      );
+      if (result.statusCode == 200) {
+        final user = SignInUserResponseModel.fromJson(result.data['data']);
+        final token = TokenEntity.fromHeaders(result.headers);
+        return (user.toEntity(), token);
+      } else {
+        throw Exception('Error signing in with Apple');
       }
     } catch (e) {
       rethrow;

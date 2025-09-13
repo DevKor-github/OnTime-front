@@ -84,6 +84,8 @@ dependencies:
   widgetbook_annotation: ^3.3.0
   intl: ^0.20.2
 
+  sign_in_with_apple: ^7.0.1
+
 
 
 dev_dependencies:

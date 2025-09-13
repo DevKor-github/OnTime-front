@@ -5,11 +5,13 @@ class Endpoint {
   static const _signIn = '/login';
   static const _signUp = '/sign-up';
   static const _signInWithGoogle = '/oauth2/google/login';
+  static const _signInWithApple = '/oauth2/apple/login';
   static const _getUser = '/users/me';
 
   static get signIn => _signIn;
   static get signUp => _signUp;
   static get signInWithGoogle => _signInWithGoogle;
+  static get signInWithApple => _signInWithApple;
   static get getUser => _getUser;
 
   // schedule

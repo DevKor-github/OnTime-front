@@ -15,5 +15,12 @@ abstract interface class UserRepository {
 
   Future<void> signInWithGoogle(GoogleSignInAccount account);
 
+  Future<void> signInWithApple({
+    required String idToken,
+    required String authCode,
+    required String fullName,
+    String? email,
+  });
+
   Future<void> getUser();
 }

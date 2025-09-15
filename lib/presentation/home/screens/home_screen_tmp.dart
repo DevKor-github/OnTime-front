@@ -277,37 +277,3 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
     );
   }
 }
-
-class _Character extends StatelessWidget {
-  const _Character();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 176,
-      height: 130,
-      child: SvgPicture.asset(
-        'characters/half_character.svg',
-        package: 'assets',
-      ),
-    );
-  }
-}
-
-class _Slogan extends StatelessWidget {
-  const _Slogan({
-    required this.comment,
-  });
-
-  final String comment;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Text(
-      comment,
-      style: textTheme.titleExtraLarge.copyWith(color: colorScheme.onPrimary),
-    );
-  }
-}

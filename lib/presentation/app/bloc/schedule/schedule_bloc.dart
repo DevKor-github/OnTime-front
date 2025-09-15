@@ -21,6 +21,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     on<ScheduleSubscriptionRequested>(_onSubscriptionRequested);
     on<ScheduleUpcomingReceived>(_onUpcomingReceived);
     on<ScheduleStarted>(_onScheduleStarted);
+    on<ScheduleTick>(_onTick);
   }
 
   final GetNearestUpcomingScheduleUseCase _getNearestUpcomingScheduleUseCase;
@@ -74,13 +75,18 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       // Mark the schedule as started by updating the state
       debugPrint('scheddle started: ${state.schedule}');
       emit(ScheduleState.started(state.schedule!, state.preparation!));
-      _navigationService.push('/scheduleStart', extra: state.schedule);
+      _navigationService.push('/scheduleStart');
 
       _preparationTimer = Timer.periodic(Duration(seconds: 1), (_) {
-        emit(state.copyWith(
-            preparation: state.preparation!.timeElapsed(Duration(seconds: 1))));
+        if (!isClosed) add(const ScheduleTick(Duration(seconds: 1)));
       });
     }
+  }
+
+  Future<void> _onTick(ScheduleTick event, Emitter<ScheduleState> emit) async {
+    if (state.preparation == null) return;
+    emit(state.copyWith(
+        preparation: state.preparation!.timeElapsed(event.elapsed)));
   }
 
   void _startScheduleTimer(

@@ -44,3 +44,12 @@ final class SchedulePreparationStarted extends ScheduleEvent {
   @override
   List<Object?> get props => [];
 }
+
+final class ScheduleTick extends ScheduleEvent {
+  final Duration elapsed;
+
+  const ScheduleTick(this.elapsed);
+
+  @override
+  List<Object?> get props => [elapsed];
+}

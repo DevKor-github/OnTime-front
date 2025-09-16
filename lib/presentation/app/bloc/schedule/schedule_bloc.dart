@@ -5,8 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
-import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
@@ -90,7 +89,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   void _startScheduleTimer(
-      ScheduleEntity schedule, PreparationWithTime preparation) {
+      ScheduleEntity schedule, PreparationWithTimeEntity preparation) {
     final duration = state.durationUntilPreparationStart;
     if (duration == null) return;
     _scheduleStartTimer = Timer(duration, () {
@@ -111,7 +110,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   bool _isPreparationOnGoing(
-      ScheduleEntity schedule, PreparationWithTime preparation) {
+      ScheduleEntity schedule, PreparationWithTimeEntity preparation) {
     final totalDuration = schedule.moveTime +
         preparation.totalDuration +
         (schedule.scheduleSpareTime ?? Duration.zero);

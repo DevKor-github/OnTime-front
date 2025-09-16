@@ -16,14 +16,14 @@ final class ScheduleSubscriptionRequested extends ScheduleEvent {
 
 final class ScheduleUpcomingReceived extends ScheduleEvent {
   final ScheduleEntity? upcomingSchedule;
-  final PreparationWithTime? preparation;
+  final PreparationWithTimeEntity? preparation;
 
   ScheduleUpcomingReceived(
       ScheduleWithPreparationEntity? upcomingScheduleWithPreparation)
       : upcomingSchedule = upcomingScheduleWithPreparation,
         preparation = upcomingScheduleWithPreparation == null
             ? null
-            : PreparationWithTime.fromPreparation(
+            : PreparationWithTimeEntity.fromPreparation(
                 upcomingScheduleWithPreparation.preparation,
               );
 

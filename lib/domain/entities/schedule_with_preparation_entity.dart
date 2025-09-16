@@ -1,8 +1,8 @@
-import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 class ScheduleWithPreparationEntity extends ScheduleEntity {
-  final PreparationEntity preparation;
+  final PreparationWithTimeEntity preparation;
 
   const ScheduleWithPreparationEntity({
     required super.id,
@@ -25,7 +25,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   DateTime get preparationStartTime => scheduleTime.subtract(totalDuration);
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(
-      ScheduleEntity schedule, PreparationEntity preparation) {
+      ScheduleEntity schedule, PreparationWithTimeEntity preparation) {
     return ScheduleWithPreparationEntity(
       id: schedule.id,
       place: schedule.place,

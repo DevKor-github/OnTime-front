@@ -13,9 +13,7 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 class AlarmScreen extends StatefulWidget {
-  final ScheduleEntity schedule;
-
-  const AlarmScreen({super.key, required this.schedule});
+  const AlarmScreen({super.key});
 
   @override
   State<AlarmScreen> createState() => _AlarmScreenState();

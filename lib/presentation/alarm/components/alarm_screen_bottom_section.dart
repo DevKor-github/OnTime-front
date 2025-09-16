@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -60,35 +58,31 @@ class _PreparationStepListSection extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-      builder: (context, timerState) {
-        return Stack(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: Color(0xffF6F6F6),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(18),
-                  topRight: Radius.circular(18),
-                ),
-              ),
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            color: Color(0xffF6F6F6),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
             ),
-            Positioned(
-              top: 15,
-              bottom: 0,
-              left: MediaQuery.of(context).size.width * 0.06,
-              right: MediaQuery.of(context).size.width * 0.06,
-              child: PreparationStepListWidget(
-                preparationSteps: preparationSteps,
-                currentStepIndex: currentStepIndex,
-                stepElapsedTimes: stepElapsedTimes,
-                preparationStepStates: preparationStepStates,
-                onSkip: onSkip,
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+        Positioned(
+          top: 15,
+          bottom: 0,
+          left: MediaQuery.of(context).size.width * 0.06,
+          right: MediaQuery.of(context).size.width * 0.06,
+          child: PreparationStepListWidget(
+            preparationSteps: preparationSteps,
+            currentStepIndex: currentStepIndex,
+            stepElapsedTimes: stepElapsedTimes,
+            preparationStepStates: preparationStepStates,
+            onSkip: onSkip,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -8,8 +8,8 @@ import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
-import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:on_time_front/presentation/home/components/month_calendar.dart';
+import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 
 /// Wrapper widget that provides the BlocProvider for HomeScreenTmp
 class HomeScreenTmp extends StatelessWidget {
@@ -61,7 +61,7 @@ class HomeScreenContent extends StatelessWidget {
             child: Column(
               children: [
                 _CharacterSection(score: score),
-                _TodaysScheduleOverlay(state: state),
+                _TodaysScheduleOverlay(),
               ],
             ),
           ),
@@ -82,69 +82,69 @@ class HomeScreenContent extends StatelessWidget {
 }
 
 class _TodaysScheduleOverlay extends StatelessWidget {
-  const _TodaysScheduleOverlay({
-    required this.state,
-  });
-
-  final MonthlySchedulesState state;
+  const _TodaysScheduleOverlay();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
 
-    final today = DateTime.now();
-    final todayKey = DateTime(today.year, today.month, today.day);
-    final todaySchedules = state.schedules[todayKey] ?? [];
-    final todaySchedule =
-        todaySchedules.isNotEmpty ? todaySchedules.first : null;
+    return BlocBuilder<ScheduleBloc, ScheduleState>(
+      builder: (context, scheduleState) {
+        final todaySchedule =
+            scheduleState.status == ScheduleStatus.notExists ||
+                    scheduleState.status == ScheduleStatus.initial
+                ? null
+                : scheduleState.schedule;
 
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        Positioned.fill(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 49.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+        return Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 49.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0) +
-              EdgeInsets.only(bottom: 20.0),
-          child: Material(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            color: theme.colorScheme.surface,
-            elevation: 6,
-            shadowColor: Colors.black.withValues(alpha: 0.4),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.todaysAppointments,
-                    style: theme.textTheme.titleMedium,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0) +
+                  EdgeInsets.only(bottom: 20.0),
+              child: Material(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                color: theme.colorScheme.surface,
+                elevation: 6,
+                shadowColor: Colors.black.withValues(alpha: 0.4),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.todaysAppointments,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      SizedBox(height: 21.0),
+                      TodaysScheduleTile(
+                        schedule: todaySchedule,
+                      )
+                    ],
                   ),
-                  SizedBox(height: 21.0),
-                  TodaysScheduleTile(
-                    schedule: todaySchedule,
-                  )
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -273,40 +273,6 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
           child: widget.child,
         );
       },
-    );
-  }
-}
-
-class _Character extends StatelessWidget {
-  const _Character();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 176,
-      height: 130,
-      child: SvgPicture.asset(
-        'characters/half_character.svg',
-        package: 'assets',
-      ),
-    );
-  }
-}
-
-class _Slogan extends StatelessWidget {
-  const _Slogan({
-    required this.comment,
-  });
-
-  final String comment;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    return Text(
-      comment,
-      style: textTheme.titleExtraLarge.copyWith(color: colorScheme.onPrimary),
     );
   }
 }

@@ -15,9 +15,17 @@ final class ScheduleSubscriptionRequested extends ScheduleEvent {
 }
 
 final class ScheduleUpcomingReceived extends ScheduleEvent {
-  final ScheduleWithPreparationEntity? upcomingSchedule;
+  final ScheduleEntity? upcomingSchedule;
+  final PreparationWithTime? preparation;
 
-  const ScheduleUpcomingReceived(this.upcomingSchedule);
+  ScheduleUpcomingReceived(
+      ScheduleWithPreparationEntity? upcomingScheduleWithPreparation)
+      : upcomingSchedule = upcomingScheduleWithPreparation,
+        preparation = upcomingScheduleWithPreparation == null
+            ? null
+            : PreparationWithTime.fromPreparation(
+                upcomingScheduleWithPreparation.preparation,
+              );
 
   @override
   List<Object?> get props => [upcomingSchedule];
@@ -35,4 +43,13 @@ final class SchedulePreparationStarted extends ScheduleEvent {
 
   @override
   List<Object?> get props => [];
+}
+
+final class ScheduleTick extends ScheduleEvent {
+  final Duration elapsed;
+
+  const ScheduleTick(this.elapsed);
+
+  @override
+  List<Object?> get props => [elapsed];
 }

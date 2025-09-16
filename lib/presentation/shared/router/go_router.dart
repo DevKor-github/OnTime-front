@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
@@ -117,13 +118,23 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
         path: '/scheduleStart',
         name: 'scheduleStart',
         builder: (context, state) {
-          return ScheduleStartScreen(schedule: state.extra as ScheduleEntity);
+          final schedule = context.read<ScheduleBloc>().state.schedule;
+          if (schedule == null) {
+            return const SizedBox.shrink();
+          }
+          return const ScheduleStartScreen();
         },
       ),
       GoRoute(
         path: '/alarmScreen',
         builder: (context, state) {
-          final schedule = state.extra as ScheduleEntity;
+          final extra = state.extra;
+          final schedule = extra is ScheduleEntity
+              ? extra
+              : context.read<ScheduleBloc>().state.schedule;
+          if (schedule == null) {
+            return const SizedBox.shrink();
+          }
           return AlarmScreen(schedule: schedule);
         },
       ),

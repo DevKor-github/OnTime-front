@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
@@ -48,7 +47,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
         if (scheduleState.status == ScheduleStatus.ongoing ||
             scheduleState.status == ScheduleStatus.started) {
           final schedule = scheduleState.schedule!;
-          final preparation = scheduleState.preparation!;
+          final preparation = schedule.preparation;
 
           final now = DateTime.now();
           final spareTime = schedule.scheduleSpareTime ?? Duration.zero;
@@ -73,8 +72,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
               ? 0.0
               : (elapsedSeconds / totalSeconds).clamp(0.0, 1.0);
 
-          final currentIndex =
-              steps.indexWhere((s) => (s as dynamic).isDone == false);
+          final currentStepEntity = preparation.currentStep;
+          final currentIndex = currentStepEntity == null
+              ? -1
+              : steps.indexWhere((s) => s.id == currentStepEntity.id);
           final resolvedCurrentIndex =
               currentIndex == -1 ? steps.length - 1 : currentIndex;
 
@@ -85,8 +86,13 @@ class _AlarmScreenState extends State<AlarmScreen> {
           final preparationStepStates = List<PreparationStateEnum>.generate(
             steps.length,
             (index) {
-              if (index < resolvedCurrentIndex)
+              if (currentIndex == -1) {
+                // All steps are done
                 return PreparationStateEnum.done;
+              }
+              if (index < resolvedCurrentIndex) {
+                return PreparationStateEnum.done;
+              }
               if (index == resolvedCurrentIndex && currentIndex != -1) {
                 return PreparationStateEnum.now;
               }
@@ -96,10 +102,12 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
           final currentStep =
               currentIndex == -1 ? steps.last : steps[resolvedCurrentIndex];
-          final remainingCurrentSeconds = (currentStep.preparationTime -
-                  preparation
-                      .preparationStepList[resolvedCurrentIndex].elapsedTime)
-              .inSeconds;
+          final remainingCurrentSeconds = currentIndex == -1
+              ? 0 // All steps are done
+              : (currentStep.preparationTime -
+                      preparation.preparationStepList[resolvedCurrentIndex]
+                          .elapsedTime)
+                  .inSeconds;
 
           if (currentIndex == -1) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -162,7 +170,11 @@ class _AlarmScreenState extends State<AlarmScreen> {
                   currentStepIndex: currentStepIndex,
                   stepElapsedTimes: stepElapsedTimes,
                   preparationStepStates: preparationStepStates,
-                  onSkip: () {},
+                  onSkip: () {
+                    context
+                        .read<ScheduleBloc>()
+                        .add(const ScheduleStepSkipped());
+                  },
                   onEndPreparation: () =>
                       _navigateToEarlyLate(context, beforeOutTime, isLate),
                 ),

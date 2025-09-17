@@ -12,67 +12,42 @@ class ScheduleState extends Equatable {
   const ScheduleState._({
     required this.status,
     this.schedule,
-    this.preparation,
   });
 
   const ScheduleState.initial() : this._(status: ScheduleStatus.initial);
 
   const ScheduleState.notExists() : this._(status: ScheduleStatus.notExists);
 
-  const ScheduleState.upcoming(
-      ScheduleEntity schedule, PreparationWithTimeEntity preparation)
-      : this._(
-          status: ScheduleStatus.upcoming,
-          schedule: schedule,
-          preparation: preparation,
-        );
+  const ScheduleState.upcoming(ScheduleWithPreparationEntity schedule)
+      : this._(status: ScheduleStatus.upcoming, schedule: schedule);
 
-  const ScheduleState.ongoing(
-      ScheduleEntity schedule, PreparationWithTimeEntity preparation)
-      : this._(
-            status: ScheduleStatus.ongoing,
-            schedule: schedule,
-            preparation: preparation);
+  const ScheduleState.ongoing(ScheduleWithPreparationEntity schedule)
+      : this._(status: ScheduleStatus.ongoing, schedule: schedule);
 
-  const ScheduleState.started(
-      ScheduleEntity schedule, PreparationWithTimeEntity preparation)
-      : this._(
-            status: ScheduleStatus.started,
-            schedule: schedule,
-            preparation: preparation);
+  const ScheduleState.started(ScheduleWithPreparationEntity schedule)
+      : this._(status: ScheduleStatus.started, schedule: schedule);
 
   final ScheduleStatus status;
-  final ScheduleEntity? schedule;
-  final PreparationWithTimeEntity? preparation;
+  final ScheduleWithPreparationEntity? schedule;
 
   ScheduleState copyWith({
     ScheduleStatus? status,
-    ScheduleEntity? schedule,
-    PreparationWithTimeEntity? preparation,
+    ScheduleWithPreparationEntity? schedule,
   }) {
     return ScheduleState._(
       status: status ?? this.status,
       schedule: schedule ?? this.schedule,
-      preparation: preparation ?? this.preparation,
     );
   }
 
   Duration? get durationUntilPreparationStart {
+    if (schedule == null) return null;
     final now = DateTime.now();
-    final totalDuration = schedule!.moveTime +
-        preparation!.totalDuration +
-        (schedule!.scheduleSpareTime ?? Duration.zero);
-    final preparationStartTime = schedule!.scheduleTime.subtract(totalDuration);
-
-    // If the target time is in the past or now, don't set a timer
-    if (preparationStartTime.isBefore(now) ||
-        preparationStartTime.isAtSameMomentAs(now)) {
-      return null;
-    }
-
-    return preparationStartTime.difference(now);
+    final target = schedule!.preparationStartTime;
+    if (target.isBefore(now) || target.isAtSameMomentAs(now)) return null;
+    return target.difference(now);
   }
 
   @override
-  List<Object?> get props => [status, schedule, preparation];
+  List<Object?> get props => [status, schedule, schedule?.preparation];
 }

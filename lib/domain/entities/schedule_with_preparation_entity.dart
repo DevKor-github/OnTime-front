@@ -19,7 +19,9 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
 
   ///Returns the total duration of the schedule including the moving time and the preparation time.
   Duration get totalDuration =>
-      moveTime + preparation.totalDuration + scheduleSpareTime!;
+      moveTime +
+      preparation.totalDuration +
+      (scheduleSpareTime ?? Duration.zero);
 
   ///Returns the time when the preparation starts.
   DateTime get preparationStartTime => scheduleTime.subtract(totalDuration);
@@ -39,4 +41,18 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       preparation: preparation,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        place,
+        scheduleName,
+        scheduleTime,
+        moveTime,
+        isChanged,
+        isStarted,
+        scheduleSpareTime,
+        scheduleNote,
+        preparation
+      ];
 }

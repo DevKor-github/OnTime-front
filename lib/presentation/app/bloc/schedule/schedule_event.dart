@@ -15,17 +15,11 @@ final class ScheduleSubscriptionRequested extends ScheduleEvent {
 }
 
 final class ScheduleUpcomingReceived extends ScheduleEvent {
-  final ScheduleEntity? upcomingSchedule;
-  final PreparationWithTimeEntity? preparation;
+  final ScheduleWithPreparationEntity? upcomingSchedule;
 
-  ScheduleUpcomingReceived(
+  const ScheduleUpcomingReceived(
       ScheduleWithPreparationEntity? upcomingScheduleWithPreparation)
-      : upcomingSchedule = upcomingScheduleWithPreparation,
-        preparation = upcomingScheduleWithPreparation == null
-            ? null
-            : PreparationWithTimeEntity.fromPreparation(
-                upcomingScheduleWithPreparation.preparation,
-              );
+      : upcomingSchedule = upcomingScheduleWithPreparation;
 
   @override
   List<Object?> get props => [upcomingSchedule];
@@ -52,4 +46,8 @@ final class ScheduleTick extends ScheduleEvent {
 
   @override
   List<Object?> get props => [elapsed];
+}
+
+final class ScheduleStepSkipped extends ScheduleEvent {
+  const ScheduleStepSkipped();
 }

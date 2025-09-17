@@ -42,6 +42,11 @@ class PreparationStepWithTimeEntity extends PreparationStepEntity {
   }
 
   @override
+  String toString() {
+    return 'PreparationStepWithTimeEntity(id: $id, preparationName: $preparationName, preparationTime: $preparationTime, nextPreparationId: $nextPreparationId, elapsedTime: $elapsedTime, isDone: $isDone)';
+  }
+
+  @override
   List<Object?> get props => [
         id,
         preparationName,

@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 
 class ScheduleStartScreen extends StatefulWidget {
-  final ScheduleEntity schedule;
-
   const ScheduleStartScreen({
     super.key,
-    required this.schedule,
   });
 
   @override
@@ -45,7 +43,12 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          widget.schedule.scheduleName,
+                          context
+                                  .read<ScheduleBloc>()
+                                  .state
+                                  .schedule
+                                  ?.scheduleName ??
+                              '',
                           style: const TextStyle(
                             fontSize: 40,
                             fontWeight: FontWeight.bold,
@@ -54,7 +57,13 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          widget.schedule.place.placeName,
+                          context
+                                  .read<ScheduleBloc>()
+                                  .state
+                                  .schedule
+                                  ?.place
+                                  .placeName ??
+                              '',
                           style: const TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,
@@ -87,7 +96,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                   padding: const EdgeInsets.only(bottom: 30),
                   child: ElevatedButton(
                     onPressed: () async {
-                      context.go('/alarmScreen', extra: widget.schedule);
+                      context.go('/alarmScreen');
                     },
                     child: Text(AppLocalizations.of(context)!.startPreparing),
                   ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:on_time_front/presentation/alarm/bloc/alarm_timer/alarm_timer_bloc.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:uuid/uuid.dart';
@@ -9,7 +7,7 @@ import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
 @widgetbook.UseCase(
-  name: 'Default (Bloc-based)',
+  name: 'Default',
   type: PreparationStepListWidget,
 )
 Widget preparationStepListWidgetUseCase(BuildContext context) {
@@ -91,29 +89,17 @@ Widget preparationStepListWidgetUseCase(BuildContext context) {
 
   return Scaffold(
     backgroundColor: const Color.fromARGB(255, 243, 241, 241),
-    body: BlocProvider(
-      create: (context) => AlarmTimerBloc(
-        preparationSteps: preparationSteps,
-        beforeOutTime: 600,
-        isLate: false,
-      )..add(AlarmTimerStepsUpdated(preparationSteps)),
-      child: BlocBuilder<AlarmTimerBloc, AlarmTimerState>(
-        builder: (context, state) {
-          return Center(
-            child: SizedBox(
-              width: width,
-              height: 400,
-              child: PreparationStepListWidget(
-                preparationSteps: preparationSteps,
-                currentStepIndex: currentStepIndex,
-                stepElapsedTimes:
-                    List.generate(listLength, (_) => stepElapsedTime),
-                preparationStepStates: stepStates,
-                onSkip: () {},
-              ),
-            ),
-          );
-        },
+    body: Center(
+      child: SizedBox(
+        width: width,
+        height: 400,
+        child: PreparationStepListWidget(
+          preparationSteps: preparationSteps,
+          currentStepIndex: currentStepIndex,
+          stepElapsedTimes: List.generate(listLength, (_) => stepElapsedTime),
+          preparationStepStates: stepStates,
+          onSkip: () {},
+        ),
       ),
     ),
   );

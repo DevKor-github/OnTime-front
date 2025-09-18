@@ -51,6 +51,9 @@ Widget todaysScheduleTileWithSchedule(BuildContext context) {
 
   return Padding(
     padding: const EdgeInsets.all(16.0),
-    child: TodaysScheduleTile(schedule: schedule),
+    child: TodaysScheduleTile(
+      schedule: schedule,
+      onTap: () {},
+    ),
   );
 }

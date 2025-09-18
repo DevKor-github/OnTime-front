@@ -1,37 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
 class AlarmScreenBottomSection extends StatelessWidget {
-  final List<PreparationStepEntity> preparationSteps;
-  final int currentStepIndex;
-  final List<int> stepElapsedTimes;
-  final List<PreparationStateEnum> preparationStepStates;
+  final PreparationWithTimeEntity preparation;
   final VoidCallback onSkip;
   final VoidCallback onEndPreparation;
 
   const AlarmScreenBottomSection({
     super.key,
-    required this.preparationSteps,
-    required this.currentStepIndex,
-    required this.stepElapsedTimes,
-    required this.preparationStepStates,
+    required this.preparation,
     required this.onSkip,
     required this.onEndPreparation,
   });
 
   @override
   Widget build(BuildContext context) {
+    final steps =
+        List<PreparationStepEntity>.from(preparation.preparationStepList);
+
     return Column(
       children: [
         Expanded(
             child: _PreparationStepListSection(
-          preparationSteps: preparationSteps,
-          currentStepIndex: currentStepIndex,
-          stepElapsedTimes: stepElapsedTimes,
-          preparationStepStates: preparationStepStates,
+          preparationSteps: steps,
+          currentStepIndex: preparation.resolvedCurrentStepIndex,
+          stepElapsedTimes: preparation.stepElapsedTimesInSeconds,
+          preparationStepStates: preparation.preparationStepStates,
           onSkip: onSkip,
         )),
         _EndPreparationButtonSection(

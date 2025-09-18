@@ -36,7 +36,7 @@ OnTime follows **Clean Architecture** principles with a clear separation of conc
 │                      DATA LAYER                             │
 ├─────────────────────────────────────────────────────────────┤
 │  • Repository Implementations                              │
-│  • Data Sources (Remote API, Local Database)               │
+│  • Data Sources (Remote API, Local Database, Local Storage)│
 │  • Data Models (JSON Serialization)                        │
 │  • Database Tables & DAOs                                  │
 └─────────────────────────────────────────────────────────────┘
@@ -288,6 +288,12 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 - **Local database** with Drift for offline data access
 - **Synchronization strategy** for online/offline data consistency
 - **Caching mechanisms** for improved performance
+
+### 5. **Local Storage for Timed Preparation**
+
+- `PreparationWithTimeLocalDataSource` persists `PreparationWithTimeEntity` per schedule using SharedPreferences.
+- Intended for lightweight, per-schedule timer state (elapsed time, completion) that should survive app restarts.
+- Repository reads canonical preparation from remote/DB; BLoC can merge it with locally persisted timing state when needed.
 
 ## 🧪 Testing Strategy
 

@@ -18,23 +18,21 @@ class AuthState extends Equatable {
           user: user,
         );
 
-  const AuthState._(
-      {required this.status,
-      this.user = const UserEntity.empty(),
-      this.schedule});
+  const AuthState._({
+    required this.status,
+    this.user = const UserEntity.empty(),
+  });
 
   final AuthStatus status;
   final UserEntity user;
-  final ScheduleWithPreparationEntity? schedule;
 
-  AuthState copyWith(
-      {AuthStatus? status,
-      UserEntity? user,
-      ScheduleWithPreparationEntity? schedule}) {
+  AuthState copyWith({
+    AuthStatus? status,
+    UserEntity? user,
+  }) {
     return AuthState._(
       status: status ?? this.status,
       user: user ?? this.user,
-      schedule: schedule ?? this.schedule,
     );
   }
 

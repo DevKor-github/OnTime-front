@@ -5,27 +5,28 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
-import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
+import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 
 part 'schedule_event.dart';
 part 'schedule_state.dart';
 
 @Singleton()
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
-  ScheduleBloc(this._getNearestUpcomingScheduleUseCase, this._navigationService)
+  ScheduleBloc(this._getNearestUpcomingScheduleUseCase, this._navigationService,
+      this._saveTimedPreparationUseCase)
       : super(const ScheduleState.initial()) {
     on<ScheduleSubscriptionRequested>(_onSubscriptionRequested);
     on<ScheduleUpcomingReceived>(_onUpcomingReceived);
     on<ScheduleStarted>(_onScheduleStarted);
     on<ScheduleTick>(_onTick);
+    on<ScheduleStepSkipped>(_onStepSkipped);
   }
 
   final GetNearestUpcomingScheduleUseCase _getNearestUpcomingScheduleUseCase;
   final NavigationService _navigationService;
+  final SaveTimedPreparationUseCase _saveTimedPreparationUseCase;
   StreamSubscription<ScheduleWithPreparationEntity?>?
       _upcomingScheduleSubscription;
   Timer? _scheduleStartTimer;
@@ -55,16 +56,16 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         event.upcomingSchedule!.scheduleTime.isBefore(DateTime.now())) {
       emit(const ScheduleState.notExists());
       _currentScheduleId = null;
-    } else if (_isPreparationOnGoing(
-        event.upcomingSchedule!, event.preparation!)) {
-      emit(ScheduleState.ongoing(event.upcomingSchedule!, event.preparation!));
+    } else if (_isPreparationOnGoing(event.upcomingSchedule!)) {
+      emit(ScheduleState.ongoing(event.upcomingSchedule!));
       debugPrint(
-          'ongoingSchedule: ${event.upcomingSchedule}, currentStep: ${event.preparation!.currentStep}');
+          'ongoingSchedule: ${event.upcomingSchedule}, currentStep: ${event.upcomingSchedule!.preparation.currentStep}');
+      _startPreparationTimer();
     } else {
-      emit(ScheduleState.upcoming(event.upcomingSchedule!, event.preparation!));
+      emit(ScheduleState.upcoming(event.upcomingSchedule!));
       debugPrint('upcomingSchedule: ${event.upcomingSchedule}');
       _currentScheduleId = event.upcomingSchedule!.id;
-      _startScheduleTimer(event.upcomingSchedule!, event.preparation!);
+      _startScheduleTimer(event.upcomingSchedule!);
     }
   }
 
@@ -74,23 +75,37 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       // Mark the schedule as started by updating the state
       debugPrint('scheddle started: ${state.schedule}');
-      emit(ScheduleState.started(state.schedule!, state.preparation!));
+      emit(ScheduleState.started(state.schedule!));
       _navigationService.push('/scheduleStart');
-
-      _preparationTimer = Timer.periodic(Duration(seconds: 1), (_) {
-        if (!isClosed) add(const ScheduleTick(Duration(seconds: 1)));
-      });
+      _startPreparationTimer();
     }
   }
 
   Future<void> _onTick(ScheduleTick event, Emitter<ScheduleState> emit) async {
-    if (state.preparation == null) return;
-    emit(state.copyWith(
-        preparation: state.preparation!.timeElapsed(event.elapsed)));
+    if (state.schedule == null) return;
+    final updatedPreparation =
+        state.schedule!.preparation.timeElapsed(event.elapsed);
+    debugPrint('elapsedTime: ${updatedPreparation.elapsedTime}');
+
+    final newSchedule =
+        ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            state.schedule!, updatedPreparation);
+
+    emit(state.copyWith(schedule: newSchedule));
   }
 
-  void _startScheduleTimer(
-      ScheduleEntity schedule, PreparationWithTime preparation) {
+  Future<void> _onStepSkipped(
+      ScheduleStepSkipped event, Emitter<ScheduleState> emit) async {
+    if (state.schedule == null) return;
+    final updated = state.schedule!.preparation.skipCurrentStep();
+    emit(state.copyWith(
+        schedule:
+            ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+                state.schedule!, updated)));
+    await _saveTimedPreparationUseCase(state.schedule!.id, updated);
+  }
+
+  void _startScheduleTimer(ScheduleWithPreparationEntity schedule) {
     final duration = state.durationUntilPreparationStart;
     if (duration == null) return;
     _scheduleStartTimer = Timer(duration, () {
@@ -98,6 +113,19 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       if (!isClosed && _currentScheduleId == schedule.id) {
         add(const ScheduleStarted());
       }
+    });
+  }
+
+  void _startPreparationTimer() {
+    if (state.schedule == null) return;
+    _preparationTimer?.cancel();
+    final elapsedTimeAfterLastTick =
+        DateTime.now().difference(state.schedule!.preparationStartTime) -
+            state.schedule!.preparation.elapsedTime;
+    debugPrint('elapsedTimeAfterLastTick: $elapsedTimeAfterLastTick');
+    add(ScheduleTick(elapsedTimeAfterLastTick));
+    _preparationTimer = Timer.periodic(Duration(seconds: 1), (_) {
+      if (!isClosed) add(ScheduleTick(Duration(seconds: 1)));
     });
   }
 
@@ -110,13 +138,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     return super.close();
   }
 
-  bool _isPreparationOnGoing(
-      ScheduleEntity schedule, PreparationWithTime preparation) {
-    final totalDuration = schedule.moveTime +
-        preparation.totalDuration +
-        (schedule.scheduleSpareTime ?? Duration.zero);
-    final preparationStartTime = schedule.scheduleTime.subtract(totalDuration);
-    return preparationStartTime.isBefore(DateTime.now()) &&
+  bool _isPreparationOnGoing(ScheduleWithPreparationEntity schedule) {
+    final start = schedule.preparationStartTime;
+    return start.isBefore(DateTime.now()) &&
         schedule.scheduleTime.isAfter(DateTime.now());
   }
 

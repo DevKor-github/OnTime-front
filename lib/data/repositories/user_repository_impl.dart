@@ -124,6 +124,51 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<void> deleteUser() async {
+    try {
+      await _authenticationRemoteDataSource.deleteUser();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteGoogleUser() async {
+    try {
+      await _authenticationRemoteDataSource.deleteGoogleMe();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteAppleUser() async {
+    try {
+      await _authenticationRemoteDataSource.deleteAppleMe();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> postFeedback(String message) async {
+    try {
+      await _authenticationRemoteDataSource.postFeedback(message);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String?> getUserSocialType() async {
+    try {
+      return await _authenticationRemoteDataSource.getUserSocialType();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   Stream<UserEntity> get userStream =>
       _userStreamController.asBroadcastStream();
 }

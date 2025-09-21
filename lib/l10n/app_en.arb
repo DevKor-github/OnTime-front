@@ -287,6 +287,10 @@
     "@appSettings": {
         "description": "Title for the app settings section"
     },
+    "accountSettings": "Account Settings",
+    "@accountSettings": {
+        "description": "Title for the account settings section"
+    },
     "editDefaultPreparation": "Edit Default Preparation / Spare Time",
     "@editDefaultPreparation": {
         "description": "Setting tile for editing default preparation and spare time"
@@ -294,6 +298,14 @@
     "allowAppNotifications": "Allow App Notifications",
     "@allowAppNotifications": {
         "description": "Setting tile for allowing app notifications"
+    },
+    "logOut": "Log out",
+    "@logOut": {
+        "description": "Setting tile for logging out"
+    },
+    "deleteAccount": "Delete account",
+    "@deleteAccount": {
+        "description": "Setting tile for deleting the account"
     },
     "editSpareTime": "Edit spare time",
     "@editSpareTime": {
@@ -306,5 +318,46 @@
     "totalTime": "Total time: ",
     "@totalTime": {
         "description": "Label for total preparation time"
+    },
+    "logOutConfirm": "Do you want to log out?",
+    "@logOutConfirm": {
+        "description": "Confirmation text shown in the logout modal"
+    },
+    "deleteAccountConfirmTitle": "Are you sure you want to delete your account?",
+    "@deleteAccountConfirmTitle": {
+        "description": "Title of the delete account confirmation modal"
+    },
+    "deleteAccountConfirmDescription": "If you keep preparing with OnTime, you can reduce lateness by 60%.",
+    "@deleteAccountConfirmDescription": {
+        "description": "Description of the delete account confirmation modal"
+    },
+    "keepUsing": "I'll keep using it",
+    "@keepUsing": {
+        "description": "Button label to keep using the app"
+    },
+    "deleteAnyway": "Delete anyway",
+    "@deleteAnyway": {
+        "description": "Button label to proceed with deletion anyway"
+    },
+    "deleteFeedbackTitle": "We hope to meet you again with a better service",
+    "@deleteFeedbackTitle": {
+        "description": "Delete feedback modal title"
+    },
+    "deleteFeedbackDescription": "Please let us know what was inconvenient so OnTime can improve.",
+    "@deleteFeedbackDescription": {
+        "description": "Delete feedback modal description"
+    },
+    "deleteFeedbackPlaceholder": "Please tell us the reason for leaving.",
+    "@deleteFeedbackPlaceholder": {
+        "description": "Placeholder for delete feedback input"
+    },
+    "keepUsingLong": "Keep using without deleting",
+    "@keepUsingLong": {
+        "description": "Button to keep using instead of deleting"
+    },
+    "sendFeedbackAndDelete": "Send feedback and delete",
+    "@sendFeedbackAndDelete": {
+        "description": "Button to send feedback and delete"
     }
+    
 } 

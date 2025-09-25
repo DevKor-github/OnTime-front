@@ -8,6 +8,7 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 import 'package:on_time_front/data/models/get_preparation_step_response_model.dart';
+import 'package:on_time_front/data/models/update_spare_time_request_model.dart';
 
 abstract interface class PreparationRemoteDataSource {
   Future<void> createDefaultPreparation(
@@ -24,6 +25,8 @@ abstract interface class PreparationRemoteDataSource {
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
   Future<PreparationEntity> getDefualtPreparation();
+
+  Future<void> updateSpareTime(Duration newSpareTime);
 }
 
 @Injectable(as: PreparationRemoteDataSource)
@@ -149,6 +152,22 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
 
       if (result.statusCode != 200) {
         throw Exception('Error updating preparation');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateSpareTime(Duration newSpareTime) async {
+    try {
+      final body = UpdateSpareTimeRequestModel.fromDuration(newSpareTime);
+      final result = await dio.put(
+        Endpoint.updateSpareTime,
+        data: body.toJson(),
+      );
+      if (result.statusCode != 200) {
+        throw Exception('Error updating spare time');
       }
     } catch (e) {
       rethrow;

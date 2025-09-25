@@ -48,6 +48,9 @@ class Endpoint {
 
   static get updateDefaultPreparation => _defaultPreparation;
 
+  static const _updateSpareTime = '/users/me/spare-time';
+  static get updateSpareTime => _updateSpareTime;
+
   static const _fcmToken = '/firebase-token'; // 사용자 fcm 토큰 등록
   static get fcmTokenRegister => _fcmToken;
 }

@@ -6,9 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/home/bloc/schedule_timer_bloc.dart';
 
 class TodaysScheduleTile extends StatelessWidget {
-  const TodaysScheduleTile({super.key, this.schedule});
+  const TodaysScheduleTile({super.key, this.schedule, this.onTap});
 
   final ScheduleEntity? schedule;
+  final VoidCallback? onTap;
 
   Widget _noSchedule(BuildContext context) {
     final theme = Theme.of(context);
@@ -59,15 +60,20 @@ class TodaysScheduleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: schedule == null
-            ? theme.colorScheme.surfaceContainerLow
-            : theme.colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(8),
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: schedule == null ? null : onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: schedule == null
+              ? theme.colorScheme.surfaceContainerLow
+              : theme.colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        width: double.infinity,
+        child:
+            schedule == null ? _noSchedule(context) : _scheduleExists(context),
       ),
-      width: double.infinity,
-      child: schedule == null ? _noSchedule(context) : _scheduleExists(context),
     );
   }
 }

@@ -136,6 +136,7 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                       SizedBox(height: 21.0),
                       TodaysScheduleTile(
                         schedule: todaySchedule,
+                        onTap: () => context.go('/alarmScreen'),
                       )
                     ],
                   ),

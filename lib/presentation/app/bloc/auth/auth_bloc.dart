@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/use-cases/load_user_use_case.dart';
 import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
@@ -27,8 +26,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignOutUseCase _signOutUseCase;
   final ScheduleBloc _scheduleBloc;
   Timer? _timer;
-  StreamSubscription<ScheduleWithPreparationEntity?>?
-      _upcomingScheduleSubscription;
 
   Future<void> _appUserSubscriptionRequested(
     AuthUserSubscriptionRequested event,
@@ -68,7 +65,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   @override
   Future<void> close() {
     _timer?.cancel();
-    _upcomingScheduleSubscription?.cancel();
     return super.close();
   }
 }

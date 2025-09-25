@@ -128,14 +128,7 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
       GoRoute(
         path: '/alarmScreen',
         builder: (context, state) {
-          final extra = state.extra;
-          final schedule = extra is ScheduleEntity
-              ? extra
-              : context.read<ScheduleBloc>().state.schedule;
-          if (schedule == null) {
-            return const SizedBox.shrink();
-          }
-          return AlarmScreen(schedule: schedule);
+          return AlarmScreen();
         },
       ),
       GoRoute(

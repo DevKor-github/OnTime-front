@@ -5,6 +5,7 @@ class ModalButton extends StatelessWidget {
   final String text;
   final Color? color;
   final Color? textColor;
+  final TextStyle? textStyle;
 
   const ModalButton({
     super.key,
@@ -12,6 +13,7 @@ class ModalButton extends StatelessWidget {
     required this.text,
     this.textColor,
     this.color,
+    this.textStyle,
   });
 
   @override
@@ -30,7 +32,7 @@ class ModalButton extends StatelessWidget {
         child: Center(
           child: Text(
             text,
-            style: TextStyle(color: textColor),
+            style: textStyle ?? TextStyle(color: textColor),
           ),
         ),
       ),

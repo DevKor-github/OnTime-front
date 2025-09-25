@@ -3,6 +3,7 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/use-cases/delete_user_use_case.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 
 class DeleteUserModal {
   Future<void> showDeleteUserModal(
@@ -68,81 +69,35 @@ class DeleteUserModal {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
-                        width: 245,
-                        height: 43,
-                        child: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all(
-                                colorScheme.surfaceContainerLow),
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            padding: WidgetStateProperty.all(
-                              const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 8),
-                            ),
-                            alignment: Alignment.center,
-                            minimumSize:
-                                WidgetStateProperty.all(const Size(245, 43)),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          child: Text(
-                            AppLocalizations.of(context)!.keepUsing,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              height: 1.4,
-                              color: colorScheme.outline,
-                            ),
-                          ),
+                      ModalWideButton(
+                        text: AppLocalizations.of(context)!.keepUsing,
+                        color: colorScheme.surfaceContainerLow,
+                        textColor: colorScheme.outline,
+                        textStyle: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          height: 1.4,
+                          color: colorScheme.outline,
                         ),
+                        onPressed: () => Navigator.of(ctx).pop(),
                       ),
                       const SizedBox(height: 8),
-                      SizedBox(
-                        width: 245,
-                        height: 43,
-                        child: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor:
-                                WidgetStateProperty.all(colorScheme.error),
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            padding: WidgetStateProperty.all(
-                              const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 8),
-                            ),
-                            alignment: Alignment.center,
-                            minimumSize:
-                                WidgetStateProperty.all(const Size(245, 43)),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          onPressed: () {
-                            Navigator.of(ctx).pop();
-                            _showDeleteFeedbackModal(context, onConfirm);
-                          },
-                          child: Text(
-                            AppLocalizations.of(context)!.deleteAnyway,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              height: 1.4,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
+                      ModalWideButton(
+                        text: AppLocalizations.of(context)!.deleteAnyway,
+                        color: colorScheme.error,
+                        textColor: colorScheme.onPrimary,
+                        textStyle: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          height: 1.4,
+                          color: colorScheme.onPrimary,
                         ),
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          _showDeleteFeedbackModal(context, onConfirm);
+                        },
                       ),
                     ],
                   )
@@ -262,97 +217,52 @@ class DeleteUserModal {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
-                        width: 245,
-                        height: 43,
-                        child: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all(
-                                colorScheme.surfaceContainerLow),
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            padding: WidgetStateProperty.all(
-                              const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 8),
-                            ),
-                            alignment: Alignment.center,
-                            minimumSize:
-                                WidgetStateProperty.all(const Size(245, 43)),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          onPressed: () => Navigator.of(ctx).pop(),
-                          child: Text(
-                            AppLocalizations.of(context)!.keepUsingLong,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              height: 1.4,
-                              color: colorScheme.outline,
-                            ),
-                          ),
+                      ModalWideButton(
+                        text: AppLocalizations.of(context)!.keepUsingLong,
+                        color: colorScheme.surfaceContainerLow,
+                        textColor: colorScheme.outline,
+                        textStyle: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          height: 1.4,
+                          color: colorScheme.outline,
                         ),
+                        onPressed: () => Navigator.of(ctx).pop(),
                       ),
                       const SizedBox(height: 8),
-                      SizedBox(
-                        width: 245,
-                        height: 43,
-                        child: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor:
-                                WidgetStateProperty.all(colorScheme.error),
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            padding: WidgetStateProperty.all(
-                              const EdgeInsets.symmetric(
-                                  vertical: 10, horizontal: 8),
-                            ),
-                            alignment: Alignment.center,
-                            minimumSize:
-                                WidgetStateProperty.all(const Size(245, 43)),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                          onPressed: () async {
-                            Navigator.of(ctx).pop();
-
-                            try {
-                              final deleteUserUseCase =
-                                  getIt<DeleteUserUseCase>();
-                              await deleteUserUseCase(controller.text);
-                            } catch (e) {
-                              debugPrint(e.toString());
-                            }
-
-                            try {
-                              final userRepository = getIt<UserRepository>();
-                              await userRepository.signOut();
-                            } catch (e) {
-                              debugPrint(e.toString());           
-                            }
-
-                            onConfirm();
-                          },
-                          child: Text(
+                      ModalWideButton(
+                        text:
                             AppLocalizations.of(context)!.sendFeedbackAndDelete,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              height: 1.4,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
+                        color: colorScheme.error,
+                        textColor: colorScheme.onPrimary,
+                        textStyle: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          height: 1.4,
+                          color: colorScheme.onPrimary,
                         ),
+                        onPressed: () async {
+                          Navigator.of(ctx).pop();
+
+                          try {
+                            final deleteUserUseCase =
+                                getIt<DeleteUserUseCase>();
+                            await deleteUserUseCase(controller.text);
+                          } catch (e) {
+                            debugPrint(e.toString());
+                          }
+
+                          try {
+                            final userRepository = getIt<UserRepository>();
+                            await userRepository.signOut();
+                          } catch (e) {
+                            debugPrint(e.toString());
+                          }
+
+                          onConfirm();
+                        },
                       ),
                     ],
                   )

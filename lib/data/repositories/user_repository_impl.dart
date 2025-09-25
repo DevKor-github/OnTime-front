@@ -81,7 +81,6 @@ class UserRepositoryImpl implements UserRepository {
       if (idToken != null) {
         final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
           idToken: idToken,
-          refreshToken: '',
         );
         await _tokenLocalDataSource.deleteToken();
         final result = await _authenticationRemoteDataSource

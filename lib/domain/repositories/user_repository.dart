@@ -23,4 +23,14 @@ abstract interface class UserRepository {
   });
 
   Future<void> getUser();
+
+  Future<void> deleteUser();
+
+  Future<void> deleteGoogleUser();
+
+  Future<void> deleteAppleUser();
+
+  Future<void> postFeedback(String message);
+
+  Future<String?> getUserSocialType();
 }

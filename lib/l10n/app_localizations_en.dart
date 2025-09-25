@@ -240,10 +240,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appSettings => 'App Settings';
 
   @override
+  String get accountSettings => 'Account Settings';
+
+  @override
   String get editDefaultPreparation => 'Edit Default Preparation / Spare Time';
 
   @override
   String get allowAppNotifications => 'Allow App Notifications';
+
+  @override
+  String get logOut => 'Log out';
+
+  @override
+  String get deleteAccount => 'Delete account';
 
   @override
   String get editSpareTime => 'Edit spare time';
@@ -253,4 +262,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalTime => 'Total time: ';
+
+  @override
+  String get logOutConfirm => 'Do you want to log out?';
+
+  @override
+  String get deleteAccountConfirmTitle =>
+      'Are you sure you want to delete your account?';
+
+  @override
+  String get deleteAccountConfirmDescription =>
+      'If you keep preparing with OnTime, you can reduce lateness by 60%.';
+
+  @override
+  String get keepUsing => 'I\'ll keep using it';
+
+  @override
+  String get deleteAnyway => 'Delete anyway';
+
+  @override
+  String get deleteFeedbackTitle =>
+      'We hope to meet you again with a better service';
+
+  @override
+  String get deleteFeedbackDescription =>
+      'Please let us know what was inconvenient so OnTime can improve.';
+
+  @override
+  String get deleteFeedbackPlaceholder =>
+      'Please tell us the reason for leaving.';
+
+  @override
+  String get keepUsingLong => 'Keep using without deleting';
+
+  @override
+  String get sendFeedbackAndDelete => 'Send feedback and delete';
 }

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/presentation/my_page/my_page_modal/delete_user_modal.dart';
+import 'package:on_time_front/presentation/my_page/my_page_modal/logout_modal.dart';
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({super.key});
@@ -23,6 +25,28 @@ class MyPageScreen extends StatelessWidget {
           _FrameView(
               title: AppLocalizations.of(context)!.myAccount,
               child: _MyAccountView()),
+          _FrameView(
+            title: AppLocalizations.of(context)!.accountSettings,
+            child: Column(
+              spacing: 25,
+              children: [
+                _SettingTile(
+                  title: AppLocalizations.of(context)!.logOut,
+                  onTap: () async {
+                    await showLogoutModal(context);
+                  },
+                ),
+                _SettingTile(
+                  title: AppLocalizations.of(context)!.deleteAccount,
+                  onTap: () async {
+                    final deleteUserModal = DeleteUserModal();
+                    await deleteUserModal.showDeleteUserModal(context,
+                        onConfirm: () {});
+                  },
+                ),
+              ],
+            ),
+          ),
           _FrameView(
             title: AppLocalizations.of(context)!.appSettings,
             child: Column(

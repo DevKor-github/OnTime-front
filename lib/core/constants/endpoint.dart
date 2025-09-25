@@ -7,12 +7,20 @@ class Endpoint {
   static const _signInWithGoogle = '/oauth2/google/login';
   static const _signInWithApple = '/oauth2/apple/login';
   static const _getUser = '/users/me';
+  static const _deleteGoogleMe = '/oauth2/google/me';
+  static const _deleteAppleMe = '/oauth2/apple/me';
+  static const _feedback = '/feedback';
+  static const _deleteUser = '/users/me/delete';
 
   static get signIn => _signIn;
   static get signUp => _signUp;
   static get signInWithGoogle => _signInWithGoogle;
   static get signInWithApple => _signInWithApple;
   static get getUser => _getUser;
+  static get deleteGoogleMe => _deleteGoogleMe;
+  static get deleteAppleMe => _deleteAppleMe;
+  static get feedback => _feedback;
+  static get deleteUser => _deleteUser;
 
   // schedule
   static const _schedules = '/schedules';

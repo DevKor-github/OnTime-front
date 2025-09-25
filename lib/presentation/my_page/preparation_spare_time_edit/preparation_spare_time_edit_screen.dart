@@ -181,9 +181,16 @@ class _PreparationSection extends StatelessWidget {
           width: double.infinity,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 15.0),
-            child: Text(
-              AppLocalizations.of(context)!.totalTime,
-              textAlign: TextAlign.end,
+            child: Builder(
+              builder: (context) {
+                final totalDuration = preparationNameState.preparationStepList
+                    .fold(Duration.zero,
+                        (prev, step) => prev + step.preparationTime.value);
+                return Text(
+                  '${AppLocalizations.of(context)!.totalTime}${totalDuration.inMinutes}분',
+                  textAlign: TextAlign.end,
+                );
+              },
             ),
           ),
         ),

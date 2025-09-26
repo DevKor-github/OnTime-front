@@ -89,4 +89,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<void> finishSchedule(String scheduleId, int latenessTime) async {
+    try {
+      await scheduleRemoteDataSource.finishSchedule(scheduleId, latenessTime);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -14,6 +14,7 @@ class GetScheduleResponseModel {
   final int scheduleSpareTime;
   final String scheduleNote;
   final int? latenessTime;
+  final String? doneStatus;
 
   const GetScheduleResponseModel({
     required this.scheduleId,
@@ -24,6 +25,7 @@ class GetScheduleResponseModel {
     required this.scheduleSpareTime,
     required this.scheduleNote,
     this.latenessTime = 0,
+    this.doneStatus = 'NOT_ENDED',
   });
 
   ScheduleEntity toEntity() {
@@ -38,6 +40,7 @@ class GetScheduleResponseModel {
       scheduleSpareTime: Duration(minutes: scheduleSpareTime),
       scheduleNote: scheduleNote,
       latenessTime: latenessTime ?? -1,
+      doneStatus: _mapDoneStatus(doneStatus),
     );
   }
 
@@ -45,4 +48,18 @@ class GetScheduleResponseModel {
       _$GetScheduleResponseModelFromJson(json);
 
   Map<String, dynamic> toJson() => _$GetScheduleResponseModelToJson(this);
+}
+
+ScheduleDoneStatus _mapDoneStatus(String? serverValue) {
+  switch (serverValue) {
+    case 'LATE':
+      return ScheduleDoneStatus.lateEnd;
+    case 'NORMAL':
+      return ScheduleDoneStatus.normalEnd;
+    case 'ABNORMAL':
+      return ScheduleDoneStatus.abnormalEnd;
+    case 'NOT_ENDED':
+    default:
+      return ScheduleDoneStatus.notEnded;
+  }
 }

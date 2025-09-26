@@ -15,6 +15,7 @@ class ScheduleEntity extends Equatable {
   final Duration? scheduleSpareTime;
   final String scheduleNote;
   final int latenessTime;
+  final ScheduleDoneStatus doneStatus;
 
   const ScheduleEntity({
     required this.id,
@@ -27,6 +28,7 @@ class ScheduleEntity extends Equatable {
     required this.scheduleSpareTime,
     required this.scheduleNote,
     this.latenessTime = 0,
+    this.doneStatus = ScheduleDoneStatus.notEnded,
   });
 
   static ScheduleEntity fromScheduleWithPlaceModel(
@@ -44,6 +46,7 @@ class ScheduleEntity extends Equatable {
       scheduleSpareTime: schedule.scheduleSpareTime,
       scheduleNote: schedule.scheduleNote ?? '',
       latenessTime: schedule.latenessTime,
+      doneStatus: ScheduleDoneStatus.notEnded,
     );
   }
 
@@ -98,5 +101,13 @@ class ScheduleEntity extends Equatable {
         scheduleSpareTime,
         scheduleNote,
         latenessTime,
+        doneStatus,
       ];
+}
+
+enum ScheduleDoneStatus {
+  lateEnd, // LATE        // 지각종료
+  normalEnd, // NORMAL      // 지각 안 한 종료
+  abnormalEnd, // ABNORMAL    // 비정상종료
+  notEnded, // NOT_ENDED
 }

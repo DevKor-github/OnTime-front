@@ -19,6 +19,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
   bool _hasShownCompletionDialog = false;
   void _onPreparationFinished(
       BuildContext context, Duration timeRemainingBeforeLeaving, bool isLate) {
+    final latenessMinutes =
+        isLate ? (timeRemainingBeforeLeaving.inMinutes.abs()) : 0;
+    context.read<ScheduleBloc>().add(ScheduleFinished(latenessMinutes));
     context.go(
       '/earlyLate',
       extra: {

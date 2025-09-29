@@ -66,10 +66,24 @@
     "myPageTitle": "마이페이지",
     "myAccount": "내 계정",
     "appSettings": "앱 설정",
+    "accountSettings": "계정 설정",
     "editDefaultPreparation": "기본 준비과정 / 여유시간 수정",
-    "allowAppNotifications": "앱 알림 허용"
-,
+    "allowAppNotifications": "앱 알림 허용",
+    "logOut": "로그아웃",
+    "deleteAccount": "회원 탈퇴",
     "editSpareTime": "여유시간 수정",
     "editPreparationTime": "준비시간 수정",
-    "totalTime": "총 시간: "
+    "totalTime": "총 시간: ",
+    "logOutConfirm": "로그아웃 하시겠어요?"
+,
+    "deleteAccountConfirmTitle": "정말 탈퇴하시나요?",
+    "deleteAccountConfirmDescription": "계속 온타임과 준비를 함께하면\n지각을 60% 줄일 수 있어요.",
+    "keepUsing": "계속 사용할게요",
+    "deleteAnyway": "그래도 탈퇴할게요"
+,
+    "deleteFeedbackTitle": "더 좋은 서비스로 다시 만나요",
+    "deleteFeedbackDescription": "더 나은 온타임이 될 수 있도록,\n어떤 점이 불편하셨는지\n알려주시면 감사하겠습니다.",
+    "deleteFeedbackPlaceholder": "탈퇴하시는 이유를 알려주세요.",
+    "keepUsingLong": "탈퇴하지 않고 계속 사용하기",
+    "sendFeedbackAndDelete": "의견 보내고 탈퇴하기"
 }

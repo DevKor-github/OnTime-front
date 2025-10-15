@@ -47,6 +47,10 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
               builder: (context, state2) {
                 return Scaffold(
                   appBar: AppBar(
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                    scrolledUnderElevation: 0,
+                    backgroundColor: Colors.transparent,
                     leading: IconButton(
                       icon: Icon(
                         Icons.arrow_back_ios_rounded,
@@ -194,21 +198,24 @@ class _PreparationSection extends StatelessWidget {
             ),
           ),
         ),
-        PreparationFormCreateList(
-          preparationNameState: preparationNameState,
-          onNameChanged: ({required int index, required String value}) {
-            context.read<PreparationFormBloc>().add(
-                  PreparationFormPreparationStepNameChanged(
-                    index: index,
-                    preparationStepName: value,
-                  ),
-                );
-          },
-          onCreationRequested: () {
-            context.read<PreparationFormBloc>().add(
-                  const PreparationFormPreparationStepCreationRequested(),
-                );
-          },
+        Expanded(
+          child: PreparationFormCreateList(
+            preparationNameState: preparationNameState,
+            enableDismissible: true,
+            onNameChanged: ({required int index, required String value}) {
+              context.read<PreparationFormBloc>().add(
+                    PreparationFormPreparationStepNameChanged(
+                      index: index,
+                      preparationStepName: value,
+                    ),
+                  );
+            },
+            onCreationRequested: () {
+              context.read<PreparationFormBloc>().add(
+                    const PreparationFormPreparationStepCreationRequested(),
+                  );
+            },
+          ),
         ),
       ],
     );

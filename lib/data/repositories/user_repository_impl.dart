@@ -169,6 +169,16 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<void> disconnectGoogleSignIn() async {
+    try {
+      await _googleSignIn.disconnect();
+      debugPrint('Google Sign-In disconnected');
+    } catch (e) {
+      debugPrint('Google Sign-In disconnect failed: $e');
+    }
+  }
+
+  @override
   Stream<UserEntity> get userStream =>
       _userStreamController.asBroadcastStream();
 }

@@ -15,7 +15,9 @@ class DeleteUserUseCase {
 
     final socialTypeString = await _userRepository.getUserSocialType();
     final socialType = socialTypeFromString(socialTypeString);
+
     if (socialType == SocialType.google) {
+      await _userRepository.disconnectGoogleSignIn();
       await _userRepository.deleteGoogleUser();
     } else if (socialType == SocialType.apple) {
       await _userRepository.deleteAppleUser();

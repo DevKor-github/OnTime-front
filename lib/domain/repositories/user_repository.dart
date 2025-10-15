@@ -33,4 +33,6 @@ abstract interface class UserRepository {
   Future<void> postFeedback(String message);
 
   Future<String?> getUserSocialType();
+
+  Future<void> disconnectGoogleSignIn();
 }

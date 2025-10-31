@@ -12,15 +12,11 @@ class AppleSignInButton extends StatelessWidget {
 
     return SizedBox(
       width: 358,
-      child: DefaultTextStyle.merge(
-        style: TextStyle(
-          fontSize: 19,
-          fontWeight: FontWeight.w600,
-          height: 24 / 19,
-          fontFamily: 'SF Pro',
-        ),
-        child: SignInWithAppleButton(
-          onPressed: () async {
+      height: 54,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () async {
             try {
               final credential = await SignInWithApple.getAppleIDCredential(
                 scopes: [
@@ -51,11 +47,14 @@ class AppleSignInButton extends StatelessWidget {
               debugPrint('Apple Sign In Error: ${e.toString()}');
             }
           },
-          style: SignInWithAppleButtonStyle.black,
-          height: 54,
           borderRadius: BorderRadius.circular(14),
-          iconAlignment: IconAlignment.center,
-          text: 'Sign in with Apple',
+          child: Image.asset(
+            'appleid_button.png',
+            package: 'assets',
+            width: 358,
+            height: 54,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );

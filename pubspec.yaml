@@ -46,8 +46,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   dio: ^5.7.0
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
+  
   mockito: ^5.4.4
   equatable: ^2.0.5
   collection: ^1.18.0
@@ -104,9 +103,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   husky: ^0.1.7
   commitlint_cli: ^0.7.2
-  riverpod_generator: ^2.6.2
-  custom_lint: ^0.7.0
-  riverpod_lint: ^2.6.2
+  
   json_serializable: ^6.9.0
   injectable_generator: ^2.6.2
 

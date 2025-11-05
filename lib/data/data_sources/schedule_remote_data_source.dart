@@ -79,7 +79,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   @override
   Future<void> finishSchedule(String scheduleId, int latenessTime) async {
     try {
-      final result = await dio.post(
+      final result = await dio.put(
         Endpoint.finishSchedule(scheduleId),
         data: {
           'scheduleId': scheduleId,

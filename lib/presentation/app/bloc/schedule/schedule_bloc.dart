@@ -119,7 +119,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _scheduleStartTimer?.cancel();
       emit(const ScheduleState.notExists());
     } catch (_) {
-      // Keep current state on error; optionally handle error UI elsewhere
+      debugPrint('error finishing schedule: $_');
     }
   }
 

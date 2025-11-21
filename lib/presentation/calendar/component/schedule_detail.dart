@@ -75,6 +75,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 
   List<SwipeAction> _buildSwipeActions(BuildContext context) {
     final theme = Theme.of(context);
+    final canEdit = widget.schedule.doneStatus == ScheduleDoneStatus.notEnded &&
+        !widget.schedule.scheduleTime.isBefore(DateTime.now());
     return [
       SwipeAction(
         onTap: (controller) => widget.onDeleted?.call(),
@@ -84,15 +86,16 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
           color: theme.colorScheme.error,
         ),
       ),
-      SwipeAction(
-        widthSpace: 96,
-        onTap: (controller) => widget.onEdit?.call(),
-        color: Colors.transparent,
-        content: _SwipeActionContent(
-          icon: const _EditPencilSvg(),
-          color: theme.colorScheme.outline,
+      if (canEdit)
+        SwipeAction(
+          widthSpace: 96,
+          onTap: (controller) => widget.onEdit?.call(),
+          color: Colors.transparent,
+          content: _SwipeActionContent(
+            icon: const _EditPencilSvg(),
+            color: theme.colorScheme.outline,
+          ),
         ),
-      ),
     ];
   }
 

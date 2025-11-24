@@ -25,8 +25,8 @@ class UserRepositoryImpl implements UserRepository {
   @override
   GoogleSignIn get googleSignIn => _googleSignIn;
 
-  UserRepositoryImpl(this._authenticationRemoteDataSource, this._tokenLocalDataSource);
-
+  UserRepositoryImpl(
+      this._authenticationRemoteDataSource, this._tokenLocalDataSource);
 
   @override
   Future<UserEntity> getUser() async {
@@ -78,9 +78,11 @@ class UserRepositoryImpl implements UserRepository {
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
+      final String? accessToken = googleAuth.accessToken;
       if (idToken != null) {
         final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
           idToken: idToken,
+          refreshToken: accessToken ?? '',
         );
         await _tokenLocalDataSource.deleteToken();
         final result = await _authenticationRemoteDataSource
@@ -118,6 +120,61 @@ class UserRepositoryImpl implements UserRepository {
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteUser() async {
+    try {
+      await _authenticationRemoteDataSource.deleteUser();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteGoogleUser() async {
+    try {
+      await _authenticationRemoteDataSource.deleteGoogleMe();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteAppleUser() async {
+    try {
+      await _authenticationRemoteDataSource.deleteAppleMe();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> postFeedback(String message) async {
+    try {
+      await _authenticationRemoteDataSource.postFeedback(message);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String?> getUserSocialType() async {
+    try {
+      return await _authenticationRemoteDataSource.getUserSocialType();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> disconnectGoogleSignIn() async {
+    try {
+      await _googleSignIn.disconnect();
+      debugPrint('Google Sign-In disconnected');
+    } catch (e) {
+      debugPrint('Google Sign-In disconnect failed: $e');
     }
   }
 

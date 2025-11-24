@@ -19,4 +19,6 @@ abstract interface class PreparationRepository {
 
   Future<void> updatePreparationByScheduleId(
       PreparationEntity preparationEntity, String scheduleId);
+
+  Future<void> updateSpareTime(Duration newSpareTime);
 }

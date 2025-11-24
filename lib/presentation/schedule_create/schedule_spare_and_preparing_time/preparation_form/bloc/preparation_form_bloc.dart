@@ -74,12 +74,18 @@ class PreparationFormBloc
     PreparationFormPreparationStepRemoved event,
     Emitter<PreparationFormState> emit,
   ) {
+    if (state.preparationStepList.length <= 1) {
+      return;
+    }
+
     final removedList =
         List<PreparationStepFormState>.from(state.preparationStepList);
     removedList.removeWhere((element) => element.id == event.preparationStepId);
 
+    final isValid = _validate(removedList);
     emit(state.copyWith(
       preparationStepList: removedList,
+      isValid: isValid,
     ));
   }
 
@@ -133,8 +139,10 @@ class PreparationFormBloc
     final item = changedList.removeAt(oldIndex);
     changedList.insert(newIndex, item);
 
+    final isValid = _validate(changedList);
     emit(state.copyWith(
       preparationStepList: changedList,
+      isValid: isValid,
     ));
   }
 

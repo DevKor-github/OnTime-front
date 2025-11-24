@@ -500,6 +500,12 @@ abstract class AppLocalizations {
   /// **'App Settings'**
   String get appSettings;
 
+  /// Title for the account settings section
+  ///
+  /// In en, this message translates to:
+  /// **'Account Settings'**
+  String get accountSettings;
+
   /// Setting tile for editing default preparation and spare time
   ///
   /// In en, this message translates to:
@@ -511,6 +517,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow App Notifications'**
   String get allowAppNotifications;
+
+  /// Setting tile for logging out
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get logOut;
+
+  /// Setting tile for deleting the account
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
 
   /// Section title for editing spare time
   ///
@@ -541,6 +559,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Schedule is already overlapping with \"{scheduleName}\"! You are {minutes} minutes late compared to the next schedule\'s preparation start time'**
   String scheduleOverlapError(int minutes, String scheduleName);
+
+  /// Confirmation text shown in the logout modal
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to log out?'**
+  String get logOutConfirm;
+
+  /// Title of the delete account confirmation modal
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete your account?'**
+  String get deleteAccountConfirmTitle;
+
+  /// Description of the delete account confirmation modal
+  ///
+  /// In en, this message translates to:
+  /// **'If you keep preparing with OnTime, you can reduce lateness by 60%.'**
+  String get deleteAccountConfirmDescription;
+
+  /// Button label to keep using the app
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ll keep using it'**
+  String get keepUsing;
+
+  /// Button label to proceed with deletion anyway
+  ///
+  /// In en, this message translates to:
+  /// **'Delete anyway'**
+  String get deleteAnyway;
+
+  /// Delete feedback modal title
+  ///
+  /// In en, this message translates to:
+  /// **'We hope to meet you again with a better service'**
+  String get deleteFeedbackTitle;
+
+  /// Delete feedback modal description
+  ///
+  /// In en, this message translates to:
+  /// **'Please let us know what was inconvenient so OnTime can improve.'**
+  String get deleteFeedbackDescription;
+
+  /// Placeholder for delete feedback input
+  ///
+  /// In en, this message translates to:
+  /// **'Please tell us the reason for leaving.'**
+  String get deleteFeedbackPlaceholder;
+
+  /// Button to keep using instead of deleting
+  ///
+  /// In en, this message translates to:
+  /// **'Keep using without deleting'**
+  String get keepUsingLong;
+
+  /// Button to send feedback and delete
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback and delete'**
+  String get sendFeedbackAndDelete;
 }
 
 class _AppLocalizationsDelegate

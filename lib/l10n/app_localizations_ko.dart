@@ -221,10 +221,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appSettings => '앱 설정';
 
   @override
+  String get accountSettings => '계정 설정';
+
+  @override
   String get editDefaultPreparation => '기본 준비과정 / 여유시간 수정';
 
   @override
   String get allowAppNotifications => '앱 알림 허용';
+
+  @override
+  String get logOut => '로그아웃';
+
+  @override
+  String get deleteAccount => '회원 탈퇴';
 
   @override
   String get editSpareTime => '여유시간 수정';
@@ -244,4 +253,36 @@ class AppLocalizationsKo extends AppLocalizations {
   String scheduleOverlapError(int minutes, String scheduleName) {
     return '\"$scheduleName\"과 이미 겹쳤어요! 다음 일정 준비 시작 시간보다 $minutes분 늦어요';
   }
+
+  @override
+  String get logOutConfirm => '로그아웃 하시겠어요?';
+
+  @override
+  String get deleteAccountConfirmTitle => '정말 탈퇴하시나요?';
+
+  @override
+  String get deleteAccountConfirmDescription =>
+      '계속 온타임과 준비를 함께하면\n지각을 60% 줄일 수 있어요.';
+
+  @override
+  String get keepUsing => '계속 사용할게요';
+
+  @override
+  String get deleteAnyway => '그래도 탈퇴할게요';
+
+  @override
+  String get deleteFeedbackTitle => '더 좋은 서비스로 다시 만나요';
+
+  @override
+  String get deleteFeedbackDescription =>
+      '더 나은 온타임이 될 수 있도록,\n어떤 점이 불편하셨는지\n알려주시면 감사하겠습니다.';
+
+  @override
+  String get deleteFeedbackPlaceholder => '탈퇴하시는 이유를 알려주세요.';
+
+  @override
+  String get keepUsingLong => '탈퇴하지 않고 계속 사용하기';
+
+  @override
+  String get sendFeedbackAndDelete => '의견 보내고 탈퇴하기';
 }

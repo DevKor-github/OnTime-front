@@ -10,25 +10,27 @@ class OnboardingStartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 35),
-        child: Center(
-          child: Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _Title(),
-                      SizedBox(height: 37),
-                      _OnboardingCharacterImage(),
-                    ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 35),
+          child: Center(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _Title(),
+                        SizedBox(height: 37),
+                        _OnboardingCharacterImage(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              _OnboardingStartButton(),
-            ],
+                _OnboardingStartButton(),
+              ],
+            ),
           ),
         ),
       ),
@@ -85,7 +87,7 @@ class _OnboardingStartButton extends StatelessWidget {
           context.push('/onboarding');
         },
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(AppLocalizations.of(context)!.start),
         ),
       ),

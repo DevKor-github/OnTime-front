@@ -108,4 +108,12 @@ class PreparationRepositoryImpl implements PreparationRepository {
       rethrow;
     }
   }
+
+  Future<void> updateSpareTime(Duration newSpareTime) async {
+    try {
+      await preparationRemoteDataSource.updateSpareTime(newSpareTime);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

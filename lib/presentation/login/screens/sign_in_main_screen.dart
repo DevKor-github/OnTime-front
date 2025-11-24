@@ -44,7 +44,7 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
             SizedBox(height: 41),
             if (!kIsWeb && Platform.isIOS) ...[
               AppleSignInButton(),
-              SizedBox(height: 22),
+              SizedBox(height: 16),
             ],
             GoogleSignInButton(),
           ],

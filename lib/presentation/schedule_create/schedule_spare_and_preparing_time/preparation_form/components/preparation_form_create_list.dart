@@ -4,6 +4,7 @@ import 'package:on_time_front/presentation/onboarding/preparation_name_select/co
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list_dissmissible.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 
 class PreparationFormCreateList extends StatelessWidget {
@@ -11,32 +12,49 @@ class PreparationFormCreateList extends StatelessWidget {
       {super.key,
       required this.preparationNameState,
       required this.onNameChanged,
-      required this.onCreationRequested});
+      required this.onCreationRequested,
+      this.enableDismissible = false});
 
   final PreparationFormState preparationNameState;
   final void Function({required int index, required String value})
       onNameChanged;
   final VoidCallback onCreationRequested;
+  final bool enableDismissible;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         children: [
-          PreparationFormReorderableList(
-            preparationStepList: preparationNameState.preparationStepList,
-            onNameChanged: (index, value) {
-              onNameChanged(index: index, value: value);
-            },
-            onTimeChanged: (index, value) => context
-                .read<PreparationFormBloc>()
-                .add(PreparationFormPreparationStepTimeChanged(
-                    index: index, preparationStepTime: value)),
-            onReorder: (oldIndex, newIndex) => context
-                .read<PreparationFormBloc>()
-                .add(PreparationFormPreparationStepOrderChanged(
-                    oldIndex: oldIndex, newIndex: newIndex)),
-          ),
+          enableDismissible
+              ? PreparationFormReorderableListDismissible(
+                  preparationStepList: preparationNameState.preparationStepList,
+                  onNameChanged: (index, value) {
+                    onNameChanged(index: index, value: value);
+                  },
+                  onTimeChanged: (index, value) => context
+                      .read<PreparationFormBloc>()
+                      .add(PreparationFormPreparationStepTimeChanged(
+                          index: index, preparationStepTime: value)),
+                  onReorder: (oldIndex, newIndex) => context
+                      .read<PreparationFormBloc>()
+                      .add(PreparationFormPreparationStepOrderChanged(
+                          oldIndex: oldIndex, newIndex: newIndex)),
+                )
+              : PreparationFormReorderableList(
+                  preparationStepList: preparationNameState.preparationStepList,
+                  onNameChanged: (index, value) {
+                    onNameChanged(index: index, value: value);
+                  },
+                  onTimeChanged: (index, value) => context
+                      .read<PreparationFormBloc>()
+                      .add(PreparationFormPreparationStepTimeChanged(
+                          index: index, preparationStepTime: value)),
+                  onReorder: (oldIndex, newIndex) => context
+                      .read<PreparationFormBloc>()
+                      .add(PreparationFormPreparationStepOrderChanged(
+                          oldIndex: oldIndex, newIndex: newIndex)),
+                ),
           preparationNameState.status == PreparationFormStatus.adding
               ? BlocProvider<PreparationStepFormCubit>(
                   create: (context) => PreparationStepFormCubit(

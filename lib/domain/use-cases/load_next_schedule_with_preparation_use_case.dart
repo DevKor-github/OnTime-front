@@ -1,14 +1,17 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/domain/use-cases/get_schedules_by_date_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_schedules_by_date_use_case.dart';
 
 @Injectable()
 class LoadNextScheduleWithPreparationUseCase {
   final LoadSchedulesByDateUseCase _loadSchedulesByDateUseCase;
+  final GetSchedulesByDateUseCase _getSchedulesByDateUseCase;
   final LoadPreparationByScheduleIdUseCase _loadPreparationByScheduleIdUseCase;
 
   LoadNextScheduleWithPreparationUseCase(
     this._loadSchedulesByDateUseCase,
+    this._getSchedulesByDateUseCase,
     this._loadPreparationByScheduleIdUseCase,
   );
 
@@ -18,19 +21,21 @@ class LoadNextScheduleWithPreparationUseCase {
   ///
   /// [startDate] - Start date for the search range
   /// [endDate] - End date for the search range
-  /// [scheduleId] - Optional schedule ID to load preparation for
   Future<void> call({
     required DateTime startDate,
     required DateTime endDate,
-    String? scheduleId,
   }) async {
     // Load schedules for the date range
     await _loadSchedulesByDateUseCase(startDate, endDate);
 
-    // Load preparation for the specific schedule if provided
-    if (scheduleId != null) {
-      await _loadPreparationByScheduleIdUseCase(scheduleId);
-    }
+    // Get the schedules that were loaded
+    final schedules =
+        await _getSchedulesByDateUseCase(startDate, endDate).first;
+
+    // Load preparation for all schedules in the date range
+    await Future.wait(
+      schedules
+          .map((schedule) => _loadPreparationByScheduleIdUseCase(schedule.id)),
+    );
   }
 }
-

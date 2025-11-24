@@ -306,5 +306,23 @@
     "totalTime": "Total time: ",
     "@totalTime": {
         "description": "Label for total preparation time"
+    },
+    "scheduleOverlapWarning": "To avoid overlapping with the next schedule, you need to prepare within {minutes} minutes",
+    "@scheduleOverlapWarning": {
+        "description": "Warning message when schedule overlaps with next schedule",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "scheduleOverlapError": "Schedule is already overlapping! You are {minutes} minutes late compared to the next schedule's preparation start time",
+    "@scheduleOverlapError": {
+        "description": "Error message when schedule is already overlapping with next schedule",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
     }
 } 

@@ -529,6 +529,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total time: '**
   String get totalTime;
+
+  /// Warning message when schedule overlaps with next schedule
+  ///
+  /// In en, this message translates to:
+  /// **'To avoid overlapping with the next schedule, you need to prepare within {minutes} minutes'**
+  String scheduleOverlapWarning(int minutes);
+
+  /// Error message when schedule is already overlapping with next schedule
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule is already overlapping! You are {minutes} minutes late compared to the next schedule\'s preparation start time'**
+  String scheduleOverlapError(int minutes);
 }
 
 class _AppLocalizationsDelegate

@@ -253,4 +253,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalTime => 'Total time: ';
+
+  @override
+  String scheduleOverlapWarning(int minutes) {
+    return 'To avoid overlapping with the next schedule, you need to prepare within $minutes minutes';
+  }
+
+  @override
+  String scheduleOverlapError(int minutes) {
+    return 'Schedule is already overlapping! You are $minutes minutes late compared to the next schedule\'s preparation start time';
+  }
 }

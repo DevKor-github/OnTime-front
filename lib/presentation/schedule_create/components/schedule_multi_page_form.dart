@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
@@ -61,8 +62,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               ),
             ),
             BlocProvider(
-              create: (context) => ScheduleDateTimeCubit(
-                scheduleFormBloc: context.read<ScheduleFormBloc>(),
+              create: (context) => getIt.get<ScheduleDateTimeCubit>(
+                param1: context.read<ScheduleFormBloc>(),
               ),
             ),
             BlocProvider(

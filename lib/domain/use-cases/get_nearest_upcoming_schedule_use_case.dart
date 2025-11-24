@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
@@ -30,25 +31,32 @@ class GetNearestUpcomingScheduleUseCase {
         _getScheduleByDateUseCase(now, now.add(const Duration(days: 2)));
     await for (final upcomingSchedule in upcomingScheduleStream) {
       if (upcomingSchedule.isNotEmpty) {
-        final schedule = upcomingSchedule.first;
+        try {
+          final schedule = upcomingSchedule.firstWhere(
+              (s) => s.doneStatus == ScheduleDoneStatus.notEnded,
+              orElse: () => throw Exception('No upcoming schedule found'));
 
-        // First try to load locally stored timed preparation
-        final localTimed =
-            await _timedPreparationRepository.getTimedPreparation(schedule.id);
-        if (localTimed != null) {
-          yield ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-              schedule, localTimed);
+          // First try to load locally stored timed preparation
+          final localTimed = await _timedPreparationRepository
+              .getTimedPreparation(schedule.id);
+          if (localTimed != null) {
+            yield ScheduleWithPreparationEntity
+                .fromScheduleAndPreparationEntity(schedule, localTimed);
+            continue;
+          }
+
+          // Fallback to fetching canonical preparation from source
+          final preparation =
+              await _getPreparationByScheduleIdUseCase(schedule.id);
+          final scheduleWithPreparation =
+              ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+                  schedule,
+                  PreparationWithTimeEntity.fromPreparation(preparation));
+          yield scheduleWithPreparation;
+        } catch (e) {
+          yield null;
           continue;
         }
-
-        // Fallback to fetching canonical preparation from source
-        final preparation =
-            await _getPreparationByScheduleIdUseCase(schedule.id);
-        final scheduleWithPreparation =
-            ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-                schedule,
-                PreparationWithTimeEntity.fromPreparation(preparation));
-        yield scheduleWithPreparation;
       } else {
         yield null;
       }

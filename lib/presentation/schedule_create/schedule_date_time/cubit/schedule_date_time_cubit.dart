@@ -189,6 +189,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         scheduleDate: state.scheduleDate.value!,
         scheduleTime: state.scheduleTime.value!,
         timeLeftUntilNextSchedulePreparation: state.overlapDuration,
+        nextScheduleName: state.nextScheduleName,
       ));
     }
   }

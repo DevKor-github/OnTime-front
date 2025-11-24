@@ -33,11 +33,13 @@ final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
   final DateTime scheduleDate;
   final DateTime scheduleTime;
   final Duration? timeLeftUntilNextSchedulePreparation;
+  final String? nextScheduleName;
 
   const ScheduleFormScheduleDateTimeChanged({
     required this.scheduleDate,
     required this.scheduleTime,
     this.timeLeftUntilNextSchedulePreparation,
+    this.nextScheduleName,
   });
 
   @override
@@ -45,6 +47,7 @@ final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
         scheduleDate,
         scheduleTime,
         timeLeftUntilNextSchedulePreparation ?? const Duration(days: -999999),
+        nextScheduleName ?? '',
       ];
 }
 

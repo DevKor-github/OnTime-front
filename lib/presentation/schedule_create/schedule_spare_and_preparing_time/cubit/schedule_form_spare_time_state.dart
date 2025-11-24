@@ -30,11 +30,13 @@ class ScheduleFormSpareTimeState extends Equatable {
 
     final localizations = AppLocalizations.of(context)!;
     final minutes = overlapDuration!.inMinutes.abs();
+    final scheduleName =
+        context.read<ScheduleFormBloc>().state.nextScheduleName ?? '';
 
     if (isOverlapping) {
-      return localizations.scheduleOverlapError(minutes, '');
+      return localizations.scheduleOverlapError(minutes, scheduleName);
     } else {
-      return localizations.scheduleOverlapWarning(minutes, '');
+      return localizations.scheduleOverlapWarning(minutes, scheduleName);
     }
   }
 

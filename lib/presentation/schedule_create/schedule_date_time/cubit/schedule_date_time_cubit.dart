@@ -39,33 +39,34 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
-  void scheduleDateChanged(DateTime scheduleDate) {
+  Future<void> scheduleDateChanged(DateTime scheduleDate) async {
     final ScheduleDateInputModel scheduleDateInputModel =
         ScheduleDateInputModel.dirty(scheduleDate);
     emit(state.copyWith(scheduleDate: scheduleDateInputModel));
-    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
 
     // Always load nextSchedule when date changes
     if (scheduleDateInputModel.isValid) {
-      _loadNextSchedule(scheduleDate);
+      scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
+      await _loadNextSchedule(scheduleDate);
     }
 
     // Check for schedule overlap if time is already set
     if (scheduleDateInputModel.isValid && state.scheduleTime.isValid) {
-      checkScheduleOverlap();
+      await checkScheduleOverlap();
     }
+    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
-  void scheduleTimeChanged(DateTime scheduleTime) {
+  Future<void> scheduleTimeChanged(DateTime scheduleTime) async {
     final ScheduleTimeInputModel scheduleTimeInputModel =
         ScheduleTimeInputModel.dirty(scheduleTime);
     emit(state.copyWith(scheduleTime: scheduleTimeInputModel));
-    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
 
     // Never load nextSchedule, only check overlap
     if (state.scheduleDate.isValid && scheduleTimeInputModel.isValid) {
-      checkScheduleOverlap();
+      await checkScheduleOverlap();
     }
+    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   Future<void> _loadNextSchedule(DateTime scheduleDate) async {
@@ -133,7 +134,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       // preparationStartTime = scheduleTime - moveTime - preparation.totalDuration - scheduleSpareTime
       final nextPreparationStartTime = nextSchedule.preparationStartTime;
 
-      // Calculate time difference in minutes
+      // Calculate time difference
       final timeDifference =
           nextPreparationStartTime.difference(selectedDateTime);
       final minutesDifference = timeDifference.inMinutes;
@@ -153,21 +154,24 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       debugPrint('=============================');
 
       // Show warning if positive time difference, error if already overlapping (<= 0)
-      // Store minutesDifference (can be positive for warning or negative/zero for error)
+      // Store timeDifference (can be positive for warning or negative/zero for error)
       // and isOverlapping flag (true if <= 0, false if > 0)
       if (minutesDifference > 0) {
         debugPrint('Showing warning with $minutesDifference minutes');
         emit(state.copyWith(
-          overlapMinutes: minutesDifference,
+          overlapDuration: timeDifference,
           isOverlapping: false,
+          nextScheduleName: nextSchedule.scheduleName,
         ));
       } else {
         // Already overlapping - show as error
+        // Store absolute value for display purposes, but keep the sign information in isOverlapping
         debugPrint(
             'Showing error - already overlapping (minutesDifference: $minutesDifference)');
         emit(state.copyWith(
-          overlapMinutes: minutesDifference.abs(),
+          overlapDuration: timeDifference.abs(),
           isOverlapping: true,
+          nextScheduleName: nextSchedule.scheduleName,
         ));
       }
     } catch (e) {
@@ -178,10 +182,13 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   }
 
   void scheduleDateTimeSubmitted() {
-    if (state.scheduleDate.isValid && state.scheduleTime.isValid) {
+    if (state.scheduleDate.isValid &&
+        state.scheduleTime.isValid &&
+        state.isOverlapping == false) {
       scheduleFormBloc.add(ScheduleFormScheduleDateTimeChanged(
         scheduleDate: state.scheduleDate.value!,
         scheduleTime: state.scheduleTime.value!,
+        timeLeftUntilNextSchedulePreparation: state.overlapDuration,
       ));
     }
   }

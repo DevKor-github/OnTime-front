@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
+import 'package:on_time_front/presentation/schedule_create/components/message_bubble.dart';
 
 //TODO: Format DateTime string
 //TODO: Extract Text Field widget
@@ -90,13 +91,12 @@ class ScheduleDateTimeForm extends StatelessWidget {
           if (state.hasOverlapMessage)
             Padding(
               padding: const EdgeInsets.only(top: 8.0, left: 16.0),
-              child: state.isOverlapError
-                  ? _ErrorMessageBubble(
-                      message: state.getOverlapMessage(context)!,
-                    )
-                  : _WarningMessageBubble(
-                      message: state.getOverlapMessage(context)!,
-                    ),
+              child: MessageBubble(
+                message: state.getOverlapMessage(context)!,
+                type: state.isOverlapError
+                    ? MessageBubbleType.error
+                    : MessageBubbleType.warning,
+              ),
             ),
         ],
       );
@@ -111,79 +111,5 @@ String _localizedDateString(BuildContext context, DateTime date) {
   } else {
     return DateFormat('yyyy.mm.dd.', Localizations.localeOf(context).toString())
         .format(date);
-  }
-}
-
-class _WarningMessageBubble extends StatelessWidget {
-  const _WarningMessageBubble({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: colorScheme.primaryContainer,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.info_outline,
-            size: 20,
-            color: colorScheme.onPrimaryContainer,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ErrorMessageBubble extends StatelessWidget {
-  const _ErrorMessageBubble({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: colorScheme.errorContainer,
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 20,
-            color: colorScheme.onErrorContainer,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onErrorContainer,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

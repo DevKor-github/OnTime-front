@@ -72,21 +72,27 @@
     "editSpareTime": "여유시간 수정",
     "editPreparationTime": "준비시간 수정",
     "totalTime": "총 시간: ",
-    "scheduleOverlapWarning": "다음 일정과 겹치지 않으려면 {minutes}분 안에 준비해야해요",
+    "scheduleOverlapWarning": "\"{scheduleName}\"과 겹치지 않으려면 {minutes}분 안에 준비해야해요",
     "@scheduleOverlapWarning": {
         "description": "Warning message when schedule overlaps with next schedule",
         "placeholders": {
             "minutes": {
                 "type": "int"
+            },
+            "scheduleName": {
+                "type": "String"
             }
         }
     },
-    "scheduleOverlapError": "일정이 이미 겹쳤어요! 다음 일정 준비 시작 시간보다 {minutes}분 늦어요",
+    "scheduleOverlapError": "\"{scheduleName}\"과 이미 겹쳤어요! 다음 일정 준비 시작 시간보다 {minutes}분 늦어요",
     "@scheduleOverlapError": {
         "description": "Error message when schedule is already overlapping with next schedule",
         "placeholders": {
             "minutes": {
                 "type": "int"
+            },
+            "scheduleName": {
+                "type": "String"
             }
         }
     }

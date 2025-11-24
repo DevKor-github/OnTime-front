@@ -16,6 +16,7 @@ final class ScheduleFormState extends Equatable {
   final String? scheduleNote;
   final PreparationEntity? preparation;
   final bool isValid;
+  final Duration? timeLeftUntilNextSchedulePreparation;
 
   ScheduleFormState({
     this.status = ScheduleFormStatus.initial,
@@ -29,6 +30,7 @@ final class ScheduleFormState extends Equatable {
     this.scheduleNote,
     this.preparation,
     this.isValid = false,
+    this.timeLeftUntilNextSchedulePreparation,
   }) : id = id ?? Uuid().v7();
 
   ScheduleFormState copyWith({
@@ -43,6 +45,7 @@ final class ScheduleFormState extends Equatable {
     String? scheduleNote,
     PreparationEntity? preparation,
     bool? isValid,
+    Duration? timeLeftUntilNextSchedulePreparation,
   }) {
     return ScheduleFormState(
       status: status ?? this.status,
@@ -56,6 +59,9 @@ final class ScheduleFormState extends Equatable {
       scheduleNote: scheduleNote ?? this.scheduleNote,
       preparation: preparation ?? this.preparation,
       isValid: isValid ?? this.isValid,
+      timeLeftUntilNextSchedulePreparation:
+          timeLeftUntilNextSchedulePreparation ??
+              this.timeLeftUntilNextSchedulePreparation,
     );
   }
 
@@ -92,5 +98,6 @@ final class ScheduleFormState extends Equatable {
         scheduleNote,
         preparation,
         isValid,
+        timeLeftUntilNextSchedulePreparation,
       ];
 }

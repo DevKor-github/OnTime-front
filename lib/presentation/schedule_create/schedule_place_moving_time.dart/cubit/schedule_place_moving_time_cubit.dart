@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/input_models/schedule_moving_time_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/input_models/schedule_place_input_model.dart';
@@ -36,7 +38,44 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
   void moveTimeChanged(Duration moveTime) {
     final ScheduleMovingTimeInputModel moveTimeInputModel =
         ScheduleMovingTimeInputModel.dirty(moveTime);
-    emit(state.copyWith(moveTime: moveTimeInputModel));
+
+    // Check for overlap if timeLeftUntilNextSchedulePreparation exists
+    final formState = scheduleFormBloc.state;
+    final timeLeftUntilNextSchedulePreparation =
+        formState.timeLeftUntilNextSchedulePreparation;
+    final oldMoveTime = formState.moveTime ?? Duration.zero;
+
+    Duration? overlapDuration;
+    bool isOverlapping = false;
+
+    if (timeLeftUntilNextSchedulePreparation != null &&
+        formState.scheduleTime != null) {
+      // Calculate the change in moveTime
+      final moveTimeDifference = moveTime - oldMoveTime;
+
+      // Calculate new time left: if moveTime increases, time left decreases
+      final newTimeLeft =
+          timeLeftUntilNextSchedulePreparation - moveTimeDifference;
+      final minutesDifference = newTimeLeft.inMinutes;
+
+      if (minutesDifference <= 0) {
+        // Already overlapping - show as error
+        overlapDuration = newTimeLeft.abs();
+        isOverlapping = true;
+      } else {
+        // Show warning if there's still time left
+        overlapDuration = newTimeLeft;
+        isOverlapping = false;
+      }
+    }
+
+    emit(state.copyWith(
+      moveTime: moveTimeInputModel,
+      overlapDuration: overlapDuration,
+      isOverlapping: isOverlapping,
+      clearOverlap: overlapDuration == null,
+    ));
+
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 

@@ -127,6 +127,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         event.scheduleTime.hour,
         event.scheduleTime.minute,
       ),
+      timeLeftUntilNextSchedulePreparation:
+          event.timeLeftUntilNextSchedulePreparation,
     ));
   }
 

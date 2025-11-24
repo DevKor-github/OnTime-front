@@ -72,6 +72,24 @@ class ScheduleEntity extends Equatable {
     );
   }
 
+  ScheduleEntity copyWith({
+    ScheduleDoneStatus? doneStatus,
+  }) {
+    return ScheduleEntity(
+      id: id,
+      place: place,
+      scheduleName: scheduleName,
+      scheduleTime: scheduleTime,
+      moveTime: moveTime,
+      isChanged: isChanged,
+      isStarted: isStarted,
+      scheduleSpareTime: scheduleSpareTime,
+      scheduleNote: scheduleNote,
+      latenessTime: latenessTime,
+      doneStatus: doneStatus ?? this.doneStatus,
+    );
+  }
+
   @override
   String toString() {
     return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote, latenessTime: $latenessTime)';

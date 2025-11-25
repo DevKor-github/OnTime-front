@@ -21,9 +21,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     @factoryParam this.scheduleFormBloc,
     this._loadAdjacentSchedulesWithPreparationUseCase,
     this._getNextScheduleWithPreparationUseCase,
-  ) : super(ScheduleDateTimeState()) {
-    initialize();
-  }
+  ) : super(ScheduleDateTimeState());
 
   final ScheduleFormBloc scheduleFormBloc;
   final LoadAdjacentScheduleWithPreparationUseCase

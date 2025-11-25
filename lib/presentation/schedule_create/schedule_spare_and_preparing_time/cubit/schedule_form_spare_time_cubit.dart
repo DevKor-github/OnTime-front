@@ -13,9 +13,7 @@ part 'schedule_form_spare_time_state.dart';
 class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
   ScheduleFormSpareTimeCubit({
     required this.scheduleFormBloc,
-  }) : super(ScheduleFormSpareTimeState()) {
-    initialize();
-  }
+  }) : super(ScheduleFormSpareTimeState());
 
   final ScheduleFormBloc scheduleFormBloc;
 
@@ -65,10 +63,21 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
     final schedulePlaceMovingTimeState =
         ScheduleFormSpareTimeState.fromScheduleFormState(
             scheduleFormBloc.state);
+
+    final formState = scheduleFormBloc.state;
+    final overlapCheck = _checkOverlap(
+      totalPreparationTime: schedulePlaceMovingTimeState.totalPreparationTime,
+      moveTime: formState.moveTime,
+      spareTime: schedulePlaceMovingTimeState.spareTime.value,
+    );
+
     emit(state.copyWith(
       spareTime: schedulePlaceMovingTimeState.spareTime,
       preparation: schedulePlaceMovingTimeState.preparation,
       totalPreparationTime: schedulePlaceMovingTimeState.totalPreparationTime,
+      overlapDuration: overlapCheck.overlapDuration,
+      isOverlapping: overlapCheck.isOverlapping,
+      clearOverlap: overlapCheck.overlapDuration == null,
     ));
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }

@@ -12,9 +12,7 @@ part 'schedule_place_moving_time_state.dart';
 
 class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
   SchedulePlaceMovingTimeCubit({required this.scheduleFormBloc})
-      : super(SchedulePlaceMovingTimeState()) {
-    initialize();
-  }
+      : super(SchedulePlaceMovingTimeState());
 
   final ScheduleFormBloc scheduleFormBloc;
 

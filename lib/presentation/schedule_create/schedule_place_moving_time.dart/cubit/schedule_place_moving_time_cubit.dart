@@ -6,6 +6,7 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/input_models/schedule_moving_time_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/input_models/schedule_place_input_model.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 part 'schedule_place_moving_time_state.dart';
 
@@ -59,9 +60,12 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
         // Already overlapping - show as error
         overlapDuration = newTimeLeft.abs();
         isOverlapping = true;
-      } else {
+      } else if (minutesDifference < scheduleOverlapWarningThresholdMinutes) {
         // Show warning if there's still time left
         overlapDuration = newTimeLeft;
+        isOverlapping = false;
+      } else {
+        overlapDuration = null;
         isOverlapping = false;
       }
     }

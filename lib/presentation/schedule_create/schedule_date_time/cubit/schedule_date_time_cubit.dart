@@ -11,6 +11,7 @@ import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bl
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/input_models/schedule_date_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/input_models/schedule_time_input_model.dart';
 import 'package:on_time_front/domain/entities/adjacent_schedules_with_preparation_entity.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 part 'schedule_date_time_state.dart';
 
@@ -234,7 +235,8 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         } else {
           // No overlap with previous schedule
           // Show warning only if available time is small (e.g., less than 3 hours)
-          final isSmallTime = minutesDifference < 180;
+          final isSmallTime =
+              minutesDifference < scheduleOverlapWarningThresholdMinutes;
 
           if (isSmallTime) {
             debugPrint(

@@ -6,6 +6,7 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/input_models/schedule_spare_time_input_model.dart';
+import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 part 'schedule_form_spare_time_state.dart';
 
@@ -46,10 +47,15 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
         overlapDuration: newTimeLeft.abs(),
         isOverlapping: true,
       );
-    } else {
+    } else if (minutesDifference < scheduleOverlapWarningThresholdMinutes) {
       // Show warning if there's still time left
       return (
         overlapDuration: newTimeLeft,
+        isOverlapping: false,
+      );
+    } else {
+      return (
+        overlapDuration: null,
         isOverlapping: false,
       );
     }

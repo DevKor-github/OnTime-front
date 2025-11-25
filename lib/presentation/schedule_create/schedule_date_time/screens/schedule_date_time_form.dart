@@ -88,14 +88,20 @@ class ScheduleDateTimeForm extends StatelessWidget {
               ),
             ],
           ),
-          if (state.hasOverlapMessage)
+          if (state.hasPreviousOverlapMessage)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+              child: MessageBubble(
+                message: state.getPreviousOverlapMessage(context)!,
+                type: MessageBubbleType.warning,
+              ),
+            ),
+          if (state.isOverlapping)
             Padding(
               padding: const EdgeInsets.only(top: 8.0, left: 16.0),
               child: MessageBubble(
                 message: state.getOverlapMessage(context)!,
-                type: state.isOverlapError
-                    ? MessageBubbleType.error
-                    : MessageBubbleType.warning,
+                type: MessageBubbleType.error,
               ),
             ),
         ],

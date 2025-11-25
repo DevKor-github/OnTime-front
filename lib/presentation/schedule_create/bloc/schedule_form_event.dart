@@ -32,22 +32,22 @@ final class ScheduleFormScheduleNameChanged extends ScheduleFormEvent {
 final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
   final DateTime scheduleDate;
   final DateTime scheduleTime;
-  final Duration? timeLeftUntilNextSchedulePreparation;
-  final String? nextScheduleName;
+  final Duration? maxAvailableTime;
+  final String? previousScheduleName;
 
   const ScheduleFormScheduleDateTimeChanged({
     required this.scheduleDate,
     required this.scheduleTime,
-    this.timeLeftUntilNextSchedulePreparation,
-    this.nextScheduleName,
+    this.maxAvailableTime,
+    this.previousScheduleName,
   });
 
   @override
   List<Object> get props => [
         scheduleDate,
         scheduleTime,
-        timeLeftUntilNextSchedulePreparation ?? const Duration(days: -999999),
-        nextScheduleName ?? '',
+        maxAvailableTime ?? const Duration(days: -999999),
+        previousScheduleName ?? '',
       ];
 }
 

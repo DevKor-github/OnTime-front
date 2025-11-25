@@ -4,12 +4,12 @@ import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_u
 import 'package:on_time_front/domain/use-cases/load_schedules_by_date_use_case.dart';
 
 @Injectable()
-class LoadNextScheduleWithPreparationUseCase {
+class LoadAdjacentScheduleWithPreparationUseCase {
   final LoadSchedulesByDateUseCase _loadSchedulesByDateUseCase;
   final GetSchedulesByDateUseCase _getSchedulesByDateUseCase;
   final LoadPreparationByScheduleIdUseCase _loadPreparationByScheduleIdUseCase;
 
-  LoadNextScheduleWithPreparationUseCase(
+  LoadAdjacentScheduleWithPreparationUseCase(
     this._loadSchedulesByDateUseCase,
     this._getSchedulesByDateUseCase,
     this._loadPreparationByScheduleIdUseCase,

@@ -83,11 +83,11 @@ class _SchedulePlaceMovingTimeFormState
             Padding(
               padding: const EdgeInsets.only(top: 8.0, left: 16.0),
               child: MessageBubble(
-                message: state.getOverlapMessage(context)!,
+                      message: state.getOverlapMessage(context)!,
                 type: state.isOverlapError
                     ? MessageBubbleType.error
                     : MessageBubbleType.warning,
-              ),
+                    ),
             ),
         ],
       );

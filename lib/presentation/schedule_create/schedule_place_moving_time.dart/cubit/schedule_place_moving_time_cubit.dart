@@ -39,23 +39,20 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
     final ScheduleMovingTimeInputModel moveTimeInputModel =
         ScheduleMovingTimeInputModel.dirty(moveTime);
 
-    // Check for overlap if timeLeftUntilNextSchedulePreparation exists
+    // Check for overlap if maxAvailableTime exists
     final formState = scheduleFormBloc.state;
-    final timeLeftUntilNextSchedulePreparation =
-        formState.timeLeftUntilNextSchedulePreparation;
+    final maxAvailableTime = formState.maxAvailableTime;
     final oldMoveTime = formState.moveTime ?? Duration.zero;
 
     Duration? overlapDuration;
     bool isOverlapping = false;
 
-    if (timeLeftUntilNextSchedulePreparation != null &&
-        formState.scheduleTime != null) {
+    if (maxAvailableTime != null && formState.scheduleTime != null) {
       // Calculate the change in moveTime
       final moveTimeDifference = moveTime - oldMoveTime;
 
       // Calculate new time left: if moveTime increases, time left decreases
-      final newTimeLeft =
-          timeLeftUntilNextSchedulePreparation - moveTimeDifference;
+      final newTimeLeft = maxAvailableTime - moveTimeDifference;
       final minutesDifference = newTimeLeft.inMinutes;
 
       if (minutesDifference <= 0) {

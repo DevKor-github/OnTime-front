@@ -26,10 +26,9 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
     required Duration? spareTime,
   }) {
     final formState = scheduleFormBloc.state;
-    final timeLeftUntilNextSchedulePreparation =
-        formState.timeLeftUntilNextSchedulePreparation;
+    final maxAvailableTime = formState.maxAvailableTime;
 
-    if (timeLeftUntilNextSchedulePreparation == null ||
+    if (maxAvailableTime == null ||
         formState.scheduleTime == null ||
         moveTime == null ||
         spareTime == null) {
@@ -37,10 +36,8 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
     }
 
     // Calculate new time left: if preparationTime increases, time left decreases
-    final newTimeLeft = timeLeftUntilNextSchedulePreparation -
-        totalPreparationTime -
-        moveTime -
-        spareTime;
+    final newTimeLeft =
+        maxAvailableTime - totalPreparationTime - moveTime - spareTime;
     final minutesDifference = newTimeLeft.inMinutes;
 
     if (minutesDifference <= 0) {

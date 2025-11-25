@@ -331,9 +331,21 @@
             }
         }
     },
-    "scheduleOverlapError": "Schedule is already overlapping with \"{scheduleName}\"! You are {minutes} minutes late compared to the next schedule's preparation start time",
+    "scheduleOverlapError": "Overlapped with next schedule {scheduleName}! Next schedule preparation starts at {startTime}",
     "@scheduleOverlapError": {
         "description": "Error message when schedule is already overlapping with next schedule",
+        "placeholders": {
+            "scheduleName": {
+                "type": "String"
+            },
+            "startTime": {
+                "type": "String"
+            }
+        }
+    },
+    "previousScheduleOverlapError": "Overlapped with \"{scheduleName}\"! You need to prepare {minutes} minutes earlier.",
+    "@previousScheduleOverlapError": {
+        "description": "Error message when schedule is already overlapping with previous schedule",
         "placeholders": {
             "minutes": {
                 "type": "int"
@@ -384,4 +396,4 @@
         "description": "Button to send feedback and delete"
     }
     
-} 
+}

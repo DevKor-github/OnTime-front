@@ -250,8 +250,13 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String scheduleOverlapError(int minutes, String scheduleName) {
-    return '\"$scheduleName\"과 이미 겹쳤어요! 다음 일정 준비 시작 시간보다 $minutes분 늦어요';
+  String scheduleOverlapError(String scheduleName, String startTime) {
+    return '다음 일정 $scheduleName과 겹쳤어요! 다음 일정 준비 시작시간은 $startTime이에요';
+  }
+
+  @override
+  String previousScheduleOverlapError(int minutes, String scheduleName) {
+    return '\"$scheduleName\"과 겹쳤어요! $minutes분 더 빨리 준비해야 해요';
   }
 
   @override

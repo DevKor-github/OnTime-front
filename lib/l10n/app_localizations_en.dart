@@ -269,8 +269,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String scheduleOverlapError(int minutes, String scheduleName) {
-    return 'Schedule is already overlapping with \"$scheduleName\"! You are $minutes minutes late compared to the next schedule\'s preparation start time';
+  String scheduleOverlapError(String scheduleName, String startTime) {
+    return 'Overlapped with next schedule $scheduleName! Next schedule preparation starts at $startTime';
+  }
+
+  @override
+  String previousScheduleOverlapError(int minutes, String scheduleName) {
+    return 'Overlapped with \"$scheduleName\"! You need to prepare $minutes minutes earlier.';
   }
 
   @override

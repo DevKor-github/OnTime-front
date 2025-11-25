@@ -86,9 +86,21 @@
             }
         }
     },
-    "scheduleOverlapError": "\"{scheduleName}\"과 이미 겹쳤어요! 다음 일정 준비 시작 시간보다 {minutes}분 늦어요",
+    "scheduleOverlapError": "다음 일정 {scheduleName}과 겹쳤어요! 다음 일정 준비 시작시간은 {startTime}이에요",
     "@scheduleOverlapError": {
         "description": "Error message when schedule is already overlapping with next schedule",
+        "placeholders": {
+            "scheduleName": {
+                "type": "String"
+            },
+            "startTime": {
+                "type": "String"
+            }
+        }
+    },
+    "previousScheduleOverlapError": "\"{scheduleName}\"과 겹쳤어요! {minutes}분 더 빨리 준비해야 해요",
+    "@previousScheduleOverlapError": {
+        "description": "Error message when schedule is already overlapping with previous schedule",
         "placeholders": {
             "minutes": {
                 "type": "int"

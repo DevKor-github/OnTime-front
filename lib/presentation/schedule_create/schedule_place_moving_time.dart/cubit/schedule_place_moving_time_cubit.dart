@@ -20,9 +20,37 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
     final schedulePlaceMovingTimeState =
         SchedulePlaceMovingTimeState.fromScheduleFormState(
             scheduleFormBloc.state);
+
+    // Check for overlap using current form state values
+    final formState = scheduleFormBloc.state;
+    final maxAvailableTime = formState.maxAvailableTime;
+    final moveTime = schedulePlaceMovingTimeState.moveTime.value;
+
+    Duration? overlapDuration;
+    bool isOverlapping = false;
+
+    if (maxAvailableTime != null && formState.scheduleTime != null) {
+      // Calculate new time left
+      final newTimeLeft = maxAvailableTime - moveTime;
+      final minutesDifference = newTimeLeft.inMinutes;
+
+      if (minutesDifference <= 0) {
+        // Already overlapping - show as error
+        overlapDuration = newTimeLeft.abs();
+        isOverlapping = true;
+      } else if (minutesDifference < scheduleOverlapWarningThresholdMinutes) {
+        // Show warning if there's still time left
+        overlapDuration = newTimeLeft;
+        isOverlapping = false;
+      }
+    }
+
     emit(state.copyWith(
       placeName: schedulePlaceMovingTimeState.placeName,
       moveTime: schedulePlaceMovingTimeState.moveTime,
+      overlapDuration: overlapDuration,
+      isOverlapping: isOverlapping,
+      clearOverlap: overlapDuration == null,
     ));
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }

@@ -36,6 +36,15 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       scheduleDate: scheduleDateTimeState.scheduleDate,
       scheduleTime: scheduleDateTimeState.scheduleTime,
     ));
+
+    // Check for schedule overlap if both date and time are valid
+    if (scheduleDateTimeState.scheduleDate.isValid &&
+        scheduleDateTimeState.scheduleTime.isValid) {
+      // Load adjacent schedules first, then check overlap
+      _loadAdjacentSchedules(scheduleDateTimeState.scheduleDate.value!)
+          .then((_) => checkScheduleOverlap());
+    }
+
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 

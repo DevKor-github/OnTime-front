@@ -264,6 +264,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalTime => 'Total time: ';
 
   @override
+  String scheduleOverlapWarning(int minutes, String scheduleName) {
+    return 'To avoid overlapping with \"$scheduleName\", you need to prepare within $minutes minutes';
+  }
+
+  @override
+  String scheduleOverlapError(String scheduleName, String startTime) {
+    return 'Overlapped with next schedule $scheduleName! Next schedule preparation starts at $startTime';
+  }
+
+  @override
+  String previousScheduleOverlapError(int minutes, String scheduleName) {
+    return 'Overlapped with \"$scheduleName\"! You need to prepare $minutes minutes earlier.';
+  }
+
+  @override
   String get logOutConfirm => 'Do you want to log out?';
 
   @override

@@ -74,8 +74,43 @@
     "editSpareTime": "여유시간 수정",
     "editPreparationTime": "준비시간 수정",
     "totalTime": "총 시간: ",
-    "logOutConfirm": "로그아웃 하시겠어요?"
-,
+    "scheduleOverlapWarning": "\"{scheduleName}\"과 겹치지 않으려면 {minutes}분 안에 준비해야해요",
+    "@scheduleOverlapWarning": {
+        "description": "Warning message when schedule overlaps with next schedule",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "scheduleName": {
+                "type": "String"
+            }
+        }
+    },
+    "scheduleOverlapError": "다음 일정 {scheduleName}과 겹쳤어요! 다음 일정 준비 시작시간은 {startTime}이에요",
+    "@scheduleOverlapError": {
+        "description": "Error message when schedule is already overlapping with next schedule",
+        "placeholders": {
+            "scheduleName": {
+                "type": "String"
+            },
+            "startTime": {
+                "type": "String"
+            }
+        }
+    },
+    "previousScheduleOverlapError": "\"{scheduleName}\"과 겹쳤어요! {minutes}분 더 빨리 준비해야 해요",
+    "@previousScheduleOverlapError": {
+        "description": "Error message when schedule is already overlapping with previous schedule",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "scheduleName": {
+                "type": "String"
+            }
+        }
+    },
+    "logOutConfirm": "로그아웃 하시겠어요?",
     "deleteAccountConfirmTitle": "정말 탈퇴하시나요?",
     "deleteAccountConfirmDescription": "계속 온타임과 준비를 함께하면\n지각을 60% 줄일 수 있어요.",
     "keepUsing": "계속 사용할게요",

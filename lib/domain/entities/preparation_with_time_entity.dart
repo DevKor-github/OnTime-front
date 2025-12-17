@@ -171,7 +171,6 @@ class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
     }
 
     final updatedCurrentStep = current.copyWith(
-      elapsedTime: current.preparationTime,
       isDone: true,
     );
     return copyWith(

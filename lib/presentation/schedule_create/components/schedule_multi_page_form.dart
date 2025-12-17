@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
@@ -61,8 +62,8 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               ),
             ),
             BlocProvider(
-              create: (context) => ScheduleDateTimeCubit(
-                scheduleFormBloc: context.read<ScheduleFormBloc>(),
+              create: (context) => getIt.get<ScheduleDateTimeCubit>(
+                param1: context.read<ScheduleFormBloc>(),
               ),
             ),
             BlocProvider(
@@ -123,14 +124,26 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     switch (_pageCubitTypes[_tabController.index]) {
       case const (ScheduleNameCubit):
         context.read<ScheduleNameCubit>().scheduleNameSubmitted();
+        // Initialize next cubit after submitting current page
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<ScheduleDateTimeCubit>().initialize();
+        });
         break;
       case const (ScheduleDateTimeCubit):
         context.read<ScheduleDateTimeCubit>().scheduleDateTimeSubmitted();
+        // Initialize next cubit after submitting current page
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<SchedulePlaceMovingTimeCubit>().initialize();
+        });
         break;
       case const (SchedulePlaceMovingTimeCubit):
         context
             .read<SchedulePlaceMovingTimeCubit>()
             .schedulePlaceMovingTimeSubmitted();
+        // Initialize next cubit after submitting current page
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<ScheduleFormSpareTimeCubit>().initialize();
+        });
         break;
       case const (ScheduleFormSpareTimeCubit):
         context.read<ScheduleFormSpareTimeCubit>().scheduleSpareTimeSubmitted();
@@ -138,7 +151,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     }
     if (_tabController.index < _tabController.length - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
-      _revalidateCurrentStep(context);
+      _reinitializeCurrentStep(context);
     } else {
       widget.onSaved?.call();
       Navigator.of(context).pop(); // Close the form
@@ -166,7 +179,6 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   }
 
   void _updateCurrentPageIndex(int index) {
-    final previousIndex = _tabController.index;
     _tabController.index = index;
     _pageViewController.animateToPage(
       index,
@@ -175,31 +187,19 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
     );
   }
 
-  void _revalidateCurrentStep(BuildContext context) {
+  void _reinitializeCurrentStep(BuildContext context) {
     switch (_pageCubitTypes[_tabController.index]) {
       case const (ScheduleNameCubit):
-        final currentState = context.read<ScheduleNameCubit>().state;
-        context
-            .read<ScheduleFormBloc>()
-            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        context.read<ScheduleNameCubit>().initialize();
         break;
       case const (ScheduleDateTimeCubit):
-        final currentState = context.read<ScheduleDateTimeCubit>().state;
-        context
-            .read<ScheduleFormBloc>()
-            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        context.read<ScheduleDateTimeCubit>().initialize();
         break;
       case const (SchedulePlaceMovingTimeCubit):
-        final currentState = context.read<SchedulePlaceMovingTimeCubit>().state;
-        context
-            .read<ScheduleFormBloc>()
-            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        context.read<SchedulePlaceMovingTimeCubit>().initialize();
         break;
       case const (ScheduleFormSpareTimeCubit):
-        final currentState = context.read<ScheduleFormSpareTimeCubit>().state;
-        context
-            .read<ScheduleFormBloc>()
-            .add(ScheduleFormValidated(isValid: currentState.isValid));
+        context.read<ScheduleFormSpareTimeCubit>().initialize();
         break;
     }
   }

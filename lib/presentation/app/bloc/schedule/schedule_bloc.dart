@@ -8,6 +8,7 @@ import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/finish_schedule_use_case.dart';
 
 part 'schedule_event.dart';
 part 'schedule_state.dart';
@@ -15,18 +16,20 @@ part 'schedule_state.dart';
 @Singleton()
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   ScheduleBloc(this._getNearestUpcomingScheduleUseCase, this._navigationService,
-      this._saveTimedPreparationUseCase)
+      this._saveTimedPreparationUseCase, this._finishScheduleUseCase)
       : super(const ScheduleState.initial()) {
     on<ScheduleSubscriptionRequested>(_onSubscriptionRequested);
     on<ScheduleUpcomingReceived>(_onUpcomingReceived);
     on<ScheduleStarted>(_onScheduleStarted);
     on<ScheduleTick>(_onTick);
     on<ScheduleStepSkipped>(_onStepSkipped);
+    on<ScheduleFinished>(_onFinished);
   }
 
   final GetNearestUpcomingScheduleUseCase _getNearestUpcomingScheduleUseCase;
   final NavigationService _navigationService;
   final SaveTimedPreparationUseCase _saveTimedPreparationUseCase;
+  final FinishScheduleUseCase _finishScheduleUseCase;
   StreamSubscription<ScheduleWithPreparationEntity?>?
       _upcomingScheduleSubscription;
   Timer? _scheduleStartTimer;
@@ -103,6 +106,21 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
             ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
                 state.schedule!, updated)));
     await _saveTimedPreparationUseCase(state.schedule!.id, updated);
+  }
+
+  Future<void> _onFinished(
+      ScheduleFinished event, Emitter<ScheduleState> emit) async {
+    if (state.schedule == null) return;
+    final scheduleId = state.schedule!.id;
+    try {
+      await _finishScheduleUseCase(scheduleId, event.latenessTime);
+      // After finishing, clear timers and set state to notExists
+      _preparationTimer?.cancel();
+      _scheduleStartTimer?.cancel();
+      emit(const ScheduleState.notExists());
+    } catch (_) {
+      debugPrint('error finishing schedule: $_');
+    }
   }
 
   void _startScheduleTimer(ScheduleWithPreparationEntity schedule) {

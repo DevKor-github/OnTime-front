@@ -319,6 +319,42 @@
     "@totalTime": {
         "description": "Label for total preparation time"
     },
+    "scheduleOverlapWarning": "To avoid overlapping with \"{scheduleName}\", you need to prepare within {minutes} minutes",
+    "@scheduleOverlapWarning": {
+        "description": "Warning message when schedule overlaps with next schedule",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "scheduleName": {
+                "type": "String"
+            }
+        }
+    },
+    "scheduleOverlapError": "Overlapped with next schedule {scheduleName}! Next schedule preparation starts at {startTime}",
+    "@scheduleOverlapError": {
+        "description": "Error message when schedule is already overlapping with next schedule",
+        "placeholders": {
+            "scheduleName": {
+                "type": "String"
+            },
+            "startTime": {
+                "type": "String"
+            }
+        }
+    },
+    "previousScheduleOverlapError": "Overlapped with \"{scheduleName}\"! You need to prepare {minutes} minutes earlier.",
+    "@previousScheduleOverlapError": {
+        "description": "Error message when schedule is already overlapping with previous schedule",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            },
+            "scheduleName": {
+                "type": "String"
+            }
+        }
+    },
     "logOutConfirm": "Do you want to log out?",
     "@logOutConfirm": {
         "description": "Confirmation text shown in the logout modal"
@@ -360,4 +396,4 @@
         "description": "Button to send feedback and delete"
     }
     
-} 
+}

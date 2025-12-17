@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
+import 'package:on_time_front/presentation/schedule_create/components/message_bubble.dart';
 
 class SchedulePlaceMovingTimeForm extends StatefulWidget {
   const SchedulePlaceMovingTimeForm({super.key});
@@ -35,6 +36,7 @@ class _SchedulePlaceMovingTimeFormState
     return BlocBuilder<SchedulePlaceMovingTimeCubit,
         SchedulePlaceMovingTimeState>(builder: (context, state) {
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextFormField(
             decoration: InputDecoration(
@@ -76,7 +78,17 @@ class _SchedulePlaceMovingTimeFormState
                 ),
               ),
             ],
-          )
+          ),
+          if (state.hasOverlapMessage)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+              child: MessageBubble(
+                      message: state.getOverlapMessage(context)!,
+                type: state.isOverlapError
+                    ? MessageBubbleType.error
+                    : MessageBubbleType.warning,
+                    ),
+            ),
         ],
       );
     });

@@ -1,7 +1,9 @@
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 
 abstract interface class PreparationRepository {
-  Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
+  Stream<Map<String, PreparationEntity>> get preparationStream;
+
+  Future<void> getPreparationByScheduleId(String scheduleId);
 
   Future<PreparationEntity> getDefualtPreparation();
 

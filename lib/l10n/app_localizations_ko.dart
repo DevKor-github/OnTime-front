@@ -245,6 +245,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get totalTime => '총 시간: ';
 
   @override
+  String scheduleOverlapWarning(int minutes, String scheduleName) {
+    return '\"$scheduleName\"과 겹치지 않으려면 $minutes분 안에 준비해야해요';
+  }
+
+  @override
+  String scheduleOverlapError(String scheduleName, String startTime) {
+    return '다음 일정 $scheduleName과 겹쳤어요! 다음 일정 준비 시작시간은 $startTime이에요';
+  }
+
+  @override
+  String previousScheduleOverlapError(int minutes, String scheduleName) {
+    return '\"$scheduleName\"과 겹쳤어요! $minutes분 더 빨리 준비해야 해요';
+  }
+
+  @override
   String get logOutConfirm => '로그아웃 하시겠어요?';
 
   @override

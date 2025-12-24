@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/components/create_icon_button.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list_dissmissible.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 
 class PreparationFormCreateList extends StatelessWidget {
@@ -23,7 +23,7 @@ class PreparationFormCreateList extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
-          PreparationFormReorderableListDismissible(
+          PreparationFormReorderableList(
             preparationStepList: preparationNameState.preparationStepList,
             onNameChanged: (index, value) {
               onNameChanged(index: index, value: value);

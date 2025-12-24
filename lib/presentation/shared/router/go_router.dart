@@ -113,7 +113,8 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
       GoRoute(
           path: '/preparationEdit',
           builder: (context, state) => PreparationEditForm(
-              preparationEntity: state.extra as PreparationEntity)),
+              preparationEntity: (state.extra as PreparationEntity?) ??
+                  const PreparationEntity(preparationStepList: []))),
       GoRoute(
         path: '/scheduleStart',
         name: 'scheduleStart',

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_edit_draft_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
@@ -46,15 +48,25 @@ class _ScheduleSpareAndPreparingTimeFormState
                     controller: TextEditingController(
                         text: formatDuration(
                             context, state.totalPreparationTime)),
-                    onTap: () async {
-                      final PreparationEntity? updatedPreparation =
-                          await context.push('/preparationEdit',
-                              extra: state.preparation);
-                      if (updatedPreparation != null) {
-                        context
-                            .read<ScheduleFormSpareTimeCubit>()
-                            .preparationChanged(updatedPreparation);
-                      }
+                    onTap: () {
+                      final draftCubit = getIt.get<PreparationEditDraftCubit>();
+                      final scheduleSpareTimeCubit =
+                          context.read<ScheduleFormSpareTimeCubit>();
+                      final before = state.preparation ??
+                          const PreparationEntity(preparationStepList: []);
+
+                      draftCubit.setDraft(before);
+                      context.push('/preparationEdit').then((_) {
+                        if (!mounted) return;
+
+                        final after = draftCubit.state;
+                        if (after != null && after != before) {
+                          scheduleSpareTimeCubit.preparationChanged(after);
+                        }
+
+                        // Avoid stale drafts leaking into the next edit session.
+                        draftCubit.clear();
+                      });
                     },
                   ),
                   onSaved: (value) {},

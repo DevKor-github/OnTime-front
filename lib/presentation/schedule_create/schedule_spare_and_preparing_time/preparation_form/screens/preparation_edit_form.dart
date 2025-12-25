@@ -4,13 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_edit_draft_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_create_list.dart';
 
 class PreparationEditForm extends StatefulWidget {
-  const PreparationEditForm({super.key, required this.preparationEntity});
-
-  final PreparationEntity preparationEntity;
+  const PreparationEditForm({super.key});
 
   @override
   State<PreparationEditForm> createState() => _PreparationEditFormState();
@@ -24,12 +23,14 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
 
   @override
   Widget build(BuildContext context) {
+    final draft = getIt.get<PreparationEditDraftCubit>().state ??
+        const PreparationEntity(preparationStepList: []);
+
     return Scaffold(
       body: SafeArea(
         child: BlocProvider<PreparationFormBloc>(
           create: (context) => getIt.get<PreparationFormBloc>()
-            ..add(PreparationFormEditRequested(
-                preparationEntity: widget.preparationEntity)),
+            ..add(PreparationFormEditRequested(preparationEntity: draft)),
           child: BlocBuilder<PreparationFormBloc, PreparationFormState>(
             builder: (context, state) {
               return Column(
@@ -37,7 +38,10 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                   TopBar(
                     onNextPageButtonClicked: state.isValid
                         ? () {
-                            context.pop(state.toPreparationEntity());
+                            getIt
+                                .get<PreparationEditDraftCubit>()
+                                .setDraft(state.toPreparationEntity());
+                            context.pop();
                           }
                         : null,
                     onPreviousPageButtonClicked: context.pop,

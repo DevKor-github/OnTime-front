@@ -5,8 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
-import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
@@ -112,9 +110,7 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
               scheduleId: state.pathParameters['scheduleId']!)),
       GoRoute(
           path: '/preparationEdit',
-          builder: (context, state) => PreparationEditForm(
-              preparationEntity: (state.extra as PreparationEntity?) ??
-                  const PreparationEntity(preparationStepList: []))),
+          builder: (context, state) => const PreparationEditForm()),
       GoRoute(
         path: '/scheduleStart',
         name: 'scheduleStart',

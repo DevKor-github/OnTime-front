@@ -1,4 +1,7 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 @Injectable()
@@ -7,7 +10,7 @@ class LoadUserUseCase {
 
   LoadUserUseCase(this._userRepository);
 
-  Future<void> call() async {
-    await _userRepository.getUser();
+  Future<Result<Unit, Failure>> call() async {
+    return _userRepository.getUser();
   }
 }

@@ -1,4 +1,7 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 @Injectable()
@@ -7,7 +10,7 @@ class UpdateSpareTimeUseCase {
 
   UpdateSpareTimeUseCase(this._preparationRepository);
 
-  Future<void> call(Duration newSpareTime) async {
-    await _preparationRepository.updateSpareTime(newSpareTime);
+  Future<Result<Unit, Failure>> call(Duration newSpareTime) async {
+    return _preparationRepository.updateSpareTime(newSpareTime);
   }
 }

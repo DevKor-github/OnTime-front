@@ -1,4 +1,6 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 
@@ -8,7 +10,7 @@ class GetScheduleByIdUseCase {
 
   GetScheduleByIdUseCase(this._scheduleRepository);
 
-  Future<ScheduleEntity> call(String id) {
+  Future<Result<ScheduleEntity, Failure>> call(String id) {
     return _scheduleRepository.getScheduleById(id);
   }
 }

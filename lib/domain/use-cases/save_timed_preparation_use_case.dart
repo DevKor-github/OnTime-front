@@ -1,4 +1,7 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 
@@ -8,7 +11,8 @@ class SaveTimedPreparationUseCase {
 
   SaveTimedPreparationUseCase(this._timedPreparationRepository);
 
-  Future<void> call(String scheduleId, PreparationWithTimeEntity preparation) {
+  Future<Result<Unit, Failure>> call(
+      String scheduleId, PreparationWithTimeEntity preparation) {
     return _timedPreparationRepository.saveTimedPreparation(
         scheduleId, preparation);
   }

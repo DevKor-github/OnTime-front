@@ -63,12 +63,33 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       status: ScheduleFormStatus.loading,
     ));
 
-    await _loadPreparationByScheduleIdUseCase(event.scheduleId);
-    final PreparationEntity preparationEntity =
-        await _getPreparationByScheduleIdUseCase(event.scheduleId);
+    final loadPrepResult =
+        await _loadPreparationByScheduleIdUseCase(event.scheduleId);
+    if (loadPrepResult.isFailure) {
+      final failure = loadPrepResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: ScheduleFormStatus.error));
+      return;
+    }
 
-    final ScheduleEntity scheduleEntity =
-        await _getScheduleByIdUseCase(event.scheduleId);
+    final prepResult =
+        await _getPreparationByScheduleIdUseCase(event.scheduleId);
+    if (prepResult.isFailure) {
+      final failure = prepResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: ScheduleFormStatus.error));
+      return;
+    }
+    final PreparationEntity preparationEntity = prepResult.successOrNull!;
+
+    final scheduleResult = await _getScheduleByIdUseCase(event.scheduleId);
+    if (scheduleResult.isFailure) {
+      final failure = scheduleResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: ScheduleFormStatus.error));
+      return;
+    }
+    final ScheduleEntity scheduleEntity = scheduleResult.successOrNull!;
 
     emit(state.copyWith(
       status: ScheduleFormStatus.success,
@@ -94,8 +115,15 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       status: ScheduleFormStatus.loading,
     ));
 
+    final defaultPrepResult = await _getDefaultPreparationUseCase();
+    if (defaultPrepResult.isFailure) {
+      final failure = defaultPrepResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: ScheduleFormStatus.error));
+      return;
+    }
     final PreparationEntity defaultPreparationStepList =
-        await _getDefaultPreparationUseCase();
+        defaultPrepResult.successOrNull!;
 
     // Get spareTime from user model
     final userSpareTime = _authBloc.state.user.mapOrNull(
@@ -184,10 +212,25 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     Emitter<ScheduleFormState> emit,
   ) async {
     final ScheduleEntity scheduleEntity = state.createEntity(state);
-    await _updateScheduleUseCase(scheduleEntity);
+    final updateScheduleResult = await _updateScheduleUseCase(scheduleEntity);
+    if (updateScheduleResult.isFailure) {
+      final failure = updateScheduleResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: ScheduleFormStatus.error));
+      return;
+    }
+
     if (state.isChanged != IsPreparationChanged.unchanged) {
-      _updatePreparationByScheduleIdUseCase(
-          state.preparation!, scheduleEntity.id);
+      final updatePrepResult = await _updatePreparationByScheduleIdUseCase(
+        state.preparation!,
+        scheduleEntity.id,
+      );
+      if (updatePrepResult.isFailure) {
+        final failure = updatePrepResult.failureOrNull!;
+        addError(failure, failure.stackTrace);
+        emit(state.copyWith(status: ScheduleFormStatus.error));
+        return;
+      }
     }
   }
 
@@ -196,10 +239,26 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     Emitter<ScheduleFormState> emit,
   ) async {
     final ScheduleEntity scheduleEntity = state.createEntity(state);
-    await _createScheduleWithPlaceUseCase(scheduleEntity);
+    final createScheduleResult =
+        await _createScheduleWithPlaceUseCase(scheduleEntity);
+    if (createScheduleResult.isFailure) {
+      final failure = createScheduleResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: ScheduleFormStatus.error));
+      return;
+    }
+
     if (state.isChanged != IsPreparationChanged.unchanged) {
-      await _createCustomPreparationUseCase(
-          state.preparation!, scheduleEntity.id);
+      final createPrepResult = await _createCustomPreparationUseCase(
+        state.preparation!,
+        scheduleEntity.id,
+      );
+      if (createPrepResult.isFailure) {
+        final failure = createPrepResult.failureOrNull!;
+        addError(failure, failure.stackTrace);
+        emit(state.copyWith(status: ScheduleFormStatus.error));
+        return;
+      }
     }
   }
 

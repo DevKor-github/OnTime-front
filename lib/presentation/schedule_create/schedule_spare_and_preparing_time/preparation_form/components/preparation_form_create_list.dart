@@ -5,6 +5,8 @@ import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_pr
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
+import 'package:on_time_front/presentation/shared/components/error_message_bubble.dart';
+import 'package:on_time_front/presentation/shared/extensions/failure_extensions.dart';
 
 class PreparationFormCreateList extends StatelessWidget {
   const PreparationFormCreateList(
@@ -23,6 +25,16 @@ class PreparationFormCreateList extends StatelessWidget {
     return SingleChildScrollView(
       child: Column(
         children: [
+          if (preparationNameState.failure != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: ErrorMessageBubble(
+                errorMessage: Text(
+                  preparationNameState.failure!.toUserMessage(context),
+                ),
+              ),
+            ),
+          ],
           PreparationFormReorderableList(
             preparationStepList: preparationNameState.preparationStepList,
             onNameChanged: (index, value) {

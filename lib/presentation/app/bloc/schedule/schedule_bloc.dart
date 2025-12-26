@@ -4,7 +4,9 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/result.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
+import 'package:on_time_front/core/error/failures.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
@@ -30,7 +32,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final NavigationService _navigationService;
   final SaveTimedPreparationUseCase _saveTimedPreparationUseCase;
   final FinishScheduleUseCase _finishScheduleUseCase;
-  StreamSubscription<ScheduleWithPreparationEntity?>?
+  StreamSubscription<Result<ScheduleWithPreparationEntity?, Failure>>?
       _upcomingScheduleSubscription;
   Timer? _scheduleStartTimer;
   String? _currentScheduleId;
@@ -41,10 +43,17 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     await _upcomingScheduleSubscription?.cancel();
 
     _upcomingScheduleSubscription =
-        _getNearestUpcomingScheduleUseCase().listen((upcomingSchedule) {
+        _getNearestUpcomingScheduleUseCase().listen((result) {
       // ✅ Safety check: Only add events if bloc is still active
       if (!isClosed) {
-        add(ScheduleUpcomingReceived(upcomingSchedule));
+        result.fold(
+          onSuccess: (upcomingSchedule) =>
+              add(ScheduleUpcomingReceived(upcomingSchedule)),
+          onFailure: (failure) {
+            addError(failure, failure.stackTrace);
+            add(const ScheduleUpcomingReceived(null));
+          },
+        );
       }
     });
   }
@@ -105,21 +114,27 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         schedule:
             ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
                 state.schedule!, updated)));
-    await _saveTimedPreparationUseCase(state.schedule!.id, updated);
+    final result = await _saveTimedPreparationUseCase(state.schedule!.id, updated);
+    if (result.isFailure) {
+      final failure = result.failureOrNull!;
+      addError(failure, failure.stackTrace);
+    }
   }
 
   Future<void> _onFinished(
       ScheduleFinished event, Emitter<ScheduleState> emit) async {
     if (state.schedule == null) return;
     final scheduleId = state.schedule!.id;
-    try {
-      await _finishScheduleUseCase(scheduleId, event.latenessTime);
+    final result = await _finishScheduleUseCase(scheduleId, event.latenessTime);
+    if (result.isSuccess) {
       // After finishing, clear timers and set state to notExists
       _preparationTimer?.cancel();
       _scheduleStartTimer?.cancel();
       emit(const ScheduleState.notExists());
-    } catch (_) {
-      debugPrint('error finishing schedule: $_');
+    } else {
+      final failure = result.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      debugPrint('error finishing schedule: $failure');
     }
   }
 

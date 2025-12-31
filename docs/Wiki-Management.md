@@ -149,7 +149,7 @@ If you don’t want to keep the temporary branch around:
 ```bash
 # Create the split commit SHA and force push it directly
 SPLIT_SHA=$(git subtree split --prefix=docs HEAD)
-git push wiki "$SPLIT_SHA":master --force
+git push wiki "$SPLIT_SHA":master --force-with-lease
 ```
 
 Afterwards, it’s safe to delete the temp branch:

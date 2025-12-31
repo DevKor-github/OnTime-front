@@ -138,9 +138,7 @@ void main() {
         expect(failure.code, 'PREP_NO_TAIL');
       });
 
-      test(
-          '1-5. Two tails -> failure PREP_MULTIPLE_TAILS',
-          () {
+      test('1-5. Two tails -> failure PREP_MULTIPLE_TAILS', () {
         final a = stepEntity(
           id: 'A',
           name: 'A',

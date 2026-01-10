@@ -31,6 +31,7 @@ class Endpoint {
   static get createSchedule => _schedules;
   static updateSchedule(String scheduleId) => '$_schedules/$scheduleId';
   static deleteScheduleById(String scheduleId) => '$_schedules/$scheduleId';
+  static finishSchedule(String scheduleId) => '$_schedules/$scheduleId/finish';
 
   // preparation
   static const _createDefaultPreparation =

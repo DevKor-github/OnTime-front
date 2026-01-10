@@ -51,3 +51,12 @@ final class ScheduleTick extends ScheduleEvent {
 final class ScheduleStepSkipped extends ScheduleEvent {
   const ScheduleStepSkipped();
 }
+
+final class ScheduleFinished extends ScheduleEvent {
+  final int latenessTime;
+
+  const ScheduleFinished(this.latenessTime);
+
+  @override
+  List<Object?> get props => [latenessTime];
+}

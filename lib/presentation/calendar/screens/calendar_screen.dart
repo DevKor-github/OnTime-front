@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -12,14 +11,14 @@ import 'package:on_time_front/presentation/shared/components/calendar/centered_c
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class CalendarScreen extends ConsumerStatefulWidget {
+class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
+  State<CalendarScreen> createState() => _CalendarScreenState();
 }
 
-class _CalendarScreenState extends ConsumerState<CalendarScreen> {
+class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _selectedDate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 

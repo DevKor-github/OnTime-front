@@ -8,9 +8,11 @@ import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_cas
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
+import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
+import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 part 'schedule_form_event.dart';
@@ -19,6 +21,7 @@ part 'schedule_form_state.dart';
 @Injectable()
 class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   ScheduleFormBloc(
+    this._loadPreparationByScheduleIdUseCase,
     this._getPreparationByScheduleIdUseCase,
     this._getDefaultPreparationUseCase,
     this._getScheduleByIdUseCase,
@@ -26,6 +29,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     this._createCustomPreparationUseCase,
     this._updateScheduleUseCase,
     this._updatePreparationByScheduleIdUseCase,
+    @factoryParam this._authBloc,
   ) : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
@@ -40,6 +44,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormValidated>(_onValidated);
   }
 
+  final LoadPreparationByScheduleIdUseCase _loadPreparationByScheduleIdUseCase;
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
   final GetDefaultPreparationUseCase _getDefaultPreparationUseCase;
   final GetScheduleByIdUseCase _getScheduleByIdUseCase;
@@ -48,6 +53,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   final UpdateScheduleUseCase _updateScheduleUseCase;
   final UpdatePreparationByScheduleIdUseCase
       _updatePreparationByScheduleIdUseCase;
+  final AuthBloc _authBloc;
 
   Future<void> _onEditRequested(
     ScheduleFormEditRequested event,
@@ -57,6 +63,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       status: ScheduleFormStatus.loading,
     ));
 
+    await _loadPreparationByScheduleIdUseCase(event.scheduleId);
     final PreparationEntity preparationEntity =
         await _getPreparationByScheduleIdUseCase(event.scheduleId);
 
@@ -90,6 +97,11 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     final PreparationEntity defaultPreparationStepList =
         await _getDefaultPreparationUseCase();
 
+    // Get spareTime from user model
+    final userSpareTime = _authBloc.state.user.mapOrNull(
+      (user) => user.spareTime,
+    );
+
     emit(state.copyWith(
       status: ScheduleFormStatus.success,
       id: Uuid().v7(),
@@ -98,7 +110,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       scheduleTime: null,
       moveTime: null,
       isChanged: null,
-      scheduleSpareTime: null,
+      scheduleSpareTime: userSpareTime,
       scheduleNote: null,
       preparation: defaultPreparationStepList,
     ));
@@ -123,6 +135,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         event.scheduleTime.hour,
         event.scheduleTime.minute,
       ),
+      maxAvailableTime: event.maxAvailableTime,
+      previousScheduleName: event.previousScheduleName,
     ));
   }
 

@@ -8,16 +8,26 @@ import 'package:on_time_front/data/models/create_defualt_preparation_request_mod
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
+import 'package:rxdart/subjects.dart';
 
 @Singleton(as: PreparationRepository)
 class PreparationRepositoryImpl implements PreparationRepository {
   final PreparationRemoteDataSource preparationRemoteDataSource;
   final PreparationLocalDataSource preparationLocalDataSource;
 
+  late final _preparationStreamController =
+      BehaviorSubject<Map<String, PreparationEntity>>.seeded(
+    const <String, PreparationEntity>{},
+  );
+
   PreparationRepositoryImpl({
     required this.preparationRemoteDataSource,
     required this.preparationLocalDataSource,
   });
+
+  @override
+  Stream<Map<String, PreparationEntity>> get preparationStream =>
+      _preparationStreamController.asBroadcastStream();
 
   @override
   Future<void> createDefaultPreparation(
@@ -41,18 +51,22 @@ class PreparationRepositoryImpl implements PreparationRepository {
     try {
       await preparationRemoteDataSource.createCustomPreparation(
           preparationEntity, scheduleId);
+      _preparationStreamController.add(
+          Map.from(_preparationStreamController.value)
+            ..[scheduleId] = preparationEntity);
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<PreparationEntity> getPreparationByScheduleId(
-      String scheduleId) async {
+  Future<void> getPreparationByScheduleId(String scheduleId) async {
     try {
       final remotePreparation = await preparationRemoteDataSource
           .getPreparationByScheduleId(scheduleId);
-      return remotePreparation;
+      _preparationStreamController.add(
+          Map.from(_preparationStreamController.value)
+            ..[scheduleId] = remotePreparation);
     } catch (e) {
       rethrow;
     }
@@ -87,6 +101,9 @@ class PreparationRepositoryImpl implements PreparationRepository {
     try {
       await preparationRemoteDataSource.updatePreparationByScheduleId(
           preparationEntity, scheduleId);
+      _preparationStreamController.add(
+          Map.from(_preparationStreamController.value)
+            ..[scheduleId] = preparationEntity);
     } catch (e) {
       rethrow;
     }

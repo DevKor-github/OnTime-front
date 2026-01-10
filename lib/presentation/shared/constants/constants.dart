@@ -1,4 +1,5 @@
 const double appBarHeight = 56.0;
+const int scheduleOverlapWarningThresholdMinutes = 180;
 
 enum PreparationStateEnum {
   yet, // 준비 전

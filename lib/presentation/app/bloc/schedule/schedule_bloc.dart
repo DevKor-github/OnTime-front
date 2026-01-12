@@ -193,13 +193,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       return;
     }
 
-    final lastStep = newSchedule.preparation.preparationStepList.isNotEmpty
-        ? newSchedule.preparation.preparationStepList.last
-        : null;
-    if (lastStep != null && newCurrentStep.id == lastStep.id) {
-      return;
-    }
-
     final firstStep = newSchedule.preparation.preparationStepList.isNotEmpty
         ? newSchedule.preparation.preparationStepList.first
         : null;

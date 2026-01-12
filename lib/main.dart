@@ -15,15 +15,9 @@ void main() async {
   await initializeDateFormatting();
   configureDependencies();
   debugPrint(EnvironmentVariable.restApiUrl);
-  if (kIsWeb) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } else {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   debugPrint('[FCM Main] Firebase 초기화 완료');
 
   final permission =

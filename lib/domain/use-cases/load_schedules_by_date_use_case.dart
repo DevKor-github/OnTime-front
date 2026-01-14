@@ -1,4 +1,7 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 
 @Injectable()
@@ -13,7 +16,11 @@ class LoadSchedulesByDateUseCase {
   ///
   /// [startDate] - Start date of the range (inclusive)
   /// [endDate] - End date of the range (exclusive), or null for all schedules after startDate
-  Future<void> call(DateTime startDate, DateTime? endDate) async {
-    await _scheduleRepository.getSchedulesByDate(startDate, endDate);
+  Future<Result<Unit, Failure>> call(DateTime startDate, DateTime? endDate) async {
+    final result = await _scheduleRepository.getSchedulesByDate(startDate, endDate);
+    return result.fold(
+      onSuccess: (_) => Success(unit),
+      onFailure: (f) => Err(f),
+    );
   }
 }

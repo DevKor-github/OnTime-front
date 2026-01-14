@@ -1,4 +1,6 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
@@ -8,7 +10,7 @@ class GetDefaultPreparationUseCase {
 
   GetDefaultPreparationUseCase(this._preparationRepository);
 
-  Future<PreparationEntity> call() async {
-    return await _preparationRepository.getDefualtPreparation();
+  Future<Result<PreparationEntity, Failure>> call() async {
+    return _preparationRepository.getDefualtPreparation();
   }
 }

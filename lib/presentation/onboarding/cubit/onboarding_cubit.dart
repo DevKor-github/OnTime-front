@@ -16,11 +16,15 @@ class OnboardingCubit extends Cubit<OnboardingState> {
   final OnboardUseCase _createDefaultPreparationUseCase;
 
   Future<void> onboardingFormSubmitted() async {
-    return await _createDefaultPreparationUseCase(
+    final result = await _createDefaultPreparationUseCase(
       preparationEntity: state.toEntity(),
       spareTime: state.spareTime!,
       note: state.note ?? '',
     );
+    if (result.isFailure) {
+      // Keep minimal handling here; UI can decide what to display later.
+      addError(result.failureOrNull!, result.failureOrNull!.stackTrace);
+    }
   }
 
   void onboardingFormChanged({

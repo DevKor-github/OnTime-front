@@ -20,14 +20,23 @@ class WeeklySchedulesBloc
       (event, emit) async {
         emit(state.copyWith(status: () => WeeklySchedulesStatus.loading));
 
-        await _loadSchedulesForWeekUseCase(event.date);
+        final loadResult = await _loadSchedulesForWeekUseCase(event.date);
+        if (loadResult.isFailure) {
+          emit(state.copyWith(status: () => WeeklySchedulesStatus.error));
+          return;
+        }
 
         await emit.forEach(
           _getSchedulesByDateUseCase(event.startDate, event.endDate),
-          onData: (schedules) => state.copyWith(
-            status: () => WeeklySchedulesStatus.success,
-            schedules: () => schedules,
-          ),
+          onData: (result) {
+            if (result.isFailure) {
+              return state.copyWith(status: () => WeeklySchedulesStatus.error);
+            }
+            return state.copyWith(
+              status: () => WeeklySchedulesStatus.success,
+              schedules: () => result.successOrNull ?? const <ScheduleEntity>[],
+            );
+          },
           onError: (error, stackTrace) => state.copyWith(
             status: () => WeeklySchedulesStatus.error,
           ),

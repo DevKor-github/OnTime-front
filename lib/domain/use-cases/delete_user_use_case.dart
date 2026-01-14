@@ -1,4 +1,7 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
@@ -8,21 +11,22 @@ class DeleteUserUseCase {
 
   DeleteUserUseCase(this._userRepository);
 
-  Future<void> call(String feedbackMessage) async {
-    try {
-      await _userRepository.postFeedback(feedbackMessage);
-    } catch (_) {}
+  Future<Result<Unit, Failure>> call(String feedbackMessage) async {
+    // Best-effort feedback; deletion should still proceed even if feedback fails.
+    await _userRepository.postFeedback(feedbackMessage);
 
-    final socialTypeString = await _userRepository.getUserSocialType();
+    final socialTypeResult = await _userRepository.getUserSocialType();
+    final socialTypeString = socialTypeResult.successOrNull;
     final socialType = socialTypeFromString(socialTypeString);
 
     if (socialType == SocialType.google) {
+      // Best-effort disconnect; deletion should still proceed.
       await _userRepository.disconnectGoogleSignIn();
-      await _userRepository.deleteGoogleUser();
+      return _userRepository.deleteGoogleUser();
     } else if (socialType == SocialType.apple) {
-      await _userRepository.deleteAppleUser();
+      return _userRepository.deleteAppleUser();
     } else {
-      await _userRepository.deleteUser();
+      return _userRepository.deleteUser();
     }
   }
 }

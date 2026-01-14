@@ -1,4 +1,7 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 
 @Injectable()
@@ -12,7 +15,7 @@ class LoadPreparationByScheduleIdUseCase {
   /// and updating the local cache/stream.
   ///
   /// [scheduleId] - The ID of the schedule to load preparation for
-  Future<void> call(String scheduleId) async {
-    await _preparationRepository.getPreparationByScheduleId(scheduleId);
+  Future<Result<Unit, Failure>> call(String scheduleId) async {
+    return _preparationRepository.getPreparationByScheduleId(scheduleId);
   }
 }

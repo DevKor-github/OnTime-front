@@ -6,6 +6,9 @@ import '../../helpers/mock.mocks.dart';
 
 import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
 
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
@@ -14,6 +17,7 @@ import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 void main() {
   late MockScheduleLocalDataSource mockScheduleLocalDataSource;
   late MockScheduleRemoteDataSource mockScheduleRemoteDataSource;
+  late MockErrorLoggerService mockErrorLoggerService;
   late ScheduleRepository scheduleRepository;
 
   final uuid = Uuid();
@@ -44,9 +48,11 @@ void main() {
   setUpAll(() {
     mockScheduleLocalDataSource = MockScheduleLocalDataSource();
     mockScheduleRemoteDataSource = MockScheduleRemoteDataSource();
+    mockErrorLoggerService = MockErrorLoggerService();
     scheduleRepository = ScheduleRepositoryImpl(
       scheduleLocalDataSource: mockScheduleLocalDataSource,
       scheduleRemoteDataSource: mockScheduleRemoteDataSource,
+      errorLoggerService: mockErrorLoggerService,
     );
   });
 
@@ -54,7 +60,7 @@ void main() {
     'createSchedule',
     () {
       test(
-        'when successful [createSchedule] should create a schedule with the given schedule entity',
+        'when successful [createSchedule] should return Success(unit) and call remote data source',
         () async {
           // Arrange
           // when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
@@ -62,31 +68,42 @@ void main() {
           when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
               .thenAnswer((_) async {});
           // Act
-          await scheduleRepository.createSchedule(tScheduleEntity);
+          final result = await (scheduleRepository as dynamic)
+              .createSchedule(tScheduleEntity);
           // Assert
+          expect(result, isA<Result<Unit, Failure>>());
+          expect(result.isSuccess, true);
+          expect(result.successOrNull, unit);
           //verify(mockScheduleLocalDataSource.createSchedule(tScheduleEntity));
           verify(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity));
         },
       );
       test(
-          'when ScheduleRemoteDataSource throws an exception [createSchedule] should throw an exception',
+          'when remote data source throws [createSchedule] should return Err(Failure) and log it',
           () async {
         // Arrange
-        when(mockScheduleLocalDataSource.createSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
+        // NOTE: tests are behavior-focused; we don't require local calls.
         when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
             .thenThrow(Exception());
         // Act
-        final call = scheduleRepository.createSchedule(tScheduleEntity);
+        final result = await (scheduleRepository as dynamic)
+            .createSchedule(tScheduleEntity);
         // Assert
-        expect(call, throwsException);
+        expect(result, isA<Result<Unit, Failure>>());
+        expect(result.isFailure, true);
+        expect(result.failureOrNull, isA<Failure>());
+        verify(mockErrorLoggerService.log(
+          any,
+          hint: anyNamed('hint'),
+          context: anyNamed('context'),
+        )).called(1);
       });
     },
   );
 
   group('deleteSchedule', () {
     test(
-      'when successful [deleteSchedule] should delete a schedule with the given schedule entity',
+      'when successful [deleteSchedule] should return Success(unit) and call remote data source',
       () async {
         // Arrange
         when(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity))
@@ -94,47 +111,59 @@ void main() {
         when(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity))
             .thenAnswer((_) async {});
         // Act
-        await scheduleRepository.deleteSchedule(tScheduleEntity);
+        final result = await (scheduleRepository as dynamic)
+            .deleteSchedule(tScheduleEntity);
         // Assert
+        expect(result, isA<Result<Unit, Failure>>());
+        expect(result.isSuccess, true);
+        expect(result.successOrNull, unit);
         //verify(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity));
         verify(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity));
       },
     );
     test(
-      'when ScheduleRemoteDataSource throws an exception [deleteSchedule] should throw an exception',
+      'when remote data source throws [deleteSchedule] should return Err(Failure) and log it',
       () async {
         // Arrange
-        when(mockScheduleLocalDataSource.deleteSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
+        // Local data source is not part of the contract under test.
         when(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity))
             .thenThrow(Exception());
         // Act
-        final call = scheduleRepository.deleteSchedule(tScheduleEntity);
+        final result = await (scheduleRepository as dynamic)
+            .deleteSchedule(tScheduleEntity);
         // Assert
-        expect(call, throwsException);
+        expect(result, isA<Result<Unit, Failure>>());
+        expect(result.isFailure, true);
+        expect(result.failureOrNull, isA<Failure>());
+        verify(mockErrorLoggerService.log(
+          any,
+          hint: anyNamed('hint'),
+          context: anyNamed('context'),
+        )).called(1);
       },
     );
   });
 
   group('getScheduleById', () {
     test(
-      'when successful [getScheduleById] should return a schedule entity with the given id',
+      'when successful [getScheduleById] should return Success(ScheduleEntity)',
       () async {
         // Arrange
         when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
             .thenAnswer((_) async => Future.value(tScheduleEntity));
         // Act
-        final schedules =
-            await scheduleRepository.getScheduleById(scheduleEntityId);
+        final result = await (scheduleRepository as dynamic)
+            .getScheduleById(scheduleEntityId);
         // Assert
-
-        expect(schedules, tScheduleEntity);
+        expect(result, isA<Result<ScheduleEntity, Failure>>());
+        expect(result.isSuccess, true);
+        expect(result.successOrNull, tScheduleEntity);
         // verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
         //     .called(1);
       },
     );
     test(
-      'when ScheduleRemoteDataSource throws an exception [getScheduleById] should throw an exception',
+      'when remote data source throws [getScheduleById] should return Err(Failure) and log it',
       () async {
         // Arrange
         // when(mockScheduleLocalDataSource.getScheduleById(scheduleEntityId))
@@ -142,17 +171,24 @@ void main() {
         when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
             .thenThrow(Exception());
         // Act
-        final getScheduleById = scheduleRepository.getScheduleById;
+        final result = await (scheduleRepository as dynamic)
+            .getScheduleById(scheduleEntityId);
         // Assert
-        // expect fuction throws an exception
-        expect(getScheduleById(scheduleEntityId), throwsException);
+        expect(result, isA<Result<ScheduleEntity, Failure>>());
+        expect(result.isFailure, true);
+        expect(result.failureOrNull, isA<Failure>());
+        verify(mockErrorLoggerService.log(
+          any,
+          hint: anyNamed('hint'),
+          context: anyNamed('context'),
+        )).called(1);
       },
     );
   });
 
   group('getSchedulesByDate', () {
     test(
-      'when successful [getSchedulesByDate] should return a list of schedules between the given start and end date',
+      'when successful [getSchedulesByDate] should return Success(List<ScheduleEntity>)',
       () async {
         // Arrange
         // when(mockScheduleLocalDataSource.getSchedulesByDate(
@@ -164,16 +200,18 @@ void main() {
                 tStartDate, tEndDate))
             .thenAnswer((_) async => Future.value(tScheduleList));
         // Act
-        final schedules =
-            await scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
+        final result = await (scheduleRepository as dynamic)
+            .getSchedulesByDate(tStartDate, tEndDate);
         // Assert
-        expect(schedules, tScheduleList);
+        expect(result, isA<Result<List<ScheduleEntity>, Failure>>());
+        expect(result.isSuccess, true);
+        expect(result.successOrNull, tScheduleList);
         // verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
         //     .called(1);
       },
     );
     test(
-      'when ScheduleLocalDataSource throws an exception [getSchedulesByDate] should throw an exception',
+      'when remote data source throws [getSchedulesByDate] should return Err(Failure) and log it',
       () async {
         // Arrange
         final tStartDate = DateTime.now();
@@ -182,9 +220,17 @@ void main() {
                 tStartDate, tEndDate))
             .thenThrow(Exception());
         // Act
-        final getscheduleByDate = scheduleRepository.getSchedulesByDate;
+        final result = await (scheduleRepository as dynamic)
+            .getSchedulesByDate(tStartDate, tEndDate);
         // Assert
-        expect(getscheduleByDate(tStartDate, tEndDate), throwsException);
+        expect(result, isA<Result<List<ScheduleEntity>, Failure>>());
+        expect(result.isFailure, true);
+        expect(result.failureOrNull, isA<Failure>());
+        verify(mockErrorLoggerService.log(
+          any,
+          hint: anyNamed('hint'),
+          context: anyNamed('context'),
+        )).called(1);
       },
     );
   });
@@ -193,7 +239,7 @@ void main() {
     'updateSchedule',
     () {
       test(
-        'when successful [updateSchedule] should update a schedule with the given schedule entity',
+        'when successful [updateSchedule] should return Success(unit) and call remote data source',
         () async {
           // Arrange
           when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
@@ -201,24 +247,35 @@ void main() {
           when(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity))
               .thenAnswer((_) async {});
           // Act
-          await scheduleRepository.updateSchedule(tScheduleEntity);
+          final result = await (scheduleRepository as dynamic)
+              .updateSchedule(tScheduleEntity);
           // Assert
+          expect(result, isA<Result<Unit, Failure>>());
+          expect(result.isSuccess, true);
+          expect(result.successOrNull, unit);
           //verify(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity));
           verify(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity));
         },
       );
       test(
-        'when ScheduleRemoteDataSource throws an exception [updateSchedule] should throw an exception',
+        'when remote data source throws [updateSchedule] should return Err(Failure) and log it',
         () async {
           // Arrange
-          when(mockScheduleLocalDataSource.updateSchedule(tScheduleEntity))
-              .thenAnswer((_) async {});
+          // Local data source is not part of the contract under test.
           when(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity))
               .thenThrow(Exception());
           // Act
-          final call = scheduleRepository.updateSchedule(tScheduleEntity);
+          final result = await (scheduleRepository as dynamic)
+              .updateSchedule(tScheduleEntity);
           // Assert
-          expect(call, throwsException);
+          expect(result, isA<Result<Unit, Failure>>());
+          expect(result.isFailure, true);
+          expect(result.failureOrNull, isA<Failure>());
+          verify(mockErrorLoggerService.log(
+            any,
+            hint: anyNamed('hint'),
+            context: anyNamed('context'),
+          )).called(1);
         },
       );
     },

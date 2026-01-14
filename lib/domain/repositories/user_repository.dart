@@ -1,38 +1,42 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 
 abstract interface class UserRepository {
-  Stream<UserEntity> get userStream;
+  Stream<Result<UserEntity, Failure>> get userStream;
 
   GoogleSignIn get googleSignIn;
 
-  Future<void> signUp(
+  Future<Result<Unit, Failure>> signUp(
       {required String email, required String password, required String name});
 
-  Future<void> signIn({required String email, required String password});
+  Future<Result<Unit, Failure>> signIn(
+      {required String email, required String password});
 
-  Future<void> signOut();
+  Future<Result<Unit, Failure>> signOut();
 
-  Future<void> signInWithGoogle(GoogleSignInAccount account);
+  Future<Result<Unit, Failure>> signInWithGoogle(GoogleSignInAccount account);
 
-  Future<void> signInWithApple({
+  Future<Result<Unit, Failure>> signInWithApple({
     required String idToken,
     required String authCode,
     required String fullName,
     String? email,
   });
 
-  Future<void> getUser();
+  Future<Result<Unit, Failure>> getUser();
 
-  Future<void> deleteUser();
+  Future<Result<Unit, Failure>> deleteUser();
 
-  Future<void> deleteGoogleUser();
+  Future<Result<Unit, Failure>> deleteGoogleUser();
 
-  Future<void> deleteAppleUser();
+  Future<Result<Unit, Failure>> deleteAppleUser();
 
-  Future<void> postFeedback(String message);
+  Future<Result<Unit, Failure>> postFeedback(String message);
 
-  Future<String?> getUserSocialType();
+  Future<Result<String?, Failure>> getUserSocialType();
 
-  Future<void> disconnectGoogleSignIn();
+  Future<Result<Unit, Failure>> disconnectGoogleSignIn();
 }

@@ -34,17 +34,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     _loadUserUseCase();
     return emit.onEach(
       _streamUserUseCase.call(),
-      onData: (user) async {
-        emit(
-          state.copyWith(
-            user: user,
-            status: user.map<AuthStatus>(
-              (entity) => entity.isOnboardingCompleted
-                  ? AuthStatus.authenticated
-                  : AuthStatus.onboardingNotCompleted,
-              empty: (_) => AuthStatus.unauthenticated,
-            ),
-          ),
+      onData: (result) async {
+        result.fold(
+          onSuccess: (user) {
+            emit(
+              state.copyWith(
+                user: user,
+                status: user.map<AuthStatus>(
+                  (entity) => entity.isOnboardingCompleted
+                      ? AuthStatus.authenticated
+                      : AuthStatus.onboardingNotCompleted,
+                  empty: (_) => AuthStatus.unauthenticated,
+                ),
+              ),
+            );
+          },
+          onFailure: (failure) {
+            addError(failure, failure.stackTrace);
+            emit(
+              state.copyWith(
+                user: const UserEntity.empty(),
+                status: AuthStatus.unauthenticated,
+              ),
+            );
+          },
         );
         await Future.delayed(const Duration(milliseconds: 0));
         if (state.status == AuthStatus.authenticated) {

@@ -7,34 +7,92 @@ final class PreparationFormState extends Equatable {
     this.status = PreparationFormStatus.initial,
     this.preparationStepList = const [],
     this.isValid = false,
+    this.failure,
   });
 
-  factory PreparationFormState.fromEntity(PreparationEntity preparationEntity) {
-    final List<PreparationStepFormState> preparationStepFormStateList = [];
-    String? nextPreparationStepId;
-
-    final int length = preparationEntity.preparationStepList.length;
-    for (var i = 0; i < length; i++) {
-      for (var j = 0; j < length; j++) {
-        final currentPreparationStep = preparationEntity.preparationStepList[j];
-        if (currentPreparationStep.nextPreparationId == nextPreparationStepId) {
-          nextPreparationStepId = currentPreparationStep.id;
-          preparationStepFormStateList.add(
-            PreparationStepFormState(
-              id: currentPreparationStep.id,
-              preparationName: PreparationNameInputModel.pure(
-                  currentPreparationStep.preparationName),
-              preparationTime: PreparationTimeInputModel.pure(
-                  currentPreparationStep.preparationTime),
-            ),
-          );
-          break;
-        }
-      }
+  static Result<PreparationFormState, Failure> fromEntity(
+      PreparationEntity preparationEntity) {
+    final steps = preparationEntity.preparationStepList;
+    if (steps.isEmpty) {
+      return const Success(
+        PreparationFormState(
+          status: PreparationFormStatus.success,
+          preparationStepList: [],
+        ),
+      );
     }
-    return PreparationFormState(
-      status: PreparationFormStatus.success,
-      preparationStepList: preparationStepFormStateList.reversed.toList(),
+
+    final tails = steps.where((s) => s.nextPreparationId == null).toList();
+    if (tails.isEmpty) {
+      return Err(PreparationChainFailure.noTail());
+    }
+    if (tails.length > 1) {
+      return Err(
+          PreparationChainFailure.multipleTails(tailCount: tails.length));
+    }
+
+    // Detect branching (two steps pointing to the same nextPreparationId).
+    final byNextId = <String?, PreparationStepEntity>{};
+    for (final step in steps) {
+      final key = step.nextPreparationId; // can be null for tail
+      if (byNextId.containsKey(key)) {
+        return Err(
+          PreparationChainFailure.broken(
+            connectedCount: 0,
+            totalCount: steps.length,
+            cause: 'Multiple steps share nextPreparationId=$key',
+          ),
+        );
+      }
+      byNextId[key] = step;
+    }
+
+    final List<PreparationStepFormState> reversedOrder = [];
+    final visited = <String>{};
+    String? currentNextId; // start from tail (nextId=null)
+
+    for (var i = 0; i < steps.length; i++) {
+      final current = byNextId[currentNextId];
+      if (current == null) {
+        return Err(
+          PreparationChainFailure.broken(
+            connectedCount: reversedOrder.length,
+            totalCount: steps.length,
+          ),
+        );
+      }
+
+      if (!visited.add(current.id)) {
+        return Err(PreparationChainFailure.cycleDetected(atStepId: current.id));
+      }
+
+      reversedOrder.add(
+        PreparationStepFormState(
+          id: current.id,
+          preparationName:
+              PreparationNameInputModel.pure(current.preparationName),
+          preparationTime:
+              PreparationTimeInputModel.pure(current.preparationTime),
+        ),
+      );
+
+      currentNextId = current.id;
+    }
+
+    if (reversedOrder.length != steps.length) {
+      return Err(
+        PreparationChainFailure.broken(
+          connectedCount: reversedOrder.length,
+          totalCount: steps.length,
+        ),
+      );
+    }
+
+    return Success(
+      PreparationFormState(
+        status: PreparationFormStatus.success,
+        preparationStepList: reversedOrder.reversed.toList(),
+      ),
     );
   }
 
@@ -55,16 +113,19 @@ final class PreparationFormState extends Equatable {
   final PreparationFormStatus status;
   final List<PreparationStepFormState> preparationStepList;
   final bool isValid;
+  final Failure? failure;
 
   PreparationFormState copyWith({
     PreparationFormStatus? status,
     List<PreparationStepFormState>? preparationStepList,
     bool? isValid,
+    Failure? failure,
   }) {
     return PreparationFormState(
       status: status ?? this.status,
       preparationStepList: preparationStepList ?? this.preparationStepList,
       isValid: isValid ?? this.isValid,
+      failure: failure,
     );
   }
 
@@ -73,5 +134,6 @@ final class PreparationFormState extends Equatable {
         status,
         preparationStepList,
         isValid,
+        failure ?? '',
       ];
 }

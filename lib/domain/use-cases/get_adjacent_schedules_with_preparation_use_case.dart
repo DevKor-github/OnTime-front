@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/adjacent_schedules_with_preparation_entity.dart';
@@ -26,7 +28,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
   /// [endDate] - End date for the search range
   ///
   /// Returns AdjacentSchedulesWithPreparationEntity containing both previous and next schedules (or null if not found).
-  Future<AdjacentSchedulesWithPreparationEntity> call({
+  Future<Result<AdjacentSchedulesWithPreparationEntity, Failure>> call({
     required DateTime selectedDateTime,
     String? currentScheduleId,
     required DateTime startDate,
@@ -34,8 +36,10 @@ class GetAdjacentSchedulesWithPreparationUseCase {
   }) async {
     try {
       // Get schedules from the stream
-      final schedules =
+      final schedulesResult =
           await _getSchedulesByDateUseCase(startDate, endDate).first;
+      if (schedulesResult.isFailure) return Err(schedulesResult.failureOrNull!);
+      final schedules = schedulesResult.successOrNull ?? const [];
 
       debugPrint('=== Schedule Filtering Debug ===');
       debugPrint('Selected datetime: $selectedDateTime');
@@ -93,7 +97,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
         try {
           // Try to get preparation from stream with a longer timeout
           // Preparations should have been loaded by LoadAdjacentScheduleWithPreparationUseCase
-          final preparationEntity =
+          final prepResult =
               await _getPreparationByScheduleIdUseCase(schedule.id).timeout(
             const Duration(seconds: 10),
             onTimeout: () {
@@ -103,6 +107,8 @@ class GetAdjacentSchedulesWithPreparationUseCase {
               );
             },
           );
+          if (prepResult.isFailure) return null;
+          final preparationEntity = prepResult.successOrNull!;
           final preparation =
               PreparationWithTimeEntity.fromPreparation(preparationEntity);
 
@@ -140,14 +146,16 @@ class GetAdjacentSchedulesWithPreparationUseCase {
             await getScheduleWithPreparation(previousSchedules.first);
       }
 
-      return AdjacentSchedulesWithPreparationEntity(
-        previousSchedule: previousSchedule,
-        nextSchedule: nextSchedule,
+      return Success(
+        AdjacentSchedulesWithPreparationEntity(
+          previousSchedule: previousSchedule,
+          nextSchedule: nextSchedule,
+        ),
       );
     } catch (e) {
       // On error, return empty result
       debugPrint('Error in GetNextScheduleWithPreparationUseCase: $e');
-      return const AdjacentSchedulesWithPreparationEntity();
+      return const Success(AdjacentSchedulesWithPreparationEntity());
     }
   }
 }

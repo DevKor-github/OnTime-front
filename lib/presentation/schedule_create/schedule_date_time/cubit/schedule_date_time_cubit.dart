@@ -79,20 +79,21 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   }
 
   Future<void> _loadAdjacentSchedules(DateTime scheduleDate) async {
-    try {
-      // Calculate date range: previous day, selected day, and next day
-      // This matches the range used in checkScheduleOverlap
-      final dateRange = _getDateRange(scheduleDate);
-      final startDate = dateRange.startDate;
-      final endDate = dateRange.endDate;
+    // Calculate date range: previous day, selected day, and next day
+    // This matches the range used in checkScheduleOverlap
+    final dateRange = _getDateRange(scheduleDate);
+    final startDate = dateRange.startDate;
+    final endDate = dateRange.endDate;
 
-      // Load schedules from server
-      await _loadAdjacentSchedulesWithPreparationUseCase(
-        startDate: startDate,
-        endDate: endDate,
-      );
-    } catch (e) {
-      debugPrint('Error loading adjacent schedules: $e');
+    // Load schedules from server
+    final result = await _loadAdjacentSchedulesWithPreparationUseCase(
+      startDate: startDate,
+      endDate: endDate,
+    );
+    if (result.isFailure) {
+      final failure = result.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      debugPrint('Error loading adjacent schedules: $failure');
     }
   }
 
@@ -128,13 +129,20 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       // Find adjacent schedules (previous and next) with preparation from stream
       debugPrint(
           'Checking overlap for: $selectedDateTime, currentScheduleId: $currentScheduleId');
-      final AdjacentSchedulesWithPreparationEntity adjacentSchedules =
-          await _getNextScheduleWithPreparationUseCase(
+      final adjacentResult = await _getNextScheduleWithPreparationUseCase(
         selectedDateTime: selectedDateTime,
         currentScheduleId: currentScheduleId,
         startDate: startDate,
         endDate: endDate,
       );
+      if (adjacentResult.isFailure) {
+        final failure = adjacentResult.failureOrNull!;
+        addError(failure, failure.stackTrace);
+        emit(state.copyWith(clearOverlap: true, clearPreviousOverlap: true));
+        return;
+      }
+      final AdjacentSchedulesWithPreparationEntity adjacentSchedules =
+          adjacentResult.successOrNull!;
 
       debugPrint(
           'Previous schedule found: ${adjacentSchedules.hasPrevious}, Next schedule found: ${adjacentSchedules.hasNext}');

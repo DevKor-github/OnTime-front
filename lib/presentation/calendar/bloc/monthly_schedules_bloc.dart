@@ -27,37 +27,42 @@ class MonthlySchedulesBloc
   final GetSchedulesByDateUseCase _getSchedulesByDateUseCase;
   final DeleteScheduleUseCase _deleteScheduleUseCase;
 
+  Map<DateTime, List<ScheduleEntity>> _groupByDay(
+      List<ScheduleEntity> schedules) {
+    final map = <DateTime, List<ScheduleEntity>>{};
+    for (final s in schedules) {
+      final day = DateTime(s.scheduleTime.year, s.scheduleTime.month, s.scheduleTime.day);
+      (map[day] ??= <ScheduleEntity>[]).add(s);
+    }
+    return map;
+  }
+
   Future<void> _onSubscriptionRequested(
     MonthlySchedulesSubscriptionRequested event,
     Emitter<MonthlySchedulesState> emit,
   ) async {
     emit(state.copyWith(status: () => MonthlySchedulesStatus.loading));
 
-    await _loadSchedulesForMonthUseCase(event.date);
+    final loadResult = await _loadSchedulesForMonthUseCase(event.date);
+    if (loadResult.isFailure) {
+      emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
+      return;
+    }
 
     await emit.forEach(
       _getSchedulesByDateUseCase(event.startDate, event.endDate),
-      onData: (schedules) => state.copyWith(
-        status: () => MonthlySchedulesStatus.success,
-        schedules: () => schedules.fold<Map<DateTime, List<ScheduleEntity>>>(
-          {},
-          (previousValue, element) {
-            final scheduleTime = DateTime(
-              element.scheduleTime.year,
-              element.scheduleTime.month,
-              element.scheduleTime.day,
-            );
-            if (previousValue.containsKey(scheduleTime)) {
-              previousValue[scheduleTime]!.add(element);
-            } else {
-              previousValue[scheduleTime] = [element];
-            }
-            return previousValue;
-          },
-        ),
-        startDate: () => event.startDate,
-        endDate: () => event.endDate,
-      ),
+      onData: (result) {
+        if (result.isFailure) {
+          return state.copyWith(status: () => MonthlySchedulesStatus.error);
+        }
+        final list = result.successOrNull ?? const <ScheduleEntity>[];
+        return state.copyWith(
+          status: () => MonthlySchedulesStatus.success,
+          schedules: () => _groupByDay(list),
+          startDate: () => event.startDate,
+          endDate: () => event.endDate,
+        );
+      },
       onError: (error, stackTrace) => state.copyWith(
         status: () => MonthlySchedulesStatus.error,
       ),
@@ -99,31 +104,24 @@ class MonthlySchedulesBloc
         endDate: () => endDate,
       ));
 
-      await _loadSchedulesForMonthUseCase(event.date);
+      final loadResult = await _loadSchedulesForMonthUseCase(event.date);
+      if (loadResult.isFailure) {
+        emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
+        return;
+      }
     }
 
     debugPrint('startDate: $startDate, endDate: $endDate');
     await emit.forEach(
       _getSchedulesByDateUseCase(startDate, endDate),
-      onData: (schedules) {
+      onData: (result) {
+        if (result.isFailure) {
+          return state.copyWith(status: () => MonthlySchedulesStatus.error);
+        }
+        final list = result.successOrNull ?? const <ScheduleEntity>[];
         return state.copyWith(
           status: () => MonthlySchedulesStatus.success,
-          schedules: () => schedules.fold<Map<DateTime, List<ScheduleEntity>>>(
-            {},
-            (previousValue, element) {
-              final scheduleTime = DateTime(
-                element.scheduleTime.year,
-                element.scheduleTime.month,
-                element.scheduleTime.day,
-              );
-              if (previousValue.containsKey(scheduleTime)) {
-                previousValue[scheduleTime]!.add(element);
-              } else {
-                previousValue[scheduleTime] = [element];
-              }
-              return previousValue;
-            },
-          ),
+          schedules: () => _groupByDay(list),
           startDate: () => startDate,
           endDate: () => endDate,
         );
@@ -140,12 +138,12 @@ class MonthlySchedulesBloc
     MonthlySchedulesScheduleDeleted event,
     Emitter<MonthlySchedulesState> emit,
   ) async {
-    try {
-      emit(state.copyWith(
-        lastDeletedSchedule: () => event.schedule,
-      ));
-      await _deleteScheduleUseCase(event.schedule);
-    } catch (e) {
+    emit(state.copyWith(
+      lastDeletedSchedule: () => event.schedule,
+    ));
+
+    final result = await _deleteScheduleUseCase(event.schedule);
+    if (result.isFailure) {
       emit(state.copyWith(
         status: () => MonthlySchedulesStatus.error,
       ));

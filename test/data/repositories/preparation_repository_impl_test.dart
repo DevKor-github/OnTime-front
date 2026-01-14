@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:uuid/uuid.dart';
+
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
+import 'package:on_time_front/core/error/unit.dart';
 
 import '../../helpers/mock.mocks.dart';
 
@@ -13,11 +16,9 @@ void main() {
   late PreparationRepositoryImpl preparationRepository;
   late MockPreparationRemoteDataSource mockPreparationRemoteDataSource;
   late MockPreparationLocalDataSource mockPreparationLocalDataSource;
+  late MockErrorLoggerService mockErrorLoggerService;
 
   final uuid = Uuid();
-
-  final scheduleEntityId = uuid.v7();
-  final preparationStepEntityId = uuid.v7();
 
   final tPreparationStepList = [
     PreparationStepEntity(
@@ -70,32 +71,17 @@ void main() {
     nextPreparationId: null,
   );
 
-  final tLocalPreparationStep = PreparationStepEntity(
-    id: uuid.v7(),
-    preparationName: 'Dress Up Local',
-    preparationTime: Duration(minutes: 15),
-    nextPreparationId: null,
-  );
-
   final tPreparationEntity =
       PreparationEntity(preparationStepList: [tPreparationStep]);
-
-  final tLocalPreparationEntity =
-      PreparationEntity(preparationStepList: [tLocalPreparationStep]);
-
-  final tCreateDefaultPreparationRequestModel =
-      CreateDefaultPreparationRequestModel.fromEntity(
-    preparationEntity: tPreparationEntity,
-    spareTime: Duration(minutes: 10),
-    note: 'Note',
-  );
 
   setUp(() {
     mockPreparationRemoteDataSource = MockPreparationRemoteDataSource();
     mockPreparationLocalDataSource = MockPreparationLocalDataSource();
+    mockErrorLoggerService = MockErrorLoggerService();
     preparationRepository = PreparationRepositoryImpl(
       preparationRemoteDataSource: mockPreparationRemoteDataSource,
       preparationLocalDataSource: mockPreparationLocalDataSource,
+      errorLoggerService: mockErrorLoggerService,
     );
   });
 
@@ -188,34 +174,54 @@ void main() {
   // });
 
   group('updatePreparation', () {
-    test('should call updatePreparation on remote data source', () async {
+    test(
+        'when successful [updateDefaultPreparation] should return Success(unit) and call remote data source',
+        () async {
       // Arrange
       when(mockPreparationRemoteDataSource
               .updateDefaultPreparation(tPreparationEntity))
           .thenAnswer((_) async {});
 
       // Act
-      await preparationRepository.updateDefaultPreparation(tPreparationEntity);
+      final result = await preparationRepository
+          .updateDefaultPreparation(tPreparationEntity);
 
       // Assert
+      expect(result, isA<Result<Unit, Failure>>());
+      expect(result.isSuccess, true);
+      expect(result.successOrNull, unit);
       verify(mockPreparationRemoteDataSource
               .updateDefaultPreparation(tPreparationEntity))
           .called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
+      verifyNever(mockErrorLoggerService.log(
+        any,
+        hint: anyNamed('hint'),
+        context: anyNamed('context'),
+      ));
     });
 
-    test('should throw an exception if remote data source fails', () async {
+    test(
+        'when remote data source throws [updateDefaultPreparation] should return Err(Failure) and log it',
+        () async {
       // Arrange
       when(mockPreparationRemoteDataSource
               .updateDefaultPreparation(tPreparationEntity))
           .thenThrow(Exception());
 
       // Act
-      final call =
-          preparationRepository.updateDefaultPreparation(tPreparationEntity);
+      final result = await preparationRepository
+          .updateDefaultPreparation(tPreparationEntity);
 
       // Assert
-      expect(call, throwsException);
+      expect(result, isA<Result<Unit, Failure>>());
+      expect(result.isFailure, true);
+      expect(result.failureOrNull, isA<Failure>());
+      verify(mockErrorLoggerService.log(
+        any,
+        hint: anyNamed('hint'),
+        context: anyNamed('context'),
+      )).called(1);
     });
   });
 }

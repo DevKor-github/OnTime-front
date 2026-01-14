@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
@@ -25,14 +27,24 @@ class GetNearestUpcomingScheduleUseCase {
       this._loadSchedulesForWeekUseCase,
       this._timedPreparationRepository);
 
-  Stream<ScheduleWithPreparationEntity?> call() async* {
+  Stream<Result<ScheduleWithPreparationEntity?, Failure>> call() async* {
     final DateTime now = DateTime.now();
 
-    _loadSchedulesForWeekUseCase(now);
+    // Trigger load; if it fails, surface error once and continue listening.
+    final loadWeekResult = await _loadSchedulesForWeekUseCase(now);
+    if (loadWeekResult.isFailure) {
+      yield Err(loadWeekResult.failureOrNull!);
+    }
 
     final upcomingScheduleStream =
         _getScheduleByDateUseCase(now, now.add(const Duration(days: 2)));
-    await for (final upcomingSchedule in upcomingScheduleStream) {
+    await for (final scheduleResult in upcomingScheduleStream) {
+      if (scheduleResult.isFailure) {
+        yield Err(scheduleResult.failureOrNull!);
+        continue;
+      }
+
+      final upcomingSchedule = scheduleResult.successOrNull ?? const <ScheduleEntity>[];
       if (upcomingSchedule.isNotEmpty) {
         try {
           final schedule = upcomingSchedule.firstWhere(
@@ -40,29 +52,51 @@ class GetNearestUpcomingScheduleUseCase {
               orElse: () => throw Exception('No upcoming schedule found'));
 
           // First try to load locally stored timed preparation
-          final localTimed = await _timedPreparationRepository
-              .getTimedPreparation(schedule.id);
+          final localTimedResult =
+              await _timedPreparationRepository.getTimedPreparation(schedule.id);
+          if (localTimedResult.isFailure) {
+            yield Err(localTimedResult.failureOrNull!);
+            continue;
+          }
+
+          final localTimed = localTimedResult.successOrNull;
           if (localTimed != null) {
-            yield ScheduleWithPreparationEntity
-                .fromScheduleAndPreparationEntity(schedule, localTimed);
+            yield Success(
+              ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+                schedule,
+                localTimed,
+              ),
+            );
             continue;
           }
 
           // Fallback to fetching canonical preparation from source
+          final loadPrepResult =
           await _loadPreparationByScheduleIdUseCase(schedule.id);
-          final preparation =
+          if (loadPrepResult.isFailure) {
+            yield Err(loadPrepResult.failureOrNull!);
+            continue;
+          }
+
+          final preparationResult =
               await _getPreparationByScheduleIdUseCase(schedule.id);
+          if (preparationResult.isFailure) {
+            yield Err(preparationResult.failureOrNull!);
+            continue;
+          }
+
+          final preparation = preparationResult.successOrNull!;
           final scheduleWithPreparation =
               ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
                   schedule,
                   PreparationWithTimeEntity.fromPreparation(preparation));
-          yield scheduleWithPreparation;
+          yield Success(scheduleWithPreparation);
         } catch (e) {
-          yield null;
+          yield const Success(null);
           continue;
         }
       } else {
-        yield null;
+        yield const Success(null);
       }
     }
   }

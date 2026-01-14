@@ -39,7 +39,16 @@ class DefaultPreparationSpareTimeFormBloc extends Bloc<
       status: DefaultPreparationSpareTimeStatus.loading,
     ));
 
-    final preparation = await _getDefaultPreparationUseCase();
+    final preparationResult = await _getDefaultPreparationUseCase();
+    if (preparationResult.isFailure) {
+      final failure = preparationResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(
+        status: DefaultPreparationSpareTimeStatus.error,
+      ));
+      return;
+    }
+    final preparation = preparationResult.successOrNull!;
 
     emit(state.copyWith(
       status: DefaultPreparationSpareTimeStatus.success,
@@ -83,18 +92,33 @@ class DefaultPreparationSpareTimeFormBloc extends Bloc<
       status: DefaultPreparationSpareTimeStatus.loading,
     ));
 
-    try {
-      await _updateDefaultPreparationUseCase(event.preparation);
-      await _updateSpareTimeUseCase(state.spareTime!);
-      await _loadUserUseCase();
-
-      emit(state.copyWith(
-        status: DefaultPreparationSpareTimeStatus.success,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: DefaultPreparationSpareTimeStatus.error,
-      ));
+    final prepUpdateResult =
+        await _updateDefaultPreparationUseCase(event.preparation);
+    if (prepUpdateResult.isFailure) {
+      final failure = prepUpdateResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: DefaultPreparationSpareTimeStatus.error));
+      return;
     }
+
+    final spareUpdateResult = await _updateSpareTimeUseCase(state.spareTime!);
+    if (spareUpdateResult.isFailure) {
+      final failure = spareUpdateResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: DefaultPreparationSpareTimeStatus.error));
+      return;
+    }
+
+    final loadUserResult = await _loadUserUseCase();
+    if (loadUserResult.isFailure) {
+      final failure = loadUserResult.failureOrNull!;
+      addError(failure, failure.stackTrace);
+      emit(state.copyWith(status: DefaultPreparationSpareTimeStatus.error));
+      return;
+    }
+
+    emit(state.copyWith(
+      status: DefaultPreparationSpareTimeStatus.success,
+    ));
   }
 }

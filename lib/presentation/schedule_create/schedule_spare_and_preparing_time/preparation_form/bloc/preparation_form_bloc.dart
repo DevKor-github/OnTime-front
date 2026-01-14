@@ -5,8 +5,11 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/error/failures.dart';
+import 'package:on_time_front/core/error/result.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/domain/errors/domain_failures.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
@@ -37,14 +40,27 @@ class PreparationFormBloc
     PreparationFormEditRequested event,
     Emitter<PreparationFormState> emit,
   ) {
-    final PreparationFormState preparationFormState =
-        PreparationFormState.fromEntity(event.preparationEntity);
-    final isValid = _validate(preparationFormState.preparationStepList);
-    emit(state.copyWith(
-      status: PreparationFormStatus.initial,
-      preparationStepList: preparationFormState.preparationStepList,
-      isValid: isValid,
-    ));
+    final result = PreparationFormState.fromEntity(event.preparationEntity);
+    result.fold(
+      onSuccess: (preparationFormState) {
+        final isValid = _validate(preparationFormState.preparationStepList);
+        emit(state.copyWith(
+          status: PreparationFormStatus.initial,
+          preparationStepList: preparationFormState.preparationStepList,
+          isValid: isValid,
+          failure: null,
+        ));
+      },
+      onFailure: (failure) {
+        addError(failure, failure.stackTrace);
+        emit(state.copyWith(
+          status: PreparationFormStatus.initial,
+          preparationStepList: const [],
+          isValid: false,
+          failure: failure,
+        ));
+      },
+    );
   }
 
   void _onPreparationFormPreparationStepCreated(

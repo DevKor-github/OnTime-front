@@ -201,7 +201,6 @@ class _PreparationSection extends StatelessWidget {
         Expanded(
           child: PreparationFormCreateList(
             preparationNameState: preparationNameState,
-            enableDismissible: true,
             onNameChanged: ({required int index, required String value}) {
               context.read<PreparationFormBloc>().add(
                     PreparationFormPreparationStepNameChanged(

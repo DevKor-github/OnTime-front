@@ -25,9 +25,8 @@ class ScheduleEditScreen extends StatelessWidget {
             ),
             child: BlocProvider<ScheduleFormBloc>(
               create: (context) => getIt.get<ScheduleFormBloc>(
-                    param1: context.read<AuthBloc>(),
-                  )
-                ..add(ScheduleFormEditRequested(scheduleId: scheduleId)),
+                param1: context.read<AuthBloc>(),
+              )..add(ScheduleFormEditRequested(scheduleId: scheduleId)),
               child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
                 builder: (context, state) {
                   return ScheduleMultiPageForm(

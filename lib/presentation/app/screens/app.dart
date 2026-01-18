@@ -32,10 +32,26 @@ class AppView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return const _AppRouterView();
+  }
+}
+
+class _AppRouterView extends StatefulWidget {
+  const _AppRouterView();
+
+  @override
+  State<_AppRouterView> createState() => _AppRouterViewState();
+}
+
+class _AppRouterViewState extends State<_AppRouterView> {
+  late final _router =
+      goRouterConfig(context.read<AuthBloc>(), context.read<ScheduleBloc>());
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       theme: themeData,
-      routerConfig: goRouterConfig(
-          context.read<AuthBloc>(), context.read<ScheduleBloc>()),
+      routerConfig: _router,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     );

@@ -19,18 +19,40 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  DateTime _selectedDate =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  late DateTime _selectedDate;
+
+  DateTime get _firstDay => DateTime(2024, 12, 1);
+
+  // Keep this comfortably in the future so the calendar doesn't break as time passes.
+  DateTime get _lastDay => DateTime(DateTime.now().year + 5, 12, 31);
+
+  DateTime _clampDay(DateTime day, DateTime firstDay, DateTime lastDay) {
+    final d = DateTime(day.year, day.month, day.day);
+    final first = DateTime(firstDay.year, firstDay.month, firstDay.day);
+    final last = DateTime(lastDay.year, lastDay.month, lastDay.day);
+
+    if (d.isBefore(first)) return first;
+    if (d.isAfter(last)) return last;
+    return d;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = _clampDay(DateTime.now(), _firstDay, _lastDay);
+  }
 
   void _onLeftArrowTap() {
     setState(() {
-      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+      final next = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+      _selectedDate = _clampDay(next, _firstDay, _lastDay);
     });
   }
 
   void _onRightArrowTap() {
     setState(() {
-      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+      final next = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+      _selectedDate = _clampDay(next, _firstDay, _lastDay);
     });
   }
 
@@ -85,29 +107,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           return state.schedules[day] ?? [];
                         },
                         focusedDay: _selectedDate,
-                        firstDay: DateTime(2024, 12, 1),
-                        lastDay: DateTime(2025, 12, 31),
+                        firstDay: _firstDay,
+                        lastDay: _lastDay,
                         calendarFormat: CalendarFormat.month,
                         headerStyle: calendarTheme.headerStyle,
                         daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
                         calendarStyle: calendarTheme.calendarStyle,
                         onDaySelected: (selectedDay, focusedDay) {
                           setState(() {
-                            _selectedDate = DateTime(selectedDay.year,
-                                selectedDay.month, selectedDay.day);
+                            _selectedDate =
+                                _clampDay(selectedDay, _firstDay, _lastDay);
                           });
                           debugPrint(selectedDay.toIso8601String());
                         },
                         onPageChanged: (focusedDay) {
                           setState(() {
-                            _selectedDate = DateTime(focusedDay.year,
-                                focusedDay.month, focusedDay.day);
+                            _selectedDate =
+                                _clampDay(focusedDay, _firstDay, _lastDay);
                           });
                           debugPrint(_selectedDate.toIso8601String());
+                          final clampedDay =
+                              _clampDay(focusedDay, _firstDay, _lastDay);
                           context.read<MonthlySchedulesBloc>().add(
                               MonthlySchedulesMonthAdded(
-                                  date: DateTime(focusedDay.year,
-                                      focusedDay.month, focusedDay.day)));
+                                  date: DateTime(clampedDay.year,
+                                      clampedDay.month, clampedDay.day)));
                         },
                         calendarBuilders: CalendarBuilders(
                           headerTitleBuilder: (context, date) {

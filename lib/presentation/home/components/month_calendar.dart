@@ -25,14 +25,29 @@ class _MonthCalendarState extends State<MonthCalendar> {
   @override
   void initState() {
     super.initState();
-    _focusedDay = DateTime.now();
+    _focusedDay = _clampDay(DateTime.now(), _firstDay, _lastDay);
+  }
+
+  DateTime get _firstDay => DateTime(2000, 1, 1);
+
+  // Keep this comfortably in the future so the calendar doesn't break as time passes.
+  DateTime get _lastDay => DateTime(DateTime.now().year + 5, 12, 31);
+
+  DateTime _clampDay(DateTime day, DateTime firstDay, DateTime lastDay) {
+    final d = DateTime(day.year, day.month, day.day);
+    final first = DateTime(firstDay.year, firstDay.month, firstDay.day);
+    final last = DateTime(lastDay.year, lastDay.month, lastDay.day);
+
+    if (d.isBefore(first)) return first;
+    if (d.isAfter(last)) return last;
+    return d;
   }
 
   void _onLeftArrowTap() {
     final DateTime nextFocusedDay =
         DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
     setState(() {
-      _focusedDay = nextFocusedDay;
+      _focusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
     });
     if (widget.dispatchBlocEvents) {
       context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
@@ -44,7 +59,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
     final DateTime nextFocusedDay =
         DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
     setState(() {
-      _focusedDay = nextFocusedDay;
+      _focusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
     });
     if (widget.dispatchBlocEvents) {
       context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
@@ -73,8 +88,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
         rowHeight: 50,
         availableGestures: AvailableGestures.none,
         focusedDay: _focusedDay,
-        firstDay: DateTime(2024, 1, 1),
-        lastDay: DateTime(2025, 12, 31),
+        firstDay: _firstDay,
+        lastDay: _lastDay,
         calendarFormat: CalendarFormat.month,
         headerStyle: calendarTheme.headerStyle,
         daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
@@ -85,12 +100,13 @@ class _MonthCalendarState extends State<MonthCalendar> {
         },
         onPageChanged: (focusedDay) {
           setState(() {
-            _focusedDay = focusedDay;
+            _focusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
           });
           if (widget.dispatchBlocEvents) {
+            final clampedDay = _clampDay(focusedDay, _firstDay, _lastDay);
             context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
                 date: DateTime(
-                    focusedDay.year, focusedDay.month, focusedDay.day)));
+                    clampedDay.year, clampedDay.month, clampedDay.day)));
           }
         },
         calendarBuilders: CalendarBuilders(

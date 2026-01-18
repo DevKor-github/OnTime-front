@@ -10,29 +10,35 @@ class ScheduleCreateScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Material(
       color: Colors.transparent,
       child: SafeArea(
-        child: FractionallySizedBox(
-          heightFactor: 0.85,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: BlocProvider<ScheduleFormBloc>(
-              create: (context) => getIt.get<ScheduleFormBloc>(
-                param1: context.read<AuthBloc>(),
-              )..add(ScheduleFormCreateRequested()),
-              child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
-                builder: (context, state) {
-                  return ScheduleMultiPageForm(
-                    onSaved: () => context.read<ScheduleFormBloc>().add(
-                          const ScheduleFormCreated(),
-                        ),
-                  );
-                },
+        child: AnimatedPadding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          child: FractionallySizedBox(
+            heightFactor: 0.85,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: BlocProvider<ScheduleFormBloc>(
+                create: (context) => getIt.get<ScheduleFormBloc>(
+                  param1: context.read<AuthBloc>(),
+                )..add(ScheduleFormCreateRequested()),
+                child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
+                  builder: (context, state) {
+                    return ScheduleMultiPageForm(
+                      onSaved: () => context.read<ScheduleFormBloc>().add(
+                            const ScheduleFormCreated(),
+                          ),
+                    );
+                  },
+                ),
               ),
             ),
           ),

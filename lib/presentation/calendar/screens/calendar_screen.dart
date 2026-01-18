@@ -6,9 +6,11 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/calendar/component/schedule_detail.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
+import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -166,47 +168,114 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 18.0),
-              BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
-                builder: (context, state) {
-                  if (state.schedules[_selectedDate]?.isEmpty ?? true) {
-                    if (state.status == MonthlySchedulesStatus.loading) {
-                      return CircularProgressIndicator();
-                    } else if (state.status != MonthlySchedulesStatus.success) {
-                      return const SizedBox();
-                    } else {
-                      return Text(AppLocalizations.of(context)!.noSchedules);
-                    }
-                  }
+              const SizedBox(height: 27.0),
+              Expanded(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          DateFormat.MMMMd(
+                                  Localizations.localeOf(context).toString())
+                              .format(_selectedDate),
+                          style: textTheme.headlineExtraSmall,
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
+                        builder: (context, state) {
+                          if (state.schedules[_selectedDate]?.isEmpty ?? true) {
+                            if (state.status ==
+                                MonthlySchedulesStatus.loading) {
+                              return CircularProgressIndicator();
+                            } else if (state.status !=
+                                MonthlySchedulesStatus.success) {
+                              return const SizedBox();
+                            } else {
+                              return Padding(
+                                padding: const EdgeInsets.all(39.0),
+                                child: Column(
+                                  spacing: 16.0,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context)!.noSchedules,
+                                      style: textTheme.titleMedium?.copyWith(
+                                        color: theme.colorScheme.outlineVariant,
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) =>
+                                              const ScheduleCreateScreen(),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            theme.colorScheme.surface,
+                                        side: BorderSide(
+                                          width: 0.5,
+                                          color:
+                                              theme.colorScheme.outlineVariant,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0, horizontal: 12.0),
+                                      ),
+                                      child: Text(
+                                        "약속 추가하기",
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          }
 
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: state.schedules[_selectedDate]?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        final schedule = state.schedules[_selectedDate]![index];
-                        return ScheduleDetail(
-                          schedule: schedule,
-                          onEdit: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (context) => ScheduleEditScreen(
-                                scheduleId: schedule.id,
-                              ),
-                            );
-                          },
-                          onDeleted: () {
-                            context.read<MonthlySchedulesBloc>().add(
-                                  MonthlySchedulesScheduleDeleted(
-                                      schedule: schedule),
+                          return Expanded(
+                            child: ListView.builder(
+                              itemCount:
+                                  state.schedules[_selectedDate]?.length ?? 0,
+                              itemBuilder: (context, index) {
+                                final schedule =
+                                    state.schedules[_selectedDate]![index];
+                                return ScheduleDetail(
+                                  schedule: schedule,
+                                  onEdit: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) => ScheduleEditScreen(
+                                        scheduleId: schedule.id,
+                                      ),
+                                    );
+                                  },
+                                  onDeleted: () {
+                                    context.read<MonthlySchedulesBloc>().add(
+                                          MonthlySchedulesScheduleDeleted(
+                                              schedule: schedule),
+                                        );
+                                  },
                                 );
-                          },
-                        );
-                      },
-                    ),
-                  );
-                },
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

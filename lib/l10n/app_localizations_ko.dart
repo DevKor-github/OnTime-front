@@ -15,7 +15,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get error => '오류';
 
   @override
-  String get noSchedules => '일정이 없습니다';
+  String get noSchedules => '약속이 없어요';
 
   @override
   String get setSpareTimeTitle => '여유시간을 설정해주세요';

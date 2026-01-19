@@ -21,11 +21,13 @@ class MonthCalendar extends StatefulWidget {
 
 class _MonthCalendarState extends State<MonthCalendar> {
   late DateTime _focusedDay;
+  late DateTime _selectedDay;
 
   @override
   void initState() {
     super.initState();
     _focusedDay = _clampDay(DateTime.now(), _firstDay, _lastDay);
+    _selectedDay = _focusedDay;
   }
 
   DateTime get _firstDay => DateTime(2000, 1, 1);
@@ -70,7 +72,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
     final calendarTheme = theme.extension<CalendarTheme>()!;
 
     return Container(
@@ -88,6 +89,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
         rowHeight: 50,
         availableGestures: AvailableGestures.none,
         focusedDay: _focusedDay,
+        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
         firstDay: _firstDay,
         lastDay: _lastDay,
         calendarFormat: CalendarFormat.month,
@@ -96,7 +98,10 @@ class _MonthCalendarState extends State<MonthCalendar> {
         daysOfWeekHeight: 40,
         calendarStyle: calendarTheme.calendarStyle,
         onDaySelected: (selectedDay, focusedDay) {
-          // Handle day selection if needed
+          setState(() {
+            _selectedDay = _clampDay(selectedDay, _firstDay, _lastDay);
+            _focusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+          });
         },
         onPageChanged: (focusedDay) {
           setState(() {
@@ -120,15 +125,26 @@ class _MonthCalendarState extends State<MonthCalendar> {
               rightIcon: calendarTheme.headerStyle.rightChevronIcon,
             );
           },
+          selectedBuilder: (context, day, focusedDay) {
+            final isToday = isSameDay(day, DateTime.now());
+
+            return Container(
+              margin: const EdgeInsets.all(4.0),
+              alignment: Alignment.center,
+              decoration: calendarTheme.selectedDayDecoration,
+              child: Text(
+                day.day.toString(),
+                style: calendarTheme.selectedDayTextStyle,
+              ),
+            );
+          },
           todayBuilder: (context, day, focusedDay) => Container(
             margin: const EdgeInsets.all(4.0),
             alignment: Alignment.center,
             decoration: calendarTheme.todayDecoration,
             child: Text(
               day.day.toString(),
-              style: textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onPrimary,
-              ),
+              style: calendarTheme.todayTextStyle,
             ),
           ),
         ),

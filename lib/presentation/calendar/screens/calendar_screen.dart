@@ -88,7 +88,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(12),
                   color: colorScheme.surface,
                 ),
                 child: Padding(
@@ -109,6 +109,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           return state.schedules[day] ?? [];
                         },
                         focusedDay: _selectedDate,
+                        selectedDayPredicate: (day) =>
+                            isSameDay(_selectedDate, day),
                         firstDay: _firstDay,
                         lastDay: _lastDay,
                         calendarFormat: CalendarFormat.month,
@@ -149,6 +151,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   calendarTheme.headerStyle.rightChevronIcon,
                             );
                           },
+                          selectedBuilder: (context, day, focusedDay) {
+                            return Container(
+                              margin: const EdgeInsets.all(4.0),
+                              alignment: Alignment.center,
+                              decoration: calendarTheme.selectedDayDecoration,
+                              child: Text(
+                                DateFormat.d(Localizations.localeOf(context)
+                                        .toString())
+                                    .format(day),
+                                style: calendarTheme.selectedDayTextStyle,
+                              ),
+                            );
+                          },
                           todayBuilder: (context, day, focusedDay) => Container(
                             margin: const EdgeInsets.all(4.0),
                             alignment: Alignment.center,
@@ -157,9 +172,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               DateFormat.d(Localizations.localeOf(context)
                                       .toString())
                                   .format(day),
-                              style: textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onPrimary,
-                              ),
+                              style: calendarTheme.todayTextStyle,
                             ),
                           ),
                         ),
@@ -186,6 +199,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           textAlign: TextAlign.start,
                         ),
                       ),
+                      const SizedBox(height: 18.0),
                       BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                         builder: (context, state) {
                           if (state.schedules[_selectedDate]?.isEmpty ?? true) {

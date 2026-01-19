@@ -394,6 +394,58 @@
     "sendFeedbackAndDelete": "Send feedback and delete",
     "@sendFeedbackAndDelete": {
         "description": "Button to send feedback and delete"
+    },
+    "preparationStartsInFiveMinutes": "Preparation starts in 5 minutes.\nWould you like to start preparing early?",
+    "@preparationStartsInFiveMinutes": {
+        "description": "Message shown when receiving 5 minutes before notification"
+    },
+    "startInFiveMinutes": "Start in 5 minutes",
+    "@startInFiveMinutes": {
+        "description": "Button text to start in 5 minutes"
+    },
+    "continuePreparingNext": "Continue preparing",
+    "@continuePreparingNext": {
+        "description": "Notification body text for continuing preparation"
+    },
+    "notificationAlreadyEnabled": "Notification Already Enabled",
+    "@notificationAlreadyEnabled": {
+        "description": "Dialog title when notification is already enabled"
+    },
+    "notificationAlreadyEnabledDescription": "App notifications are currently active.",
+    "@notificationAlreadyEnabledDescription": {
+        "description": "Dialog content when notification is already enabled"
+    },
+    "notificationPermissionRequired": "Notification Permission Required",
+    "@notificationPermissionRequired": {
+        "description": "Dialog title when requesting notification permission"
+    },
+    "notificationPermissionRequiredDescription": "We'll send you notifications so you don't miss your appointments.\nWould you like to allow notifications?",
+    "@notificationPermissionRequiredDescription": {
+        "description": "Dialog content when requesting notification permission"
+    },
+    "allow": "Allow",
+    "@allow": {
+        "description": "Button text to allow permission"
+    },
+    "notificationPermissionGranted": "Notification Permission Granted",
+    "@notificationPermissionGranted": {
+        "description": "Dialog title when notification permission is granted"
+    },
+    "notificationPermissionGrantedDescription": "Notifications have been successfully activated.",
+    "@notificationPermissionGrantedDescription": {
+        "description": "Dialog content when notification permission is granted"
+    },
+    "openNotificationSettings": "Allow Notifications in Settings",
+    "@openNotificationSettings": {
+        "description": "Dialog title to open notification settings"
+    },
+    "openNotificationSettingsDescription": "Notification permission was denied.\nPlease allow notifications in Settings.",
+    "@openNotificationSettingsDescription": {
+        "description": "Dialog content to open notification settings"
+    },
+    "openSettings": "Open Settings",
+    "@openSettings": {
+        "description": "Button text to open app settings"
     }
     
 }

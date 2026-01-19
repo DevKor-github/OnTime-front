@@ -205,24 +205,17 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       return;
     }
 
-    final title =
-        '[${newSchedule.scheduleName}] ${newCurrentStep.preparationName}';
-    const body = '이어서 준비하세요.';
-
-    NotificationService.instance.showLocalNotification(
-      title: title,
-      body: body,
-      payload: {
-        'type': 'preparation_step',
-        'scheduleId': scheduleId,
-        'stepId': newCurrentStep.id,
-      },
+    NotificationService.instance.showPreparationStepNotification(
+      scheduleName: newSchedule.scheduleName,
+      preparationName: newCurrentStep.preparationName,
+      scheduleId: scheduleId,
+      stepId: newCurrentStep.id,
     );
 
     notifiedStepIds.add(newCurrentStep.id);
     _notifiedStepIdsByScheduleId[scheduleId] = notifiedStepIds;
 
     debugPrint(
-        '[ScheduleBloc] 단계 변경 알림 표시: $title, stepId: ${newCurrentStep.id}');
+        '[ScheduleBloc] 단계 변경 알림 표시: [${newSchedule.scheduleName}] ${newCurrentStep.preparationName}, stepId: ${newCurrentStep.id}');
   }
 }

@@ -120,5 +120,27 @@
     "deleteFeedbackDescription": "더 나은 온타임이 될 수 있도록,\n어떤 점이 불편하셨는지\n알려주시면 감사하겠습니다.",
     "deleteFeedbackPlaceholder": "탈퇴하시는 이유를 알려주세요.",
     "keepUsingLong": "탈퇴하지 않고 계속 사용하기",
-    "sendFeedbackAndDelete": "의견 보내고 탈퇴하기"
+    "sendFeedbackAndDelete": "의견 보내고 탈퇴하기",
+    "preparationStartsInFiveMinutes": "5분 뒤에 준비가 시작돼요.\n미리 준비를 시작하시겠어요?",
+    "@preparationStartsInFiveMinutes": {
+        "description": "Message shown when receiving 5 minutes before notification"
+    },
+    "startInFiveMinutes": "5분 뒤에 시작하기",
+    "@startInFiveMinutes": {
+        "description": "Button text to start in 5 minutes"
+    },
+    "continuePreparingNext": "이어서 준비하세요",
+    "@continuePreparingNext": {
+        "description": "Notification body text for continuing preparation"
+    },
+    "notificationAlreadyEnabled": "알림이 이미 허용됨",
+    "notificationAlreadyEnabledDescription": "현재 앱 알림이 활성화되어 있습니다.",
+    "notificationPermissionRequired": "알림 권한 필요",
+    "notificationPermissionRequiredDescription": "약속 시간을 놓치지 않도록 알림을 보내드립니다.\n알림을 허용하시겠습니까?",
+    "allow": "허용",
+    "notificationPermissionGranted": "알림 허용 완료",
+    "notificationPermissionGrantedDescription": "알림이 성공적으로 활성화되었습니다.",
+    "openNotificationSettings": "설정에서 알림 허용",
+    "openNotificationSettingsDescription": "알림 권한이 거부되었습니다.\n설정에서 직접 알림을 허용해주세요.",
+    "openSettings": "설정 열기"
 }

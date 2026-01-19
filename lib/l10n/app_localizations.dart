@@ -625,6 +625,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send feedback and delete'**
   String get sendFeedbackAndDelete;
+
+  /// Message shown when receiving 5 minutes before notification
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation starts in 5 minutes.\nWould you like to start preparing early?'**
+  String get preparationStartsInFiveMinutes;
+
+  /// Button text to start in 5 minutes
+  ///
+  /// In en, this message translates to:
+  /// **'Start in 5 minutes'**
+  String get startInFiveMinutes;
+
+  /// Notification body text for continuing preparation
+  ///
+  /// In en, this message translates to:
+  /// **'Continue preparing'**
+  String get continuePreparingNext;
+
+  /// Dialog title when notification is already enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Already Enabled'**
+  String get notificationAlreadyEnabled;
+
+  /// Dialog content when notification is already enabled
+  ///
+  /// In en, this message translates to:
+  /// **'App notifications are currently active.'**
+  String get notificationAlreadyEnabledDescription;
+
+  /// Dialog title when requesting notification permission
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Permission Required'**
+  String get notificationPermissionRequired;
+
+  /// Dialog content when requesting notification permission
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send you notifications so you don\'t miss your appointments.\nWould you like to allow notifications?'**
+  String get notificationPermissionRequiredDescription;
+
+  /// Button text to allow permission
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get allow;
+
+  /// Dialog title when notification permission is granted
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Permission Granted'**
+  String get notificationPermissionGranted;
+
+  /// Dialog content when notification permission is granted
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications have been successfully activated.'**
+  String get notificationPermissionGrantedDescription;
+
+  /// Dialog title to open notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Notifications in Settings'**
+  String get openNotificationSettings;
+
+  /// Dialog content to open notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission was denied.\nPlease allow notifications in Settings.'**
+  String get openNotificationSettingsDescription;
+
+  /// Button text to open app settings
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
 }
 
 class _AppLocalizationsDelegate

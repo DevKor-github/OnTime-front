@@ -290,4 +290,46 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get sendFeedbackAndDelete => '의견 보내고 탈퇴하기';
+
+  @override
+  String get preparationStartsInFiveMinutes =>
+      '5분 뒤에 준비가 시작돼요.\n미리 준비를 시작하시겠어요?';
+
+  @override
+  String get startInFiveMinutes => '5분 뒤에 시작하기';
+
+  @override
+  String get continuePreparingNext => '이어서 준비하세요';
+
+  @override
+  String get notificationAlreadyEnabled => '알림이 이미 허용됨';
+
+  @override
+  String get notificationAlreadyEnabledDescription => '현재 앱 알림이 활성화되어 있습니다.';
+
+  @override
+  String get notificationPermissionRequired => '알림 권한 필요';
+
+  @override
+  String get notificationPermissionRequiredDescription =>
+      '약속 시간을 놓치지 않도록 알림을 보내드립니다.\n알림을 허용하시겠습니까?';
+
+  @override
+  String get allow => '허용';
+
+  @override
+  String get notificationPermissionGranted => '알림 허용 완료';
+
+  @override
+  String get notificationPermissionGrantedDescription => '알림이 성공적으로 활성화되었습니다.';
+
+  @override
+  String get openNotificationSettings => '설정에서 알림 허용';
+
+  @override
+  String get openNotificationSettingsDescription =>
+      '알림 권한이 거부되었습니다.\n설정에서 직접 알림을 허용해주세요.';
+
+  @override
+  String get openSettings => '설정 열기';
 }

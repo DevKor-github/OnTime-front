@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
@@ -11,6 +12,8 @@ import 'package:on_time_front/core/services/js_interop_service.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
 import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
+import 'package:permission_handler/permission_handler.dart'
+    as permission_handler;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -32,6 +35,19 @@ class NotificationService {
   final _messaging = FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
   bool _isFlutterLocalNotificationsInitialized = false;
+
+  String get _locale {
+    try {
+      final locale = ui.PlatformDispatcher.instance.locale;
+      return locale.languageCode;
+    } catch (e) {
+      return 'ko';
+    }
+  }
+
+  String _getLocalizedText(String ko, String en) {
+    return _locale == 'ko' ? ko : en;
+  }
 
   Future<void> initialize() async {
     try {
@@ -61,6 +77,38 @@ class NotificationService {
   Future<AuthorizationStatus> checkNotificationPermission() async {
     final settings = await _messaging.getNotificationSettings();
     return settings.authorizationStatus;
+  }
+
+  Future<AuthorizationStatus> requestPermission() async {
+    if (kIsWeb) {
+      await JsInteropService.requestNotificationPermission();
+      final settings = await _messaging.getNotificationSettings();
+      return settings.authorizationStatus;
+    } else {
+      final settings = await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+        announcement: false,
+        carPlay: false,
+        criticalAlert: false,
+      );
+
+      debugPrint('[FCM] Permission status: ${settings.authorizationStatus}');
+      return settings.authorizationStatus;
+    }
+  }
+
+  Future<bool> openNotificationSettings() async {
+    try {
+      final opened = await permission_handler.openAppSettings();
+      debugPrint('[FCM] 앱 설정 열기: $opened');
+      return opened;
+    } catch (e) {
+      debugPrint('[FCM] 앱 설정 열기 실패: $e');
+      return false;
+    }
   }
 
   Future<void> _requestPermission() async {
@@ -251,6 +299,26 @@ class NotificationService {
     }
   }
 
+  Future<void> showPreparationStepNotification({
+    required String scheduleName,
+    required String preparationName,
+    required String scheduleId,
+    required String stepId,
+  }) async {
+    final title = '[$scheduleName] $preparationName';
+    final body = _getLocalizedText('이어서 준비하세요.', 'Continue preparing');
+
+    await showLocalNotification(
+      title: title,
+      body: body,
+      payload: {
+        'type': 'preparation_step',
+        'scheduleId': scheduleId,
+        'stepId': stepId,
+      },
+    );
+  }
+
   Future<void> _setupMessageHandlers() async {
     //foreground message
     FirebaseMessaging.onMessage.listen(
@@ -293,12 +361,17 @@ class NotificationService {
       final scheduleId = data['scheduleId'] as String?;
       // final title = data['title'] as String?;
 
-      if (type != null &&
+      if (type != null && type.contains('5min')) {
+        getIt.get<NavigationService>().push(
+          '/scheduleStart',
+          extra: {'isFiveMinutesBefore': true},
+        );
+      } else if (type != null &&
               (type.startsWith('schedule_') ||
                   type.startsWith('preparation_')) ||
           scheduleId != null) {
         getIt.get<NavigationService>().push('/alarmScreen');
-      } 
+      }
       // else if (title != null && title.contains('약속')) {
       //   getIt.get<NavigationService>().push('/alarmScreen');
       // }
@@ -314,11 +387,16 @@ class NotificationService {
     final scheduleId = message.data['scheduleId'] as String?;
     // final title = message.data['title'] as String?;
 
-    if (type != null &&
+    if (type != null && type.contains('5min')) {
+      getIt.get<NavigationService>().push(
+        '/scheduleStart',
+        extra: {'isFiveMinutesBefore': true},
+      );
+    } else if (type != null &&
             (type.startsWith('schedule_') || type.startsWith('preparation_')) ||
         scheduleId != null) {
       getIt.get<NavigationService>().push('/alarmScreen');
-    } 
+    }
     // else if (title != null && title.contains('약속')) {
     //   getIt.get<NavigationService>().push('/alarmScreen');
     // }

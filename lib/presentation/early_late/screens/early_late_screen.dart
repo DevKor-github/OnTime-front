@@ -23,33 +23,37 @@ class EarlyLateScreen extends StatelessWidget {
       create: (context) => EarlyLateScreenBloc()
         ..add(LoadEarlyLateInfo(earlyLateTime: earlyLateTime))
         ..add(ChecklistLoaded(checklist: List.generate(3, (index) => false))),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(
-          children: [
-            BlocBuilder<EarlyLateScreenBloc, EarlyLateScreenState>(
-              builder: (context, state) {
-                if (state is EarlyLateScreenLoadSuccess) {
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 70),
-                        child: _EarlyLateSection(
-                          earlyLateTime: earlyLateTime,
-                          isLate: isLate,
-                          screenHeight: MediaQuery.of(context).size.height,
-                          earlylateMessage: state.earlylateMessage,
-                          earlylateImage: state.earlylateImage,
-                        ),
-                      ),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
+      child: Container(
+        color: Colors.white,
+        child: SafeArea(
+          child: Scaffold(
+            body: Stack(
+              children: [
+                BlocBuilder<EarlyLateScreenBloc, EarlyLateScreenState>(
+                  builder: (context, state) {
+                    if (state is EarlyLateScreenLoadSuccess) {
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 60),
+                            child: _EarlyLateSection(
+                              earlyLateTime: earlyLateTime,
+                              isLate: isLate,
+                              screenHeight: MediaQuery.of(context).size.height,
+                              earlylateMessage: state.earlylateMessage,
+                              earlylateImage: state.earlylateImage,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+                const _ButtonSection(),
+              ],
             ),
-            const _ButtonSection(),
-          ],
+          ),
         ),
       ),
     );
@@ -166,7 +170,7 @@ class _ButtonSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 20,
+      bottom: 30,
       left: 0,
       right: 0,
       child: Center(

@@ -10,8 +10,8 @@ class ScheduleCreateScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
+    return Container(
+      color: Colors.white,
       child: SafeArea(
         child: FractionallySizedBox(
           heightFactor: 0.85,

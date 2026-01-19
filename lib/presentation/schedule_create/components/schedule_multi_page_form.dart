@@ -79,7 +79,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
           ],
           child: Builder(builder: (context) {
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Column(
                 children: [
                   TopBar(

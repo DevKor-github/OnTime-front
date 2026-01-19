@@ -50,32 +50,39 @@ class HomeScreenContent extends StatelessWidget {
             bloc.state.user.mapOrNull((user) => user.score) ?? -1);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Container(
-            color: colorScheme.primary,
-            padding: const EdgeInsets.only(top: 58.0),
-            child: Column(
-              children: [
-                _CharacterSection(score: score),
-                _TodaysScheduleOverlay(),
-              ],
+    return BlocListener<ScheduleBloc, ScheduleState>(
+      listener: (context, scheduleState) {
+        if (scheduleState.status == ScheduleStatus.started) {
+          context.go('/scheduleStart');
+        }
+      },
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Container(
+              color: colorScheme.primary,
+              padding: const EdgeInsets.only(top: 58.0),
+              child: Column(
+                children: [
+                  _CharacterSection(score: score),
+                  _TodaysScheduleOverlay(),
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.only(
-                top: 0.0, left: 16.0, right: 16.0, bottom: 24.0),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
+            Container(
+              padding: const EdgeInsets.only(
+                  top: 0.0, left: 16.0, right: 16.0, bottom: 24.0),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+              ),
+              child: _MonthlySchedule(
+                monthlySchedulesState: state,
+              ),
             ),
-            child: _MonthlySchedule(
-              monthlySchedulesState: state,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -96,6 +103,11 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                     scheduleState.status == ScheduleStatus.initial
                 ? null
                 : scheduleState.schedule;
+
+        final isScheduleReady =
+            scheduleState.status == ScheduleStatus.ongoing ||
+                scheduleState.status == ScheduleStatus.started;
+        final hasSchedule = todaySchedule != null;
 
         return Stack(
           alignment: Alignment.bottomCenter,
@@ -136,7 +148,9 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                       SizedBox(height: 21.0),
                       TodaysScheduleTile(
                         schedule: todaySchedule,
-                        onTap: () => context.go('/alarmScreen'),
+                        onTap: isScheduleReady && hasSchedule
+                            ? () => context.go('/alarmScreen')
+                            : null,
                       )
                     ],
                   ),
@@ -165,6 +179,9 @@ class _MonthlySchedule extends StatelessWidget {
         _MonthlyScheduleHeader(),
         MonthCalendar(
           monthlySchedulesState: monthlySchedulesState,
+          onDateSelected: (date) {
+            context.go('/calendar', extra: date);
+          },
         ),
       ],
     );

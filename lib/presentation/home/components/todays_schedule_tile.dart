@@ -62,7 +62,7 @@ class TodaysScheduleTile extends StatelessWidget {
     final theme = Theme.of(context);
     return InkWell(
       borderRadius: BorderRadius.circular(8),
-      onTap: schedule == null ? null : onTap,
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: schedule == null

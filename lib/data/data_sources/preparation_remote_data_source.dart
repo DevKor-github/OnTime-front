@@ -145,7 +145,7 @@ class PreparationRemoteDataSourceImpl implements PreparationRemoteDataSource {
           PreparationScheduleModifyRequestModelListExtension.fromEntityList(
               preparationEntity.preparationStepList);
 
-      final result = await dio.post(
+      final result = await dio.put(
         Endpoint.updatePreparationByScheduleId(scheduleId),
         data: updateModel.map((model) => model.toJson()).toList(),
       );

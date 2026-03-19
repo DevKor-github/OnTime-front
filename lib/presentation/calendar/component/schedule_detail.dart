@@ -47,9 +47,14 @@ class _VerticalDivider extends StatelessWidget {
 
 class ScheduleDetail extends StatefulWidget {
   ScheduleDetail(
-      {super.key, required this.schedule, this.onDeleted, this.onEdit});
+      {super.key,
+      required this.schedule,
+      this.preparationTime,
+      this.onDeleted,
+      this.onEdit});
 
   final ScheduleEntity schedule;
+  final Duration? preparationTime;
   final VoidCallback? onEdit;
   final VoidCallback? onDeleted;
 
@@ -130,6 +135,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
                 child: _ScheduleDetailsColumn(
                   schedule: widget.schedule,
                   placeName: widget.schedule.place.placeName,
+                  preparationTime: widget.preparationTime,
                 ),
               ),
             ],
@@ -173,10 +179,13 @@ class _ScheduleTimeColumn extends StatelessWidget {
 
 class _ScheduleDetailsColumn extends StatelessWidget {
   const _ScheduleDetailsColumn(
-      {required this.schedule, required this.placeName});
+      {required this.schedule,
+      required this.placeName,
+      required this.preparationTime});
 
   final ScheduleEntity schedule;
   final String placeName;
+  final Duration? preparationTime;
 
   @override
   Widget build(BuildContext context) {
@@ -235,6 +244,12 @@ class _ScheduleDetailsColumn extends StatelessWidget {
                   _ScheduleInfoTile(
                     label: AppLocalizations.of(context)!.travelTime,
                     value: formatDuration(context, schedule.moveTime),
+                  ),
+                  _ScheduleInfoTile(
+                    label: AppLocalizations.of(context)!.preparationTime,
+                    value: preparationTime == null
+                        ? '-'
+                        : formatDuration(context, preparationTime!),
                   ),
                   _ScheduleInfoTile(
                     label: AppLocalizations.of(context)!.spareTime,

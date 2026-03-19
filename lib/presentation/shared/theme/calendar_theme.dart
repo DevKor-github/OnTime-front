@@ -6,13 +6,20 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
   final HeaderStyle headerStyle;
   final CalendarStyle calendarStyle;
   final DaysOfWeekStyle daysOfWeekStyle;
-  final BoxDecoration? todayDecoration;
+  final BoxDecoration selectedDayDecoration;
+  final BoxDecoration todayDecoration;
+
+  final TextStyle selectedDayTextStyle;
+  final TextStyle todayTextStyle;
 
   const CalendarTheme({
     required this.headerStyle,
     required this.calendarStyle,
     required this.daysOfWeekStyle,
-    this.todayDecoration,
+    required this.selectedDayDecoration,
+    required this.todayDecoration,
+    required this.selectedDayTextStyle,
+    required this.todayTextStyle,
   });
 
   @override
@@ -20,13 +27,20 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
     HeaderStyle? headerStyle,
     CalendarStyle? calendarStyle,
     DaysOfWeekStyle? daysOfWeekStyle,
+    BoxDecoration? selectedDayDecoration,
     BoxDecoration? todayDecoration,
+    TextStyle? selectedDayTextStyle,
+    TextStyle? todayTextStyle,
   }) {
     return CalendarTheme(
       headerStyle: headerStyle ?? this.headerStyle,
       calendarStyle: calendarStyle ?? this.calendarStyle,
       daysOfWeekStyle: daysOfWeekStyle ?? this.daysOfWeekStyle,
+      selectedDayDecoration:
+          selectedDayDecoration ?? this.selectedDayDecoration,
       todayDecoration: todayDecoration ?? this.todayDecoration,
+      selectedDayTextStyle: selectedDayTextStyle ?? this.selectedDayTextStyle,
+      todayTextStyle: todayTextStyle ?? this.todayTextStyle,
     );
   }
 
@@ -41,6 +55,8 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
   }
 
   static CalendarTheme from(ColorScheme colorScheme, TextTheme textTheme) {
+    final dayTextBase = textTheme.bodySmall ?? textTheme.bodyLarge!;
+
     return CalendarTheme(
       headerStyle: HeaderStyle(
         formatButtonVisible: false,
@@ -72,10 +88,16 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
         ),
         markerMargin: const EdgeInsets.symmetric(horizontal: 1.0),
       ),
-      todayDecoration: BoxDecoration(
+      selectedDayDecoration: BoxDecoration(
         color: colorScheme.primary,
         shape: BoxShape.circle,
       ),
+      todayDecoration: BoxDecoration(
+        color: colorScheme.outlineVariant,
+        shape: BoxShape.circle,
+      ),
+      selectedDayTextStyle: dayTextBase.copyWith(color: colorScheme.onPrimary),
+      todayTextStyle: dayTextBase.copyWith(color: colorScheme.onPrimary),
     );
   }
 

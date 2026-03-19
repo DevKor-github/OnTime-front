@@ -179,12 +179,17 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   }
 
   void _updateCurrentPageIndex(int index) {
+    _unfocusCurrentInput();
     _tabController.index = index;
     _pageViewController.animateToPage(
       index,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
     );
+  }
+
+  void _unfocusCurrentInput() {
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   void _reinitializeCurrentStep(BuildContext context) {

@@ -10,7 +10,7 @@ class TopBar extends StatelessWidget {
   });
 
   final void Function()? onNextPageButtonClicked;
-  final void Function() onPreviousPageButtonClicked;
+  final void Function()? onPreviousPageButtonClicked;
   final bool isNextButtonEnabled; // 버튼 활성화 여부
 
   @override
@@ -25,14 +25,15 @@ class TopBar extends StatelessWidget {
             Icons.arrow_back_ios_rounded,
             color: colorScheme.outlineVariant,
           ),
-          onPressed: () {
-            onPreviousPageButtonClicked();
-          },
+          onPressed: onPreviousPageButtonClicked,
         ),
         Expanded(
           child: Center(
-              child: Text(AppLocalizations.of(context)!.addAppointment,
-                  style: Theme.of(context).textTheme.titleLarge)),
+            child: Text(
+              AppLocalizations.of(context)!.addAppointment,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
         ),
         // 다음 페이지 버튼
         // 버튼 활성화 여부에 따라 색상 변화 추후 추가 가능

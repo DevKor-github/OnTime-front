@@ -39,82 +39,110 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   void initState() {
     _pageViewController = PageController();
     _tabController = TabController(length: _pageCubitTypes.length, vsync: this);
-    formKeys =
-        List.generate(_tabController.length, (index) => GlobalKey<FormState>());
+    formKeys = List.generate(
+      _tabController.length,
+      (index) => GlobalKey<FormState>(),
+    );
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
-      builder: (context, state) {
-        if (state.status == ScheduleFormStatus.error) {
-          return Text(AppLocalizations.of(context)!.error);
-        } else if (state.status == ScheduleFormStatus.loading) {
-          return const Center(child: CircularProgressIndicator());
+    return BlocListener<ScheduleFormBloc, ScheduleFormState>(
+      listenWhen: (previous, current) =>
+          previous.submissionStatus != current.submissionStatus,
+      listener: (context, state) {
+        if (state.submissionStatus == ScheduleFormSubmissionStatus.success) {
+          Navigator.of(context).pop(true);
+        } else if (state.submissionStatus ==
+            ScheduleFormSubmissionStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+          );
         }
-
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider<ScheduleNameCubit>(
-              create: (context) => ScheduleNameCubit(
-                scheduleFormBloc: context.read<ScheduleFormBloc>(),
-              ),
-            ),
-            BlocProvider(
-              create: (context) => getIt.get<ScheduleDateTimeCubit>(
-                param1: context.read<ScheduleFormBloc>(),
-              ),
-            ),
-            BlocProvider(
-              create: (context) => SchedulePlaceMovingTimeCubit(
-                scheduleFormBloc: context.read<ScheduleFormBloc>(),
-              ),
-            ),
-            BlocProvider(
-              create: (context) => ScheduleFormSpareTimeCubit(
-                scheduleFormBloc: context.read<ScheduleFormBloc>(),
-              ),
-            ),
-          ],
-          child: Builder(builder: (context) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Column(
-                children: [
-                  TopBar(
-                    onNextPageButtonClicked: state.isValid
-                        ? () => _onNextPageButtonClicked(context)
-                        : null,
-                    // 버튼 활성화 판별
-                    isNextButtonEnabled: state.isValid,
-                    onPreviousPageButtonClicked: _onPreviousPageButtonClicked,
-                  ),
-                  SizedBox(height: 26),
-                  StepProgress(
-                    currentStep: _tabController.index,
-                    totalSteps: _tabController.length,
-                    singleLine: true,
-                  ),
-                  SizedBox(height: 41),
-                  Expanded(
-                      child: PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    controller: _pageViewController,
-                    onPageChanged: _handlePageViewChanged,
-                    children: [
-                      ScheduleNameForm(),
-                      ScheduleDateTimeForm(),
-                      SchedulePlaceMovingTimeForm(),
-                      ScheduleSpareAndPreparingTimeForm(),
-                    ],
-                  )),
-                ],
-              ),
-            );
-          }),
-        );
       },
+      child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
+        builder: (context, state) {
+          if (state.status == ScheduleFormStatus.error) {
+            return Text(AppLocalizations.of(context)!.error);
+          } else if (state.status == ScheduleFormStatus.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final isSubmitting =
+              state.submissionStatus == ScheduleFormSubmissionStatus.submitting;
+
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider<ScheduleNameCubit>(
+                create: (context) => ScheduleNameCubit(
+                  scheduleFormBloc: context.read<ScheduleFormBloc>(),
+                ),
+              ),
+              BlocProvider(
+                create: (context) => getIt.get<ScheduleDateTimeCubit>(
+                  param1: context.read<ScheduleFormBloc>(),
+                ),
+              ),
+              BlocProvider(
+                create: (context) => SchedulePlaceMovingTimeCubit(
+                  scheduleFormBloc: context.read<ScheduleFormBloc>(),
+                ),
+              ),
+              BlocProvider(
+                create: (context) => ScheduleFormSpareTimeCubit(
+                  scheduleFormBloc: context.read<ScheduleFormBloc>(),
+                ),
+              ),
+            ],
+            child: Builder(
+              builder: (context) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    children: [
+                      TopBar(
+                        onNextPageButtonClicked:
+                            (state.isValid && !isSubmitting)
+                            ? () => _onNextPageButtonClicked(context)
+                            : null,
+                        // 버튼 활성화 판별
+                        isNextButtonEnabled: state.isValid && !isSubmitting,
+                        onPreviousPageButtonClicked: isSubmitting
+                            ? null
+                            : _onPreviousPageButtonClicked,
+                      ),
+                      SizedBox(height: 26),
+                      StepProgress(
+                        currentStep: _tabController.index,
+                        totalSteps: _tabController.length,
+                        singleLine: true,
+                      ),
+                      SizedBox(height: 41),
+                      Expanded(
+                        child: PageView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          controller: _pageViewController,
+                          onPageChanged: _handlePageViewChanged,
+                          children: [
+                            ScheduleNameForm(),
+                            ScheduleDateTimeForm(),
+                            SchedulePlaceMovingTimeForm(),
+                            ScheduleSpareAndPreparingTimeForm(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -154,8 +182,6 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
       _reinitializeCurrentStep(context);
     } else {
       widget.onSaved?.call();
-      Navigator.of(context).pop(); // Close the form
-      // context.go('/home');
     }
   }
 

@@ -14,9 +14,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleRemoteDataSource scheduleRemoteDataSource;
 
   late final _scheduleStreamController =
-      BehaviorSubject<Set<ScheduleEntity>>.seeded(
-    const <ScheduleEntity>{},
-  );
+      BehaviorSubject<Set<ScheduleEntity>>.seeded(const <ScheduleEntity>{});
 
   ScheduleRepositoryImpl({
     required this.scheduleLocalDataSource,
@@ -32,8 +30,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       await scheduleRemoteDataSource.createSchedule(schedule);
       //await scheduleLocalDataSource.createSchedule(schedule);
-      _scheduleStreamController
-          .add(Set.from(_scheduleStreamController.value)..add(schedule));
+      _scheduleStreamController.add(
+        Set.from(_scheduleStreamController.value)..add(schedule),
+      );
     } catch (e) {
       rethrow;
     }
@@ -44,8 +43,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       await scheduleRemoteDataSource.deleteSchedule(schedule);
       //await scheduleLocalDataSource.deleteSchedule(schedule);
-      _scheduleStreamController
-          .add(Set.from(_scheduleStreamController.value)..remove(schedule));
+      _scheduleStreamController.add(
+        Set.from(_scheduleStreamController.value)..remove(schedule),
+      );
     } catch (e) {
       rethrow;
     }
@@ -55,8 +55,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<ScheduleEntity> getScheduleById(String id) async {
     try {
       final schedule = await scheduleRemoteDataSource.getScheduleById(id);
-      _scheduleStreamController
-          .add(Set.from(_scheduleStreamController.value)..add(schedule));
+      _scheduleStreamController.add(
+        Set.from(_scheduleStreamController.value)..add(schedule),
+      );
       return schedule;
     } catch (e) {
       rethrow;
@@ -65,12 +66,22 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate) async {
+    DateTime startDate,
+    DateTime? endDate,
+  ) async {
     try {
-      final schedules =
-          await scheduleRemoteDataSource.getSchedulesByDate(startDate, endDate);
-      _scheduleStreamController
-          .add(Set.from(_scheduleStreamController.value)..addAll(schedules));
+      final schedules = await scheduleRemoteDataSource.getSchedulesByDate(
+        startDate,
+        endDate,
+      );
+      final mergedSchedules = Set<ScheduleEntity>.from(
+        _scheduleStreamController.value,
+      );
+      for (final schedule in schedules) {
+        mergedSchedules.removeWhere((existing) => existing.id == schedule.id);
+        mergedSchedules.add(schedule);
+      }
+      _scheduleStreamController.add(mergedSchedules);
       return schedules;
     } catch (e) {
       rethrow;
@@ -81,9 +92,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> updateSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.updateSchedule(schedule);
-      _scheduleStreamController.add(Set.from(_scheduleStreamController.value)
-        ..remove(schedule)
-        ..add(schedule));
+      _scheduleStreamController.add(
+        Set.from(_scheduleStreamController.value)
+          ..remove(schedule)
+          ..add(schedule),
+      );
       //await scheduleLocalDataSource.updateSchedule(schedule);
     } catch (e) {
       rethrow;
@@ -97,11 +110,14 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       final lateStatus = latenessTime > 0
           ? ScheduleDoneStatus.lateEnd
           : ScheduleDoneStatus.normalEnd;
-      final schedule = _scheduleStreamController.value
-          .firstWhere((schedule) => schedule.id == scheduleId);
-      _scheduleStreamController.add(Set.from(_scheduleStreamController.value)
-        ..remove(schedule)
-        ..add(schedule.copyWith(doneStatus: lateStatus)));
+      final schedule = _scheduleStreamController.value.firstWhere(
+        (schedule) => schedule.id == scheduleId,
+      );
+      _scheduleStreamController.add(
+        Set.from(_scheduleStreamController.value)
+          ..remove(schedule)
+          ..add(schedule.copyWith(doneStatus: lateStatus)),
+      );
     } catch (e) {
       rethrow;
     }

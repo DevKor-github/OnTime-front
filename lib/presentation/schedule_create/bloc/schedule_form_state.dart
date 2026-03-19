@@ -2,10 +2,16 @@ part of 'schedule_form_bloc.dart';
 
 enum ScheduleFormStatus { initial, loading, success, error }
 
+enum ScheduleFormSubmissionStatus { idle, submitting, success, failure }
+
 enum IsPreparationChanged { changed, unchanged }
 
 final class ScheduleFormState extends Equatable {
+  static const _unset = Object();
+
   final ScheduleFormStatus status;
+  final ScheduleFormSubmissionStatus submissionStatus;
+  final String? submissionError;
   final String id;
   final String? placeName;
   final String? scheduleName;
@@ -21,6 +27,8 @@ final class ScheduleFormState extends Equatable {
 
   ScheduleFormState({
     this.status = ScheduleFormStatus.initial,
+    this.submissionStatus = ScheduleFormSubmissionStatus.idle,
+    this.submissionError,
     String? id,
     this.placeName,
     this.scheduleName,
@@ -37,6 +45,8 @@ final class ScheduleFormState extends Equatable {
 
   ScheduleFormState copyWith({
     ScheduleFormStatus? status,
+    ScheduleFormSubmissionStatus? submissionStatus,
+    Object? submissionError = _unset,
     String? id,
     String? placeName,
     String? scheduleName,
@@ -52,6 +62,10 @@ final class ScheduleFormState extends Equatable {
   }) {
     return ScheduleFormState(
       status: status ?? this.status,
+      submissionStatus: submissionStatus ?? this.submissionStatus,
+      submissionError: identical(submissionError, _unset)
+          ? this.submissionError
+          : submissionError as String?,
       id: id ?? this.id,
       placeName: placeName ?? this.placeName,
       scheduleName: scheduleName ?? this.scheduleName,
@@ -90,17 +104,20 @@ final class ScheduleFormState extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        placeName,
-        scheduleName,
-        scheduleTime,
-        moveTime,
-        isChanged,
-        scheduleSpareTime,
-        scheduleNote,
-        preparation,
-        isValid,
-        maxAvailableTime,
-        previousScheduleName,
-      ];
+    status,
+    submissionStatus,
+    submissionError,
+    id,
+    placeName,
+    scheduleName,
+    scheduleTime,
+    moveTime,
+    isChanged,
+    scheduleSpareTime,
+    scheduleNote,
+    preparation,
+    isValid,
+    maxAvailableTime,
+    previousScheduleName,
+  ];
 }

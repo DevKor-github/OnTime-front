@@ -296,6 +296,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteAnyway => 'Delete anyway';
 
   @override
+  String get scheduleDeleteConfirmTitle =>
+      'Are you sure you want to delete this appointment?';
+
+  @override
+  String get scheduleDeleteConfirmDescription =>
+      'Once deleted, this appointment cannot be restored.';
+
+  @override
+  String get deleteScheduleConfirmAction => 'Delete appointment';
+
+  @override
   String get deleteFeedbackTitle =>
       'We hope to meet you again with a better service';
 

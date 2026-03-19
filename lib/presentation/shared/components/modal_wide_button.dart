@@ -8,6 +8,7 @@ class ModalWideButton extends StatelessWidget {
   final TextStyle? textStyle;
   final double width;
   final double height;
+  final bool isFlexible;
 
   const ModalWideButton({
     super.key,
@@ -18,12 +19,15 @@ class ModalWideButton extends StatelessWidget {
     this.textStyle,
     this.width = 245,
     this.height = 43,
+    this.isFlexible = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
+    final minimumSize = isFlexible ? Size.zero : Size(width, height);
+
+    final button = SizedBox(
+      width: isFlexible ? null : width,
       height: height,
       child: TextButton(
         onPressed: onPressed,
@@ -38,16 +42,24 @@ class ModalWideButton extends StatelessWidget {
             const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           ),
           alignment: Alignment.center,
-          minimumSize: WidgetStateProperty.all(Size(width, height)),
+          minimumSize: WidgetStateProperty.all(minimumSize),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: VisualDensity.compact,
         ),
         child: Text(
           text,
           textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: textStyle ?? TextStyle(color: textColor),
         ),
       ),
     );
+
+    if (isFlexible) {
+      return Expanded(child: button);
+    }
+
+    return button;
   }
 }

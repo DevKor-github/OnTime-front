@@ -375,6 +375,18 @@
     "@deleteAnyway": {
         "description": "Button label to proceed with deletion anyway"
     },
+    "scheduleDeleteConfirmTitle": "Are you sure you want to delete this appointment?",
+    "@scheduleDeleteConfirmTitle": {
+        "description": "Title of schedule delete confirmation dialog"
+    },
+    "scheduleDeleteConfirmDescription": "Once deleted, this appointment cannot be restored.",
+    "@scheduleDeleteConfirmDescription": {
+        "description": "Description of schedule delete confirmation dialog"
+    },
+    "deleteScheduleConfirmAction": "Delete appointment",
+    "@deleteScheduleConfirmAction": {
+        "description": "Button text to confirm schedule deletion"
+    },
     "deleteFeedbackTitle": "We hope to meet you again with a better service",
     "@deleteFeedbackTitle": {
         "description": "Delete feedback modal title"

@@ -117,7 +117,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     vertical: 16.0,
                     horizontal: 8.0,
                   ),
-                  child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
+                  child:
+                      BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                     builder: (context, state) {
                       if (state.status == MonthlySchedulesStatus.error) {
                         return Text(AppLocalizations.of(context)!.error);
@@ -229,13 +230,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                         builder: (context, state) {
                           if (state.schedules[_selectedDate]?.isEmpty ?? true) {
-                            if (state.status == MonthlySchedulesStatus.loading) {
+                            if (state.status ==
+                                MonthlySchedulesStatus.loading) {
                               return const CircularProgressIndicator();
                             }
 
-                            if (state.status != MonthlySchedulesStatus.success) {
+                            if (state.status !=
+                                MonthlySchedulesStatus.success) {
                               return const SizedBox();
                             }
+
+                            final now = DateTime.now();
+                            final today =
+                                DateTime(now.year, now.month, now.day);
+                            final selected = DateTime(
+                              _selectedDate.year,
+                              _selectedDate.month,
+                              _selectedDate.day,
+                            );
+                            final isPastSelectedDay = selected.isBefore(today);
 
                             return Padding(
                               padding: const EdgeInsets.all(39.0),
@@ -248,36 +261,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       color: theme.colorScheme.outlineVariant,
                                     ),
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (context) =>
-                                            const ScheduleCreateScreen(),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: theme.colorScheme.surface,
-                                      side: BorderSide(
-                                        width: 0.5,
-                                        color: theme.colorScheme.outlineVariant,
+                                  if (!isPastSelectedDay)
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) =>
+                                              ScheduleCreateScreen(
+                                            initialDate: _selectedDate,
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            theme.colorScheme.surface,
+                                        side: BorderSide(
+                                          width: 0.5,
+                                          color:
+                                              theme.colorScheme.outlineVariant,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0,
+                                          horizontal: 12.0,
+                                        ),
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 4.0,
-                                        horizontal: 12.0,
+                                      child: Text(
+                                        AppLocalizations.of(context)!
+                                            .addAppointment,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ),
-                                    child: Text(
-                                      AppLocalizations.of(context)!
-                                          .addAppointment,
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        color:
-                                            theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
                                 ],
                               ),
                             );
@@ -285,7 +303,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                           return Expanded(
                             child: ListView.builder(
-                              itemCount: state.schedules[_selectedDate]?.length ?? 0,
+                              itemCount:
+                                  state.schedules[_selectedDate]?.length ?? 0,
                               itemBuilder: (context, index) {
                                 final schedule =
                                     state.schedules[_selectedDate]![index];

@@ -6,7 +6,9 @@ import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bl
 import 'package:on_time_front/presentation/schedule_create/components/schedule_multi_page_form.dart';
 
 class ScheduleCreateScreen extends StatelessWidget {
-  const ScheduleCreateScreen({super.key});
+  const ScheduleCreateScreen({super.key, this.initialDate});
+
+  final DateTime? initialDate;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class ScheduleCreateScreen extends StatelessWidget {
               child: BlocProvider<ScheduleFormBloc>(
                 create: (context) => getIt.get<ScheduleFormBloc>(
                   param1: context.read<AuthBloc>(),
-                )..add(ScheduleFormCreateRequested()),
+                )..add(ScheduleFormCreateRequested(initialDate: initialDate)),
                 child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
                   builder: (context, state) {
                     return ScheduleMultiPageForm(

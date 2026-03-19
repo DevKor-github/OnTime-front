@@ -128,7 +128,7 @@ class TwoActionDialog extends StatelessWidget {
                 ),
               ));
 
-    return CustomAlertDialog.error(
+    return CustomAlertDialog(
       title: titleText,
       content: bodyContent,
       actions: [
@@ -161,6 +161,9 @@ class TwoActionDialog extends StatelessWidget {
       ],
       actionsAlignment: MainAxisAlignment.center,
       innerPadding: config.innerPadding,
+      alignment: Alignment.center,
+      titleTextAlign: TextAlign.center,
+      contentTextAlign: TextAlign.center,
       titleContentSpacing: config.titleContentSpacing,
       contentActionsSpacing: config.contentActionsSpacing,
     );

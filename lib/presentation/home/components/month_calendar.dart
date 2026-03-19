@@ -10,10 +10,12 @@ class MonthCalendar extends StatefulWidget {
     super.key,
     required this.monthlySchedulesState,
     this.dispatchBlocEvents = true,
+    this.onDateSelected,
   });
 
   final MonthlySchedulesState monthlySchedulesState;
   final bool dispatchBlocEvents;
+  final void Function(DateTime)? onDateSelected;
 
   @override
   State<MonthCalendar> createState() => _MonthCalendarState();
@@ -23,16 +25,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
   late DateTime _focusedDay;
   late DateTime _selectedDay;
 
-  @override
-  void initState() {
-    super.initState();
-    _focusedDay = _clampDay(DateTime.now(), _firstDay, _lastDay);
-    _selectedDay = _focusedDay;
-  }
+  DateTime get _firstDay => DateTime(2024, 1, 1);
 
-  DateTime get _firstDay => DateTime(2000, 1, 1);
-
-  // Keep this comfortably in the future so the calendar doesn't break as time passes.
   DateTime get _lastDay => DateTime(DateTime.now().year + 5, 12, 31);
 
   DateTime _clampDay(DateTime day, DateTime firstDay, DateTime lastDay) {
@@ -45,27 +39,44 @@ class _MonthCalendarState extends State<MonthCalendar> {
     return d;
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _focusedDay = _clampDay(DateTime.now(), _firstDay, _lastDay);
+    _selectedDay = _focusedDay;
+  }
+
   void _onLeftArrowTap() {
-    final DateTime nextFocusedDay =
-        DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
+    final nextFocusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
+    final clampedFocusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
+
     setState(() {
-      _focusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
+      _focusedDay = clampedFocusedDay;
     });
+
     if (widget.dispatchBlocEvents) {
-      context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
-          date: DateTime(nextFocusedDay.year, nextFocusedDay.month, 1)));
+      context.read<MonthlySchedulesBloc>().add(
+            MonthlySchedulesMonthAdded(
+              date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+            ),
+          );
     }
   }
 
   void _onRightArrowTap() {
-    final DateTime nextFocusedDay =
-        DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
+    final nextFocusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
+    final clampedFocusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
+
     setState(() {
-      _focusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
+      _focusedDay = clampedFocusedDay;
     });
+
     if (widget.dispatchBlocEvents) {
-      context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
-          date: DateTime(nextFocusedDay.year, nextFocusedDay.month, 1)));
+      context.read<MonthlySchedulesBloc>().add(
+            MonthlySchedulesMonthAdded(
+              date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+            ),
+          );
     }
   }
 
@@ -98,20 +109,33 @@ class _MonthCalendarState extends State<MonthCalendar> {
         daysOfWeekHeight: 40,
         calendarStyle: calendarTheme.calendarStyle,
         onDaySelected: (selectedDay, focusedDay) {
+          final clampedSelectedDay = _clampDay(selectedDay, _firstDay, _lastDay);
+          final clampedFocusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+
           setState(() {
-            _selectedDay = _clampDay(selectedDay, _firstDay, _lastDay);
-            _focusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+            _selectedDay = clampedSelectedDay;
+            _focusedDay = clampedFocusedDay;
           });
+
+          widget.onDateSelected?.call(clampedSelectedDay);
         },
         onPageChanged: (focusedDay) {
+          final clampedFocusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+
           setState(() {
-            _focusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+            _focusedDay = clampedFocusedDay;
           });
+
           if (widget.dispatchBlocEvents) {
-            final clampedDay = _clampDay(focusedDay, _firstDay, _lastDay);
-            context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
-                date: DateTime(
-                    clampedDay.year, clampedDay.month, clampedDay.day)));
+            context.read<MonthlySchedulesBloc>().add(
+                  MonthlySchedulesMonthAdded(
+                    date: DateTime(
+                      clampedFocusedDay.year,
+                      clampedFocusedDay.month,
+                      1,
+                    ),
+                  ),
+                );
           }
         },
         calendarBuilders: CalendarBuilders(
@@ -126,8 +150,6 @@ class _MonthCalendarState extends State<MonthCalendar> {
             );
           },
           selectedBuilder: (context, day, focusedDay) {
-            final isToday = isSameDay(day, DateTime.now());
-
             return Container(
               margin: const EdgeInsets.all(4.0),
               alignment: Alignment.center,

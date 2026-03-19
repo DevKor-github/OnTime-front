@@ -13,6 +13,8 @@ final class WeeklySchedulesState extends Equatable {
       schedules.map((schedule) => schedule.scheduleTime).toList();
   ScheduleEntity? get todaySchedule => schedules
       .where((schedule) {
+        if (schedule.doneStatus != ScheduleDoneStatus.notEnded) return false;
+        
         final now = DateTime.now();
         return schedule.scheduleTime.year == now.year &&
             schedule.scheduleTime.month == now.month &&

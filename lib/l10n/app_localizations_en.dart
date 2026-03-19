@@ -312,4 +312,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sendFeedbackAndDelete => 'Send feedback and delete';
+
+  @override
+  String get preparationStartsInFiveMinutes =>
+      'Preparation starts in 5 minutes.\nWould you like to start preparing early?';
+
+  @override
+  String get startInFiveMinutes => 'Start in 5 minutes';
+
+  @override
+  String get continuePreparingNext => 'Continue preparing';
+
+  @override
+  String get notificationAlreadyEnabled => 'Notification Already Enabled';
+
+  @override
+  String get notificationAlreadyEnabledDescription =>
+      'App notifications are currently active.';
+
+  @override
+  String get notificationPermissionRequired =>
+      'Notification Permission Required';
+
+  @override
+  String get notificationPermissionRequiredDescription =>
+      'We\'ll send you notifications so you don\'t miss your appointments.\nWould you like to allow notifications?';
+
+  @override
+  String get allow => 'Allow';
+
+  @override
+  String get notificationPermissionGranted => 'Notification Permission Granted';
+
+  @override
+  String get notificationPermissionGrantedDescription =>
+      'Notifications have been successfully activated.';
+
+  @override
+  String get openNotificationSettings => 'Allow Notifications in Settings';
+
+  @override
+  String get openNotificationSettingsDescription =>
+      'Notification permission was denied.\nPlease allow notifications in Settings.';
+
+  @override
+  String get openSettings => 'Open Settings';
 }

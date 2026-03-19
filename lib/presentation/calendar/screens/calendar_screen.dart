@@ -14,7 +14,9 @@ import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  const CalendarScreen({super.key, this.initialDate});
+
+  final DateTime? initialDate;
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
@@ -25,7 +27,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   DateTime get _firstDay => DateTime(2024, 12, 1);
 
-  // Keep this comfortably in the future so the calendar doesn't break as time passes.
   DateTime get _lastDay => DateTime(DateTime.now().year + 5, 12, 31);
 
   DateTime _clampDay(DateTime day, DateTime firstDay, DateTime lastDay) {
@@ -41,19 +42,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = _clampDay(DateTime.now(), _firstDay, _lastDay);
+
+    final initial = widget.initialDate == null
+        ? DateTime.now()
+        : DateTime(
+            widget.initialDate!.year,
+            widget.initialDate!.month,
+            widget.initialDate!.day,
+          );
+
+    _selectedDate = _clampDay(initial, _firstDay, _lastDay);
   }
 
   void _onLeftArrowTap() {
+    final next = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
+
     setState(() {
-      final next = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
       _selectedDate = _clampDay(next, _firstDay, _lastDay);
     });
   }
 
   void _onRightArrowTap() {
+    final next = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+
     setState(() {
-      final next = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
       _selectedDate = _clampDay(next, _firstDay, _lastDay);
     });
   }
@@ -63,13 +75,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
-    final todaysDate = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
     final calendarTheme = theme.extension<CalendarTheme>()!;
 
     return BlocProvider(
       create: (context) => getIt.get<MonthlySchedulesBloc>()
-        ..add(MonthlySchedulesSubscriptionRequested(date: todaysDate)),
+        ..add(
+          MonthlySchedulesSubscriptionRequested(
+            date: DateTime(
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+              0,
+              0,
+              0,
+            ),
+          ),
+        ),
       child: Scaffold(
         backgroundColor: colorScheme.surfaceContainerLow,
         appBar: AppBar(
@@ -93,9 +114,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 8.0),
-                  child:
-                      BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
+                    vertical: 16.0,
+                    horizontal: 8.0,
+                  ),
+                  child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                     builder: (context, state) {
                       if (state.status == MonthlySchedulesStatus.error) {
                         return Text(AppLocalizations.of(context)!.error);
@@ -122,20 +144,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             _selectedDate =
                                 _clampDay(selectedDay, _firstDay, _lastDay);
                           });
-                          debugPrint(selectedDay.toIso8601String());
                         },
                         onPageChanged: (focusedDay) {
-                          setState(() {
-                            _selectedDate =
-                                _clampDay(focusedDay, _firstDay, _lastDay);
-                          });
-                          debugPrint(_selectedDate.toIso8601String());
-                          final clampedDay =
+                          final clampedFocusedDay =
                               _clampDay(focusedDay, _firstDay, _lastDay);
+
+                          setState(() {
+                            _selectedDate = clampedFocusedDay;
+                          });
+
                           context.read<MonthlySchedulesBloc>().add(
-                              MonthlySchedulesMonthAdded(
-                                  date: DateTime(clampedDay.year,
-                                      clampedDay.month, clampedDay.day)));
+                                MonthlySchedulesMonthAdded(
+                                  date: DateTime(
+                                    clampedFocusedDay.year,
+                                    clampedFocusedDay.month,
+                                    clampedFocusedDay.day,
+                                  ),
+                                ),
+                              );
                         },
                         calendarBuilders: CalendarBuilders(
                           headerTitleBuilder: (context, date) {
@@ -157,9 +183,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               alignment: Alignment.center,
                               decoration: calendarTheme.selectedDayDecoration,
                               child: Text(
-                                DateFormat.d(Localizations.localeOf(context)
-                                        .toString())
-                                    .format(day),
+                                DateFormat.d(
+                                  Localizations.localeOf(context).toString(),
+                                ).format(day),
                                 style: calendarTheme.selectedDayTextStyle,
                               ),
                             );
@@ -169,9 +195,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             alignment: Alignment.center,
                             decoration: calendarTheme.todayDecoration,
                             child: Text(
-                              DateFormat.d(Localizations.localeOf(context)
-                                      .toString())
-                                  .format(day),
+                              DateFormat.d(
+                                Localizations.localeOf(context).toString(),
+                              ).format(day),
                               style: calendarTheme.todayTextStyle,
                             ),
                           ),
@@ -193,8 +219,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         width: double.infinity,
                         child: Text(
                           DateFormat.MMMMd(
-                                  Localizations.localeOf(context).toString())
-                              .format(_selectedDate),
+                            Localizations.localeOf(context).toString(),
+                          ).format(_selectedDate),
                           style: textTheme.headlineExtraSmall,
                           textAlign: TextAlign.start,
                         ),
@@ -203,66 +229,67 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                         builder: (context, state) {
                           if (state.schedules[_selectedDate]?.isEmpty ?? true) {
-                            if (state.status ==
-                                MonthlySchedulesStatus.loading) {
-                              return CircularProgressIndicator();
-                            } else if (state.status !=
-                                MonthlySchedulesStatus.success) {
+                            if (state.status == MonthlySchedulesStatus.loading) {
+                              return const CircularProgressIndicator();
+                            }
+
+                            if (state.status != MonthlySchedulesStatus.success) {
                               return const SizedBox();
-                            } else {
-                              return Padding(
-                                padding: const EdgeInsets.all(39.0),
-                                child: Column(
-                                  spacing: 16.0,
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(context)!.noSchedules,
-                                      style: textTheme.titleMedium?.copyWith(
+                            }
+
+                            return Padding(
+                              padding: const EdgeInsets.all(39.0),
+                              child: Column(
+                                spacing: 16.0,
+                                children: [
+                                  Text(
+                                    AppLocalizations.of(context)!.noSchedules,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: theme.colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (context) =>
+                                            const ScheduleCreateScreen(),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: theme.colorScheme.surface,
+                                      side: BorderSide(
+                                        width: 0.5,
                                         color: theme.colorScheme.outlineVariant,
                                       ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          builder: (context) =>
-                                              const ScheduleCreateScreen(),
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            theme.colorScheme.surface,
-                                        side: BorderSide(
-                                          width: 0.5,
-                                          color:
-                                              theme.colorScheme.outlineVariant,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 4.0, horizontal: 12.0),
-                                      ),
-                                      child: Text(
-                                        "약속 추가하기",
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          color: theme
-                                              .colorScheme.onSurfaceVariant,
-                                        ),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4.0,
+                                        horizontal: 12.0,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              );
-                            }
+                                    child: Text(
+                                      AppLocalizations.of(context)!
+                                          .addAppointment,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
                           }
 
                           return Expanded(
                             child: ListView.builder(
-                              itemCount:
-                                  state.schedules[_selectedDate]?.length ?? 0,
+                              itemCount: state.schedules[_selectedDate]?.length ?? 0,
                               itemBuilder: (context, index) {
                                 final schedule =
                                     state.schedules[_selectedDate]![index];
+
                                 return ScheduleDetail(
                                   schedule: schedule,
                                   onEdit: () {
@@ -278,7 +305,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   onDeleted: () {
                                     context.read<MonthlySchedulesBloc>().add(
                                           MonthlySchedulesScheduleDeleted(
-                                              schedule: schedule),
+                                            schedule: schedule,
+                                          ),
                                         );
                                   },
                                 );

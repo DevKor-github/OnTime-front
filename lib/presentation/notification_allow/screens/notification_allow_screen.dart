@@ -4,6 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
+import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class NotificationAllowScreen extends StatelessWidget {
@@ -56,13 +58,7 @@ class _Buttons extends StatelessWidget {
       children: [
         FilledButton(
           onPressed: () async {
-            await NotificationService.instance.initialize();
-            final permission = await NotificationService.instance
-                .checkNotificationPermission();
-            NotificationService.instance.requestNotificationToken();
-            if (permission == AuthorizationStatus.authorized) {
-              context.go('/home');
-            }
+            await _handleNotificationPermission(context);
           },
           child: Text(
             AppLocalizations.of(context)!.allowNotifications,
@@ -72,15 +68,20 @@ class _Buttons extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          width: 358,
-          child: Text(
-            AppLocalizations.of(context)!.doItLater,
-            textAlign: TextAlign.center,
-            style: textTheme.bodyLarge?.copyWith(
-              color: AppColors.grey[400],
-              decoration: TextDecoration.underline,
-              decorationColor: AppColors.grey[400],
+        GestureDetector(
+          onTap: () {
+            context.go('/home');
+          },
+          child: SizedBox(
+            width: 358,
+            child: Text(
+              AppLocalizations.of(context)!.doItLater,
+              textAlign: TextAlign.center,
+              style: textTheme.bodyLarge?.copyWith(
+                color: AppColors.grey[400],
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.grey[400],
+              ),
             ),
           ),
         ),
@@ -150,4 +151,77 @@ class _Image extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _handleNotificationPermission(BuildContext context) async {
+  final notificationService = NotificationService.instance;
+  final currentStatus = await notificationService.checkNotificationPermission();
+
+  if (!context.mounted) return;
+
+  if (currentStatus == AuthorizationStatus.authorized) {
+    await notificationService.initialize();
+    if (context.mounted) {
+      context.go('/home');
+    }
+  } else if (currentStatus == AuthorizationStatus.denied) {
+    final shouldOpenSettings = await _showGoToSettingsDialog(context);
+    if (shouldOpenSettings == true) {
+      await notificationService.openNotificationSettings();
+    }
+  } else if (currentStatus == AuthorizationStatus.notDetermined) {
+    final newStatus = await notificationService.requestPermission();
+
+    if (!context.mounted) return;
+
+    if (newStatus == AuthorizationStatus.authorized) {
+      await notificationService.initialize();
+      if (context.mounted) {
+        context.go('/home');
+      }
+    } else if (newStatus == AuthorizationStatus.denied) {
+      final shouldOpenSettings = await _showGoToSettingsDialog(context);
+      if (shouldOpenSettings == true) {
+        await notificationService.openNotificationSettings();
+      }
+    }
+  } else {
+    final shouldOpenSettings = await _showGoToSettingsDialog(context);
+    if (shouldOpenSettings == true) {
+      await notificationService.openNotificationSettings();
+    }
+  }
+}
+
+Future<bool?> _showGoToSettingsDialog(BuildContext context) async {
+  final colorScheme = Theme.of(context).colorScheme;
+  final textTheme = Theme.of(context).textTheme;
+  final l10n = AppLocalizations.of(context)!;
+
+  return showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => CustomAlertDialog(
+      title: Text(l10n.openNotificationSettings),
+      content: Text(l10n.openNotificationSettingsDescription),
+      actions: [
+        ModalButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          text: l10n.doItLater,
+          color: colorScheme.surfaceContainerHighest,
+          textStyle: textTheme.titleSmall?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        ModalButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          text: l10n.openSettings,
+          color: colorScheme.primary,
+          textStyle: textTheme.titleSmall?.copyWith(
+            color: colorScheme.onPrimary,
+          ),
+        ),
+      ],
+    ),
+  );
 }

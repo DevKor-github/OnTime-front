@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/presentation/home/bloc/weekly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
@@ -34,36 +35,43 @@ class _HomeScreenState extends State<HomeScreen> {
     return BlocProvider(
       create: (context) => getIt.get<WeeklySchedulesBloc>()
         ..add(WeeklySchedulesSubscriptionRequested(date: dateOfToday)),
-      child: BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
-        builder: (context, state) {
-          return Container(
-            color: AppColors.white,
-            child: Column(
-              children: [
-                SizedBox(height: 58.0),
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    _PunctualityIndicator(score: score),
-                    todaysScheduleOverlayBuilder(state),
-                  ],
-                ),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.only(
-                        top: 50.0, left: 16.0, right: 16.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.blue[100],
-                    ),
-                    child: _WeeklySchedule(
-                      weeklySchedulesState: state,
+      child: BlocListener<ScheduleBloc, ScheduleState>(
+        listener: (context, scheduleState) {
+          if (scheduleState.status == ScheduleStatus.started) {
+            context.go('/scheduleStart');
+          }
+        },
+        child: BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
+          builder: (context, state) {
+            return Container(
+              color: AppColors.white,
+              child: Column(
+                children: [
+                  SizedBox(height: 58.0),
+                  Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      _PunctualityIndicator(score: score),
+                      todaysScheduleOverlayBuilder(state),
+                    ],
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                          top: 50.0, left: 16.0, right: 16.0),
+                      decoration: BoxDecoration(
+                        color: AppColors.blue[100],
+                      ),
+                      child: _WeeklySchedule(
+                        weeklySchedulesState: state,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -97,9 +105,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: theme.textTheme.titleMedium,
                     ),
                     SizedBox(height: 21.0),
-                    TodaysScheduleTile(
-                      schedule: state.todaySchedule,
-                      onTap: () => context.go('/alarmScreen'),
+                    BlocBuilder<ScheduleBloc, ScheduleState>(
+                      builder: (context, scheduleState) {
+                        final isScheduleReady =
+                            scheduleState.status == ScheduleStatus.ongoing ||
+                                scheduleState.status == ScheduleStatus.started;
+                        final hasSchedule = state.todaySchedule != null;
+                        return TodaysScheduleTile(
+                          schedule: state.todaySchedule,
+                          onTap: isScheduleReady && hasSchedule
+                              ? () => context.go('/alarmScreen')
+                              : null,
+                        );
+                      },
                     )
                   ],
                 ),
@@ -192,7 +210,9 @@ class _WeekCalendar extends StatelessWidget {
 
     return WeekCalendar(
       date: DateTime.now(),
-      onDateSelected: (date) {},
+      onDateSelected: (date) {
+        context.go('/calendar', extra: date);
+      },
       highlightedDates: weeklySchedulesState.dates,
     );
   }

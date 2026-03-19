@@ -34,8 +34,8 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
     'drag_indicator.svg',
     package: 'assets',
     semanticsLabel: 'drag indicator',
-    height: 14,
-    width: 14,
+    height: 18,
+    width: 18,
     fit: BoxFit.contain,
   );
 
@@ -65,7 +65,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Tile(
         key: ValueKey<String>(widget.preparationStep.id),
-        style: TileStyle(padding: EdgeInsets.all(16.0)),
+        style: TileStyle(padding: EdgeInsets.fromLTRB(21, 19, 21, 19)),
         leading: widget.index == null
             ? dragIndicatorSvg
             : ReorderableDragStartListener(
@@ -93,6 +93,8 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
                     contentPadding: EdgeInsets.all(3.0),
                   ),
                   style: textTheme.bodyLarge,

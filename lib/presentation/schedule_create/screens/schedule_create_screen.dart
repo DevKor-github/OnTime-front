@@ -11,6 +11,7 @@ class ScheduleCreateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Material(
       color: Colors.transparent,
       child: SafeArea(
@@ -21,10 +22,9 @@ class ScheduleCreateScreen extends StatelessWidget {
           child: FractionallySizedBox(
             heightFactor: 0.85,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: BlocProvider<ScheduleFormBloc>(
                 create: (context) => getIt.get<ScheduleFormBloc>(

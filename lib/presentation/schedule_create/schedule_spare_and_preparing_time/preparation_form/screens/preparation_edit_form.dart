@@ -47,6 +47,7 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                     onPreviousPageButtonClicked: context.pop,
                     isNextButtonEnabled: state.isValid,
                   ),
+                  const SizedBox(height: 24),
                   Expanded(
                     child: PreparationFormCreateList(
                       preparationNameState: state,

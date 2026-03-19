@@ -27,7 +27,6 @@ class AlarmScreenTopSection extends StatelessWidget {
           isLate: isLate,
           beforeOutTime: beforeOutTime,
         ),
-        const SizedBox(height: 10),
         _AlarmGraphSection(
           preparationName: preparationName,
           preparationRemainingTime: preparationRemainingTime,
@@ -50,7 +49,7 @@ class _BeforeOutTimeText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 45),
+      padding: const EdgeInsets.only(top: 75),
       child: Text(
         isLate ? '지각이에요!' : '${formatTime(beforeOutTime)} 뒤에 나가야 해요',
         style: const TextStyle(

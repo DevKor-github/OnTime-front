@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
+import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
@@ -35,6 +36,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   Timer? _scheduleStartTimer;
   String? _currentScheduleId;
   Timer? _preparationTimer;
+  final Map<String, Set<String>> _notifiedStepIdsByScheduleId = {};
 
   Future<void> _onSubscriptionRequested(
       ScheduleSubscriptionRequested event, Emitter<ScheduleState> emit) async {
@@ -59,15 +61,18 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         event.upcomingSchedule!.scheduleTime.isBefore(DateTime.now())) {
       emit(const ScheduleState.notExists());
       _currentScheduleId = null;
+      _notifiedStepIdsByScheduleId.clear();
     } else if (_isPreparationOnGoing(event.upcomingSchedule!)) {
       emit(ScheduleState.ongoing(event.upcomingSchedule!));
       debugPrint(
           'ongoingSchedule: ${event.upcomingSchedule}, currentStep: ${event.upcomingSchedule!.preparation.currentStep}');
+      _initializeNotificationTracking(event.upcomingSchedule!);
       _startPreparationTimer();
     } else {
       emit(ScheduleState.upcoming(event.upcomingSchedule!));
       debugPrint('upcomingSchedule: ${event.upcomingSchedule}');
       _currentScheduleId = event.upcomingSchedule!.id;
+      _initializeNotificationTracking(event.upcomingSchedule!);
       _startScheduleTimer(event.upcomingSchedule!);
     }
   }
@@ -79,6 +84,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       // Mark the schedule as started by updating the state
       debugPrint('scheddle started: ${state.schedule}');
       emit(ScheduleState.started(state.schedule!));
+      _initializeNotificationTracking(state.schedule!);
       _navigationService.push('/scheduleStart');
       _startPreparationTimer();
     }
@@ -93,6 +99,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final newSchedule =
         ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
             state.schedule!, updatedPreparation);
+
+    _checkAndNotifyStepChange(state.schedule!, newSchedule);
 
     emit(state.copyWith(schedule: newSchedule));
   }
@@ -162,5 +170,52 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         schedule.scheduleTime.isAfter(DateTime.now());
   }
 
-  // Removed unused helper since we now split in the event
+  void _initializeNotificationTracking(ScheduleWithPreparationEntity schedule) {
+    final scheduleId = schedule.id;
+    if (!_notifiedStepIdsByScheduleId.containsKey(scheduleId)) {
+      _notifiedStepIdsByScheduleId[scheduleId] = {};
+    }
+  }
+
+  void _checkAndNotifyStepChange(
+    ScheduleWithPreparationEntity oldSchedule,
+    ScheduleWithPreparationEntity newSchedule,
+  ) {
+    if (newSchedule.preparation.isAllStepsDone) {
+      return;
+    }
+
+    final scheduleId = newSchedule.id;
+    final oldCurrentStep = oldSchedule.preparation.currentStep;
+    final newCurrentStep = newSchedule.preparation.currentStep;
+
+    if (oldCurrentStep?.id == newCurrentStep?.id || newCurrentStep == null) {
+      return;
+    }
+
+    final firstStep = newSchedule.preparation.preparationStepList.isNotEmpty
+        ? newSchedule.preparation.preparationStepList.first
+        : null;
+    if (firstStep != null && newCurrentStep.id == firstStep.id) {
+      return;
+    }
+
+    final notifiedStepIds = _notifiedStepIdsByScheduleId[scheduleId] ?? {};
+    if (notifiedStepIds.contains(newCurrentStep.id)) {
+      return;
+    }
+
+    NotificationService.instance.showPreparationStepNotification(
+      scheduleName: newSchedule.scheduleName,
+      preparationName: newCurrentStep.preparationName,
+      scheduleId: scheduleId,
+      stepId: newCurrentStep.id,
+    );
+
+    notifiedStepIds.add(newCurrentStep.id);
+    _notifiedStepIdsByScheduleId[scheduleId] = notifiedStepIds;
+
+    debugPrint(
+        '[ScheduleBloc] 단계 변경 알림 표시: [${newSchedule.scheduleName}] ${newCurrentStep.preparationName}, stepId: ${newCurrentStep.id}');
+  }
 }

@@ -95,7 +95,7 @@ class _EndPreparationButtonSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.only(top: 16, bottom: 20),
       child: Center(
         child: ElevatedButton(
           onPressed: onEndPreparation,

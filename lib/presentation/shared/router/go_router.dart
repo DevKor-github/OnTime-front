@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
@@ -100,7 +101,12 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
         builder: (context, state) => PreparationSpareTimeEditScreen(),
       ),
       GoRoute(path: '/signIn', builder: (context, state) => SignInMainScreen()),
-      GoRoute(path: '/calendar', builder: (context, state) => CalendarScreen()),
+      GoRoute(
+        path: '/calendar',
+        builder: (context, state) => CalendarScreen(
+          initialDate: state.extra as DateTime?,
+        ),
+      ),
       GoRoute(
           path: '/scheduleCreate',
           builder: (context, state) => ScheduleCreateScreen()),
@@ -119,7 +125,10 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
           if (schedule == null) {
             return const SizedBox.shrink();
           }
-          return const ScheduleStartScreen();
+          final extra = state.extra as Map<String, dynamic>?;
+          final isFiveMinutesBefore =
+              extra?['isFiveMinutesBefore'] as bool? ?? false;
+          return ScheduleStartScreen(isFiveMinutesBefore: isFiveMinutesBefore);
         },
       ),
       GoRoute(

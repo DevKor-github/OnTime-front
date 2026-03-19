@@ -17,13 +17,13 @@ class PreparationTimeInput extends StatelessWidget {
       children: [
         GestureDetector(
           child: Container(
+            width: 50,
+            height: 30,
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 1.0),
+            child: Center(
               child: Text(
                 (time.inMinutes < 10 ? '0' : '') +
                     (time.inMinutes < 0 ? '0' : time.inMinutes.toString()),

@@ -109,11 +109,7 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
         scheduleSpareTime: state.spareTime.value!,
       ));
     }
-    if (state.preparation != null) {
-      scheduleFormBloc.add(ScheduleFormPreparationChanged(
-        preparation: state.preparation!,
-      ));
-    }
+    // preparation은 preparationChanged에서 이미 ScheduleFormPreparationChanged를 호출했으므로 여기서는 호출하지 않음
   }
 
   void preparationChanged(PreparationEntity preparation) {
@@ -134,6 +130,10 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
       overlapDuration: overlapCheck.overlapDuration,
       isOverlapping: overlapCheck.isOverlapping,
       clearOverlap: overlapCheck.overlapDuration == null,
+    ));
+
+    scheduleFormBloc.add(ScheduleFormPreparationChanged(
+      preparation: preparation,
     ));
 
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));

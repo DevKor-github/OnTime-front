@@ -276,6 +276,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get deleteAnyway => '그래도 탈퇴할게요';
 
   @override
+  String get scheduleDeleteConfirmTitle => '정말 약속을 삭제할까요?';
+
+  @override
+  String get scheduleDeleteConfirmDescription => '약속을 삭제하면 다시 되돌릴 수 없어요.';
+
+  @override
+  String get deleteScheduleConfirmAction => '약속 삭제';
+
+  @override
   String get deleteFeedbackTitle => '더 좋은 서비스로 다시 만나요';
 
   @override

@@ -1,102 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
-import 'package:on_time_front/presentation/shared/components/modal_error_button.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
+import 'package:widgetbook_workspace/dialog_story_helpers.dart';
 
 @widgetbook.UseCase(
-  name: 'default',
+  name: 'Primitive',
   type: CustomAlertDialog,
 )
-Widget customAlertDialog(BuildContext context) {
+Widget customAlertDialogPrimitiveUseCase(BuildContext context) {
   final titleText = context.knobs.string(
     label: 'Dialog Title',
     initialValue: '정말 나가시겠어요?',
   );
 
   final contentText = context.knobs.string(
-    label: 'Dilog Content',
+    label: 'Dialog Content',
     initialValue: '이 화면을 나가면\n함께 약속을 준비할 수 없게 돼요',
   );
 
-  return Container(
-    height: double.infinity,
-    width: double.infinity,
-    color: Colors.black.withValues(
-      alpha: 0.4,
-    ),
+  final centerText = context.knobs.boolean(
+    label: 'Center Text',
+    initialValue: false,
+  );
+
+  return DialogStoryBackdrop(
     child: CustomAlertDialog(
-      title: Text(
-        titleText,
-        style: const TextStyle(
-          fontSize: 16,
-        ),
-      ),
-      content: Text(
-        contentText,
-      ),
+      title: Text(titleText, style: const TextStyle(fontSize: 16)),
+      content: Text(contentText),
       actionsAlignment: MainAxisAlignment.spaceBetween,
       alignment: Alignment.center,
+      titleTextAlign: centerText ? TextAlign.center : TextAlign.start,
+      contentTextAlign: centerText ? TextAlign.center : TextAlign.start,
+      titleContentSpacing: centerText ? 6.0 : null,
+      contentActionsSpacing: 16.0,
       actions: [
-        ModalButton(
-          onPressed: () {},
-          text: '나갈래요',
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          textColor: Theme.of(context).colorScheme.onSurface,
+        _buildActionButton(
+          text: '취소',
+          variant: ModalWideButtonVariant.neutral,
+          width: 114,
         ),
-        ModalButton(
-          onPressed: () {},
-          text: '있을게요',
-          color: Theme.of(context).colorScheme.primary,
-          textColor: Theme.of(context).colorScheme.surface,
-        )
+        _buildActionButton(
+          text: '확인',
+          variant: ModalWideButtonVariant.primary,
+          width: 114,
+        ),
       ],
     ),
   );
 }
 
-@widgetbook.UseCase(
-  name: 'Error',
-  type: CustomAlertDialog,
-)
-Widget errorCusmtomAlertDialog(BuildContext context) {
-  final titleText = context.knobs.string(
-    label: 'Dialog Title',
-    initialValue: '다 챙기셨나요?',
-  );
-
-  final contentText = context.knobs.string(
-    label: 'Dolog Content',
-    initialValue: '아직 챙기지 않은 것들이 있어요.',
-  );
-
-  return Container(
-    height: double.infinity,
-    width: double.infinity,
-    color: Colors.black.withValues(
-      alpha: 0.4,
-    ),
-    child: CustomAlertDialog.error(
-      title: Text(
-        titleText,
-        style: const TextStyle(
-          fontSize: 16,
-        ),
-      ),
-      content: Text(
-        contentText,
-      ),
-      actionsAlignment: MainAxisAlignment.spaceBetween,
-      alignment: Alignment.center,
-      actions: [
-        ModalErrorButton(
-          onPressed: () {},
-          text: '확인',
-          color: Theme.of(context).colorScheme.error,
-          textColor: Theme.of(context).colorScheme.surface,
-        )
-      ],
+Widget _buildActionButton({
+  required String text,
+  required ModalWideButtonVariant variant,
+  required double width,
+  double height = 43,
+}) {
+  return SizedBox(
+    width: width,
+    child: ModalWideButton(
+      onPressed: () {},
+      text: text,
+      variant: variant,
+      layout: ModalWideButtonLayout.full,
+      height: height,
     ),
   );
 }

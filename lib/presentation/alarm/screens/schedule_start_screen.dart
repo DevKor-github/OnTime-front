@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
-import 'package:on_time_front/presentation/shared/components/modal_button.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class ScheduleStartScreen extends StatefulWidget {
@@ -22,14 +22,29 @@ class ScheduleStartScreen extends StatefulWidget {
 }
 
 class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
-  void _showModal(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return _ScheduleStartScreenModal();
-      },
+  Future<void> _showModal(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    final result = await showTwoActionDialog(
+      context,
+      config: TwoActionDialogConfig(
+        title: l10n.confirmLeave,
+        description: l10n.confirmLeaveDescription,
+        barrierDismissible: false,
+        secondaryAction: DialogActionConfig(
+          label: l10n.leave,
+          variant: ModalWideButtonVariant.neutral,
+        ),
+        primaryAction: DialogActionConfig(
+          label: l10n.stay,
+          variant: ModalWideButtonVariant.primary,
+        ),
+      ),
     );
+
+    if (result == DialogActionResult.secondary && context.mounted) {
+      context.go('/home');
+    }
   }
 
   bool _isFiveMinutesBefore() {
@@ -122,7 +137,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                 right: 10,
                 child: IconButton(
                   icon: const Icon(Icons.close),
-                  onPressed: () => _showModal(context),
+                  onPressed: () async => _showModal(context),
                 ),
               ),
             ],
@@ -174,34 +189,6 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ScheduleStartScreenModal extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return CustomAlertDialog(
-      title: Text(
-        AppLocalizations.of(context)!.confirmLeave,
-      ),
-      content: Text(
-        AppLocalizations.of(context)!.confirmLeaveDescription,
-      ),
-      actions: [
-        ModalButton(
-          onPressed: () => context.go('/home'),
-          text: AppLocalizations.of(context)!.leave,
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
-          textColor: Theme.of(context).colorScheme.outline,
-        ),
-        ModalButton(
-          onPressed: () => Navigator.pop(context),
-          text: AppLocalizations.of(context)!.stay,
-          color: Theme.of(context).colorScheme.primary,
-          textColor: Theme.of(context).colorScheme.onPrimary,
-        ),
-      ],
     );
   }
 }

@@ -28,8 +28,9 @@ class CustomAlertDialog extends StatelessWidget {
     this.scrollable = false,
     this.titleContentSpacing,
     this.contentActionsSpacing,
-  })  : _defaultTitleTextAlign = TextAlign.start,
-        _defualtContentTextAlign = TextAlign.start;
+    this.titleTextAlign = TextAlign.start,
+    this.contentTextAlign = TextAlign.start,
+  });
 
   final Widget? title;
 
@@ -75,37 +76,8 @@ class CustomAlertDialog extends StatelessWidget {
   final double? titleContentSpacing;
 
   final double? contentActionsSpacing;
-
-  final TextAlign _defaultTitleTextAlign;
-  final TextAlign _defualtContentTextAlign;
-
-  const CustomAlertDialog.error({
-    super.key,
-    this.title,
-    this.titleTextStyle,
-    this.content,
-    this.contentTextStyle,
-    this.actions,
-    this.actionsAlignment,
-    this.actionsOverflowAlignment,
-    this.actionsOverflowDirection,
-    this.actionsOverflowButtonSpacing,
-    this.buttonPadding,
-    this.backgroundColor,
-    this.elevation,
-    this.shadowColor,
-    this.surfaceTintColor,
-    this.semanticLabel,
-    this.innerPadding,
-    this.insetPadding,
-    this.clipBehavior,
-    this.shape,
-    this.alignment = Alignment.center,
-    this.scrollable = false,
-    this.titleContentSpacing = 6.0,
-    this.contentActionsSpacing = 16.0,
-  })  : _defaultTitleTextAlign = TextAlign.center,
-        _defualtContentTextAlign = TextAlign.center;
+  final TextAlign titleTextAlign;
+  final TextAlign contentTextAlign;
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +111,7 @@ class CustomAlertDialog extends StatelessWidget {
         style: titleTextStyle ??
             dialogTheme.titleTextStyle ??
             defaults.titleTextStyle!,
-        textAlign: _defaultTitleTextAlign,
+        textAlign: titleTextAlign,
         child: Semantics(
           namesRoute: label == null && theme.platform != TargetPlatform.iOS,
           container: true,
@@ -153,7 +125,7 @@ class CustomAlertDialog extends StatelessWidget {
         style: contentTextStyle ??
             dialogTheme.contentTextStyle ??
             defaults.contentTextStyle!,
-        textAlign: _defualtContentTextAlign,
+        textAlign: contentTextAlign,
         child: Semantics(
           container: true,
           explicitChildNodes: true,

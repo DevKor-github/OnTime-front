@@ -9,6 +9,7 @@ import 'package:on_time_front/presentation/calendar/component/schedule_detail.da
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
+import 'package:on_time_front/presentation/shared/components/two_button_delete_dialog.dart';
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -299,44 +300,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ],
                               ),
                             );
-                          }
-
-                          return Expanded(
-                            child: ListView.builder(
-                              itemCount:
-                                  state.schedules[_selectedDate]?.length ?? 0,
-                              itemBuilder: (context, index) {
-                                final schedule =
-                                    state.schedules[_selectedDate]![index];
-
-                                return ScheduleDetail(
-                                  schedule: schedule,
-                                  onEdit: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (context) => ScheduleEditScreen(
-                                        scheduleId: schedule.id,
-                                      ),
-                                    );
-                                  },
-                                  onDeleted: () {
-                                    context.read<MonthlySchedulesBloc>().add(
-                                          MonthlySchedulesScheduleDeleted(
-                                            schedule: schedule,
-                                          ),
-                                        );
-                                  },
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                          },
+                          onDeleted: () {
+                            showTwoButtonDeleteDialog(
+                              context,
+                              title: AppLocalizations.of(context)!
+                                  .scheduleDeleteConfirmTitle,
+                              description: AppLocalizations.of(context)!
+                                  .scheduleDeleteConfirmDescription,
+                              cancelText: AppLocalizations.of(context)!.cancel,
+                              confirmText: AppLocalizations.of(context)!
+                                  .deleteScheduleConfirmAction,
+                            ).then((confirmed) {
+                              if (confirmed != true || !context.mounted) {
+                                return;
+                              }
+                              context.read<MonthlySchedulesBloc>().add(
+                                    MonthlySchedulesScheduleDeleted(
+                                        schedule: schedule),
+                                  );
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
             ],
           ),

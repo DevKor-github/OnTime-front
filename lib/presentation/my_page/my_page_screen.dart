@@ -8,8 +8,8 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/my_page/my_page_modal/delete_user_modal.dart';
 import 'package:on_time_front/presentation/my_page/my_page_modal/logout_modal.dart';
-import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
-import 'package:on_time_front/presentation/shared/components/modal_button.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({super.key});
@@ -204,6 +204,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
 
       if (newStatus == AuthorizationStatus.authorized) {
         await notificationService.initialize();
+        if (!context.mounted) return;
         await _showPermissionGrantedDialog(context);
       } else if (newStatus == AuthorizationStatus.denied) {
         await _showGoToSettingsDialog(context);
@@ -218,6 +219,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
 
       if (newStatus == AuthorizationStatus.authorized) {
         await notificationService.initialize();
+        if (!context.mounted) return;
         await _showPermissionGrantedDialog(context);
       } else if (newStatus == AuthorizationStatus.denied) {
         await _showGoToSettingsDialog(context);
@@ -229,222 +231,79 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
 }
 
 Future<void> _showAlreadyEnabledDialog(BuildContext context) async {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
   final l10n = AppLocalizations.of(context)!;
 
-  return showDialog(
-    context: context,
-    builder: (context) => CustomAlertDialog.error(
-      title: Text(
-        l10n.notificationAlreadyEnabled,
-        style: textTheme.titleMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w600,
-          height: 1.4,
-          fontSize: 18,
-          color: colorScheme.onSurface,
-        ),
+  await showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: l10n.notificationAlreadyEnabled,
+      description: l10n.notificationAlreadyEnabledDescription,
+      primaryAction: DialogActionConfig(
+        label: l10n.ok,
+        variant: ModalWideButtonVariant.primary,
       ),
-      content: Text(
-        l10n.notificationAlreadyEnabledDescription,
-        style: textTheme.bodyMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w400,
-          height: 1.4,
-          fontSize: 14,
-          color: colorScheme.outline,
-        ),
-      ),
-      actions: [
-        ModalButton(
-          onPressed: () => Navigator.of(context).pop(),
-          text: l10n.ok,
-          color: colorScheme.primary,
-          textStyle: TextStyle(
-            fontFamily: 'Pretendard',
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            height: 1.4,
-            color: colorScheme.onPrimary,
-          ),
-        ),
-      ],
-      actionsAlignment: MainAxisAlignment.center,
-      innerPadding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
     ),
   );
 }
 
 Future<bool?> _showPermissionRationaleDialog(BuildContext context) async {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
   final l10n = AppLocalizations.of(context)!;
 
-  return showDialog<bool>(
-    context: context,
-    builder: (context) => CustomAlertDialog.error(
-      title: Text(
-        l10n.notificationPermissionRequired,
-        style: textTheme.titleMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w600,
-          height: 1.4,
-          fontSize: 18,
-          color: colorScheme.onSurface,
-        ),
+  final result = await showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: l10n.notificationPermissionRequired,
+      description: l10n.notificationPermissionRequiredDescription,
+      secondaryAction: DialogActionConfig(
+        label: l10n.cancel,
+        variant: ModalWideButtonVariant.neutral,
       ),
-      content: Text(
-        l10n.notificationPermissionRequiredDescription,
-        style: textTheme.bodyMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w400,
-          height: 1.4,
-          fontSize: 14,
-          color: colorScheme.outline,
-        ),
+      primaryAction: DialogActionConfig(
+        label: l10n.allow,
+        variant: ModalWideButtonVariant.primary,
       ),
-      actions: [
-        ModalButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          text: l10n.cancel,
-          color: colorScheme.surfaceContainerLow,
-          textStyle: TextStyle(
-            fontFamily: 'Pretendard',
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            height: 1.4,
-            color: colorScheme.outline,
-          ),
-        ),
-        const SizedBox(width: 8),
-        ModalButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          text: l10n.allow,
-          color: colorScheme.primary,
-          textStyle: TextStyle(
-            fontFamily: 'Pretendard',
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            height: 1.4,
-            color: colorScheme.onPrimary,
-          ),
-        ),
-      ],
-      actionsAlignment: MainAxisAlignment.center,
-      innerPadding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
     ),
   );
+
+  return result == DialogActionResult.primary;
 }
 
 Future<void> _showPermissionGrantedDialog(BuildContext context) async {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
   final l10n = AppLocalizations.of(context)!;
 
-  return showDialog(
-    context: context,
-    builder: (context) => CustomAlertDialog.error(
-      title: Text(
-        l10n.notificationPermissionGranted,
-        style: textTheme.titleMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w600,
-          height: 1.4,
-          fontSize: 18,
-          color: colorScheme.onSurface,
-        ),
+  await showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: l10n.notificationPermissionGranted,
+      description: l10n.notificationPermissionGrantedDescription,
+      primaryAction: DialogActionConfig(
+        label: l10n.ok,
+        variant: ModalWideButtonVariant.primary,
       ),
-      content: Text(
-        l10n.notificationPermissionGrantedDescription,
-        style: textTheme.bodyMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w400,
-          height: 1.4,
-          fontSize: 14,
-          color: colorScheme.outline,
-        ),
-      ),
-      actions: [
-        ModalButton(
-          onPressed: () => Navigator.of(context).pop(),
-          text: l10n.ok,
-          color: colorScheme.primary,
-          textStyle: TextStyle(
-            fontFamily: 'Pretendard',
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            height: 1.4,
-            color: colorScheme.onPrimary,
-          ),
-        ),
-      ],
-      actionsAlignment: MainAxisAlignment.center,
-      innerPadding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
     ),
   );
 }
 
 Future<void> _showGoToSettingsDialog(BuildContext context) async {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
   final l10n = AppLocalizations.of(context)!;
 
-  return showDialog(
-    context: context,
-    builder: (context) => CustomAlertDialog.error(
-      title: Text(
-        l10n.openNotificationSettings,
-        style: textTheme.titleMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w600,
-          height: 1.4,
-          fontSize: 18,
-          color: colorScheme.onSurface,
-        ),
+  final result = await showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: l10n.openNotificationSettings,
+      description: l10n.openNotificationSettingsDescription,
+      secondaryAction: DialogActionConfig(
+        label: l10n.cancel,
+        variant: ModalWideButtonVariant.neutral,
       ),
-      content: Text(
-        l10n.openNotificationSettingsDescription,
-        style: textTheme.bodyMedium?.copyWith(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w400,
-          height: 1.4,
-          fontSize: 14,
-          color: colorScheme.outline,
-        ),
+      primaryAction: DialogActionConfig(
+        label: l10n.openSettings,
+        variant: ModalWideButtonVariant.primary,
       ),
-      actions: [
-        ModalButton(
-          onPressed: () => Navigator.of(context).pop(),
-          text: l10n.cancel,
-          color: colorScheme.surfaceContainerLow,
-          textStyle: TextStyle(
-            fontFamily: 'Pretendard',
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            height: 1.4,
-            color: colorScheme.outline,
-          ),
-        ),
-        const SizedBox(width: 8),
-        ModalButton(
-          onPressed: () async {
-            Navigator.of(context).pop();
-            await NotificationService.instance.openNotificationSettings();
-          },
-          text: l10n.openSettings,
-          color: colorScheme.primary,
-          textStyle: TextStyle(
-            fontFamily: 'Pretendard',
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            height: 1.4,
-            color: colorScheme.onPrimary,
-          ),
-        ),
-      ],
-      actionsAlignment: MainAxisAlignment.center,
-      innerPadding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
     ),
   );
+
+  if (result == DialogActionResult.primary) {
+    await NotificationService.instance.openNotificationSettings();
+  }
 }

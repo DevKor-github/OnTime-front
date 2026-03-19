@@ -596,6 +596,24 @@ abstract class AppLocalizations {
   /// **'Delete anyway'**
   String get deleteAnyway;
 
+  /// Title of schedule delete confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this appointment?'**
+  String get scheduleDeleteConfirmTitle;
+
+  /// Description of schedule delete confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Once deleted, this appointment cannot be restored.'**
+  String get scheduleDeleteConfirmDescription;
+
+  /// Button text to confirm schedule deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete appointment'**
+  String get deleteScheduleConfirmAction;
+
   /// Delete feedback modal title
   ///
   /// In en, this message translates to:

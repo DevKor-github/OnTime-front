@@ -300,32 +300,60 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ],
                               ),
                             );
-                          },
-                          onDeleted: () {
-                            showTwoButtonDeleteDialog(
-                              context,
-                              title: AppLocalizations.of(context)!
-                                  .scheduleDeleteConfirmTitle,
-                              description: AppLocalizations.of(context)!
-                                  .scheduleDeleteConfirmDescription,
-                              cancelText: AppLocalizations.of(context)!.cancel,
-                              confirmText: AppLocalizations.of(context)!
-                                  .deleteScheduleConfirmAction,
-                            ).then((confirmed) {
-                              if (confirmed != true || !context.mounted) {
-                                return;
-                              }
-                              context.read<MonthlySchedulesBloc>().add(
-                                    MonthlySchedulesScheduleDeleted(
-                                        schedule: schedule),
-                                  );
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  );
-                },
+                          }
+
+                          return Expanded(
+                            child: ListView.builder(
+                              itemCount:
+                                  state.schedules[_selectedDate]?.length ?? 0,
+                              itemBuilder: (context, index) {
+                                final schedule =
+                                    state.schedules[_selectedDate]![index];
+
+                                return ScheduleDetail(
+                                  schedule: schedule,
+                                  onEdit: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) => ScheduleEditScreen(
+                                        scheduleId: schedule.id,
+                                      ),
+                                    );
+                                  },
+                                  onDeleted: () {
+                                    showTwoButtonDeleteDialog(
+                                      context,
+                                      title: AppLocalizations.of(context)!
+                                          .scheduleDeleteConfirmTitle,
+                                      description: AppLocalizations.of(context)!
+                                          .scheduleDeleteConfirmDescription,
+                                      cancelText:
+                                          AppLocalizations.of(context)!.cancel,
+                                      confirmText: AppLocalizations.of(context)!
+                                          .deleteScheduleConfirmAction,
+                                    ).then((confirmed) {
+                                      if (confirmed != true ||
+                                          !context.mounted) {
+                                        return;
+                                      }
+                                      context.read<MonthlySchedulesBloc>().add(
+                                            MonthlySchedulesScheduleDeleted(
+                                              schedule: schedule,
+                                            ),
+                                          );
+                                    });
+                                  },
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

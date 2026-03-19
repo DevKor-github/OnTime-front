@@ -4,7 +4,7 @@ import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
 @widgetbook.UseCase(
-  name: 'Default',
+  name: 'Fixed Neutral',
   type: ModalWideButton,
 )
 Widget modalWideButtonDefaultUseCase(BuildContext context) {
@@ -26,8 +26,8 @@ Widget modalWideButtonDefaultUseCase(BuildContext context) {
   final button = ModalWideButton(
     text: text,
     height: height,
-    color: Theme.of(context).colorScheme.surfaceContainerLow,
-    textColor: Theme.of(context).colorScheme.outline,
+    variant: ModalWideButtonVariant.neutral,
+    layout: ModalWideButtonLayout.fixed,
     onPressed: () {},
   );
 
@@ -40,7 +40,7 @@ Widget modalWideButtonDefaultUseCase(BuildContext context) {
 }
 
 @widgetbook.UseCase(
-  name: 'Destructive',
+  name: 'Fixed Destructive',
   type: ModalWideButton,
 )
 Widget modalWideButtonDestructiveUseCase(BuildContext context) {
@@ -62,8 +62,8 @@ Widget modalWideButtonDestructiveUseCase(BuildContext context) {
   final button = ModalWideButton(
     text: text,
     height: height,
-    color: Theme.of(context).colorScheme.error,
-    textColor: Theme.of(context).colorScheme.onError,
+    variant: ModalWideButtonVariant.destructive,
+    layout: ModalWideButtonLayout.fixed,
     onPressed: () {},
   );
 
@@ -109,20 +109,18 @@ Widget modalWideButtonFlexibleRowUseCase(BuildContext context) {
           child: Row(
             children: [
               ModalWideButton(
-                isFlexible: true,
                 text: leftText,
                 height: height,
-                color: Theme.of(context).colorScheme.surfaceContainerLow,
-                textColor: Theme.of(context).colorScheme.outline,
+                variant: ModalWideButtonVariant.neutral,
+                layout: ModalWideButtonLayout.flex,
                 onPressed: () {},
               ),
               const SizedBox(width: 8),
               ModalWideButton(
-                isFlexible: true,
                 text: rightText,
                 height: height,
-                color: Theme.of(context).colorScheme.error,
-                textColor: Theme.of(context).colorScheme.onError,
+                variant: ModalWideButtonVariant.destructive,
+                layout: ModalWideButtonLayout.flex,
                 onPressed: () {},
               ),
             ],

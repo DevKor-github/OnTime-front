@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/two_button_delete_dialog.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
+import 'package:widgetbook_workspace/dialog_story_helpers.dart';
 
 @widgetbook.UseCase(
-  name: 'TwoButtonDeleteDialog',
-  type: CustomAlertDialog,
+  name: 'Composed Delete Flow',
+  type: bool,
 )
 Widget twoButtonDeleteDialogUseCase(BuildContext context) {
   final title = context.knobs.string(
@@ -30,7 +30,7 @@ Widget twoButtonDeleteDialogUseCase(BuildContext context) {
     initialValue: true,
   );
 
-  return _TwoButtonDeleteDialogPreview(
+  return _DeleteDialogPreview(
     title: title,
     description: description,
     cancelText: cancelText,
@@ -39,8 +39,8 @@ Widget twoButtonDeleteDialogUseCase(BuildContext context) {
   );
 }
 
-class _TwoButtonDeleteDialogPreview extends StatefulWidget {
-  const _TwoButtonDeleteDialogPreview({
+class _DeleteDialogPreview extends StatefulWidget {
+  const _DeleteDialogPreview({
     required this.title,
     required this.description,
     required this.cancelText,
@@ -55,50 +55,40 @@ class _TwoButtonDeleteDialogPreview extends StatefulWidget {
   final bool barrierDismissible;
 
   @override
-  State<_TwoButtonDeleteDialogPreview> createState() =>
-      _TwoButtonDeleteDialogPreviewState();
+  State<_DeleteDialogPreview> createState() => _DeleteDialogPreviewState();
 }
 
-class _TwoButtonDeleteDialogPreviewState
-    extends State<_TwoButtonDeleteDialogPreview> {
+class _DeleteDialogPreviewState extends State<_DeleteDialogPreview> {
   bool? _lastResult;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      height: double.infinity,
-      width: double.infinity,
-      color: Colors.black.withValues(alpha: 0.4),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-              onPressed: () async {
-                final result = await showTwoButtonDeleteDialog(
-                  context,
-                  title: widget.title,
-                  description: widget.description,
-                  cancelText: widget.cancelText,
-                  confirmText: widget.confirmText,
-                  barrierDismissible: widget.barrierDismissible,
-                );
-                if (!mounted) return;
-                setState(() {
-                  _lastResult = result;
-                });
-              },
-              child: const Text('Open Delete Dialog'),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Last Result: ${_lastResult?.toString() ?? 'null'}',
-              style: textTheme.bodyMedium,
-            ),
-          ],
-        ),
+    return DialogStoryBackdrop(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ElevatedButton(
+            onPressed: () async {
+              final result = await showTwoButtonDeleteDialog(
+                context,
+                title: widget.title,
+                description: widget.description,
+                cancelText: widget.cancelText,
+                confirmText: widget.confirmText,
+                barrierDismissible: widget.barrierDismissible,
+              );
+              if (!mounted) return;
+              setState(() {
+                _lastResult = result;
+              });
+            },
+            child: const Text('Open Delete Dialog'),
+          ),
+          const SizedBox(height: 12),
+          DialogResultText(
+            label: 'Last Result: ${_lastResult?.toString() ?? 'null'}',
+          ),
+        ],
       ),
     );
   }

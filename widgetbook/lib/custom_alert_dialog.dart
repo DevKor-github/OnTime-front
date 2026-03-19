@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/shared/components/modal_button.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
-import 'package:on_time_front/presentation/shared/components/modal_error_button.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
@@ -39,18 +38,24 @@ Widget customAlertDialog(BuildContext context) {
       actionsAlignment: MainAxisAlignment.spaceBetween,
       alignment: Alignment.center,
       actions: [
-        ModalButton(
-          onPressed: () {},
-          text: '나갈래요',
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          textColor: Theme.of(context).colorScheme.onSurface,
+        SizedBox(
+          width: 114,
+          child: ModalWideButton(
+            onPressed: () {},
+            text: '나갈래요',
+            variant: ModalWideButtonVariant.neutral,
+            layout: ModalWideButtonLayout.full,
+          ),
         ),
-        ModalButton(
-          onPressed: () {},
-          text: '있을게요',
-          color: Theme.of(context).colorScheme.primary,
-          textColor: Theme.of(context).colorScheme.surface,
-        )
+        SizedBox(
+          width: 114,
+          child: ModalWideButton(
+            onPressed: () {},
+            text: '있을게요',
+            variant: ModalWideButtonVariant.primary,
+            layout: ModalWideButtonLayout.full,
+          ),
+        ),
       ],
     ),
   );
@@ -90,11 +95,15 @@ Widget errorCusmtomAlertDialog(BuildContext context) {
       actionsAlignment: MainAxisAlignment.spaceBetween,
       alignment: Alignment.center,
       actions: [
-        ModalErrorButton(
-          onPressed: () {},
-          text: '확인',
-          color: Theme.of(context).colorScheme.error,
-          textColor: Theme.of(context).colorScheme.surface,
+        SizedBox(
+          width: 249,
+          child: ModalWideButton(
+            onPressed: () {},
+            text: '확인',
+            variant: ModalWideButtonVariant.destructive,
+            layout: ModalWideButtonLayout.full,
+            height: 48,
+          ),
         )
       ],
     ),

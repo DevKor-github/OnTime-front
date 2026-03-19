@@ -4,8 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
-import 'package:on_time_front/presentation/shared/components/modal_button.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class NotificationAllowScreen extends StatelessWidget {
@@ -194,34 +194,24 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
 }
 
 Future<bool?> _showGoToSettingsDialog(BuildContext context) async {
-  final colorScheme = Theme.of(context).colorScheme;
-  final textTheme = Theme.of(context).textTheme;
   final l10n = AppLocalizations.of(context)!;
 
-  return showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => CustomAlertDialog(
-      title: Text(l10n.openNotificationSettings),
-      content: Text(l10n.openNotificationSettingsDescription),
-      actions: [
-        ModalButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          text: l10n.doItLater,
-          color: colorScheme.surfaceContainerHighest,
-          textStyle: textTheme.titleSmall?.copyWith(
-            color: colorScheme.onSurface,
-          ),
-        ),
-        ModalButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          text: l10n.openSettings,
-          color: colorScheme.primary,
-          textStyle: textTheme.titleSmall?.copyWith(
-            color: colorScheme.onPrimary,
-          ),
-        ),
-      ],
+  final result = await showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: l10n.openNotificationSettings,
+      description: l10n.openNotificationSettingsDescription,
+      barrierDismissible: false,
+      secondaryAction: DialogActionConfig(
+        label: l10n.doItLater,
+        variant: ModalWideButtonVariant.neutral,
+      ),
+      primaryAction: DialogActionConfig(
+        label: l10n.openSettings,
+        variant: ModalWideButtonVariant.primary,
+      ),
     ),
   );
+
+  return result == DialogActionResult.primary;
 }

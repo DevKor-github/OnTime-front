@@ -3,8 +3,8 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/domain/use-cases/delete_user_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/two_button_delete_dialog.dart';
 
 class DeleteUserModal {
@@ -33,148 +33,114 @@ class DeleteUserModal {
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) {
-        final controller = TextEditingController();
-        final focusNode = FocusNode();
-        final screenWidth = MediaQuery.sizeOf(ctx).width;
-        final dialogWidth = (screenWidth - 32).clamp(0.0, 277.0);
+    final controller = TextEditingController();
+    final focusNode = FocusNode();
 
-        return CustomAlertDialog.error(
-          title: Text(
-            l10n.deleteFeedbackTitle,
-            style: textTheme.titleMedium?.copyWith(
+    final result = await showTwoActionDialog(
+      context,
+      config: TwoActionDialogConfig(
+        title: l10n.deleteFeedbackTitle,
+        secondaryAction: DialogActionConfig(
+          label: l10n.keepUsingLong,
+          variant: ModalWideButtonVariant.neutral,
+          textStyle: TextStyle(
+            fontFamily: 'Pretendard',
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            height: 1.4,
+            color: colorScheme.outline,
+          ),
+        ),
+        primaryAction: DialogActionConfig(
+          label: l10n.sendFeedbackAndDelete,
+          variant: ModalWideButtonVariant.destructive,
+          textStyle: TextStyle(
+            fontFamily: 'Pretendard',
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            height: 1.4,
+            color: colorScheme.onError,
+          ),
+        ),
+      ),
+      customContent: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            l10n.deleteFeedbackDescription,
+            style: textTheme.bodyMedium?.copyWith(
               fontFamily: 'Pretendard',
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w400,
               height: 1.4,
-              fontSize: 18,
-              color: colorScheme.onSurface,
+              fontSize: 14,
+              color: colorScheme.outline,
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                l10n.deleteFeedbackDescription,
-                style: textTheme.bodyMedium?.copyWith(
+          const SizedBox(height: 16),
+          Container(
+            width: 249,
+            height: 160,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.outlineVariant, width: 1),
+            ),
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              maxLines: null,
+              expands: true,
+              textAlign: TextAlign.start,
+              textAlignVertical: TextAlignVertical.top,
+              cursorColor: colorScheme.outline,
+              style: textTheme.bodyMedium?.copyWith(
+                fontFamily: 'Pretendard',
+                fontWeight: FontWeight.w400,
+                height: 1.4,
+                fontSize: 14,
+                color: colorScheme.onSurface,
+              ),
+              decoration: InputDecoration(
+                hintText:
+                    focusNode.hasFocus ? '' : l10n.deleteFeedbackPlaceholder,
+                hintStyle: textTheme.bodyMedium?.copyWith(
                   fontFamily: 'Pretendard',
                   fontWeight: FontWeight.w400,
                   height: 1.4,
                   fontSize: 14,
-                  color: colorScheme.outline,
+                  color: colorScheme.outlineVariant,
                 ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                width: 249,
-                height: 160,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: colorScheme.outlineVariant, width: 1),
-                ),
-                child: TextField(
-                  controller: controller,
-                  focusNode: focusNode,
-                  maxLines: null,
-                  expands: true,
-                  textAlign: TextAlign.start,
-                  textAlignVertical: TextAlignVertical.top,
-                  cursorColor: colorScheme.outline,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontFamily: 'Pretendard',
-                    fontWeight: FontWeight.w400,
-                    height: 1.4,
-                    fontSize: 14,
-                    color: colorScheme.onSurface,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: focusNode.hasFocus
-                        ? ''
-                        : l10n.deleteFeedbackPlaceholder,
-                    hintStyle: textTheme.bodyMedium?.copyWith(
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w400,
-                      height: 1.4,
-                      fontSize: 14,
-                      color: colorScheme.outlineVariant,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    isCollapsed: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            SizedBox(
-              width: dialogWidth,
-              child: Row(
-                children: [
-                  ModalWideButton(
-                    isFlexible: true,
-                    text: l10n.keepUsingLong,
-                    color: colorScheme.surfaceContainerLow,
-                    textColor: colorScheme.outline,
-                    textStyle: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      height: 1.4,
-                      color: colorScheme.outline,
-                    ),
-                    onPressed: () => Navigator.of(ctx).pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  ModalWideButton(
-                    isFlexible: true,
-                    text: l10n.sendFeedbackAndDelete,
-                    color: colorScheme.error,
-                    textColor: colorScheme.onError,
-                    textStyle: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      height: 1.4,
-                      color: colorScheme.onError,
-                    ),
-                    onPressed: () async {
-                      Navigator.of(ctx).pop();
-
-                      try {
-                        final deleteUserUseCase = getIt<DeleteUserUseCase>();
-                        await deleteUserUseCase(controller.text);
-                      } catch (e) {
-                        debugPrint(e.toString());
-                      }
-
-                      try {
-                        final userRepository = getIt<UserRepository>();
-                        await userRepository.signOut();
-                      } catch (e) {
-                        debugPrint(e.toString());
-                      }
-
-                      onConfirm();
-                    },
-                  ),
-                ],
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                isCollapsed: true,
+                contentPadding: EdgeInsets.zero,
               ),
             ),
-          ],
-          actionsAlignment: MainAxisAlignment.center,
-          innerPadding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-          titleContentSpacing: 8,
-          contentActionsSpacing: 16,
-        );
-      },
+          ),
+        ],
+      ),
     );
+
+    if (result != DialogActionResult.primary) {
+      return;
+    }
+
+    try {
+      final deleteUserUseCase = getIt<DeleteUserUseCase>();
+      await deleteUserUseCase(controller.text);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
+    try {
+      final userRepository = getIt<UserRepository>();
+      await userRepository.signOut();
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
+    onConfirm();
   }
 }

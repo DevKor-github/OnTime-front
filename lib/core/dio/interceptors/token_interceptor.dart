@@ -74,6 +74,17 @@ class TokenInterceptor implements InterceptorsWrapper {
           _requestsNeedRetry.clear();
           _isRefreshing = false;
         } else {
+          for (final requestNeedRetry in _requestsNeedRetry) {
+            requestNeedRetry.handler.reject(
+              DioException(
+                requestOptions: requestNeedRetry.options,
+                response: response,
+                type: err.type,
+                error: err.error,
+                message: err.message,
+              ),
+            );
+          }
           _requestsNeedRetry.clear();
           // if refresh fail, force logout user here
           try {

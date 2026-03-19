@@ -79,7 +79,10 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         !widget.schedule.scheduleTime.isBefore(DateTime.now());
     return [
       SwipeAction(
-        onTap: (controller) => widget.onDeleted?.call(),
+        onTap: (handler) async {
+          await handler(false);
+          widget.onDeleted?.call();
+        },
         color: Colors.transparent,
         content: _SwipeActionContent(
           icon: const _TrashCanSvg(),
@@ -89,7 +92,10 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       if (canEdit)
         SwipeAction(
           widthSpace: 96,
-          onTap: (controller) => widget.onEdit?.call(),
+          onTap: (handler) async {
+            await handler(false);
+            widget.onEdit?.call();
+          },
           color: Colors.transparent,
           content: _SwipeActionContent(
             icon: const _EditPencilSvg(),

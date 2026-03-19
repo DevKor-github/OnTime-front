@@ -59,40 +59,54 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormEditRequested event,
     Emitter<ScheduleFormState> emit,
   ) async {
-    emit(state.copyWith(
-      status: ScheduleFormStatus.loading,
-    ));
+    emit(
+      state.copyWith(
+        status: ScheduleFormStatus.loading,
+        submissionStatus: ScheduleFormSubmissionStatus.idle,
+        submissionError: null,
+      ),
+    );
 
     await _loadPreparationByScheduleIdUseCase(event.scheduleId);
     final PreparationEntity preparationEntity =
         await _getPreparationByScheduleIdUseCase(event.scheduleId);
 
-    final ScheduleEntity scheduleEntity =
-        await _getScheduleByIdUseCase(event.scheduleId);
+    final ScheduleEntity scheduleEntity = await _getScheduleByIdUseCase(
+      event.scheduleId,
+    );
 
-    emit(state.copyWith(
-      status: ScheduleFormStatus.success,
-      id: scheduleEntity.id,
-      placeName: scheduleEntity.place.placeName,
-      scheduleName: scheduleEntity.scheduleName,
-      scheduleTime: scheduleEntity.scheduleTime,
-      moveTime: scheduleEntity.moveTime,
-      isChanged: scheduleEntity.isChanged
-          ? IsPreparationChanged.changed
-          : IsPreparationChanged.unchanged,
-      scheduleSpareTime: scheduleEntity.scheduleSpareTime,
-      scheduleNote: scheduleEntity.scheduleNote,
-      preparation: preparationEntity,
-    ));
+    emit(
+      state.copyWith(
+        status: ScheduleFormStatus.success,
+        submissionStatus: ScheduleFormSubmissionStatus.idle,
+        submissionError: null,
+        id: scheduleEntity.id,
+        placeId: scheduleEntity.place.id,
+        placeName: scheduleEntity.place.placeName,
+        scheduleName: scheduleEntity.scheduleName,
+        scheduleTime: scheduleEntity.scheduleTime,
+        moveTime: scheduleEntity.moveTime,
+        isChanged: scheduleEntity.isChanged
+            ? IsPreparationChanged.changed
+            : IsPreparationChanged.unchanged,
+        scheduleSpareTime: scheduleEntity.scheduleSpareTime,
+        scheduleNote: scheduleEntity.scheduleNote,
+        preparation: preparationEntity,
+      ),
+    );
   }
 
   void _onCreateRequested(
     ScheduleFormCreateRequested event,
     Emitter<ScheduleFormState> emit,
   ) async {
-    emit(state.copyWith(
-      status: ScheduleFormStatus.loading,
-    ));
+    emit(
+      state.copyWith(
+        status: ScheduleFormStatus.loading,
+        submissionStatus: ScheduleFormSubmissionStatus.idle,
+        submissionError: null,
+      ),
+    );
 
     final PreparationEntity defaultPreparationStepList =
         await _getDefaultPreparationUseCase();
@@ -112,18 +126,23 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
             now.minute,
           );
 
-    emit(state.copyWith(
-      status: ScheduleFormStatus.success,
-      id: Uuid().v7(),
-      placeName: null,
-      scheduleName: null,
-      scheduleTime: initialScheduleTime,
-      moveTime: null,
-      isChanged: null,
-      scheduleSpareTime: userSpareTime,
-      scheduleNote: null,
-      preparation: defaultPreparationStepList,
-    ));
+    emit(
+      state.copyWith(
+        status: ScheduleFormStatus.success,
+        submissionStatus: ScheduleFormSubmissionStatus.idle,
+        submissionError: null,
+        id: Uuid().v7(),
+        placeId: Uuid().v7(),
+        placeName: null,
+        scheduleName: null,
+        scheduleTime: null,
+        moveTime: null,
+        isChanged: null,
+        scheduleSpareTime: userSpareTime,
+        scheduleNote: null,
+        preparation: defaultPreparationStepList,
+      ),
+    );
   }
 
   void _onScheduleNameChanged(
@@ -137,17 +156,19 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormScheduleDateTimeChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
-    emit(state.copyWith(
-      scheduleTime: DateTime(
-        event.scheduleDate.year,
-        event.scheduleDate.month,
-        event.scheduleDate.day,
-        event.scheduleTime.hour,
-        event.scheduleTime.minute,
+    emit(
+      state.copyWith(
+        scheduleTime: DateTime(
+          event.scheduleDate.year,
+          event.scheduleDate.month,
+          event.scheduleDate.day,
+          event.scheduleTime.hour,
+          event.scheduleTime.minute,
+        ),
+        maxAvailableTime: event.maxAvailableTime,
+        previousScheduleName: event.previousScheduleName,
       ),
-      maxAvailableTime: event.maxAvailableTime,
-      previousScheduleName: event.previousScheduleName,
-    ));
+    );
   }
 
   void _onPlaceNameChanged(
@@ -183,21 +204,46 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       isChagned = IsPreparationChanged.changed;
     }
 
-    emit(state.copyWith(
-      preparation: event.preparation,
-      isChanged: isChagned,
-    ));
+    emit(state.copyWith(preparation: event.preparation, isChanged: isChagned));
   }
 
   Future<void> _onUpdated(
     ScheduleFormUpdated event,
     Emitter<ScheduleFormState> emit,
   ) async {
-    final ScheduleEntity scheduleEntity = state.createEntity(state);
-    await _updateScheduleUseCase(scheduleEntity);
-    if (state.isChanged != IsPreparationChanged.unchanged) {
-      _updatePreparationByScheduleIdUseCase(
-          state.preparation!, scheduleEntity.id);
+    if (state.submissionStatus == ScheduleFormSubmissionStatus.submitting) {
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        submissionStatus: ScheduleFormSubmissionStatus.submitting,
+        submissionError: null,
+      ),
+    );
+
+    try {
+      final ScheduleEntity scheduleEntity = state.createEntity(state);
+      await _updateScheduleUseCase(scheduleEntity);
+      if (state.isChanged != IsPreparationChanged.unchanged) {
+        await _updatePreparationByScheduleIdUseCase(
+          state.preparation!,
+          scheduleEntity.id,
+        );
+      }
+      emit(
+        state.copyWith(
+          submissionStatus: ScheduleFormSubmissionStatus.success,
+          submissionError: null,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          submissionStatus: ScheduleFormSubmissionStatus.failure,
+          submissionError: e.toString(),
+        ),
+      );
     }
   }
 
@@ -205,16 +251,46 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormCreated event,
     Emitter<ScheduleFormState> emit,
   ) async {
-    final ScheduleEntity scheduleEntity = state.createEntity(state);
-    await _createScheduleWithPlaceUseCase(scheduleEntity);
-    if (state.isChanged != IsPreparationChanged.unchanged) {
-      await _createCustomPreparationUseCase(
-          state.preparation!, scheduleEntity.id);
+    if (state.submissionStatus == ScheduleFormSubmissionStatus.submitting) {
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        submissionStatus: ScheduleFormSubmissionStatus.submitting,
+        submissionError: null,
+      ),
+    );
+
+    try {
+      final ScheduleEntity scheduleEntity = state.createEntity(state);
+      await _createScheduleWithPlaceUseCase(scheduleEntity);
+      if (state.isChanged != IsPreparationChanged.unchanged) {
+        await _createCustomPreparationUseCase(
+          state.preparation!,
+          scheduleEntity.id,
+        );
+      }
+      emit(
+        state.copyWith(
+          submissionStatus: ScheduleFormSubmissionStatus.success,
+          submissionError: null,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          submissionStatus: ScheduleFormSubmissionStatus.failure,
+          submissionError: e.toString(),
+        ),
+      );
     }
   }
 
   void _onValidated(
-      ScheduleFormValidated event, Emitter<ScheduleFormState> emit) {
+    ScheduleFormValidated event,
+    Emitter<ScheduleFormState> emit,
+  ) {
     emit(state.copyWith(isValid: event.isValid));
   }
 }

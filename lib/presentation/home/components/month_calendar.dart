@@ -23,53 +23,66 @@ class MonthCalendar extends StatefulWidget {
 
 class _MonthCalendarState extends State<MonthCalendar> {
   late DateTime _focusedDay;
+  late DateTime _selectedDay;
+
+  DateTime get _firstDay => DateTime(2024, 1, 1);
+
+  DateTime get _lastDay => DateTime(DateTime.now().year + 5, 12, 31);
+
+  DateTime _clampDay(DateTime day, DateTime firstDay, DateTime lastDay) {
+    final d = DateTime(day.year, day.month, day.day);
+    final first = DateTime(firstDay.year, firstDay.month, firstDay.day);
+    final last = DateTime(lastDay.year, lastDay.month, lastDay.day);
+
+    if (d.isBefore(first)) return first;
+    if (d.isAfter(last)) return last;
+    return d;
+  }
 
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    final lastDay = DateTime(2026, 12, 31);
-    _focusedDay = now.isAfter(lastDay) ? lastDay : now;
+    _focusedDay = _clampDay(DateTime.now(), _firstDay, _lastDay);
+    _selectedDay = _focusedDay;
   }
 
   void _onLeftArrowTap() {
-    final DateTime firstDay = DateTime(2024, 1, 1);
-    final DateTime nextFocusedDay =
-        DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
-
-    final DateTime clampedFocusedDay =
-        nextFocusedDay.isBefore(firstDay) ? firstDay : nextFocusedDay;
+    final nextFocusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
+    final clampedFocusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
 
     setState(() {
       _focusedDay = clampedFocusedDay;
     });
+
     if (widget.dispatchBlocEvents) {
-      context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
-          date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1)));
+      context.read<MonthlySchedulesBloc>().add(
+            MonthlySchedulesMonthAdded(
+              date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+            ),
+          );
     }
   }
 
   void _onRightArrowTap() {
-    final DateTime lastDay = DateTime(2026, 12, 31);
-    final DateTime nextFocusedDay =
-        DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
-
-    final DateTime clampedFocusedDay =
-        nextFocusedDay.isAfter(lastDay) ? lastDay : nextFocusedDay;
+    final nextFocusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
+    final clampedFocusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
 
     setState(() {
       _focusedDay = clampedFocusedDay;
     });
+
     if (widget.dispatchBlocEvents) {
-      context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
-          date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1)));
+      context.read<MonthlySchedulesBloc>().add(
+            MonthlySchedulesMonthAdded(
+              date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+            ),
+          );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
     final calendarTheme = theme.extension<CalendarTheme>()!;
 
     return Container(
@@ -87,36 +100,42 @@ class _MonthCalendarState extends State<MonthCalendar> {
         rowHeight: 50,
         availableGestures: AvailableGestures.none,
         focusedDay: _focusedDay,
-        firstDay: DateTime(2024, 1, 1),
-        lastDay: DateTime(2026, 12, 31),
+        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+        firstDay: _firstDay,
+        lastDay: _lastDay,
         calendarFormat: CalendarFormat.month,
         headerStyle: calendarTheme.headerStyle,
         daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
         daysOfWeekHeight: 40,
         calendarStyle: calendarTheme.calendarStyle,
         onDaySelected: (selectedDay, focusedDay) {
-          if (widget.onDateSelected != null) {
-            widget.onDateSelected!(selectedDay);
-          }
+          final clampedSelectedDay = _clampDay(selectedDay, _firstDay, _lastDay);
+          final clampedFocusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+
+          setState(() {
+            _selectedDay = clampedSelectedDay;
+            _focusedDay = clampedFocusedDay;
+          });
+
+          widget.onDateSelected?.call(clampedSelectedDay);
         },
         onPageChanged: (focusedDay) {
-          final DateTime firstDay = DateTime(2024, 1, 1);
-          final DateTime lastDay = DateTime(2026, 12, 31);
-
-          DateTime clampedFocusedDay = focusedDay;
-          if (focusedDay.isBefore(firstDay)) {
-            clampedFocusedDay = firstDay;
-          } else if (focusedDay.isAfter(lastDay)) {
-            clampedFocusedDay = lastDay;
-          }
+          final clampedFocusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
 
           setState(() {
             _focusedDay = clampedFocusedDay;
           });
+
           if (widget.dispatchBlocEvents) {
-            context.read<MonthlySchedulesBloc>().add(MonthlySchedulesMonthAdded(
-                date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month,
-                    clampedFocusedDay.day)));
+            context.read<MonthlySchedulesBloc>().add(
+                  MonthlySchedulesMonthAdded(
+                    date: DateTime(
+                      clampedFocusedDay.year,
+                      clampedFocusedDay.month,
+                      1,
+                    ),
+                  ),
+                );
           }
         },
         calendarBuilders: CalendarBuilders(
@@ -130,15 +149,24 @@ class _MonthCalendarState extends State<MonthCalendar> {
               rightIcon: calendarTheme.headerStyle.rightChevronIcon,
             );
           },
+          selectedBuilder: (context, day, focusedDay) {
+            return Container(
+              margin: const EdgeInsets.all(4.0),
+              alignment: Alignment.center,
+              decoration: calendarTheme.selectedDayDecoration,
+              child: Text(
+                day.day.toString(),
+                style: calendarTheme.selectedDayTextStyle,
+              ),
+            );
+          },
           todayBuilder: (context, day, focusedDay) => Container(
             margin: const EdgeInsets.all(4.0),
             alignment: Alignment.center,
             decoration: calendarTheme.todayDecoration,
             child: Text(
               day.day.toString(),
-              style: textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onPrimary,
-              ),
+              style: calendarTheme.todayTextStyle,
             ),
           ),
         ),

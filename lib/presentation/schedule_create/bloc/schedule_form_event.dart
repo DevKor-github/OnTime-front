@@ -17,7 +17,14 @@ final class ScheduleFormEditRequested extends ScheduleFormEvent {
 }
 
 final class ScheduleFormCreateRequested extends ScheduleFormEvent {
-  const ScheduleFormCreateRequested();
+  final DateTime? initialDate;
+
+  const ScheduleFormCreateRequested({this.initialDate});
+
+  @override
+  List<Object> get props => [
+        initialDate ?? DateTime.fromMillisecondsSinceEpoch(0),
+      ];
 }
 
 final class ScheduleFormScheduleNameChanged extends ScheduleFormEvent {

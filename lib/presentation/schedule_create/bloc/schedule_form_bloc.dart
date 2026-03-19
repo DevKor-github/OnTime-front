@@ -115,6 +115,16 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     final userSpareTime = _authBloc.state.user.mapOrNull(
       (user) => user.spareTime,
     );
+    final now = DateTime.now();
+    final initialScheduleTime = event.initialDate == null
+        ? null
+        : DateTime(
+            event.initialDate!.year,
+            event.initialDate!.month,
+            event.initialDate!.day,
+            now.hour,
+            now.minute,
+          );
 
     emit(
       state.copyWith(

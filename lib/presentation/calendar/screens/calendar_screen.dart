@@ -6,12 +6,12 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/calendar/component/schedule_detail.dart';
-import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key, this.initialDate});
@@ -25,48 +25,48 @@ class CalendarScreen extends StatefulWidget {
 class _CalendarScreenState extends State<CalendarScreen> {
   late DateTime _selectedDate;
 
+  DateTime get _firstDay => DateTime(2024, 12, 1);
+
+  DateTime get _lastDay => DateTime(DateTime.now().year + 5, 12, 31);
+
+  DateTime _clampDay(DateTime day, DateTime firstDay, DateTime lastDay) {
+    final d = DateTime(day.year, day.month, day.day);
+    final first = DateTime(firstDay.year, firstDay.month, firstDay.day);
+    final last = DateTime(lastDay.year, lastDay.month, lastDay.day);
+
+    if (d.isBefore(first)) return first;
+    if (d.isAfter(last)) return last;
+    return d;
+  }
+
   @override
   void initState() {
     super.initState();
-    final now = DateTime.now();
-    final lastDay = DateTime(2026, 12, 31);
 
-    if (widget.initialDate != null) {
-      _selectedDate = DateTime(
-        widget.initialDate!.year,
-        widget.initialDate!.month,
-        widget.initialDate!.day,
-      );
-    } else {
-      _selectedDate = now.isAfter(lastDay)
-          ? lastDay
-          : DateTime(now.year, now.month, now.day);
-    }
+    final initial = widget.initialDate == null
+        ? DateTime.now()
+        : DateTime(
+            widget.initialDate!.year,
+            widget.initialDate!.month,
+            widget.initialDate!.day,
+          );
+
+    _selectedDate = _clampDay(initial, _firstDay, _lastDay);
   }
 
   void _onLeftArrowTap() {
-    final DateTime firstDay = DateTime(2024, 12, 1);
-    final DateTime nextSelectedDate =
-        DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
-
-    final DateTime clampedSelectedDate =
-        nextSelectedDate.isBefore(firstDay) ? firstDay : nextSelectedDate;
+    final next = DateTime(_selectedDate.year, _selectedDate.month - 1, 1);
 
     setState(() {
-      _selectedDate = clampedSelectedDate;
+      _selectedDate = _clampDay(next, _firstDay, _lastDay);
     });
   }
 
   void _onRightArrowTap() {
-    final DateTime lastDay = DateTime(2026, 12, 31);
-    final DateTime nextSelectedDate =
-        DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
-
-    final DateTime clampedSelectedDate =
-        nextSelectedDate.isAfter(lastDay) ? lastDay : nextSelectedDate;
+    final next = DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
 
     setState(() {
-      _selectedDate = clampedSelectedDate;
+      _selectedDate = _clampDay(next, _firstDay, _lastDay);
     });
   }
 
@@ -79,15 +79,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return BlocProvider(
       create: (context) => getIt.get<MonthlySchedulesBloc>()
-        ..add(MonthlySchedulesSubscriptionRequested(
+        ..add(
+          MonthlySchedulesSubscriptionRequested(
             date: DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          0,
-          0,
-          0,
-        ))),
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+              0,
+              0,
+              0,
+            ),
+          ),
+        ),
       child: Scaffold(
         backgroundColor: colorScheme.surfaceContainerLow,
         appBar: AppBar(
@@ -106,12 +109,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(12),
                   color: colorScheme.surface,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      vertical: 16.0, horizontal: 8.0),
+                    vertical: 16.0,
+                    horizontal: 8.0,
+                  ),
                   child:
                       BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
                     builder: (context, state) {
@@ -127,55 +132,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           return state.schedules[day] ?? [];
                         },
                         focusedDay: _selectedDate,
-                        firstDay: DateTime(2024, 12, 1),
-                        lastDay: DateTime(2026, 12, 31),
+                        selectedDayPredicate: (day) =>
+                            isSameDay(_selectedDate, day),
+                        firstDay: _firstDay,
+                        lastDay: _lastDay,
                         calendarFormat: CalendarFormat.month,
                         headerStyle: calendarTheme.headerStyle,
                         daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
                         calendarStyle: calendarTheme.calendarStyle,
                         onDaySelected: (selectedDay, focusedDay) {
-                          final DateTime firstDay = DateTime(2024, 12, 1);
-                          final DateTime lastDay = DateTime(2026, 12, 31);
-
-                          DateTime clampedSelectedDate = DateTime(
-                              selectedDay.year,
-                              selectedDay.month,
-                              selectedDay.day);
-
-                          if (clampedSelectedDate.isBefore(firstDay)) {
-                            clampedSelectedDate = firstDay;
-                          } else if (clampedSelectedDate.isAfter(lastDay)) {
-                            clampedSelectedDate = lastDay;
-                          }
-
                           setState(() {
-                            _selectedDate = clampedSelectedDate;
+                            _selectedDate =
+                                _clampDay(selectedDay, _firstDay, _lastDay);
                           });
-                          debugPrint(clampedSelectedDate.toIso8601String());
                         },
                         onPageChanged: (focusedDay) {
-                          final DateTime firstDay = DateTime(2024, 12, 1);
-                          final DateTime lastDay = DateTime(2026, 12, 31);
-
-                          DateTime clampedFocusedDay = DateTime(focusedDay.year,
-                              focusedDay.month, focusedDay.day);
-
-                          if (clampedFocusedDay.isBefore(firstDay)) {
-                            clampedFocusedDay = firstDay;
-                          } else if (clampedFocusedDay.isAfter(lastDay)) {
-                            clampedFocusedDay = lastDay;
-                          }
+                          final clampedFocusedDay =
+                              _clampDay(focusedDay, _firstDay, _lastDay);
 
                           setState(() {
                             _selectedDate = clampedFocusedDay;
                           });
-                          debugPrint(_selectedDate.toIso8601String());
+
                           context.read<MonthlySchedulesBloc>().add(
-                              MonthlySchedulesMonthAdded(
+                                MonthlySchedulesMonthAdded(
                                   date: DateTime(
-                                      clampedFocusedDay.year,
-                                      clampedFocusedDay.month,
-                                      clampedFocusedDay.day)));
+                                    clampedFocusedDay.year,
+                                    clampedFocusedDay.month,
+                                    clampedFocusedDay.day,
+                                  ),
+                                ),
+                              );
                         },
                         calendarBuilders: CalendarBuilders(
                           headerTitleBuilder: (context, date) {
@@ -191,17 +178,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   calendarTheme.headerStyle.rightChevronIcon,
                             );
                           },
+                          selectedBuilder: (context, day, focusedDay) {
+                            return Container(
+                              margin: const EdgeInsets.all(4.0),
+                              alignment: Alignment.center,
+                              decoration: calendarTheme.selectedDayDecoration,
+                              child: Text(
+                                DateFormat.d(
+                                  Localizations.localeOf(context).toString(),
+                                ).format(day),
+                                style: calendarTheme.selectedDayTextStyle,
+                              ),
+                            );
+                          },
                           todayBuilder: (context, day, focusedDay) => Container(
                             margin: const EdgeInsets.all(4.0),
                             alignment: Alignment.center,
                             decoration: calendarTheme.todayDecoration,
                             child: Text(
-                              DateFormat.d(Localizations.localeOf(context)
-                                      .toString())
-                                  .format(day),
-                              style: textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onPrimary,
-                              ),
+                              DateFormat.d(
+                                Localizations.localeOf(context).toString(),
+                              ).format(day),
+                              style: calendarTheme.todayTextStyle,
                             ),
                           ),
                         ),
@@ -210,125 +208,135 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 32.0),
-              BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
-                builder: (context, state) {
-                  if (state.schedules[_selectedDate]?.isEmpty ?? true) {
-                    if (state.status == MonthlySchedulesStatus.loading) {
-                      return CircularProgressIndicator();
-                    } else if (state.status != MonthlySchedulesStatus.success) {
-                      return const SizedBox();
-                    } else {
-                      // Empty-state UI with date title and action box
-                      final dateText =
-                          DateFormat('M월 d일', 'ko').format(_selectedDate);
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dateText,
-                            style: textTheme.headlineExtraSmall,
-                          ),
-                          const SizedBox(height: 24.0),
-                          Container(
-                            width: double.infinity,
-                            height: 148,
-                            padding: const EdgeInsets.symmetric(vertical: 24.0),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '약속이 없어요',
-                                  style: textTheme.titleMedium?.copyWith(
-                                        color: colorScheme.outlineVariant,
-                                      ) ??
-                                      TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        height: 1.4,
-                                        color: colorScheme.outlineVariant,
-                                      ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 32.0),
-                                SizedBox(
-                                  width: 149,
-                                  height: 43,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        backgroundColor: Colors.transparent,
-                                        builder: (context) =>
-                                            ScheduleCreateScreen(),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: colorScheme.primary,
-                                      foregroundColor: colorScheme.onPrimary,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 10,
-                                        horizontal: 8,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '약속 추가하기',
-                                      style: textTheme.titleSmall?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.4,
-                                            color: colorScheme.onPrimary,
-                                          ) ??
-                                          TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.4,
-                                            color: colorScheme.onPrimary,
-                                          ),
+              const SizedBox(height: 27.0),
+              Expanded(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          DateFormat.MMMMd(
+                            Localizations.localeOf(context).toString(),
+                          ).format(_selectedDate),
+                          style: textTheme.headlineExtraSmall,
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      const SizedBox(height: 18.0),
+                      BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
+                        builder: (context, state) {
+                          if (state.schedules[_selectedDate]?.isEmpty ?? true) {
+                            if (state.status ==
+                                MonthlySchedulesStatus.loading) {
+                              return const CircularProgressIndicator();
+                            }
+
+                            if (state.status !=
+                                MonthlySchedulesStatus.success) {
+                              return const SizedBox();
+                            }
+
+                            final now = DateTime.now();
+                            final today =
+                                DateTime(now.year, now.month, now.day);
+                            final selected = DateTime(
+                              _selectedDate.year,
+                              _selectedDate.month,
+                              _selectedDate.day,
+                            );
+                            final isPastSelectedDay = selected.isBefore(today);
+
+                            return Padding(
+                              padding: const EdgeInsets.all(39.0),
+                              child: Column(
+                                spacing: 16.0,
+                                children: [
+                                  Text(
+                                    AppLocalizations.of(context)!.noSchedules,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: theme.colorScheme.outlineVariant,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  }
-
-                  return Expanded(
-                    child: ListView.separated(
-                      itemCount: state.schedules[_selectedDate]?.length ?? 0,
-                      separatorBuilder: (_, __) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        final schedule = state.schedules[_selectedDate]![index];
-                        return ScheduleDetail(
-                          schedule: schedule,
-                          onEdit: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.transparent,
-                              builder: (context) => ScheduleEditScreen(
-                                scheduleId: schedule.id,
+                                  if (!isPastSelectedDay)
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (context) =>
+                                              ScheduleCreateScreen(
+                                            initialDate: _selectedDate,
+                                          ),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            theme.colorScheme.surface,
+                                        side: BorderSide(
+                                          width: 0.5,
+                                          color:
+                                              theme.colorScheme.outlineVariant,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 4.0,
+                                          horizontal: 12.0,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        AppLocalizations.of(context)!
+                                            .addAppointment,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: theme
+                                              .colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             );
-                          },
-                          onDeleted: () {
-                            context.read<MonthlySchedulesBloc>().add(
-                                  MonthlySchedulesScheduleDeleted(
-                                      schedule: schedule),
+                          }
+
+                          return Expanded(
+                            child: ListView.builder(
+                              itemCount:
+                                  state.schedules[_selectedDate]?.length ?? 0,
+                              itemBuilder: (context, index) {
+                                final schedule =
+                                    state.schedules[_selectedDate]![index];
+
+                                return ScheduleDetail(
+                                  schedule: schedule,
+                                  onEdit: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) => ScheduleEditScreen(
+                                        scheduleId: schedule.id,
+                                      ),
+                                    );
+                                  },
+                                  onDeleted: () {
+                                    context.read<MonthlySchedulesBloc>().add(
+                                          MonthlySchedulesScheduleDeleted(
+                                            schedule: schedule,
+                                          ),
+                                        );
+                                  },
                                 );
-                          },
-                        );
-                      },
-                    ),
-                  );
-                },
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

@@ -13,6 +13,7 @@ final class ScheduleFormState extends Equatable {
   final ScheduleFormSubmissionStatus submissionStatus;
   final String? submissionError;
   final String id;
+  final String? placeId;
   final String? placeName;
   final String? scheduleName;
   final DateTime? scheduleTime;
@@ -30,6 +31,7 @@ final class ScheduleFormState extends Equatable {
     this.submissionStatus = ScheduleFormSubmissionStatus.idle,
     this.submissionError,
     String? id,
+    this.placeId,
     this.placeName,
     this.scheduleName,
     this.scheduleTime,
@@ -48,6 +50,7 @@ final class ScheduleFormState extends Equatable {
     ScheduleFormSubmissionStatus? submissionStatus,
     Object? submissionError = _unset,
     String? id,
+    String? placeId,
     String? placeName,
     String? scheduleName,
     DateTime? scheduleTime,
@@ -67,6 +70,7 @@ final class ScheduleFormState extends Equatable {
           ? this.submissionError
           : submissionError as String?,
       id: id ?? this.id,
+      placeId: placeId ?? this.placeId,
       placeName: placeName ?? this.placeName,
       scheduleName: scheduleName ?? this.scheduleName,
       scheduleTime: scheduleTime ?? this.scheduleTime,
@@ -91,7 +95,10 @@ final class ScheduleFormState extends Equatable {
   ScheduleEntity createEntity(ScheduleFormState state) {
     return ScheduleEntity(
       id: state.id,
-      place: PlaceEntity(id: Uuid().v7(), placeName: state.placeName!),
+      place: PlaceEntity(
+        id: state.placeId ?? Uuid().v7(),
+        placeName: state.placeName!,
+      ),
       scheduleName: state.scheduleName!,
       scheduleTime: state.scheduleTime!,
       moveTime: state.moveTime!,
@@ -104,20 +111,21 @@ final class ScheduleFormState extends Equatable {
 
   @override
   List<Object?> get props => [
-    status,
-    submissionStatus,
-    submissionError,
-    id,
-    placeName,
-    scheduleName,
-    scheduleTime,
-    moveTime,
-    isChanged,
-    scheduleSpareTime,
-    scheduleNote,
-    preparation,
-    isValid,
-    maxAvailableTime,
-    previousScheduleName,
-  ];
+        status,
+        submissionStatus,
+        submissionError,
+        id,
+        placeId,
+        placeName,
+        scheduleName,
+        scheduleTime,
+        moveTime,
+        isChanged,
+        scheduleSpareTime,
+        scheduleNote,
+        preparation,
+        isValid,
+        maxAvailableTime,
+        previousScheduleName,
+      ];
 }

@@ -52,7 +52,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   final CreateCustomPreparationUseCase _createCustomPreparationUseCase;
   final UpdateScheduleUseCase _updateScheduleUseCase;
   final UpdatePreparationByScheduleIdUseCase
-  _updatePreparationByScheduleIdUseCase;
+      _updatePreparationByScheduleIdUseCase;
   final AuthBloc _authBloc;
 
   Future<void> _onEditRequested(
@@ -81,6 +81,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         submissionStatus: ScheduleFormSubmissionStatus.idle,
         submissionError: null,
         id: scheduleEntity.id,
+        placeId: scheduleEntity.place.id,
         placeName: scheduleEntity.place.placeName,
         scheduleName: scheduleEntity.scheduleName,
         scheduleTime: scheduleEntity.scheduleTime,
@@ -121,6 +122,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         submissionStatus: ScheduleFormSubmissionStatus.idle,
         submissionError: null,
         id: Uuid().v7(),
+        placeId: Uuid().v7(),
         placeName: null,
         scheduleName: null,
         scheduleTime: null,

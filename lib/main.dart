@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:on_time_front/core/constants/environment_variable.dart';
@@ -25,7 +26,13 @@ void main() async {
   debugPrint('[FCM Main] Notification Permission: $permission');
 
   if (permission == AuthorizationStatus.authorized) {
-    await NotificationService.instance.initialize();
+    unawaited(
+      NotificationService.instance.initialize().catchError(
+        (Object error, StackTrace stackTrace) {
+          debugPrint('[FCM Main] NotificationService initialize 실패: $error');
+        },
+      ),
+    );
   } else {
     debugPrint('[FCM Main] 알림 권한이 없어 NotificationService를 초기화하지 않습니다');
   }

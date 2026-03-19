@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
@@ -34,6 +35,13 @@ class UserRepositoryImpl implements UserRepository {
       final user = await _authenticationRemoteDataSource.getUser();
       _userStreamController.add(user);
       return user;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await _tokenLocalDataSource.deleteToken();
+        _userStreamController.add(const UserEntity.empty());
+        return const UserEntity.empty();
+      }
+      rethrow;
     } catch (e) {
       rethrow;
     }

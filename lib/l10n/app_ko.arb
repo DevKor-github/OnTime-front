@@ -1,7 +1,7 @@
 {
     "calendarTitle": "캘린더",
     "error": "오류",
-    "noSchedules": "일정이 없습니다",
+    "noSchedules": "약속이 없어요",
     "setSpareTimeTitle": "여유시간을 설정해주세요",
     "setSpareTimeDescription": "설정한 여유시간만큼 일찍 도착할 수 있어요.",
     "setSpareTimeWarning": "여유시간은 혹시 모를 상황을 위해 꼭 설정해야 돼요.",

@@ -11,7 +11,7 @@ class AuthState extends Equatable {
       : this._(
           status: user.map<AuthStatus>(
             (entity) => entity.isOnboardingCompleted
-                ? AuthStatus.unauthenticated
+                ? AuthStatus.authenticated
                 : AuthStatus.onboardingNotCompleted,
             empty: (_) => AuthStatus.unauthenticated,
           ),

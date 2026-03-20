@@ -41,8 +41,11 @@ class ScheduleState extends Equatable {
   }
 
   Duration? get durationUntilPreparationStart {
+    return durationUntilPreparationStartAt(DateTime.now());
+  }
+
+  Duration? durationUntilPreparationStartAt(DateTime now) {
     if (schedule == null) return null;
-    final now = DateTime.now();
     final target = schedule!.preparationStartTime;
     if (target.isBefore(now) || target.isAtSameMomentAs(now)) return null;
     return target.difference(now);

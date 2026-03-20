@@ -51,15 +51,15 @@ class _AlarmScreenState extends State<AlarmScreen> {
   Widget build(BuildContext context) {
     return BlocListener<ScheduleBloc, ScheduleState>(
       listenWhen: (previous, current) {
-        return _navigateAfterFinish &&
-            previous.status != ScheduleStatus.notExists &&
+        return previous.status != ScheduleStatus.notExists &&
             current.status == ScheduleStatus.notExists;
       },
       listener: (context, scheduleState) {
         final earlyLateSeconds = _pendingEarlyLateSeconds;
         final isLate = _pendingIsLate;
-        _resetFinishNavigation();
-        if (earlyLateSeconds != null && isLate != null) {
+
+        if (_navigateAfterFinish && earlyLateSeconds != null && isLate != null) {
+          _resetFinishNavigation();
           context.go(
             '/earlyLate',
             extra: {
@@ -67,7 +67,11 @@ class _AlarmScreenState extends State<AlarmScreen> {
               'isLate': isLate,
             },
           );
+          return;
         }
+
+        _resetFinishNavigation();
+        context.go('/home');
       },
       child: BlocBuilder<ScheduleBloc, ScheduleState>(
         builder: (context, scheduleState) {

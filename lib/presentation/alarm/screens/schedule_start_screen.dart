@@ -54,140 +54,153 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
   @override
   Widget build(BuildContext context) {
     final isFiveMinBefore = _isFiveMinutesBefore();
+    final schedule = context.read<ScheduleBloc>().state.schedule;
 
-    return Container(
-      color: Colors.white,
-      child: SafeArea(
-        child: Scaffold(
-          body: Stack(
-            children: [
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 60),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            context
-                                    .read<ScheduleBloc>()
-                                    .state
-                                    .schedule
-                                    ?.scheduleName ??
-                                '',
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff5C79FB),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            context
-                                    .read<ScheduleBloc>()
-                                    .state
-                                    .schedule
-                                    ?.place
-                                    .placeName ??
-                                '',
-                            style: const TextStyle(
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 15),
-                          Text(
-                            isFiveMinBefore
-                                ? AppLocalizations.of(context)!
-                                    .preparationStartsInFiveMinutes
-                                : AppLocalizations.of(context)!.youWillBeLate,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.grey[950]!,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 50),
-                            child: SvgPicture.asset(
-                              'characters/character.svg',
-                              package: 'assets',
-                              width: 204,
-                              height: 269,
-                            ),
-                          ),
-                        ],
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final h = constraints.maxHeight;
+            final topGap = (h * 0.08).clamp(12.0, 60.0);
+            final titleFontSize = (h * 0.055).clamp(22.0, 40.0);
+            final placeFontSize = (h * 0.035).clamp(16.0, 25.0);
+            final messageFontSize = (h * 0.025).clamp(13.0, 18.0);
+            final imageHeight = (h * 0.38).clamp(120.0, 269.0);
+            final imageTopGap = (h * 0.06).clamp(10.0, 50.0);
+            final bottomGap = (h * 0.04).clamp(12.0, 30.0);
+
+            return Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      SizedBox(height: topGap),
+                      Text(
+                        schedule?.scheduleName ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xff5C79FB),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      Text(
+                        schedule?.place.placeName ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: placeFontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        isFiveMinBefore
+                            ? AppLocalizations.of(context)!
+                                .preparationStartsInFiveMinutes
+                            : AppLocalizations.of(context)!.youWillBeLate,
+                        style: TextStyle(
+                          fontSize: messageFontSize,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.grey[950]!,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: imageTopGap),
+                      Expanded(
+                        child: Center(
+                          child: SvgPicture.asset(
+                            'characters/character.svg',
+                            package: 'assets',
+                            height: imageHeight,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: bottomGap),
+                        child: isFiveMinBefore
+                            ? _buildTwoButtonLayout(context)
+                            : _buildSingleButton(context),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 30),
-                    child: isFiveMinBefore
-                        ? _buildTwoButtonLayout(context)
-                        : _buildSingleButton(context),
-                  ),
-                ],
-              ),
-              Positioned(
-                top: 10,
-                right: 10,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () async => _showModal(context),
                 ),
-              ),
-            ],
-          ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () async => _showModal(context),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
   Widget _buildSingleButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () async {
-        context.go('/alarmScreen');
-      },
-      child: Text(AppLocalizations.of(context)!.startPreparing),
+    return Align(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 358),
+        child: SizedBox(
+          width: double.infinity,
+          height: 57,
+          child: ElevatedButton(
+            onPressed: () async {
+              context.go('/alarmScreen');
+            },
+            child: Text(AppLocalizations.of(context)!.startPreparing),
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildTwoButtonLayout(BuildContext context) {
-    return SizedBox(
-      width: 358,
-      height: 127,
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: 57,
-            child: ElevatedButton(
-              onPressed: () async {
-                context.go('/alarmScreen');
-              },
-              child: Text(AppLocalizations.of(context)!.startPreparing),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 57,
-            child: ElevatedButton(
-              onPressed: () async {
-                context.go('/home');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                foregroundColor: Theme.of(context).colorScheme.primary,
+    return Align(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 358),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 57,
+              child: ElevatedButton(
+                onPressed: () async {
+                  context.go('/alarmScreen');
+                },
+                child: Text(AppLocalizations.of(context)!.startPreparing),
               ),
-              child: Text(AppLocalizations.of(context)!.startInFiveMinutes),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 57,
+              child: ElevatedButton(
+                onPressed: () async {
+                  context.go('/home');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                child: Text(AppLocalizations.of(context)!.startInFiveMinutes),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

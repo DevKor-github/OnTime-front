@@ -14,11 +14,38 @@ import 'package:on_time_front/domain/use-cases/finish_schedule_use_case.dart';
 part 'schedule_event.dart';
 part 'schedule_state.dart';
 
+void _defaultNotifyPreparationStep({
+  required String scheduleName,
+  required String preparationName,
+  required String scheduleId,
+  required String stepId,
+}) {
+  NotificationService.instance.showPreparationStepNotification(
+    scheduleName: scheduleName,
+    preparationName: preparationName,
+    scheduleId: scheduleId,
+    stepId: stepId,
+  );
+}
+
 @Singleton()
 class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
-  ScheduleBloc(this._getNearestUpcomingScheduleUseCase, this._navigationService,
-      this._saveTimedPreparationUseCase, this._finishScheduleUseCase)
-      : super(const ScheduleState.initial()) {
+  ScheduleBloc(
+    this._getNearestUpcomingScheduleUseCase,
+    this._navigationService,
+    this._saveTimedPreparationUseCase,
+    this._finishScheduleUseCase, {
+    DateTime Function()? nowProvider,
+    void Function({
+      required String scheduleName,
+      required String preparationName,
+      required String scheduleId,
+      required String stepId,
+    })? notifyPreparationStep,
+  })  : _nowProvider = nowProvider ?? DateTime.now,
+        _notifyPreparationStep =
+            notifyPreparationStep ?? _defaultNotifyPreparationStep,
+        super(const ScheduleState.initial()) {
     on<ScheduleSubscriptionRequested>(_onSubscriptionRequested);
     on<ScheduleUpcomingReceived>(_onUpcomingReceived);
     on<ScheduleStarted>(_onScheduleStarted);
@@ -31,6 +58,13 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final NavigationService _navigationService;
   final SaveTimedPreparationUseCase _saveTimedPreparationUseCase;
   final FinishScheduleUseCase _finishScheduleUseCase;
+  final DateTime Function() _nowProvider;
+  final void Function({
+    required String scheduleName,
+    required String preparationName,
+    required String scheduleId,
+    required String stepId,
+  }) _notifyPreparationStep;
   StreamSubscription<ScheduleWithPreparationEntity?>?
       _upcomingScheduleSubscription;
   Timer? _scheduleStartTimer;
@@ -58,7 +92,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _scheduleStartTimer = null;
 
     if (event.upcomingSchedule == null ||
-        event.upcomingSchedule!.scheduleTime.isBefore(DateTime.now())) {
+        event.upcomingSchedule!.scheduleTime.isBefore(_nowProvider())) {
       emit(const ScheduleState.notExists());
       _currentScheduleId = null;
       _notifiedStepIdsByScheduleId.clear();
@@ -132,8 +166,10 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   void _startScheduleTimer(ScheduleWithPreparationEntity schedule) {
-    final duration = state.durationUntilPreparationStart;
-    if (duration == null) return;
+    final now = _nowProvider();
+    final target = schedule.preparationStartTime;
+    if (!target.isAfter(now)) return;
+    final duration = target.difference(now);
     _scheduleStartTimer = Timer(duration, () {
       // Only add event if bloc is still active and schedule ID matches
       if (!isClosed && _currentScheduleId == schedule.id) {
@@ -146,7 +182,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (state.schedule == null) return;
     _preparationTimer?.cancel();
     final elapsedTimeAfterLastTick =
-        DateTime.now().difference(state.schedule!.preparationStartTime) -
+        _nowProvider().difference(state.schedule!.preparationStartTime) -
             state.schedule!.preparation.elapsedTime;
     debugPrint('elapsedTimeAfterLastTick: $elapsedTimeAfterLastTick');
     add(ScheduleTick(elapsedTimeAfterLastTick));
@@ -166,8 +202,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
   bool _isPreparationOnGoing(ScheduleWithPreparationEntity schedule) {
     final start = schedule.preparationStartTime;
-    return start.isBefore(DateTime.now()) &&
-        schedule.scheduleTime.isAfter(DateTime.now());
+    final now = _nowProvider();
+    return start.isBefore(now) && schedule.scheduleTime.isAfter(now);
   }
 
   void _initializeNotificationTracking(ScheduleWithPreparationEntity schedule) {
@@ -205,7 +241,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       return;
     }
 
-    NotificationService.instance.showPreparationStepNotification(
+    _notifyPreparationStep(
       scheduleName: newSchedule.scheduleName,
       preparationName: newCurrentStep.preparationName,
       scheduleId: scheduleId,

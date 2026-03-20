@@ -26,17 +26,26 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   ///Returns the time when the preparation starts.
   DateTime get preparationStartTime => scheduleTime.subtract(totalDuration);
 
-  /// Returns the time remaining before needing to leave
-  Duration get timeRemainingBeforeLeaving {
-    final now = DateTime.now();
+  /// Returns the time remaining before needing to leave at [now].
+  Duration timeRemainingBeforeLeavingAt(DateTime now) {
     final spareTime = scheduleSpareTime ?? Duration.zero;
     final remaining = scheduleTime.difference(now) - moveTime - spareTime;
     return remaining;
   }
 
+  /// Returns the time remaining before needing to leave
+  Duration get timeRemainingBeforeLeaving {
+    return timeRemainingBeforeLeavingAt(DateTime.now());
+  }
+
+  /// Returns whether the schedule is running late at [now].
+  bool isLateAt(DateTime now) {
+    return timeRemainingBeforeLeavingAt(now).isNegative;
+  }
+
   /// Returns whether the schedule is running late
   bool get isLate {
-    return timeRemainingBeforeLeaving.isNegative;
+    return isLateAt(DateTime.now());
   }
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(

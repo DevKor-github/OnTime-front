@@ -65,6 +65,54 @@ void main() {
       expect(progressed.currentStepRemainingTime, Duration.zero);
       expect(progressed.progress, 1.0);
     });
+
+    test('cache fingerprint changes when preparation step name changes', () {
+      final baseline = ScheduleWithPreparationEntity(
+        id: 'schedule-cache',
+        place: PlaceEntity(id: 'p1', placeName: 'Office'),
+        scheduleName: 'Meeting',
+        scheduleTime: DateTime(2026, 3, 20, 10, 0),
+        moveTime: const Duration(minutes: 20),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: const Duration(minutes: 10),
+        scheduleNote: '',
+        preparation: const PreparationWithTimeEntity(
+          preparationStepList: [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'Wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        ),
+      );
+      final renamed = ScheduleWithPreparationEntity(
+        id: 'schedule-cache',
+        place: PlaceEntity(id: 'p1', placeName: 'Office'),
+        scheduleName: 'Meeting',
+        scheduleTime: DateTime(2026, 3, 20, 10, 0),
+        moveTime: const Duration(minutes: 20),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: const Duration(minutes: 10),
+        scheduleNote: '',
+        preparation: const PreparationWithTimeEntity(
+          preparationStepList: [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'Makeup',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        ),
+      );
+
+      expect(
+          baseline.cacheFingerprint, isNot(equals(renamed.cacheFingerprint)));
+    });
   });
 
   group('ScheduleState timing helper', () {

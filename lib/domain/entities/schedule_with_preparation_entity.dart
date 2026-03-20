@@ -41,6 +41,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       buffer
         ..write(step.id)
         ..write(':')
+        ..write(step.preparationName)
+        ..write(':')
         ..write(step.preparationTime.inMilliseconds)
         ..write(':')
         ..write(step.nextPreparationId ?? '')

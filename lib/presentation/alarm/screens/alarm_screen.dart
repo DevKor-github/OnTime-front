@@ -13,7 +13,12 @@ import 'package:on_time_front/presentation/alarm/components/preparation_completi
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
-  const AlarmScreen({super.key});
+  const AlarmScreen({
+    super.key,
+    this.nowProvider = DateTime.now,
+  });
+
+  final DateTime Function() nowProvider;
 
   @override
   State<AlarmScreen> createState() => _AlarmScreenState();
@@ -21,15 +26,30 @@ class AlarmScreen extends StatefulWidget {
 
 class _AlarmScreenState extends State<AlarmScreen> {
   bool _hasShownCompletionDialog = false;
+  bool _isContinuingAfterCompletion = false;
   bool _navigateAfterFinish = false;
   int? _pendingEarlyLateSeconds;
   bool? _pendingIsLate;
-  Timer? _upcomingCountdownTimer;
+  Timer? _uiTickerTimer;
+  String? _completionScheduleId;
 
   void _resetFinishNavigation() {
     _navigateAfterFinish = false;
     _pendingEarlyLateSeconds = null;
     _pendingIsLate = null;
+  }
+
+  void _resetCompletionUiState() {
+    _hasShownCompletionDialog = false;
+    _isContinuingAfterCompletion = false;
+  }
+
+  Duration _timeRemainingBeforeLeaving(ScheduleWithPreparationEntity schedule) {
+    return schedule.timeRemainingBeforeLeavingAt(widget.nowProvider());
+  }
+
+  bool _isLate(ScheduleWithPreparationEntity schedule) {
+    return schedule.isLateAt(widget.nowProvider());
   }
 
   void _onPreparationFinished(
@@ -42,15 +62,14 @@ class _AlarmScreenState extends State<AlarmScreen> {
     context.read<ScheduleBloc>().add(ScheduleFinished(latenessMinutes));
   }
 
-  void _ensureUpcomingTicker(bool active) {
+  void _ensureUiTicker(bool active) {
     if (!active) {
-      _upcomingCountdownTimer?.cancel();
-      _upcomingCountdownTimer = null;
+      _uiTickerTimer?.cancel();
+      _uiTickerTimer = null;
       return;
     }
-    if (_upcomingCountdownTimer != null) return;
-    _upcomingCountdownTimer =
-        Timer.periodic(const Duration(seconds: 1), (timer) {
+    if (_uiTickerTimer != null) return;
+    _uiTickerTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
       setState(() {});
     });
@@ -68,7 +87,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
   @override
   void dispose() {
-    _upcomingCountdownTimer?.cancel();
+    _uiTickerTimer?.cancel();
     super.dispose();
   }
 
@@ -106,6 +125,16 @@ class _AlarmScreenState extends State<AlarmScreen> {
               scheduleState.status == ScheduleStatus.started) {
             final schedule = scheduleState.schedule!;
             final preparation = schedule.preparation;
+            final scheduleChanged = _completionScheduleId != schedule.id;
+
+            if (scheduleChanged) {
+              _completionScheduleId = schedule.id;
+              _resetCompletionUiState();
+            }
+
+            if (!preparation.isAllStepsDone && _hasShownCompletionDialog) {
+              _resetCompletionUiState();
+            }
 
             if (preparation.isAllStepsDone && !_hasShownCompletionDialog) {
               _hasShownCompletionDialog = true;
@@ -113,27 +142,41 @@ class _AlarmScreenState extends State<AlarmScreen> {
                 if (!mounted) return;
                 showPreparationCompletionDialog(
                   context: context,
-                  isLate: schedule.isLate,
+                  isLate: _isLate(schedule),
                   onFinish: () {
+                    final timeRemainingBeforeLeaving =
+                        _timeRemainingBeforeLeaving(schedule);
                     _onPreparationFinished(
                       context,
-                      schedule.timeRemainingBeforeLeaving,
-                      schedule.isLate,
+                      timeRemainingBeforeLeaving,
+                      timeRemainingBeforeLeaving.isNegative,
                     );
+                  },
+                  onContinue: () {
+                    if (!mounted) return;
+                    setState(() {
+                      _isContinuingAfterCompletion = true;
+                    });
                   },
                 );
               });
             }
 
+            _ensureUiTicker(preparation.isAllStepsDone &&
+                _isContinuingAfterCompletion);
             return _buildAlarmScreen(
               schedule: schedule,
             );
           } else if (scheduleState.status == ScheduleStatus.upcoming &&
               scheduleState.schedule != null) {
-            _ensureUpcomingTicker(true);
+            _completionScheduleId = scheduleState.schedule!.id;
+            _resetCompletionUiState();
+            _ensureUiTicker(true);
             return _buildEarlyStartReadyScreen(scheduleState.schedule!);
           } else {
-            _ensureUpcomingTicker(false);
+            _completionScheduleId = null;
+            _resetCompletionUiState();
+            _ensureUiTicker(false);
             return const Scaffold(
               backgroundColor: Color(0xff5C79FB),
               body: Center(child: CircularProgressIndicator()),
@@ -147,8 +190,18 @@ class _AlarmScreenState extends State<AlarmScreen> {
   Widget _buildAlarmScreen({
     required ScheduleWithPreparationEntity schedule,
   }) {
-    _ensureUpcomingTicker(false);
+    final timeRemainingBeforeLeaving = _timeRemainingBeforeLeaving(schedule);
+    final isLate = timeRemainingBeforeLeaving.isNegative;
     final preparation = schedule.preparation;
+    final displayRemainingSeconds = preparation.isAllStepsDone &&
+            _isContinuingAfterCompletion
+        ? timeRemainingBeforeLeaving.inSeconds.abs()
+        : preparation.currentStepRemainingTime.inSeconds;
+
+    if (!(preparation.isAllStepsDone && _isContinuingAfterCompletion)) {
+      _ensureUiTicker(false);
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xff5C79FB),
       body: Stack(
@@ -156,11 +209,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
           Column(
             children: [
               AlarmScreenTopSection(
-                isLate: schedule.isLate,
-                beforeOutTime: schedule.timeRemainingBeforeLeaving.inSeconds,
+                isLate: isLate,
+                beforeOutTime: timeRemainingBeforeLeaving.inSeconds,
                 preparationName: preparation.currentStepName,
-                preparationRemainingTime:
-                    preparation.currentStepRemainingTime.inSeconds,
+                preparationRemainingTime: displayRemainingSeconds,
                 progress: preparation.progress,
               ),
               const SizedBox(height: 110),
@@ -172,8 +224,11 @@ class _AlarmScreenState extends State<AlarmScreen> {
                         .read<ScheduleBloc>()
                         .add(const ScheduleStepSkipped());
                   },
-                  onEndPreparation: () => _onPreparationFinished(context,
-                      schedule.timeRemainingBeforeLeaving, schedule.isLate),
+                  onEndPreparation: () => _onPreparationFinished(
+                    context,
+                    timeRemainingBeforeLeaving,
+                    isLate,
+                  ),
                 ),
               ),
             ],
@@ -186,7 +241,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
   Widget _buildEarlyStartReadyScreen(ScheduleWithPreparationEntity schedule) {
     final l10n = AppLocalizations.of(context)!;
     final remaining =
-        schedule.preparationStartTime.difference(DateTime.now()).inSeconds;
+        schedule.preparationStartTime.difference(widget.nowProvider()).inSeconds;
     final clampedRemaining = remaining.isNegative ? 0 : remaining;
 
     return Scaffold(

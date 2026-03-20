@@ -7,6 +7,7 @@ Future<void> showPreparationCompletionDialog({
   required BuildContext context,
   required bool isLate,
   required VoidCallback onFinish,
+  VoidCallback? onContinue,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final result = await showTwoActionDialog(
@@ -30,5 +31,7 @@ Future<void> showPreparationCompletionDialog({
 
   if (result == DialogActionResult.primary) {
     onFinish();
+  } else if (result == DialogActionResult.secondary) {
+    onContinue?.call();
   }
 }

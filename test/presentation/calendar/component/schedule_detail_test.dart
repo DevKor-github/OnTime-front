@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -54,6 +56,36 @@ void main() {
     );
   }
 
+  Future<void> openTrailingActions(WidgetTester tester) async {
+    final cell = find.byType(SwipeActionCell);
+    expect(cell, findsOneWidget);
+    await tester.drag(cell, const Offset(-180, 0));
+    await tester.pumpAndSettle();
+  }
+
+  double getMaxActionButtonHeight(WidgetTester tester) {
+    final actionContainers = find.byWidgetPredicate((widget) {
+      if (widget is! Container) {
+        return false;
+      }
+      final decoration = widget.decoration;
+      if (decoration is! BoxDecoration) {
+        return false;
+      }
+      final radius = decoration.borderRadius;
+      if (radius is! BorderRadius) {
+        return false;
+      }
+      return radius.topLeft.x == 12 && decoration.color != null;
+    });
+
+    expect(actionContainers, findsWidgets);
+    return actionContainers
+        .evaluate()
+        .map((element) => (element.renderObject! as RenderBox).size.height)
+        .reduce((a, b) => a > b ? a : b);
+  }
+
   testWidgets('expanded tile shows travel, preparation, spare in order',
       (tester) async {
     await pumpScheduleDetail(tester,
@@ -87,5 +119,26 @@ void main() {
 
     expect(find.text('Preparation Time'), findsOneWidget);
     expect(find.text('-'), findsOneWidget);
+  });
+
+  testWidgets('swipe action button height increases when schedule is expanded',
+      (tester) async {
+    await pumpScheduleDetail(tester,
+        preparationTime: const Duration(minutes: 20));
+    await openTrailingActions(tester);
+    final collapsedHeight = getMaxActionButtonHeight(tester);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    await pumpScheduleDetail(tester,
+        preparationTime: const Duration(minutes: 20));
+    await tester.tap(find.byType(ListTile));
+    await tester.pumpAndSettle();
+    expect(find.text('Travel Time'), findsOneWidget);
+    await openTrailingActions(tester);
+    final expandedHeight = getMaxActionButtonHeight(tester);
+
+    expect(expandedHeight, greaterThan(collapsedHeight));
   });
 }

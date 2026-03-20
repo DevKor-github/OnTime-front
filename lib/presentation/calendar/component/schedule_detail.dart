@@ -11,21 +11,27 @@ class _SwipeActionContent extends StatelessWidget {
   const _SwipeActionContent({
     required this.icon,
     required this.color,
+    required this.margin,
   });
 
   final Widget icon;
   final Color color;
+  final EdgeInsets margin;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: color,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(29.0),
-        child: icon,
+    return Padding(
+      padding: margin,
+      child: SizedBox.expand(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: color,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: icon,
+        ),
       ),
     );
   }
@@ -68,6 +74,13 @@ class ScheduleDetail extends StatefulWidget {
 }
 
 class _ScheduleDetailState extends State<ScheduleDetail> {
+  static const double _actionWidth = 96.0;
+  static const EdgeInsets _trailingActionMargin = EdgeInsets.only(
+    left: 4.0,
+    top: 4.0,
+    bottom: 4.0,
+  );
+
   @override
   Widget build(BuildContext context) {
     return SwipeActionCell(
@@ -84,6 +97,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         !widget.schedule.scheduleTime.isBefore(DateTime.now());
     return [
       SwipeAction(
+        widthSpace: _actionWidth,
         onTap: (handler) async {
           await handler(false);
           widget.onDeleted?.call();
@@ -92,11 +106,12 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         content: _SwipeActionContent(
           icon: const _TrashCanSvg(),
           color: theme.colorScheme.error,
+          margin: _trailingActionMargin,
         ),
       ),
       if (canEdit)
         SwipeAction(
-          widthSpace: 96,
+          widthSpace: _actionWidth,
           onTap: (handler) async {
             await handler(false);
             widget.onEdit?.call();
@@ -105,6 +120,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
           content: _SwipeActionContent(
             icon: const _EditPencilSvg(),
             color: theme.colorScheme.outline,
+            margin: _trailingActionMargin,
           ),
         ),
     ];

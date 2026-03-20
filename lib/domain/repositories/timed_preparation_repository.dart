@@ -1,10 +1,14 @@
-import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
+import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
 
 abstract interface class TimedPreparationRepository {
-  Future<void> saveTimedPreparation(
-      String scheduleId, PreparationWithTimeEntity preparation);
+  Future<void> saveTimedPreparationSnapshot(
+    String scheduleId,
+    TimedPreparationSnapshotEntity snapshot,
+  );
 
-  Future<PreparationWithTimeEntity?> getTimedPreparation(String scheduleId);
+  Future<TimedPreparationSnapshotEntity?> getTimedPreparationSnapshot(
+    String scheduleId,
+  );
 
   Future<void> clearTimedPreparation(String scheduleId);
 }

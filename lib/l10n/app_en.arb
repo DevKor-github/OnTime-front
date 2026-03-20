@@ -79,6 +79,14 @@
     "@runningLateDescription": {
         "description": "Modal content when the preparation time is over"
     },
+    "preparationCompletedTitle": "All steps are done!",
+    "@preparationCompletedTitle": {
+        "description": "Modal title when all preparation steps are completed before being late"
+    },
+    "preparationCompletedDescription": "You finished every step. You can finish now or keep preparing.",
+    "@preparationCompletedDescription": {
+        "description": "Modal content when all preparation steps are completed before being late"
+    },
     "continuePreparing": "Continue Preparing",
     "@continuePreparing": {
         "description": "Button text to continue preparing"
@@ -418,6 +426,10 @@
     "startInFiveMinutes": "Start in 5 minutes",
     "@startInFiveMinutes": {
         "description": "Button text to start in 5 minutes"
+    },
+    "preparationStartsLaterStartEarly": "Preparation starts a little later.\nWould you like to start preparing early now?",
+    "@preparationStartsLaterStartEarly": {
+        "description": "Message shown when user opens schedule start before preparation start time from home"
     },
     "continuePreparingNext": "Continue preparing",
     "@continuePreparingNext": {

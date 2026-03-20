@@ -218,6 +218,18 @@ abstract class AppLocalizations {
   /// **'If you\'re not ready yet, you can stay and continue preparing.\nBut you might be late!'**
   String get runningLateDescription;
 
+  /// Modal title when all preparation steps are completed before being late
+  ///
+  /// In en, this message translates to:
+  /// **'All steps are done!'**
+  String get preparationCompletedTitle;
+
+  /// Modal content when all preparation steps are completed before being late
+  ///
+  /// In en, this message translates to:
+  /// **'You finished every step. You can finish now or keep preparing.'**
+  String get preparationCompletedDescription;
+
   /// Button text to continue preparing
   ///
   /// In en, this message translates to:
@@ -661,6 +673,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start in 5 minutes'**
   String get startInFiveMinutes;
+
+  /// Message shown when user opens schedule start before preparation start time from home
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation starts a little later.\nWould you like to start preparing early now?'**
+  String get preparationStartsLaterStartEarly;
 
   /// Notification body text for continuing preparation
   ///

@@ -26,17 +26,52 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   ///Returns the time when the preparation starts.
   DateTime get preparationStartTime => scheduleTime.subtract(totalDuration);
 
-  /// Returns the time remaining before needing to leave
-  Duration get timeRemainingBeforeLeaving {
-    final now = DateTime.now();
+  /// Fingerprint for validating whether cached timed-preparation is still valid.
+  String get cacheFingerprint {
+    final spare = scheduleSpareTime ?? Duration.zero;
+    final buffer = StringBuffer()
+      ..write(scheduleTime.millisecondsSinceEpoch)
+      ..write('|')
+      ..write(moveTime.inMilliseconds)
+      ..write('|')
+      ..write(spare.inMilliseconds)
+      ..write('|');
+
+    for (final step in preparation.preparationStepList) {
+      buffer
+        ..write(step.id)
+        ..write(':')
+        ..write(step.preparationName)
+        ..write(':')
+        ..write(step.preparationTime.inMilliseconds)
+        ..write(':')
+        ..write(step.nextPreparationId ?? '')
+        ..write('|');
+    }
+
+    return buffer.toString();
+  }
+
+  /// Returns the time remaining before needing to leave at [now].
+  Duration timeRemainingBeforeLeavingAt(DateTime now) {
     final spareTime = scheduleSpareTime ?? Duration.zero;
     final remaining = scheduleTime.difference(now) - moveTime - spareTime;
     return remaining;
   }
 
+  /// Returns the time remaining before needing to leave
+  Duration get timeRemainingBeforeLeaving {
+    return timeRemainingBeforeLeavingAt(DateTime.now());
+  }
+
+  /// Returns whether the schedule is running late at [now].
+  bool isLateAt(DateTime now) {
+    return timeRemainingBeforeLeavingAt(now).isNegative;
+  }
+
   /// Returns whether the schedule is running late
   bool get isLate {
-    return timeRemainingBeforeLeaving.isNegative;
+    return isLateAt(DateTime.now());
   }
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(

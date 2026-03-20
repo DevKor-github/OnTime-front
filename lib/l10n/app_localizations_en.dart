@@ -73,6 +73,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'If you\'re not ready yet, you can stay and continue preparing.\nBut you might be late!';
 
   @override
+  String get preparationCompletedTitle => 'All steps are done!';
+
+  @override
+  String get preparationCompletedDescription =>
+      'You finished every step. You can finish now or keep preparing.';
+
+  @override
   String get continuePreparing => 'Continue Preparing';
 
   @override
@@ -333,6 +340,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startInFiveMinutes => 'Start in 5 minutes';
+
+  @override
+  String get preparationStartsLaterStartEarly =>
+      'Preparation starts a little later.\nWould you like to start preparing early now?';
 
   @override
   String get continuePreparingNext => 'Continue preparing';

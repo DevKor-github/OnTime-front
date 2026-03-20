@@ -121,14 +121,22 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
         path: '/scheduleStart',
         name: 'scheduleStart',
         builder: (context, state) {
+          final scheduleState = context.read<ScheduleBloc>().state;
+          if (scheduleState.isEarlyStarted) {
+            return const AlarmScreen();
+          }
           final schedule = context.read<ScheduleBloc>().state.schedule;
           if (schedule == null) {
             return const SizedBox.shrink();
           }
           final extra = state.extra as Map<String, dynamic>?;
-          final isFiveMinutesBefore =
-              extra?['isFiveMinutesBefore'] as bool? ?? false;
-          return ScheduleStartScreen(isFiveMinutesBefore: isFiveMinutesBefore);
+          final promptVariantRaw = extra?['promptVariant'] as String?;
+          final promptVariant = promptVariantRaw != null
+              ? scheduleStartPromptVariantFromRouteValue(promptVariantRaw)
+              : ((extra?['isFiveMinutesBefore'] as bool? ?? false)
+                  ? ScheduleStartPromptVariant.fiveMinutes
+                  : ScheduleStartPromptVariant.defaultPrompt);
+          return ScheduleStartScreen(promptVariant: promptVariant);
         },
       ),
       GoRoute(

@@ -5,14 +5,17 @@ import 'package:on_time_front/presentation/shared/components/two_action_dialog.d
 
 Future<void> showPreparationCompletionDialog({
   required BuildContext context,
+  required bool isLate,
   required VoidCallback onFinish,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final result = await showTwoActionDialog(
     context,
     config: TwoActionDialogConfig(
-      title: l10n.areYouRunningLate,
-      description: l10n.runningLateDescription,
+      title: isLate ? l10n.areYouRunningLate : l10n.preparationCompletedTitle,
+      description: isLate
+          ? l10n.runningLateDescription
+          : l10n.preparationCompletedDescription,
       barrierDismissible: false,
       secondaryAction: DialogActionConfig(
         label: l10n.continuePreparing,

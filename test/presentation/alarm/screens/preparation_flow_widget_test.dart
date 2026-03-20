@@ -23,6 +23,7 @@ import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_us
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/alarm/components/alarm_graph_animator.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
@@ -903,8 +904,28 @@ void main() {
         lateScaffold.backgroundColor!.value,
         const Color(0xFFFF6953).value,
       );
-      expect(find.text('지각이에요!'), findsOneWidget);
+      expect(
+        tester.widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator)).progress,
+        0.0,
+      );
+      expect(
+        tester
+            .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
+            .backgroundColor
+            .value,
+        const Color(0xFFFFEAE7).value,
+      );
+      expect(
+        tester
+            .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
+            .progressColor
+            .value,
+        const Color(0xFFFFEAE7).value,
+      );
+      expect(find.text('준비시간을 1분 초과했어요'), findsOneWidget);
+      expect(find.text('지각이에요'), findsOneWidget);
       expect(find.text('01 : 00'), findsOneWidget);
+      expect(find.text('Prep'), findsOneWidget);
 
       alarmBloc.add(const ScheduleFinished(0));
       await tester.pump();

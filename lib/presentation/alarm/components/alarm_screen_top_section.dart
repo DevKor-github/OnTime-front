@@ -7,6 +7,7 @@ class AlarmScreenTopSection extends StatelessWidget {
   final bool isLate;
   final int beforeOutTime;
   final String preparationName;
+  final bool showPreparationName;
   final int preparationRemainingTime;
   final double progress;
 
@@ -15,6 +16,7 @@ class AlarmScreenTopSection extends StatelessWidget {
     required this.isLate,
     required this.beforeOutTime,
     required this.preparationName,
+    this.showPreparationName = true,
     required this.preparationRemainingTime,
     required this.progress,
   });
@@ -30,11 +32,13 @@ class AlarmScreenTopSection extends StatelessWidget {
         ),
         _AlarmGraphSection(
           preparationName: preparationName,
+          showPreparationName: showPreparationName,
           preparationRemainingTime: preparationRemainingTime,
           progress: progress,
           highlightColor: colorScheme.primaryContainer,
-          graphBackgroundColor:
-              colorScheme.onPrimaryContainer.withValues(alpha: 0.35),
+          graphBackgroundColor: isLate
+              ? colorScheme.primaryContainer
+              : colorScheme.onPrimaryContainer.withValues(alpha: 0.35),
           graphProgressColor: colorScheme.primaryContainer,
         ),
       ],
@@ -53,10 +57,13 @@ class _BeforeOutTimeText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final overdueText = formatTime(beforeOutTime.abs());
     return Padding(
       padding: const EdgeInsets.only(top: 75),
       child: Text(
-        isLate ? '지각이에요!' : '${formatTime(beforeOutTime)} 뒤에 나가야 해요',
+        isLate
+            ? '준비시간을 $overdueText 초과했어요'
+            : '${formatTime(beforeOutTime)} 뒤에 나가야 해요',
         style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -69,6 +76,7 @@ class _BeforeOutTimeText extends StatelessWidget {
 
 class _AlarmGraphSection extends StatelessWidget {
   final String preparationName;
+  final bool showPreparationName;
   final int preparationRemainingTime;
   final double progress;
   final Color highlightColor;
@@ -77,6 +85,7 @@ class _AlarmGraphSection extends StatelessWidget {
 
   const _AlarmGraphSection({
     required this.preparationName,
+    required this.showPreparationName,
     required this.preparationRemainingTime,
     required this.progress,
     required this.highlightColor,
@@ -101,15 +110,17 @@ class _AlarmGraphSection extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  preparationName,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: highlightColor,
+                if (showPreparationName) ...[
+                  Text(
+                    preparationName,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: highlightColor,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                ],
                 Text(
                   formatTimeTimer(preparationRemainingTime),
                   style: TextStyle(

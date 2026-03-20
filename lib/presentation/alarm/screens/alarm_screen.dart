@@ -212,6 +212,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
     final preparation = schedule.preparation;
     final isLateContinueMode =
         preparation.isAllStepsDone && _isContinuingAfterCompletion && isLate;
+    final timerLabel =
+        isLateContinueMode ? '지각이에요' : preparation.currentStepName;
+    final displayProgress = isLateContinueMode ? 0.0 : preparation.progress;
     final displayRemainingSeconds = preparation.isAllStepsDone &&
             _isContinuingAfterCompletion
         ? timeRemainingBeforeLeaving.inSeconds.abs()
@@ -237,9 +240,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
                     AlarmScreenTopSection(
                       isLate: isLate,
                       beforeOutTime: timeRemainingBeforeLeaving.inSeconds,
-                      preparationName: preparation.currentStepName,
+                      preparationName: timerLabel,
+                      showPreparationName: true,
                       preparationRemainingTime: displayRemainingSeconds,
-                      progress: preparation.progress,
+                      progress: displayProgress,
                     ),
                     const SizedBox(height: 110),
                     Expanded(

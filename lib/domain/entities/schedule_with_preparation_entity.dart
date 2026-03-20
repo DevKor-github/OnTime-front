@@ -26,6 +26,30 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   ///Returns the time when the preparation starts.
   DateTime get preparationStartTime => scheduleTime.subtract(totalDuration);
 
+  /// Fingerprint for validating whether cached timed-preparation is still valid.
+  String get cacheFingerprint {
+    final spare = scheduleSpareTime ?? Duration.zero;
+    final buffer = StringBuffer()
+      ..write(scheduleTime.millisecondsSinceEpoch)
+      ..write('|')
+      ..write(moveTime.inMilliseconds)
+      ..write('|')
+      ..write(spare.inMilliseconds)
+      ..write('|');
+
+    for (final step in preparation.preparationStepList) {
+      buffer
+        ..write(step.id)
+        ..write(':')
+        ..write(step.preparationTime.inMilliseconds)
+        ..write(':')
+        ..write(step.nextPreparationId ?? '')
+        ..write('|');
+    }
+
+    return buffer.toString();
+  }
+
   /// Returns the time remaining before needing to leave at [now].
   Duration timeRemainingBeforeLeavingAt(DateTime now) {
     final spareTime = scheduleSpareTime ?? Duration.zero;

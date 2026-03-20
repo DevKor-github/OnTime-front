@@ -218,6 +218,18 @@ abstract class AppLocalizations {
   /// **'If you\'re not ready yet, you can stay and continue preparing.\nBut you might be late!'**
   String get runningLateDescription;
 
+  /// Modal title when all preparation steps are completed before being late
+  ///
+  /// In en, this message translates to:
+  /// **'All steps are done!'**
+  String get preparationCompletedTitle;
+
+  /// Modal content when all preparation steps are completed before being late
+  ///
+  /// In en, this message translates to:
+  /// **'You finished every step. You can finish now or keep preparing.'**
+  String get preparationCompletedDescription;
+
   /// Button text to continue preparing
   ///
   /// In en, this message translates to:

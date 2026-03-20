@@ -12,8 +12,15 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
+import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
+import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
+import 'package:on_time_front/domain/use-cases/clear_early_start_session_use_case.dart';
+import 'package:on_time_front/domain/use-cases/clear_timed_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/finish_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
+import 'package:on_time_front/domain/use-cases/get_early_start_session_use_case.dart';
+import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_use_case.dart';
+import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
@@ -42,7 +49,11 @@ class SpyNavigationService extends NavigationService {
 
 class NoopSaveTimedPreparationUseCase implements SaveTimedPreparationUseCase {
   @override
-  Future<void> call(String scheduleId, PreparationWithTimeEntity preparation) async {}
+  Future<void> call(
+    ScheduleWithPreparationEntity schedule,
+    PreparationWithTimeEntity preparation, {
+    DateTime? savedAt,
+  }) async {}
 }
 
 class SpyFinishScheduleUseCase implements FinishScheduleUseCase {
@@ -52,6 +63,90 @@ class SpyFinishScheduleUseCase implements FinishScheduleUseCase {
   Future<void> call(String scheduleId, int latenessTime) async {
     calls.add((scheduleId, latenessTime));
   }
+}
+
+class StubGetTimedPreparationSnapshotUseCase
+    implements GetTimedPreparationSnapshotUseCase {
+  StubGetTimedPreparationSnapshotUseCase(this.snapshotById);
+
+  final Map<String, TimedPreparationSnapshotEntity> snapshotById;
+
+  @override
+  Future<TimedPreparationSnapshotEntity?> call(String scheduleId) async {
+    return snapshotById[scheduleId];
+  }
+}
+
+class NoopClearTimedPreparationUseCase implements ClearTimedPreparationUseCase {
+  @override
+  Future<void> call(String scheduleId) async {}
+}
+
+class EarlyStartSessionStore {
+  final Map<String, DateTime> sessions = {};
+}
+
+class InMemoryMarkEarlyStartSessionUseCase
+    implements MarkEarlyStartSessionUseCase {
+  InMemoryMarkEarlyStartSessionUseCase(this.store);
+
+  final EarlyStartSessionStore store;
+
+  @override
+  Future<void> call({
+    required String scheduleId,
+    required DateTime startedAt,
+  }) async {
+    store.sessions[scheduleId] = startedAt;
+  }
+}
+
+class InMemoryGetEarlyStartSessionUseCase
+    implements GetEarlyStartSessionUseCase {
+  InMemoryGetEarlyStartSessionUseCase(this.store);
+
+  final EarlyStartSessionStore store;
+
+  @override
+  Future<EarlyStartSessionEntity?> call(String scheduleId) async {
+    final startedAt = store.sessions[scheduleId];
+    if (startedAt == null) return null;
+    return EarlyStartSessionEntity(
+        scheduleId: scheduleId, startedAt: startedAt);
+  }
+}
+
+class InMemoryClearEarlyStartSessionUseCase
+    implements ClearEarlyStartSessionUseCase {
+  InMemoryClearEarlyStartSessionUseCase(this.store);
+
+  final EarlyStartSessionStore store;
+
+  @override
+  Future<void> call(String scheduleId) async {
+    store.sessions.remove(scheduleId);
+  }
+}
+
+class EarlyStartUseCaseBundle {
+  EarlyStartUseCaseBundle._(
+    this.markUseCase,
+    this.getUseCase,
+    this.clearUseCase,
+  );
+
+  final InMemoryMarkEarlyStartSessionUseCase markUseCase;
+  final InMemoryGetEarlyStartSessionUseCase getUseCase;
+  final InMemoryClearEarlyStartSessionUseCase clearUseCase;
+}
+
+EarlyStartUseCaseBundle createEarlyStartUseCaseBundle() {
+  final store = EarlyStartSessionStore();
+  return EarlyStartUseCaseBundle._(
+    InMemoryMarkEarlyStartSessionUseCase(store),
+    InMemoryGetEarlyStartSessionUseCase(store),
+    InMemoryClearEarlyStartSessionUseCase(store),
+  );
 }
 
 ScheduleWithPreparationEntity buildSchedule({
@@ -163,6 +258,12 @@ void main() {
     late StreamController<ScheduleWithPreparationEntity?> controller;
     late SpyNavigationService navigationService;
     late SpyFinishScheduleUseCase finishUseCase;
+    late StubGetTimedPreparationSnapshotUseCase getSnapshotUseCase;
+    late NoopClearTimedPreparationUseCase clearTimedUseCase;
+    late EarlyStartSessionStore earlySessionStore;
+    late InMemoryMarkEarlyStartSessionUseCase markEarlyStartUseCase;
+    late InMemoryGetEarlyStartSessionUseCase getEarlyStartUseCase;
+    late InMemoryClearEarlyStartSessionUseCase clearEarlyStartUseCase;
     late DateTime now;
     late ScheduleBloc bloc;
 
@@ -170,12 +271,26 @@ void main() {
       controller = StreamController<ScheduleWithPreparationEntity?>.broadcast();
       navigationService = SpyNavigationService();
       finishUseCase = SpyFinishScheduleUseCase();
+      getSnapshotUseCase = StubGetTimedPreparationSnapshotUseCase({});
+      clearTimedUseCase = NoopClearTimedPreparationUseCase();
+      earlySessionStore = EarlyStartSessionStore();
+      markEarlyStartUseCase =
+          InMemoryMarkEarlyStartSessionUseCase(earlySessionStore);
+      getEarlyStartUseCase =
+          InMemoryGetEarlyStartSessionUseCase(earlySessionStore);
+      clearEarlyStartUseCase =
+          InMemoryClearEarlyStartSessionUseCase(earlySessionStore);
       now = DateTime(2026, 3, 20, 9, 0, 0);
-      bloc = ScheduleBloc(
+      bloc = ScheduleBloc.test(
         StubGetNearestUpcomingScheduleUseCase(() => controller.stream),
         navigationService,
         NoopSaveTimedPreparationUseCase(),
+        getSnapshotUseCase,
+        clearTimedUseCase,
         finishUseCase,
+        markEarlyStartSessionUseCase: markEarlyStartUseCase,
+        getEarlyStartSessionUseCase: getEarlyStartUseCase,
+        clearEarlyStartSessionUseCase: clearEarlyStartUseCase,
         nowProvider: () => now,
       );
     });
@@ -198,7 +313,8 @@ void main() {
               isFiveMinutesBefore: true,
             ),
           ),
-          GoRoute(path: '/alarmScreen', builder: (_, __) => const Text('ALARM')),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const Text('ALARM')),
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
         ],
       );
@@ -232,9 +348,12 @@ void main() {
         routes: [
           GoRoute(
             path: '/scheduleStart',
-            builder: (_, __) => const ScheduleStartScreen(isFiveMinutesBefore: true),
+            builder: (_, __) =>
+                const ScheduleStartScreen(isFiveMinutesBefore: true),
           ),
-          GoRoute(path: '/alarmScreen', builder: (_, __) => const Text('ALARM_ROUTE')),
+          GoRoute(
+              path: '/alarmScreen',
+              builder: (_, __) => const Text('ALARM_ROUTE')),
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME_ROUTE')),
         ],
       );
@@ -267,9 +386,12 @@ void main() {
         routes: [
           GoRoute(
             path: '/scheduleStart',
-            builder: (_, __) => const ScheduleStartScreen(isFiveMinutesBefore: true),
+            builder: (_, __) =>
+                const ScheduleStartScreen(isFiveMinutesBefore: true),
           ),
-          GoRoute(path: '/alarmScreen', builder: (_, __) => const Text('ALARM_ROUTE')),
+          GoRoute(
+              path: '/alarmScreen',
+              builder: (_, __) => const Text('ALARM_ROUTE')),
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME_ROUTE')),
         ],
       );
@@ -280,7 +402,8 @@ void main() {
       expect(find.text('HOME_ROUTE'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('manual finish before leave time sends lateness 0 and navigates',
+    testWidgets(
+        'manual finish before leave time sends lateness 0 and navigates',
         (tester) async {
       await setLargeTestViewport(tester);
       now = DateTime.now();
@@ -302,7 +425,8 @@ void main() {
         initialLocation: '/alarmScreen',
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
-          GoRoute(path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
           GoRoute(
             path: '/earlyLate',
             builder: (_, state) {
@@ -314,11 +438,17 @@ void main() {
         ],
       );
 
-      final alarmBloc = ScheduleBloc(
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      final alarmBloc = ScheduleBloc.test(
         StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
         navigationService,
         NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
         finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
         nowProvider: () => now,
       );
       addTearDown(alarmBloc.close);
@@ -357,7 +487,8 @@ void main() {
         initialLocation: '/alarmScreen',
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
-          GoRoute(path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
           GoRoute(
             path: '/earlyLate',
             builder: (_, state) {
@@ -369,11 +500,17 @@ void main() {
         ],
       );
 
-      final alarmBloc = ScheduleBloc(
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      final alarmBloc = ScheduleBloc.test(
         StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
         navigationService,
         NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
         finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
         nowProvider: () => now,
       );
       addTearDown(alarmBloc.close);
@@ -388,7 +525,8 @@ void main() {
       expect(find.textContaining('EARLYLATE:true'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('completion dialog continue keeps user in alarm flow', (tester) async {
+    testWidgets('completion dialog continue keeps user in alarm flow',
+        (tester) async {
       await setLargeTestViewport(tester);
       now = DateTime.now();
 
@@ -411,16 +549,24 @@ void main() {
         initialLocation: '/alarmScreen',
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
-          GoRoute(path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
-          GoRoute(path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+          GoRoute(
+              path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
         ],
       );
 
-      final alarmBloc = ScheduleBloc(
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      final alarmBloc = ScheduleBloc.test(
         StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
         navigationService,
         NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
         finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
         nowProvider: () => now,
       );
       addTearDown(alarmBloc.close);
@@ -439,7 +585,8 @@ void main() {
       await tester.pump();
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('completion dialog finish triggers finish flow', (tester) async {
+    testWidgets('completion dialog finish triggers finish flow',
+        (tester) async {
       await setLargeTestViewport(tester);
       now = DateTime.now();
 
@@ -462,16 +609,24 @@ void main() {
         initialLocation: '/alarmScreen',
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
-          GoRoute(path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
-          GoRoute(path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+          GoRoute(
+              path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
         ],
       );
 
-      final alarmBloc = ScheduleBloc(
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      final alarmBloc = ScheduleBloc.test(
         StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
         navigationService,
         NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
         finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
         nowProvider: () => now,
       );
       addTearDown(alarmBloc.close);
@@ -508,18 +663,27 @@ void main() {
           initialLocation: '/alarmScreen',
           routes: [
             GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
-            GoRoute(path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
-            GoRoute(path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
+            GoRoute(
+                path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+            GoRoute(
+                path: '/earlyLate',
+                builder: (_, __) => const Text('EARLYLATE')),
           ],
         );
 
-        final alarmBloc = ScheduleBloc(
+        final earlyBundle = createEarlyStartUseCaseBundle();
+        final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(
             () => Stream.value(staleEndedSchedule),
           ),
           navigationService,
           NoopSaveTimedPreparationUseCase(),
+          StubGetTimedPreparationSnapshotUseCase({}),
+          NoopClearTimedPreparationUseCase(),
           finishUseCase,
+          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);

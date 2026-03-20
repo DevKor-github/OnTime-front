@@ -12,6 +12,7 @@ class ScheduleState extends Equatable {
   const ScheduleState._({
     required this.status,
     this.schedule,
+    this.isEarlyStarted = false,
   });
 
   const ScheduleState.initial() : this._(status: ScheduleStatus.initial);
@@ -24,19 +25,28 @@ class ScheduleState extends Equatable {
   const ScheduleState.ongoing(ScheduleWithPreparationEntity schedule)
       : this._(status: ScheduleStatus.ongoing, schedule: schedule);
 
-  const ScheduleState.started(ScheduleWithPreparationEntity schedule)
-      : this._(status: ScheduleStatus.started, schedule: schedule);
+  const ScheduleState.started(
+    ScheduleWithPreparationEntity schedule, {
+    bool isEarlyStarted = false,
+  }) : this._(
+          status: ScheduleStatus.started,
+          schedule: schedule,
+          isEarlyStarted: isEarlyStarted,
+        );
 
   final ScheduleStatus status;
   final ScheduleWithPreparationEntity? schedule;
+  final bool isEarlyStarted;
 
   ScheduleState copyWith({
     ScheduleStatus? status,
     ScheduleWithPreparationEntity? schedule,
+    bool? isEarlyStarted,
   }) {
     return ScheduleState._(
       status: status ?? this.status,
       schedule: schedule ?? this.schedule,
+      isEarlyStarted: isEarlyStarted ?? this.isEarlyStarted,
     );
   }
 
@@ -52,5 +62,10 @@ class ScheduleState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, schedule, schedule?.preparation];
+  List<Object?> get props => [
+        status,
+        schedule,
+        schedule?.preparation,
+        isEarlyStarted,
+      ];
 }

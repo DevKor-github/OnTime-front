@@ -178,6 +178,9 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
               height: 57,
               child: ElevatedButton(
                 onPressed: () async {
+                  context
+                      .read<ScheduleBloc>()
+                      .add(const SchedulePreparationStarted());
                   context.go('/alarmScreen');
                 },
                 child: Text(AppLocalizations.of(context)!.startPreparing),

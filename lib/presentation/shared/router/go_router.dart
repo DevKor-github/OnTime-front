@@ -121,6 +121,10 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
         path: '/scheduleStart',
         name: 'scheduleStart',
         builder: (context, state) {
+          final scheduleState = context.read<ScheduleBloc>().state;
+          if (scheduleState.isEarlyStarted) {
+            return const AlarmScreen();
+          }
           final schedule = context.read<ScheduleBloc>().state.schedule;
           if (schedule == null) {
             return const SizedBox.shrink();

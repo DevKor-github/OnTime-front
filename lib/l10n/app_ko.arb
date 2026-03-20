@@ -19,6 +19,8 @@
     "letsGo": "까먹지 않고 출발",
     "areYouRunningLate": "준비가 늦어졌나요?",
     "runningLateDescription": "아직 준비가 늦었다면 남아서 계속 준비하세요.\n하지만 늦을 지도 몰라요!",
+    "preparationCompletedTitle": "모든 준비를 마쳤어요!",
+    "preparationCompletedDescription": "준비 단계를 모두 완료했어요.\n지금 종료하거나 계속 준비할 수 있어요.",
     "continuePreparing": "계속 준비",
     "finishPreparation": "준비 종료",
     "signInSlogan": "당신의 잃어버린 여유를 찾아드립니다.",

@@ -71,6 +71,13 @@ class AppLocalizationsKo extends AppLocalizations {
       '아직 준비가 늦었다면 남아서 계속 준비하세요.\n하지만 늦을 지도 몰라요!';
 
   @override
+  String get preparationCompletedTitle => '모든 준비를 마쳤어요!';
+
+  @override
+  String get preparationCompletedDescription =>
+      '준비 단계를 모두 완료했어요.\n지금 종료하거나 계속 준비할 수 있어요.';
+
+  @override
   String get continuePreparing => '계속 준비';
 
   @override

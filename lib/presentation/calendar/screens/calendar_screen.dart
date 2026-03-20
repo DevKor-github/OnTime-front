@@ -91,6 +91,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               0,
             ),
           ),
+        )
+        ..add(
+          MonthlySchedulesVisibleDateChanged(
+            date: _selectedDate,
+          ),
         ),
       child: Scaffold(
         backgroundColor: colorScheme.surfaceContainerLow,
@@ -146,6 +151,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             _selectedDate =
                                 _clampDay(selectedDay, _firstDay, _lastDay);
                           });
+                          context.read<MonthlySchedulesBloc>().add(
+                                MonthlySchedulesVisibleDateChanged(
+                                  date: _selectedDate,
+                                ),
+                              );
                         },
                         onPageChanged: (focusedDay) {
                           final clampedFocusedDay =
@@ -154,6 +164,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           setState(() {
                             _selectedDate = clampedFocusedDay;
                           });
+
+                          context.read<MonthlySchedulesBloc>().add(
+                                MonthlySchedulesVisibleDateChanged(
+                                  date: _selectedDate,
+                                ),
+                              );
 
                           context.read<MonthlySchedulesBloc>().add(
                                 MonthlySchedulesMonthAdded(
@@ -312,6 +328,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
                                 return ScheduleDetail(
                                   schedule: schedule,
+                                  preparationTime:
+                                      state.preparationDurationByScheduleId[
+                                          schedule.id],
                                   onEdit: () {
                                     showModalBottomSheet(
                                       context: context,

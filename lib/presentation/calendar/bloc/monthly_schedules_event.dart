@@ -40,3 +40,36 @@ final class MonthlySchedulesScheduleDeleted extends MonthlySchedulesEvent {
   @override
   List<Object> get props => [schedule];
 }
+
+final class MonthlySchedulesVisibleDateChanged extends MonthlySchedulesEvent {
+  final DateTime date;
+
+  const MonthlySchedulesVisibleDateChanged({required this.date});
+
+  @override
+  List<Object> get props => [date.year, date.month, date.day];
+}
+
+final class MonthlySchedulesPreparationsPrefetchRequested
+    extends MonthlySchedulesEvent {
+  final List<String> scheduleIds;
+
+  const MonthlySchedulesPreparationsPrefetchRequested({
+    required this.scheduleIds,
+  });
+
+  @override
+  List<Object> get props => [scheduleIds];
+}
+
+final class MonthlySchedulesPreparationsStreamChanged
+    extends MonthlySchedulesEvent {
+  final Map<String, PreparationEntity> preparations;
+
+  const MonthlySchedulesPreparationsStreamChanged({
+    required this.preparations,
+  });
+
+  @override
+  List<Object> get props => [preparations];
+}

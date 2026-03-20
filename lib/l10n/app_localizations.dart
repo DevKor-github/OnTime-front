@@ -326,6 +326,12 @@ abstract class AppLocalizations {
   /// **'Travel Time'**
   String get travelTime;
 
+  /// Label for preparation time
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation Time'**
+  String get preparationTime;
+
   /// Unit of time
   ///
   /// In en, this message translates to:

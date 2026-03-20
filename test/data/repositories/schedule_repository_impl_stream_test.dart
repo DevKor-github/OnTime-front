@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
-import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 
 class FakeScheduleLocalDataSource implements ScheduleLocalDataSource {
@@ -68,15 +68,15 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
   Future<void> clearTimedPreparation(String scheduleId) async {}
 
   @override
-  Future<PreparationWithTimeEntity?> getTimedPreparation(
+  Future<TimedPreparationSnapshotEntity?> getTimedPreparationSnapshot(
       String scheduleId) async {
     return null;
   }
 
   @override
-  Future<void> saveTimedPreparation(
+  Future<void> saveTimedPreparationSnapshot(
     String scheduleId,
-    PreparationWithTimeEntity preparation,
+    TimedPreparationSnapshotEntity snapshot,
   ) async {}
 }
 

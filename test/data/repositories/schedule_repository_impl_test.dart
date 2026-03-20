@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:uuid/uuid.dart';
@@ -19,15 +19,15 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
   }
 
   @override
-  Future<PreparationWithTimeEntity?> getTimedPreparation(
+  Future<TimedPreparationSnapshotEntity?> getTimedPreparationSnapshot(
       String scheduleId) async {
     return null;
   }
 
   @override
-  Future<void> saveTimedPreparation(
+  Future<void> saveTimedPreparationSnapshot(
     String scheduleId,
-    PreparationWithTimeEntity preparation,
+    TimedPreparationSnapshotEntity snapshot,
   ) async {}
 }
 

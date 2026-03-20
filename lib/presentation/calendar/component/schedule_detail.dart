@@ -11,21 +11,27 @@ class _SwipeActionContent extends StatelessWidget {
   const _SwipeActionContent({
     required this.icon,
     required this.color,
+    required this.margin,
   });
 
   final Widget icon;
   final Color color;
+  final EdgeInsets margin;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: color,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(29.0),
-        child: icon,
+    return Padding(
+      padding: margin,
+      child: SizedBox.expand(
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: color,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: icon,
+        ),
       ),
     );
   }
@@ -47,9 +53,14 @@ class _VerticalDivider extends StatelessWidget {
 
 class ScheduleDetail extends StatefulWidget {
   ScheduleDetail(
-      {super.key, required this.schedule, this.onDeleted, this.onEdit});
+      {super.key,
+      required this.schedule,
+      this.preparationTime,
+      this.onDeleted,
+      this.onEdit});
 
   final ScheduleEntity schedule;
+  final Duration? preparationTime;
   final VoidCallback? onEdit;
   final VoidCallback? onDeleted;
 
@@ -63,6 +74,13 @@ class ScheduleDetail extends StatefulWidget {
 }
 
 class _ScheduleDetailState extends State<ScheduleDetail> {
+  static const double _actionWidth = 96.0;
+  static const EdgeInsets _trailingActionMargin = EdgeInsets.only(
+    left: 4.0,
+    top: 4.0,
+    bottom: 4.0,
+  );
+
   @override
   Widget build(BuildContext context) {
     return SwipeActionCell(
@@ -79,6 +97,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         !widget.schedule.scheduleTime.isBefore(DateTime.now());
     return [
       SwipeAction(
+        widthSpace: _actionWidth,
         onTap: (handler) async {
           await handler(false);
           widget.onDeleted?.call();
@@ -87,11 +106,12 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         content: _SwipeActionContent(
           icon: const _TrashCanSvg(),
           color: theme.colorScheme.error,
+          margin: _trailingActionMargin,
         ),
       ),
       if (canEdit)
         SwipeAction(
-          widthSpace: 96,
+          widthSpace: _actionWidth,
           onTap: (handler) async {
             await handler(false);
             widget.onEdit?.call();
@@ -100,6 +120,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
           content: _SwipeActionContent(
             icon: const _EditPencilSvg(),
             color: theme.colorScheme.outline,
+            margin: _trailingActionMargin,
           ),
         ),
     ];
@@ -130,6 +151,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
                 child: _ScheduleDetailsColumn(
                   schedule: widget.schedule,
                   placeName: widget.schedule.place.placeName,
+                  preparationTime: widget.preparationTime,
                 ),
               ),
             ],
@@ -173,10 +195,13 @@ class _ScheduleTimeColumn extends StatelessWidget {
 
 class _ScheduleDetailsColumn extends StatelessWidget {
   const _ScheduleDetailsColumn(
-      {required this.schedule, required this.placeName});
+      {required this.schedule,
+      required this.placeName,
+      required this.preparationTime});
 
   final ScheduleEntity schedule;
   final String placeName;
+  final Duration? preparationTime;
 
   @override
   Widget build(BuildContext context) {
@@ -235,6 +260,12 @@ class _ScheduleDetailsColumn extends StatelessWidget {
                   _ScheduleInfoTile(
                     label: AppLocalizations.of(context)!.travelTime,
                     value: formatDuration(context, schedule.moveTime),
+                  ),
+                  _ScheduleInfoTile(
+                    label: AppLocalizations.of(context)!.preparationTime,
+                    value: preparationTime == null
+                        ? '-'
+                        : formatDuration(context, preparationTime!),
                   ),
                   _ScheduleInfoTile(
                     label: AppLocalizations.of(context)!.spareTime,

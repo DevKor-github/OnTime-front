@@ -120,6 +120,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get travelTime => '이동시간';
 
   @override
+  String get preparationTime => '준비시간';
+
+  @override
   String get hours => '시간';
 
   @override

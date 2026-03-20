@@ -125,6 +125,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get travelTime => 'Travel Time';
 
   @override
+  String get preparationTime => 'Preparation Time';
+
+  @override
   String get hours => 'hours';
 
   @override

@@ -143,6 +143,10 @@
     "@travelTime": {
         "description": "Label for the travel time text field"
     },
+    "preparationTime": "Preparation Time",
+    "@preparationTime": {
+        "description": "Label for preparation time"
+    },
     "hours": "hours",
     "@hours": {
         "description": "Unit of time"

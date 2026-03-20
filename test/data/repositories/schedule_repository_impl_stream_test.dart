@@ -2,8 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
+import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 
 class FakeScheduleLocalDataSource implements ScheduleLocalDataSource {
   @override
@@ -61,6 +63,23 @@ class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
   Future<void> updateSchedule(ScheduleEntity schedule) async {}
 }
 
+class FakeTimedPreparationRepository implements TimedPreparationRepository {
+  @override
+  Future<void> clearTimedPreparation(String scheduleId) async {}
+
+  @override
+  Future<PreparationWithTimeEntity?> getTimedPreparation(
+      String scheduleId) async {
+    return null;
+  }
+
+  @override
+  Future<void> saveTimedPreparation(
+    String scheduleId,
+    PreparationWithTimeEntity preparation,
+  ) async {}
+}
+
 void main() {
   test('getSchedulesByDate upserts existing schedule by id in stream cache',
       () async {
@@ -102,6 +121,7 @@ void main() {
     final repository = ScheduleRepositoryImpl(
       scheduleLocalDataSource: FakeScheduleLocalDataSource(),
       scheduleRemoteDataSource: remote,
+      timedPreparationRepository: FakeTimedPreparationRepository(),
     );
 
     await repository.getSchedulesByDate(startDate, endDate);

@@ -4,14 +4,15 @@ import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
+import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:rxdart/subjects.dart';
 
 @Singleton(as: ScheduleRepository)
 class ScheduleRepositoryImpl implements ScheduleRepository {
   final ScheduleLocalDataSource scheduleLocalDataSource;
   final ScheduleRemoteDataSource scheduleRemoteDataSource;
+  final TimedPreparationRepository timedPreparationRepository;
 
   late final _scheduleStreamController =
       BehaviorSubject<Set<ScheduleEntity>>.seeded(const <ScheduleEntity>{});
@@ -19,6 +20,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   ScheduleRepositoryImpl({
     required this.scheduleLocalDataSource,
     required this.scheduleRemoteDataSource,
+    required this.timedPreparationRepository,
   });
 
   @override
@@ -42,6 +44,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.deleteSchedule(schedule);
+      await _clearTimedPreparationSafe(schedule.id);
       //await scheduleLocalDataSource.deleteSchedule(schedule);
       _scheduleStreamController.add(
         Set.from(_scheduleStreamController.value)..remove(schedule),
@@ -55,6 +58,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<ScheduleEntity> getScheduleById(String id) async {
     try {
       final schedule = await scheduleRemoteDataSource.getScheduleById(id);
+      if (_isEnded(schedule.doneStatus)) {
+        await _clearTimedPreparationSafe(schedule.id);
+      }
       _scheduleStreamController.add(
         Set.from(_scheduleStreamController.value)..add(schedule),
       );
@@ -74,6 +80,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         startDate,
         endDate,
       );
+      for (final schedule in schedules) {
+        if (_isEnded(schedule.doneStatus)) {
+          await _clearTimedPreparationSafe(schedule.id);
+        }
+      }
       final mergedSchedules = Set<ScheduleEntity>.from(
         _scheduleStreamController.value,
       );
@@ -92,6 +103,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> updateSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.updateSchedule(schedule);
+      await _clearTimedPreparationSafe(schedule.id);
       _scheduleStreamController.add(
         Set.from(_scheduleStreamController.value)
           ..remove(schedule)
@@ -107,6 +119,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> finishSchedule(String scheduleId, int latenessTime) async {
     try {
       await scheduleRemoteDataSource.finishSchedule(scheduleId, latenessTime);
+      await _clearTimedPreparationSafe(scheduleId);
       final lateStatus = latenessTime > 0
           ? ScheduleDoneStatus.lateEnd
           : ScheduleDoneStatus.normalEnd;
@@ -120,6 +133,20 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       );
     } catch (e) {
       rethrow;
+    }
+  }
+
+  bool _isEnded(ScheduleDoneStatus doneStatus) {
+    return doneStatus == ScheduleDoneStatus.normalEnd ||
+        doneStatus == ScheduleDoneStatus.lateEnd ||
+        doneStatus == ScheduleDoneStatus.abnormalEnd;
+  }
+
+  Future<void> _clearTimedPreparationSafe(String scheduleId) async {
+    try {
+      await timedPreparationRepository.clearTimedPreparation(scheduleId);
+    } catch (_) {
+      // Best-effort cleanup: cache invalidation must not fail schedule operations.
     }
   }
 }

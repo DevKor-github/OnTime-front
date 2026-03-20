@@ -21,6 +21,7 @@ class AlarmScreenTopSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         _BeforeOutTimeText(
@@ -31,6 +32,10 @@ class AlarmScreenTopSection extends StatelessWidget {
           preparationName: preparationName,
           preparationRemainingTime: preparationRemainingTime,
           progress: progress,
+          highlightColor: colorScheme.primaryContainer,
+          graphBackgroundColor:
+              colorScheme.onPrimaryContainer.withValues(alpha: 0.35),
+          graphProgressColor: colorScheme.primaryContainer,
         ),
       ],
     );
@@ -66,11 +71,17 @@ class _AlarmGraphSection extends StatelessWidget {
   final String preparationName;
   final int preparationRemainingTime;
   final double progress;
+  final Color highlightColor;
+  final Color graphBackgroundColor;
+  final Color graphProgressColor;
 
   const _AlarmGraphSection({
     required this.preparationName,
     required this.preparationRemainingTime,
     required this.progress,
+    required this.highlightColor,
+    required this.graphBackgroundColor,
+    required this.graphProgressColor,
   });
 
   @override
@@ -80,7 +91,11 @@ class _AlarmGraphSection extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          AlarmGraphAnimator(progress: progress),
+          AlarmGraphAnimator(
+            progress: progress,
+            backgroundColor: graphBackgroundColor,
+            progressColor: graphProgressColor,
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 100),
             child: Column(
@@ -88,18 +103,18 @@ class _AlarmGraphSection extends StatelessWidget {
               children: [
                 Text(
                   preparationName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xffDCE3FF),
+                    color: highlightColor,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   formatTimeTimer(preparationRemainingTime),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 35,
-                    color: Colors.white,
+                    color: highlightColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

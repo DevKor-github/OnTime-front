@@ -704,6 +704,32 @@ void main() {
 
       await tapAndPump(tester, find.byType(ModalWideButton).first);
 
+      final continuingTheme = tester
+          .widget<Theme>(find.byKey(const ValueKey('alarm_screen_theme')))
+          .data;
+      final continuingScaffold = tester.widget<Scaffold>(
+        find.descendant(
+          of: find.byKey(const ValueKey('alarm_screen_theme')),
+          matching: find.byType(Scaffold),
+        ),
+      );
+
+      expect(
+        continuingTheme.colorScheme.primary.value,
+        const Color(0xFF5C79FB).value,
+      );
+      expect(
+        continuingTheme.colorScheme.primaryContainer.value,
+        const Color(0xFFDCE3FF).value,
+      );
+      expect(
+        continuingTheme.colorScheme.onPrimaryContainer.value,
+        const Color(0xFF212F6F).value,
+      );
+      expect(
+        continuingScaffold.backgroundColor!.value,
+        const Color(0xFF5C79FB).value,
+      );
       expect(find.text('EARLYLATE'), findsNothing);
       expect(find.text('5분 뒤에 나가야 해요'), findsOneWidget);
       expect(find.text('05 : 00'), findsOneWidget);
@@ -851,6 +877,32 @@ void main() {
       now = now.add(const Duration(minutes: 2));
       await tester.pump(const Duration(seconds: 1));
 
+      final lateTheme = tester
+          .widget<Theme>(find.byKey(const ValueKey('alarm_screen_theme')))
+          .data;
+      final lateScaffold = tester.widget<Scaffold>(
+        find.descendant(
+          of: find.byKey(const ValueKey('alarm_screen_theme')),
+          matching: find.byType(Scaffold),
+        ),
+      );
+
+      expect(
+        lateTheme.colorScheme.primary.value,
+        const Color(0xFFFF6953).value,
+      );
+      expect(
+        lateTheme.colorScheme.primaryContainer.value,
+        const Color(0xFFFFEAE7).value,
+      );
+      expect(
+        lateTheme.colorScheme.onPrimaryContainer.value,
+        const Color(0xFFFF6953).value,
+      );
+      expect(
+        lateScaffold.backgroundColor!.value,
+        const Color(0xFFFF6953).value,
+      );
       expect(find.text('지각이에요!'), findsOneWidget);
       expect(find.text('01 : 00'), findsOneWidget);
 

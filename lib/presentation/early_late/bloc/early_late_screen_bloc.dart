@@ -25,11 +25,15 @@ class EarlyLateScreenBloc
         ? getLateMessage() // { "message": "문구", "image": "파일명" }
         : getEarlyMessage(minuteValue); // { "message": "문구", "image": "파일명" }
 
+    final earlyLateMessage =
+        messageData['message'] ?? (isLate ? '조금 늦었지만 괜찮아요!' : '준비를 잘 마쳤어요!');
+    final earlyLateImage = messageData['image'] ?? 'character.svg';
+
     emit(EarlyLateScreenLoadSuccess(
       checklist: List.generate(3, (index) => false),
       isLate: isLate,
-      earlylateMessage: messageData['message']!,
-      earlylateImage: messageData['image']!,
+      earlylateMessage: earlyLateMessage,
+      earlylateImage: earlyLateImage,
     ));
   }
 

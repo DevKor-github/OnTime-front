@@ -55,6 +55,7 @@ final Map<Range, List<Map<String, String>>> earlyMessagesWithImages = {
   Range(41, 59): [
     {
       "message": "영화 예고편을 보며\n시간을 보낼 수 있어요!",
+      "image": "character.svg",
     },
     {"message": "약속 장소에서\n조용히 책 몇 페이지를 읽을 수 있어요.", "image": "character.svg"},
   ],

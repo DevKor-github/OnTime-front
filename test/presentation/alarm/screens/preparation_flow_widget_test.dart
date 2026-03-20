@@ -28,6 +28,7 @@ import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.d
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
+import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class StubGetNearestUpcomingScheduleUseCase
     implements GetNearestUpcomingScheduleUseCase {
@@ -182,6 +183,7 @@ Future<void> pumpWithRouter(
         bundle: _TestAssetBundle(),
         child: MaterialApp.router(
           routerConfig: router,
+          theme: themeData,
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -195,11 +197,25 @@ Future<void> pumpWithRouter(
 class _TestAssetBundle extends CachingAssetBundle {
   static const _minimalSvg =
       '<svg viewBox="0 0 1 1" xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>';
+  static final Uint8List _transparentPng = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZkqQAAAAASUVORK5CYII=',
+  );
 
   @override
   Future<ByteData> load(String key) async {
+    if (key.endsWith('.png') || key.endsWith('.jpg') || key.endsWith('.jpeg')) {
+      return ByteData.view(_transparentPng.buffer);
+    }
+    if (key.endsWith('.svg')) {
+      final bytes = Uint8List.fromList(utf8.encode(_minimalSvg));
+      return ByteData.view(bytes.buffer);
+    }
     final bytes = Uint8List.fromList(utf8.encode(_minimalSvg));
-    return ByteData.view(bytes.buffer);
+    try {
+      return await rootBundle.load(key);
+    } catch (_) {
+      return ByteData.view(bytes.buffer);
+    }
   }
 }
 
@@ -310,7 +326,7 @@ void main() {
           GoRoute(
             path: '/scheduleStart',
             builder: (_, __) => const ScheduleStartScreen(
-              isFiveMinutesBefore: true,
+              promptVariant: ScheduleStartPromptVariant.fiveMinutes,
             ),
           ),
           GoRoute(
@@ -348,8 +364,9 @@ void main() {
         routes: [
           GoRoute(
             path: '/scheduleStart',
-            builder: (_, __) =>
-                const ScheduleStartScreen(isFiveMinutesBefore: true),
+            builder: (_, __) => const ScheduleStartScreen(
+              promptVariant: ScheduleStartPromptVariant.fiveMinutes,
+            ),
           ),
           GoRoute(
               path: '/alarmScreen',
@@ -386,8 +403,9 @@ void main() {
         routes: [
           GoRoute(
             path: '/scheduleStart',
-            builder: (_, __) =>
-                const ScheduleStartScreen(isFiveMinutesBefore: true),
+            builder: (_, __) => const ScheduleStartScreen(
+              promptVariant: ScheduleStartPromptVariant.fiveMinutes,
+            ),
           ),
           GoRoute(
               path: '/alarmScreen',
@@ -399,6 +417,113 @@ void main() {
       await pumpWithRouter(tester, bloc: bloc, router: router);
       await tapAndPump(tester, find.text('Start in 5 minutes'));
       await pumpUntilRouteText(tester, 'HOME_ROUTE');
+      expect(find.text('HOME_ROUTE'), findsOneWidget);
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets('early-start variant is shown with dedicated prompt',
+        (tester) async {
+      await setLargeTestViewport(tester);
+
+      final router = GoRouter(
+        initialLocation: '/scheduleStart',
+        routes: [
+          GoRoute(
+            path: '/scheduleStart',
+            builder: (_, __) => const ScheduleStartScreen(
+              promptVariant: ScheduleStartPromptVariant.earlyStart,
+            ),
+          ),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const Text('ALARM')),
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+        ],
+      );
+
+      await pumpWithRouter(tester, bloc: bloc, router: router);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.textContaining('starts a little later'), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsNWidgets(2));
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets('early-start primary action starts preparation and navigates',
+        (tester) async {
+      await setLargeTestViewport(tester);
+
+      final schedule = buildSchedule(
+        id: 'early-primary',
+        scheduleTime: now.add(const Duration(minutes: 41)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'p1',
+            preparationName: 'Prep',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+      bloc.add(ScheduleUpcomingReceived(schedule));
+
+      final router = GoRouter(
+        initialLocation: '/scheduleStart',
+        routes: [
+          GoRoute(
+            path: '/scheduleStart',
+            builder: (_, __) => const ScheduleStartScreen(
+              promptVariant: ScheduleStartPromptVariant.earlyStart,
+            ),
+          ),
+          GoRoute(
+              path: '/alarmScreen',
+              builder: (_, __) => const Text('ALARM_ROUTE')),
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME_ROUTE')),
+        ],
+      );
+
+      await pumpWithRouter(tester, bloc: bloc, router: router);
+      await tapAndPump(tester, find.text('Start Preparing'));
+      await pumpUntilRouteText(tester, 'ALARM_ROUTE');
+
+      expect(find.text('ALARM_ROUTE'), findsOneWidget);
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets('early-start secondary action navigates home', (tester) async {
+      await setLargeTestViewport(tester);
+
+      final schedule = buildSchedule(
+        id: 'early-secondary',
+        scheduleTime: now.add(const Duration(minutes: 41)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'p1',
+            preparationName: 'Prep',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+      bloc.add(ScheduleUpcomingReceived(schedule));
+
+      final router = GoRouter(
+        initialLocation: '/scheduleStart',
+        routes: [
+          GoRoute(
+            path: '/scheduleStart',
+            builder: (_, __) => const ScheduleStartScreen(
+              promptVariant: ScheduleStartPromptVariant.earlyStart,
+            ),
+          ),
+          GoRoute(
+              path: '/alarmScreen',
+              builder: (_, __) => const Text('ALARM_ROUTE')),
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME_ROUTE')),
+        ],
+      );
+
+      await pumpWithRouter(tester, bloc: bloc, router: router);
+      await tapAndPump(tester, find.text('Home'));
+      await pumpUntilRouteText(tester, 'HOME_ROUTE');
+
       expect(find.text('HOME_ROUTE'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 

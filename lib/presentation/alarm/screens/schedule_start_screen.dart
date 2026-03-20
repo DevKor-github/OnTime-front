@@ -9,11 +9,36 @@ import 'package:on_time_front/presentation/shared/components/modal_wide_button.d
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
+enum ScheduleStartPromptVariant {
+  defaultPrompt,
+  fiveMinutes,
+  earlyStart,
+}
+
+ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
+  String? value,
+) {
+  switch (value) {
+    case 'fiveMinutes':
+      return ScheduleStartPromptVariant.fiveMinutes;
+    case 'earlyStart':
+      return ScheduleStartPromptVariant.earlyStart;
+    default:
+      return ScheduleStartPromptVariant.defaultPrompt;
+  }
+}
+
 class ScheduleStartScreen extends StatefulWidget {
+  final ScheduleStartPromptVariant promptVariant;
+
+  @Deprecated(
+    'Use promptVariant. This field is kept only for backward compatibility.',
+  )
   final bool isFiveMinutesBefore;
 
   const ScheduleStartScreen({
     super.key,
+    this.promptVariant = ScheduleStartPromptVariant.defaultPrompt,
     this.isFiveMinutesBefore = false,
   });
 
@@ -47,13 +72,43 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     }
   }
 
-  bool _isFiveMinutesBefore() {
-    return widget.isFiveMinutesBefore;
+  ScheduleStartPromptVariant _resolvedPromptVariant() {
+    if (widget.promptVariant != ScheduleStartPromptVariant.defaultPrompt) {
+      return widget.promptVariant;
+    }
+    if (widget.isFiveMinutesBefore) {
+      return ScheduleStartPromptVariant.fiveMinutes;
+    }
+    return ScheduleStartPromptVariant.defaultPrompt;
+  }
+
+  String _buildPromptMessage(
+      BuildContext context, ScheduleStartPromptVariant variant) {
+    switch (variant) {
+      case ScheduleStartPromptVariant.fiveMinutes:
+        return AppLocalizations.of(context)!.preparationStartsInFiveMinutes;
+      case ScheduleStartPromptVariant.earlyStart:
+        return AppLocalizations.of(context)!.preparationStartsLaterStartEarly;
+      case ScheduleStartPromptVariant.defaultPrompt:
+        return AppLocalizations.of(context)!.youWillBeLate;
+    }
+  }
+
+  void _onPrimaryActionPressed(
+    BuildContext context,
+    ScheduleStartPromptVariant variant,
+  ) {
+    if (variant != ScheduleStartPromptVariant.defaultPrompt) {
+      context.read<ScheduleBloc>().add(const SchedulePreparationStarted());
+    }
+    context.go('/alarmScreen');
   }
 
   @override
   Widget build(BuildContext context) {
-    final isFiveMinBefore = _isFiveMinutesBefore();
+    final promptVariant = _resolvedPromptVariant();
+    final isDualActionVariant =
+        promptVariant != ScheduleStartPromptVariant.defaultPrompt;
     final schedule = context.read<ScheduleBloc>().state.schedule;
 
     return Scaffold(
@@ -101,10 +156,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        isFiveMinBefore
-                            ? AppLocalizations.of(context)!
-                                .preparationStartsInFiveMinutes
-                            : AppLocalizations.of(context)!.youWillBeLate,
+                        _buildPromptMessage(context, promptVariant),
                         style: TextStyle(
                           fontSize: messageFontSize,
                           fontWeight: FontWeight.w600,
@@ -125,8 +177,8 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                       ),
                       Padding(
                         padding: EdgeInsets.only(bottom: bottomGap),
-                        child: isFiveMinBefore
-                            ? _buildTwoButtonLayout(context)
+                        child: isDualActionVariant
+                            ? _buildTwoButtonLayout(context, promptVariant)
                             : _buildSingleButton(context),
                       ),
                     ],
@@ -157,7 +209,10 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
           height: 57,
           child: ElevatedButton(
             onPressed: () async {
-              context.go('/alarmScreen');
+              _onPrimaryActionPressed(
+                context,
+                ScheduleStartPromptVariant.defaultPrompt,
+              );
             },
             child: Text(AppLocalizations.of(context)!.startPreparing),
           ),
@@ -166,7 +221,10 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     );
   }
 
-  Widget _buildTwoButtonLayout(BuildContext context) {
+  Widget _buildTwoButtonLayout(
+    BuildContext context,
+    ScheduleStartPromptVariant variant,
+  ) {
     return Align(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 358),
@@ -178,10 +236,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
               height: 57,
               child: ElevatedButton(
                 onPressed: () async {
-                  context
-                      .read<ScheduleBloc>()
-                      .add(const SchedulePreparationStarted());
-                  context.go('/alarmScreen');
+                  _onPrimaryActionPressed(context, variant);
                 },
                 child: Text(AppLocalizations.of(context)!.startPreparing),
               ),
@@ -199,7 +254,11 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                       Theme.of(context).colorScheme.primaryContainer,
                   foregroundColor: Theme.of(context).colorScheme.primary,
                 ),
-                child: Text(AppLocalizations.of(context)!.startInFiveMinutes),
+                child: Text(
+                  variant == ScheduleStartPromptVariant.fiveMinutes
+                      ? AppLocalizations.of(context)!.startInFiveMinutes
+                      : AppLocalizations.of(context)!.home,
+                ),
               ),
             ),
           ],

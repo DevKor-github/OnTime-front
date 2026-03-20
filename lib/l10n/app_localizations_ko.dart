@@ -315,6 +315,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get startInFiveMinutes => '5분 뒤에 시작하기';
 
   @override
+  String get preparationStartsLaterStartEarly =>
+      '아직 준비 시작 시간 전이에요.\n지금 미리 준비를 시작할까요?';
+
+  @override
   String get continuePreparingNext => '이어서 준비하세요';
 
   @override

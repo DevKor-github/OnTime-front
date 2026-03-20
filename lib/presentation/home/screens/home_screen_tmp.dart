@@ -6,6 +6,7 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
+import 'package:on_time_front/presentation/home/utils/today_tile_navigation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/home/components/month_calendar.dart';
@@ -103,11 +104,11 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                     scheduleState.status == ScheduleStatus.initial
                 ? null
                 : scheduleState.schedule;
-
-        final isScheduleReady =
-            scheduleState.status == ScheduleStatus.ongoing ||
-                scheduleState.status == ScheduleStatus.started;
         final hasSchedule = todaySchedule != null;
+        final target = resolveTodayTileNavigationTarget(
+          scheduleStatus: scheduleState.status,
+          hasSchedule: hasSchedule,
+        );
 
         return Stack(
           alignment: Alignment.bottomCenter,
@@ -148,9 +149,10 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                       SizedBox(height: 21.0),
                       TodaysScheduleTile(
                         schedule: todaySchedule,
-                        onTap: isScheduleReady && hasSchedule
-                            ? () => context.go('/alarmScreen')
-                            : null,
+                        onTap: target == null
+                            ? null
+                            : () =>
+                                context.go(target.path, extra: target.extra),
                       )
                     ],
                   ),

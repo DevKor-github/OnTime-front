@@ -130,9 +130,13 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
             return const SizedBox.shrink();
           }
           final extra = state.extra as Map<String, dynamic>?;
-          final isFiveMinutesBefore =
-              extra?['isFiveMinutesBefore'] as bool? ?? false;
-          return ScheduleStartScreen(isFiveMinutesBefore: isFiveMinutesBefore);
+          final promptVariantRaw = extra?['promptVariant'] as String?;
+          final promptVariant = promptVariantRaw != null
+              ? scheduleStartPromptVariantFromRouteValue(promptVariantRaw)
+              : ((extra?['isFiveMinutesBefore'] as bool? ?? false)
+                  ? ScheduleStartPromptVariant.fiveMinutes
+                  : ScheduleStartPromptVariant.defaultPrompt);
+          return ScheduleStartScreen(promptVariant: promptVariant);
         },
       ),
       GoRoute(

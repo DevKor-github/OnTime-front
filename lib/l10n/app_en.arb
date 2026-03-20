@@ -423,6 +423,10 @@
     "@startInFiveMinutes": {
         "description": "Button text to start in 5 minutes"
     },
+    "preparationStartsLaterStartEarly": "Preparation starts a little later.\nWould you like to start preparing early now?",
+    "@preparationStartsLaterStartEarly": {
+        "description": "Message shown when user opens schedule start before preparation start time from home"
+    },
     "continuePreparingNext": "Continue preparing",
     "@continuePreparingNext": {
         "description": "Notification body text for continuing preparation"

@@ -9,6 +9,7 @@ import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart'
 import 'package:on_time_front/presentation/home/bloc/weekly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
 import 'package:on_time_front/presentation/home/components/week_calendar.dart';
+import 'package:on_time_front/presentation/home/utils/today_tile_navigation.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
@@ -107,15 +108,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(height: 21.0),
                     BlocBuilder<ScheduleBloc, ScheduleState>(
                       builder: (context, scheduleState) {
-                        final isScheduleReady =
-                            scheduleState.status == ScheduleStatus.ongoing ||
-                                scheduleState.status == ScheduleStatus.started;
                         final hasSchedule = state.todaySchedule != null;
+                        final target = resolveTodayTileNavigationTarget(
+                          scheduleStatus: scheduleState.status,
+                          hasSchedule: hasSchedule,
+                        );
                         return TodaysScheduleTile(
                           schedule: state.todaySchedule,
-                          onTap: isScheduleReady && hasSchedule
-                              ? () => context.go('/alarmScreen')
-                              : null,
+                          onTap: target == null
+                              ? null
+                              : () => context.go(
+                                    target.path,
+                                    extra: target.extra,
+                                  ),
                         );
                       },
                     )

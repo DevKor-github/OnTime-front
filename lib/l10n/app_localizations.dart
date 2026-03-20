@@ -668,6 +668,12 @@ abstract class AppLocalizations {
   /// **'Start in 5 minutes'**
   String get startInFiveMinutes;
 
+  /// Message shown when user opens schedule start before preparation start time from home
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation starts a little later.\nWould you like to start preparing early now?'**
+  String get preparationStartsLaterStartEarly;
+
   /// Notification body text for continuing preparation
   ///
   /// In en, this message translates to:

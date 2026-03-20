@@ -1,132 +1,253 @@
-# Schedule Timer System
+# Schedule Timer & Preparation Runtime Flow (v2)
 
-The OnTime app includes an automatic timer system within the `ScheduleBloc` that manages precise timing for schedule start notifications. This system ensures that schedule start events are triggered at the exact scheduled time.
+This document is the canonical runtime-flow reference for preparation timing in OnTime.
+It covers official schedule-start timing, early start, cache coherence, resume behavior, finish semantics, and verification scenarios.
 
-## 🎯 Overview
+## Purpose and Scope
 
-The timer system automatically:
+The runtime flow decides:
 
-- Starts when an upcoming schedule is received
-- Triggers a `ScheduleStarted` event at exactly x minute 00 seconds
-- Handles proper cleanup and timer management
-- Ensures thread-safety and prevents memory leaks
+- Which schedule state should be active (`initial`, `notExists`, `upcoming`, `ongoing`, `started`)
+- When to open `/scheduleStart` and `/alarmScreen`
+- How early-start sessions survive app restarts
+- When cached timed-preparation is valid, restored, or invalidated
+- How lateness is computed at finish time
 
-## 🔄 Timer Flow
+## Core Invariants
+
+1. `step completion != lateness`
+- Completing all steps early does not mean late.
+- Lateness is decided only when finishing preparation (`ScheduleFinished`) relative to leave threshold.
+
+2. No route bounce after early start
+- If the user already early-started a schedule, official start callback must not reopen `/scheduleStart`.
+
+3. No stale cache resurrection after schedule mutation
+- Timed-preparation snapshots are valid only when `scheduleFingerprint` matches the current schedule payload.
+- Fingerprint mismatch clears persisted session/snapshot and resets to canonical preparation.
+
+## Runtime State Model
+
+### State meanings
+
+- `initial`: bloc boot state before schedule resolution.
+- `notExists`: no active schedule to prepare, or schedule already ended.
+- `upcoming`: current time is before `preparationStartTime`.
+- `ongoing`: current time is between `preparationStartTime` and `scheduleTime`.
+- `started`: preparation start flow is active (including early start path).
+- `isEarlyStarted`: flag on `ScheduleState` to mark early-started session context while in `started`.
+
+### State transitions
+
+```mermaid
+stateDiagram-v2
+    [*] --> initial
+    initial --> notExists: no schedule or ended schedule
+    initial --> upcoming: now < preparationStartTime
+    initial --> ongoing: preparationStartTime < now < scheduleTime
+    initial --> started: early-start session restored
+
+    upcoming --> started: official start timer -> ScheduleStarted
+    upcoming --> started: early start action -> SchedulePreparationStarted
+    upcoming --> notExists: schedule ended/null
+
+    ongoing --> started: ScheduleStarted
+    ongoing --> notExists: schedule ended/null
+
+    started --> started: official start callback while isEarlyStarted == true (no-op)
+    started --> notExists: ScheduleFinished / schedule ended / schedule switch cleanup
+
+    notExists --> upcoming: new future schedule
+    notExists --> ongoing: late entry into prep window
+```
+
+## Entry Paths, Router Behavior, and Finish Semantics
+
+### Entry paths
+
+1. Official timer start
+- In `upcoming`, bloc starts a timer targeting `preparationStartTime`.
+- Timer callback dispatches `ScheduleStarted`.
+- If not early-started, `/scheduleStart` is pushed.
+
+2. 5-minute variant start-now
+- On `/scheduleStart` (`isFiveMinutesBefore=true`), primary action dispatches `SchedulePreparationStarted` and navigates to `/alarmScreen`.
+- Secondary action navigates to `/home`.
+
+3. Delayed entry
+- If user enters during `ongoing`, bloc applies catch-up elapsed time and begins ticking from current clock.
+
+4. Stale/ended schedule path
+- If schedule is already ended or stream emits `null`, state goes `notExists`.
+- Alarm listener redirects safely to `/home` instead of remaining in a loading state.
+
+### Router and UX rules
+
+- `/scheduleStart` builder checks `ScheduleState.isEarlyStarted`.
+- If early-start is active, `/scheduleStart` resolves directly to `AlarmScreen` (no bounce).
+- `/alarmScreen` in `upcoming` shows early-start-ready UI (countdown + start + home), not indefinite spinner.
+
+### Finish semantics
+
+- Finish before leave threshold -> `lateness=0`.
+- Finish after leave threshold -> positive lateness minutes.
+- Completion dialog copy is late-aware:
+late case uses running-late wording, non-late case uses completion wording.
+
+### Sequence flow
 
 ```mermaid
 sequenceDiagram
-    participant UC as UseCase
-    participant SB as ScheduleBloc
-    participant Timer as Timer
-    participant State as State
+    participant User
+    participant Start as "ScheduleStartScreen (5-min variant)"
+    participant Bloc as ScheduleBloc
+    participant Router
+    participant Alarm as AlarmScreen
+    participant Timer as OfficialStartTimer
 
-    UC->>SB: ScheduleUpcomingReceived(schedule)
-    SB->>SB: Cancel existing timer
-    SB->>SB: _startScheduleTimer(schedule)
-    SB->>Timer: Create Timer(targetTime)
-    Note over Timer: Timer set for schedule.scheduleTime<br/>at x minute 00 seconds
-    SB->>State: emit(ScheduleState.upcoming/ongoing)
+    User->>Start: Tap "Start Preparing"
+    Start->>Bloc: add(SchedulePreparationStarted)
+    Start->>Router: go("/alarmScreen")
+    Bloc->>Bloc: mark early-start session + cancel start timer
+    Bloc->>Alarm: emit started(isEarlyStarted=true)
 
-    Timer-->>SB: Timer fires at exact minute
-    SB->>SB: add(ScheduleStarted())
-    SB->>SB: _onScheduleStarted()
-    SB->>State: emit(ScheduleState.started)
+    alt User taps "Start in 5 minutes"
+        User->>Start: Tap secondary button
+        Start->>Router: go("/home")
+    end
 
-    Note over SB: Timer cleanup on close()<br/>or new schedule received
+    Timer-->>Bloc: Official start callback
+    alt already early-started for same schedule
+        Bloc->>Bloc: no-op (no duplicate push)
+    else not early-started
+        Bloc->>Router: push("/scheduleStart")
+    end
 ```
 
-## 📋 Implementation Details
+## Cache Coherence and Resume Model
 
-### Key Components
+### Persisted artifacts
 
-1. **Timer Management**
+1. Early start session
+- Stored by schedule ID with `startedAt`.
 
-   - `_scheduleStartTimer`: Dart Timer instance that handles the countdown
-   - `_currentScheduleId`: Tracks the active schedule to prevent stale events
+2. Timed preparation snapshot
+- Stored by schedule ID with:
+`preparation`, `savedAt`, `scheduleFingerprint`.
 
-2. **Event Handling**
+### Resume and invalidation policy
 
-   - `ScheduleUpcomingReceived`: Triggers timer setup
-   - `ScheduleStarted`: Fired when timer completes
+- On schedule emission, runtime checks for early-start session and snapshot.
+- Snapshot is used only when fingerprint matches current schedule payload.
+- On restore, preparation is fast-forwarded by `(now - savedAt)`.
+- On mismatch, clear persisted session/snapshot and use canonical preparation.
+- Persisted state is also cleared on:
+finish success, schedule end/null, and schedule-id switch.
 
-3. **State Transitions**
-   - `upcoming` → `started`: When timer fires for upcoming schedules
-   - `ongoing` → `started`: When timer fires for preparation-in-progress schedules
+```mermaid
+flowchart TD
+    A["ScheduleUpcomingReceived(incoming)"] --> B{"Incoming schedule exists and not ended?"}
+    B -- No --> C["Clear persisted state for stale/current id"] --> D["Emit notExists"]
+    B -- Yes --> E{"Schedule id switched?"}
+    E -- Yes --> F["Clear persisted state for previous schedule id"]
+    E -- No --> G["Continue"]
+    F --> G
 
-### Timer Calculation
+    G --> H{"Early-start session exists for incoming id?"}
+    H -- No --> I{"incoming.preparationStartTime > now?"}
+    I -- Yes --> J["Clear timed snapshot for incoming id (prevent stale pre-start revive)"] --> K["Use canonical incoming preparation"]
+    I -- No --> L["Load timed snapshot"]
+    H -- Yes --> L
 
-The timer calculates the exact target time as:
+    L --> M{"Snapshot exists?"}
+    M -- No --> K
+    M -- Yes --> N{"snapshot.fingerprint == incoming.fingerprint?"}
+    N -- No --> O["Clear session + timed snapshot"] --> K
+    N -- Yes --> P["Restore snapshot and fast-forward by now - savedAt"]
+
+    K --> Q{"Early-start session exists?"}
+    P --> Q
+    Q -- Yes --> R["Emit started(isEarlyStarted=true) and start ticking"]
+    Q -- No --> S{"now within preparation window?"}
+    S -- Yes --> T["Emit ongoing and start ticking"]
+    S -- No --> U["Emit upcoming and arm official start timer"]
+
+    R --> V["On finish/end/switch: clear session + snapshot"]
+    T --> V
+    U --> V
+```
+
+## Public Interfaces / Types
+
+### `EarlyStartSessionRepository`
+
+Contract:
 
 ```dart
-final targetTime = DateTime(
-  scheduleTime.year,
-  scheduleTime.month,
-  scheduleTime.day,
-  scheduleTime.hour,
-  scheduleTime.minute,
-  0, // Always trigger at 00 seconds
-  0, // 0 milliseconds
-);
+abstract interface class EarlyStartSessionRepository {
+  Future<void> markStarted({required String scheduleId, required DateTime startedAt});
+  Future<EarlyStartSessionEntity?> getSession(String scheduleId);
+  Future<void> clear(String scheduleId);
+}
 ```
 
-### Safety Features
+### Timed snapshot schema
 
-- **Timer Cancellation**: Previous timers are automatically cancelled when new schedules arrive
-- **Bloc State Validation**: Timer callbacks verify the bloc is still active before firing events
-- **Schedule ID Matching**: Events only fire for the currently tracked schedule
-- **Proper Cleanup**: All timers are cancelled when the bloc is disposed
+`TimedPreparationSnapshotEntity` fields:
 
-## 🛡️ Error Handling
+- `PreparationWithTimeEntity preparation`
+- `DateTime savedAt`
+- `String scheduleFingerprint`
 
-The system includes several safety mechanisms:
+### `ScheduleBloc` additions relevant to this flow
 
-1. **Past Schedule Protection**: Timers are not set for schedules in the past
-2. **Bloc Lifecycle Management**: Timer callbacks check `isClosed` before adding events
-3. **Memory Leak Prevention**: All timers are properly cancelled in `close()`
-4. **Race Condition Prevention**: Schedule ID tracking prevents stale timer events
+- Dependencies for early-start/session and snapshot read/clear.
+- `nowProvider` + notification hook in test constructor for deterministic tests.
+- Guarded timer/event handling to prevent closed-bloc event races.
 
-## 📱 Usage Example
+### `ScheduleState` addition
 
-The timer system works automatically within the `ScheduleBloc`:
+- `bool isEarlyStarted` differentiates early-started started-state from official start flow.
 
-```dart
-// When a new schedule is received
-bloc.add(ScheduleSubscriptionRequested());
+### Router rule
 
-// The bloc will:
-// 1. Listen for upcoming schedules
-// 2. Automatically start timers for each schedule
-// 3. Emit ScheduleStarted events at the exact scheduled time
-// 4. Transition to 'started' state
+- If `/scheduleStart` resolves while current `ScheduleState.isEarlyStarted == true`, route resolves to `/alarmScreen` UI (`AlarmScreen`) instead of start screen.
 
-// Listen for state changes
-bloc.stream.listen((state) {
-  if (state.status == ScheduleStatus.started) {
-    // Handle schedule start (e.g., show notification, start tracking)
-  }
-});
-```
+## Verification Matrix
 
-## 🔧 Configuration
+### Bloc runtime scenarios
 
-The timer system requires no additional configuration and works automatically with:
+- Early start from `upcoming` transitions to active started flow and begins ticking.
+- Official start trigger does not push `/scheduleStart` again when early-start already active.
+- Re-emission of same schedule preserves active started state.
+- Finish clears timers, early-start session, and timed snapshot; state returns to `notExists`.
+- Fingerprint mismatch invalidates persisted state and resets to canonical preparation.
 
-- Any `ScheduleWithPreparationEntity` that has a valid `scheduleTime`
-- Both upcoming and ongoing schedule states
-- All timezone-aware DateTime calculations
+### Widget flow scenarios
 
-## 📊 Performance Considerations
+- 5-minute variant: `Start Preparing` enters alarm flow immediately.
+- 5-minute variant: `Start in 5 minutes` returns to home.
+- Entering alarm before official start shows early-start-ready UI (countdown and actions).
+- Completion dialog:
+`Finish Preparation` uses finish path, `Continue Preparing` keeps user in alarm.
+- Late vs non-late finish payload behavior is validated.
 
-- **Single Timer**: Only one timer runs at a time per bloc instance
-- **Minimal Memory Footprint**: Timers are created/destroyed as needed
-- **Precise Timing**: Uses Dart's native Timer for accurate scheduling
-- **Efficient Cleanup**: No lingering resources after bloc disposal
+### Persistence/resume scenarios
 
-## 🚀 Future Enhancements
+- Early start -> app restart -> restore and fast-forward timed preparation from snapshot metadata.
+- Schedule mutation (fingerprint change) prevents stale progress restoration and resets correctly.
 
-Potential improvements to consider:
+### Boundary scenarios
 
-- Multiple concurrent schedule timers
-- Configurable timer precision (seconds vs milliseconds)
-- Timer persistence across app restarts
-- Integration with system-level scheduling APIs
+- Exact preparation start boundary transition.
+- Late entry catch-up into current step.
+- Very-late entry before `scheduleTime` with all steps effectively done.
+- Stale notification / ended schedule path redirects safely without stuck loading.
+
+## Operational Notes
+
+- Wiki source of truth is this repository `docs/` folder.
+- Diagram format is Mermaid for GitHub wiki compatibility.
+- Recommended publish flow:
+commit docs changes in this repo, then sync with subtree:
+`git subtree push --prefix=docs wiki master`

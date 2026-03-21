@@ -93,13 +93,30 @@ class _EndPreparationButtonSection extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final baseButtonStyle = theme.elevatedButtonTheme.style;
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.only(top: 16, bottom: 20),
-      child: Center(
-        child: ElevatedButton(
-          onPressed: onEndPreparation,
-          child: Text(AppLocalizations.of(context)!.finishPreparation),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: onEndPreparation,
+            style: baseButtonStyle?.copyWith(
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return colorScheme.surfaceDim;
+                }
+                return colorScheme.primary;
+              }),
+              foregroundColor:
+                  WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
+            ),
+            child: Text(AppLocalizations.of(context)!.finishPreparation),
+          ),
         ),
       ),
     );

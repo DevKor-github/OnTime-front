@@ -3,10 +3,14 @@ import 'package:on_time_front/presentation/alarm/components/alarm_graph_componen
 
 class AlarmGraphAnimator extends StatefulWidget {
   final double progress;
+  final Color backgroundColor;
+  final Color progressColor;
 
   const AlarmGraphAnimator({
     super.key,
     required this.progress,
+    required this.backgroundColor,
+    required this.progressColor,
   });
 
   @override
@@ -72,6 +76,8 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
           size: const Size(230, 115),
           painter: AlarmGraphComponent(
             progress: _progressAnimation.value,
+            backgroundColor: widget.backgroundColor,
+            progressColor: widget.progressColor,
           ),
         );
       },

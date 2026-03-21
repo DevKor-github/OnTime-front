@@ -37,12 +37,16 @@ void main() {
       preparation: preparation,
     );
 
-    test('calculates time remaining and late status with explicit now', () {
+    test('calculates left time before leave with explicit now', () {
       final now = DateTime(2026, 3, 20, 9, 20);
       expect(
         schedule.timeRemainingBeforeLeavingAt(now),
         const Duration(minutes: 10),
       );
+    });
+
+    test('reports late status after leave time has passed', () {
+      final now = DateTime(2026, 3, 20, 9, 20);
       expect(schedule.isLateAt(now), isFalse);
 
       final lateNow = DateTime(2026, 3, 20, 9, 31);

@@ -25,6 +25,7 @@ class PreparationStepTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     String displayTime;
     if (preparationStepState == PreparationStateEnum.yet) {
       displayTime = preparationTime;
@@ -33,13 +34,13 @@ class PreparationStepTile extends StatelessWidget {
     }
 
     Widget circleContent = (preparationStepState == PreparationStateEnum.done)
-        ? const Icon(Icons.check, color: Color(0xff5C79FB))
+        ? Icon(Icons.check, color: colorScheme.primary)
         : Text(
             '$stepIndex',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xff212F6F),
+              color: colorScheme.onPrimaryContainer,
             ),
           );
 
@@ -52,16 +53,16 @@ class PreparationStepTile extends StatelessWidget {
           height: 53,
           child: TextButton(
             style: TextButton.styleFrom(
-              backgroundColor: const Color(0xffDCE3FF),
+              backgroundColor: colorScheme.primaryContainer,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
             onPressed: onSkip,
-            child: const Text(
+            child: Text(
               '이 단계 건너 뛰기',
               style: TextStyle(
-                color: Color(0xff212F6F),
+                color: colorScheme.onPrimaryContainer,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -87,7 +88,7 @@ class PreparationStepTile extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               border: (preparationStepState == PreparationStateEnum.now)
-                  ? Border.all(color: const Color(0xff5C79FB), width: 2)
+                  ? Border.all(color: colorScheme.primary, width: 2)
                   : null,
               color: Colors.white,
             ),
@@ -103,9 +104,9 @@ class PreparationStepTile extends StatelessWidget {
                           Container(
                             width: 34,
                             height: 34,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Color(0xffDCE3FF),
+                              color: colorScheme.primaryContainer,
                             ),
                           ),
                           circleContent,
@@ -124,10 +125,10 @@ class PreparationStepTile extends StatelessWidget {
                       ),
                       Text(
                         displayTime,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xff5C79FB),
+                          color: colorScheme.primary,
                         ),
                       ),
                     ],
@@ -148,7 +149,7 @@ class PreparationStepTile extends StatelessWidget {
               direction: Axis.vertical,
               lineLength: 23,
               lineThickness: 3,
-              dashColor: const Color(0xff5C79FB),
+              dashColor: colorScheme.primary,
               dashLength: 4,
               dashGapLength: 5,
             ),

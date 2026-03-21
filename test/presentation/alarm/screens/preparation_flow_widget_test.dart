@@ -22,6 +22,7 @@ import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_us
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/alarm/components/alarm_graph_animator.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
@@ -888,14 +889,15 @@ void main() {
       expect(find.textContaining('EARLYLATE:true'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('completion dialog continue keeps user in alarm flow',
+    testWidgets(
+        'completion dialog continue shows live leave countdown for ongoing flow',
         (tester) async {
       await setLargeTestViewport(tester);
-      now = DateTime.now();
+      now = DateTime(2026, 3, 20, 9, 25);
 
       final schedule = buildSchedule(
         id: 's5',
-        scheduleTime: now.add(const Duration(minutes: 35)),
+        scheduleTime: DateTime(2026, 3, 20, 10, 0),
         steps: const [
           PreparationStepWithTimeEntity(
             id: 'p1',
@@ -913,7 +915,9 @@ void main() {
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
           GoRoute(
-              path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+            path: '/alarmScreen',
+            builder: (_, __) => AlarmScreen(nowProvider: () => now),
+          ),
           GoRoute(
               path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
         ],
@@ -937,13 +941,230 @@ void main() {
       await pumpWithRouter(tester, bloc: alarmBloc, router: router);
       await pumpUntilFound(tester, find.byType(TwoActionDialog));
 
-      expect(find.byType(TwoActionDialog), findsOneWidget);
       await tapAndPump(tester, find.byType(ModalWideButton).first);
-      await tester.pump(const Duration(milliseconds: 200));
 
+      final continuingTheme = tester
+          .widget<Theme>(find.byKey(const ValueKey('alarm_screen_theme')))
+          .data;
+      final continuingScaffold = tester.widget<Scaffold>(
+        find.descendant(
+          of: find.byKey(const ValueKey('alarm_screen_theme')),
+          matching: find.byType(Scaffold),
+        ),
+      );
+
+      expect(
+        continuingTheme.colorScheme.primary.value,
+        const Color(0xFF5C79FB).value,
+      );
+      expect(
+        continuingTheme.colorScheme.primaryContainer.value,
+        const Color(0xFFDCE3FF).value,
+      );
+      expect(
+        continuingTheme.colorScheme.onPrimaryContainer.value,
+        const Color(0xFF212F6F).value,
+      );
+      expect(
+        continuingScaffold.backgroundColor!.value,
+        const Color(0xFF5C79FB).value,
+      );
       expect(find.text('EARLYLATE'), findsNothing);
+      expect(find.text('5분 뒤에 나가야 해요'), findsOneWidget);
+      expect(find.text('05 : 00'), findsOneWidget);
       expect(finishUseCase.calls, isEmpty);
-      // Explicitly finish to stop periodic timer before test ends.
+
+      now = now.add(const Duration(minutes: 1));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('4분 뒤에 나가야 해요'), findsOneWidget);
+      expect(find.text('04 : 00'), findsOneWidget);
+
+      alarmBloc.add(const ScheduleFinished(0));
+      await tester.pump();
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets(
+        'completion dialog continue shows live leave countdown for early-start flow',
+        (tester) async {
+      await setLargeTestViewport(tester);
+      now = DateTime(2026, 3, 20, 8, 30);
+
+      final schedule = buildSchedule(
+        id: 's5-early',
+        scheduleTime: DateTime(2026, 3, 20, 10, 0),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'p1',
+            preparationName: 'Prep',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+            isDone: true,
+            elapsedTime: Duration(minutes: 10),
+          ),
+        ],
+      );
+
+      final router = GoRouter(
+        initialLocation: '/alarmScreen',
+        routes: [
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+          GoRoute(
+            path: '/alarmScreen',
+            builder: (_, __) => AlarmScreen(nowProvider: () => now),
+          ),
+          GoRoute(
+              path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
+        ],
+      );
+
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      await earlyBundle.markUseCase(
+        scheduleId: schedule.id,
+        startedAt: now.subtract(const Duration(minutes: 1)),
+      );
+
+      final alarmBloc = ScheduleBloc.test(
+        StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
+        navigationService,
+        NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
+        finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+        nowProvider: () => now,
+      );
+      addTearDown(alarmBloc.close);
+
+      await pumpWithRouter(tester, bloc: alarmBloc, router: router);
+      await pumpUntilFound(tester, find.byType(TwoActionDialog));
+
+      await tapAndPump(tester, find.byType(ModalWideButton).first);
+
+      expect(find.text('1시간 뒤에 나가야 해요'), findsOneWidget);
+      expect(find.text('01 : 00 : 00'), findsOneWidget);
+
+      now = now.add(const Duration(minutes: 5));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('55분 뒤에 나가야 해요'), findsOneWidget);
+      expect(find.text('55 : 00'), findsOneWidget);
+
+      alarmBloc.add(const ScheduleFinished(0));
+      await tester.pump();
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets(
+        'completion dialog continue keeps overdue timer running after leave time',
+        (tester) async {
+      await setLargeTestViewport(tester);
+      now = DateTime(2026, 3, 20, 9, 29);
+
+      final schedule = buildSchedule(
+        id: 's5-late',
+        scheduleTime: DateTime(2026, 3, 20, 10, 0),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'p1',
+            preparationName: 'Prep',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+            isDone: true,
+            elapsedTime: Duration(minutes: 10),
+          ),
+        ],
+      );
+
+      final router = GoRouter(
+        initialLocation: '/alarmScreen',
+        routes: [
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+          GoRoute(
+            path: '/alarmScreen',
+            builder: (_, __) => AlarmScreen(nowProvider: () => now),
+          ),
+          GoRoute(
+              path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
+        ],
+      );
+
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      final alarmBloc = ScheduleBloc.test(
+        StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
+        navigationService,
+        NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
+        finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+        nowProvider: () => now,
+      );
+      addTearDown(alarmBloc.close);
+
+      await pumpWithRouter(tester, bloc: alarmBloc, router: router);
+      await pumpUntilFound(tester, find.byType(TwoActionDialog));
+
+      await tapAndPump(tester, find.byType(ModalWideButton).first);
+
+      expect(find.text('1분 뒤에 나가야 해요'), findsOneWidget);
+      expect(find.text('01 : 00'), findsOneWidget);
+
+      now = now.add(const Duration(minutes: 2));
+      await tester.pump(const Duration(seconds: 1));
+
+      final lateTheme = tester
+          .widget<Theme>(find.byKey(const ValueKey('alarm_screen_theme')))
+          .data;
+      final lateScaffold = tester.widget<Scaffold>(
+        find.descendant(
+          of: find.byKey(const ValueKey('alarm_screen_theme')),
+          matching: find.byType(Scaffold),
+        ),
+      );
+
+      expect(
+        lateTheme.colorScheme.primary.value,
+        const Color(0xFFFF6953).value,
+      );
+      expect(
+        lateTheme.colorScheme.primaryContainer.value,
+        const Color(0xFFFFEAE7).value,
+      );
+      expect(
+        lateTheme.colorScheme.onPrimaryContainer.value,
+        const Color(0xFFFF6953).value,
+      );
+      expect(
+        lateScaffold.backgroundColor!.value,
+        const Color(0xFFFF6953).value,
+      );
+      expect(
+        tester.widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator)).progress,
+        0.0,
+      );
+      expect(
+        tester
+            .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
+            .backgroundColor
+            .value,
+        const Color(0xFFFFEAE7).value,
+      );
+      expect(
+        tester
+            .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
+            .progressColor
+            .value,
+        const Color(0xFFFFEAE7).value,
+      );
+      expect(find.text('준비시간을 1분 초과했어요'), findsOneWidget);
+      expect(find.text('지각이에요'), findsOneWidget);
+      expect(find.text('01 : 00'), findsOneWidget);
+      expect(find.text('Prep'), findsOneWidget);
+
       alarmBloc.add(const ScheduleFinished(0));
       await tester.pump();
     }, timeout: const Timeout(Duration(seconds: 15)));

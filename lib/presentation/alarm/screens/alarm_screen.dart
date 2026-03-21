@@ -15,23 +15,60 @@ import 'package:on_time_front/presentation/shared/components/two_action_dialog.d
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
-  const AlarmScreen({super.key});
+  const AlarmScreen({
+    super.key,
+    this.nowProvider = DateTime.now,
+  });
+
+  final DateTime Function() nowProvider;
 
   @override
   State<AlarmScreen> createState() => _AlarmScreenState();
 }
 
 class _AlarmScreenState extends State<AlarmScreen> {
+  static const _lateContinuePrimary = Color(0xFFFF6953);
+  static const _lateContinuePrimaryContainer = Color(0xFFFFEAE7);
   bool _hasShownCompletionDialog = false;
+  bool _isContinuingAfterCompletion = false;
   bool _navigateAfterFinish = false;
   int? _pendingEarlyLateSeconds;
   bool? _pendingIsLate;
-  Timer? _upcomingCountdownTimer;
+  Timer? _uiTickerTimer;
+  String? _completionScheduleId;
 
   void _resetFinishNavigation() {
     _navigateAfterFinish = false;
     _pendingEarlyLateSeconds = null;
     _pendingIsLate = null;
+  }
+
+  void _resetCompletionUiState() {
+    _hasShownCompletionDialog = false;
+    _isContinuingAfterCompletion = false;
+  }
+
+  Duration _timeRemainingBeforeLeaving(ScheduleWithPreparationEntity schedule) {
+    return schedule.timeRemainingBeforeLeavingAt(widget.nowProvider());
+  }
+
+  bool _isLate(ScheduleWithPreparationEntity schedule) {
+    return schedule.isLateAt(widget.nowProvider());
+  }
+
+  ThemeData _buildAlarmTheme(BuildContext context, bool isLateContinueMode) {
+    if (!isLateContinueMode) {
+      return Theme.of(context);
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme.copyWith(
+      primary: _lateContinuePrimary,
+      primaryContainer: _lateContinuePrimaryContainer,
+      onPrimaryContainer: _lateContinuePrimary,
+    );
+
+    return theme.copyWith(colorScheme: colorScheme);
   }
 
   void _onPreparationFinished(
@@ -44,15 +81,14 @@ class _AlarmScreenState extends State<AlarmScreen> {
     context.read<ScheduleBloc>().add(ScheduleFinished(latenessMinutes));
   }
 
-  void _ensureUpcomingTicker(bool active) {
+  void _ensureUiTicker(bool active) {
     if (!active) {
-      _upcomingCountdownTimer?.cancel();
-      _upcomingCountdownTimer = null;
+      _uiTickerTimer?.cancel();
+      _uiTickerTimer = null;
       return;
     }
-    if (_upcomingCountdownTimer != null) return;
-    _upcomingCountdownTimer =
-        Timer.periodic(const Duration(seconds: 1), (timer) {
+    if (_uiTickerTimer != null) return;
+    _uiTickerTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
       setState(() {});
     });
@@ -70,7 +106,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
   @override
   void dispose() {
-    _upcomingCountdownTimer?.cancel();
+    _uiTickerTimer?.cancel();
     super.dispose();
   }
 
@@ -108,6 +144,16 @@ class _AlarmScreenState extends State<AlarmScreen> {
               scheduleState.status == ScheduleStatus.started) {
             final schedule = scheduleState.schedule!;
             final preparation = schedule.preparation;
+            final scheduleChanged = _completionScheduleId != schedule.id;
+
+            if (scheduleChanged) {
+              _completionScheduleId = schedule.id;
+              _resetCompletionUiState();
+            }
+
+            if (!preparation.isAllStepsDone && _hasShownCompletionDialog) {
+              _resetCompletionUiState();
+            }
 
             if (preparation.isAllStepsDone && !_hasShownCompletionDialog) {
               _hasShownCompletionDialog = true;
@@ -115,27 +161,41 @@ class _AlarmScreenState extends State<AlarmScreen> {
                 if (!mounted) return;
                 showPreparationCompletionDialog(
                   context: context,
-                  isLate: schedule.isLate,
+                  isLate: _isLate(schedule),
                   onFinish: () {
+                    final timeRemainingBeforeLeaving =
+                        _timeRemainingBeforeLeaving(schedule);
                     _onPreparationFinished(
                       context,
-                      schedule.timeRemainingBeforeLeaving,
-                      schedule.isLate,
+                      timeRemainingBeforeLeaving,
+                      timeRemainingBeforeLeaving.isNegative,
                     );
+                  },
+                  onContinue: () {
+                    if (!mounted) return;
+                    setState(() {
+                      _isContinuingAfterCompletion = true;
+                    });
                   },
                 );
               });
             }
 
+            _ensureUiTicker(preparation.isAllStepsDone &&
+                _isContinuingAfterCompletion);
             return _buildAlarmScreen(
               schedule: schedule,
             );
           } else if (scheduleState.status == ScheduleStatus.upcoming &&
               scheduleState.schedule != null) {
-            _ensureUpcomingTicker(true);
+            _completionScheduleId = scheduleState.schedule!.id;
+            _resetCompletionUiState();
+            _ensureUiTicker(true);
             return _buildEarlyStartReadyScreen(scheduleState.schedule!);
           } else {
-            _ensureUpcomingTicker(false);
+            _completionScheduleId = null;
+            _resetCompletionUiState();
+            _ensureUiTicker(false);
             return const Scaffold(
               backgroundColor: Color(0xff5C79FB),
               body: Center(child: CircularProgressIndicator()),
@@ -173,65 +233,94 @@ class _AlarmScreenState extends State<AlarmScreen> {
   Widget _buildAlarmScreen({
     required ScheduleWithPreparationEntity schedule,
   }) {
-    _ensureUpcomingTicker(false);
+    final timeRemainingBeforeLeaving = _timeRemainingBeforeLeaving(schedule);
+    final isLate = timeRemainingBeforeLeaving.isNegative;
     final preparation = schedule.preparation;
-    return Scaffold(
-      backgroundColor: const Color(0xff5C79FB),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              AlarmScreenTopSection(
-                isLate: schedule.isLate,
-                beforeOutTime: schedule.timeRemainingBeforeLeaving.inSeconds,
-                preparationName: preparation.currentStepName,
-                preparationRemainingTime:
-                    preparation.currentStepRemainingTime.inSeconds,
-                progress: preparation.progress,
-              ),
-              const SizedBox(height: 110),
-              Expanded(
-                child: AlarmScreenBottomSection(
-                  preparation: preparation,
-                  onSkip: () {
-                    context
-                        .read<ScheduleBloc>()
-                        .add(const ScheduleStepSkipped());
-                  },
-                  onEndPreparation: () => _onPreparationFinished(context,
-                      schedule.timeRemainingBeforeLeaving, schedule.isLate),
+    final isLateContinueMode =
+        preparation.isAllStepsDone && _isContinuingAfterCompletion && isLate;
+    final timerLabel =
+        isLateContinueMode ? '지각이에요' : preparation.currentStepName;
+    final displayProgress = isLateContinueMode ? 0.0 : preparation.progress;
+    final displayRemainingSeconds = preparation.isAllStepsDone &&
+            _isContinuingAfterCompletion
+        ? timeRemainingBeforeLeaving.inSeconds.abs()
+        : preparation.currentStepRemainingTime.inSeconds;
+
+    if (!(preparation.isAllStepsDone && _isContinuingAfterCompletion)) {
+      _ensureUiTicker(false);
+    }
+
+    final alarmTheme = _buildAlarmTheme(context, isLateContinueMode);
+
+    return Theme(
+      key: const ValueKey('alarm_screen_theme'),
+      data: alarmTheme,
+      child: Builder(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            body: Stack(
+              children: [
+                Column(
+                  children: [
+                    AlarmScreenTopSection(
+                      isLate: isLate,
+                      beforeOutTime: timeRemainingBeforeLeaving.inSeconds,
+                      preparationName: timerLabel,
+                      showPreparationName: true,
+                      preparationRemainingTime: displayRemainingSeconds,
+                      progress: displayProgress,
+                    ),
+                    const SizedBox(height: 110),
+                    Expanded(
+                      child: AlarmScreenBottomSection(
+                        preparation: preparation,
+                        onSkip: () {
+                          context
+                              .read<ScheduleBloc>()
+                              .add(const ScheduleStepSkipped());
+                        },
+                        onEndPreparation: () => _onPreparationFinished(
+                          context,
+                          timeRemainingBeforeLeaving,
+                          isLate,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: SafeArea(
-              minimum: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: IconButton(
-                  key: const Key('alarm_close_button'),
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => _showLeaveConfirmationDialog(context),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: SafeArea(
+                    minimum: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: IconButton(
+                        key: const Key('alarm_close_button'),
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => _showLeaveConfirmationDialog(context),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildEarlyStartReadyScreen(ScheduleWithPreparationEntity schedule) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final remaining =
-        schedule.preparationStartTime.difference(DateTime.now()).inSeconds;
+        schedule.preparationStartTime.difference(widget.nowProvider()).inSeconds;
     final clampedRemaining = remaining.isNegative ? 0 : remaining;
 
     return Scaffold(
-      backgroundColor: const Color(0xff5C79FB),
+      backgroundColor: theme.colorScheme.primary,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -251,10 +340,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
               Text(
                 l10n.preparationStartsInFiveMinutes,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xffDCE3FF),
+                  color: theme.colorScheme.primaryContainer,
                 ),
               ),
               const SizedBox(height: 18),

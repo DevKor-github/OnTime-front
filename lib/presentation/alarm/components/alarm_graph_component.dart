@@ -3,9 +3,13 @@ import 'dart:math' as math;
 
 class AlarmGraphComponent extends CustomPainter {
   final double progress; // 전체 진행률
+  final Color backgroundColor;
+  final Color progressColor;
 
   AlarmGraphComponent({
     required this.progress,
+    required this.backgroundColor,
+    required this.progressColor,
   });
 
   @override
@@ -21,14 +25,14 @@ class AlarmGraphComponent extends CustomPainter {
 
     // 채워지기 전 색
     final Paint backgroundPaint = Paint()
-      ..color = const Color(0xff3D54BC)
+      ..color = backgroundColor
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     // 채워진 후 색
     final Paint progressPaint = Paint()
-      ..color = const Color(0xffDCE3FF)
+      ..color = progressColor
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

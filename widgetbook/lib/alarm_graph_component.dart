@@ -22,7 +22,11 @@ Widget alarmGraphComponentUseCase(BuildContext context) {
       child: Center(
         child: CustomPaint(
           size: const Size(230, 115),
-          painter: AlarmGraphComponent(progress: progress),
+          painter: AlarmGraphComponent(
+            progress: progress,
+            backgroundColor: const Color(0xFF3D54BC),
+            progressColor: const Color(0xFFDCE3FF),
+          ),
         ),
       ),
     ),

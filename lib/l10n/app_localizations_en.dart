@@ -342,8 +342,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startInFiveMinutes => 'Start in 5 minutes';
 
   @override
+  String preparationStartsEarlyBy(String duration) {
+    return 'You\'re starting $duration early.\nWould you like to start preparing early now?';
+  }
+
+  @override
   String get preparationStartsLaterStartEarly =>
-      'Preparation starts a little later.\nWould you like to start preparing early now?';
+      'You\'re a little early.\nWould you like to start preparing early now?';
 
   @override
   String get continuePreparingNext => 'Continue preparing';

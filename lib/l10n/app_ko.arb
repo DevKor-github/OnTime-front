@@ -135,9 +135,18 @@
     "@startInFiveMinutes": {
         "description": "Button text to start in 5 minutes"
     },
-    "preparationStartsLaterStartEarly": "아직 준비 시작 시간 전이에요.\n지금 미리 준비를 시작할까요?",
+    "preparationStartsEarlyBy": "{duration} 일찍 준비를 시작할 수 있어요.\n지금 미리 준비를 시작할까요?",
+    "@preparationStartsEarlyBy": {
+        "description": "Message shown when user opens schedule start before preparation start time from home, including the exact lead time",
+        "placeholders": {
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "preparationStartsLaterStartEarly": "조금 일찍 준비를 시작할 수 있어요.\n지금 미리 준비를 시작할까요?",
     "@preparationStartsLaterStartEarly": {
-        "description": "Message shown when user opens schedule start before preparation start time from home"
+        "description": "Fallback message shown when user opens schedule start before preparation start time from home but exact lead time is unavailable"
     },
     "continuePreparingNext": "이어서 준비하세요",
     "@continuePreparingNext": {

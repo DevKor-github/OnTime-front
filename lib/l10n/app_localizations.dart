@@ -674,10 +674,16 @@ abstract class AppLocalizations {
   /// **'Start in 5 minutes'**
   String get startInFiveMinutes;
 
-  /// Message shown when user opens schedule start before preparation start time from home
+  /// Message shown when user opens schedule start before preparation start time from home, including the exact lead time
   ///
   /// In en, this message translates to:
-  /// **'Preparation starts a little later.\nWould you like to start preparing early now?'**
+  /// **'You\'re starting {duration} early.\nWould you like to start preparing early now?'**
+  String preparationStartsEarlyBy(String duration);
+
+  /// Fallback message shown when user opens schedule start before preparation start time from home but exact lead time is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re a little early.\nWould you like to start preparing early now?'**
   String get preparationStartsLaterStartEarly;
 
   /// Notification body text for continuing preparation

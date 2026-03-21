@@ -422,6 +422,12 @@ abstract class AppLocalizations {
   /// **'Start Preparing'**
   String get startPreparing;
 
+  /// Button text on the early-start screen to start preparing before the scheduled preparation time
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare Early'**
+  String get prepareEarly;
+
   /// Modal title to confirm leaving the screen
   ///
   /// In en, this message translates to:
@@ -674,10 +680,16 @@ abstract class AppLocalizations {
   /// **'Start in 5 minutes'**
   String get startInFiveMinutes;
 
-  /// Message shown when user opens schedule start before preparation start time from home
+  /// Message shown when user opens schedule start before preparation start time from home, including the exact lead time
   ///
   /// In en, this message translates to:
-  /// **'Preparation starts a little later.\nWould you like to start preparing early now?'**
+  /// **'You\'re starting {duration} early.\nWould you like to start preparing early now?'**
+  String preparationStartsEarlyBy(String duration);
+
+  /// Fallback message shown when user opens schedule start before preparation start time from home but exact lead time is unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re a little early.\nWould you like to start preparing early now?'**
   String get preparationStartsLaterStartEarly;
 
   /// Notification body text for continuing preparation

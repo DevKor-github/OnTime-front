@@ -225,6 +225,10 @@
     "@startPreparing": {
         "description": "Button text to start preparing"
     },
+    "prepareEarly": "Prepare Early",
+    "@prepareEarly": {
+        "description": "Button text on the early-start screen to start preparing before the scheduled preparation time"
+    },
     "confirmLeave": "Are you sure you want to leave?",
     "@confirmLeave": {
         "description": "Modal title to confirm leaving the screen"
@@ -427,9 +431,18 @@
     "@startInFiveMinutes": {
         "description": "Button text to start in 5 minutes"
     },
-    "preparationStartsLaterStartEarly": "Preparation starts a little later.\nWould you like to start preparing early now?",
+    "preparationStartsEarlyBy": "You're starting {duration} early.\nWould you like to start preparing early now?",
+    "@preparationStartsEarlyBy": {
+        "description": "Message shown when user opens schedule start before preparation start time from home, including the exact lead time",
+        "placeholders": {
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "preparationStartsLaterStartEarly": "You're a little early.\nWould you like to start preparing early now?",
     "@preparationStartsLaterStartEarly": {
-        "description": "Message shown when user opens schedule start before preparation start time from home"
+        "description": "Fallback message shown when user opens schedule start before preparation start time from home but exact lead time is unavailable"
     },
     "continuePreparingNext": "Continue preparing",
     "@continuePreparingNext": {

@@ -289,25 +289,25 @@ class _AlarmScreenState extends State<AlarmScreen> {
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: SafeArea(
-              minimum: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: IconButton(
-                  key: const Key('alarm_close_button'),
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => _showLeaveConfirmationDialog(context),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: SafeArea(
+                    minimum: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: IconButton(
+                        key: const Key('alarm_close_button'),
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () => _showLeaveConfirmationDialog(context),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

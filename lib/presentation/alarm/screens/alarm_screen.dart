@@ -10,6 +10,8 @@ import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart'
 import 'package:on_time_front/presentation/alarm/components/alarm_screen_bottom_section.dart';
 import 'package:on_time_front/presentation/alarm/components/alarm_screen_top_section.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_completion_dialog.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
@@ -144,6 +146,30 @@ class _AlarmScreenState extends State<AlarmScreen> {
     );
   }
 
+  Future<void> _showLeaveConfirmationDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showTwoActionDialog(
+      context,
+      config: TwoActionDialogConfig(
+        title: l10n.confirmLeave,
+        description: l10n.confirmLeaveDescription,
+        barrierDismissible: false,
+        secondaryAction: DialogActionConfig(
+          label: l10n.leave,
+          variant: ModalWideButtonVariant.neutral,
+        ),
+        primaryAction: DialogActionConfig(
+          label: l10n.stay,
+          variant: ModalWideButtonVariant.primary,
+        ),
+      ),
+    );
+
+    if (result == DialogActionResult.secondary && context.mounted) {
+      context.go('/home');
+    }
+  }
+
   Widget _buildAlarmScreen({
     required ScheduleWithPreparationEntity schedule,
   }) {
@@ -177,6 +203,21 @@ class _AlarmScreenState extends State<AlarmScreen> {
                 ),
               ),
             ],
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              minimum: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: IconButton(
+                  key: const Key('alarm_close_button'),
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => _showLeaveConfirmationDialog(context),
+                ),
+              ),
+            ),
           ),
         ],
       ),

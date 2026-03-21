@@ -9,8 +9,11 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Project Architecture](./Architecture.md) - Understanding the project structure
 - [Git Workflow](./Git.md) - Git strategy and commit message formats
 
-### Development Resources
+### Technical Deep Dives
+- [Error Handling System](./Error-Handling-Result-System.md) - Result-based error handling architecture
 - [Schedule Timer & Runtime Flow (v2)](./Schedule-Timer-System.md) - Official behavior for early start, timer transitions, cache coherence, and verification matrix
+
+### Development Resources
 - 🚧 **Getting Started Guide** *(Coming Soon)* - Setup and installation
 - 🚧 **Development Guide** *(Coming Soon)* - Development workflow and best practices
 - 🚧 **API Documentation** *(Coming Soon)* - Backend API reference

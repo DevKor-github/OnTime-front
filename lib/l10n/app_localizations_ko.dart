@@ -179,6 +179,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get startPreparing => '준비 시작';
 
   @override
+  String get prepareEarly => '미리 준비하기';
+
+  @override
   String get confirmLeave => '정말 나가시겠어요?';
 
   @override

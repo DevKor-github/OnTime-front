@@ -185,6 +185,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startPreparing => 'Start Preparing';
 
   @override
+  String get prepareEarly => 'Prepare Early';
+
+  @override
   String get confirmLeave => 'Are you sure you want to leave?';
 
   @override

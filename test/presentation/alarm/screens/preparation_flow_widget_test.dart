@@ -471,7 +471,9 @@ void main() {
         find.textContaining('Would you like to start preparing early now?'),
         findsOneWidget,
       );
-      expect(find.byType(ElevatedButton), findsNWidgets(2));
+      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.text('Home'), findsNothing);
+      expect(find.text('Prepare Early'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     testWidgets('early-start variant formats hour and minute lead time',
@@ -552,13 +554,14 @@ void main() {
       );
 
       await pumpWithRouter(tester, bloc: bloc, router: router);
-      await tapAndPump(tester, find.text('Start Preparing'));
+      await tapAndPump(tester, find.text('Prepare Early'));
       await pumpUntilRouteText(tester, 'ALARM_ROUTE');
 
       expect(find.text('ALARM_ROUTE'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('early-start secondary action navigates home', (tester) async {
+    testWidgets('early-start relies on close button instead of home button',
+        (tester) async {
       await setLargeTestViewport(tester);
 
       final schedule = buildSchedule(
@@ -592,10 +595,8 @@ void main() {
       );
 
       await pumpWithRouter(tester, bloc: bloc, router: router);
-      await tapAndPump(tester, find.text('Home'));
-      await pumpUntilRouteText(tester, 'HOME_ROUTE');
-
-      expect(find.text('HOME_ROUTE'), findsOneWidget);
+      expect(find.text('Home'), findsNothing);
+      expect(find.byIcon(Icons.close), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     testWidgets(

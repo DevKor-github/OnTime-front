@@ -422,6 +422,12 @@ abstract class AppLocalizations {
   /// **'Start Preparing'**
   String get startPreparing;
 
+  /// Button text on the early-start screen to start preparing before the scheduled preparation time
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare Early'**
+  String get prepareEarly;
+
   /// Modal title to confirm leaving the screen
   ///
   /// In en, this message translates to:

@@ -133,8 +133,6 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
   Widget build(BuildContext context) {
     final scheduleState = context.watch<ScheduleBloc>().state;
     final promptVariant = _resolvedPromptVariant();
-    final isDualActionVariant =
-        promptVariant != ScheduleStartPromptVariant.defaultPrompt;
     final schedule = scheduleState.schedule;
 
     return Scaffold(
@@ -203,9 +201,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                       ),
                       Padding(
                         padding: EdgeInsets.only(bottom: bottomGap),
-                        child: isDualActionVariant
-                            ? _buildTwoButtonLayout(context, promptVariant)
-                            : _buildSingleButton(context),
+                        child: _buildActionLayout(context, promptVariant),
                       ),
                     ],
                   ),
@@ -226,7 +222,11 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     );
   }
 
-  Widget _buildSingleButton(BuildContext context) {
+  Widget _buildPrimaryButton(
+    BuildContext context,
+    ScheduleStartPromptVariant variant,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
     return Align(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 358),
@@ -235,16 +235,30 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
           height: 57,
           child: ElevatedButton(
             onPressed: () async {
-              _onPrimaryActionPressed(
-                context,
-                ScheduleStartPromptVariant.defaultPrompt,
-              );
+              _onPrimaryActionPressed(context, variant);
             },
-            child: Text(AppLocalizations.of(context)!.startPreparing),
+            child: Text(
+              variant == ScheduleStartPromptVariant.earlyStart
+                  ? l10n.prepareEarly
+                  : l10n.startPreparing,
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildActionLayout(
+    BuildContext context,
+    ScheduleStartPromptVariant variant,
+  ) {
+    switch (variant) {
+      case ScheduleStartPromptVariant.fiveMinutes:
+        return _buildTwoButtonLayout(context, variant);
+      case ScheduleStartPromptVariant.earlyStart:
+      case ScheduleStartPromptVariant.defaultPrompt:
+        return _buildPrimaryButton(context, variant);
+    }
   }
 
   Widget _buildTwoButtonLayout(

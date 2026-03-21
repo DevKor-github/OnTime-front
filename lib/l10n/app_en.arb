@@ -225,6 +225,10 @@
     "@startPreparing": {
         "description": "Button text to start preparing"
     },
+    "prepareEarly": "Prepare Early",
+    "@prepareEarly": {
+        "description": "Button text on the early-start screen to start preparing before the scheduled preparation time"
+    },
     "confirmLeave": "Are you sure you want to leave?",
     "@confirmLeave": {
         "description": "Modal title to confirm leaving the screen"

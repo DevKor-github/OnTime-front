@@ -123,6 +123,41 @@ git subtree push --prefix=docs wiki master
 - Pushes them to the GitHub wiki repository
 - Updates the online wiki at `https://github.com/DevKor-github/OnTime-front/wiki`
 
+### Force push to GitHub Wiki (use with extreme caution)
+
+Sometimes the wiki remote can get out of sync (e.g., someone edited pages directly on GitHub and you want to **overwrite** the wiki with your local `docs/` state). In that case, you _can_ force push — but note:
+
+- **This rewrites the wiki repo history** and can discard other people's edits.
+- Only do this if the team agrees and you’re sure your local `docs/` is the desired source of truth.
+- Consider pulling first (`git subtree pull --prefix=docs wiki master --squash`) to avoid needing force.
+
+`git subtree push` doesn’t accept `--force`, so you force-push by splitting and pushing the split commit:
+
+```bash
+# 0) Make sure your docs changes are committed
+git status
+
+# 1) Create a split commit containing only docs/ history
+git subtree split --prefix=docs -b docs/wiki-split
+
+# 2) Force push that split to the wiki remote
+git push wiki docs/wiki-split:master --force-with-lease
+```
+
+If you don’t want to keep the temporary branch around:
+
+```bash
+# Create the split commit SHA and force push it directly
+SPLIT_SHA=$(git subtree split --prefix=docs HEAD)
+git push wiki "$SPLIT_SHA":master --force-with-lease
+```
+
+Afterwards, it’s safe to delete the temp branch:
+
+```bash
+git branch -D docs/wiki-split
+```
+
 ### Pull Changes from GitHub Wiki
 
 If someone edits the wiki directly on GitHub:
@@ -137,6 +172,52 @@ git subtree pull --prefix=docs wiki master --squash
 - Someone edited wiki pages directly on GitHub
 - You want to sync external wiki changes to your local repository
 - Before starting major documentation work (to avoid conflicts)
+
+### Troubleshooting subtree sync
+
+**Issue: `fatal: working tree has modifications. Cannot add.`**
+
+`git subtree pull` requires a clean working tree.
+
+```bash
+git status
+# then either commit or stash
+git add docs/
+git commit -m "docs: WIP before subtree pull"
+# or
+git stash -u
+```
+
+**Issue: `fatal: refusing to merge unrelated histories`**
+
+This happens when your local `docs/` history and the GitHub wiki repository don’t share a common subtree “join” history (often because `docs/` wasn’t originally introduced via `git subtree add`, or the wiki was rewritten independently).
+
+Pick one of these paths:
+
+1. **Overwrite wiki with local `docs/`** (recommended if `docs/` is the source of truth):
+
+```bash
+git status
+git subtree split --prefix=docs -b docs/wiki-split
+git push wiki docs/wiki-split:master --force-with-lease
+git branch -D docs/wiki-split
+```
+
+2. **Import wiki into this repo (one-time) and then merge your local docs** (recommended if the wiki is the source of truth):
+
+```bash
+# Backup current docs
+git mv docs docs_local
+git commit -m "chore(docs): backup local docs before importing wiki"
+
+# Bring wiki content into docs/ (establishes subtree join history)
+git subtree add --prefix=docs wiki master --squash
+
+# Now manually reconcile docs_local/ -> docs/ as needed, then:
+rm -rf docs_local
+git add -A
+git commit -m "docs: reconcile local docs with wiki import"
+```
 
 ## 🔧 Advanced Workflows
 

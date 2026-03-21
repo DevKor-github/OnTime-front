@@ -275,6 +275,7 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 - **Real-time synchronization** between local and remote data
 - **Runtime preparation flow** with official timer starts, early-start entry, and finish/lateness handling
 - **Cache-coherent timed-preparation resume** using snapshot metadata and fingerprint invalidation
+- **Automatic timer system** for schedule start notifications
 
 📖 **Detailed Documentation**: For the canonical v2 state machine, sequence flows, cache coherence model, and verification matrix, see [Schedule Timer & Preparation Runtime Flow (v2)](./Schedule-Timer-System.md)
 
@@ -290,7 +291,17 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 - **Synchronization strategy** for online/offline data consistency
 - **Caching mechanisms** for improved performance
 
-### 5. **Local Storage for Timed Preparation**
+### 5. **Error Handling System**
+
+- **Result pattern** for explicit, type-safe error handling
+- **Structured failure hierarchy** across all layers (Core, Domain, Data)
+- **Automatic logging** to Firebase Crashlytics in production
+- **Environment-aware messaging**: detailed errors in debug, user-friendly messages in production
+- **Layer-appropriate failures**: Domain failures contain no infrastructure details
+
+📖 **Detailed Documentation**: For comprehensive information about the error handling system, see [Error Handling System](./Error-Handling-Result-System.md)
+
+### 6. **Local Storage for Timed Preparation**
 
 - `PreparationWithTimeLocalDataSource` persists `PreparationWithTimeEntity` per schedule using SharedPreferences.
 - Intended for lightweight, per-schedule timer state (elapsed time, completion) that should survive app restarts.
@@ -357,6 +368,9 @@ dart run build_runner watch
 - Always use **entities** in the domain layer
 - Convert **models to entities** at repository boundaries
 - Implement **proper error handling** throughout the layers
+- Use **Result pattern** for all operations that can fail
+
+📖 **Detailed Documentation**: For comprehensive information about error handling, see [Error Handling System](./Error-Handling-Result-System.md)
 
 ### 4. **Naming Conventions**
 

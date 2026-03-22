@@ -81,10 +81,20 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     bottom: 4.0,
   );
 
+  String get _scheduleRenderKey => [
+        widget.schedule.id,
+        widget.schedule.scheduleName,
+        widget.schedule.place.placeName,
+        widget.schedule.scheduleTime.millisecondsSinceEpoch,
+        widget.schedule.moveTime.inMinutes,
+        widget.schedule.scheduleSpareTime?.inMinutes ?? -1,
+        widget.schedule.doneStatus.name,
+      ].join('|');
+
   @override
   Widget build(BuildContext context) {
     return SwipeActionCell(
-      key: ValueKey<String>(widget.schedule.id),
+      key: ValueKey<String>(_scheduleRenderKey),
       backgroundColor: Colors.transparent,
       trailingActions: _buildSwipeActions(context),
       child: _buildScheduleContent(context),

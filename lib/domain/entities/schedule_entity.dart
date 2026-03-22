@@ -96,18 +96,6 @@ class ScheduleEntity extends Equatable {
   }
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is ScheduleEntity && other.id == id;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode;
-  }
-
-  @override
   List<Object?> get props => [
         id,
         place,

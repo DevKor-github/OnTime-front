@@ -390,4 +390,43 @@ void main() {
     expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
     expect(find.byType(SnackBar), findsOneWidget);
   });
+
+  testWidgets('edited name and place are submitted from form steps',
+      (tester) async {
+    ScheduleEntity? updatedSchedule;
+    updateScheduleUseCase.handler = (schedule) async {
+      updatedSchedule = schedule;
+    };
+
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    await _primeEditState(bloc);
+    await _pumpSheet(tester, bloc);
+
+    Finder nextButton() => find.descendant(
+          of: find.byType(TopBar),
+          matching: find.byType(TextButton),
+        );
+
+    await tester.enterText(find.byType(TextFormField).first, 'Edited Meeting');
+    await tester.pump();
+    await tester.tap(nextButton());
+    await tester.pumpAndSettle();
+
+    await tester.tap(nextButton());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).first, 'New Office');
+    await tester.pump();
+    await tester.tap(nextButton());
+    await tester.pumpAndSettle();
+
+    await tester.tap(nextButton());
+    await tester.pumpAndSettle();
+
+    expect(updatedSchedule, isNotNull);
+    expect(updatedSchedule!.scheduleName, 'Edited Meeting');
+    expect(updatedSchedule!.place.placeName, 'New Office');
+  });
 }

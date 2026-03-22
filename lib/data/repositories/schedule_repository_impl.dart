@@ -45,7 +45,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       await _clearTimedPreparationSafe(schedule.id);
       //await scheduleLocalDataSource.deleteSchedule(schedule);
       _scheduleStreamController.add(
-        Set.from(_scheduleStreamController.value)..remove(schedule),
+        Set.from(_scheduleStreamController.value)
+          ..removeWhere((existing) => existing.id == schedule.id),
       );
     } catch (e) {
       rethrow;
@@ -81,7 +82,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
           await _clearTimedPreparationSafe(schedule.id);
         }
       }
-      _emitUpsertedSchedules(schedules);
+      _replaceSchedulesInRange(
+        startDate: startDate,
+        endDate: endDate,
+        schedules: schedules,
+      );
       return schedules;
     } catch (e) {
       rethrow;
@@ -150,6 +155,24 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         Set<ScheduleEntity>.from(_scheduleStreamController.value);
     for (final schedule in schedules) {
       nextSchedules.removeWhere((existing) => existing.id == schedule.id);
+      nextSchedules.add(schedule);
+    }
+    _scheduleStreamController.add(nextSchedules);
+  }
+
+  void _replaceSchedulesInRange({
+    required DateTime startDate,
+    required DateTime? endDate,
+    required Iterable<ScheduleEntity> schedules,
+  }) {
+    final nextSchedules =
+        Set<ScheduleEntity>.from(_scheduleStreamController.value)
+          ..removeWhere(
+            (existing) =>
+                !existing.scheduleTime.isBefore(startDate) &&
+                (endDate == null || existing.scheduleTime.isBefore(endDate)),
+          );
+    for (final schedule in schedules) {
       nextSchedules.add(schedule);
     }
     _scheduleStreamController.add(nextSchedules);

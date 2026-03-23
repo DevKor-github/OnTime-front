@@ -1,6 +1,8 @@
+import 'package:equatable/equatable.dart';
+
 import '/core/database/database.dart';
 
-class PlaceEntity {
+class PlaceEntity extends Equatable {
   final String id;
   final String placeName;
 
@@ -22,4 +24,7 @@ class PlaceEntity {
       placeName: placeName,
     );
   }
+
+  @override
+  List<Object?> get props => [id, placeName];
 }

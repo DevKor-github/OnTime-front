@@ -25,16 +25,14 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Stream<Set<ScheduleEntity>> get scheduleStream =>
-      _scheduleStreamController.asBroadcastStream();
+      _scheduleStreamController.stream;
 
   @override
   Future<void> createSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.createSchedule(schedule);
       //await scheduleLocalDataSource.createSchedule(schedule);
-      _scheduleStreamController.add(
-        Set.from(_scheduleStreamController.value)..add(schedule),
-      );
+      _emitUpsertedSchedule(schedule);
     } catch (e) {
       rethrow;
     }
@@ -47,7 +45,8 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       await _clearTimedPreparationSafe(schedule.id);
       //await scheduleLocalDataSource.deleteSchedule(schedule);
       _scheduleStreamController.add(
-        Set.from(_scheduleStreamController.value)..remove(schedule),
+        Set.from(_scheduleStreamController.value)
+          ..removeWhere((existing) => existing.id == schedule.id),
       );
     } catch (e) {
       rethrow;
@@ -61,9 +60,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       if (_isEnded(schedule.doneStatus)) {
         await _clearTimedPreparationSafe(schedule.id);
       }
-      _scheduleStreamController.add(
-        Set.from(_scheduleStreamController.value)..add(schedule),
-      );
+      _emitUpsertedSchedule(schedule);
       return schedule;
     } catch (e) {
       rethrow;
@@ -85,14 +82,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
           await _clearTimedPreparationSafe(schedule.id);
         }
       }
-      final mergedSchedules = Set<ScheduleEntity>.from(
-        _scheduleStreamController.value,
+      _replaceSchedulesInRange(
+        startDate: startDate,
+        endDate: endDate,
+        schedules: schedules,
       );
-      for (final schedule in schedules) {
-        mergedSchedules.removeWhere((existing) => existing.id == schedule.id);
-        mergedSchedules.add(schedule);
-      }
-      _scheduleStreamController.add(mergedSchedules);
       return schedules;
     } catch (e) {
       rethrow;
@@ -104,11 +98,13 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       await scheduleRemoteDataSource.updateSchedule(schedule);
       await _clearTimedPreparationSafe(schedule.id);
-      _scheduleStreamController.add(
-        Set.from(_scheduleStreamController.value)
-          ..remove(schedule)
-          ..add(schedule),
+      final refreshedSchedule = await scheduleRemoteDataSource.getScheduleById(
+        schedule.id,
       );
+      if (_isEnded(refreshedSchedule.doneStatus)) {
+        await _clearTimedPreparationSafe(refreshedSchedule.id);
+      }
+      _emitUpsertedSchedule(refreshedSchedule);
       //await scheduleLocalDataSource.updateSchedule(schedule);
     } catch (e) {
       rethrow;
@@ -126,11 +122,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       final schedule = _scheduleStreamController.value.firstWhere(
         (schedule) => schedule.id == scheduleId,
       );
-      _scheduleStreamController.add(
-        Set.from(_scheduleStreamController.value)
-          ..remove(schedule)
-          ..add(schedule.copyWith(doneStatus: lateStatus)),
-      );
+      _emitUpsertedSchedule(schedule.copyWith(doneStatus: lateStatus));
     } catch (e) {
       rethrow;
     }
@@ -148,5 +140,41 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     } catch (_) {
       // Best-effort cleanup: cache invalidation must not fail schedule operations.
     }
+  }
+
+  void _emitUpsertedSchedule(ScheduleEntity schedule) {
+    final nextSchedules =
+        Set<ScheduleEntity>.from(_scheduleStreamController.value)
+          ..removeWhere((existing) => existing.id == schedule.id)
+          ..add(schedule);
+    _scheduleStreamController.add(nextSchedules);
+  }
+
+  void _emitUpsertedSchedules(Iterable<ScheduleEntity> schedules) {
+    final nextSchedules =
+        Set<ScheduleEntity>.from(_scheduleStreamController.value);
+    for (final schedule in schedules) {
+      nextSchedules.removeWhere((existing) => existing.id == schedule.id);
+      nextSchedules.add(schedule);
+    }
+    _scheduleStreamController.add(nextSchedules);
+  }
+
+  void _replaceSchedulesInRange({
+    required DateTime startDate,
+    required DateTime? endDate,
+    required Iterable<ScheduleEntity> schedules,
+  }) {
+    final nextSchedules =
+        Set<ScheduleEntity>.from(_scheduleStreamController.value)
+          ..removeWhere(
+            (existing) =>
+                !existing.scheduleTime.isBefore(startDate) &&
+                (endDate == null || existing.scheduleTime.isBefore(endDate)),
+          );
+    for (final schedule in schedules) {
+      nextSchedules.add(schedule);
+    }
+    _scheduleStreamController.add(nextSchedules);
   }
 }

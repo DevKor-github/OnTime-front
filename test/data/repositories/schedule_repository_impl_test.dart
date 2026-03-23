@@ -268,10 +268,13 @@ void main() {
       () async {
         when(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity))
             .thenAnswer((_) async {});
+        when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
+            .thenAnswer((_) async => tScheduleEntity);
 
         await scheduleRepository.updateSchedule(tScheduleEntity);
 
         verify(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity));
+        verify(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId));
         expect(fakeTimedPreparationRepository.clearedIds, [scheduleEntityId]);
       },
     );

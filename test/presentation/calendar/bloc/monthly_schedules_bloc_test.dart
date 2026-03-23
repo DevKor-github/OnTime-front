@@ -309,4 +309,82 @@ void main() {
       const Duration(minutes: 15),
     );
   });
+
+  test('schedule stream update refreshes schedule fields in monthly state',
+      () async {
+    final controller = StreamController<List<ScheduleEntity>>();
+    addTearDown(controller.close);
+    getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase(
+      (_, __) => controller.stream,
+    );
+
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    bloc.add(MonthlySchedulesVisibleDateChanged(date: selectedDate));
+    bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+
+    controller.add([scheduleA, scheduleB]);
+    await bloc.stream.firstWhere(
+      (state) =>
+          state.schedules[selectedDate]?.any(
+            (schedule) => schedule.scheduleName == 'Meeting',
+          ) ??
+          false,
+    );
+
+    final updatedScheduleA = ScheduleEntity(
+      id: scheduleA.id,
+      place: PlaceEntity(id: scheduleA.place.id, placeName: 'New Office'),
+      scheduleName: 'Edited Meeting',
+      scheduleTime: DateTime(2026, 3, 20, 10, 30),
+      moveTime: const Duration(minutes: 45),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 20),
+      scheduleNote: '',
+    );
+
+    final updatedStateFuture = bloc.stream.firstWhere(
+      (state) =>
+          state.schedules[selectedDate]?.any(
+            (schedule) =>
+                schedule.id == scheduleA.id &&
+                schedule.scheduleName == 'Edited Meeting' &&
+                schedule.place.placeName == 'New Office' &&
+                schedule.scheduleTime == DateTime(2026, 3, 20, 10, 30),
+          ) ??
+          false,
+    );
+    controller.add([updatedScheduleA, scheduleB]);
+    final updatedState = await updatedStateFuture;
+
+    final updatedSchedule = updatedState.schedules[selectedDate]!.firstWhere(
+      (schedule) => schedule.id == scheduleA.id,
+    );
+    expect(updatedSchedule.scheduleName, 'Edited Meeting');
+    expect(updatedSchedule.place.placeName, 'New Office');
+    expect(updatedSchedule.scheduleTime, DateTime(2026, 3, 20, 10, 30));
+    expect(updatedSchedule.moveTime, const Duration(minutes: 45));
+    expect(updatedSchedule.scheduleSpareTime, const Duration(minutes: 20));
+  });
+
+  test('refresh requested reloads schedules for current month', () async {
+    var loadedDate = DateTime(2000);
+    loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase(
+      (date) async {
+        loadedDate = date;
+      },
+    );
+
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    bloc.add(
+      MonthlySchedulesRefreshRequested(date: DateTime(2026, 3, 20)),
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(loadedDate, DateTime(2026, 3, 20));
+  });
 }

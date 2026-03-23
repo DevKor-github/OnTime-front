@@ -32,6 +32,15 @@ final class MonthlySchedulesMonthAdded extends MonthlySchedulesEvent {
   List<Object> get props => [date];
 }
 
+final class MonthlySchedulesRefreshRequested extends MonthlySchedulesEvent {
+  final DateTime date;
+
+  const MonthlySchedulesRefreshRequested({required this.date});
+
+  @override
+  List<Object> get props => [date.year, date.month];
+}
+
 final class MonthlySchedulesScheduleDeleted extends MonthlySchedulesEvent {
   final ScheduleEntity schedule;
 

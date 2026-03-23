@@ -29,6 +29,7 @@ class MonthlySchedulesBloc
   ) : super(MonthlySchedulesState()) {
     on<MonthlySchedulesSubscriptionRequested>(_onSubscriptionRequested);
     on<MonthlySchedulesMonthAdded>(_onMonthAdded);
+    on<MonthlySchedulesRefreshRequested>(_onRefreshRequested);
     on<MonthlySchedulesScheduleDeleted>(_onScheduleDeleted);
     on<MonthlySchedulesVisibleDateChanged>(_onVisibleDateChanged);
     on<MonthlySchedulesPreparationsPrefetchRequested>(
@@ -159,6 +160,19 @@ class MonthlySchedulesBloc
       ));
       await _deleteScheduleUseCase(event.schedule);
     } catch (e) {
+      emit(state.copyWith(
+        status: () => MonthlySchedulesStatus.error,
+      ));
+    }
+  }
+
+  Future<void> _onRefreshRequested(
+    MonthlySchedulesRefreshRequested event,
+    Emitter<MonthlySchedulesState> emit,
+  ) async {
+    try {
+      await _loadSchedulesForMonthUseCase(event.date);
+    } catch (_) {
       emit(state.copyWith(
         status: () => MonthlySchedulesStatus.error,
       ));

@@ -36,8 +36,10 @@ void main() {
 
   Future<void> pumpScheduleDetail(
     WidgetTester tester, {
+    ScheduleEntity? customSchedule,
     Duration? preparationTime,
   }) async {
+    final targetSchedule = customSchedule ?? schedule;
     await tester.pumpWidget(
       DefaultAssetBundle(
         bundle: _FakeSvgAssetBundle(),
@@ -47,7 +49,7 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: ScheduleDetail(
-              schedule: schedule,
+              schedule: targetSchedule,
               preparationTime: preparationTime,
             ),
           ),
@@ -140,5 +142,38 @@ void main() {
     final expandedHeight = getMaxActionButtonHeight(tester);
 
     expect(expandedHeight, greaterThan(collapsedHeight));
+  });
+
+  testWidgets('tile text updates when schedule fields change for same id',
+      (tester) async {
+    await pumpScheduleDetail(tester);
+
+    expect(find.text('Design Review'), findsOneWidget);
+    expect(find.text('Office'), findsOneWidget);
+    expect(find.text('09:00'), findsOneWidget);
+
+    final updatedSchedule = ScheduleEntity(
+      id: 'schedule-1',
+      place: PlaceEntity(id: 'place-1', placeName: 'New Office'),
+      scheduleName: 'Edited Review',
+      scheduleTime: DateTime(2026, 3, 20, 10, 30),
+      moveTime: const Duration(minutes: 45),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 20),
+      scheduleNote: '',
+    );
+
+    await pumpScheduleDetail(
+      tester,
+      customSchedule: updatedSchedule,
+    );
+
+    expect(find.text('Edited Review'), findsOneWidget);
+    expect(find.text('New Office'), findsOneWidget);
+    expect(find.text('10:30'), findsOneWidget);
+    expect(find.text('Design Review'), findsNothing);
+    expect(find.text('Office'), findsNothing);
+    expect(find.text('09:00'), findsNothing);
   });
 }

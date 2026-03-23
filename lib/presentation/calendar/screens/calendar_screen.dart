@@ -71,6 +71,46 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
+  Future<void> _refreshSchedulesIfSaved(
+      BuildContext context, bool? saved) async {
+    if (saved != true || !mounted) {
+      return;
+    }
+
+    context.read<MonthlySchedulesBloc>().add(
+          MonthlySchedulesRefreshRequested(date: _selectedDate),
+        );
+  }
+
+  Future<void> _openCreateScheduleSheet(BuildContext context) async {
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ScheduleCreateScreen(
+        initialDate: _selectedDate,
+      ),
+    );
+
+    await _refreshSchedulesIfSaved(context, saved);
+  }
+
+  Future<void> _openEditScheduleSheet(
+    BuildContext context, {
+    required String scheduleId,
+  }) async {
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ScheduleEditScreen(
+        scheduleId: scheduleId,
+      ),
+    );
+
+    await _refreshSchedulesIfSaved(context, saved);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -280,17 +320,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   ),
                                   if (!isPastSelectedDay)
                                     ElevatedButton(
-                                      onPressed: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          backgroundColor: Colors.transparent,
-                                          builder: (context) =>
-                                              ScheduleCreateScreen(
-                                            initialDate: _selectedDate,
-                                          ),
-                                        );
-                                      },
+                                      onPressed: () =>
+                                          _openCreateScheduleSheet(context),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
                                             theme.colorScheme.surface,
@@ -332,13 +363,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       state.preparationDurationByScheduleId[
                                           schedule.id],
                                   onEdit: () {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (context) => ScheduleEditScreen(
-                                        scheduleId: schedule.id,
-                                      ),
+                                    _openEditScheduleSheet(
+                                      context,
+                                      scheduleId: schedule.id,
                                     );
                                   },
                                   onDeleted: () {

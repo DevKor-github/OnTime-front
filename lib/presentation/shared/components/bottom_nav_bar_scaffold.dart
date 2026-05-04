@@ -20,12 +20,7 @@ class BottomNavBarScaffold extends StatefulWidget {
 }
 
 class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
-  int selectedIndex = 0;
-
   void onDestinationSelected(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
     switch (index) {
       case 0:
         context.go('/home');
@@ -58,6 +53,7 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final currentLocation = GoRouterState.of(context).uri.path;
     return Scaffold(
       body: widget.child,
       backgroundColor: _getBackgroundColor(context),
@@ -69,25 +65,31 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
         child: Container(
           color: AppColors.white,
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: BottomNavigationBar(
-              items: [
-                BottomNavigationBarItem(
-                  icon: _HomeIcon(),
-                  label: AppLocalizations.of(context)!.home,
-                ),
-                BottomNavigationBarItem(
-                  icon: _MyIcon(),
-                  label: AppLocalizations.of(context)!.myPage,
-                ),
-              ],
-              currentIndex: selectedIndex,
-              onTap: onDestinationSelected,
-              iconSize: 24.0,
-              unselectedItemColor: colorScheme.onPrimaryContainer,
-              elevation: 0,
-              showSelectedLabels: false,
-              showUnselectedLabels: false,
+            padding: const EdgeInsets.only(bottom: 32.0),
+            child: SizedBox(
+              height: 56,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _BottomNavDestination(
+                    selected: currentLocation == '/home',
+                    color: colorScheme.primary,
+                    unselectedColor: colorScheme.onPrimaryContainer,
+                    label: AppLocalizations.of(context)!.home,
+                    onTap: () => onDestinationSelected(0),
+                    child: const _HomeIcon(),
+                  ),
+                  _BottomNavDestination(
+                    selected: currentLocation == '/myPage',
+                    color: colorScheme.primary,
+                    unselectedColor: colorScheme.onPrimaryContainer,
+                    label: AppLocalizations.of(context)!.myPage,
+                    onTap: () => onDestinationSelected(1),
+                    child: const _MyIcon(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -115,6 +117,47 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+}
+
+class _BottomNavDestination extends StatelessWidget {
+  const _BottomNavDestination({
+    required this.selected,
+    required this.color,
+    required this.unselectedColor,
+    required this.label,
+    required this.onTap,
+    required this.child,
+  });
+
+  final bool selected;
+  final Color color;
+  final Color unselectedColor;
+  final String label;
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          child: Center(
+            child: IconTheme(
+              data: IconThemeData(
+                size: 24,
+                color: selected ? color : unselectedColor,
+              ),
+              child: child,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

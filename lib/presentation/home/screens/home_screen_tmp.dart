@@ -244,7 +244,7 @@ class _MonthlySchedule extends StatelessWidget {
               contentPadding: EdgeInsets.only(
                 left: metrics.calendarPadding,
                 right: metrics.calendarPadding,
-                bottom: metrics.calendarPadding,
+                bottom: metrics.calendarPadding + metrics.calendarFabClearance,
               ),
               onDateSelected: (date) {
                 context.go('/calendar', extra: date);
@@ -371,6 +371,7 @@ class _HomeLayoutMetrics {
     required this.calendarRowHeight,
     required this.calendarDaysOfWeekHeight,
     required this.calendarPadding,
+    required this.calendarFabClearance,
   });
 
   final bool compact;
@@ -388,6 +389,7 @@ class _HomeLayoutMetrics {
   final double calendarRowHeight;
   final double calendarDaysOfWeekHeight;
   final double calendarPadding;
+  final double calendarFabClearance;
 
   double get topSectionHeight =>
       safeAreaGap + heroTopPadding + bannerHeight + todayOverlayHeight;
@@ -422,6 +424,7 @@ class _HomeLayoutMetrics {
     final monthlyHeaderHeight = scale(40, 28);
     final calendarDaysOfWeekHeight = scale(40, 22);
     final calendarPadding = scale(16, 4);
+    final calendarFabClearance = scale(28, 20);
     const calendarHeaderHeight = 72.0;
     final calendarAvailableHeight = height -
         safeAreaGap -
@@ -438,7 +441,7 @@ class _HomeLayoutMetrics {
         .clamp(28.0, 50.0);
 
     return _HomeLayoutMetrics(
-      compact: pressure > 0.35,
+      compact: pressure > 0.2,
       safeAreaGap: safeAreaGap,
       heroTopPadding: heroTopPadding,
       bannerHeight: bannerHeight,
@@ -453,6 +456,7 @@ class _HomeLayoutMetrics {
       calendarRowHeight: calendarRowHeight,
       calendarDaysOfWeekHeight: calendarDaysOfWeekHeight,
       calendarPadding: calendarPadding,
+      calendarFabClearance: calendarFabClearance,
     );
   }
 }

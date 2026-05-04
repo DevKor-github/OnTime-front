@@ -92,29 +92,26 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           ),
         ),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(top: 24.0),
-        child: SizedBox(
-          height: 76,
-          width: 76,
-          child: FilledButton(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const ScheduleCreateScreen(),
-              );
-            },
-            // onPressed: () {
-            //   context.go('/scheduleCreate');
-            // },
-            style: FilledButton.styleFrom(
-              shape: CircleBorder(),
-              padding: EdgeInsets.all(13),
-            ),
-            child: _PlusIcon(),
+      floatingActionButton: SizedBox(
+        height: 76,
+        width: 76,
+        child: FilledButton(
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => const ScheduleCreateScreen(),
+            );
+          },
+          // onPressed: () {
+          //   context.go('/scheduleCreate');
+          // },
+          style: FilledButton.styleFrom(
+            shape: CircleBorder(),
+            padding: EdgeInsets.all(13),
           ),
+          child: _PlusIcon(),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

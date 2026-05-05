@@ -364,7 +364,7 @@ class NotificationService {
       if (type != null && type.contains('5min')) {
         getIt.get<NavigationService>().push(
           '/scheduleStart',
-          extra: {'isFiveMinutesBefore': true},
+          extra: {'promptVariant': 'earlyStart'},
         );
       } else if (type != null &&
               (type.startsWith('schedule_') ||
@@ -390,7 +390,7 @@ class NotificationService {
     if (type != null && type.contains('5min')) {
       getIt.get<NavigationService>().push(
         '/scheduleStart',
-        extra: {'isFiveMinutesBefore': true},
+        extra: {'promptVariant': 'earlyStart'},
       );
     } else if (type != null &&
             (type.startsWith('schedule_') || type.startsWith('preparation_')) ||

@@ -179,7 +179,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get startPreparing => '준비 시작';
 
   @override
-  String get prepareEarly => '미리 준비하기';
+  String get startPreparingNow => '지금 준비 시작';
+
+  @override
+  String get notNow => '나중에';
 
   @override
   String get confirmLeave => '정말 나가시겠어요?';
@@ -316,9 +319,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get preparationStartsInFiveMinutes =>
       '5분 뒤에 준비가 시작돼요.\n미리 준비를 시작하시겠어요?';
-
-  @override
-  String get startInFiveMinutes => '5분 뒤에 시작하기';
 
   @override
   String preparationStartsEarlyBy(String duration) {

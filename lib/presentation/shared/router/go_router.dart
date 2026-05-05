@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
-import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
@@ -130,12 +129,7 @@ GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
             return const SizedBox.shrink();
           }
           final extra = state.extra as Map<String, dynamic>?;
-          final promptVariantRaw = extra?['promptVariant'] as String?;
-          final promptVariant = promptVariantRaw != null
-              ? scheduleStartPromptVariantFromRouteValue(promptVariantRaw)
-              : ((extra?['isFiveMinutesBefore'] as bool? ?? false)
-                  ? ScheduleStartPromptVariant.fiveMinutes
-                  : ScheduleStartPromptVariant.defaultPrompt);
+          final promptVariant = scheduleStartPromptVariantFromRouteExtra(extra);
           return ScheduleStartScreen(promptVariant: promptVariant);
         },
       ),

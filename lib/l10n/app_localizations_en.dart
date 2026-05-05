@@ -29,6 +29,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'You must set a spare time in case of unexpected situations.';
 
   @override
+  String get spareTimeMinimumWarning => 'Minimum spare time is 10 minutes';
+
+  @override
   String get todaysAppointments => 'Today\'s Appointments';
 
   @override

@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'You must set a spare time in case of unexpected situations.'**
   String get setSpareTimeWarning;
 
+  /// Warning shown when onboarding spare time is at the minimum value
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum spare time is 10 minutes'**
+  String get spareTimeMinimumWarning;
+
   /// Title for today's appointments section on the home screen
   ///
   /// In en, this message translates to:

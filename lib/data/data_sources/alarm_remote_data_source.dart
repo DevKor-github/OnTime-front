@@ -111,12 +111,19 @@ class AlarmRemoteDataSourceImpl implements AlarmRemoteDataSource {
   @override
   Future<void> postAlarmStatus(AlarmStatusReport report) async {
     try {
-      final result = await dio.post(
-        Endpoint.alarmStatus,
-        data: AlarmStatusReportModel(report).toJson(),
-      );
+      final model = AlarmStatusReportModel(report);
+      var result = await _postAlarmStatus(model.toJson());
+      if (result.statusCode == 400) {
+        result = await _postAlarmStatus(
+          model.toJson(wireFormat: AlarmStatusReportWireFormat.upperSnake),
+        );
+      }
+      if (result.statusCode == 409 &&
+          _errorCode(result.data) == 'DEVICE_SESSION_NOT_ACTIVE') {
+        throw const DeviceSessionNotActiveException();
+      }
       if (result.statusCode != 200) {
-        throw Exception('Error posting alarm status');
+        throw Exception('Error posting alarm status: ${result.statusCode}');
       }
     } on DioException catch (error) {
       if (error.response?.statusCode == 409 &&
@@ -125,6 +132,16 @@ class AlarmRemoteDataSourceImpl implements AlarmRemoteDataSource {
       }
       rethrow;
     }
+  }
+
+  Future<Response<dynamic>> _postAlarmStatus(Map<String, dynamic> data) {
+    return dio.post(
+      Endpoint.alarmStatus,
+      data: data,
+      options: Options(
+        validateStatus: (status) => status != null && status < 500,
+      ),
+    );
   }
 
   String? _errorCode(Object? data) {

@@ -70,7 +70,7 @@ void main() {
 
   test('status report and registry record serialize alarm contract payloads',
       () {
-    final now = DateTime(2026, 5, 5, 9);
+    final now = DateTime(2026, 5, 5, 9, 0, 0, 123, 456);
     final statusJson = AlarmStatusReportModel(
       AlarmStatusReport(
         deviceId: 'device-1',
@@ -98,6 +98,7 @@ void main() {
 
     expect(statusJson['status'], 'partial');
     expect(statusJson['permissionIssue'], 'notificationPermissionDenied');
+    expect(statusJson['reconciledAt'], '2026-05-05T09:00:00.123');
     expect(statusJson['armedScheduleIds'], ['schedule-1']);
     expect((statusJson['failures'] as List).single['reason'], 'platformError');
 
@@ -122,5 +123,40 @@ void main() {
     expect(decoded.provider, AlarmProvider.localNotification);
     expect(decoded.payload['type'], 'schedule_alarm');
     expect(decoded.scheduleFingerprint, 'fingerprint');
+  });
+
+  test('status report omits null permission issue and supports backend enums',
+      () {
+    final now = DateTime(2026, 5, 5, 9);
+    final model = AlarmStatusReportModel(
+      AlarmStatusReport(
+        deviceId: 'device-1',
+        reconciledAt: now,
+        scheduleWindowStart: now,
+        scheduleWindowEnd: now.add(const Duration(days: 8)),
+        alarmCoverageStart: now,
+        alarmCoverageEnd: now.add(const Duration(days: 7)),
+        status: AlarmReconciliationStatus.armed,
+        nativeAlarmProvider: AlarmProvider.iosAlarmKit,
+        fallbackProvider: AlarmProvider.localNotification,
+        armedScheduleCount: 1,
+        armedScheduleIds: const ['schedule-1'],
+        skippedScheduleCount: 0,
+        failures: const [],
+      ),
+    );
+
+    final json = model.toJson();
+    expect(json.containsKey('permissionIssue'), isFalse);
+    expect(json['status'], 'armed');
+    expect(json['nativeAlarmProvider'], 'iosAlarmKit');
+
+    final backendJson = model.toJson(
+      wireFormat: AlarmStatusReportWireFormat.upperSnake,
+    );
+    expect(backendJson.containsKey('permissionIssue'), isFalse);
+    expect(backendJson['status'], 'ARMED');
+    expect(backendJson['nativeAlarmProvider'], 'IOS_ALARM_KIT');
+    expect(backendJson['fallbackProvider'], 'LOCAL_NOTIFICATION');
   });
 }

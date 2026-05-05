@@ -86,6 +86,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get finishPreparation => 'Finish Preparation';
 
   @override
+  String get preparationReadyToGo => 'Ready to go';
+
+  @override
   String get signInSlogan => 'We\'ll find your lost leisure.';
 
   @override

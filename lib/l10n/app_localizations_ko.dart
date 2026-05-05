@@ -84,6 +84,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get finishPreparation => '준비 종료';
 
   @override
+  String get preparationReadyToGo => '출발 준비 완료';
+
+  @override
   String get signInSlogan => '당신의 잃어버린 여유를 찾아드립니다.';
 
   @override

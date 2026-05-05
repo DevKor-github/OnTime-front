@@ -1043,6 +1043,7 @@ void main() {
         const Color(0xFF5C79FB).value,
       );
       expect(find.text('EARLYLATE'), findsNothing);
+      expect(find.text('Ready to go'), findsOneWidget);
       expect(find.text('5분 뒤에 나가야 해요'), findsOneWidget);
       expect(find.text('05 : 00'), findsOneWidget);
       expect(finishUseCase.calls, isEmpty);
@@ -1051,6 +1052,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('4분 뒤에 나가야 해요'), findsOneWidget);
+      expect(find.text('Ready to go'), findsOneWidget);
       expect(find.text('04 : 00'), findsOneWidget);
 
       alarmBloc.add(const ScheduleFinished(0));
@@ -1237,6 +1239,7 @@ void main() {
       );
       expect(find.text('준비시간을 1분 초과했어요'), findsOneWidget);
       expect(find.text('지각이에요'), findsOneWidget);
+      expect(find.text('Ready to go'), findsNothing);
       expect(find.text('01 : 00'), findsOneWidget);
       expect(find.text('Prep'), findsOneWidget);
 

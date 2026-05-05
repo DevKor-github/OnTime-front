@@ -48,7 +48,38 @@ class GetPreparationStepResponseModel {
 extension PreparationResponseModelListExtension
     on List<GetPreparationStepResponseModel> {
   PreparationEntity toPreparationEntity() {
-    final steps = map((model) => model.toEntity()).toList();
+    if (isEmpty) {
+      return PreparationEntity(preparationStepList: []);
+    }
+
+    final modelsById = {
+      for (final model in this) model.id: model,
+    };
+    final referencedIds = {
+      for (final model in this)
+        if (model.nextPreparationId != null) model.nextPreparationId!,
+    };
+    final firstModel = firstWhere(
+      (model) => !referencedIds.contains(model.id),
+      orElse: () => first,
+    );
+
+    final orderedModels = <GetPreparationStepResponseModel>[];
+    final visitedIds = <String>{};
+    GetPreparationStepResponseModel? currentModel = firstModel;
+    while (currentModel != null && visitedIds.add(currentModel.id)) {
+      orderedModels.add(currentModel);
+      final nextId = currentModel.nextPreparationId;
+      currentModel = nextId == null ? null : modelsById[nextId];
+    }
+
+    for (final model in this) {
+      if (visitedIds.add(model.id)) {
+        orderedModels.add(model);
+      }
+    }
+
+    final steps = orderedModels.map((model) => model.toEntity()).toList();
     return PreparationEntity(preparationStepList: steps);
   }
 }

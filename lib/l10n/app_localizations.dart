@@ -242,6 +242,12 @@ abstract class AppLocalizations {
   /// **'Finish Preparation'**
   String get finishPreparation;
 
+  /// Center timer label shown after all preparation steps are complete and there is still time before leaving
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to go'**
+  String get preparationReadyToGo;
+
   /// Slogan on the sign-in screen
   ///
   /// In en, this message translates to:

@@ -95,6 +95,10 @@
     "@finishPreparation": {
         "description": "Button text to finish preparing"
     },
+    "preparationReadyToGo": "Ready to go",
+    "@preparationReadyToGo": {
+        "description": "Center timer label shown after all preparation steps are complete and there is still time before leaving"
+    },
     "signInSlogan": "We'll find your lost leisure.",
     "@signInSlogan": {
         "description": "Slogan on the sign-in screen"

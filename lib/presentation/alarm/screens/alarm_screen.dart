@@ -181,8 +181,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
               });
             }
 
-            _ensureUiTicker(preparation.isAllStepsDone &&
-                _isContinuingAfterCompletion);
+            _ensureUiTicker(
+                preparation.isAllStepsDone && _isContinuingAfterCompletion);
             return _buildAlarmScreen(
               schedule: schedule,
             );
@@ -236,17 +236,22 @@ class _AlarmScreenState extends State<AlarmScreen> {
     final timeRemainingBeforeLeaving = _timeRemainingBeforeLeaving(schedule);
     final isLate = timeRemainingBeforeLeaving.isNegative;
     final preparation = schedule.preparation;
-    final isLateContinueMode =
-        preparation.isAllStepsDone && _isContinuingAfterCompletion && isLate;
-    final timerLabel =
-        isLateContinueMode ? '지각이에요' : preparation.currentStepName;
+    final l10n = AppLocalizations.of(context)!;
+    final isContinuingAfterCompletion =
+        preparation.isAllStepsDone && _isContinuingAfterCompletion;
+    final isLateContinueMode = isContinuingAfterCompletion && isLate;
+    final isReadyContinueMode = isContinuingAfterCompletion && !isLate;
+    final timerLabel = isLateContinueMode
+        ? '지각이에요'
+        : isReadyContinueMode
+            ? l10n.preparationReadyToGo
+            : preparation.currentStepName;
     final displayProgress = isLateContinueMode ? 0.0 : preparation.progress;
-    final displayRemainingSeconds = preparation.isAllStepsDone &&
-            _isContinuingAfterCompletion
+    final displayRemainingSeconds = isContinuingAfterCompletion
         ? timeRemainingBeforeLeaving.inSeconds.abs()
         : preparation.currentStepRemainingTime.inSeconds;
 
-    if (!(preparation.isAllStepsDone && _isContinuingAfterCompletion)) {
+    if (!isContinuingAfterCompletion) {
       _ensureUiTicker(false);
     }
 
@@ -315,8 +320,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
   Widget _buildEarlyStartReadyScreen(ScheduleWithPreparationEntity schedule) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final remaining =
-        schedule.preparationStartTime.difference(widget.nowProvider()).inSeconds;
+    final remaining = schedule.preparationStartTime
+        .difference(widget.nowProvider())
+        .inSeconds;
     final clampedRemaining = remaining.isNegative ? 0 : remaining;
 
     return Scaffold(

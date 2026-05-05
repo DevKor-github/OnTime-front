@@ -16,7 +16,7 @@ part 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase,
       this._scheduleBloc)
-      : super(AuthState(user: const UserEntity.empty())) {
+      : super(const AuthState.loading()) {
     on<AuthUserSubscriptionRequested>(_appUserSubscriptionRequested);
     on<AuthSignOutPressed>(_appLogoutPressed);
   }
@@ -30,8 +30,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _appUserSubscriptionRequested(
     AuthUserSubscriptionRequested event,
     Emitter<AuthState> emit,
-  ) {
-    _loadUserUseCase();
+  ) async {
+    try {
+      await _loadUserUseCase();
+    } catch (error, stackTrace) {
+      addError(error, stackTrace);
+      emit(AuthState(user: const UserEntity.empty()));
+    }
+
     return emit.onEach(
       _streamUserUseCase.call(),
       onData: (user) async {

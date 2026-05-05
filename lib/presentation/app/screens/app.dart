@@ -4,6 +4,7 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
+import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
 import 'package:on_time_front/presentation/shared/router/go_router.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
@@ -20,6 +21,9 @@ class App extends StatelessWidget {
         ),
         BlocProvider<ScheduleBloc>(
           create: (context) => getIt.get<ScheduleBloc>(),
+        ),
+        BlocProvider<NotificationGateCubit>(
+          create: (context) => NotificationGateCubit(),
         ),
       ],
       child: const AppView(),
@@ -44,8 +48,11 @@ class _AppRouterView extends StatefulWidget {
 }
 
 class _AppRouterViewState extends State<_AppRouterView> {
-  late final _router =
-      goRouterConfig(context.read<AuthBloc>(), context.read<ScheduleBloc>());
+  late final _router = goRouterConfig(
+    context.read<AuthBloc>(),
+    context.read<ScheduleBloc>(),
+    context.read<NotificationGateCubit>(),
+  );
 
   @override
   Widget build(BuildContext context) {

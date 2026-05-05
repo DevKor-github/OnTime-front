@@ -56,11 +56,13 @@ class ScheduleDetail extends StatefulWidget {
       {super.key,
       required this.schedule,
       this.preparationTime,
+      this.isEarlyStarted = false,
       this.onDeleted,
       this.onEdit});
 
   final ScheduleEntity schedule;
   final Duration? preparationTime;
+  final bool isEarlyStarted;
   final VoidCallback? onEdit;
   final VoidCallback? onDeleted;
 
@@ -103,8 +105,10 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 
   List<SwipeAction> _buildSwipeActions(BuildContext context) {
     final theme = Theme.of(context);
+    final now = DateTime.now();
     final canEdit = widget.schedule.doneStatus == ScheduleDoneStatus.notEnded &&
-        !widget.schedule.scheduleTime.isBefore(DateTime.now());
+        !_hasPreparationStarted(now) &&
+        !widget.schedule.scheduleTime.isBefore(now);
     return [
       SwipeAction(
         widthSpace: _actionWidth,
@@ -134,6 +138,24 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
           ),
         ),
     ];
+  }
+
+  bool _hasPreparationStarted(DateTime now) {
+    if (widget.schedule.isStarted || widget.isEarlyStarted) {
+      return true;
+    }
+
+    final preparationTime = widget.preparationTime;
+    if (preparationTime == null) {
+      return false;
+    }
+
+    final preparationStartTime = widget.schedule.scheduleTime.subtract(
+      widget.schedule.moveTime +
+          preparationTime +
+          (widget.schedule.scheduleSpareTime ?? Duration.zero),
+    );
+    return !now.isBefore(preparationStartTime);
   }
 
   Widget _buildScheduleContent(BuildContext context) {

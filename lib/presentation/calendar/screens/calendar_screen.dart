@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/calendar/component/schedule_detail.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
@@ -363,39 +364,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 final schedule =
                                     state.schedules[_selectedDate]![index];
 
-                                return ScheduleDetail(
-                                  schedule: schedule,
-                                  preparationTime:
-                                      state.preparationDurationByScheduleId[
-                                          schedule.id],
-                                  onEdit: () {
-                                    _openEditScheduleSheet(
-                                      context,
-                                      scheduleId: schedule.id,
+                                return BlocBuilder<ScheduleBloc, ScheduleState>(
+                                  builder: (context, scheduleState) {
+                                    final isEarlyStarted =
+                                        scheduleState.isEarlyStarted &&
+                                            scheduleState.schedule?.id ==
+                                                schedule.id;
+
+                                    return ScheduleDetail(
+                                      schedule: schedule,
+                                      preparationTime:
+                                          state.preparationDurationByScheduleId[
+                                              schedule.id],
+                                      isEarlyStarted: isEarlyStarted,
+                                      onEdit: () {
+                                        _openEditScheduleSheet(
+                                          context,
+                                          scheduleId: schedule.id,
+                                        );
+                                      },
+                                      onDeleted: () {
+                                        showTwoButtonDeleteDialog(
+                                          context,
+                                          title: AppLocalizations.of(context)!
+                                              .scheduleDeleteConfirmTitle,
+                                          description: AppLocalizations.of(
+                                                  context)!
+                                              .scheduleDeleteConfirmDescription,
+                                          cancelText:
+                                              AppLocalizations.of(context)!
+                                                  .cancel,
+                                          confirmText:
+                                              AppLocalizations.of(context)!
+                                                  .deleteScheduleConfirmAction,
+                                        ).then((confirmed) {
+                                          if (confirmed != true ||
+                                              !context.mounted) {
+                                            return;
+                                          }
+                                          _monthlySchedulesBloc.add(
+                                            MonthlySchedulesScheduleDeleted(
+                                              schedule: schedule,
+                                            ),
+                                          );
+                                        });
+                                      },
                                     );
-                                  },
-                                  onDeleted: () {
-                                    showTwoButtonDeleteDialog(
-                                      context,
-                                      title: AppLocalizations.of(context)!
-                                          .scheduleDeleteConfirmTitle,
-                                      description: AppLocalizations.of(context)!
-                                          .scheduleDeleteConfirmDescription,
-                                      cancelText:
-                                          AppLocalizations.of(context)!.cancel,
-                                      confirmText: AppLocalizations.of(context)!
-                                          .deleteScheduleConfirmAction,
-                                    ).then((confirmed) {
-                                      if (confirmed != true ||
-                                          !context.mounted) {
-                                        return;
-                                      }
-                                      _monthlySchedulesBloc.add(
-                                        MonthlySchedulesScheduleDeleted(
-                                          schedule: schedule,
-                                        ),
-                                      );
-                                    });
                                   },
                                 );
                               },

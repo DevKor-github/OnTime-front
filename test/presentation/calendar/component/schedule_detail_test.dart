@@ -37,6 +37,7 @@ void main() {
     WidgetTester tester, {
     ScheduleEntity? customSchedule,
     Duration? preparationTime,
+    bool isEarlyStarted = false,
   }) async {
     final targetSchedule = customSchedule ?? schedule;
     await tester.pumpWidget(
@@ -50,6 +51,7 @@ void main() {
             body: ScheduleDetail(
               schedule: targetSchedule,
               preparationTime: preparationTime,
+              isEarlyStarted: isEarlyStarted,
             ),
           ),
         ),
@@ -85,6 +87,25 @@ void main() {
         .evaluate()
         .map((element) => (element.renderObject! as RenderBox).size.height)
         .reduce((a, b) => a > b ? a : b);
+  }
+
+  int getActionButtonCount(WidgetTester tester) {
+    final actionContainers = find.byWidgetPredicate((widget) {
+      if (widget is! Container) {
+        return false;
+      }
+      final decoration = widget.decoration;
+      if (decoration is! BoxDecoration) {
+        return false;
+      }
+      final radius = decoration.borderRadius;
+      if (radius is! BorderRadius) {
+        return false;
+      }
+      return radius.topLeft.x == 12 && decoration.color != null;
+    });
+
+    return actionContainers.evaluate().length;
   }
 
   testWidgets('expanded tile shows travel, preparation, spare in order',
@@ -174,5 +195,81 @@ void main() {
     expect(find.text('Design Review'), findsNothing);
     expect(find.text('Office'), findsNothing);
     expect(find.text('09:00'), findsNothing);
+  });
+
+  testWidgets('edit action is available before preparation starts',
+      (tester) async {
+    final futureSchedule = ScheduleEntity(
+      id: 'schedule-2',
+      place: PlaceEntity(id: 'place-1', placeName: 'Office'),
+      scheduleName: 'Planning',
+      scheduleTime: DateTime.now().add(const Duration(hours: 3)),
+      moveTime: const Duration(minutes: 30),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 10),
+      scheduleNote: '',
+    );
+
+    await pumpScheduleDetail(
+      tester,
+      customSchedule: futureSchedule,
+      preparationTime: const Duration(minutes: 20),
+    );
+
+    await openTrailingActions(tester);
+
+    expect(getActionButtonCount(tester), 2);
+  });
+
+  testWidgets('edit action is hidden after preparation start time',
+      (tester) async {
+    final scheduleInPreparation = ScheduleEntity(
+      id: 'schedule-3',
+      place: PlaceEntity(id: 'place-1', placeName: 'Office'),
+      scheduleName: 'Planning',
+      scheduleTime: DateTime.now().add(const Duration(minutes: 30)),
+      moveTime: const Duration(minutes: 30),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 10),
+      scheduleNote: '',
+    );
+
+    await pumpScheduleDetail(
+      tester,
+      customSchedule: scheduleInPreparation,
+      preparationTime: const Duration(minutes: 20),
+    );
+
+    await openTrailingActions(tester);
+
+    expect(getActionButtonCount(tester), 1);
+  });
+
+  testWidgets('edit action is hidden for early-started schedule',
+      (tester) async {
+    final futureSchedule = ScheduleEntity(
+      id: 'schedule-4',
+      place: PlaceEntity(id: 'place-1', placeName: 'Office'),
+      scheduleName: 'Planning',
+      scheduleTime: DateTime.now().add(const Duration(hours: 3)),
+      moveTime: const Duration(minutes: 30),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 10),
+      scheduleNote: '',
+    );
+
+    await pumpScheduleDetail(
+      tester,
+      customSchedule: futureSchedule,
+      preparationTime: const Duration(minutes: 20),
+      isEarlyStarted: true,
+    );
+
+    await openTrailingActions(tester);
+
+    expect(getActionButtonCount(tester), 1);
   });
 }

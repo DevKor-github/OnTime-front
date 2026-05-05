@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
@@ -70,6 +71,7 @@ class _AppRouterViewState extends State<_AppRouterView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
+    unawaited(HardwareKeyboard.instance.syncKeyboardState().catchError((_) {}));
     if (context.read<AuthBloc>().state.status != AuthStatus.authenticated) {
       return;
     }

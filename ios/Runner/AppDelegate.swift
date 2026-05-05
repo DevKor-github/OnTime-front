@@ -9,6 +9,8 @@ import SwiftUI
 #endif
 
 private let onTimeAlarmLaunchPayloadDefaultsKey = "on_time_alarm_launch_payload"
+private let onTimeAlarmLaunchURLScheme = "ontime"
+private let onTimeAlarmLaunchURLHost = "alarm"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -53,6 +55,17 @@ private let onTimeAlarmLaunchPayloadDefaultsKey = "on_time_alarm_launch_payload"
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey : Any] = [:]
+  ) -> Bool {
+    if handleAlarmLaunchURL(url) {
+      return true
+    }
+    return super.application(app, open: url, options: options)
   }
 
   private func nativeAlarmCapabilities() -> [String: Any] {
@@ -231,6 +244,53 @@ private let onTimeAlarmLaunchPayloadDefaultsKey = "on_time_alarm_launch_payload"
     return payload
   }
 
+  private func handleAlarmLaunchURL(_ url: URL) -> Bool {
+    guard url.scheme == onTimeAlarmLaunchURLScheme,
+          url.host == onTimeAlarmLaunchURLHost else {
+      return false
+    }
+
+    var payload: [String: String] = [
+      "type": "schedule_alarm",
+      "promptVariant": "alarm"
+    ]
+    if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+      for item in components.queryItems ?? [] {
+        if let value = item.value {
+          payload[item.name] = value
+        }
+      }
+    }
+    storeAlarmLaunchPayload(payload)
+    notifyFlutterAlarmLaunch(payload)
+    return true
+  }
+
+  fileprivate static func alarmLaunchURL(payload: [String: String]) -> URL? {
+    var components = URLComponents()
+    components.scheme = onTimeAlarmLaunchURLScheme
+    components.host = onTimeAlarmLaunchURLHost
+    components.queryItems = payload.keys.sorted().map { key in
+      URLQueryItem(name: key, value: payload[key])
+    }
+    return components.url
+  }
+
+  fileprivate static func storeAlarmLaunchPayload(_ payload: [String: String]) {
+    UserDefaults.standard.set(payload, forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+    UserDefaults.standard.synchronize()
+  }
+
+  private func storeAlarmLaunchPayload(_ payload: [String: String]) {
+    Self.storeAlarmLaunchPayload(payload)
+  }
+
+  private func notifyFlutterAlarmLaunch(_ payload: [String: String]) {
+    DispatchQueue.main.async {
+      self.nativeAlarmChannel?.invokeMethod("alarmLaunch", arguments: payload)
+    }
+  }
+
   private func alarmPayload(from args: [String: Any]) -> [String: String] {
     var payload: [String: String] = [:]
     if let rawPayload = args["payload"] as? [String: Any] {
@@ -287,30 +347,34 @@ private struct OnTimeAlarmMetadata: AlarmMetadata {
 }
 
 @available(iOS 26.0, *)
-private struct OpenScheduleAlarmIntent: LiveActivityIntent {
-  static var title: LocalizedStringResource = "Open OnTime"
-  static var supportedModes: IntentModes = .foreground(.immediate)
-  static var openAppWhenRun: Bool = true
+public struct OpenScheduleAlarmIntent: LiveActivityIntent {
+  public static var title: LocalizedStringResource = "Open OnTime"
+  public static var supportedModes: IntentModes = .foreground(.immediate)
+  public static var openAppWhenRun: Bool = true
 
   @Parameter(title: "Payload")
-  var encodedPayload: String
+  public var encodedPayload: String
 
-  init() {
+  public init() {
     encodedPayload = "{}"
   }
 
-  init(payload: [String: String]) {
+  public init(payload: [String: String]) {
     let data = try? JSONSerialization.data(withJSONObject: payload, options: [])
     encodedPayload = data.flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
   }
 
-  func perform() async throws -> some IntentResult {
+  public func perform() async throws -> some IntentResult & OpensIntent {
     if let data = encodedPayload.data(using: .utf8),
        let payload = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
-      UserDefaults.standard.set(payload, forKey: onTimeAlarmLaunchPayloadDefaultsKey)
-      UserDefaults.standard.synchronize()
+      NSLog("OnTime AlarmKit Open intent invoked for scheduleId=%@", payload["scheduleId"] ?? "")
+      AppDelegate.storeAlarmLaunchPayload(payload)
+      if let url = AppDelegate.alarmLaunchURL(payload: payload) {
+        return .result(opensIntent: OpenURLIntent(url))
+      }
     }
-    return .result()
+    NSLog("OnTime AlarmKit Open intent invoked without a valid payload")
+    return .result(opensIntent: OpenURLIntent(URL(string: "\(onTimeAlarmLaunchURLScheme)://\(onTimeAlarmLaunchURLHost)")!))
   }
 }
 

@@ -30,6 +30,14 @@
 				<string>$(GOOGLE_RESERVED_CLIENT_ID_IOS)</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>club.devkor.ontime.alarm</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ontime</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>

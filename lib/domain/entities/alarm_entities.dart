@@ -3,7 +3,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 
 const alarmDefaultOffset = Duration(minutes: 5);
-const alarmLaunchPayloadVersion = '2';
+const alarmLaunchPayloadVersion = '3';
 
 enum AlarmProvider {
   androidAlarmManager,

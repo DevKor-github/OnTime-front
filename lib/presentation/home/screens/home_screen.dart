@@ -37,10 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
       create: (context) => getIt.get<WeeklySchedulesBloc>()
         ..add(WeeklySchedulesSubscriptionRequested(date: dateOfToday)),
       child: BlocListener<ScheduleBloc, ScheduleState>(
+        listenWhen: (previous, current) {
+          return previous.status != ScheduleStatus.started &&
+              current.status == ScheduleStatus.started;
+        },
         listener: (context, scheduleState) {
-          if (scheduleState.status == ScheduleStatus.started) {
-            context.go('/scheduleStart');
-          }
+          context.go('/scheduleStart');
         },
         child: BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
           builder: (context, state) {

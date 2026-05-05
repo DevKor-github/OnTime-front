@@ -3,6 +3,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 
 const alarmDefaultOffset = Duration(minutes: 5);
+const alarmLaunchPayloadVersion = '2';
 
 enum AlarmProvider {
   androidAlarmManager,
@@ -488,6 +489,7 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
     scheduleTitle: schedule.scheduleName,
     payload: {
       'type': 'schedule_alarm',
+      'alarmLaunchPayloadVersion': alarmLaunchPayloadVersion,
       'scheduleId': schedule.id,
       'alarmTime': alarmTime.toIso8601String(),
       'preparationStartTime': preparationStartTime.toIso8601String(),

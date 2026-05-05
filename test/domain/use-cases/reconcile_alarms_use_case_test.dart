@@ -385,6 +385,43 @@ void main() {
     );
   });
 
+  test('reschedules stale record with old alarm launch payload version',
+      () async {
+    final schedule = scheduleWithAlarmAt(
+      id: 'old-payload',
+      alarmTime: now.add(const Duration(hours: 1)),
+    );
+    final desiredRecord = buildScheduledAlarmRecord(
+      schedule,
+      alarmOffset: const Duration(minutes: 5),
+      provider: AlarmProvider.androidAlarmManager,
+    );
+    final stalePayload = Map<String, String>.from(desiredRecord.payload)
+      ..remove('alarmLaunchPayloadVersion');
+    final staleRecord = ScheduledAlarmRecord(
+      scheduleId: desiredRecord.scheduleId,
+      alarmTime: desiredRecord.alarmTime,
+      preparationStartTime: desiredRecord.preparationStartTime,
+      scheduleFingerprint: desiredRecord.scheduleFingerprint,
+      nativeAlarmId: desiredRecord.nativeAlarmId,
+      fallbackNotificationId: desiredRecord.fallbackNotificationId,
+      provider: AlarmProvider.androidAlarmManager,
+      scheduleTitle: desiredRecord.scheduleTitle,
+      payload: stalePayload,
+    );
+    registryRepository.records = [staleRecord];
+    alarmRepository.schedules = [schedule];
+
+    await useCase();
+
+    expect(schedulerService.canceledNative.single.scheduleId, 'old-payload');
+    expect(schedulerService.scheduledNative.single.scheduleId, 'old-payload');
+    expect(
+      registryRepository.records.single.payload['alarmLaunchPayloadVersion'],
+      alarmLaunchPayloadVersion,
+    );
+  });
+
   test('uses local notification fallback when native alarms are unsupported',
       () async {
     schedulerService.capabilities = const AlarmSchedulerCapabilities(

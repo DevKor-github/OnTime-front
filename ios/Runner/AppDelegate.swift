@@ -289,6 +289,7 @@ private struct OnTimeAlarmMetadata: AlarmMetadata {
 @available(iOS 26.0, *)
 private struct OpenScheduleAlarmIntent: LiveActivityIntent {
   static var title: LocalizedStringResource = "Open OnTime"
+  static var supportedModes: IntentModes = .foreground(.immediate)
   static var openAppWhenRun: Bool = true
 
   @Parameter(title: "Payload")

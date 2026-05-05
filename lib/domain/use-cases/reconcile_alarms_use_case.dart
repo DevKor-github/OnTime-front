@@ -378,6 +378,8 @@ class ReconcileAlarmsUseCase {
     ScheduledAlarmRecord desired,
   ) {
     return existing.scheduleFingerprint == desired.scheduleFingerprint &&
+        existing.payload['alarmLaunchPayloadVersion'] ==
+            desired.payload['alarmLaunchPayloadVersion'] &&
         existing.alarmTime.isAtSameMomentAs(desired.alarmTime) &&
         existing.preparationStartTime
             .isAtSameMomentAs(desired.preparationStartTime);

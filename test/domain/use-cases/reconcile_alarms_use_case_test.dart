@@ -318,6 +318,12 @@ void main() {
       ['eligible'],
     );
     expect(result.armedScheduleIds, ['eligible']);
+    expect(result.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
+    expect(result.fallbackProvider, AlarmProvider.none);
+    expect(alarmRepository.statusReports.single.nativeAlarmProvider,
+        AlarmProvider.androidAlarmManager);
+    expect(alarmRepository.statusReports.single.fallbackProvider,
+        AlarmProvider.none);
     expect(result.skippedScheduleCount, 3);
     expect(result.alarmCoverageEnd, now.add(const Duration(days: 7)));
     expect(registryRepository.records.single.scheduleId, 'eligible');

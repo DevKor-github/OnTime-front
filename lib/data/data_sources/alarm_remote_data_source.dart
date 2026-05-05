@@ -115,7 +115,7 @@ class AlarmRemoteDataSourceImpl implements AlarmRemoteDataSource {
       var result = await _postAlarmStatus(model.toJson());
       if (result.statusCode == 400 && _responseCode(result.data) == '400') {
         result = await _postAlarmStatus(
-          model.toJson(wireFormat: AlarmStatusReportWireFormat.lowerCamel),
+          model.toJson(wireFormat: AlarmStatusReportWireFormat.upperSnake),
         );
       }
       if (result.statusCode == 409 &&

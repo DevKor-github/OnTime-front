@@ -17,7 +17,8 @@ void main() {
   });
 
   group('postAlarmStatus', () {
-    test('posts backend enum format without retry on success', () async {
+    test('posts lower-camel backend contract without retry on success',
+        () async {
       when(
         dio.post<dynamic>(
           Endpoint.alarmStatus,
@@ -46,12 +47,13 @@ void main() {
       expect(options.validateStatus!(400), isTrue);
       expect(data.containsKey('permissionIssue'), isFalse);
       expect(data['reconciledAt'], '2026-05-05T09:00:00.000Z');
-      expect(data['status'], 'ARMED');
-      expect(data['nativeAlarmProvider'], 'IOS_ALARM_KIT');
-      expect(data['fallbackProvider'], 'LOCAL_NOTIFICATION');
+      expect(data['status'], 'armed');
+      expect(data['nativeAlarmProvider'], 'iosAlarmKit');
+      expect(data['fallbackProvider'], 'localNotification');
     });
 
-    test('falls back to lower-camel format after bad request', () async {
+    test('falls back to backend enum format after generic bad request',
+        () async {
       var callCount = 0;
       when(
         dio.post<dynamic>(
@@ -92,12 +94,12 @@ void main() {
       expect(firstOptions.validateStatus!(400), isTrue);
       expect(secondOptions.validateStatus!(400), isTrue);
       expect(firstData.containsKey('permissionIssue'), isFalse);
-      expect(firstData['status'], 'ARMED');
-      expect(firstData['nativeAlarmProvider'], 'IOS_ALARM_KIT');
+      expect(firstData['status'], 'armed');
+      expect(firstData['nativeAlarmProvider'], 'iosAlarmKit');
       expect(secondData.containsKey('permissionIssue'), isFalse);
-      expect(secondData['status'], 'armed');
-      expect(secondData['nativeAlarmProvider'], 'iosAlarmKit');
-      expect(secondData['fallbackProvider'], 'localNotification');
+      expect(secondData['status'], 'ARMED');
+      expect(secondData['nativeAlarmProvider'], 'IOS_ALARM_KIT');
+      expect(secondData['fallbackProvider'], 'LOCAL_NOTIFICATION');
     });
 
     test('does not retry semantic validation errors', () async {

@@ -172,6 +172,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       if (staleId != null) {
         await _clearPersistedState(staleId);
       }
+      _stopPreparationTimer();
       emit(const ScheduleState.notExists());
       _currentScheduleId = null;
       _activeEarlyStartScheduleId = null;
@@ -222,11 +223,13 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       debugPrint(
           'ongoingSchedule: $resolvedSchedule, currentStep: ${resolvedSchedule.preparation.currentStep}');
       _startPreparationTimer();
-    } else {
-      emit(ScheduleState.upcoming(resolvedSchedule));
-      debugPrint('upcomingSchedule: $resolvedSchedule');
-      _startScheduleTimer(resolvedSchedule);
+      return;
     }
+
+    _stopPreparationTimer();
+    emit(ScheduleState.upcoming(resolvedSchedule));
+    debugPrint('upcomingSchedule: $resolvedSchedule');
+    _startScheduleTimer(resolvedSchedule);
   }
 
   Future<void> _onScheduleStarted(
@@ -285,8 +288,10 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _activeEarlyStartScheduleId = null;
       _scheduleStartTimer?.cancel();
       _scheduleStartTimer = null;
+      _stopPreparationTimer();
       _initializeNotificationTracking(scheduleWithPreparation);
       emit(ScheduleState.upcoming(scheduleWithPreparation));
+      _startScheduleTimer(scheduleWithPreparation);
     } catch (error) {
       debugPrint('alarm prompt validation failed: $error');
       await _cancelScheduleAlarmUseCase?.call(event.scheduleId);
@@ -352,7 +357,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     try {
       await _finishScheduleUseCase(scheduleId, event.latenessTime);
       // After finishing, clear timers and set state to notExists
-      _preparationTimer?.cancel();
+      _stopPreparationTimer();
       _scheduleStartTimer?.cancel();
       await _clearPersistedState(scheduleId);
       _currentScheduleId = null;
@@ -400,12 +405,17 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     });
   }
 
+  void _stopPreparationTimer() {
+    _preparationTimer?.cancel();
+    _preparationTimer = null;
+  }
+
   @override
   Future<void> close() {
     // ✅ Proper cleanup: Cancel subscription and timer before closing
     _upcomingScheduleSubscription?.cancel();
     _scheduleStartTimer?.cancel();
-    _preparationTimer?.cancel();
+    _stopPreparationTimer();
     return super.close();
   }
 

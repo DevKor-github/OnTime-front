@@ -633,6 +633,51 @@ void main() {
           markEarlySessionUseCase.sessions.containsKey('early-start'), isTrue);
     });
 
+    test('future upcoming schedule stops active preparation timer', () async {
+      final active = buildSchedule(
+        id: 'active',
+        scheduleTime: now.add(const Duration(hours: 1)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'a',
+            preparationName: 'a',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+      final future = buildSchedule(
+        id: 'future',
+        scheduleTime: now.add(const Duration(hours: 2)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'b',
+            preparationName: 'b',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+
+      bloc.add(ScheduleUpcomingReceived(active));
+      await Future<void>.delayed(Duration.zero);
+      bloc.add(const SchedulePreparationStarted());
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.status, ScheduleStatus.started);
+
+      bloc.add(ScheduleUpcomingReceived(future));
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.status, ScheduleStatus.upcoming);
+      expect(bloc.state.schedule?.id, 'future');
+      final elapsedBeforeWait = bloc.state.schedule!.preparation.elapsedTime;
+
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+
+      expect(bloc.state.status, ScheduleStatus.upcoming);
+      expect(bloc.state.schedule?.id, 'future');
+      expect(bloc.state.schedule!.preparation.elapsedTime, elapsedBeforeWait);
+    });
+
     test(
         'official start timer does not push scheduleStart when already early-started',
         () async {

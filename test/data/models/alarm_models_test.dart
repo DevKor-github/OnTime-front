@@ -96,13 +96,13 @@ void main() {
       ),
     ).toJson();
 
-    expect(statusJson['status'], 'PARTIAL');
-    expect(statusJson['permissionIssue'], 'NOTIFICATION_PERMISSION_DENIED');
+    expect(statusJson['status'], 'partial');
+    expect(statusJson['permissionIssue'], 'notificationPermissionDenied');
     expect(statusJson['reconciledAt'], '2026-05-05T09:00:00.123Z');
     expect(statusJson['armedScheduleIds'], ['schedule-1']);
     expect(
       (statusJson['failures'] as List).single['reason'],
-      'PLATFORM_ERROR',
+      'platformError',
     );
 
     final recordJson = ScheduledAlarmRecordModel(
@@ -128,7 +128,7 @@ void main() {
     expect(decoded.scheduleFingerprint, 'fingerprint');
   });
 
-  test('status report defaults to backend enums and supports lower-camel', () {
+  test('status report defaults to lower-camel and supports backend enums', () {
     final now = DateTime.utc(2026, 5, 5, 9);
     final model = AlarmStatusReportModel(
       AlarmStatusReport(
@@ -151,15 +151,15 @@ void main() {
     final json = model.toJson();
     expect(json.containsKey('permissionIssue'), isFalse);
     expect(json['reconciledAt'], '2026-05-05T09:00:00.000Z');
-    expect(json['status'], 'ARMED');
-    expect(json['nativeAlarmProvider'], 'IOS_ALARM_KIT');
-    expect(json['fallbackProvider'], 'LOCAL_NOTIFICATION');
+    expect(json['status'], 'armed');
+    expect(json['nativeAlarmProvider'], 'iosAlarmKit');
+    expect(json['fallbackProvider'], 'localNotification');
 
-    final fallbackJson = model.toJson(
-      wireFormat: AlarmStatusReportWireFormat.lowerCamel,
+    final backendJson = model.toJson(
+      wireFormat: AlarmStatusReportWireFormat.upperSnake,
     );
-    expect(fallbackJson.containsKey('permissionIssue'), isFalse);
-    expect(fallbackJson['status'], 'armed');
-    expect(fallbackJson['nativeAlarmProvider'], 'iosAlarmKit');
+    expect(backendJson.containsKey('permissionIssue'), isFalse);
+    expect(backendJson['status'], 'ARMED');
+    expect(backendJson['nativeAlarmProvider'], 'IOS_ALARM_KIT');
   });
 }

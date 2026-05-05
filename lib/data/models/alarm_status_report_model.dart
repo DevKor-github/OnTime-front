@@ -1,8 +1,8 @@
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 
 enum AlarmStatusReportWireFormat {
-  upperSnake,
   lowerCamel,
+  upperSnake,
 }
 
 class AlarmStatusReportModel {
@@ -12,7 +12,7 @@ class AlarmStatusReportModel {
 
   Map<String, dynamic> toJson({
     AlarmStatusReportWireFormat wireFormat =
-        AlarmStatusReportWireFormat.upperSnake,
+        AlarmStatusReportWireFormat.lowerCamel,
   }) {
     return {
       'deviceId': report.deviceId,

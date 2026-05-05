@@ -354,21 +354,23 @@ class ReconcileAlarmsUseCase {
     AlarmSchedulerCapabilities capabilities,
     List<ScheduledAlarmRecord> records,
   ) {
+    var nativeProvider = AlarmProvider.none;
+    for (final record in records) {
+      if (record.provider != AlarmProvider.none &&
+          record.provider != AlarmProvider.localNotification) {
+        nativeProvider = record.provider;
+        break;
+      }
+    }
     final usesFallback = records.any(
       (record) => record.provider == AlarmProvider.localNotification,
     );
-    if (usesFallback) {
-      return AlarmSchedulerCapabilities(
-        supportsNativeAlarm: capabilities.supportsNativeAlarm,
-        nativeAlarmProvider: records.any(
-          (record) => record.provider == capabilities.nativeAlarmProvider,
-        )
-            ? capabilities.nativeAlarmProvider
-            : AlarmProvider.none,
-        fallbackProvider: AlarmProvider.localNotification,
-      );
-    }
-    return capabilities;
+    return AlarmSchedulerCapabilities(
+      supportsNativeAlarm: capabilities.supportsNativeAlarm,
+      nativeAlarmProvider: nativeProvider,
+      fallbackProvider:
+          usesFallback ? AlarmProvider.localNotification : AlarmProvider.none,
+    );
   }
 
   bool _recordMatches(

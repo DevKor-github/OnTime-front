@@ -27,6 +27,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get setSpareTimeWarning => '여유시간은 혹시 모를 상황을 위해 꼭 설정해야 돼요.';
 
   @override
+  String get spareTimeMinimumWarning => '여유시간은 10분 아래로 설정할 수 없어요';
+
+  @override
   String get todaysAppointments => '오늘의 약속';
 
   @override

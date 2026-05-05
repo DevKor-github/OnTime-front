@@ -5,6 +5,7 @@
     "setSpareTimeTitle": "여유시간을 설정해주세요",
     "setSpareTimeDescription": "설정한 여유시간만큼 일찍 도착할 수 있어요.",
     "setSpareTimeWarning": "여유시간은 혹시 모를 상황을 위해 꼭 설정해야 돼요.",
+    "spareTimeMinimumWarning": "여유시간은 10분 아래로 설정할 수 없어요",
     "todaysAppointments": "오늘의 약속",
     "slogan": "작은 준비가\n큰 여유를 만들어요!",
     "noAppointments": "약속이 없는 날이에요",

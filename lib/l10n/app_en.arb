@@ -23,6 +23,10 @@
     "@setSpareTimeWarning": {
         "description": "Warning for setting spare time during onboarding"
     },
+    "spareTimeMinimumWarning": "Minimum spare time is 10 minutes",
+    "@spareTimeMinimumWarning": {
+        "description": "Warning shown when onboarding spare time is at the minimum value"
+    },
     "todaysAppointments": "Today's Appointments",
     "@todaysAppointments": {
         "description": "Title for today's appointments section on the home screen"

@@ -6,7 +6,7 @@ class PlaceEntity extends Equatable {
   final String id;
   final String placeName;
 
-  PlaceEntity({
+  const PlaceEntity({
     required this.id,
     required this.placeName,
   });

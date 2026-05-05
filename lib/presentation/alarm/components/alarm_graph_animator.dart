@@ -14,7 +14,7 @@ class AlarmGraphAnimator extends StatefulWidget {
   });
 
   @override
-  _AlarmGraphAnimatorState createState() => _AlarmGraphAnimatorState();
+  State<AlarmGraphAnimator> createState() => _AlarmGraphAnimatorState();
 }
 
 class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>

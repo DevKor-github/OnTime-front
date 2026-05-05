@@ -62,4 +62,15 @@ class Endpoint {
 
   static const _fcmToken = '/firebase-token'; // 사용자 fcm 토큰 등록
   static get fcmTokenRegister => _fcmToken;
+
+  // alarm
+  static const _alarmSettings = '/users/me/alarm-settings';
+  static const _currentDevice = '/users/me/devices/current';
+  static const _alarmWindow = '$_schedules/alarm-window';
+  static const _alarmStatus = '/users/me/alarm-status';
+
+  static get alarmSettings => _alarmSettings;
+  static get currentDevice => _currentDevice;
+  static get alarmWindow => _alarmWindow;
+  static get alarmStatus => _alarmStatus;
 }

@@ -84,7 +84,7 @@ class _OnboardingStartButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          context.push('/onboarding');
+          context.go('/onboarding');
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),

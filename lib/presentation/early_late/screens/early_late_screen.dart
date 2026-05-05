@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/early_late/bloc/early_late_screen_bloc.dart';
-import 'package:on_time_front/presentation/early_late/components/check_list_box_widget.dart';
 import 'package:on_time_front/presentation/early_late/components/early_late_message_image_widget.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
@@ -133,33 +132,6 @@ class _EarlyLateText extends StatelessWidget {
         ],
       ),
       textAlign: TextAlign.center,
-    );
-  }
-}
-
-class _CheckListBoxSection extends StatelessWidget {
-  final double screenWidth;
-  final double screenHeight;
-  final List<String> checkList;
-  final List<bool> checkedStates;
-  final Function(int) onItemToggled;
-
-  const _CheckListBoxSection({
-    required this.screenWidth,
-    required this.screenHeight,
-    required this.checkList,
-    required this.checkedStates,
-    required this.onItemToggled,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CheckListBoxWidget(
-      screenWidth: screenWidth,
-      screenHeight: screenHeight,
-      checkList: checkList,
-      checkedStates: checkedStates,
-      onItemToggled: onItemToggled,
     );
   }
 }

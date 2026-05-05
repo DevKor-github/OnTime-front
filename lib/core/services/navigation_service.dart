@@ -9,4 +9,8 @@ class NavigationService {
   void push(String routeName, {Object? extra}) {
     GoRouter.of(navigatorKey.currentContext!).push(routeName, extra: extra);
   }
+
+  void go(String routeName, {Object? extra}) {
+    GoRouter.of(navigatorKey.currentContext!).go(routeName, extra: extra);
+  }
 }

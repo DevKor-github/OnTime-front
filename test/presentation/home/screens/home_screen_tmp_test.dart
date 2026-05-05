@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mockito/mockito.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
@@ -45,6 +46,32 @@ class StubScheduleBloc extends Mock implements ScheduleBloc {
 
   @override
   bool get isClosed => false;
+}
+
+class StreamingScheduleBloc extends Mock implements ScheduleBloc {
+  StreamingScheduleBloc(this._state);
+
+  ScheduleState _state;
+  final _controller = StreamController<ScheduleState>.broadcast();
+
+  void emitState(ScheduleState state) {
+    _state = state;
+    _controller.add(state);
+  }
+
+  @override
+  ScheduleState get state => _state;
+
+  @override
+  Stream<ScheduleState> get stream => _controller.stream;
+
+  @override
+  bool get isClosed => false;
+
+  @override
+  Future<void> close() async {
+    await _controller.close();
+  }
 }
 
 void main() {
@@ -229,6 +256,98 @@ void main() {
     expect(titleText.overflow, TextOverflow.ellipsis);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('does not reopen schedule start on started-state ticks',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(360, 640);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final scheduleBloc =
+        StreamingScheduleBloc(ScheduleState.started(_scheduleWithLongName()));
+    addTearDown(scheduleBloc.close);
+
+    await tester.pumpWidget(
+      _buildRoutedSubject(
+        size: const Size(360, 640),
+        scheduleBloc: scheduleBloc,
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('today_schedule_card')), findsOneWidget);
+    expect(find.text('Schedule Start'), findsNothing);
+
+    scheduleBloc.emitState(ScheduleState.started(_scheduleWithLongName()));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const Key('today_schedule_card')), findsOneWidget);
+    expect(find.text('Schedule Start'), findsNothing);
+  });
+}
+
+Widget _buildRoutedSubject({
+  required Size size,
+  required StreamingScheduleBloc scheduleBloc,
+}) {
+  final authBloc = StubAuthBloc(
+    AuthState(
+      user: UserEntity(
+        id: 'user-1',
+        name: 'Test User',
+        email: 'test@example.com',
+        spareTime: Duration.zero,
+        note: '',
+        score: 80,
+        isOnboardingCompleted: true,
+      ),
+    ),
+  );
+
+  final router = GoRouter(
+    initialLocation: '/home',
+    routes: [
+      GoRoute(
+        path: '/home',
+        builder: (context, state) {
+          return MediaQuery(
+            data: MediaQueryData(size: size),
+            child: SizedBox(
+              width: size.width,
+              height: size.height,
+              child: HomeScreenContent(
+                state: const MonthlySchedulesState(
+                  status: MonthlySchedulesStatus.success,
+                ),
+                userScore: 80,
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/scheduleStart',
+        builder: (context, state) {
+          return const Scaffold(body: Text('Schedule Start'));
+        },
+      ),
+    ],
+  );
+
+  return MultiBlocProvider(
+    providers: [
+      BlocProvider<AuthBloc>.value(value: authBloc),
+      BlocProvider<ScheduleBloc>.value(value: scheduleBloc),
+    ],
+    child: MaterialApp.router(
+      theme: themeData,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: router,
+    ),
+  );
 }
 
 double _verticalGap(

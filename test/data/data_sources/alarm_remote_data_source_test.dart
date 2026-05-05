@@ -100,6 +100,40 @@ void main() {
       expect(secondData['fallbackProvider'], 'localNotification');
     });
 
+    test('does not retry semantic validation errors', () async {
+      when(
+        dio.post<dynamic>(
+          Endpoint.alarmStatus,
+          data: anyNamed('data'),
+          options: anyNamed('options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 400,
+          data: {
+            'status': 'error',
+            'code': 1002,
+            'message': 'invalid input',
+            'data': null,
+          },
+          requestOptions: RequestOptions(path: Endpoint.alarmStatus),
+        ),
+      );
+
+      expect(
+        () => remoteDataSource.postAlarmStatus(_statusReport()),
+        throwsException,
+      );
+
+      verify(
+        dio.post<dynamic>(
+          Endpoint.alarmStatus,
+          data: anyNamed('data'),
+          options: anyNamed('options'),
+        ),
+      ).called(1);
+    });
+
     test('throws device session exception for inactive session', () async {
       when(
         dio.post<dynamic>(

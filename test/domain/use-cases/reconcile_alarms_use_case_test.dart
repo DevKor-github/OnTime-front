@@ -25,6 +25,7 @@ class FakeAlarmRepository implements AlarmRepository {
   final registeredDevices = <AlarmDeviceInfo>[];
   final updatedSettings = <bool>[];
   bool throwDeviceSessionNotActiveOnStatus = false;
+  int alarmWindowRequestCount = 0;
 
   @override
   Future<String> getDeviceId() async => 'device-1';
@@ -72,6 +73,7 @@ class FakeAlarmRepository implements AlarmRepository {
     DateTime startDate,
     DateTime endDate,
   ) async {
+    alarmWindowRequestCount += 1;
     requestedWindowStart = startDate;
     requestedWindowEnd = endDate;
     return schedules;
@@ -319,6 +321,23 @@ void main() {
     expect(result.skippedScheduleCount, 3);
     expect(result.alarmCoverageEnd, now.add(const Duration(days: 7)));
     expect(registryRepository.records.single.scheduleId, 'eligible');
+  });
+
+  test('coalesces overlapping reconciliation requests', () async {
+    alarmRepository.schedules = [
+      scheduleWithAlarmAt(
+        id: 'eligible',
+        alarmTime: now.add(const Duration(hours: 1)),
+      ),
+    ];
+
+    final results = await Future.wait([useCase(), useCase()]);
+
+    expect(results[0], results[1]);
+    expect(alarmRepository.alarmWindowRequestCount, 1);
+    expect(alarmRepository.registeredDevices.length, 1);
+    expect(alarmRepository.statusReports.length, 1);
+    expect(schedulerService.scheduledNative.length, 1);
   });
 
   test('cancels stale record before rescheduling changed fingerprint',

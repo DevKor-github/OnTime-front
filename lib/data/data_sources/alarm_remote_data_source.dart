@@ -113,7 +113,7 @@ class AlarmRemoteDataSourceImpl implements AlarmRemoteDataSource {
     try {
       final model = AlarmStatusReportModel(report);
       var result = await _postAlarmStatus(model.toJson());
-      if (result.statusCode == 400) {
+      if (result.statusCode == 400 && _responseCode(result.data) == '400') {
         result = await _postAlarmStatus(
           model.toJson(wireFormat: AlarmStatusReportWireFormat.lowerCamel),
         );
@@ -147,12 +147,22 @@ class AlarmRemoteDataSourceImpl implements AlarmRemoteDataSource {
   String? _errorCode(Object? data) {
     if (data is Map<String, dynamic>) {
       final error = data['error'];
-      if (data['code'] is String) {
-        return data['code'] as String;
+      final code = _responseCode(data);
+      if (code != null) {
+        return code;
       }
       if (error is Map<String, dynamic> && error['code'] is String) {
         return error['code'] as String;
       }
+    }
+    return null;
+  }
+
+  String? _responseCode(Object? data) {
+    if (data is Map<String, dynamic>) {
+      final code = data['code'];
+      if (code is String) return code;
+      if (code is num) return code.toInt().toString();
     }
     return null;
   }

@@ -10,7 +10,7 @@ import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 typedef AlarmNowProvider = DateTime Function();
 
-@Injectable()
+@Singleton()
 class ReconcileAlarmsUseCase {
   final AlarmRepository _alarmRepository;
   final AlarmRegistryRepository _registryRepository;
@@ -18,6 +18,7 @@ class ReconcileAlarmsUseCase {
   final FallbackAlarmNotificationService _fallbackNotificationService;
   final UserRepository? _userRepository;
   final AlarmNowProvider _nowProvider;
+  Future<AlarmReconciliationResult>? _inFlight;
 
   ReconcileAlarmsUseCase(
     this._alarmRepository,
@@ -39,7 +40,23 @@ class ReconcileAlarmsUseCase {
   })  : _userRepository = userRepository,
         _nowProvider = nowProvider;
 
-  Future<AlarmReconciliationResult> call() async {
+  Future<AlarmReconciliationResult> call() {
+    final running = _inFlight;
+    if (running != null) {
+      return running;
+    }
+
+    late final Future<AlarmReconciliationResult> pending;
+    pending = _run().whenComplete(() {
+      if (identical(_inFlight, pending)) {
+        _inFlight = null;
+      }
+    });
+    _inFlight = pending;
+    return pending;
+  }
+
+  Future<AlarmReconciliationResult> _run() async {
     final now = _nowProvider();
     final scheduleWindowStart = now;
     final scheduleWindowEnd = now.add(const Duration(days: 8));

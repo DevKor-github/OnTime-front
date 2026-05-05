@@ -188,7 +188,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startPreparing => 'Start Preparing';
 
   @override
-  String get prepareEarly => 'Prepare Early';
+  String get startPreparingNow => 'Start preparing now';
+
+  @override
+  String get notNow => 'Not now';
 
   @override
   String get confirmLeave => 'Are you sure you want to leave?';
@@ -343,9 +346,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get preparationStartsInFiveMinutes =>
       'Preparation starts in 5 minutes.\nWould you like to start preparing early?';
-
-  @override
-  String get startInFiveMinutes => 'Start in 5 minutes';
 
   @override
   String preparationStartsEarlyBy(String duration) {

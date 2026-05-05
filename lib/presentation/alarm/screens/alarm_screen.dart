@@ -32,6 +32,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
   bool _hasShownCompletionDialog = false;
   bool _isContinuingAfterCompletion = false;
   bool _navigateAfterFinish = false;
+  bool _didNavigateForNotExistsTransition = false;
   int? _pendingEarlyLateSeconds;
   bool? _pendingIsLate;
   Timer? _uiTickerTimer;
@@ -46,6 +47,13 @@ class _AlarmScreenState extends State<AlarmScreen> {
   void _resetCompletionUiState() {
     _hasShownCompletionDialog = false;
     _isContinuingAfterCompletion = false;
+  }
+
+  void _navigateHomeAfterFrame(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !context.mounted) return;
+      context.go('/home');
+    });
   }
 
   Duration _timeRemainingBeforeLeaving(ScheduleWithPreparationEntity schedule) {
@@ -120,6 +128,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
       listener: (context, scheduleState) {
         final earlyLateSeconds = _pendingEarlyLateSeconds;
         final isLate = _pendingIsLate;
+        _didNavigateForNotExistsTransition = true;
 
         if (_navigateAfterFinish &&
             earlyLateSeconds != null &&
@@ -145,6 +154,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
             final schedule = scheduleState.schedule!;
             final preparation = schedule.preparation;
             final scheduleChanged = _completionScheduleId != schedule.id;
+            _didNavigateForNotExistsTransition = false;
 
             if (scheduleChanged) {
               _completionScheduleId = schedule.id;
@@ -189,11 +199,24 @@ class _AlarmScreenState extends State<AlarmScreen> {
           } else if (scheduleState.status == ScheduleStatus.upcoming &&
               scheduleState.schedule != null) {
             _completionScheduleId = scheduleState.schedule!.id;
+            _didNavigateForNotExistsTransition = false;
             _resetCompletionUiState();
             _ensureUiTicker(true);
             return _buildEarlyStartReadyScreen(scheduleState.schedule!);
+          } else if (scheduleState.status == ScheduleStatus.notExists) {
+            _completionScheduleId = null;
+            _resetCompletionUiState();
+            _ensureUiTicker(false);
+            if (!_navigateAfterFinish && !_didNavigateForNotExistsTransition) {
+              _navigateHomeAfterFrame(context);
+            }
+            return const Scaffold(
+              backgroundColor: Color(0xff5C79FB),
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             _completionScheduleId = null;
+            _didNavigateForNotExistsTransition = false;
             _resetCompletionUiState();
             _ensureUiTicker(false);
             return const Scaffold(

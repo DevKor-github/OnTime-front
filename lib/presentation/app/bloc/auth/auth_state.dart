@@ -1,6 +1,7 @@
 part of 'auth_bloc.dart';
 
 enum AuthStatus {
+  loading,
   authenticated,
   unauthenticated,
   onboardingNotCompleted,
@@ -16,6 +17,12 @@ class AuthState extends Equatable {
             empty: (_) => AuthStatus.unauthenticated,
           ),
           user: user,
+        );
+
+  const AuthState.loading()
+      : this._(
+          status: AuthStatus.loading,
+          user: const UserEntity.empty(),
         );
 
   const AuthState._({

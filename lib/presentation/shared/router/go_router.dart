@@ -1,14 +1,13 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
-import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
+import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
 import 'package:on_time_front/presentation/early_late/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen_tmp.dart';
@@ -24,48 +23,57 @@ import 'package:on_time_front/presentation/schedule_create/screens/schedule_crea
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
 import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dart';
+import 'package:on_time_front/presentation/startup/screens/startup_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
-GoRouter goRouterConfig(AuthBloc authBloc, ScheduleBloc scheduleBloc) {
+GoRouter goRouterConfig(
+  AuthBloc authBloc,
+  ScheduleBloc scheduleBloc,
+  NotificationGateCubit notificationGateCubit,
+) {
   return GoRouter(
-    refreshListenable:
-        StreamToListenable([scheduleBloc.stream, authBloc.stream]),
+    refreshListenable: StreamToListenable([
+      scheduleBloc.stream,
+      authBloc.stream,
+      notificationGateCubit.stream,
+    ]),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
-    redirect: (BuildContext context, GoRouterState state) async {
+    redirect: (BuildContext context, GoRouterState state) {
       final authStatus = authBloc.state.status;
-      final scheduleStatus = scheduleBloc.state.status;
-      final bool onSignInScreen = state.fullPath == '/signIn';
-      final bool onOnbaordingStartScreen =
-          state.fullPath == '/onboarding/start';
-      final bool onOnboardingScreen = state.fullPath == '/onboarding';
+      final notificationGateStatus = notificationGateCubit.state.status;
+      final path = state.uri.path;
+      final isStartupRoute = path == '/startup';
+      final isPublicRoute = isStartupRoute || path == '/signIn';
+      final isOnboardingRoute =
+          path == '/onboarding' || path == '/onboarding/start';
+      final isNotificationRoute = path == '/allowNotification';
+      final isTransientRoute =
+          isPublicRoute || isOnboardingRoute || isNotificationRoute;
 
       switch (authStatus) {
+        case AuthStatus.loading:
+          return isStartupRoute ? null : '/startup';
         case AuthStatus.unauthenticated:
-          return '/signIn';
+          return path == '/signIn' ? null : '/signIn';
         case AuthStatus.authenticated:
-          if (onSignInScreen || onOnboardingScreen || onOnbaordingStartScreen) {
-            final permission = await NotificationService.instance
-                .checkNotificationPermission();
-            if (permission != AuthorizationStatus.authorized) {
-              return '/allowNotification';
-            }
-            return '/home';
-          } else if (scheduleStatus == ScheduleStatus.started) {
-            return null;
-          } else {
-            return null;
+          if (!notificationGateCubit.state.isResolved) {
+            return isStartupRoute ? null : '/startup';
           }
+          if (notificationGateStatus == NotificationGateStatus.required) {
+            return isNotificationRoute ? null : '/allowNotification';
+          }
+          return isTransientRoute ? '/home' : null;
         case AuthStatus.onboardingNotCompleted:
-          if (onOnboardingScreen || onOnbaordingStartScreen) {
-            return null;
-          } else {
-            return '/onboarding/start';
-          }
+          return isOnboardingRoute ? null : '/onboarding/start';
       }
     },
-    initialLocation: '/home',
+    initialLocation: '/startup',
     routes: [
+      GoRoute(
+        path: '/startup',
+        builder: (context, state) => const StartupScreen(),
+      ),
       GoRoute(
         path: '/allowNotification',
         builder: (context, state) {

@@ -70,7 +70,7 @@ void main() {
 
   test('status report and registry record serialize alarm contract payloads',
       () {
-    final now = DateTime(2026, 5, 5, 9, 0, 0, 123, 456);
+    final now = DateTime.utc(2026, 5, 5, 9, 0, 0, 123, 456);
     final statusJson = AlarmStatusReportModel(
       AlarmStatusReport(
         deviceId: 'device-1',
@@ -96,11 +96,14 @@ void main() {
       ),
     ).toJson();
 
-    expect(statusJson['status'], 'partial');
-    expect(statusJson['permissionIssue'], 'notificationPermissionDenied');
-    expect(statusJson['reconciledAt'], '2026-05-05T09:00:00.123');
+    expect(statusJson['status'], 'PARTIAL');
+    expect(statusJson['permissionIssue'], 'NOTIFICATION_PERMISSION_DENIED');
+    expect(statusJson['reconciledAt'], '2026-05-05T09:00:00.123Z');
     expect(statusJson['armedScheduleIds'], ['schedule-1']);
-    expect((statusJson['failures'] as List).single['reason'], 'platformError');
+    expect(
+      (statusJson['failures'] as List).single['reason'],
+      'PLATFORM_ERROR',
+    );
 
     final recordJson = ScheduledAlarmRecordModel(
       ScheduledAlarmRecord(
@@ -125,9 +128,8 @@ void main() {
     expect(decoded.scheduleFingerprint, 'fingerprint');
   });
 
-  test('status report omits null permission issue and supports backend enums',
-      () {
-    final now = DateTime(2026, 5, 5, 9);
+  test('status report defaults to backend enums and supports lower-camel', () {
+    final now = DateTime.utc(2026, 5, 5, 9);
     final model = AlarmStatusReportModel(
       AlarmStatusReport(
         deviceId: 'device-1',
@@ -148,15 +150,16 @@ void main() {
 
     final json = model.toJson();
     expect(json.containsKey('permissionIssue'), isFalse);
-    expect(json['status'], 'armed');
-    expect(json['nativeAlarmProvider'], 'iosAlarmKit');
+    expect(json['reconciledAt'], '2026-05-05T09:00:00.000Z');
+    expect(json['status'], 'ARMED');
+    expect(json['nativeAlarmProvider'], 'IOS_ALARM_KIT');
+    expect(json['fallbackProvider'], 'LOCAL_NOTIFICATION');
 
-    final backendJson = model.toJson(
-      wireFormat: AlarmStatusReportWireFormat.upperSnake,
+    final fallbackJson = model.toJson(
+      wireFormat: AlarmStatusReportWireFormat.lowerCamel,
     );
-    expect(backendJson.containsKey('permissionIssue'), isFalse);
-    expect(backendJson['status'], 'ARMED');
-    expect(backendJson['nativeAlarmProvider'], 'IOS_ALARM_KIT');
-    expect(backendJson['fallbackProvider'], 'LOCAL_NOTIFICATION');
+    expect(fallbackJson.containsKey('permissionIssue'), isFalse);
+    expect(fallbackJson['status'], 'armed');
+    expect(fallbackJson['nativeAlarmProvider'], 'iosAlarmKit');
   });
 }

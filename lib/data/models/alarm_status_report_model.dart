@@ -1,8 +1,8 @@
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 
 enum AlarmStatusReportWireFormat {
-  lowerCamel,
   upperSnake,
+  lowerCamel,
 }
 
 class AlarmStatusReportModel {
@@ -12,11 +12,11 @@ class AlarmStatusReportModel {
 
   Map<String, dynamic> toJson({
     AlarmStatusReportWireFormat wireFormat =
-        AlarmStatusReportWireFormat.lowerCamel,
+        AlarmStatusReportWireFormat.upperSnake,
   }) {
     return {
       'deviceId': report.deviceId,
-      'reconciledAt': _toBackendDateTimeString(report.reconciledAt),
+      'reconciledAt': _toBackendInstantString(report.reconciledAt),
       'scheduleWindowStart':
           _toBackendDateTimeString(report.scheduleWindowStart),
       'scheduleWindowEnd': _toBackendDateTimeString(report.scheduleWindowEnd),
@@ -47,18 +47,26 @@ class AlarmStatusReportModel {
     };
   }
 
+  String _toBackendInstantString(DateTime value) {
+    final utc = value.toUtc();
+    return '${_formatDateTime(utc)}Z';
+  }
+
   String _toBackendDateTimeString(DateTime value) {
-    final local = value.toLocal();
+    return _formatDateTime(value.toLocal());
+  }
+
+  String _formatDateTime(DateTime value) {
     String twoDigits(int value) => value.toString().padLeft(2, '0');
     String threeDigits(int value) => value.toString().padLeft(3, '0');
 
-    return '${local.year.toString().padLeft(4, '0')}-'
-        '${twoDigits(local.month)}-'
-        '${twoDigits(local.day)}T'
-        '${twoDigits(local.hour)}:'
-        '${twoDigits(local.minute)}:'
-        '${twoDigits(local.second)}.'
-        '${threeDigits(local.millisecond)}';
+    return '${value.year.toString().padLeft(4, '0')}-'
+        '${twoDigits(value.month)}-'
+        '${twoDigits(value.day)}T'
+        '${twoDigits(value.hour)}:'
+        '${twoDigits(value.minute)}:'
+        '${twoDigits(value.second)}.'
+        '${threeDigits(value.millisecond)}';
   }
 
   String _providerWireValue(

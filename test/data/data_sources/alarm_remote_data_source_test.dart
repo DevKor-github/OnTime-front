@@ -17,7 +17,41 @@ void main() {
   });
 
   group('postAlarmStatus', () {
-    test('retries with backend enum format after bad request', () async {
+    test('posts backend enum format without retry on success', () async {
+      when(
+        dio.post<dynamic>(
+          Endpoint.alarmStatus,
+          data: anyNamed('data'),
+          options: anyNamed('options'),
+        ),
+      ).thenAnswer(
+        (_) async => Response(
+          statusCode: 200,
+          requestOptions: RequestOptions(path: Endpoint.alarmStatus),
+        ),
+      );
+
+      await remoteDataSource.postAlarmStatus(_statusReport());
+
+      final verification = verify(
+        dio.post<dynamic>(
+          Endpoint.alarmStatus,
+          data: captureAnyNamed('data'),
+          options: captureAnyNamed('options'),
+        ),
+      )..called(1);
+      final data = verification.captured[0] as Map<String, dynamic>;
+      final options = verification.captured[1] as Options;
+
+      expect(options.validateStatus!(400), isTrue);
+      expect(data.containsKey('permissionIssue'), isFalse);
+      expect(data['reconciledAt'], '2026-05-05T09:00:00.000Z');
+      expect(data['status'], 'ARMED');
+      expect(data['nativeAlarmProvider'], 'IOS_ALARM_KIT');
+      expect(data['fallbackProvider'], 'LOCAL_NOTIFICATION');
+    });
+
+    test('falls back to lower-camel format after bad request', () async {
       var callCount = 0;
       when(
         dio.post<dynamic>(
@@ -58,12 +92,12 @@ void main() {
       expect(firstOptions.validateStatus!(400), isTrue);
       expect(secondOptions.validateStatus!(400), isTrue);
       expect(firstData.containsKey('permissionIssue'), isFalse);
-      expect(firstData['status'], 'armed');
-      expect(firstData['nativeAlarmProvider'], 'iosAlarmKit');
+      expect(firstData['status'], 'ARMED');
+      expect(firstData['nativeAlarmProvider'], 'IOS_ALARM_KIT');
       expect(secondData.containsKey('permissionIssue'), isFalse);
-      expect(secondData['status'], 'ARMED');
-      expect(secondData['nativeAlarmProvider'], 'IOS_ALARM_KIT');
-      expect(secondData['fallbackProvider'], 'LOCAL_NOTIFICATION');
+      expect(secondData['status'], 'armed');
+      expect(secondData['nativeAlarmProvider'], 'iosAlarmKit');
+      expect(secondData['fallbackProvider'], 'localNotification');
     });
 
     test('throws device session exception for inactive session', () async {
@@ -98,7 +132,7 @@ void main() {
 }
 
 AlarmStatusReport _statusReport() {
-  final now = DateTime(2026, 5, 5, 9);
+  final now = DateTime.utc(2026, 5, 5, 9);
   return AlarmStatusReport(
     deviceId: 'device-1',
     reconciledAt: now,

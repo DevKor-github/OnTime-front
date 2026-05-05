@@ -1143,7 +1143,9 @@ void main() {
         const Color(0xFFFF6953).value,
       );
       expect(
-        tester.widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator)).progress,
+        tester
+            .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
+            .progress,
         0.0,
       );
       expect(
@@ -1224,6 +1226,86 @@ void main() {
       expect(find.text('EARLYLATE'), findsOneWidget);
       expect(finishUseCase.calls.length, 1);
     }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets('already missing schedule on alarm entry navigates home',
+        (tester) async {
+      await setLargeTestViewport(tester);
+
+      final router = GoRouter(
+        initialLocation: '/alarmScreen',
+        routes: [
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+          GoRoute(
+              path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
+        ],
+      );
+
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      final alarmBloc = ScheduleBloc.test(
+        StubGetNearestUpcomingScheduleUseCase(() => const Stream.empty()),
+        navigationService,
+        NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
+        finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+        nowProvider: () => now,
+      )..emit(const ScheduleState.notExists());
+      addTearDown(alarmBloc.close);
+
+      await pumpWithRouter(tester, bloc: alarmBloc, router: router);
+      await pumpUntilRouteText(tester, 'HOME');
+
+      expect(find.text('HOME'), findsOneWidget);
+      expect(find.text('EARLYLATE'), findsNothing);
+      expect(finishUseCase.calls, isEmpty);
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets(
+      'null schedule emission while already notExists navigates home',
+      (tester) async {
+        await setLargeTestViewport(tester);
+
+        final router = GoRouter(
+          initialLocation: '/alarmScreen',
+          routes: [
+            GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+            GoRoute(
+                path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+            GoRoute(
+                path: '/earlyLate',
+                builder: (_, __) => const Text('EARLYLATE')),
+          ],
+        );
+
+        final earlyBundle = createEarlyStartUseCaseBundle();
+        final alarmBloc = ScheduleBloc.test(
+          StubGetNearestUpcomingScheduleUseCase(() => Stream.value(null)),
+          navigationService,
+          NoopSaveTimedPreparationUseCase(),
+          StubGetTimedPreparationSnapshotUseCase({}),
+          NoopClearTimedPreparationUseCase(),
+          finishUseCase,
+          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          nowProvider: () => now,
+        )..emit(const ScheduleState.notExists());
+        addTearDown(alarmBloc.close);
+
+        await pumpWithRouter(tester, bloc: alarmBloc, router: router);
+        await pumpUntilRouteText(tester, 'HOME');
+
+        expect(find.text('HOME'), findsOneWidget);
+        expect(find.text('EARLYLATE'), findsNothing);
+        expect(finishUseCase.calls, isEmpty);
+      },
+      timeout: const Timeout(Duration(seconds: 15)),
+    );
 
     testWidgets(
       'stale notification after schedule end should redirect safely (spec-first)',

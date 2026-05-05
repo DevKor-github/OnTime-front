@@ -4,7 +4,6 @@ import 'package:mockito/mockito.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
-import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -37,9 +36,6 @@ void main() {
 
   final tCreateScheduleModel =
       CreateScheduleRequestModel.fromEntity(tScheduleEntity);
-
-  final tUpdateScheduleModel =
-      UpdateScheduleRequestModel.fromEntity(tScheduleEntity);
 
   setUp(() {
     dio = MockAppDio();

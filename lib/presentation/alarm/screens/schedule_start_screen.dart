@@ -14,6 +14,7 @@ import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
 enum ScheduleStartPromptVariant {
   officialStart,
   earlyStart,
+  alarm,
 }
 
 ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
@@ -23,6 +24,8 @@ ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
     case 'earlyStart':
     case 'fiveMinutes':
       return ScheduleStartPromptVariant.earlyStart;
+    case 'alarm':
+      return ScheduleStartPromptVariant.alarm;
     default:
       return ScheduleStartPromptVariant.officialStart;
   }
@@ -102,6 +105,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
   ) {
     switch (variant) {
       case ScheduleStartPromptVariant.earlyStart:
+      case ScheduleStartPromptVariant.alarm:
         return _buildEarlyStartPromptMessage(context, schedule);
       case ScheduleStartPromptVariant.officialStart:
         return AppLocalizations.of(context)!.youWillBeLate;
@@ -131,7 +135,8 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     BuildContext context,
     ScheduleStartPromptVariant variant,
   ) {
-    if (variant != ScheduleStartPromptVariant.officialStart) {
+    if (variant == ScheduleStartPromptVariant.earlyStart ||
+        variant == ScheduleStartPromptVariant.alarm) {
       context.read<ScheduleBloc>().add(const SchedulePreparationStarted());
     }
     context.go('/alarmScreen');
@@ -246,7 +251,8 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
               _onPrimaryActionPressed(context, variant);
             },
             child: Text(
-              variant == ScheduleStartPromptVariant.earlyStart
+              variant == ScheduleStartPromptVariant.earlyStart ||
+                      variant == ScheduleStartPromptVariant.alarm
                   ? l10n.startPreparingNow
                   : l10n.startPreparing,
             ),
@@ -262,6 +268,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
   ) {
     switch (variant) {
       case ScheduleStartPromptVariant.earlyStart:
+      case ScheduleStartPromptVariant.alarm:
         return _buildTwoButtonLayout(context, variant);
       case ScheduleStartPromptVariant.officialStart:
         return _buildPrimaryButton(context, variant);

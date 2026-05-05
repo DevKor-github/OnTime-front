@@ -6,8 +6,6 @@ class MovingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Text(AppLocalizations.of(context)!.movingScreenTitle),
-    );
+    return Text(AppLocalizations.of(context)!.movingScreenTitle);
   }
 }

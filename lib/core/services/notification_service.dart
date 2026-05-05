@@ -12,8 +12,12 @@ import 'package:on_time_front/core/services/js_interop_service.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
 import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
+import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:permission_handler/permission_handler.dart'
     as permission_handler;
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -35,6 +39,7 @@ class NotificationService {
   final _messaging = FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
   bool _isFlutterLocalNotificationsInitialized = false;
+  bool _isTimezoneInitialized = false;
 
   String get _locale {
     try {
@@ -136,8 +141,12 @@ class NotificationService {
 
       if (token != null) {
         try {
+          final deviceId = await getIt.get<AlarmRepository>().getDeviceId();
           await getIt.get<NotificationRemoteDataSource>().fcmTokenRegister(
-                FcmTokenRegisterRequestModel(firebaseToken: token),
+                FcmTokenRegisterRequestModel(
+                  firebaseToken: token,
+                  deviceId: deviceId,
+                ),
               );
           debugPrint('[FCM] FCM Token 서버 등록 완료');
         } catch (e) {
@@ -147,9 +156,14 @@ class NotificationService {
 
       _messaging.onTokenRefresh.listen((newToken) {
         debugPrint('[FCM] Token 갱신됨: $newToken');
-        getIt.get<NotificationRemoteDataSource>().fcmTokenRegister(
-              FcmTokenRegisterRequestModel(firebaseToken: newToken),
-            );
+        getIt.get<AlarmRepository>().getDeviceId().then((deviceId) {
+          getIt.get<NotificationRemoteDataSource>().fcmTokenRegister(
+                FcmTokenRegisterRequestModel(
+                  firebaseToken: newToken,
+                  deviceId: deviceId,
+                ),
+              );
+        });
       });
     } catch (e) {
       debugPrint('[FCM] Token 요청 오류: $e');
@@ -173,6 +187,18 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
+
+    const alarmChannel = AndroidNotificationChannel(
+      'scheduled_alarm_channel',
+      'Scheduled alarms',
+      description: 'Schedule preparation alarm fallback notifications.',
+      importance: Importance.max,
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(alarmChannel);
 
     const initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -319,6 +345,71 @@ class NotificationService {
     );
   }
 
+  Future<bool> hasNotificationPermission() async {
+    final permission = await checkNotificationPermission();
+    return permission == AuthorizationStatus.authorized ||
+        permission == AuthorizationStatus.provisional;
+  }
+
+  Future<void> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async {
+    if (!await hasNotificationPermission()) {
+      throw const AlarmSchedulingException(
+        reason: AlarmFailureReason.platformError,
+        permissionIssue: AlarmPermissionIssue.notificationPermissionDenied,
+        message: 'Notification permission denied',
+      );
+    }
+
+    await setupFlutterNotifications();
+    _ensureTimezoneInitialized();
+
+    final notificationId =
+        record.fallbackNotificationId ?? stableAlarmId(record.scheduleId);
+    final scheduledAt = tz.TZDateTime.from(record.alarmTime, tz.local);
+    await _localNotifications.zonedSchedule(
+      notificationId,
+      record.scheduleTitle,
+      _getLocalizedText('준비를 시작할 시간입니다.', 'It is time to get ready.'),
+      scheduledAt,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'scheduled_alarm_channel',
+          'Scheduled alarms',
+          channelDescription:
+              'Schedule preparation alarm fallback notifications.',
+          importance: Importance.max,
+          priority: Priority.max,
+          category: AndroidNotificationCategory.alarm,
+          icon: '@mipmap/ic_launcher',
+          playSound: true,
+          enableVibration: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exact,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: jsonEncode(record.payload),
+    );
+  }
+
+  Future<void> cancelFallbackNotification(int notificationId) async {
+    await setupFlutterNotifications();
+    await _localNotifications.cancel(notificationId);
+  }
+
+  void _ensureTimezoneInitialized() {
+    if (_isTimezoneInitialized) return;
+    tz_data.initializeTimeZones();
+    _isTimezoneInitialized = true;
+  }
+
   Future<void> _setupMessageHandlers() async {
     //foreground message
     FirebaseMessaging.onMessage.listen(
@@ -361,7 +452,12 @@ class NotificationService {
       final scheduleId = data['scheduleId'] as String?;
       // final title = data['title'] as String?;
 
-      if (type != null && type.contains('5min')) {
+      if (type == 'schedule_alarm' && scheduleId != null) {
+        getIt.get<NavigationService>().push(
+              '/scheduleStart',
+              extra: data,
+            );
+      } else if (type != null && type.contains('5min')) {
         getIt.get<NavigationService>().push(
           '/scheduleStart',
           extra: {'promptVariant': 'earlyStart'},
@@ -387,7 +483,12 @@ class NotificationService {
     final scheduleId = message.data['scheduleId'] as String?;
     // final title = message.data['title'] as String?;
 
-    if (type != null && type.contains('5min')) {
+    if (type == 'schedule_alarm' && scheduleId != null) {
+      getIt.get<NavigationService>().push(
+            '/scheduleStart',
+            extra: message.data,
+          );
+    } else if (type != null && type.contains('5min')) {
       getIt.get<NavigationService>().push(
         '/scheduleStart',
         extra: {'promptVariant': 'earlyStart'},

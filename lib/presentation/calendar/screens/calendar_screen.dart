@@ -71,8 +71,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
-  Future<void> _refreshSchedulesIfSaved(
-      BuildContext context, bool? saved) async {
+  void _refreshSchedulesIfSaved(bool? saved) {
     if (saved != true || !mounted) {
       return;
     }
@@ -92,7 +91,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
 
-    await _refreshSchedulesIfSaved(context, saved);
+    _refreshSchedulesIfSaved(saved);
   }
 
   Future<void> _openEditScheduleSheet(
@@ -108,7 +107,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
 
-    await _refreshSchedulesIfSaved(context, saved);
+    _refreshSchedulesIfSaved(saved);
   }
 
   @override

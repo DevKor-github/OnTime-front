@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/use-cases/load_user_use_case.dart';
+import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
 import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
@@ -15,7 +16,7 @@ part 'auth_state.dart';
 @Injectable()
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase,
-      this._scheduleBloc)
+      this._scheduleBloc, this._reconcileAlarmsUseCase)
       : super(AuthState(user: const UserEntity.empty())) {
     on<AuthUserSubscriptionRequested>(_appUserSubscriptionRequested);
     on<AuthSignOutPressed>(_appLogoutPressed);
@@ -25,6 +26,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoadUserUseCase _loadUserUseCase;
   final SignOutUseCase _signOutUseCase;
   final ScheduleBloc _scheduleBloc;
+  final ReconcileAlarmsUseCase _reconcileAlarmsUseCase;
   Timer? _timer;
 
   Future<void> _appUserSubscriptionRequested(
@@ -49,6 +51,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await Future.delayed(const Duration(milliseconds: 0));
         if (state.status == AuthStatus.authenticated) {
           _scheduleBloc.add(const ScheduleSubscriptionRequested());
+          unawaited(_reconcileAlarmsUseCase());
         }
       },
       onError: addError,

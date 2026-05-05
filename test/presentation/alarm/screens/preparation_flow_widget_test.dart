@@ -1027,20 +1027,20 @@ void main() {
       );
 
       expect(
-        continuingTheme.colorScheme.primary.value,
-        const Color(0xFF5C79FB).value,
+        continuingTheme.colorScheme.primary.toARGB32(),
+        const Color(0xFF5C79FB).toARGB32(),
       );
       expect(
-        continuingTheme.colorScheme.primaryContainer.value,
-        const Color(0xFFDCE3FF).value,
+        continuingTheme.colorScheme.primaryContainer.toARGB32(),
+        const Color(0xFFDCE3FF).toARGB32(),
       );
       expect(
-        continuingTheme.colorScheme.onPrimaryContainer.value,
-        const Color(0xFF212F6F).value,
+        continuingTheme.colorScheme.onPrimaryContainer.toARGB32(),
+        const Color(0xFF212F6F).toARGB32(),
       );
       expect(
-        continuingScaffold.backgroundColor!.value,
-        const Color(0xFF5C79FB).value,
+        continuingScaffold.backgroundColor!.toARGB32(),
+        const Color(0xFF5C79FB).toARGB32(),
       );
       expect(find.text('EARLYLATE'), findsNothing);
       expect(find.text('Ready to go'), findsOneWidget);
@@ -1202,20 +1202,20 @@ void main() {
       );
 
       expect(
-        lateTheme.colorScheme.primary.value,
-        const Color(0xFFFF6953).value,
+        lateTheme.colorScheme.primary.toARGB32(),
+        const Color(0xFFFF6953).toARGB32(),
       );
       expect(
-        lateTheme.colorScheme.primaryContainer.value,
-        const Color(0xFFFFEAE7).value,
+        lateTheme.colorScheme.primaryContainer.toARGB32(),
+        const Color(0xFFFFEAE7).toARGB32(),
       );
       expect(
-        lateTheme.colorScheme.onPrimaryContainer.value,
-        const Color(0xFFFF6953).value,
+        lateTheme.colorScheme.onPrimaryContainer.toARGB32(),
+        const Color(0xFFFF6953).toARGB32(),
       );
       expect(
-        lateScaffold.backgroundColor!.value,
-        const Color(0xFFFF6953).value,
+        lateScaffold.backgroundColor!.toARGB32(),
+        const Color(0xFFFF6953).toARGB32(),
       );
       expect(
         tester
@@ -1227,15 +1227,15 @@ void main() {
         tester
             .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
             .backgroundColor
-            .value,
-        const Color(0xFFFFEAE7).value,
+            .toARGB32(),
+        const Color(0xFFFFEAE7).toARGB32(),
       );
       expect(
         tester
             .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
             .progressColor
-            .value,
-        const Color(0xFFFFEAE7).value,
+            .toARGB32(),
+        const Color(0xFFFFEAE7).toARGB32(),
       );
       expect(find.text('준비시간을 1분 초과했어요'), findsOneWidget);
       expect(find.text('지각이에요'), findsOneWidget);

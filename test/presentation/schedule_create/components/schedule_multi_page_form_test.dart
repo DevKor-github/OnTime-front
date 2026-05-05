@@ -216,7 +216,7 @@ void main() {
     );
   }
 
-  Future<void> _primeEditState(ScheduleFormBloc bloc) async {
+  Future<void> primeEditState(ScheduleFormBloc bloc) async {
     final loaded = bloc.stream.firstWhere(
       (state) => state.status == ScheduleFormStatus.success,
     );
@@ -224,7 +224,7 @@ void main() {
     await loaded;
   }
 
-  Future<void> _pumpSheet(WidgetTester tester, ScheduleFormBloc bloc) async {
+  Future<void> pumpSheet(WidgetTester tester, ScheduleFormBloc bloc) async {
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -259,7 +259,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> _goToFinalStepAndSubmit(WidgetTester tester) async {
+  Future<void> goToFinalStepAndSubmit(WidgetTester tester) async {
     Finder nextButton() => find.descendant(
           of: find.byType(TopBar),
           matching: find.byType(TextButton),
@@ -350,10 +350,10 @@ void main() {
     final bloc = buildBloc();
     addTearDown(bloc.close);
 
-    await _primeEditState(bloc);
-    await _pumpSheet(tester, bloc);
+    await primeEditState(bloc);
+    await pumpSheet(tester, bloc);
 
-    await _goToFinalStepAndSubmit(tester);
+    await goToFinalStepAndSubmit(tester);
 
     expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
 
@@ -365,10 +365,10 @@ void main() {
     final bloc = buildBloc();
     addTearDown(bloc.close);
 
-    await _primeEditState(bloc);
-    await _pumpSheet(tester, bloc);
+    await primeEditState(bloc);
+    await pumpSheet(tester, bloc);
 
-    await _goToFinalStepAndSubmit(tester);
+    await goToFinalStepAndSubmit(tester);
     await tester.pumpAndSettle();
 
     expect(find.byType(ScheduleMultiPageForm), findsNothing);
@@ -381,10 +381,10 @@ void main() {
     final bloc = buildBloc();
     addTearDown(bloc.close);
 
-    await _primeEditState(bloc);
-    await _pumpSheet(tester, bloc);
+    await primeEditState(bloc);
+    await pumpSheet(tester, bloc);
 
-    await _goToFinalStepAndSubmit(tester);
+    await goToFinalStepAndSubmit(tester);
     await tester.pumpAndSettle();
 
     expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
@@ -401,8 +401,8 @@ void main() {
     final bloc = buildBloc();
     addTearDown(bloc.close);
 
-    await _primeEditState(bloc);
-    await _pumpSheet(tester, bloc);
+    await primeEditState(bloc);
+    await pumpSheet(tester, bloc);
 
     Finder nextButton() => find.descendant(
           of: find.byType(TopBar),

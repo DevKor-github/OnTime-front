@@ -179,7 +179,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     }
 
     _activeEarlyStartScheduleId = null;
-    if (_isPreparationOnGoing(resolvedSchedule)) {
+    if (_isAtPreparationStartBoundary(resolvedSchedule, now)) {
+      emit(ScheduleState.upcoming(resolvedSchedule));
+      debugPrint('preparation boundary reached: $resolvedSchedule');
+      add(const ScheduleStarted());
+      return;
+    }
+
+    if (_isPreparationOnGoing(resolvedSchedule, now)) {
       emit(ScheduleState.ongoing(resolvedSchedule));
       debugPrint(
           'ongoingSchedule: $resolvedSchedule, currentStep: ${resolvedSchedule.preparation.currentStep}');
@@ -267,15 +274,20 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _activeEarlyStartScheduleId = null;
       _lastSnapshotSavedAt = null;
       emit(const ScheduleState.notExists());
-    } catch (_) {
-      debugPrint('error finishing schedule: $_');
+    } catch (error) {
+      debugPrint('error finishing schedule: $error');
     }
   }
 
   void _startScheduleTimer(ScheduleWithPreparationEntity schedule) {
     final now = _nowProvider();
     final target = schedule.preparationStartTime;
-    if (!target.isAfter(now)) return;
+    if (!target.isAfter(now)) {
+      if (!isClosed && _currentScheduleId == schedule.id) {
+        add(const ScheduleStarted());
+      }
+      return;
+    }
     final duration = target.difference(now);
     _scheduleStartTimer = Timer(duration, () {
       // Only add event if bloc is still active and schedule ID matches
@@ -363,9 +375,18 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     await _clearEarlyStartSessionUseCase(scheduleId);
   }
 
-  bool _isPreparationOnGoing(ScheduleWithPreparationEntity schedule) {
+  bool _isAtPreparationStartBoundary(
+    ScheduleWithPreparationEntity schedule,
+    DateTime now,
+  ) {
+    return schedule.preparationStartTime.isAtSameMomentAs(now);
+  }
+
+  bool _isPreparationOnGoing(
+    ScheduleWithPreparationEntity schedule,
+    DateTime now,
+  ) {
     final start = schedule.preparationStartTime;
-    final now = _nowProvider();
     return start.isBefore(now) && schedule.scheduleTime.isAfter(now);
   }
 

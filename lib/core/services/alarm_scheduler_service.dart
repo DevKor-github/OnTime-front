@@ -97,6 +97,12 @@ class AlarmSchedulerService {
       }
     });
 
+    await dispatchPendingLaunchPayload();
+  }
+
+  Future<void> dispatchPendingLaunchPayload() async {
+    final launchPayloadHandler = _launchPayloadHandler;
+    if (launchPayloadHandler == null) return;
     if (kIsWeb) return;
     try {
       final initialPayload = await _channel.invokeMapMethod<String, dynamic>(
@@ -104,7 +110,7 @@ class AlarmSchedulerService {
       );
       final payload = _payloadFromObject(initialPayload);
       if (payload != null) {
-        _launchPayloadHandler?.call(payload);
+        launchPayloadHandler(payload);
       }
     } on MissingPluginException {
       return;

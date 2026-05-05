@@ -307,6 +307,7 @@ private struct OpenScheduleAlarmIntent: LiveActivityIntent {
     if let data = encodedPayload.data(using: .utf8),
        let payload = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
       UserDefaults.standard.set(payload, forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+      UserDefaults.standard.synchronize()
     }
     return .result()
   }

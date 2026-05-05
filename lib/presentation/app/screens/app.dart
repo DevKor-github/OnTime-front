@@ -72,6 +72,9 @@ class _AppRouterViewState extends State<_AppRouterView>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     unawaited(HardwareKeyboard.instance.syncKeyboardState().catchError((_) {}));
+    unawaited(
+      getIt.get<AlarmSchedulerService>().dispatchPendingLaunchPayload(),
+    );
     if (context.read<AuthBloc>().state.status != AuthStatus.authenticated) {
       return;
     }

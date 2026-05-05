@@ -165,6 +165,9 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
   Future<void> initializeLaunchHandling(
     AlarmLaunchPayloadHandler onPayload,
   ) async {}
+
+  @override
+  Future<void> dispatchPendingLaunchPayload() async {}
 }
 
 class FakeFallbackAlarmNotificationService

@@ -54,10 +54,12 @@ class HomeScreenContent extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocListener<ScheduleBloc, ScheduleState>(
+      listenWhen: (previous, current) {
+        return previous.status != ScheduleStatus.started &&
+            current.status == ScheduleStatus.started;
+      },
       listener: (context, scheduleState) {
-        if (scheduleState.status == ScheduleStatus.started) {
-          context.go('/scheduleStart');
-        }
+        context.go('/scheduleStart');
       },
       child: LayoutBuilder(
         builder: (context, constraints) {

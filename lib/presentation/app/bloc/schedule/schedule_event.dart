@@ -25,6 +25,19 @@ final class ScheduleUpcomingReceived extends ScheduleEvent {
   List<Object?> get props => [upcomingSchedule];
 }
 
+final class ScheduleAlarmPromptRequested extends ScheduleEvent {
+  final String scheduleId;
+  final String? scheduleFingerprint;
+
+  const ScheduleAlarmPromptRequested({
+    required this.scheduleId,
+    this.scheduleFingerprint,
+  });
+
+  @override
+  List<Object?> get props => [scheduleId, scheduleFingerprint];
+}
+
 final class ScheduleStarted extends ScheduleEvent {
   const ScheduleStarted();
 

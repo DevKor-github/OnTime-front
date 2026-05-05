@@ -18,6 +18,7 @@ import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/p
 import 'package:on_time_front/presentation/notification_allow/screens/notification_allow_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_start_screen.dart';
+import 'package:on_time_front/presentation/shared/components/loading_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/screens/preparation_edit_form.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
@@ -128,17 +129,8 @@ GoRouter goRouterConfig(
         path: '/scheduleStart',
         name: 'scheduleStart',
         builder: (context, state) {
-          final scheduleState = context.read<ScheduleBloc>().state;
-          if (scheduleState.isEarlyStarted) {
-            return const AlarmScreen();
-          }
-          final schedule = context.read<ScheduleBloc>().state.schedule;
-          if (schedule == null) {
-            return const SizedBox.shrink();
-          }
           final extra = state.extra as Map<String, dynamic>?;
-          final promptVariant = scheduleStartPromptVariantFromRouteExtra(extra);
-          return ScheduleStartScreen(promptVariant: promptVariant);
+          return _ScheduleStartRouteGate(extra: extra);
         },
       ),
       GoRoute(
@@ -166,4 +158,61 @@ GoRouter goRouterConfig(
       ),
     ],
   );
+}
+
+class _ScheduleStartRouteGate extends StatefulWidget {
+  final Map<String, dynamic>? extra;
+
+  const _ScheduleStartRouteGate({required this.extra});
+
+  @override
+  State<_ScheduleStartRouteGate> createState() =>
+      _ScheduleStartRouteGateState();
+}
+
+class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
+  bool _requestedValidation = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_requestedValidation) return;
+    final scheduleId = widget.extra?['scheduleId']?.toString();
+    if (scheduleId == null || scheduleId.isEmpty) return;
+    _requestedValidation = true;
+    context.read<ScheduleBloc>().add(
+          ScheduleAlarmPromptRequested(
+            scheduleId: scheduleId,
+            scheduleFingerprint:
+                widget.extra?['scheduleFingerprint']?.toString(),
+          ),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheduleState = context.watch<ScheduleBloc>().state;
+    if (scheduleState.isEarlyStarted) {
+      return const AlarmScreen();
+    }
+
+    final scheduleId = widget.extra?['scheduleId']?.toString();
+    final scheduleFingerprint =
+        widget.extra?['scheduleFingerprint']?.toString();
+    final schedule = scheduleState.schedule;
+    if (schedule == null) {
+      return const LoadingScreen();
+    }
+    if (scheduleId != null && schedule.id != scheduleId) {
+      return const LoadingScreen();
+    }
+    if (scheduleFingerprint != null &&
+        schedule.cacheFingerprint != scheduleFingerprint) {
+      return const LoadingScreen();
+    }
+
+    final promptVariant =
+        scheduleStartPromptVariantFromRouteExtra(widget.extra);
+    return ScheduleStartScreen(promptVariant: promptVariant);
+  }
 }

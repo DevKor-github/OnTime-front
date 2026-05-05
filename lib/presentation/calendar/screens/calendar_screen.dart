@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +27,7 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   late DateTime _selectedDate;
+  late final MonthlySchedulesBloc _monthlySchedulesBloc;
 
   DateTime get _firstDay => DateTime(2024, 12, 1);
 
@@ -53,6 +56,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
           );
 
     _selectedDate = _clampDay(initial, _firstDay, _lastDay);
+    _monthlySchedulesBloc = getIt.get<MonthlySchedulesBloc>()
+      ..add(
+        MonthlySchedulesSubscriptionRequested(
+          date: DateTime(
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+          ),
+        ),
+      )
+      ..add(
+        MonthlySchedulesVisibleDateChanged(
+          date: _selectedDate,
+        ),
+      );
   }
 
   void _onLeftArrowTap() {
@@ -71,15 +89,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
-  Future<void> _refreshSchedulesIfSaved(
-      BuildContext context, bool? saved) async {
+  void _refreshSchedulesIfSaved(bool? saved) {
     if (saved != true || !mounted) {
       return;
     }
 
-    context.read<MonthlySchedulesBloc>().add(
-          MonthlySchedulesRefreshRequested(date: _selectedDate),
-        );
+    _monthlySchedulesBloc.add(
+      MonthlySchedulesRefreshRequested(date: _selectedDate),
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_monthlySchedulesBloc.close());
+    super.dispose();
   }
 
   Future<void> _openCreateScheduleSheet(BuildContext context) async {
@@ -92,7 +115,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
 
-    await _refreshSchedulesIfSaved(context, saved);
+    _refreshSchedulesIfSaved(saved);
   }
 
   Future<void> _openEditScheduleSheet(
@@ -108,7 +131,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
 
-    await _refreshSchedulesIfSaved(context, saved);
+    _refreshSchedulesIfSaved(saved);
   }
 
   @override
@@ -118,25 +141,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final colorScheme = theme.colorScheme;
     final calendarTheme = theme.extension<CalendarTheme>()!;
 
-    return BlocProvider(
-      create: (context) => getIt.get<MonthlySchedulesBloc>()
-        ..add(
-          MonthlySchedulesSubscriptionRequested(
-            date: DateTime(
-              _selectedDate.year,
-              _selectedDate.month,
-              _selectedDate.day,
-              0,
-              0,
-              0,
-            ),
-          ),
-        )
-        ..add(
-          MonthlySchedulesVisibleDateChanged(
-            date: _selectedDate,
-          ),
-        ),
+    return BlocProvider.value(
+      value: _monthlySchedulesBloc,
       child: Scaffold(
         backgroundColor: colorScheme.surfaceContainerLow,
         appBar: AppBar(
@@ -191,11 +197,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             _selectedDate =
                                 _clampDay(selectedDay, _firstDay, _lastDay);
                           });
-                          context.read<MonthlySchedulesBloc>().add(
-                                MonthlySchedulesVisibleDateChanged(
-                                  date: _selectedDate,
-                                ),
-                              );
+                          _monthlySchedulesBloc.add(
+                            MonthlySchedulesVisibleDateChanged(
+                              date: _selectedDate,
+                            ),
+                          );
                         },
                         onPageChanged: (focusedDay) {
                           final clampedFocusedDay =
@@ -205,21 +211,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             _selectedDate = clampedFocusedDay;
                           });
 
-                          context.read<MonthlySchedulesBloc>().add(
-                                MonthlySchedulesVisibleDateChanged(
-                                  date: _selectedDate,
-                                ),
-                              );
+                          _monthlySchedulesBloc.add(
+                            MonthlySchedulesVisibleDateChanged(
+                              date: _selectedDate,
+                            ),
+                          );
 
-                          context.read<MonthlySchedulesBloc>().add(
-                                MonthlySchedulesMonthAdded(
-                                  date: DateTime(
-                                    clampedFocusedDay.year,
-                                    clampedFocusedDay.month,
-                                    clampedFocusedDay.day,
-                                  ),
-                                ),
-                              );
+                          _monthlySchedulesBloc.add(
+                            MonthlySchedulesMonthAdded(
+                              date: DateTime(
+                                clampedFocusedDay.year,
+                                clampedFocusedDay.month,
+                                clampedFocusedDay.day,
+                              ),
+                            ),
+                          );
                         },
                         calendarBuilders: CalendarBuilders(
                           headerTitleBuilder: (context, date) {
@@ -384,11 +390,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           !context.mounted) {
                                         return;
                                       }
-                                      context.read<MonthlySchedulesBloc>().add(
-                                            MonthlySchedulesScheduleDeleted(
-                                              schedule: schedule,
-                                            ),
-                                          );
+                                      _monthlySchedulesBloc.add(
+                                        MonthlySchedulesScheduleDeleted(
+                                          schedule: schedule,
+                                        ),
+                                      );
                                     });
                                   },
                                 );

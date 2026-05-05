@@ -33,7 +33,7 @@ class AppleSignInButton extends StatelessWidget {
 
               final identityToken = credential.identityToken;
               final authorizationCode = credential.authorizationCode;
-              if (identityToken == null || authorizationCode == null) {
+              if (identityToken == null) {
                 throw Exception('Apple Sign In Failed: Missing credentials');
               }
 

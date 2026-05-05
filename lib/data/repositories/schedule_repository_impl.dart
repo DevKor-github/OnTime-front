@@ -150,16 +150,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     _scheduleStreamController.add(nextSchedules);
   }
 
-  void _emitUpsertedSchedules(Iterable<ScheduleEntity> schedules) {
-    final nextSchedules =
-        Set<ScheduleEntity>.from(_scheduleStreamController.value);
-    for (final schedule in schedules) {
-      nextSchedules.removeWhere((existing) => existing.id == schedule.id);
-      nextSchedules.add(schedule);
-    }
-    _scheduleStreamController.add(nextSchedules);
-  }
-
   void _replaceSchedulesInRange({
     required DateTime startDate,
     required DateTime? endDate,

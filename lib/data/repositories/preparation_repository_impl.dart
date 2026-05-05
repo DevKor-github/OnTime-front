@@ -109,6 +109,7 @@ class PreparationRepositoryImpl implements PreparationRepository {
     }
   }
 
+  @override
   Future<void> updateSpareTime(Duration newSpareTime) async {
     try {
       await preparationRemoteDataSource.updateSpareTime(newSpareTime);

@@ -387,4 +387,21 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(loadedDate, DateTime(2026, 3, 20));
   });
+
+  test('initial load failure emits error state instead of throwing', () async {
+    loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase(
+      (_) async => throw Exception('unauthorized'),
+    );
+
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+
+    final errorState = await bloc.stream.firstWhere(
+      (state) => state.status == MonthlySchedulesStatus.error,
+    );
+
+    expect(errorState.status, MonthlySchedulesStatus.error);
+  });
 }

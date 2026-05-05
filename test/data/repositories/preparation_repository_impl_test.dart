@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -15,9 +14,6 @@ void main() {
   late MockPreparationLocalDataSource mockPreparationLocalDataSource;
 
   final uuid = Uuid();
-
-  final scheduleEntityId = uuid.v7();
-  final preparationStepEntityId = uuid.v7();
 
   final tPreparationStepList = [
     PreparationStepEntity(
@@ -41,28 +37,6 @@ void main() {
     nextPreparationId: tPreparationStepList[1].id,
   );
 
-  final tLocalPreparationStepList = [
-    PreparationStepEntity(
-      id: uuid.v7(),
-      preparationName: 'Meeting A Friend Local',
-      preparationTime: Duration(minutes: 10),
-      nextPreparationId: null, // 이후에 설정
-    ),
-    PreparationStepEntity(
-      id: uuid.v7(),
-      preparationName: 'Museum Tour Local',
-      preparationTime: Duration(minutes: 30),
-      nextPreparationId: null, // 이후에 설정
-    ),
-  ];
-
-  tLocalPreparationStepList[0] = PreparationStepEntity(
-    id: tLocalPreparationStepList[0].id,
-    preparationName: tLocalPreparationStepList[0].preparationName,
-    preparationTime: tLocalPreparationStepList[0].preparationTime,
-    nextPreparationId: tLocalPreparationStepList[1].id,
-  );
-
   final tPreparationStep = PreparationStepEntity(
     id: uuid.v7(),
     preparationName: 'Dress Up',
@@ -70,25 +44,8 @@ void main() {
     nextPreparationId: null,
   );
 
-  final tLocalPreparationStep = PreparationStepEntity(
-    id: uuid.v7(),
-    preparationName: 'Dress Up Local',
-    preparationTime: Duration(minutes: 15),
-    nextPreparationId: null,
-  );
-
   final tPreparationEntity =
       PreparationEntity(preparationStepList: [tPreparationStep]);
-
-  final tLocalPreparationEntity =
-      PreparationEntity(preparationStepList: [tLocalPreparationStep]);
-
-  final tCreateDefaultPreparationRequestModel =
-      CreateDefaultPreparationRequestModel.fromEntity(
-    preparationEntity: tPreparationEntity,
-    spareTime: Duration(minutes: 10),
-    note: 'Note',
-  );
 
   setUp(() {
     mockPreparationRemoteDataSource = MockPreparationRemoteDataSource();

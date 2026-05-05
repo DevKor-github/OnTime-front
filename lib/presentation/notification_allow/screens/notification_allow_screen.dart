@@ -1,9 +1,11 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
@@ -69,7 +71,9 @@ class _Buttons extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () {
+          onTap: () async {
+            await context.read<NotificationGateCubit>().dismissPrompt();
+            if (!context.mounted) return;
             context.go('/home');
           },
           child: SizedBox(
@@ -160,7 +164,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
   if (!context.mounted) return;
 
   if (currentStatus == AuthorizationStatus.authorized) {
-    await notificationService.initialize();
+    await context.read<NotificationGateCubit>().markPermissionAllowed();
     if (context.mounted) {
       context.go('/home');
     }
@@ -168,6 +172,11 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
     final shouldOpenSettings = await _showGoToSettingsDialog(context);
     if (shouldOpenSettings == true) {
       await notificationService.openNotificationSettings();
+    } else if (context.mounted) {
+      await context.read<NotificationGateCubit>().dismissPrompt();
+      if (context.mounted) {
+        context.go('/home');
+      }
     }
   } else if (currentStatus == AuthorizationStatus.notDetermined) {
     final newStatus = await notificationService.requestPermission();
@@ -175,7 +184,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
     if (!context.mounted) return;
 
     if (newStatus == AuthorizationStatus.authorized) {
-      await notificationService.initialize();
+      await context.read<NotificationGateCubit>().markPermissionAllowed();
       if (context.mounted) {
         context.go('/home');
       }
@@ -183,12 +192,22 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
       final shouldOpenSettings = await _showGoToSettingsDialog(context);
       if (shouldOpenSettings == true) {
         await notificationService.openNotificationSettings();
+      } else if (context.mounted) {
+        await context.read<NotificationGateCubit>().dismissPrompt();
+        if (context.mounted) {
+          context.go('/home');
+        }
       }
     }
   } else {
     final shouldOpenSettings = await _showGoToSettingsDialog(context);
     if (shouldOpenSettings == true) {
       await notificationService.openNotificationSettings();
+    } else if (context.mounted) {
+      await context.read<NotificationGateCubit>().dismissPrompt();
+      if (context.mounted) {
+        context.go('/home');
+      }
     }
   }
 }

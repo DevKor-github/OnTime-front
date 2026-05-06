@@ -187,10 +187,8 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
       if (value) {
         final schedulerService = getIt.get<AlarmSchedulerService>();
         final fallbackService = getIt.get<FallbackAlarmNotificationService>();
-        final nativePermission = await schedulerService.requestPermission();
-        if (nativePermission != AlarmPermissionState.granted) {
-          await fallbackService.requestPermission();
-        }
+        await schedulerService.requestPermission();
+        await fallbackService.requestPermission();
         await getIt.get<ReconcileAlarmsUseCase>()();
       } else {
         await getIt.get<CancelAllAlarmsUseCase>()();

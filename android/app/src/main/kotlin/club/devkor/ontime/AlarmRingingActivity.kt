@@ -1,5 +1,6 @@
 package club.devkor.ontime
 
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -28,6 +29,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
+import android.view.animation.LinearInterpolator
 import android.widget.LinearLayout
 import android.widget.Space
 import android.widget.TextView
@@ -44,6 +46,7 @@ class AlarmRingingActivity : Activity() {
     private var requestCode = 1
     private var payload = emptyMap<String, String>()
     private lateinit var statusView: TextView
+    private var dialView: AlarmDialView? = null
 
     private val autoStopRunnable = Runnable {
         stopRinging(showStoppedState = true)
@@ -162,10 +165,11 @@ class AlarmRingingActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
         }
-        val dialView = AlarmDialView(
+        val newDialView = AlarmDialView(
             this,
             alarmDisplayTime(payload["alarmTime"]),
         )
+        dialView = newDialView
         val titleView = TextView(this).apply {
             text = scheduleTitle
             setTextColor(PRIMARY_TEXT_COLOR)
@@ -188,7 +192,7 @@ class AlarmRingingActivity : Activity() {
 
         contentArea.addView(Space(this), LinearLayout.LayoutParams(1, dp(140)))
         contentArea.addView(
-            dialView,
+            newDialView,
             LinearLayout.LayoutParams(dp(282), dp(282)).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
             },
@@ -294,6 +298,7 @@ class AlarmRingingActivity : Activity() {
             ?: "It is time to get ready."
         startRingtone()
         startVibration()
+        dialView?.startPulseAnimation()
         handler.removeCallbacks(autoStopRunnable)
         handler.postDelayed(autoStopRunnable, MAX_RING_DURATION_MS)
         Log.d(
@@ -348,6 +353,7 @@ class AlarmRingingActivity : Activity() {
         ringtone?.stop()
         ringtone = null
         vibrator?.cancel()
+        dialView?.stopPulseAnimation()
         if (!stopped && showStoppedState) {
             statusView.text = "Alarm stopped. You can still start preparing."
         }
@@ -415,11 +421,43 @@ class AlarmRingingActivity : Activity() {
     ) : View(context) {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         private val arcBounds = RectF()
+        private var pulseAnimator: ValueAnimator? = null
+        private var pulseProgress = 0f
+        private var pulsing = false
         private val bellDrawable: Drawable? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             context.getDrawable(R.drawable.alarm_bell_icon)
         } else {
             @Suppress("DEPRECATION")
             context.resources.getDrawable(R.drawable.alarm_bell_icon)
+        }
+
+        fun startPulseAnimation() {
+            if (pulseAnimator?.isStarted == true) return
+            pulsing = true
+            pulseAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = PULSE_DURATION_MS
+                repeatCount = ValueAnimator.INFINITE
+                interpolator = LinearInterpolator()
+                addUpdateListener { animator ->
+                    pulseProgress = animator.animatedValue as Float
+                    invalidate()
+                }
+                start()
+            }
+        }
+
+        fun stopPulseAnimation() {
+            pulseAnimator?.cancel()
+            pulseAnimator = null
+            pulseProgress = 0f
+            pulsing = false
+            invalidate()
+        }
+
+        override fun onDetachedFromWindow() {
+            pulseAnimator?.cancel()
+            pulseAnimator = null
+            super.onDetachedFromWindow()
         }
 
         override fun onDraw(canvas: Canvas) {
@@ -429,20 +467,15 @@ class AlarmRingingActivity : Activity() {
             val centerX = width / 2f
             val centerY = height / 2f
 
+            drawPulseRings(canvas, centerX, centerY, density)
+
             paint.style = Paint.Style.FILL
             paint.color = DIAL_FILL_COLOR
             canvas.drawCircle(centerX, centerY, 118f * density, paint)
 
+            paint.color = RING_TRACK_COLOR
             paint.style = Paint.Style.STROKE
             paint.strokeCap = Paint.Cap.ROUND
-            paint.color = Color.argb(32, 45, 98, 255)
-            paint.strokeWidth = 8f * density
-            canvas.drawCircle(centerX, centerY, 136f * density, paint)
-
-            paint.color = Color.argb(60, 45, 98, 255)
-            canvas.drawCircle(centerX, centerY, 118f * density, paint)
-
-            paint.color = RING_TRACK_COLOR
             paint.strokeWidth = 20.48f * density
             arcBounds.set(
                 centerX - 115.2f * density,
@@ -464,6 +497,47 @@ class AlarmRingingActivity : Activity() {
             paint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
             paint.textSize = 60f * scaledDensity
             canvas.drawText(timeText, centerX, centerY + 52f * density, paint)
+        }
+
+        private fun drawPulseRings(
+            canvas: Canvas,
+            centerX: Float,
+            centerY: Float,
+            density: Float,
+        ) {
+            paint.style = Paint.Style.STROKE
+            paint.strokeCap = Paint.Cap.ROUND
+            paint.strokeWidth = 8f * density
+
+            if (!pulsing) {
+                paint.color = Color.argb(STATIC_PULSE_ALPHA, 45, 98, 255)
+                canvas.drawCircle(centerX, centerY, 136f * density, paint)
+                paint.color = Color.argb(STATIC_INNER_PULSE_ALPHA, 45, 98, 255)
+                canvas.drawCircle(centerX, centerY, 118f * density, paint)
+                return
+            }
+
+            drawAnimatedPulseRing(canvas, centerX, centerY, density, pulseProgress)
+            drawAnimatedPulseRing(
+                canvas,
+                centerX,
+                centerY,
+                density,
+                (pulseProgress + 0.5f) % 1f,
+            )
+        }
+
+        private fun drawAnimatedPulseRing(
+            canvas: Canvas,
+            centerX: Float,
+            centerY: Float,
+            density: Float,
+            phase: Float,
+        ) {
+            val radius = (PULSE_BASE_RADIUS_DP + PULSE_EXPANSION_DP * phase) * density
+            val alpha = (PULSE_START_ALPHA * (1f - phase)).toInt().coerceIn(0, 255)
+            paint.color = Color.argb(alpha, 45, 98, 255)
+            canvas.drawCircle(centerX, centerY, radius, paint)
         }
 
         private fun drawBellIcon(
@@ -492,6 +566,12 @@ class AlarmRingingActivity : Activity() {
     companion object {
         private const val TAG = "OnTimeNativeAlarm"
         private const val MAX_RING_DURATION_MS = 60_000L
+        private const val PULSE_DURATION_MS = 1_600L
+        private const val PULSE_BASE_RADIUS_DP = 126f
+        private const val PULSE_EXPANSION_DP = 18f
+        private const val PULSE_START_ALPHA = 90
+        private const val STATIC_PULSE_ALPHA = 30
+        private const val STATIC_INNER_PULSE_ALPHA = 48
         private val BACKGROUND_COLOR = Color.WHITE
         private val PRIMARY_BLUE = Color.rgb(45, 98, 255)
         private val DIAL_FILL_COLOR = Color.rgb(247, 249, 255)

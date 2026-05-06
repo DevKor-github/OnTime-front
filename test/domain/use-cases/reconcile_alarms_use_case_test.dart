@@ -208,13 +208,16 @@ class FakeUserRepository implements UserRepository {
   }
 
   @override
-  Future<void> deleteAppleUser() => throw UnimplementedError();
+  Future<void> deleteAppleUser({String? feedbackMessage}) =>
+      throw UnimplementedError();
 
   @override
-  Future<void> deleteGoogleUser() => throw UnimplementedError();
+  Future<void> deleteGoogleUser({String? feedbackMessage}) =>
+      throw UnimplementedError();
 
   @override
-  Future<void> deleteUser() => throw UnimplementedError();
+  Future<void> deleteUser({String? feedbackMessage}) =>
+      throw UnimplementedError();
 
   @override
   Future<void> disconnectGoogleSignIn() => throw UnimplementedError();

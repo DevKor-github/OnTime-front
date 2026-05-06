@@ -56,8 +56,14 @@ class MyPageScreen extends StatelessWidget {
                   title: AppLocalizations.of(context)!.deleteAccount,
                   onTap: () async {
                     final deleteUserModal = DeleteUserModal();
-                    await deleteUserModal.showDeleteUserModal(context,
-                        onConfirm: () {});
+                    await deleteUserModal.showDeleteUserModal(
+                      context,
+                      onConfirm: () {
+                        if (context.mounted) {
+                          context.go('/signIn');
+                        }
+                      },
+                    );
                   },
                 ),
               ],

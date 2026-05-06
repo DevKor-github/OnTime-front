@@ -13,7 +13,6 @@ class UpdateScheduleRequestModel {
   final int moveTime;
   final int? scheduleSpareTime;
   final String scheduleNote;
-  final int latenessTime;
 
   const UpdateScheduleRequestModel({
     required this.scheduleId,
@@ -24,7 +23,6 @@ class UpdateScheduleRequestModel {
     required this.moveTime,
     this.scheduleSpareTime,
     required this.scheduleNote,
-    this.latenessTime = 0,
   });
 
   factory UpdateScheduleRequestModel.fromJson(Map<String, dynamic> json) =>
@@ -42,7 +40,6 @@ class UpdateScheduleRequestModel {
       moveTime: entity.moveTime.inMinutes,
       scheduleSpareTime: entity.scheduleSpareTime?.inMinutes,
       scheduleNote: entity.scheduleNote,
-      latenessTime: entity.latenessTime,
     );
   }
 }

@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -19,16 +20,30 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        val action = intent.action
+        if (
+            action != Intent.ACTION_BOOT_COMPLETED &&
+            action != AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
+        ) {
+            return
+        }
         restorePersistedNativeAlarms(context)
-        context.getSharedPreferences(NATIVE_PREF_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean("boot_completed_since_last_launch", true)
-            .apply()
+        if (action == Intent.ACTION_BOOT_COMPLETED) {
+            context.getSharedPreferences(NATIVE_PREF_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("boot_completed_since_last_launch", true)
+                .apply()
+        }
     }
 
     private fun restorePersistedNativeAlarms(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            !alarmManager.canScheduleExactAlarms()
+        ) {
+            return
+        }
         val rawRegistry = context.getSharedPreferences(FLUTTER_PREF_NAME, Context.MODE_PRIVATE)
             .getString(REGISTRY_PREF_KEY, null)
             ?: return
@@ -47,7 +62,8 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
             val alarmTime = parseAlarmTime(record.optString("alarmTime")) ?: continue
             if (alarmTime <= now) continue
             val pendingIntent = pendingIntentFor(context, record)
-            val alarmClockInfo = AlarmManager.AlarmClockInfo(alarmTime, pendingIntent)
+            val showIntent = showIntentFor(context, record)
+            val alarmClockInfo = AlarmManager.AlarmClockInfo(alarmTime, showIntent)
             alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
         }
     }
@@ -62,29 +78,59 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
         val alarmTimeMillis = parseAlarmTime(record.optString("alarmTime"))
         val preparationStartTimeMillis = parseAlarmTime(record.optString("preparationStartTime"))
         val payload = record.optJSONObject("payload")
-        val intent = Intent(context, MainActivity::class.java).apply {
-            action = MainActivity.ACTION_SCHEDULE_ALARM
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("type", "schedule_alarm")
-            putExtra("scheduleId", scheduleId)
-            putExtra("promptVariant", "alarm")
-            if (alarmTimeMillis != null) putExtra("alarmTime", alarmTimeMillis.toString())
-            if (preparationStartTimeMillis != null) {
-                putExtra("preparationStartTime", preparationStartTimeMillis.toString())
-            }
-            val payloadKeys = payload?.keys()
-            while (payloadKeys?.hasNext() == true) {
-                val key = payloadKeys.next()
-                payload.opt(key)?.let { value -> putExtra(key, value.toString()) }
-            }
+        val extras = mutableMapOf(
+            "type" to "schedule_alarm",
+            "scheduleId" to scheduleId,
+            "promptVariant" to "alarm",
+        )
+        if (alarmTimeMillis != null) extras["alarmTime"] = alarmTimeMillis.toString()
+        if (preparationStartTimeMillis != null) {
+            extras["preparationStartTime"] = preparationStartTimeMillis.toString()
         }
-        return PendingIntent.getActivity(
+        val payloadKeys = payload?.keys()
+        while (payloadKeys?.hasNext() == true) {
+            val key = payloadKeys.next()
+            payload.opt(key)?.let { value -> extras[key] = value.toString() }
+        }
+        extras["title"] = record.optString("scheduleTitle", "")
+        extras["body"] = "It is time to get ready."
+        return NativeAlarmReceiver.alarmPendingIntentForRecord(
             context,
             requestCode,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            extras,
+            PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+    }
+
+    private fun showIntentFor(context: Context, record: JSONObject): PendingIntent {
+        val scheduleId = record.optString("scheduleId")
+        val requestCode = if (record.has("nativeAlarmId") && !record.isNull("nativeAlarmId")) {
+            record.optInt("nativeAlarmId")
+        } else {
+            scheduleId.hashCode()
+        }
+        val extras = mutableMapOf(
+            "type" to "schedule_alarm",
+            "scheduleId" to scheduleId,
+            "promptVariant" to "alarm",
+        )
+        parseAlarmTime(record.optString("alarmTime"))?.let {
+            extras["alarmTime"] = it.toString()
+        }
+        parseAlarmTime(record.optString("preparationStartTime"))?.let {
+            extras["preparationStartTime"] = it.toString()
+        }
+        val payload = record.optJSONObject("payload")
+        val payloadKeys = payload?.keys()
+        while (payloadKeys?.hasNext() == true) {
+            val key = payloadKeys.next()
+            payload.opt(key)?.let { value -> extras[key] = value.toString() }
+        }
+        return NativeAlarmReceiver.activityPendingIntentForExtras(
+            context,
+            requestCode,
+            extras,
+            PendingIntent.FLAG_UPDATE_CURRENT,
         )
     }
 

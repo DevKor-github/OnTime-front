@@ -3,8 +3,13 @@ package club.devkor.ontime
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -21,6 +26,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureAlarmLaunchWindow(intent)
         payloadFromIntent(intent)?.let { launchPayload = it }
     }
 
@@ -39,8 +45,8 @@ class MainActivity : FlutterActivity() {
                         "fallbackProvider" to "localNotification",
                     ),
                 )
-                "checkPermission" -> result.success("granted")
-                "requestPermission" -> result.success("granted")
+                "checkPermission" -> result.success(exactAlarmPermissionState())
+                "requestPermission" -> requestExactAlarmPermission(result)
                 "scheduleNativeAlarm" -> scheduleNativeAlarm(call, result)
                 "cancelNativeAlarm" -> cancelNativeAlarm(call, result)
                 "getLaunchPayload" -> {
@@ -55,6 +61,7 @@ class MainActivity : FlutterActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        configureAlarmLaunchWindow(intent)
         payloadFromIntent(intent)?.let {
             launchPayload = it
             methodChannel?.invokeMethod("alarmLaunch", it)
@@ -84,14 +91,32 @@ class MainActivity : FlutterActivity() {
             result.error("unsupported", "AlarmManager is unavailable", null)
             return
         }
-
-        val pendingIntent = pendingIntentFor(args, PendingIntent.FLAG_UPDATE_CURRENT)
-        if (pendingIntent == null) {
-            result.error("scheduleFailed", "Failed to create alarm PendingIntent", null)
+        if (!canScheduleExactAlarms(alarmManager)) {
+            result.error("permissionDenied", "Exact alarm permission denied", null)
             return
         }
-        val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerAtMillis, pendingIntent)
-        alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
+
+        val pendingIntent = NativeAlarmReceiver.alarmPendingIntentForArgs(
+            this,
+            args,
+            PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        if (pendingIntent == null) {
+            result.error("invalidArguments", "Unable to build alarm intent", null)
+            return
+        }
+        val showIntent = NativeAlarmReceiver.activityPendingIntentForArgs(
+            this,
+            args,
+            PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerAtMillis, showIntent)
+        try {
+            alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
+        } catch (_: SecurityException) {
+            result.error("permissionDenied", "Exact alarm permission denied", null)
+            return
+        }
         result.success(null)
     }
 
@@ -102,37 +127,16 @@ class MainActivity : FlutterActivity() {
             return
         }
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
-        val pendingIntent = pendingIntentFor(args, PendingIntent.FLAG_NO_CREATE)
+        val pendingIntent = NativeAlarmReceiver.alarmPendingIntentForArgs(
+            this,
+            args,
+            PendingIntent.FLAG_NO_CREATE,
+        )
         if (alarmManager != null && pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
             pendingIntent.cancel()
         }
         result.success(null)
-    }
-
-    private fun pendingIntentFor(args: Map<*, *>, lookupFlag: Int): PendingIntent? {
-        val requestCode = (args["nativeAlarmId"] as? Number)?.toInt()
-            ?: args["scheduleId"].toString().hashCode()
-        val intent = Intent(this, MainActivity::class.java).apply {
-            action = ACTION_SCHEDULE_ALARM
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("type", "schedule_alarm")
-            putExtra("scheduleId", args["scheduleId"]?.toString())
-            putExtra("promptVariant", "alarm")
-            putExtra("alarmTime", args["alarmTime"]?.toString())
-            putExtra("preparationStartTime", args["preparationStartTime"]?.toString())
-
-            val payload = args["payload"] as? Map<*, *>
-            payload?.forEach { (key, value) ->
-                if (key != null && value != null) {
-                    putExtra(key.toString(), value.toString())
-                }
-            }
-        }
-        val flags = lookupFlag or PendingIntent.FLAG_IMMUTABLE
-        return PendingIntent.getActivity(this, requestCode, intent, flags)
     }
 
     private fun payloadFromIntent(intent: Intent?): Map<String, String>? {
@@ -145,5 +149,54 @@ class MainActivity : FlutterActivity() {
         payload["type"] = "schedule_alarm"
         payload["promptVariant"] = "alarm"
         return payload
+    }
+
+    private fun exactAlarmPermissionState(): String {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+            ?: return "unsupported"
+        return if (canScheduleExactAlarms(alarmManager)) "granted" else "denied"
+    }
+
+    private fun requestExactAlarmPermission(result: MethodChannel.Result) {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+        if (alarmManager == null) {
+            result.success("unsupported")
+            return
+        }
+        if (canScheduleExactAlarms(alarmManager)) {
+            result.success("granted")
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                data = Uri.parse("package:$packageName")
+            }
+            try {
+                startActivity(intent)
+            } catch (_: ActivityNotFoundException) {
+                result.success("denied")
+                return
+            }
+        }
+        result.success(exactAlarmPermissionState())
+    }
+
+    private fun canScheduleExactAlarms(alarmManager: AlarmManager): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            alarmManager.canScheduleExactAlarms()
+    }
+
+    private fun configureAlarmLaunchWindow(intent: Intent?) {
+        if (payloadFromIntent(intent) == null) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON,
+            )
+        }
     }
 }

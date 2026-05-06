@@ -87,7 +87,7 @@ class _ScheduleSpareAndPreparingTimeFormState
                       decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.spareTime),
                       controller: TextEditingController(
-                          text: formatDuration(context, spareTime)),
+                          text: formatDurationAsMinutes(context, spareTime)),
                       onTap: () {
                         context.showCupertinoMinutePickerModal(
                             title: AppLocalizations.of(context)!.enterTime,

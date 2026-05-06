@@ -9,7 +9,9 @@ import 'package:on_time_front/domain/entities/adjacent_schedules_with_preparatio
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
@@ -224,6 +226,14 @@ void main() {
     await loaded;
   }
 
+  Future<void> primeCreateState(ScheduleFormBloc bloc) async {
+    final loaded = bloc.stream.firstWhere(
+      (state) => state.status == ScheduleFormStatus.success,
+    );
+    bloc.add(const ScheduleFormCreateRequested());
+    await loaded;
+  }
+
   Future<void> pumpSheet(WidgetTester tester, ScheduleFormBloc bloc) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -428,5 +438,82 @@ void main() {
     expect(updatedSchedule, isNotNull);
     expect(updatedSchedule!.scheduleName, 'Edited Meeting');
     expect(updatedSchedule!.place.placeName, 'New Office');
+  });
+
+  testWidgets('date time overlap keeps next disabled', (tester) async {
+    getAdjacentSchedulesWithPreparationUseCase =
+        StubGetAdjacentSchedulesWithPreparationUseCase(
+      ({
+        required selectedDateTime,
+        String? currentScheduleId,
+        required startDate,
+        required endDate,
+      }) async =>
+          AdjacentSchedulesWithPreparationEntity(
+        nextSchedule: ScheduleWithPreparationEntity(
+          id: 'schedule-2',
+          place: const PlaceEntity(id: 'place-2', placeName: 'Next Office'),
+          scheduleName: 'Next Meeting',
+          scheduleTime: DateTime(2026, 3, 20, 9, 20),
+          moveTime: const Duration(minutes: 10),
+          isChanged: false,
+          isStarted: false,
+          scheduleSpareTime: Duration.zero,
+          scheduleNote: '',
+          preparation: PreparationWithTimeEntity.fromPreparation(preparation),
+        ),
+      ),
+    );
+
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    await primeEditState(bloc);
+    await pumpSheet(tester, bloc);
+
+    Finder nextButton() => find.descendant(
+          of: find.byType(TopBar),
+          matching: find.byType(TextButton),
+        );
+
+    await tester.tap(nextButton());
+    await tester.pumpAndSettle();
+
+    final button = tester.widget<TextButton>(nextButton());
+    expect(button.onPressed, isNull);
+  });
+
+  testWidgets('cancelling date and time pickers keeps next disabled',
+      (tester) async {
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    await primeCreateState(bloc);
+    await pumpSheet(tester, bloc);
+
+    Finder nextButton() => find.descendant(
+          of: find.byType(TopBar),
+          matching: find.byType(TextButton),
+        );
+
+    await tester.enterText(find.byType(TextFormField).first, 'Meeting');
+    await tester.pump();
+    await tester.tap(nextButton());
+    await tester.pumpAndSettle();
+
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.byType(TextField).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(TextField).at(1));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
+      await tester.pumpAndSettle();
+    }
+
+    final button = tester.widget<TextButton>(nextButton());
+    expect(button.onPressed, isNull);
   });
 }

@@ -20,3 +20,8 @@ String formatDuration(BuildContext context, Duration duration) {
 
   return parts.join(' ');
 }
+
+String formatDurationAsMinutes(BuildContext context, Duration duration) {
+  final localizations = AppLocalizations.of(context)!;
+  return localizations.minuteFormatted(duration.inMinutes);
+}

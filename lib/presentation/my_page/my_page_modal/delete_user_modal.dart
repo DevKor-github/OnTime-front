@@ -132,6 +132,12 @@ class DeleteUserModal {
       await deleteUserUseCase(controller.text);
     } catch (e) {
       debugPrint(e.toString());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.error)),
+        );
+      }
+      return;
     }
 
     try {

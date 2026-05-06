@@ -23,13 +23,13 @@ abstract interface class AuthenticationRemoteDataSource {
 
   Future<UserEntity> getUser();
 
-  Future<void> deleteGoogleMe();
+  Future<void> deleteGoogleMe({String? feedbackMessage});
 
-  Future<void> deleteAppleMe();
+  Future<void> deleteAppleMe({String? feedbackMessage});
 
   Future<void> postFeedback(String message);
 
-  Future<void> deleteUser();
+  Future<void> deleteUser({String? feedbackMessage});
 
   Future<String?> getUserSocialType();
 }
@@ -143,9 +143,12 @@ class AuthenticationRemoteDataSourceImpl
   }
 
   @override
-  Future<void> deleteGoogleMe() async {
+  Future<void> deleteGoogleMe({String? feedbackMessage}) async {
     try {
-      final result = await dio.delete(Endpoint.deleteGoogleMe);
+      final result = await dio.delete(
+        Endpoint.deleteGoogleMe,
+        data: _buildDeleteFeedbackData(feedbackMessage),
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -157,9 +160,12 @@ class AuthenticationRemoteDataSourceImpl
   }
 
   @override
-  Future<void> deleteAppleMe() async {
+  Future<void> deleteAppleMe({String? feedbackMessage}) async {
     try {
-      final result = await dio.delete(Endpoint.deleteAppleMe);
+      final result = await dio.delete(
+        Endpoint.deleteAppleMe,
+        data: _buildDeleteFeedbackData(feedbackMessage),
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -189,9 +195,12 @@ class AuthenticationRemoteDataSourceImpl
   }
 
   @override
-  Future<void> deleteUser() async {
+  Future<void> deleteUser({String? feedbackMessage}) async {
     try {
-      final result = await dio.delete(Endpoint.deleteUser);
+      final result = await dio.delete(
+        Endpoint.deleteUser,
+        data: _buildDeleteFeedbackData(feedbackMessage),
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -215,5 +224,17 @@ class AuthenticationRemoteDataSourceImpl
     } catch (e) {
       rethrow;
     }
+  }
+
+  Map<String, dynamic> _buildDeleteFeedbackData(String? feedbackMessage) {
+    final trimmedMessage = feedbackMessage?.trim();
+    if (trimmedMessage == null || trimmedMessage.isEmpty) {
+      return <String, dynamic>{};
+    }
+
+    return <String, dynamic>{
+      'feedbackId': const Uuid().v4(),
+      'message': trimmedMessage,
+    };
   }
 }

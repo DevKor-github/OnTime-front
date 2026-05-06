@@ -41,10 +41,16 @@ class StubGetNearestUpcomingScheduleUseCase
 
 class SpyNavigationService extends NavigationService {
   final List<String> pushedRoutes = [];
+  final List<String> goRoutes = [];
 
   @override
   void push(String routeName, {Object? extra}) {
     pushedRoutes.add(routeName);
+  }
+
+  @override
+  void go(String routeName, {Object? extra}) {
+    goRoutes.add(routeName);
   }
 }
 
@@ -362,6 +368,22 @@ void main() {
       expect(
         scheduleStartPromptVariantFromRouteExtra(const {}),
         ScheduleStartPromptVariant.officialStart,
+      );
+      expect(
+        scheduleStartLaunchActionFromRouteExtra(
+          const {'alarmLaunchAction': 'startPreparation'},
+        ),
+        ScheduleStartLaunchAction.startPreparation,
+      );
+      expect(
+        scheduleStartLaunchActionFromRouteExtra(
+          const {'alarmLaunchAction': 'startPreparing'},
+        ),
+        ScheduleStartLaunchAction.startPreparation,
+      );
+      expect(
+        scheduleStartLaunchActionFromRouteExtra(const {}),
+        ScheduleStartLaunchAction.prompt,
       );
     });
 

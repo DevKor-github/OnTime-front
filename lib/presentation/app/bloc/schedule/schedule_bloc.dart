@@ -248,9 +248,29 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleAlarmPromptRequested event,
     Emitter<ScheduleState> emit,
   ) async {
+    debugPrint(
+      'alarm prompt requested: scheduleId=${event.scheduleId} '
+      'startPreparation=${event.startPreparation} '
+      'fingerprint=${event.scheduleFingerprint}',
+    );
+    final cachedSchedule = _matchingCachedAlarmSchedule(event);
+    if (cachedSchedule != null) {
+      await _activateAlarmPromptSchedule(
+        cachedSchedule,
+        event,
+        emit,
+        source: 'cached',
+      );
+      return;
+    }
+
     if (_getScheduleByIdUseCase == null ||
         _loadPreparationByScheduleIdUseCase == null ||
         _getPreparationByScheduleIdUseCase == null) {
+      debugPrint(
+        'alarm prompt validation unavailable: missing schedule use cases '
+        'scheduleId=${event.scheduleId}',
+      );
       return;
     }
     final getScheduleByIdUseCase = _getScheduleByIdUseCase;
@@ -262,6 +282,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     try {
       final schedule = await getScheduleByIdUseCase(event.scheduleId);
       if (_isEnded(schedule.doneStatus)) {
+        debugPrint(
+          'alarm prompt rejected ended schedule: scheduleId=${event.scheduleId}',
+        );
         await _cancelScheduleAlarmUseCase?.call(event.scheduleId);
         _navigationService.go('/home');
         return;
@@ -279,24 +302,97 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       if (event.scheduleFingerprint != null &&
           event.scheduleFingerprint !=
               scheduleWithPreparation.cacheFingerprint) {
-        await _cancelScheduleAlarmUseCase?.call(event.scheduleId);
-        _navigationService.go('/home');
-        return;
+        if (event.startPreparation) {
+          debugPrint(
+            'alarm prompt continuing start despite fingerprint mismatch: '
+            'scheduleId=${event.scheduleId} '
+            'expected=${event.scheduleFingerprint} '
+            'actual=${scheduleWithPreparation.cacheFingerprint}',
+          );
+        } else {
+          debugPrint(
+            'alarm prompt rejected fingerprint mismatch: '
+            'scheduleId=${event.scheduleId} '
+            'expected=${event.scheduleFingerprint} '
+            'actual=${scheduleWithPreparation.cacheFingerprint}',
+          );
+          await _cancelScheduleAlarmUseCase?.call(event.scheduleId);
+          _navigationService.go('/home');
+          return;
+        }
       }
 
-      _currentScheduleId = scheduleWithPreparation.id;
-      _activeEarlyStartScheduleId = null;
-      _scheduleStartTimer?.cancel();
-      _scheduleStartTimer = null;
-      _stopPreparationTimer();
-      _initializeNotificationTracking(scheduleWithPreparation);
-      emit(ScheduleState.upcoming(scheduleWithPreparation));
-      _startScheduleTimer(scheduleWithPreparation);
+      await _activateAlarmPromptSchedule(
+        scheduleWithPreparation,
+        event,
+        emit,
+        source: 'remote',
+      );
     } catch (error) {
       debugPrint('alarm prompt validation failed: $error');
+      if (event.startPreparation) {
+        debugPrint(
+          'alarm prompt start kept on current route after validation failure: '
+          'scheduleId=${event.scheduleId}',
+        );
+        return;
+      }
       await _cancelScheduleAlarmUseCase?.call(event.scheduleId);
       _navigationService.go('/home');
     }
+  }
+
+  ScheduleWithPreparationEntity? _matchingCachedAlarmSchedule(
+    ScheduleAlarmPromptRequested event,
+  ) {
+    final cachedSchedule = state.schedule;
+    if (cachedSchedule == null || cachedSchedule.id != event.scheduleId) {
+      return null;
+    }
+    if (_isEnded(cachedSchedule.doneStatus)) return null;
+    final fingerprint = event.scheduleFingerprint;
+    if (fingerprint != null && fingerprint != cachedSchedule.cacheFingerprint) {
+      if (!event.startPreparation) return null;
+      debugPrint(
+        'alarm prompt using cached schedule despite fingerprint mismatch: '
+        'scheduleId=${event.scheduleId} '
+        'expected=$fingerprint actual=${cachedSchedule.cacheFingerprint}',
+      );
+    }
+    debugPrint(
+      'alarm prompt using cached schedule: scheduleId=${event.scheduleId}',
+    );
+    return cachedSchedule;
+  }
+
+  Future<void> _activateAlarmPromptSchedule(
+    ScheduleWithPreparationEntity schedule,
+    ScheduleAlarmPromptRequested event,
+    Emitter<ScheduleState> emit, {
+    required String source,
+  }) async {
+    _currentScheduleId = schedule.id;
+    _activeEarlyStartScheduleId = null;
+    _scheduleStartTimer?.cancel();
+    _scheduleStartTimer = null;
+    _stopPreparationTimer();
+    _initializeNotificationTracking(schedule);
+
+    if (!event.startPreparation) {
+      debugPrint(
+        'alarm prompt ready: scheduleId=${schedule.id} source=$source',
+      );
+      emit(ScheduleState.upcoming(schedule));
+      _startScheduleTimer(schedule);
+      return;
+    }
+
+    debugPrint(
+      'alarm prompt showing schedule start: scheduleId=${schedule.id} '
+      'source=$source',
+    );
+    emit(ScheduleState.upcoming(schedule));
+    _startScheduleTimer(schedule);
   }
 
   Future<void> _onPreparationStarted(

@@ -31,67 +31,70 @@ class MyPageScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
-      body: Column(
-        spacing: 12,
-        children: [
-          _FrameView(
-              title: AppLocalizations.of(context)!.myAccount,
-              child: _MyAccountView()),
-          const _FrameView(
-            title: '알람 설정',
-            child: _AlarmStatusView(),
-          ),
-          _FrameView(
-            title: AppLocalizations.of(context)!.accountSettings,
-            child: Column(
-              spacing: 25,
-              children: [
-                _SettingTile(
-                  title: AppLocalizations.of(context)!.logOut,
-                  onTap: () async {
-                    await showLogoutModal(context);
-                  },
-                ),
-                _SettingTile(
-                  title: AppLocalizations.of(context)!.deleteAccount,
-                  onTap: () async {
-                    final deleteUserModal = DeleteUserModal();
-                    await deleteUserModal.showDeleteUserModal(
-                      context,
-                      onConfirm: () {
-                        if (context.mounted) {
-                          context.go('/signIn');
-                        }
-                      },
-                    );
-                  },
-                ),
-              ],
+      body: SingleChildScrollView(
+        child: Column(
+          spacing: 12,
+          children: [
+            _FrameView(
+                title: AppLocalizations.of(context)!.myAccount,
+                child: _MyAccountView()),
+            const _FrameView(
+              title: '알람 설정',
+              child: _AlarmStatusView(),
             ),
-          ),
-          _FrameView(
-            title: AppLocalizations.of(context)!.appSettings,
-            child: Column(
-              spacing: 25,
-              children: [
-                _SettingTile(
-                  title: AppLocalizations.of(context)!.editDefaultPreparation,
-                  onTap: () async {
-                    final PreparationEntity? updatedPreparation =
-                        await context.push('/defaultPreparationSpareTimeEdit');
-                    if (updatedPreparation != null) {}
-                  },
-                ),
-                _SettingTile(
-                  title: AppLocalizations.of(context)!.allowAppNotifications,
-                  onTap: () async {
-                    await _handleNotificationPermission(context);
-                  },
-                ),
-              ],
+            _FrameView(
+              title: AppLocalizations.of(context)!.accountSettings,
+              child: Column(
+                spacing: 25,
+                children: [
+                  _SettingTile(
+                    title: AppLocalizations.of(context)!.logOut,
+                    onTap: () async {
+                      await showLogoutModal(context);
+                    },
+                  ),
+                  _SettingTile(
+                    title: AppLocalizations.of(context)!.deleteAccount,
+                    onTap: () async {
+                      final deleteUserModal = DeleteUserModal();
+                      await deleteUserModal.showDeleteUserModal(
+                        context,
+                        onConfirm: () {
+                          if (context.mounted) {
+                            context.go('/signIn');
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            _FrameView(
+              title: AppLocalizations.of(context)!.appSettings,
+              child: Column(
+                spacing: 25,
+                children: [
+                  _SettingTile(
+                    title: AppLocalizations.of(context)!.editDefaultPreparation,
+                    onTap: () async {
+                      final PreparationEntity? updatedPreparation =
+                          await context
+                              .push('/defaultPreparationSpareTimeEdit');
+                      if (updatedPreparation != null) {}
+                    },
+                  ),
+                  _SettingTile(
+                    title: AppLocalizations.of(context)!.allowAppNotifications,
+                    onTap: () async {
+                      await _handleNotificationPermission(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

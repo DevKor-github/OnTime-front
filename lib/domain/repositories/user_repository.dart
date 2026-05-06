@@ -24,11 +24,11 @@ abstract interface class UserRepository {
 
   Future<void> getUser();
 
-  Future<void> deleteUser();
+  Future<void> deleteUser({String? feedbackMessage});
 
-  Future<void> deleteGoogleUser();
+  Future<void> deleteGoogleUser({String? feedbackMessage});
 
-  Future<void> deleteAppleUser();
+  Future<void> deleteAppleUser({String? feedbackMessage});
 
   Future<void> postFeedback(String message);
 

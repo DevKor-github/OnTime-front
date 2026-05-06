@@ -135,27 +135,33 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<void> deleteUser() async {
+  Future<void> deleteUser({String? feedbackMessage}) async {
     try {
-      await _authenticationRemoteDataSource.deleteUser();
+      await _authenticationRemoteDataSource.deleteUser(
+        feedbackMessage: feedbackMessage,
+      );
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<void> deleteGoogleUser() async {
+  Future<void> deleteGoogleUser({String? feedbackMessage}) async {
     try {
-      await _authenticationRemoteDataSource.deleteGoogleMe();
+      await _authenticationRemoteDataSource.deleteGoogleMe(
+        feedbackMessage: feedbackMessage,
+      );
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<void> deleteAppleUser() async {
+  Future<void> deleteAppleUser({String? feedbackMessage}) async {
     try {
-      await _authenticationRemoteDataSource.deleteAppleMe();
+      await _authenticationRemoteDataSource.deleteAppleMe(
+        feedbackMessage: feedbackMessage,
+      );
     } catch (e) {
       rethrow;
     }

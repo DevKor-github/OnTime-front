@@ -39,12 +39,13 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     // Check for schedule overlap if both date and time are valid
     if (scheduleDateTimeState.scheduleDate.isValid &&
         scheduleDateTimeState.scheduleTime.isValid) {
+      scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
       // Load adjacent schedules first, then check overlap
       _loadAdjacentSchedules(scheduleDateTimeState.scheduleDate.value!)
           .then((_) => checkScheduleOverlap());
+    } else {
+      scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
     }
-
-    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   Future<void> scheduleDateChanged(DateTime scheduleDate) async {
@@ -72,8 +73,13 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
     // Never load nextSchedule, only check overlap
     if (state.scheduleDate.isValid && scheduleTimeInputModel.isValid) {
+      scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
       await checkScheduleOverlap();
     }
+    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
+  }
+
+  void validateCurrentSelection() {
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
@@ -97,6 +103,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
   Future<void> checkScheduleOverlap() async {
     if (state.scheduleDate.value == null || state.scheduleTime.value == null) {
+      scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
       return;
     }
 
@@ -272,9 +279,11 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       debugPrint('Error checking schedule overlap: $e');
       emit(state.copyWith(clearOverlap: true, clearPreviousOverlap: true));
     }
+
+    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
-  void scheduleDateTimeSubmitted() {
+  bool scheduleDateTimeSubmitted() {
     if (state.scheduleDate.isValid &&
         state.scheduleTime.isValid &&
         state.isOverlapping == false) {
@@ -291,7 +300,11 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         maxAvailableTime: state.previousOverlapDuration,
         previousScheduleName: state.previousScheduleName,
       ));
+      return true;
     }
+
+    scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
+    return false;
   }
 
   ({DateTime startDate, DateTime endDate}) _getDateRange(DateTime date) {

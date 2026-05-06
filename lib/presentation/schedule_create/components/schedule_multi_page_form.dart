@@ -107,13 +107,12 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                       TopBar(
                         onNextPageButtonClicked:
                             (state.isValid && !isSubmitting)
-                            ? () => _onNextPageButtonClicked(context)
-                            : null,
+                                ? () => _onNextPageButtonClicked(context)
+                                : null,
                         // 버튼 활성화 판별
                         isNextButtonEnabled: state.isValid && !isSubmitting,
-                        onPreviousPageButtonClicked: isSubmitting
-                            ? null
-                            : _onPreviousPageButtonClicked,
+                        onPreviousPageButtonClicked:
+                            isSubmitting ? null : _onPreviousPageButtonClicked,
                       ),
                       SizedBox(height: 26),
                       StepProgress(
@@ -158,7 +157,11 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
         });
         break;
       case const (ScheduleDateTimeCubit):
-        context.read<ScheduleDateTimeCubit>().scheduleDateTimeSubmitted();
+        final didSubmit =
+            context.read<ScheduleDateTimeCubit>().scheduleDateTimeSubmitted();
+        if (!didSubmit) {
+          return;
+        }
         // Initialize next cubit after submitting current page
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<SchedulePlaceMovingTimeCubit>().initialize();

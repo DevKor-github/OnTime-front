@@ -1,4 +1,4 @@
-package com.example.on_time_front
+package club.devkor.ontime
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -86,6 +86,10 @@ class MainActivity : FlutterActivity() {
         }
 
         val pendingIntent = pendingIntentFor(args, PendingIntent.FLAG_UPDATE_CURRENT)
+        if (pendingIntent == null) {
+            result.error("scheduleFailed", "Failed to create alarm PendingIntent", null)
+            return
+        }
         val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerAtMillis, pendingIntent)
         alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
         result.success(null)

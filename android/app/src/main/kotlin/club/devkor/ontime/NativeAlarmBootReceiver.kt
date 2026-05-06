@@ -1,4 +1,4 @@
-package com.example.on_time_front
+package club.devkor.ontime
 
 import android.app.AlarmManager
 import android.app.PendingIntent

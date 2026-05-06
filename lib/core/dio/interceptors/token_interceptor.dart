@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 class TokenInterceptor implements InterceptorsWrapper {
   final Dio dio;
@@ -86,9 +86,11 @@ class TokenInterceptor implements InterceptorsWrapper {
             );
           }
           _requestsNeedRetry.clear();
-          // if refresh fail, force logout user here
+          // Force a local logout when the refresh token is rejected. The full
+          // sign-out use case may make authenticated cleanup calls, which can
+          // deadlock while the interceptor is already refreshing.
           try {
-            await getIt.get<SignOutUseCase>().call();
+            await getIt.get<UserRepository>().signOut();
           } catch (_) {
             await tokenLocalDataSource.deleteToken();
           }

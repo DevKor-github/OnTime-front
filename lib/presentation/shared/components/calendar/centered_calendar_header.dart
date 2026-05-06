@@ -24,10 +24,10 @@ class CenteredCalendarHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.zero,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final spacing = constraints.maxWidth < 260.0 ? 8.0 : 16.0;
+          final spacing = constraints.maxWidth < 260.0 ? 6.0 : 12.0;
 
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,

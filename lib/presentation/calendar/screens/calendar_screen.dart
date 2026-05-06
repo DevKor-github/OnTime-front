@@ -29,10 +29,9 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   static const double _calendarHorizontalPadding = 8.0;
-  static const double _calendarVerticalPadding = 16.0;
-  static const double _calendarDaysOfWeekHeight = 40.0;
-  static const double _calendarHeaderHeight = 64.0;
-  static const double _selectedDateMinHeight = 120.0;
+  static const double _calendarVerticalPadding = 12.0;
+  static const double _calendarDaysOfWeekHeight = 36.0;
+  static const double _calendarRowHeight = 44.0;
 
   late DateTime _selectedDate;
   late final MonthlySchedulesBloc _monthlySchedulesBloc;
@@ -158,25 +157,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return 27.0;
   }
 
-  double _calendarRowHeight({
-    required double maxHeight,
-    required double detailGap,
-  }) {
-    if (!maxHeight.isFinite) {
-      return 52.0;
-    }
-
-    final availableCalendarHeight =
-        maxHeight - detailGap - _selectedDateMinHeight;
-    final availableRowsHeight = availableCalendarHeight -
-        (_calendarVerticalPadding * 2) -
-        _calendarHeaderHeight -
-        _calendarDaysOfWeekHeight;
-    final fittedRowHeight = availableRowsHeight / 6;
-
-    return fittedRowHeight.clamp(24.0, 52.0).toDouble();
-  }
-
   double _selectedDateHeadingGap(double maxHeight) {
     if (maxHeight.isFinite && maxHeight < 620.0) {
       return 12.0;
@@ -207,20 +187,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 18.0) +
+              EdgeInsets.only(bottom: 12.0),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final detailGap = _calendarDetailGap(constraints.maxHeight);
-              final rowHeight = _calendarRowHeight(
-                maxHeight: constraints.maxHeight,
-                detailGap: detailGap,
-              );
               final selectedDateHeadingGap =
                   _selectedDateHeadingGap(constraints.maxHeight);
 
               return Column(
                 children: [
                   Container(
+                    key: const Key('calendar_card'),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       color: colorScheme.surface,
@@ -240,8 +218,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           return TableCalendar(
                             locale: Localizations.localeOf(context).toString(),
                             daysOfWeekHeight: _calendarDaysOfWeekHeight,
-                            sixWeekMonthsEnforced: true,
-                            rowHeight: rowHeight,
+                            rowHeight: _calendarRowHeight,
                             eventLoader: (day) {
                               day = DateTime(day.year, day.month, day.day);
                               return state.schedules[day] ?? [];
@@ -306,7 +283,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               },
                               selectedBuilder: (context, day, focusedDay) {
                                 return Container(
-                                  margin: const EdgeInsets.all(4.0),
+                                  margin: const EdgeInsets.all(2.0),
                                   alignment: Alignment.center,
                                   decoration:
                                       calendarTheme.selectedDayDecoration,
@@ -321,7 +298,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               },
                               todayBuilder: (context, day, focusedDay) =>
                                   Container(
-                                margin: const EdgeInsets.all(4.0),
+                                margin: const EdgeInsets.all(2.0),
                                 alignment: Alignment.center,
                                 decoration: calendarTheme.todayDecoration,
                                 child: Text(

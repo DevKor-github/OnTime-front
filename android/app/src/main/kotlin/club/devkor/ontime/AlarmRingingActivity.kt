@@ -429,13 +429,17 @@ class AlarmRingingActivity : Activity() {
             val centerX = width / 2f
             val centerY = height / 2f
 
+            paint.style = Paint.Style.FILL
+            paint.color = DIAL_FILL_COLOR
+            canvas.drawCircle(centerX, centerY, 118f * density, paint)
+
             paint.style = Paint.Style.STROKE
             paint.strokeCap = Paint.Cap.ROUND
-            paint.color = Color.argb(51, 45, 98, 255)
+            paint.color = Color.argb(32, 45, 98, 255)
             paint.strokeWidth = 8f * density
             canvas.drawCircle(centerX, centerY, 136f * density, paint)
 
-            paint.color = Color.argb(102, 45, 98, 255)
+            paint.color = Color.argb(60, 45, 98, 255)
             canvas.drawCircle(centerX, centerY, 118f * density, paint)
 
             paint.color = RING_TRACK_COLOR
@@ -478,6 +482,9 @@ class AlarmRingingActivity : Activity() {
                 (left + iconWidth).toInt(),
                 (top + iconHeight).toInt(),
             )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                bellDrawable?.setTint(PRIMARY_BLUE)
+            }
             bellDrawable?.draw(canvas)
         }
     }
@@ -485,12 +492,13 @@ class AlarmRingingActivity : Activity() {
     companion object {
         private const val TAG = "OnTimeNativeAlarm"
         private const val MAX_RING_DURATION_MS = 60_000L
-        private val BACKGROUND_COLOR = Color.rgb(17, 19, 28)
+        private val BACKGROUND_COLOR = Color.WHITE
         private val PRIMARY_BLUE = Color.rgb(45, 98, 255)
-        private val RING_TRACK_COLOR = Color.rgb(51, 52, 62)
-        private val PRIMARY_TEXT_COLOR = Color.rgb(225, 225, 238)
-        private val SECONDARY_TEXT_COLOR = Color.rgb(195, 197, 216)
-        private val BUTTON_TEXT_COLOR = Color.rgb(247, 246, 255)
-        private val BUTTON_BORDER_COLOR = Color.rgb(67, 70, 86)
+        private val DIAL_FILL_COLOR = Color.rgb(247, 249, 255)
+        private val RING_TRACK_COLOR = Color.rgb(226, 231, 244)
+        private val PRIMARY_TEXT_COLOR = Color.rgb(17, 19, 28)
+        private val SECONDARY_TEXT_COLOR = Color.rgb(88, 91, 106)
+        private val BUTTON_TEXT_COLOR = Color.WHITE
+        private val BUTTON_BORDER_COLOR = Color.rgb(206, 212, 229)
     }
 }

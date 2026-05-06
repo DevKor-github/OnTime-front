@@ -185,6 +185,10 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
             scheduleId: scheduleId,
             scheduleFingerprint:
                 widget.extra?['scheduleFingerprint']?.toString(),
+            startPreparation: scheduleStartLaunchActionFromRouteExtra(
+                  widget.extra,
+                ) ==
+                ScheduleStartLaunchAction.startPreparation,
           ),
         );
   }
@@ -199,6 +203,10 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
     final scheduleId = widget.extra?['scheduleId']?.toString();
     final scheduleFingerprint =
         widget.extra?['scheduleFingerprint']?.toString();
+    final allowsStaleFingerprint = scheduleStartLaunchActionFromRouteExtra(
+          widget.extra,
+        ) ==
+        ScheduleStartLaunchAction.startPreparation;
     final schedule = scheduleState.schedule;
     if (schedule == null) {
       return const LoadingScreen();
@@ -207,7 +215,8 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
       return const LoadingScreen();
     }
     if (scheduleFingerprint != null &&
-        schedule.cacheFingerprint != scheduleFingerprint) {
+        schedule.cacheFingerprint != scheduleFingerprint &&
+        !allowsStaleFingerprint) {
       return const LoadingScreen();
     }
 

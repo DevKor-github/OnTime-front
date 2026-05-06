@@ -17,6 +17,11 @@ enum ScheduleStartPromptVariant {
   alarm,
 }
 
+enum ScheduleStartLaunchAction {
+  prompt,
+  startPreparation,
+}
+
 ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
   String? value,
 ) {
@@ -41,6 +46,18 @@ ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteExtra(
   return scheduleStartPromptVariantFromRouteValue(
     extra?['promptVariant'] as String?,
   );
+}
+
+ScheduleStartLaunchAction scheduleStartLaunchActionFromRouteExtra(
+  Map<String, dynamic>? extra,
+) {
+  switch (extra?['alarmLaunchAction'] as String?) {
+    case 'startPreparation':
+    case 'startPreparing':
+      return ScheduleStartLaunchAction.startPreparation;
+    default:
+      return ScheduleStartLaunchAction.prompt;
+  }
 }
 
 class ScheduleStartScreen extends StatefulWidget {

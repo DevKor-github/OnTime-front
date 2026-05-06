@@ -55,6 +55,8 @@ class _AppRouterView extends StatefulWidget {
 
 class _AppRouterViewState extends State<_AppRouterView>
     with WidgetsBindingObserver {
+  static const _logTag = '[AppAlarmLaunch]';
+
   late final _router = goRouterConfig(
     context.read<AuthBloc>(),
     context.read<ScheduleBloc>(),
@@ -69,6 +71,7 @@ class _AppRouterViewState extends State<_AppRouterView>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      debugPrint('$_logTag initialize launch handling');
       unawaited(
         getIt
             .get<AlarmSchedulerService>()
@@ -80,6 +83,7 @@ class _AppRouterViewState extends State<_AppRouterView>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('$_logTag lifecycle state=$state');
     if (state != AppLifecycleState.resumed) return;
     unawaited(HardwareKeyboard.instance.syncKeyboardState().catchError((_) {}));
     unawaited(
@@ -94,6 +98,7 @@ class _AppRouterViewState extends State<_AppRouterView>
 
   void _handleAlarmLaunchPayload(Map<String, String> payload) {
     if (!mounted) return;
+    debugPrint('$_logTag received payload=$payload');
     _pendingAlarmLaunchPayload = payload;
     _drainPendingAlarmLaunchPayload();
   }
@@ -102,9 +107,11 @@ class _AppRouterViewState extends State<_AppRouterView>
     final payload = _pendingAlarmLaunchPayload;
     if (!mounted || payload == null) return;
     if (context.read<AuthBloc>().state.status != AuthStatus.authenticated) {
+      debugPrint('$_logTag waiting for authenticated state payload=$payload');
       return;
     }
     if (getIt.get<NavigationService>().navigatorKey.currentContext == null) {
+      debugPrint('$_logTag waiting for navigator context payload=$payload');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _drainPendingAlarmLaunchPayload();
       });
@@ -112,10 +119,12 @@ class _AppRouterViewState extends State<_AppRouterView>
     }
 
     _pendingAlarmLaunchPayload = null;
+    debugPrint('$_logTag navigating to /scheduleStart payload=$payload');
     getIt.get<NavigationService>().push('/scheduleStart', extra: payload);
   }
 
   void _schedulePendingAlarmLaunchPolls() {
+    debugPrint('$_logTag scheduling pending launch payload polls');
     for (final timer in _alarmLaunchPollTimers) {
       timer.cancel();
     }
@@ -130,6 +139,7 @@ class _AppRouterViewState extends State<_AppRouterView>
       _alarmLaunchPollTimers.add(
         Timer(delay, () {
           if (!mounted) return;
+          debugPrint('$_logTag poll getLaunchPayload delay=$delay');
           unawaited(alarmSchedulerService.dispatchPendingLaunchPayload());
         }),
       );

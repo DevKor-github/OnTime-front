@@ -18,6 +18,7 @@ import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 class FakeAlarmRepository implements AlarmRepository {
   AlarmSettings settings = const AlarmSettings(alarmsEnabled: true);
   bool throwSettings = false;
+  bool throwAlarmWindow = false;
   List<ScheduleWithPreparationEntity> schedules = [];
   DateTime? requestedWindowStart;
   DateTime? requestedWindowEnd;
@@ -74,6 +75,9 @@ class FakeAlarmRepository implements AlarmRepository {
     DateTime endDate,
   ) async {
     alarmWindowRequestCount += 1;
+    if (throwAlarmWindow) {
+      throw Exception('alarm window unavailable');
+    }
     requestedWindowStart = startDate;
     requestedWindowEnd = endDate;
     return schedules;
@@ -335,6 +339,51 @@ void main() {
     expect(registryRepository.records.single.scheduleId, 'eligible');
   });
 
+  test('arms a just-missed alarm immediately within grace period', () async {
+    alarmRepository.schedules = [
+      scheduleWithAlarmAt(
+        id: 'just-missed',
+        alarmTime: now.subtract(const Duration(seconds: 5)),
+      ),
+    ];
+
+    final result = await useCase();
+
+    expect(result.armedScheduleIds, ['just-missed']);
+    expect(result.skippedScheduleCount, 0);
+    expect(schedulerService.scheduledNative, hasLength(1));
+    final scheduled = schedulerService.scheduledNative.single;
+    expect(scheduled.scheduleId, 'just-missed');
+    expect(scheduled.alarmTime, now.add(const Duration(seconds: 5)));
+    expect(scheduled.payload['missedAlarmCatchUp'], 'true');
+    expect(
+      scheduled.payload['scheduledAlarmTime'],
+      now.add(const Duration(seconds: 5)).toIso8601String(),
+    );
+  });
+
+  test('android alarm manager arms exact alarms beyond 24 hours', () async {
+    alarmRepository.schedules = [
+      scheduleWithAlarmAt(
+        id: 'two-days',
+        alarmTime: now.add(const Duration(days: 2)),
+      ),
+    ];
+
+    final result = await useCase();
+
+    expect(
+      schedulerService.scheduledNative.map((record) => record.scheduleId),
+      ['two-days'],
+    );
+    expect(
+      schedulerService.scheduledNative.single.provider,
+      AlarmProvider.androidAlarmManager,
+    );
+    expect(result.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
+    expect(result.alarmCoverageEnd, now.add(const Duration(days: 7)));
+  });
+
   test('coalesces overlapping reconciliation requests', () async {
     alarmRepository.schedules = [
       scheduleWithAlarmAt(
@@ -453,6 +502,31 @@ void main() {
     expect(result.fallbackProvider, AlarmProvider.localNotification);
   });
 
+  test('does not use notification fallback when fallback provider is disabled',
+      () async {
+    schedulerService.capabilities = const AlarmSchedulerCapabilities(
+      supportsNativeAlarm: true,
+      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+      fallbackProvider: AlarmProvider.none,
+    );
+    schedulerService.nativePermission = AlarmPermissionState.denied;
+    fallbackService.permission = AlarmPermissionState.granted;
+    alarmRepository.schedules = [
+      scheduleWithAlarmAt(
+        id: 'native-only',
+        alarmTime: now.add(const Duration(hours: 1)),
+      ),
+    ];
+
+    final result = await useCase();
+
+    expect(schedulerService.scheduledNative, isEmpty);
+    expect(fallbackService.scheduledFallback, isEmpty);
+    expect(result.status, AlarmReconciliationStatus.permissionNeeded);
+    expect(result.permissionIssue, AlarmPermissionIssue.nativePermissionDenied);
+    expect(result.fallbackProvider, AlarmProvider.none);
+  });
+
   test('settingsUnavailable reports without canceling existing registry',
       () async {
     alarmRepository.throwSettings = true;
@@ -473,6 +547,21 @@ void main() {
     expect(registryRepository.records, [existing]);
     expect(alarmRepository.statusReports.single.status,
         AlarmReconciliationStatus.settingsUnavailable);
+  });
+
+  test('alarm window failure reports partial without throwing', () async {
+    alarmRepository.throwAlarmWindow = true;
+
+    final result = await useCase();
+
+    expect(result.status, AlarmReconciliationStatus.partial);
+    expect(result.failures.single.reason,
+        AlarmFailureReason.preparationLoadFailed);
+    expect(
+        result.failures.single.message, contains('alarm window unavailable'));
+    expect(registryRepository.records, isEmpty);
+    expect(alarmRepository.statusReports.single.status,
+        AlarmReconciliationStatus.partial);
   });
 
   test('global disabled cancels all local alarms and clears registry',

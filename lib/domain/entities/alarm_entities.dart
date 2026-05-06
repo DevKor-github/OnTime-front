@@ -3,7 +3,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 
 const alarmDefaultOffset = Duration(minutes: 5);
-const alarmLaunchPayloadVersion = '3';
+const alarmLaunchPayloadVersion = '7';
 
 enum AlarmProvider {
   androidAlarmManager,
@@ -57,12 +57,16 @@ extension AlarmProviderWireValue on AlarmProvider {
   static AlarmProvider fromWireValue(String? value) {
     switch (value) {
       case 'androidAlarmManager':
+      case 'ANDROID_ALARM_MANAGER':
         return AlarmProvider.androidAlarmManager;
       case 'iosAlarmKit':
+      case 'IOS_ALARM_KIT':
         return AlarmProvider.iosAlarmKit;
       case 'localNotification':
+      case 'LOCAL_NOTIFICATION':
         return AlarmProvider.localNotification;
       case 'none':
+      case 'NONE':
       default:
         return AlarmProvider.none;
     }
@@ -126,12 +130,16 @@ extension AlarmFailureReasonWireValue on AlarmFailureReason {
   static AlarmFailureReason fromWireValue(String? value) {
     switch (value) {
       case 'preparationLoadFailed':
+      case 'PREPARATION_LOAD_FAILED':
         return AlarmFailureReason.preparationLoadFailed;
       case 'scheduleInvalid':
+      case 'SCHEDULE_INVALID':
         return AlarmFailureReason.scheduleInvalid;
       case 'platformError':
+      case 'PLATFORM_ERROR':
         return AlarmFailureReason.platformError;
       case 'unknown':
+      case 'UNKNOWN':
       default:
         return AlarmFailureReason.unknown;
     }
@@ -300,21 +308,26 @@ class ScheduledAlarmRecord extends Equatable {
   });
 
   ScheduledAlarmRecord copyWith({
+    DateTime? alarmTime,
+    DateTime? preparationStartTime,
+    String? scheduleFingerprint,
     int? nativeAlarmId,
     int? fallbackNotificationId,
     AlarmProvider? provider,
+    String? scheduleTitle,
+    Map<String, String>? payload,
   }) {
     return ScheduledAlarmRecord(
       scheduleId: scheduleId,
-      alarmTime: alarmTime,
-      preparationStartTime: preparationStartTime,
-      scheduleFingerprint: scheduleFingerprint,
+      alarmTime: alarmTime ?? this.alarmTime,
+      preparationStartTime: preparationStartTime ?? this.preparationStartTime,
+      scheduleFingerprint: scheduleFingerprint ?? this.scheduleFingerprint,
       nativeAlarmId: nativeAlarmId ?? this.nativeAlarmId,
       fallbackNotificationId:
           fallbackNotificationId ?? this.fallbackNotificationId,
       provider: provider ?? this.provider,
-      scheduleTitle: scheduleTitle,
-      payload: payload,
+      scheduleTitle: scheduleTitle ?? this.scheduleTitle,
+      payload: payload ?? this.payload,
     );
   }
 
@@ -494,6 +507,7 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
       'alarmTime': alarmTime.toIso8601String(),
       'preparationStartTime': preparationStartTime.toIso8601String(),
       'scheduleFingerprint': buildAlarmScheduleFingerprint(schedule),
+      'placeName': schedule.place.placeName,
       'promptVariant': 'alarm',
     },
   );

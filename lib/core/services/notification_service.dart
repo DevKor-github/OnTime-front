@@ -223,6 +223,13 @@ class NotificationService {
   }
 
   Future<void> showNotification(RemoteMessage message) async {
+    if (_isScheduleAlarmMessage(message)) {
+      debugPrint(
+        '[FCM] schedule_alarm push suppressed; native/system alarm handles alarm UI',
+      );
+      return;
+    }
+
     try {
       await setupFlutterNotifications();
     } catch (e) {
@@ -284,6 +291,13 @@ class NotificationService {
     required String body,
     Map<String, dynamic>? payload,
   }) async {
+    if (_isScheduleAlarmPayload(payload)) {
+      debugPrint(
+        '[FCM] schedule_alarm local notification suppressed; native/system alarm handles alarm UI',
+      );
+      return;
+    }
+
     try {
       await setupFlutterNotifications();
     } catch (e) {
@@ -351,6 +365,23 @@ class NotificationService {
         permission == AuthorizationStatus.provisional;
   }
 
+  bool _isScheduleAlarmMessage(RemoteMessage message) {
+    final data = message.data;
+    final title = message.notification?.title ?? data['title'] ?? data['Title'];
+    return _isScheduleAlarmPayload(data) ||
+        title == '약속 알림' ||
+        title == 'Schedule alarm';
+  }
+
+  bool _isScheduleAlarmPayload(Map<dynamic, dynamic>? payload) {
+    if (payload == null) return false;
+    final type = payload['type']?.toString();
+    final promptVariant = payload['promptVariant']?.toString();
+    return type == 'schedule_alarm' ||
+        payload['alarmLaunchPayloadVersion'] != null ||
+        (promptVariant == 'alarm' && payload['scheduleId'] != null);
+  }
+
   Future<void> scheduleFallbackAlarm(
     ScheduledAlarmRecord record,
   ) async {
@@ -368,6 +399,12 @@ class NotificationService {
     final notificationId =
         record.fallbackNotificationId ?? stableAlarmId(record.scheduleId);
     final scheduledAt = tz.TZDateTime.from(record.alarmTime, tz.local);
+    debugPrint(
+      '[FallbackAlarm] schedule notificationId=$notificationId '
+      'scheduleId=${record.scheduleId} '
+      'scheduledAt=${scheduledAt.toIso8601String()} '
+      'mode=${AndroidScheduleMode.inexactAllowWhileIdle}',
+    );
     await _localNotifications.zonedSchedule(
       notificationId,
       record.scheduleTitle,
@@ -392,7 +429,7 @@ class NotificationService {
           presentSound: true,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.exact,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       payload: jsonEncode(record.payload),

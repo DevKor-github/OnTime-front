@@ -30,10 +30,16 @@ class StubGetNearestUpcomingScheduleUseCase
 
 class SpyNavigationService extends NavigationService {
   final List<String> pushedRoutes = [];
+  final List<String> goRoutes = [];
 
   @override
   void push(String routeName, {Object? extra}) {
     pushedRoutes.add(routeName);
+  }
+
+  @override
+  void go(String routeName, {Object? extra}) {
+    goRoutes.add(routeName);
   }
 }
 
@@ -631,6 +637,85 @@ void main() {
       expect(bloc.state.isEarlyStarted, isTrue);
       expect(
           markEarlySessionUseCase.sessions.containsKey('early-start'), isTrue);
+    });
+
+    test('alarm launch start action keeps cached schedule on start prompt',
+        () async {
+      final schedule = buildSchedule(
+        id: 'alarm-start',
+        scheduleTime: now.add(const Duration(hours: 1)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'a',
+            preparationName: 'a',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+
+      bloc.add(ScheduleUpcomingReceived(schedule));
+      await Future<void>.delayed(Duration.zero);
+
+      bloc.add(
+        ScheduleAlarmPromptRequested(
+          scheduleId: 'alarm-start',
+          scheduleFingerprint: schedule.cacheFingerprint,
+          startPreparation: true,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.status, ScheduleStatus.upcoming);
+      expect(bloc.state.schedule?.id, 'alarm-start');
+      expect(bloc.state.isEarlyStarted, isFalse);
+      expect(
+        markEarlySessionUseCase.sessions.containsKey('alarm-start'),
+        isFalse,
+      );
+      expect(navigationService.goRoutes, isEmpty);
+    });
+
+    test(
+        'alarm launch start action keeps stale-fingerprint cached schedule on start prompt',
+        () async {
+      final schedule = buildSchedule(
+        id: 'alarm-stale-fingerprint',
+        scheduleTime: now.add(const Duration(hours: 1)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 'a',
+            preparationName: 'a',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+
+      bloc.add(ScheduleUpcomingReceived(schedule));
+      await Future<void>.delayed(Duration.zero);
+
+      bloc.add(
+        const ScheduleAlarmPromptRequested(
+          scheduleId: 'alarm-stale-fingerprint',
+          scheduleFingerprint: 'stale-fingerprint',
+          startPreparation: true,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.status, ScheduleStatus.upcoming);
+      expect(bloc.state.schedule?.id, 'alarm-stale-fingerprint');
+      expect(bloc.state.isEarlyStarted, isFalse);
+      expect(
+        markEarlySessionUseCase.sessions.containsKey(
+          'alarm-stale-fingerprint',
+        ),
+        isFalse,
+      );
+      expect(navigationService.goRoutes, isEmpty);
     });
 
     test('future upcoming schedule stops active preparation timer', () async {

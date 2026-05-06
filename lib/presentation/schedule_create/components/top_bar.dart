@@ -38,7 +38,7 @@ class TopBar extends StatelessWidget {
         // 다음 페이지 버튼
         // 버튼 활성화 여부에 따라 색상 변화 추후 추가 가능
         TextButton(
-          onPressed: onNextPageButtonClicked,
+          onPressed: isNextButtonEnabled ? onNextPageButtonClicked : null,
           child: Text(AppLocalizations.of(context)!.next),
         ),
       ],

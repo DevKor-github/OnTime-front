@@ -12,11 +12,15 @@ import 'package:rxdart/subjects.dart';
 
 @Singleton(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
+  static const _googleServerClientId =
+      '456571312261-5kuf2r6i5i7lqjr7qealv06sdgkn3hcp.apps.googleusercontent.com';
+
   final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
   final TokenLocalDataSource _tokenLocalDataSource;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
     signInOption: SignInOption.standard,
+    serverClientId: _googleServerClientId,
     forceCodeForRefreshToken: true,
   );
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(
@@ -87,19 +91,18 @@ class UserRepositoryImpl implements UserRepository {
           await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
       final String? accessToken = googleAuth.accessToken;
-      if (idToken != null) {
-        final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
-          idToken: idToken,
-          refreshToken: accessToken ?? '',
-        );
-        await _tokenLocalDataSource.deleteToken();
-        final result = await _authenticationRemoteDataSource
-            .signInWithGoogle(signInWithGoogleRequestModel);
-        await _tokenLocalDataSource.storeTokens(result.$2);
-        _userStreamController.add(result.$1);
-      } else {
-        throw Exception('Access Token is null');
+      if (idToken == null) {
+        throw Exception('Google ID Token is null');
       }
+      final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
+        idToken: idToken,
+        refreshToken: accessToken ?? '',
+      );
+      await _tokenLocalDataSource.deleteToken();
+      final result = await _authenticationRemoteDataSource
+          .signInWithGoogle(signInWithGoogleRequestModel);
+      await _tokenLocalDataSource.storeTokens(result.$2);
+      _userStreamController.add(result.$1);
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

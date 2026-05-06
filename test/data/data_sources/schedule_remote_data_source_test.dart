@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
+import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -36,6 +37,8 @@ void main() {
 
   final tCreateScheduleModel =
       CreateScheduleRequestModel.fromEntity(tScheduleEntity);
+  final tUpdateScheduleModel =
+      UpdateScheduleRequestModel.fromEntity(tScheduleEntity);
 
   setUp(() {
     dio = MockAppDio();
@@ -85,48 +88,45 @@ void main() {
     });
   });
 
-  // group('updateSchdule', () {
-  //   test('should perform a PUT request on the /schedule/modify endpoint',
-  //       () async {
-  //     // arrange
-  //     when(dio.put(Endpoint.updateSchedule(scheduleEntityId),
-  //             data: tUpdateScheduleModel.toJson()))
-  //         .thenAnswer(
-  //       (_) async => Response(
-  //         statusCode: 204,
-  //         requestOptions:
-  //             RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
-  //       ),
-  //     );
+  group('updateSchedule', () {
+    test('should perform a PUT request without completion fields', () async {
+      final updateJson = tUpdateScheduleModel.toJson();
+      expect(updateJson, isNot(contains('latenessTime')));
 
-  //     // act
-  //     await scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
+      when(dio.put(Endpoint.updateSchedule(scheduleEntityId), data: updateJson))
+          .thenAnswer(
+        (_) async => Response(
+          statusCode: 200,
+          requestOptions:
+              RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
+        ),
+      );
 
-  //     // assert
-  //     verify(dio.put(Endpoint.updateSchedule(scheduleEntityId),
-  //             data: tUpdateScheduleModel.toJson()))
-  //         .called(1);
-  //   });
+      await scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
 
-  //   test('should throw an exception when the response code is not 204',
-  //       () async {
-  //     when(dio.put(Endpoint.updateSchedule(scheduleEntityId),
-  //             data: tUpdateScheduleModel.toJson()))
-  //         .thenAnswer(
-  //       (_) async => Response(
-  //         statusCode: 400,
-  //         requestOptions:
-  //             RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
-  //       ),
-  //     );
+      verify(dio.put(Endpoint.updateSchedule(scheduleEntityId),
+              data: updateJson))
+          .called(1);
+    });
 
-  //     // act
-  //     final call = scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
+    test('should throw an exception when the response code is not 200',
+        () async {
+      when(dio.put(
+        Endpoint.updateSchedule(scheduleEntityId),
+        data: tUpdateScheduleModel.toJson(),
+      )).thenAnswer(
+        (_) async => Response(
+          statusCode: 400,
+          requestOptions:
+              RequestOptions(path: Endpoint.updateSchedule(scheduleEntityId)),
+        ),
+      );
 
-  //     // assert
-  //     expect(call, throwsException);
-  //   });
-  // });
+      final call = scheduleRemoteDataSourceImpl.updateSchedule(tScheduleEntity);
+
+      expect(call, throwsException);
+    });
+  });
 
   group('deleteSchedule', () {
     test('should perform a DELETE request on the /schedule/delete endpoint',

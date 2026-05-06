@@ -1,24 +1,28 @@
 package club.devkor.ontime
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+open class MainActivity : FlutterActivity() {
     private var methodChannel: MethodChannel? = null
 
     companion object {
+        private const val TAG = "OnTimeNativeAlarm"
         private const val CHANNEL_NAME = "on_time_front/native_alarm"
         const val ACTION_SCHEDULE_ALARM = "on_time_front.SCHEDULE_ALARM"
         private var launchPayload: Map<String, String>? = null
@@ -26,30 +30,42 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "MainActivity onCreate action=${intent?.action} extras=${intent?.extras}")
         configureAlarmLaunchWindow(intent)
-        payloadFromIntent(intent)?.let { launchPayload = it }
+        payloadFromIntent(intent)?.let {
+            Log.d(TAG, "Captured launch payload from onCreate: $it")
+            launchPayload = it
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        Log.d(TAG, "configureFlutterEngine registering method channel")
         methodChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CHANNEL_NAME,
         )
         methodChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
-                "getCapabilities" -> result.success(
-                    mapOf(
+                "getCapabilities" -> {
+                    val capabilities = mapOf(
                         "supportsNativeAlarm" to true,
                         "nativeAlarmProvider" to "androidAlarmManager",
                         "fallbackProvider" to "localNotification",
-                    ),
-                )
-                "checkPermission" -> result.success(exactAlarmPermissionState())
+                    )
+                    Log.d(TAG, "getCapabilities -> $capabilities")
+                    result.success(capabilities)
+                }
+                "checkPermission" -> {
+                    val state = exactAlarmPermissionState()
+                    Log.d(TAG, "checkPermission -> $state")
+                    result.success(state)
+                }
                 "requestPermission" -> requestExactAlarmPermission(result)
                 "scheduleNativeAlarm" -> scheduleNativeAlarm(call, result)
                 "cancelNativeAlarm" -> cancelNativeAlarm(call, result)
                 "getLaunchPayload" -> {
+                    Log.d(TAG, "getLaunchPayload -> $launchPayload")
                     result.success(launchPayload)
                     launchPayload = null
                 }
@@ -60,9 +76,11 @@ class MainActivity : FlutterActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        Log.d(TAG, "MainActivity onNewIntent action=${intent.action} extras=${intent.extras}")
         setIntent(intent)
         configureAlarmLaunchWindow(intent)
         payloadFromIntent(intent)?.let {
+            Log.d(TAG, "Captured launch payload from onNewIntent: $it")
             launchPayload = it
             methodChannel?.invokeMethod("alarmLaunch", it)
         }
@@ -71,6 +89,7 @@ class MainActivity : FlutterActivity() {
     private fun scheduleNativeAlarm(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *>
         if (args == null) {
+            Log.w(TAG, "scheduleNativeAlarm invalid: missing args")
             result.error("invalidArguments", "Missing alarm arguments", null)
             return
         }
@@ -78,30 +97,39 @@ class MainActivity : FlutterActivity() {
         val triggerAtMillis = (args["alarmTime"] as? Number)?.toLong()
         val scheduleId = args["scheduleId"]?.toString()
         if (triggerAtMillis == null || scheduleId.isNullOrEmpty()) {
+            Log.w(TAG, "scheduleNativeAlarm invalid args=$args")
             result.error("invalidArguments", "Missing scheduleId or alarmTime", null)
             return
         }
         if (triggerAtMillis <= System.currentTimeMillis()) {
+            Log.w(
+                TAG,
+                "scheduleNativeAlarm rejected past alarm scheduleId=$scheduleId " +
+                    "triggerAtMillis=$triggerAtMillis now=${System.currentTimeMillis()}",
+            )
             result.error("invalidArguments", "Cannot schedule a past alarm", null)
             return
         }
 
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
         if (alarmManager == null) {
+            Log.w(TAG, "scheduleNativeAlarm unsupported: AlarmManager unavailable")
             result.error("unsupported", "AlarmManager is unavailable", null)
             return
         }
         if (!canScheduleExactAlarms(alarmManager)) {
+            Log.w(TAG, "scheduleNativeAlarm permissionDenied scheduleId=$scheduleId")
             result.error("permissionDenied", "Exact alarm permission denied", null)
             return
         }
 
-        val pendingIntent = NativeAlarmReceiver.alarmPendingIntentForArgs(
+        val alarmIntent = NativeAlarmReceiver.alarmPendingIntentForArgs(
             this,
             args,
             PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        if (pendingIntent == null) {
+        if (alarmIntent == null) {
+            Log.w(TAG, "scheduleNativeAlarm unable to build broadcast pending intent args=$args")
             result.error("invalidArguments", "Unable to build alarm intent", null)
             return
         }
@@ -112,30 +140,71 @@ class MainActivity : FlutterActivity() {
         )
         val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerAtMillis, showIntent)
         try {
-            alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
-        } catch (_: SecurityException) {
+            Log.d(
+                TAG,
+                "scheduleNativeAlarm setAlarmClock scheduleId=$scheduleId " +
+                    "nativeAlarmId=${args["nativeAlarmId"]} triggerAtMillis=$triggerAtMillis " +
+                    "now=${System.currentTimeMillis()} operation=broadcast showIntent=activity",
+            )
+            alarmManager.setAlarmClock(alarmClockInfo, alarmIntent)
+        } catch (error: SecurityException) {
+            Log.e(TAG, "scheduleNativeAlarm SecurityException scheduleId=$scheduleId", error)
             result.error("permissionDenied", "Exact alarm permission denied", null)
             return
         }
+        Log.d(TAG, "scheduleNativeAlarm success scheduleId=$scheduleId")
         result.success(null)
     }
 
     private fun cancelNativeAlarm(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *>
         if (args == null) {
+            Log.d(TAG, "cancelNativeAlarm skipped: missing args")
             result.success(null)
             return
         }
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
-        val pendingIntent = NativeAlarmReceiver.alarmPendingIntentForArgs(
+        val activityPendingIntent = NativeAlarmReceiver.activityPendingIntentForArgs(
             this,
             args,
             PendingIntent.FLAG_NO_CREATE,
         )
-        if (alarmManager != null && pendingIntent != null) {
-            alarmManager.cancel(pendingIntent)
-            pendingIntent.cancel()
+        val legacyBroadcastPendingIntent = NativeAlarmReceiver.alarmPendingIntentForArgs(
+            this,
+            args,
+            PendingIntent.FLAG_NO_CREATE,
+        )
+        if (alarmManager != null && activityPendingIntent != null) {
+            Log.d(
+                TAG,
+                "cancelNativeAlarm cancel activity operation scheduleId=${args["scheduleId"]} " +
+                    "nativeAlarmId=${args["nativeAlarmId"]}",
+            )
+            alarmManager.cancel(activityPendingIntent)
+            activityPendingIntent.cancel()
         }
+        if (alarmManager != null && legacyBroadcastPendingIntent != null) {
+            Log.d(
+                TAG,
+                "cancelNativeAlarm cancel legacy broadcast operation scheduleId=${args["scheduleId"]} " +
+                    "nativeAlarmId=${args["nativeAlarmId"]}",
+            )
+            alarmManager.cancel(legacyBroadcastPendingIntent)
+            legacyBroadcastPendingIntent.cancel()
+        }
+        if (alarmManager == null || (activityPendingIntent == null && legacyBroadcastPendingIntent == null)) {
+            Log.d(
+                TAG,
+                "cancelNativeAlarm no-op scheduleId=${args["scheduleId"]} " +
+                    "hasAlarmManager=${alarmManager != null} " +
+                    "hasActivityPendingIntent=${activityPendingIntent != null} " +
+                    "hasLegacyBroadcastPendingIntent=${legacyBroadcastPendingIntent != null}",
+            )
+        }
+        val requestCode = (args["nativeAlarmId"] as? Number)?.toInt()
+            ?: args["scheduleId"]?.toString()?.hashCode()
+            ?: 1
+        NativeAlarmReceiver.cancelAlarmNotification(this, requestCode)
         result.success(null)
     }
 
@@ -154,16 +223,22 @@ class MainActivity : FlutterActivity() {
     private fun exactAlarmPermissionState(): String {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
             ?: return "unsupported"
-        return if (canScheduleExactAlarms(alarmManager)) "granted" else "denied"
+        return if (canScheduleExactAlarms(alarmManager) && canPostNotifications()) {
+            "granted"
+        } else {
+            "denied"
+        }
     }
 
     private fun requestExactAlarmPermission(result: MethodChannel.Result) {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
         if (alarmManager == null) {
+            Log.w(TAG, "requestPermission -> unsupported: AlarmManager unavailable")
             result.success("unsupported")
             return
         }
-        if (canScheduleExactAlarms(alarmManager)) {
+        if (canScheduleExactAlarms(alarmManager) && canPostNotifications()) {
+            Log.d(TAG, "requestPermission -> already granted")
             result.success("granted")
             return
         }
@@ -172,13 +247,17 @@ class MainActivity : FlutterActivity() {
                 data = Uri.parse("package:$packageName")
             }
             try {
+                Log.d(TAG, "Opening exact alarm permission settings")
                 startActivity(intent)
-            } catch (_: ActivityNotFoundException) {
+            } catch (error: ActivityNotFoundException) {
+                Log.w(TAG, "Unable to open exact alarm permission settings", error)
                 result.success("denied")
                 return
             }
         }
-        result.success(exactAlarmPermissionState())
+        val state = exactAlarmPermissionState()
+        Log.d(TAG, "requestPermission -> $state")
+        result.success(state)
     }
 
     private fun canScheduleExactAlarms(alarmManager: AlarmManager): Boolean {
@@ -186,8 +265,15 @@ class MainActivity : FlutterActivity() {
             alarmManager.canScheduleExactAlarms()
     }
 
+    private fun canPostNotifications(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+    }
+
     private fun configureAlarmLaunchWindow(intent: Intent?) {
         if (payloadFromIntent(intent) == null) return
+        Log.d(TAG, "configureAlarmLaunchWindow for alarm launch")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)

@@ -1,0 +1,21 @@
+{
+  "project": {
+    "title": "OnTime Alarm Screen Design",
+    "id": "11442373115194410122"
+  },
+  "screen": {
+    "title": "Alarm: Ringing (Tall Mobile)",
+    "id": "102219ab164941ae93ece8c58b7e2210",
+    "name": "projects/11442373115194410122/screens/102219ab164941ae93ece8c58b7e2210",
+    "deviceType": "MOBILE",
+    "width": 688,
+    "height": 1559
+  },
+  "screenshot": {
+    "name": "projects/11442373115194410122/files/8a64ba66be7446a3afdfb544bb3f3913",
+    "downloadUrl": "https://lh3.googleusercontent.com/aida/ADBb0uiCIPVZOYkTW_dBmYe9QMMNZu8x2Ol-S_70lc2vsSfEQFLNbIMorVMZ8gApeOwryjlSIEH4BbEV361urhjKEuy8yMfRBcF2s31luslvXfECWHcjnYUVMsr_F4A1Z_iLWSCDKFT7OrxCt31suAy75LvEDPKPihVff5ft3NieMetQIUkOpWmq9y8o-T7wEHGS2MxclhD6xgqTvvqpGas1ggqDf0CnpNpFSUixGozEneVdqqyQmc7ORg38zLAQ",
+    "localPath": "alarm-ringing-tall-mobile.jpg"
+  },
+  "htmlCode": {},
+  "notes": "Stitch returned an empty htmlCode object for this screen. The screenshot URL was downloaded with curl -L."
+}

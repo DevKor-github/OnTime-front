@@ -23,45 +23,55 @@ class CenteredCalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 16,
-        children: [
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            visualDensity: VisualDensity.compact,
-            style: IconButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4.4),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final spacing = constraints.maxWidth < 260.0 ? 8.0 : 16.0;
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: spacing,
+            children: [
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+                style: IconButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surfaceContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.4),
+                  ),
+                ),
+                icon: leftIcon,
+                onPressed: onLeftArrowTap,
               ),
-            ),
-            icon: leftIcon,
-            onPressed: onLeftArrowTap,
-          ),
-          Text(
-            DateFormat.yMMMM(AppLocalizations.of(context)!.localeName)
-                .format(focusedMonth),
-            style: textTheme.titleSmall,
-          ),
-          IconButton(
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            visualDensity: VisualDensity.compact,
-            style: IconButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4.4),
+              Flexible(
+                child: Text(
+                  DateFormat.yMMMM(AppLocalizations.of(context)!.localeName)
+                      .format(focusedMonth),
+                  style: titleTextStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-            icon: rightIcon,
-            onPressed: onRightArrowTap,
-          ),
-        ],
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                visualDensity: VisualDensity.compact,
+                style: IconButton.styleFrom(
+                  backgroundColor: theme.colorScheme.surfaceContainer,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4.4),
+                  ),
+                ),
+                icon: rightIcon,
+                onPressed: onRightArrowTap,
+              ),
+            ],
+          );
+        },
       ),
     );
   }

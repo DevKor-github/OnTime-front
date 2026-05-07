@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/js_interop_service.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
@@ -21,12 +22,13 @@ import 'package:timezone/timezone.dart' as tz;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint('[FCM Background Handler] 메시지 수신');
+  AppLogger.configureFlutterDebugPrint();
+  AppLogger.debug('[FCM Background Handler] message received');
 
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    debugPrint('[FCM Background Handler] Firebase 초기화 오류: $e');
+    AppLogger.debug('[FCM Background Handler] Firebase init failed: $e');
   }
   await NotificationService.instance.setupFlutterNotifications();
   await NotificationService.instance.showNotification(message);
@@ -137,7 +139,9 @@ class NotificationService {
   Future<void> requestNotificationToken() async {
     try {
       final token = await _messaging.getToken();
-      debugPrint('[FCM] FCM Token 획득: $token');
+      AppLogger.debug(
+        '[FCM] FCM token acquired token=${AppLogger.redactToken(token)}',
+      );
 
       if (token != null) {
         try {
@@ -155,7 +159,9 @@ class NotificationService {
       }
 
       _messaging.onTokenRefresh.listen((newToken) {
-        debugPrint('[FCM] Token 갱신됨: $newToken');
+        AppLogger.debug(
+          '[FCM] token refreshed token=${AppLogger.redactToken(newToken)}',
+        );
         getIt.get<AlarmRepository>().getDeviceId().then((deviceId) {
           getIt.get<NotificationRemoteDataSource>().fcmTokenRegister(
                 FcmTokenRegisterRequestModel(

@@ -367,13 +367,17 @@ public struct OpenScheduleAlarmIntent: LiveActivityIntent {
   public func perform() async throws -> some IntentResult & OpensIntent {
     if let data = encodedPayload.data(using: .utf8),
        let payload = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
+      #if DEBUG
       NSLog("OnTime AlarmKit Open intent invoked for scheduleId=%@", payload["scheduleId"] ?? "")
+      #endif
       AppDelegate.storeAlarmLaunchPayload(payload)
       if let url = AppDelegate.alarmLaunchURL(payload: payload) {
         return .result(opensIntent: OpenURLIntent(url))
       }
     }
+    #if DEBUG
     NSLog("OnTime AlarmKit Open intent invoked without a valid payload")
+    #endif
     return .result(opensIntent: OpenURLIntent(URL(string: "\(onTimeAlarmLaunchURLScheme)://\(onTimeAlarmLaunchURLHost)")!))
   }
 }

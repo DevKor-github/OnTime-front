@@ -10,7 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 
 class NativeAlarmReceiver : BroadcastReceiver() {
     companion object {
@@ -134,7 +133,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
         fun cancelAlarmNotification(context: Context, requestCode: Int) {
             val manager = context.getSystemService(NotificationManager::class.java)
             manager?.cancel(notificationId(requestCode))
-            Log.d(TAG, "Alarm notification canceled requestCode=$requestCode")
+            NativeLog.d(TAG, "Alarm notification canceled requestCode=$requestCode")
         }
 
         fun notificationId(requestCode: Int): Int {
@@ -204,7 +203,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "NativeAlarmReceiver onReceive action=${intent.action} extras=${intent.extras}")
+        NativeLog.d(TAG, "NativeAlarmReceiver onReceive action=${intent.action} extras=${intent.extras}")
         when (intent.action) {
             ACTION_FIRE_ALARM -> handleFireAlarm(context, intent)
             ACTION_DISMISS_ALARM -> handleDismissAlarm(context, intent)
@@ -219,7 +218,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
                 ?: extras["scheduleId"]?.hashCode()
                 ?: 1,
         )
-        Log.d(
+        NativeLog.d(
             TAG,
             "Native alarm broadcast fired requestCode=$requestCode " +
                 "scheduleId=${extras["scheduleId"]} alarmTime=${extras["alarmTime"]}",
@@ -241,7 +240,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             putExtra("nativeAlarmId", requestCode)
             putExtra("scheduleId", extras["scheduleId"])
         })
-        Log.d(
+        NativeLog.d(
             TAG,
             "Native alarm dismissed requestCode=$requestCode scheduleId=${extras["scheduleId"]}",
         )
@@ -254,11 +253,11 @@ class NativeAlarmReceiver : BroadcastReceiver() {
     ) {
         val manager = context.getSystemService(NotificationManager::class.java)
         if (manager == null) {
-            Log.w(TAG, "Alarm notification skipped: NotificationManager unavailable")
+            NativeLog.w(TAG, "Alarm notification skipped: NotificationManager unavailable")
             return
         }
         if (!canPostNotifications(context)) {
-            Log.w(
+            NativeLog.w(
                 TAG,
                 "Alarm notification skipped: notification permission denied " +
                     "scheduleId=${extras["scheduleId"]}",
@@ -306,7 +305,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             )
             .build()
         manager.notify(notificationId(requestCode), notification)
-        Log.d(
+        NativeLog.d(
             TAG,
             "Full-screen alarm notification posted requestCode=$requestCode " +
                 "scheduleId=${extras["scheduleId"]}",
@@ -317,7 +316,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val existing = manager.getNotificationChannel(ALARM_CHANNEL_ID)
         if (existing != null) {
-            Log.d(TAG, "Alarm notification channel already exists")
+            NativeLog.d(TAG, "Alarm notification channel already exists")
             return
         }
         val channel = NotificationChannel(
@@ -330,7 +329,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             setBypassDnd(true)
         }
         manager.createNotificationChannel(channel)
-        Log.d(TAG, "Alarm notification channel created")
+        NativeLog.d(TAG, "Alarm notification channel created")
     }
 
     private fun canPostNotifications(context: Context): Boolean {

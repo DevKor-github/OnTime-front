@@ -23,7 +23,6 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowInsets
@@ -57,7 +56,7 @@ class AlarmRingingActivity : Activity() {
             if (intent.action != NativeAlarmReceiver.ACTION_ALARM_DISMISSED) return
             val dismissedId = intent.getIntExtra("nativeAlarmId", -1)
             if (dismissedId == requestCode) {
-                Log.d(TAG, "AlarmRingingActivity received dismiss broadcast requestCode=$requestCode")
+                NativeLog.d(TAG, "AlarmRingingActivity received dismiss broadcast requestCode=$requestCode")
                 dismissAlarm()
             }
         }
@@ -65,7 +64,7 @@ class AlarmRingingActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "AlarmRingingActivity onCreate action=${intent?.action} extras=${intent?.extras}")
+        NativeLog.d(TAG, "AlarmRingingActivity onCreate action=${intent?.action} extras=${intent?.extras}")
         configureWindow()
         capturePayload(intent)
         buildContent()
@@ -75,7 +74,7 @@ class AlarmRingingActivity : Activity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d(TAG, "AlarmRingingActivity onNewIntent action=${intent.action} extras=${intent.extras}")
+        NativeLog.d(TAG, "AlarmRingingActivity onNewIntent action=${intent.action} extras=${intent.extras}")
         setIntent(intent)
         if (intent.action == NativeAlarmReceiver.ACTION_DISMISS_ALARM) {
             dismissAlarm()
@@ -301,7 +300,7 @@ class AlarmRingingActivity : Activity() {
         dialView?.startPulseAnimation()
         handler.removeCallbacks(autoStopRunnable)
         handler.postDelayed(autoStopRunnable, MAX_RING_DURATION_MS)
-        Log.d(
+        NativeLog.d(
             TAG,
             "AlarmRingingActivity ringing started requestCode=$requestCode " +
                 "scheduleId=${payload["scheduleId"]}",
@@ -358,7 +357,7 @@ class AlarmRingingActivity : Activity() {
             statusView.text = "Alarm stopped. You can still start preparing."
         }
         stopped = true
-        Log.d(TAG, "AlarmRingingActivity ringing stopped requestCode=$requestCode")
+        NativeLog.d(TAG, "AlarmRingingActivity ringing stopped requestCode=$requestCode")
     }
 
     private fun startPreparing() {
@@ -367,7 +366,7 @@ class AlarmRingingActivity : Activity() {
         val launchPayload = payload.toMutableMap().apply {
             put("alarmLaunchAction", "startPreparation")
         }
-        Log.d(
+        NativeLog.d(
             TAG,
             "AlarmRingingActivity start preparing handoff requestCode=$requestCode " +
                 "scheduleId=${launchPayload["scheduleId"]}",

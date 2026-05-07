@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -23,12 +22,12 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
-        Log.d(TAG, "NativeAlarmBootReceiver onReceive action=$action")
+        NativeLog.d(TAG, "NativeAlarmBootReceiver onReceive action=$action")
         if (
             action != Intent.ACTION_BOOT_COMPLETED &&
             action != AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
         ) {
-            Log.d(TAG, "Ignoring boot receiver action=$action")
+            NativeLog.d(TAG, "Ignoring boot receiver action=$action")
             return
         }
         restorePersistedNativeAlarms(context)
@@ -43,27 +42,27 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
     private fun restorePersistedNativeAlarms(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
         if (alarmManager == null) {
-            Log.w(TAG, "restorePersistedNativeAlarms skipped: AlarmManager unavailable")
+            NativeLog.w(TAG, "restorePersistedNativeAlarms skipped: AlarmManager unavailable")
             return
         }
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             !alarmManager.canScheduleExactAlarms()
         ) {
-            Log.w(TAG, "restorePersistedNativeAlarms skipped: exact alarm permission denied")
+            NativeLog.w(TAG, "restorePersistedNativeAlarms skipped: exact alarm permission denied")
             return
         }
         val rawRegistry = context.getSharedPreferences(FLUTTER_PREF_NAME, Context.MODE_PRIVATE)
             .getString(REGISTRY_PREF_KEY, null)
         if (rawRegistry == null) {
-            Log.d(TAG, "restorePersistedNativeAlarms skipped: empty registry")
+            NativeLog.d(TAG, "restorePersistedNativeAlarms skipped: empty registry")
             return
         }
         val now = System.currentTimeMillis()
         val records = try {
             JSONArray(rawRegistry)
         } catch (error: Exception) {
-            Log.w(TAG, "restorePersistedNativeAlarms registry parse failed", error)
+            NativeLog.w(TAG, "restorePersistedNativeAlarms registry parse failed", error)
             return
         }
 
@@ -86,19 +85,19 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
             }
             val alarmTime = parseAlarmTime(record.optString("alarmTime"))
             if (alarmTime == null) {
-                Log.w(TAG, "Skipping restore with unparsable alarmTime scheduleId=$scheduleId")
+                NativeLog.w(TAG, "Skipping restore with unparsable alarmTime scheduleId=$scheduleId")
                 skippedCount += 1
                 continue
             }
             if (alarmTime <= now) {
-                Log.d(TAG, "Skipping restore for past alarm scheduleId=$scheduleId alarmTime=$alarmTime")
+                NativeLog.d(TAG, "Skipping restore for past alarm scheduleId=$scheduleId alarmTime=$alarmTime")
                 skippedCount += 1
                 continue
             }
             val pendingIntent = pendingIntentFor(context, record)
             val showIntent = showIntentFor(context, record)
             if (pendingIntent == null || showIntent == null) {
-                Log.w(TAG, "Restore skipped: unable to build alarm pending intents scheduleId=$scheduleId")
+                NativeLog.w(TAG, "Restore skipped: unable to build alarm pending intents scheduleId=$scheduleId")
                 skippedCount += 1
                 continue
             }
@@ -106,16 +105,16 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
             try {
                 alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
                 restoredCount += 1
-                Log.d(
+                NativeLog.d(
                     TAG,
                     "Restored native alarm scheduleId=$scheduleId alarmTime=$alarmTime",
                 )
             } catch (error: SecurityException) {
                 skippedCount += 1
-                Log.e(TAG, "Restore failed permission denied scheduleId=$scheduleId", error)
+                NativeLog.e(TAG, "Restore failed permission denied scheduleId=$scheduleId", error)
             }
         }
-        Log.d(
+        NativeLog.d(
             TAG,
             "restorePersistedNativeAlarms complete restored=$restoredCount " +
                 "skipped=$skippedCount total=${records.length()}",

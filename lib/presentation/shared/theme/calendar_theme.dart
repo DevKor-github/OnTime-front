@@ -63,6 +63,7 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
         titleCentered: true,
         leftChevronVisible: false,
         rightChevronVisible: false,
+        headerPadding: EdgeInsets.zero,
         leftChevronIcon: Icon(
           Icons.chevron_left,
           color: colorScheme.outlineVariant,
@@ -82,6 +83,7 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
         outsideDaysVisible: false,
         weekendTextStyle: textTheme.bodyLarge!,
         defaultTextStyle: textTheme.bodyLarge!,
+        cellMargin: const EdgeInsets.all(2.0),
         markerDecoration: BoxDecoration(
           color: colorScheme.primary,
           shape: BoxShape.circle,

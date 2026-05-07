@@ -12,6 +12,7 @@ import 'package:on_time_front/presentation/alarm/components/alarm_screen_top_sec
 import 'package:on_time_front/presentation/alarm/components/preparation_completion_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
   bool _hasShownCompletionDialog = false;
   bool _isContinuingAfterCompletion = false;
   bool _navigateAfterFinish = false;
+  bool _didNavigateForNotExistsTransition = false;
   int? _pendingEarlyLateSeconds;
   bool? _pendingIsLate;
   Timer? _uiTickerTimer;
@@ -46,6 +48,13 @@ class _AlarmScreenState extends State<AlarmScreen> {
   void _resetCompletionUiState() {
     _hasShownCompletionDialog = false;
     _isContinuingAfterCompletion = false;
+  }
+
+  void _navigateHomeAfterFrame(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !context.mounted) return;
+      context.go('/home');
+    });
   }
 
   Duration _timeRemainingBeforeLeaving(ScheduleWithPreparationEntity schedule) {
@@ -120,13 +129,17 @@ class _AlarmScreenState extends State<AlarmScreen> {
       listener: (context, scheduleState) {
         final earlyLateSeconds = _pendingEarlyLateSeconds;
         final isLate = _pendingIsLate;
+        _didNavigateForNotExistsTransition = true;
 
         if (_navigateAfterFinish &&
             earlyLateSeconds != null &&
             isLate != null) {
           _resetFinishNavigation();
           context.go(
-            '/earlyLate',
+            earlyLateRouteLocation(
+              earlyLateTime: earlyLateSeconds,
+              isLate: isLate,
+            ),
             extra: {
               'earlyLateTime': earlyLateSeconds,
               'isLate': isLate,
@@ -145,6 +158,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
             final schedule = scheduleState.schedule!;
             final preparation = schedule.preparation;
             final scheduleChanged = _completionScheduleId != schedule.id;
+            _didNavigateForNotExistsTransition = false;
 
             if (scheduleChanged) {
               _completionScheduleId = schedule.id;
@@ -181,19 +195,32 @@ class _AlarmScreenState extends State<AlarmScreen> {
               });
             }
 
-            _ensureUiTicker(preparation.isAllStepsDone &&
-                _isContinuingAfterCompletion);
+            _ensureUiTicker(
+                preparation.isAllStepsDone && _isContinuingAfterCompletion);
             return _buildAlarmScreen(
               schedule: schedule,
             );
           } else if (scheduleState.status == ScheduleStatus.upcoming &&
               scheduleState.schedule != null) {
             _completionScheduleId = scheduleState.schedule!.id;
+            _didNavigateForNotExistsTransition = false;
             _resetCompletionUiState();
             _ensureUiTicker(true);
             return _buildEarlyStartReadyScreen(scheduleState.schedule!);
+          } else if (scheduleState.status == ScheduleStatus.notExists) {
+            _completionScheduleId = null;
+            _resetCompletionUiState();
+            _ensureUiTicker(false);
+            if (!_navigateAfterFinish && !_didNavigateForNotExistsTransition) {
+              _navigateHomeAfterFrame(context);
+            }
+            return const Scaffold(
+              backgroundColor: Color(0xff5C79FB),
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             _completionScheduleId = null;
+            _didNavigateForNotExistsTransition = false;
             _resetCompletionUiState();
             _ensureUiTicker(false);
             return const Scaffold(
@@ -236,17 +263,22 @@ class _AlarmScreenState extends State<AlarmScreen> {
     final timeRemainingBeforeLeaving = _timeRemainingBeforeLeaving(schedule);
     final isLate = timeRemainingBeforeLeaving.isNegative;
     final preparation = schedule.preparation;
-    final isLateContinueMode =
-        preparation.isAllStepsDone && _isContinuingAfterCompletion && isLate;
-    final timerLabel =
-        isLateContinueMode ? '지각이에요' : preparation.currentStepName;
+    final l10n = AppLocalizations.of(context)!;
+    final isContinuingAfterCompletion =
+        preparation.isAllStepsDone && _isContinuingAfterCompletion;
+    final isLateContinueMode = isContinuingAfterCompletion && isLate;
+    final isReadyContinueMode = isContinuingAfterCompletion && !isLate;
+    final timerLabel = isLateContinueMode
+        ? '지각이에요'
+        : isReadyContinueMode
+            ? l10n.preparationReadyToGo
+            : preparation.currentStepName;
     final displayProgress = isLateContinueMode ? 0.0 : preparation.progress;
-    final displayRemainingSeconds = preparation.isAllStepsDone &&
-            _isContinuingAfterCompletion
+    final displayRemainingSeconds = isContinuingAfterCompletion
         ? timeRemainingBeforeLeaving.inSeconds.abs()
         : preparation.currentStepRemainingTime.inSeconds;
 
-    if (!(preparation.isAllStepsDone && _isContinuingAfterCompletion)) {
+    if (!isContinuingAfterCompletion) {
       _ensureUiTicker(false);
     }
 
@@ -315,8 +347,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
   Widget _buildEarlyStartReadyScreen(ScheduleWithPreparationEntity schedule) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final remaining =
-        schedule.preparationStartTime.difference(widget.nowProvider()).inSeconds;
+    final remaining = schedule.preparationStartTime
+        .difference(widget.nowProvider())
+        .inSeconds;
     final clampedRemaining = remaining.isNegative ? 0 : remaining;
 
     return Scaffold(

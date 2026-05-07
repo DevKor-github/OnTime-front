@@ -9,24 +9,56 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
 
 enum ScheduleStartPromptVariant {
-  defaultPrompt,
-  fiveMinutes,
+  officialStart,
   earlyStart,
+  alarm,
+}
+
+enum ScheduleStartLaunchAction {
+  prompt,
+  startPreparation,
 }
 
 ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
   String? value,
 ) {
   switch (value) {
-    case 'fiveMinutes':
-      return ScheduleStartPromptVariant.fiveMinutes;
     case 'earlyStart':
+    case 'fiveMinutes':
       return ScheduleStartPromptVariant.earlyStart;
+    case 'alarm':
+      return ScheduleStartPromptVariant.alarm;
     default:
-      return ScheduleStartPromptVariant.defaultPrompt;
+      return ScheduleStartPromptVariant.officialStart;
+  }
+}
+
+ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteExtra(
+  Map<String, dynamic>? extra,
+) {
+  final isFiveMinutesBefore =
+      routeBoolValue(extra?['isFiveMinutesBefore']) ?? false;
+  if (isFiveMinutesBefore) {
+    return ScheduleStartPromptVariant.earlyStart;
+  }
+  return scheduleStartPromptVariantFromRouteValue(
+    routeStringValue(extra?['promptVariant']),
+  );
+}
+
+ScheduleStartLaunchAction scheduleStartLaunchActionFromRouteExtra(
+  Map<String, dynamic>? extra,
+) {
+  switch (routeStringValue(extra?['alarmLaunchAction'])) {
+    case 'startPreparation':
+    case 'startPreparing':
+      return ScheduleStartLaunchAction.startPreparation;
+    default:
+      return ScheduleStartLaunchAction.prompt;
   }
 }
 
@@ -40,7 +72,7 @@ class ScheduleStartScreen extends StatefulWidget {
 
   const ScheduleStartScreen({
     super.key,
-    this.promptVariant = ScheduleStartPromptVariant.defaultPrompt,
+    this.promptVariant = ScheduleStartPromptVariant.officialStart,
     this.isFiveMinutesBefore = false,
   });
 
@@ -75,14 +107,14 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
   }
 
   ScheduleStartPromptVariant _resolvedPromptVariant() {
-    if (widget.promptVariant != ScheduleStartPromptVariant.defaultPrompt) {
+    if (widget.promptVariant != ScheduleStartPromptVariant.officialStart) {
       return widget.promptVariant;
     }
     // ignore: deprecated_member_use_from_same_package
     if (widget.isFiveMinutesBefore) {
-      return ScheduleStartPromptVariant.fiveMinutes;
+      return ScheduleStartPromptVariant.earlyStart;
     }
-    return ScheduleStartPromptVariant.defaultPrompt;
+    return ScheduleStartPromptVariant.officialStart;
   }
 
   String _buildPromptMessage(
@@ -91,11 +123,10 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     ScheduleWithPreparationEntity? schedule,
   ) {
     switch (variant) {
-      case ScheduleStartPromptVariant.fiveMinutes:
-        return AppLocalizations.of(context)!.preparationStartsInFiveMinutes;
       case ScheduleStartPromptVariant.earlyStart:
+      case ScheduleStartPromptVariant.alarm:
         return _buildEarlyStartPromptMessage(context, schedule);
-      case ScheduleStartPromptVariant.defaultPrompt:
+      case ScheduleStartPromptVariant.officialStart:
         return AppLocalizations.of(context)!.youWillBeLate;
     }
   }
@@ -123,7 +154,8 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     BuildContext context,
     ScheduleStartPromptVariant variant,
   ) {
-    if (variant != ScheduleStartPromptVariant.defaultPrompt) {
+    if (variant == ScheduleStartPromptVariant.earlyStart ||
+        variant == ScheduleStartPromptVariant.alarm) {
       context.read<ScheduleBloc>().add(const SchedulePreparationStarted());
     }
     context.go('/alarmScreen');
@@ -238,8 +270,9 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
               _onPrimaryActionPressed(context, variant);
             },
             child: Text(
-              variant == ScheduleStartPromptVariant.earlyStart
-                  ? l10n.prepareEarly
+              variant == ScheduleStartPromptVariant.earlyStart ||
+                      variant == ScheduleStartPromptVariant.alarm
+                  ? l10n.startPreparingNow
                   : l10n.startPreparing,
             ),
           ),
@@ -253,10 +286,10 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     ScheduleStartPromptVariant variant,
   ) {
     switch (variant) {
-      case ScheduleStartPromptVariant.fiveMinutes:
-        return _buildTwoButtonLayout(context, variant);
       case ScheduleStartPromptVariant.earlyStart:
-      case ScheduleStartPromptVariant.defaultPrompt:
+      case ScheduleStartPromptVariant.alarm:
+        return _buildTwoButtonLayout(context, variant);
+      case ScheduleStartPromptVariant.officialStart:
         return _buildPrimaryButton(context, variant);
     }
   }
@@ -278,7 +311,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                 onPressed: () async {
                   _onPrimaryActionPressed(context, variant);
                 },
-                child: Text(AppLocalizations.of(context)!.startPreparing),
+                child: Text(AppLocalizations.of(context)!.startPreparingNow),
               ),
             ),
             const SizedBox(height: 12),
@@ -294,11 +327,7 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                       Theme.of(context).colorScheme.primaryContainer,
                   foregroundColor: Theme.of(context).colorScheme.primary,
                 ),
-                child: Text(
-                  variant == ScheduleStartPromptVariant.fiveMinutes
-                      ? AppLocalizations.of(context)!.startInFiveMinutes
-                      : AppLocalizations.of(context)!.home,
-                ),
+                child: Text(AppLocalizations.of(context)!.notNow),
               ),
             ),
           ],

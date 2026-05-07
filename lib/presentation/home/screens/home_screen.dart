@@ -12,6 +12,7 @@ import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/home/utils/today_tile_navigation.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,10 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
       create: (context) => getIt.get<WeeklySchedulesBloc>()
         ..add(WeeklySchedulesSubscriptionRequested(date: dateOfToday)),
       child: BlocListener<ScheduleBloc, ScheduleState>(
+        listenWhen: (previous, current) {
+          return previous.status != ScheduleStatus.started &&
+              current.status == ScheduleStatus.started;
+        },
         listener: (context, scheduleState) {
-          if (scheduleState.status == ScheduleStatus.started) {
-            context.go('/scheduleStart');
-          }
+          context.go('/scheduleStart');
         },
         child: BlocBuilder<WeeklySchedulesBloc, WeeklySchedulesState>(
           builder: (context, state) {
@@ -216,7 +219,7 @@ class _WeekCalendar extends StatelessWidget {
     return WeekCalendar(
       date: DateTime.now(),
       onDateSelected: (date) {
-        context.go('/calendar', extra: date);
+        context.go(calendarRouteLocation(date), extra: date);
       },
       highlightedDates: weeklySchedulesState.dates,
     );

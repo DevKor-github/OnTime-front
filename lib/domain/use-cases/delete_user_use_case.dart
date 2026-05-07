@@ -9,20 +9,16 @@ class DeleteUserUseCase {
   DeleteUserUseCase(this._userRepository);
 
   Future<void> call(String feedbackMessage) async {
-    try {
-      await _userRepository.postFeedback(feedbackMessage);
-    } catch (_) {}
-
     final socialTypeString = await _userRepository.getUserSocialType();
     final socialType = socialTypeFromString(socialTypeString);
 
     if (socialType == SocialType.google) {
+      await _userRepository.deleteGoogleUser(feedbackMessage: feedbackMessage);
       await _userRepository.disconnectGoogleSignIn();
-      await _userRepository.deleteGoogleUser();
     } else if (socialType == SocialType.apple) {
-      await _userRepository.deleteAppleUser();
+      await _userRepository.deleteAppleUser(feedbackMessage: feedbackMessage);
     } else {
-      await _userRepository.deleteUser();
+      await _userRepository.deleteUser(feedbackMessage: feedbackMessage);
     }
   }
 }

@@ -135,7 +135,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         placeId: Uuid().v7(),
         placeName: null,
         scheduleName: null,
-        scheduleTime: null,
+        scheduleTime: initialScheduleTime,
         moveTime: null,
         isChanged: null,
         scheduleSpareTime: userSpareTime,

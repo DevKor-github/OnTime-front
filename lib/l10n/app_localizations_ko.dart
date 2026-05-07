@@ -27,6 +27,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get setSpareTimeWarning => '여유시간은 혹시 모를 상황을 위해 꼭 설정해야 돼요.';
 
   @override
+  String get spareTimeMinimumWarning => '여유시간은 10분 아래로 설정할 수 없어요';
+
+  @override
   String get todaysAppointments => '오늘의 약속';
 
   @override
@@ -82,6 +85,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get finishPreparation => '준비 종료';
+
+  @override
+  String get preparationReadyToGo => '출발 준비 완료';
 
   @override
   String get signInSlogan => '당신의 잃어버린 여유를 찾아드립니다.';
@@ -179,7 +185,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get startPreparing => '준비 시작';
 
   @override
-  String get prepareEarly => '미리 준비하기';
+  String get startPreparingNow => '지금 준비 시작';
+
+  @override
+  String get notNow => '나중에';
 
   @override
   String get confirmLeave => '정말 나가시겠어요?';
@@ -316,9 +325,6 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get preparationStartsInFiveMinutes =>
       '5분 뒤에 준비가 시작돼요.\n미리 준비를 시작하시겠어요?';
-
-  @override
-  String get startInFiveMinutes => '5분 뒤에 시작하기';
 
   @override
   String preparationStartsEarlyBy(String duration) {

@@ -1,6 +1,5 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 
 /// A wrapper transformer that logs the exact serialized request payload
 /// produced by Dio's inner transformer. This reflects the precise string
@@ -14,9 +13,10 @@ class LoggingTransformer implements Transformer {
   @override
   Future<String> transformRequest(RequestOptions options) async {
     final body = await _inner.transformRequest(options);
-    try {
-      log('🧾 Serialized body (${options.method} ${options.uri}): $body');
-    } catch (_) {}
+    AppLogger.debug(
+      'Serialized request body=${AppLogger.omitted} '
+      '${options.method} ${AppLogger.redactUri(options.uri)} bytes=${body.length}',
+    );
     return body;
   }
 

@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'You must set a spare time in case of unexpected situations.'**
   String get setSpareTimeWarning;
 
+  /// Warning shown when onboarding spare time is at the minimum value
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum spare time is 10 minutes'**
+  String get spareTimeMinimumWarning;
+
   /// Title for today's appointments section on the home screen
   ///
   /// In en, this message translates to:
@@ -241,6 +247,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish Preparation'**
   String get finishPreparation;
+
+  /// Center timer label shown after all preparation steps are complete and there is still time before leaving
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to go'**
+  String get preparationReadyToGo;
 
   /// Slogan on the sign-in screen
   ///
@@ -422,11 +434,17 @@ abstract class AppLocalizations {
   /// **'Start Preparing'**
   String get startPreparing;
 
-  /// Button text on the early-start screen to start preparing before the scheduled preparation time
+  /// Primary button text on the early-start screen to start preparing immediately
   ///
   /// In en, this message translates to:
-  /// **'Prepare Early'**
-  String get prepareEarly;
+  /// **'Start preparing now'**
+  String get startPreparingNow;
+
+  /// Secondary button text on the early-start screen to decline starting preparation now
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNow;
 
   /// Modal title to confirm leaving the screen
   ///
@@ -673,12 +691,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparation starts in 5 minutes.\nWould you like to start preparing early?'**
   String get preparationStartsInFiveMinutes;
-
-  /// Button text to start in 5 minutes
-  ///
-  /// In en, this message translates to:
-  /// **'Start in 5 minutes'**
-  String get startInFiveMinutes;
 
   /// Message shown when user opens schedule start before preparation start time from home, including the exact lead time
   ///

@@ -16,6 +16,13 @@ class ScheduleDateTimeForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hintStyle = Theme.of(context).inputDecorationTheme.hintStyle ??
+        Theme.of(context).textTheme.bodyLarge;
+    final fadedHintStyle = hintStyle?.copyWith(
+      color: (hintStyle.color ?? Theme.of(context).hintColor)
+          .withValues(alpha: 0.45),
+    );
+
     return BlocBuilder<ScheduleDateTimeCubit, ScheduleDateTimeState>(
         builder: (context, state) {
       return Column(
@@ -31,6 +38,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context)!.appointmentTime,
                     hintText: _localizedDateString(context, DateTime.now()),
+                    hintStyle: fadedHintStyle,
                   ),
                   controller: TextEditingController(
                       text: state.scheduleDate.value == null
@@ -42,7 +50,11 @@ class ScheduleDateTimeForm extends StatelessWidget {
                       title: AppLocalizations.of(context)!.enterDate,
                       mode: CupertinoDatePickerMode.date,
                       initialValue: state.scheduleDate.value ?? DateTime.now(),
-                      onDisposed: () {},
+                      onDisposed: () {
+                        context
+                            .read<ScheduleDateTimeCubit>()
+                            .validateCurrentSelection();
+                      },
                       onSaved: (DateTime newDateTime) {
                         context
                             .read<ScheduleDateTimeCubit>()
@@ -63,7 +75,8 @@ class ScheduleDateTimeForm extends StatelessWidget {
                       labelText: '',
                       hintText: DateFormat.jm(
                               Localizations.localeOf(context).toString())
-                          .format(DateTime.now())),
+                          .format(DateTime.now()),
+                      hintStyle: fadedHintStyle),
                   controller: TextEditingController(
                     text: state.scheduleTime.value == null
                         ? null
@@ -76,7 +89,11 @@ class ScheduleDateTimeForm extends StatelessWidget {
                       title: AppLocalizations.of(context)!.enterTime,
                       mode: CupertinoDatePickerMode.time,
                       initialValue: state.scheduleTime.value ?? DateTime.now(),
-                      onDisposed: () {},
+                      onDisposed: () {
+                        context
+                            .read<ScheduleDateTimeCubit>()
+                            .validateCurrentSelection();
+                      },
                       onSaved: (DateTime newDateTime) {
                         context
                             .read<ScheduleDateTimeCubit>()
@@ -115,7 +132,7 @@ String _localizedDateString(BuildContext context, DateTime date) {
   if (locale == 'ko') {
     return DateFormat('yyyy년 MM월 dd일', 'ko').format(date);
   } else {
-    return DateFormat('yyyy.mm.dd.', Localizations.localeOf(context).toString())
+    return DateFormat('yyyy.MM.dd.', Localizations.localeOf(context).toString())
         .format(date);
   }
 }

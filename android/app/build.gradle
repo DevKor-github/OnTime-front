@@ -1,21 +1,80 @@
 plugins {
     id "com.android.application"
-    // START: FlutterFire Configuration
-    id 'com.google.gms.google-services'
-    // END: FlutterFire Configuration
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def googleServicesConfigFiles = [
+    file("google-services.json"),
+    file("src/${gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') } ? 'release' : 'debug'}/google-services.json"),
+    file("src/google-services.json"),
+]
+
+if (googleServicesConfigFiles.any { it.exists() }) {
+    apply plugin: "com.google.gms.google-services"
+} else {
+    logger.lifecycle("google-services.json not found; skipping Google Services plugin for this local build.")
+}
+
+def isReleaseTask = gradle.startParameter.taskNames.any { it.toLowerCase().contains("release") }
+def releaseSigningProperties = new Properties()
+def releaseSigningPropertiesFile = rootProject.file("key.properties")
+
+if (releaseSigningPropertiesFile.exists()) {
+    releaseSigningPropertiesFile.withInputStream { releaseSigningProperties.load(it) }
+}
+
+def releaseSigningValue = { propertyName, environmentName, legacyEnvironmentName ->
+    releaseSigningProperties.getProperty(propertyName)
+        ?: System.getenv(environmentName)
+        ?: System.getenv(legacyEnvironmentName)
+}
+
+def releaseKeystorePath = releaseSigningValue("storeFile", "ANDROID_KEYSTORE_PATH", "ONTIME_ANDROID_KEYSTORE_PATH")
+def releaseKeystorePassword = releaseSigningValue("storePassword", "ANDROID_KEYSTORE_PASSWORD", "ONTIME_ANDROID_KEYSTORE_PASSWORD")
+def releaseKeyAlias = releaseSigningValue("keyAlias", "ANDROID_KEY_ALIAS", "ONTIME_ANDROID_KEY_ALIAS")
+def releaseKeyPassword = releaseSigningValue("keyPassword", "ANDROID_KEY_PASSWORD", "ONTIME_ANDROID_KEY_PASSWORD")
+def releaseKeystoreFile = releaseKeystorePath ? file(releaseKeystorePath) : null
+
+if (isReleaseTask) {
+    def missingReleaseSigningInputs = []
+
+    if (!releaseKeystorePath) {
+        missingReleaseSigningInputs << "storeFile, ANDROID_KEYSTORE_PATH, or ONTIME_ANDROID_KEYSTORE_PATH"
+    }
+    if (!releaseKeystorePassword) {
+        missingReleaseSigningInputs << "storePassword, ANDROID_KEYSTORE_PASSWORD, or ONTIME_ANDROID_KEYSTORE_PASSWORD"
+    }
+    if (!releaseKeyAlias) {
+        missingReleaseSigningInputs << "keyAlias, ANDROID_KEY_ALIAS, or ONTIME_ANDROID_KEY_ALIAS"
+    }
+    if (!releaseKeyPassword) {
+        missingReleaseSigningInputs << "keyPassword, ANDROID_KEY_PASSWORD, or ONTIME_ANDROID_KEY_PASSWORD"
+    }
+
+    if (releaseKeystoreFile && !releaseKeystoreFile.exists()) {
+        missingReleaseSigningInputs << "existing keystore file at ${releaseKeystoreFile}"
+    }
+
+    if (!missingReleaseSigningInputs.empty) {
+        throw new GradleException("Android release signing is required for release builds. Missing: ${missingReleaseSigningInputs.join(', ')}. Configure android/key.properties or Android release signing environment variables.")
+    }
+}
+
 android {
-    namespace = "com.example.ontime"
+    namespace = "club.devkor.ontime"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     kotlinOptions {
@@ -23,25 +82,39 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.on_time_front"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "club.devkor.ontime"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders = [
+            applicationName: "android.app.Application",
+            appAuthRedirectScheme: applicationId
+        ]
+    }
+
+    signingConfigs {
+        release {
+            if (releaseKeystoreFile) {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.release
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
 }

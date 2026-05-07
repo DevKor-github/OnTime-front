@@ -23,6 +23,10 @@
     "@setSpareTimeWarning": {
         "description": "Warning for setting spare time during onboarding"
     },
+    "spareTimeMinimumWarning": "Minimum spare time is 10 minutes",
+    "@spareTimeMinimumWarning": {
+        "description": "Warning shown when onboarding spare time is at the minimum value"
+    },
     "todaysAppointments": "Today's Appointments",
     "@todaysAppointments": {
         "description": "Title for today's appointments section on the home screen"
@@ -94,6 +98,10 @@
     "finishPreparation": "Finish Preparation",
     "@finishPreparation": {
         "description": "Button text to finish preparing"
+    },
+    "preparationReadyToGo": "Ready to go",
+    "@preparationReadyToGo": {
+        "description": "Center timer label shown after all preparation steps are complete and there is still time before leaving"
     },
     "signInSlogan": "We'll find your lost leisure.",
     "@signInSlogan": {
@@ -225,9 +233,13 @@
     "@startPreparing": {
         "description": "Button text to start preparing"
     },
-    "prepareEarly": "Prepare Early",
-    "@prepareEarly": {
-        "description": "Button text on the early-start screen to start preparing before the scheduled preparation time"
+    "startPreparingNow": "Start preparing now",
+    "@startPreparingNow": {
+        "description": "Primary button text on the early-start screen to start preparing immediately"
+    },
+    "notNow": "Not now",
+    "@notNow": {
+        "description": "Secondary button text on the early-start screen to decline starting preparation now"
     },
     "confirmLeave": "Are you sure you want to leave?",
     "@confirmLeave": {
@@ -426,10 +438,6 @@
     "preparationStartsInFiveMinutes": "Preparation starts in 5 minutes.\nWould you like to start preparing early?",
     "@preparationStartsInFiveMinutes": {
         "description": "Message shown when receiving 5 minutes before notification"
-    },
-    "startInFiveMinutes": "Start in 5 minutes",
-    "@startInFiveMinutes": {
-        "description": "Button text to start in 5 minutes"
     },
     "preparationStartsEarlyBy": "You're starting {duration} early.\nWould you like to start preparing early now?",
     "@preparationStartsEarlyBy": {

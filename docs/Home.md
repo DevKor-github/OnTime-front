@@ -8,9 +8,12 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Wiki Management Guide](./Wiki-Management.md) - How to modify and upload wiki content
 - [Project Architecture](./Architecture.md) - Understanding the project structure
 - [Git Workflow](./Git.md) - Git strategy and commit message formats
+- [Android Release Signing](./Android-Release-Signing.md) - Required keystore inputs and release signing validation
+- [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
 
 ### Technical Deep Dives
 - [Error Handling System](./Error-Handling-Result-System.md) - Result-based error handling architecture
+- [Schedule Preparation Flow SRD](./Schedule-Preparation-SRD.md) - End-to-end requirements, diagrams, and branch coverage for preparation start through finish, including early start
 - [Schedule Timer & Runtime Flow (v2)](./Schedule-Timer-System.md) - Official behavior for early start, timer transitions, cache coherence, and verification matrix
 
 ### Development Resources

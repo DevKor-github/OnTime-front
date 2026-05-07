@@ -41,6 +41,7 @@ class _OnboardingFormState extends State<_OnboardingForm>
     with TickerProviderStateMixin {
   late PageController _pageViewController;
   late TabController _tabController;
+  bool _isSubmitting = false;
   final List<Type> _pageCubitTypes = [
     PreparationNameCubit,
     PreparationOrderCubit,
@@ -114,11 +115,19 @@ class _OnboardingFormState extends State<_OnboardingForm>
                     height: 58,
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: context.select(
-                              (OnboardingCubit cubit) => cubit.state.isValid)
+                      onPressed: !_isSubmitting &&
+                              context.select((OnboardingCubit cubit) =>
+                                  cubit.state.isValid)
                           ? () => _onNextPageButtonClicked(context)
                           : null,
-                      child: Text(AppLocalizations.of(context)!.next),
+                      child: _isSubmitting
+                          ? const SizedBox.square(
+                              dimension: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(AppLocalizations.of(context)!.next),
                     )),
               ],
             );
@@ -146,7 +155,25 @@ class _OnboardingFormState extends State<_OnboardingForm>
     if (_tabController.index < _tabController.length - 1) {
       _updateCurrentPageIndex(_tabController.index + 1);
     } else {
-      return await context.read<OnboardingCubit>().onboardingFormSubmitted();
+      setState(() {
+        _isSubmitting = true;
+      });
+      try {
+        await context.read<OnboardingCubit>().onboardingFormSubmitted();
+      } catch (_) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.error),
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+      }
     }
   }
 

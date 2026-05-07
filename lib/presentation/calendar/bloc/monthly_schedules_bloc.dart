@@ -65,7 +65,12 @@ class MonthlySchedulesBloc
   ) async {
     emit(state.copyWith(status: () => MonthlySchedulesStatus.loading));
 
-    await _loadSchedulesForMonthUseCase(event.date);
+    try {
+      await _loadSchedulesForMonthUseCase(event.date);
+    } catch (_) {
+      emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
+      return;
+    }
 
     await emit.forEach(
       _getSchedulesByDateUseCase(event.startDate, event.endDate),
@@ -121,7 +126,12 @@ class MonthlySchedulesBloc
         endDate: () => endDate,
       ));
 
-      await _loadSchedulesForMonthUseCase(event.date);
+      try {
+        await _loadSchedulesForMonthUseCase(event.date);
+      } catch (_) {
+        emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
+        return;
+      }
     }
 
     debugPrint('startDate: $startDate, endDate: $endDate');

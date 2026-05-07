@@ -25,7 +25,7 @@ class GetNearestUpcomingScheduleUseCase {
   Stream<ScheduleWithPreparationEntity?> call() async* {
     final DateTime now = DateTime.now();
 
-    _loadSchedulesForWeekUseCase(now);
+    unawaited(_loadSchedulesForWeekUseCase(now).catchError((_) {}));
 
     final upcomingScheduleStream =
         _getScheduleByDateUseCase(now, now.add(const Duration(days: 2)));

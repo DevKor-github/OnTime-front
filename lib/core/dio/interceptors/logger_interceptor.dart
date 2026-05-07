@@ -1,25 +1,37 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 
 class LoggerInterceptor implements Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    log('❌ Dio Error!');
-    log('❌ Url: ${err.requestOptions.uri}');
-    log('❌ Data: ${err.requestOptions.data}');
-    log('❌ ${err.stackTrace}');
-    log('❌ Response Error: ${err.response?.data}');
-    log('❌ Response Message: ${err.message}');
+    AppLogger.debug(
+      'Dio error '
+      '${err.requestOptions.method} '
+      '${AppLogger.redactUri(err.requestOptions.uri)} '
+      'status=${err.response?.statusCode} '
+      'type=${err.type} '
+      'message=${err.message}',
+    );
+    AppLogger.debug(
+      'Dio error headers=${AppLogger.redactValue(err.requestOptions.headers)}',
+    );
     return handler.next(err);
   }
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    log('🌍 Sending network request: ${options.baseUrl}${options.path}');
-    log('🌍 Header: ${options.headers}');
-    log('🌍 Query: ${options.queryParameters}');
-    log('🌍 Data: ${options.data}');
+    AppLogger.debug(
+      'Dio request ${options.method} ${AppLogger.redactUri(options.uri)}',
+    );
+    AppLogger.debug('Dio headers=${AppLogger.redactValue(options.headers)}');
+    AppLogger.debug(
+      'Dio query=${AppLogger.redactValue(options.queryParameters)}',
+    );
+    if (options.data != null) {
+      AppLogger.debug(
+        'Dio request body=${AppLogger.omitted} type=${options.data.runtimeType}',
+      );
+    }
 
     return handler.next(options);
   }
@@ -29,15 +41,19 @@ class LoggerInterceptor implements Interceptor {
     Response<dynamic> response,
     ResponseInterceptorHandler handler,
   ) {
-    log('⬅️ Received network response');
-    if (response.data is Map && response.data['status'] != null) {
-      log('${'✅ ${response.data['status']} ✅'} ${response.requestOptions.baseUrl}${response.requestOptions.path}');
-    } else {
-      log('${'✅ ${response.statusCode} ✅'} ${response.requestOptions.baseUrl}${response.requestOptions.path}');
+    AppLogger.debug(
+      'Dio response ${response.requestOptions.method} '
+      '${AppLogger.redactUri(response.requestOptions.uri)} '
+      'status=${response.statusCode}',
+    );
+    AppLogger.debug(
+      'Dio query=${AppLogger.redactValue(response.requestOptions.queryParameters)}',
+    );
+    if (response.data != null) {
+      AppLogger.debug(
+        'Dio response body=${AppLogger.omitted} type=${response.data.runtimeType}',
+      );
     }
-    log('Query params: ${response.requestOptions.queryParameters}');
-    log('Response Data: ${response.data}');
-    log('-------------------------');
     return handler.next(response);
   }
 }

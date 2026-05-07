@@ -16,15 +16,12 @@ class SignInWithAppleRequestModel {
     this.email,
   });
 
+  factory SignInWithAppleRequestModel.fromJson(Map<String, dynamic> json) =>
+      _$SignInWithAppleRequestModelFromJson(json);
+
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> map = {
-      'idToken': idToken,
-      'authCode': authCode,
-      'fullName': fullName,
-    };
-    if (email != null) {
-      map['email'] = email;
-    }
+    final map = _$SignInWithAppleRequestModelToJson(this);
+    map.removeWhere((key, value) => value == null);
     return map;
   }
 }

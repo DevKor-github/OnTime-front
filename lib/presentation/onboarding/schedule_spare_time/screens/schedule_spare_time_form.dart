@@ -14,7 +14,7 @@ class ScheduleSpareTimeForm extends StatefulWidget {
 
 class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
   Duration spareTime = Duration(minutes: 30);
-  final Duration lowerBound = Duration(minutes: 0);
+  final Duration lowerBound = Duration(minutes: 10);
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +42,14 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
       child: ScheduleSpareTimeField(
         lowerBound: lowerBound,
         spareTime: spareTime,
+        minimumWarningMessage:
+            AppLocalizations.of(context)!.spareTimeMinimumWarning,
         onSpareTimeDecreased: () {
           setState(() {
-            spareTime -= Duration(minutes: 10);
+            final updatedSpareTime = spareTime - Duration(minutes: 10);
+            if (updatedSpareTime >= lowerBound) {
+              spareTime = updatedSpareTime;
+            }
           });
         },
         onSpareTimeIncreased: () {

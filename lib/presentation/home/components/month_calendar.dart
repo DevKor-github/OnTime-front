@@ -11,11 +11,17 @@ class MonthCalendar extends StatefulWidget {
     required this.monthlySchedulesState,
     this.dispatchBlocEvents = true,
     this.onDateSelected,
+    this.rowHeight = 50,
+    this.daysOfWeekHeight = 40,
+    this.contentPadding = const EdgeInsets.all(16.0),
   });
 
   final MonthlySchedulesState monthlySchedulesState;
   final bool dispatchBlocEvents;
   final void Function(DateTime)? onDateSelected;
+  final double rowHeight;
+  final double daysOfWeekHeight;
+  final EdgeInsetsGeometry contentPadding;
 
   @override
   State<MonthCalendar> createState() => _MonthCalendarState();
@@ -57,7 +63,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
     if (widget.dispatchBlocEvents) {
       context.read<MonthlySchedulesBloc>().add(
             MonthlySchedulesMonthAdded(
-              date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+              date:
+                  DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
             ),
           );
     }
@@ -74,7 +81,8 @@ class _MonthCalendarState extends State<MonthCalendar> {
     if (widget.dispatchBlocEvents) {
       context.read<MonthlySchedulesBloc>().add(
             MonthlySchedulesMonthAdded(
-              date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+              date:
+                  DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
             ),
           );
     }
@@ -85,92 +93,122 @@ class _MonthCalendarState extends State<MonthCalendar> {
     final theme = Theme.of(context);
     final calendarTheme = theme.extension<CalendarTheme>()!;
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: TableCalendar(
-        locale: Localizations.localeOf(context).toString(),
-        eventLoader: (day) {
-          day = DateTime(day.year, day.month, day.day);
-          return widget.monthlySchedulesState.schedules[day] ?? [];
-        },
-        sixWeekMonthsEnforced: true,
-        rowHeight: 50,
-        availableGestures: AvailableGestures.none,
-        focusedDay: _focusedDay,
-        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-        firstDay: _firstDay,
-        lastDay: _lastDay,
-        calendarFormat: CalendarFormat.month,
-        headerStyle: calendarTheme.headerStyle,
-        daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
-        daysOfWeekHeight: 40,
-        calendarStyle: calendarTheme.calendarStyle,
-        onDaySelected: (selectedDay, focusedDay) {
-          final clampedSelectedDay = _clampDay(selectedDay, _firstDay, _lastDay);
-          final clampedFocusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final resolvedPadding =
+            widget.contentPadding.resolve(Directionality.of(context));
+        final constrainedRowHeight = _constrainedRowHeight(
+          maxHeight: constraints.maxHeight,
+          verticalPadding: resolvedPadding.vertical,
+        );
 
-          setState(() {
-            _selectedDay = clampedSelectedDay;
-            _focusedDay = clampedFocusedDay;
-          });
+        return Container(
+          padding: widget.contentPadding,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: TableCalendar(
+            locale: Localizations.localeOf(context).toString(),
+            eventLoader: (day) {
+              day = DateTime(day.year, day.month, day.day);
+              return widget.monthlySchedulesState.schedules[day] ?? [];
+            },
+            sixWeekMonthsEnforced: true,
+            rowHeight: constrainedRowHeight,
+            availableGestures: AvailableGestures.none,
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            firstDay: _firstDay,
+            lastDay: _lastDay,
+            calendarFormat: CalendarFormat.month,
+            headerStyle: calendarTheme.headerStyle,
+            daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
+            daysOfWeekHeight: widget.daysOfWeekHeight,
+            calendarStyle: calendarTheme.calendarStyle,
+            onDaySelected: (selectedDay, focusedDay) {
+              final clampedSelectedDay =
+                  _clampDay(selectedDay, _firstDay, _lastDay);
+              final clampedFocusedDay =
+                  _clampDay(focusedDay, _firstDay, _lastDay);
 
-          widget.onDateSelected?.call(clampedSelectedDay);
-        },
-        onPageChanged: (focusedDay) {
-          final clampedFocusedDay = _clampDay(focusedDay, _firstDay, _lastDay);
+              setState(() {
+                _selectedDay = clampedSelectedDay;
+                _focusedDay = clampedFocusedDay;
+              });
 
-          setState(() {
-            _focusedDay = clampedFocusedDay;
-          });
+              widget.onDateSelected?.call(clampedSelectedDay);
+            },
+            onPageChanged: (focusedDay) {
+              final clampedFocusedDay =
+                  _clampDay(focusedDay, _firstDay, _lastDay);
 
-          if (widget.dispatchBlocEvents) {
-            context.read<MonthlySchedulesBloc>().add(
-                  MonthlySchedulesMonthAdded(
-                    date: DateTime(
-                      clampedFocusedDay.year,
-                      clampedFocusedDay.month,
-                      1,
-                    ),
+              setState(() {
+                _focusedDay = clampedFocusedDay;
+              });
+
+              if (widget.dispatchBlocEvents) {
+                context.read<MonthlySchedulesBloc>().add(
+                      MonthlySchedulesMonthAdded(
+                        date: DateTime(
+                          clampedFocusedDay.year,
+                          clampedFocusedDay.month,
+                          1,
+                        ),
+                      ),
+                    );
+              }
+            },
+            calendarBuilders: CalendarBuilders(
+              headerTitleBuilder: (context, date) {
+                return CenteredCalendarHeader(
+                  focusedMonth: date,
+                  onLeftArrowTap: _onLeftArrowTap,
+                  onRightArrowTap: _onRightArrowTap,
+                  titleTextStyle: calendarTheme.headerStyle.titleTextStyle,
+                  leftIcon: calendarTheme.headerStyle.leftChevronIcon,
+                  rightIcon: calendarTheme.headerStyle.rightChevronIcon,
+                );
+              },
+              selectedBuilder: (context, day, focusedDay) {
+                return Container(
+                  margin: const EdgeInsets.all(4.0),
+                  alignment: Alignment.center,
+                  decoration: calendarTheme.selectedDayDecoration,
+                  child: Text(
+                    day.day.toString(),
+                    style: calendarTheme.selectedDayTextStyle,
                   ),
                 );
-          }
-        },
-        calendarBuilders: CalendarBuilders(
-          headerTitleBuilder: (context, date) {
-            return CenteredCalendarHeader(
-              focusedMonth: date,
-              onLeftArrowTap: _onLeftArrowTap,
-              onRightArrowTap: _onRightArrowTap,
-              titleTextStyle: calendarTheme.headerStyle.titleTextStyle,
-              leftIcon: calendarTheme.headerStyle.leftChevronIcon,
-              rightIcon: calendarTheme.headerStyle.rightChevronIcon,
-            );
-          },
-          selectedBuilder: (context, day, focusedDay) {
-            return Container(
-              margin: const EdgeInsets.all(4.0),
-              alignment: Alignment.center,
-              decoration: calendarTheme.selectedDayDecoration,
-              child: Text(
-                day.day.toString(),
-                style: calendarTheme.selectedDayTextStyle,
+              },
+              todayBuilder: (context, day, focusedDay) => Container(
+                margin: const EdgeInsets.all(4.0),
+                alignment: Alignment.center,
+                decoration: calendarTheme.todayDecoration,
+                child: Text(
+                  day.day.toString(),
+                  style: calendarTheme.todayTextStyle,
+                ),
               ),
-            );
-          },
-          todayBuilder: (context, day, focusedDay) => Container(
-            margin: const EdgeInsets.all(4.0),
-            alignment: Alignment.center,
-            decoration: calendarTheme.todayDecoration,
-            child: Text(
-              day.day.toString(),
-              style: calendarTheme.todayTextStyle,
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
+  }
+
+  double _constrainedRowHeight({
+    required double maxHeight,
+    required double verticalPadding,
+  }) {
+    if (!maxHeight.isFinite) {
+      return widget.rowHeight;
+    }
+
+    const headerHeight = 64.0;
+    final availableRowsHeight =
+        maxHeight - verticalPadding - headerHeight - widget.daysOfWeekHeight;
+    final fittedRowHeight = availableRowsHeight / 6;
+
+    return fittedRowHeight.clamp(24.0, 56.0).toDouble();
   }
 }

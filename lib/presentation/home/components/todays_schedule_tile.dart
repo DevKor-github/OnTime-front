@@ -6,20 +6,32 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/home/bloc/schedule_timer_bloc.dart';
 
 class TodaysScheduleTile extends StatelessWidget {
-  const TodaysScheduleTile({super.key, this.schedule, this.onTap});
+  const TodaysScheduleTile({
+    super.key,
+    this.schedule,
+    this.onTap,
+    this.compact = false,
+  });
 
   final ScheduleEntity? schedule;
   final VoidCallback? onTap;
+  final bool compact;
 
   Widget _noSchedule(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 16.0),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 10.0 : 11.0,
+        vertical: compact ? 10.0 : 16.0,
+      ),
       child: Text(
         AppLocalizations.of(context)!.noAppointments,
         style: theme.textTheme.bodyLarge?.copyWith(
           color: theme.colorScheme.outlineVariant,
+          height: 22 / 16,
         ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -34,9 +46,10 @@ class TodaysScheduleTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(horizontal: compact ? 10.0 : 16.0),
             child: _ScheduleLeftTimeColumn(
               scheduleTime: schedule!.scheduleTime,
+              compact: compact,
             ),
           ),
           VerticalDivider(
@@ -45,10 +58,13 @@ class TodaysScheduleTile extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 21.0, vertical: 11.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 12.0 : 21.0,
+                vertical: compact ? 8.0 : 11.0,
+              ),
               child: _ScheduleDetailsColumn(
                 schedule: schedule!,
+                compact: compact,
               ),
             ),
           ),
@@ -71,6 +87,8 @@ class TodaysScheduleTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         width: double.infinity,
+        constraints: BoxConstraints(minHeight: compact ? 48 : 54),
+        alignment: schedule == null ? Alignment.centerLeft : null,
         child:
             schedule == null ? _noSchedule(context) : _scheduleExists(context),
       ),
@@ -79,9 +97,13 @@ class TodaysScheduleTile extends StatelessWidget {
 }
 
 class _ScheduleDetailsColumn extends StatelessWidget {
-  const _ScheduleDetailsColumn({required this.schedule});
+  const _ScheduleDetailsColumn({
+    required this.schedule,
+    required this.compact,
+  });
 
   final ScheduleEntity schedule;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -97,12 +119,17 @@ class _ScheduleDetailsColumn extends StatelessWidget {
       children: [
         Text(
           schedule.scheduleName,
-          style: textTheme.titleLarge?.copyWith(color: colorScheme.primary),
+          style: (compact ? textTheme.titleMedium : textTheme.titleLarge)
+              ?.copyWith(color: colorScheme.primary),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         //time PM H:MM
         Text(
           formattedTime,
           style: textTheme.bodySmall?.copyWith(color: colorScheme.primary),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -110,9 +137,13 @@ class _ScheduleDetailsColumn extends StatelessWidget {
 }
 
 class _ScheduleLeftTimeColumn extends StatelessWidget {
-  const _ScheduleLeftTimeColumn({required this.scheduleTime});
+  const _ScheduleLeftTimeColumn({
+    required this.scheduleTime,
+    required this.compact,
+  });
 
   final DateTime scheduleTime;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +169,7 @@ class _ScheduleLeftTimeColumn extends StatelessWidget {
           return _TimeColumn(
             hour: hours,
             minute: minutes,
+            compact: compact,
           );
         },
       ),
@@ -149,10 +181,12 @@ class _TimeColumn extends StatelessWidget {
   const _TimeColumn({
     required this.hour,
     required this.minute,
+    required this.compact,
   });
 
   final int hour;
   final int minute;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -164,18 +198,27 @@ class _TimeColumn extends StatelessWidget {
       children: [
         Text(
           AppLocalizations.of(context)!.untilAppointment,
-          style: theme.textTheme.bodySmall?.copyWith(
+          style:
+              (compact ? theme.textTheme.labelSmall : theme.textTheme.bodySmall)
+                  ?.copyWith(
             color: colorScheme.primary,
           ),
           textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: compact ? 2 : 4),
         Text(
           '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-          style: theme.textTheme.titleSmall?.copyWith(
+          style: (compact
+                  ? theme.textTheme.labelLarge
+                  : theme.textTheme.titleSmall)
+              ?.copyWith(
             color: colorScheme.primary,
           ),
           textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

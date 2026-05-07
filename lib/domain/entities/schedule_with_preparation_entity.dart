@@ -14,6 +14,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     required super.isStarted,
     required super.scheduleSpareTime,
     required super.scheduleNote,
+    super.latenessTime,
+    super.doneStatus,
     required this.preparation,
   });
 
@@ -86,6 +88,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       isStarted: schedule.isStarted,
       scheduleSpareTime: schedule.scheduleSpareTime,
       scheduleNote: schedule.scheduleNote,
+      latenessTime: schedule.latenessTime,
+      doneStatus: schedule.doneStatus,
       preparation: preparation,
     );
   }

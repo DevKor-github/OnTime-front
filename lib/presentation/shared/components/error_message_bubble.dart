@@ -44,9 +44,11 @@ class ErrorMessageBubble extends StatelessWidget {
     this.action,
     this.tailPosition = TailPosition.bottom,
     this.padding = const EdgeInsets.only(left: 72.0),
+    this.width,
   });
 
   final EdgeInsets padding;
+  final double? width;
 
   final Widget errorMessage;
   final TextButton? action;
@@ -65,10 +67,12 @@ class ErrorMessageBubble extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
             color: Theme.of(context).colorScheme.error,
             decorationColor: Theme.of(context).colorScheme.error,
+            letterSpacing: 0,
           ),
       child: _MessageBubbleBody(
         errorMessage: errorMessage,
         action: action,
+        width: width,
       ),
     );
 
@@ -144,49 +148,55 @@ class _MessageBubbleBody extends StatelessWidget {
   const _MessageBubbleBody({
     required this.errorMessage,
     required this.action,
+    required this.width,
   });
 
   final Widget errorMessage;
   final Widget? action;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
+      width: width,
       padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 13.5),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: colorScheme.errorContainer,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          errorMessage,
-          TextButtonTheme(
-              data: TextButtonThemeData(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(
-                    Colors.transparent,
+      child: action == null
+          ? errorMessage
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(child: errorMessage),
+                TextButtonTheme(
+                  data: TextButtonThemeData(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      overlayColor: WidgetStateProperty.all(
+                        Colors.transparent,
+                      ),
+                      elevation: WidgetStateProperty.all(0),
+                      foregroundColor: WidgetStateProperty.all(
+                        Theme.of(context).colorScheme.error,
+                      ),
+                      textStyle: WidgetStateProperty.all(
+                        DefaultTextStyle.of(context).style,
+                      ),
+                      padding: WidgetStateProperty.all(
+                        const EdgeInsets.symmetric(horizontal: 0),
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                   ),
-                  overlayColor: WidgetStateProperty.all(
-                    Colors.transparent,
-                  ),
-                  elevation: WidgetStateProperty.all(0),
-                  foregroundColor: WidgetStateProperty.all(
-                    Theme.of(context).colorScheme.error,
-                  ),
-                  textStyle: WidgetStateProperty.all(
-                    DefaultTextStyle.of(context).style,
-                  ),
-                  padding: WidgetStateProperty.all(
-                    const EdgeInsets.symmetric(horizontal: 0),
-                  ),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-              child: action ?? const SizedBox.shrink())
-        ],
-      ),
+                  child: action!,
+                )
+              ],
+            ),
     );
   }
 }

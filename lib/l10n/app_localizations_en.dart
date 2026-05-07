@@ -29,6 +29,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'You must set a spare time in case of unexpected situations.';
 
   @override
+  String get spareTimeMinimumWarning => 'Minimum spare time is 10 minutes';
+
+  @override
   String get todaysAppointments => 'Today\'s Appointments';
 
   @override
@@ -84,6 +87,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get finishPreparation => 'Finish Preparation';
+
+  @override
+  String get preparationReadyToGo => 'Ready to go';
 
   @override
   String get signInSlogan => 'We\'ll find your lost leisure.';
@@ -185,7 +191,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startPreparing => 'Start Preparing';
 
   @override
-  String get prepareEarly => 'Prepare Early';
+  String get startPreparingNow => 'Start preparing now';
+
+  @override
+  String get notNow => 'Not now';
 
   @override
   String get confirmLeave => 'Are you sure you want to leave?';
@@ -340,9 +349,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get preparationStartsInFiveMinutes =>
       'Preparation starts in 5 minutes.\nWould you like to start preparing early?';
-
-  @override
-  String get startInFiveMinutes => 'Start in 5 minutes';
 
   @override
   String preparationStartsEarlyBy(String duration) {

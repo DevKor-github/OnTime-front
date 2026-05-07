@@ -20,7 +20,12 @@ class WeeklySchedulesBloc
       (event, emit) async {
         emit(state.copyWith(status: () => WeeklySchedulesStatus.loading));
 
-        await _loadSchedulesForWeekUseCase(event.date);
+        try {
+          await _loadSchedulesForWeekUseCase(event.date);
+        } catch (_) {
+          emit(state.copyWith(status: () => WeeklySchedulesStatus.error));
+          return;
+        }
 
         await emit.forEach(
           _getSchedulesByDateUseCase(event.startDate, event.endDate),

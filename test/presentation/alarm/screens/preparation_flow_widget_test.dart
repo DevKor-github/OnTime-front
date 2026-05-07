@@ -41,10 +41,16 @@ class StubGetNearestUpcomingScheduleUseCase
 
 class SpyNavigationService extends NavigationService {
   final List<String> pushedRoutes = [];
+  final List<String> goRoutes = [];
 
   @override
   void push(String routeName, {Object? extra}) {
     pushedRoutes.add(routeName);
+  }
+
+  @override
+  void go(String routeName, {Object? extra}) {
+    goRoutes.add(routeName);
   }
 }
 
@@ -324,7 +330,64 @@ void main() {
       await controller.close();
     });
 
-    testWidgets('five-minute start screen variant is shown with route extra',
+    test('schedule start route values normalize legacy inputs', () {
+      expect(
+        scheduleStartPromptVariantFromRouteValue('earlyStart'),
+        ScheduleStartPromptVariant.earlyStart,
+      );
+      expect(
+        scheduleStartPromptVariantFromRouteValue('fiveMinutes'),
+        ScheduleStartPromptVariant.earlyStart,
+      );
+      expect(
+        scheduleStartPromptVariantFromRouteValue(null),
+        ScheduleStartPromptVariant.officialStart,
+      );
+      expect(
+        scheduleStartPromptVariantFromRouteValue('unknown'),
+        ScheduleStartPromptVariant.officialStart,
+      );
+      expect(
+        scheduleStartPromptVariantFromRouteExtra(
+          const {'promptVariant': 'earlyStart'},
+        ),
+        ScheduleStartPromptVariant.earlyStart,
+      );
+      expect(
+        scheduleStartPromptVariantFromRouteExtra(
+          const {'promptVariant': 'fiveMinutes'},
+        ),
+        ScheduleStartPromptVariant.earlyStart,
+      );
+      expect(
+        scheduleStartPromptVariantFromRouteExtra(
+          const {'isFiveMinutesBefore': true},
+        ),
+        ScheduleStartPromptVariant.earlyStart,
+      );
+      expect(
+        scheduleStartPromptVariantFromRouteExtra(const {}),
+        ScheduleStartPromptVariant.officialStart,
+      );
+      expect(
+        scheduleStartLaunchActionFromRouteExtra(
+          const {'alarmLaunchAction': 'startPreparation'},
+        ),
+        ScheduleStartLaunchAction.startPreparation,
+      );
+      expect(
+        scheduleStartLaunchActionFromRouteExtra(
+          const {'alarmLaunchAction': 'startPreparing'},
+        ),
+        ScheduleStartLaunchAction.startPreparation,
+      );
+      expect(
+        scheduleStartLaunchActionFromRouteExtra(const {}),
+        ScheduleStartLaunchAction.prompt,
+      );
+    });
+
+    testWidgets('early-start screen variant is shown with two choices',
         (tester) async {
       await setLargeTestViewport(tester);
 
@@ -334,7 +397,7 @@ void main() {
           GoRoute(
             path: '/scheduleStart',
             builder: (_, __) => const ScheduleStartScreen(
-              promptVariant: ScheduleStartPromptVariant.fiveMinutes,
+              promptVariant: ScheduleStartPromptVariant.earlyStart,
             ),
           ),
           GoRoute(
@@ -348,9 +411,12 @@ void main() {
 
       expect(find.byType(ScheduleStartScreen), findsOneWidget);
       expect(find.byType(ElevatedButton), findsNWidgets(2));
+      expect(find.text('Start preparing now'), findsOneWidget);
+      expect(find.text('Not now'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('schedule start button navigates to alarm', (tester) async {
+    testWidgets('early-start start-now button navigates to alarm',
+        (tester) async {
       await setLargeTestViewport(tester);
 
       final schedule = buildSchedule(
@@ -373,7 +439,7 @@ void main() {
           GoRoute(
             path: '/scheduleStart',
             builder: (_, __) => const ScheduleStartScreen(
-              promptVariant: ScheduleStartPromptVariant.fiveMinutes,
+              promptVariant: ScheduleStartPromptVariant.earlyStart,
             ),
           ),
           GoRoute(
@@ -384,12 +450,12 @@ void main() {
       );
 
       await pumpWithRouter(tester, bloc: bloc, router: router);
-      await tapAndPump(tester, find.text('Start Preparing'));
+      await tapAndPump(tester, find.text('Start preparing now'));
       await pumpUntilRouteText(tester, 'ALARM_ROUTE');
       expect(find.text('ALARM_ROUTE'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('schedule start in five button navigates home', (tester) async {
+    testWidgets('early-start not-now button navigates home', (tester) async {
       await setLargeTestViewport(tester);
 
       final schedule = buildSchedule(
@@ -412,7 +478,7 @@ void main() {
           GoRoute(
             path: '/scheduleStart',
             builder: (_, __) => const ScheduleStartScreen(
-              promptVariant: ScheduleStartPromptVariant.fiveMinutes,
+              promptVariant: ScheduleStartPromptVariant.earlyStart,
             ),
           ),
           GoRoute(
@@ -423,9 +489,36 @@ void main() {
       );
 
       await pumpWithRouter(tester, bloc: bloc, router: router);
-      await tapAndPump(tester, find.text('Start in 5 minutes'));
+      await tapAndPump(tester, find.text('Not now'));
       await pumpUntilRouteText(tester, 'HOME_ROUTE');
       expect(find.text('HOME_ROUTE'), findsOneWidget);
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets('deprecated five-minute flag resolves to early-start choices',
+        (tester) async {
+      await setLargeTestViewport(tester);
+
+      final router = GoRouter(
+        initialLocation: '/scheduleStart',
+        routes: [
+          GoRoute(
+            path: '/scheduleStart',
+            builder: (_, __) => const ScheduleStartScreen(
+              // ignore: deprecated_member_use_from_same_package
+              isFiveMinutesBefore: true,
+            ),
+          ),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const Text('ALARM')),
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+        ],
+      );
+
+      await pumpWithRouter(tester, bloc: bloc, router: router);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Start preparing now'), findsOneWidget);
+      expect(find.text('Not now'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     testWidgets('early-start variant is shown with dedicated prompt',
@@ -472,9 +565,10 @@ void main() {
         find.textContaining('Would you like to start preparing early now?'),
         findsOneWidget,
       );
-      expect(find.byType(ElevatedButton), findsOneWidget);
+      expect(find.byType(ElevatedButton), findsNWidgets(2));
       expect(find.text('Home'), findsNothing);
-      expect(find.text('Prepare Early'), findsOneWidget);
+      expect(find.text('Start preparing now'), findsOneWidget);
+      expect(find.text('Not now'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
     testWidgets('early-start variant formats hour and minute lead time',
@@ -555,13 +649,13 @@ void main() {
       );
 
       await pumpWithRouter(tester, bloc: bloc, router: router);
-      await tapAndPump(tester, find.text('Prepare Early'));
+      await tapAndPump(tester, find.text('Start preparing now'));
       await pumpUntilRouteText(tester, 'ALARM_ROUTE');
 
       expect(find.text('ALARM_ROUTE'), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
-    testWidgets('early-start relies on close button instead of home button',
+    testWidgets('early-start has explicit not-now instead of home button',
         (tester) async {
       await setLargeTestViewport(tester);
 
@@ -597,6 +691,7 @@ void main() {
 
       await pumpWithRouter(tester, bloc: bloc, router: router);
       expect(find.text('Home'), findsNothing);
+      expect(find.text('Not now'), findsOneWidget);
       expect(find.byIcon(Icons.close), findsOneWidget);
     }, timeout: const Timeout(Duration(seconds: 15)));
 
@@ -954,22 +1049,23 @@ void main() {
       );
 
       expect(
-        continuingTheme.colorScheme.primary.value,
-        const Color(0xFF5C79FB).value,
+        continuingTheme.colorScheme.primary.toARGB32(),
+        const Color(0xFF5C79FB).toARGB32(),
       );
       expect(
-        continuingTheme.colorScheme.primaryContainer.value,
-        const Color(0xFFDCE3FF).value,
+        continuingTheme.colorScheme.primaryContainer.toARGB32(),
+        const Color(0xFFDCE3FF).toARGB32(),
       );
       expect(
-        continuingTheme.colorScheme.onPrimaryContainer.value,
-        const Color(0xFF212F6F).value,
+        continuingTheme.colorScheme.onPrimaryContainer.toARGB32(),
+        const Color(0xFF212F6F).toARGB32(),
       );
       expect(
-        continuingScaffold.backgroundColor!.value,
-        const Color(0xFF5C79FB).value,
+        continuingScaffold.backgroundColor!.toARGB32(),
+        const Color(0xFF5C79FB).toARGB32(),
       );
       expect(find.text('EARLYLATE'), findsNothing);
+      expect(find.text('Ready to go'), findsOneWidget);
       expect(find.text('5분 뒤에 나가야 해요'), findsOneWidget);
       expect(find.text('05 : 00'), findsOneWidget);
       expect(finishUseCase.calls, isEmpty);
@@ -978,6 +1074,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('4분 뒤에 나가야 해요'), findsOneWidget);
+      expect(find.text('Ready to go'), findsOneWidget);
       expect(find.text('04 : 00'), findsOneWidget);
 
       alarmBloc.add(const ScheduleFinished(0));
@@ -1127,41 +1224,44 @@ void main() {
       );
 
       expect(
-        lateTheme.colorScheme.primary.value,
-        const Color(0xFFFF6953).value,
+        lateTheme.colorScheme.primary.toARGB32(),
+        const Color(0xFFFF6953).toARGB32(),
       );
       expect(
-        lateTheme.colorScheme.primaryContainer.value,
-        const Color(0xFFFFEAE7).value,
+        lateTheme.colorScheme.primaryContainer.toARGB32(),
+        const Color(0xFFFFEAE7).toARGB32(),
       );
       expect(
-        lateTheme.colorScheme.onPrimaryContainer.value,
-        const Color(0xFFFF6953).value,
+        lateTheme.colorScheme.onPrimaryContainer.toARGB32(),
+        const Color(0xFFFF6953).toARGB32(),
       );
       expect(
-        lateScaffold.backgroundColor!.value,
-        const Color(0xFFFF6953).value,
+        lateScaffold.backgroundColor!.toARGB32(),
+        const Color(0xFFFF6953).toARGB32(),
       );
       expect(
-        tester.widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator)).progress,
+        tester
+            .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
+            .progress,
         0.0,
       );
       expect(
         tester
             .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
             .backgroundColor
-            .value,
-        const Color(0xFFFFEAE7).value,
+            .toARGB32(),
+        const Color(0xFFFFEAE7).toARGB32(),
       );
       expect(
         tester
             .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
             .progressColor
-            .value,
-        const Color(0xFFFFEAE7).value,
+            .toARGB32(),
+        const Color(0xFFFFEAE7).toARGB32(),
       );
       expect(find.text('준비시간을 1분 초과했어요'), findsOneWidget);
       expect(find.text('지각이에요'), findsOneWidget);
+      expect(find.text('Ready to go'), findsNothing);
       expect(find.text('01 : 00'), findsOneWidget);
       expect(find.text('Prep'), findsOneWidget);
 
@@ -1224,6 +1324,86 @@ void main() {
       expect(find.text('EARLYLATE'), findsOneWidget);
       expect(finishUseCase.calls.length, 1);
     }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets('already missing schedule on alarm entry navigates home',
+        (tester) async {
+      await setLargeTestViewport(tester);
+
+      final router = GoRouter(
+        initialLocation: '/alarmScreen',
+        routes: [
+          GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+          GoRoute(
+              path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+          GoRoute(
+              path: '/earlyLate', builder: (_, __) => const Text('EARLYLATE')),
+        ],
+      );
+
+      final earlyBundle = createEarlyStartUseCaseBundle();
+      final alarmBloc = ScheduleBloc.test(
+        StubGetNearestUpcomingScheduleUseCase(() => const Stream.empty()),
+        navigationService,
+        NoopSaveTimedPreparationUseCase(),
+        StubGetTimedPreparationSnapshotUseCase({}),
+        NoopClearTimedPreparationUseCase(),
+        finishUseCase,
+        markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+        getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+        clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+        nowProvider: () => now,
+      )..emit(const ScheduleState.notExists());
+      addTearDown(alarmBloc.close);
+
+      await pumpWithRouter(tester, bloc: alarmBloc, router: router);
+      await pumpUntilRouteText(tester, 'HOME');
+
+      expect(find.text('HOME'), findsOneWidget);
+      expect(find.text('EARLYLATE'), findsNothing);
+      expect(finishUseCase.calls, isEmpty);
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
+    testWidgets(
+      'null schedule emission while already notExists navigates home',
+      (tester) async {
+        await setLargeTestViewport(tester);
+
+        final router = GoRouter(
+          initialLocation: '/alarmScreen',
+          routes: [
+            GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+            GoRoute(
+                path: '/alarmScreen', builder: (_, __) => const AlarmScreen()),
+            GoRoute(
+                path: '/earlyLate',
+                builder: (_, __) => const Text('EARLYLATE')),
+          ],
+        );
+
+        final earlyBundle = createEarlyStartUseCaseBundle();
+        final alarmBloc = ScheduleBloc.test(
+          StubGetNearestUpcomingScheduleUseCase(() => Stream.value(null)),
+          navigationService,
+          NoopSaveTimedPreparationUseCase(),
+          StubGetTimedPreparationSnapshotUseCase({}),
+          NoopClearTimedPreparationUseCase(),
+          finishUseCase,
+          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          nowProvider: () => now,
+        )..emit(const ScheduleState.notExists());
+        addTearDown(alarmBloc.close);
+
+        await pumpWithRouter(tester, bloc: alarmBloc, router: router);
+        await pumpUntilRouteText(tester, 'HOME');
+
+        expect(find.text('HOME'), findsOneWidget);
+        expect(find.text('EARLYLATE'), findsNothing);
+        expect(finishUseCase.calls, isEmpty);
+      },
+      timeout: const Timeout(Duration(seconds: 15)),
+    );
 
     testWidgets(
       'stale notification after schedule end should redirect safely (spec-first)',

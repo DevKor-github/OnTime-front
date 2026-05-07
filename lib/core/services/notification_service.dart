@@ -360,7 +360,9 @@ class NotificationService {
   }) async {
     // Disable case-3 alerts while app is in foreground.
     if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-      debugPrint('[FCM] Foreground 상태에서는 단계 변경 알림을 표시하지 않습니다.');
+      AppLogger.debug(
+        '[FCM] preparation step notification skipped in foreground',
+      );
       return;
     }
 

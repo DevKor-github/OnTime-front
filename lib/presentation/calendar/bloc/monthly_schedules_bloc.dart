@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
@@ -134,7 +134,7 @@ class MonthlySchedulesBloc
       }
     }
 
-    debugPrint('startDate: $startDate, endDate: $endDate');
+    AppLogger.debug('startDate: $startDate, endDate: $endDate');
     await emit.forEach(
       _getSchedulesByDateUseCase(startDate, endDate),
       onData: (schedules) {

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
@@ -50,7 +50,7 @@ class UserRepositoryImpl implements UserRepository {
     if (lightweightAuthentication != null) {
       unawaited(
         lightweightAuthentication.catchError((Object error) {
-          debugPrint('Google lightweight sign-in failed: $error');
+          AppLogger.debug('Google lightweight sign-in failed: $error');
           return null;
         }),
       );
@@ -138,8 +138,8 @@ class UserRepositoryImpl implements UserRepository {
       );
       await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (error) {
+      AppLogger.debug('Google Sign-In failed errorType=${error.runtimeType}');
       rethrow;
     }
   }
@@ -164,8 +164,8 @@ class UserRepositoryImpl implements UserRepository {
       );
       await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (error) {
+      AppLogger.debug('Apple Sign-In failed errorType=${error.runtimeType}');
       rethrow;
     }
   }
@@ -225,9 +225,11 @@ class UserRepositoryImpl implements UserRepository {
   Future<void> disconnectGoogleSignIn() async {
     try {
       await _googleSignIn.disconnect();
-      debugPrint('Google Sign-In disconnected');
-    } catch (e) {
-      debugPrint('Google Sign-In disconnect failed: $e');
+      AppLogger.debug('Google Sign-In disconnected');
+    } catch (error) {
+      AppLogger.debug(
+        'Google Sign-In disconnect failed errorType=${error.runtimeType}',
+      );
     }
   }
 

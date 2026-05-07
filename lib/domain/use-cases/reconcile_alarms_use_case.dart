@@ -7,6 +7,7 @@ import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.d
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 
 typedef AlarmNowProvider = DateTime Function();
 
@@ -47,7 +48,7 @@ class ReconcileAlarmsUseCase {
   Future<AlarmReconciliationResult> call() {
     final running = _inFlight;
     if (running != null) {
-      debugPrint('$_logTag call joined existing in-flight reconciliation');
+      AppLogger.debug('$_logTag call joined existing in-flight reconciliation');
       return running;
     }
 
@@ -69,14 +70,14 @@ class ReconcileAlarmsUseCase {
     final deviceId = await _alarmRepository.getDeviceId();
     final capabilities = await _schedulerService.getCapabilities();
     final alarmCoverageEnd = now.add(const Duration(days: 7));
-    debugPrint(
+    AppLogger.debug(
       '$_logTag start now=${now.toIso8601String()} '
       'scheduleWindow=${scheduleWindowStart.toIso8601String()}..'
       '${scheduleWindowEnd.toIso8601String()} '
       'alarmCoverage=${alarmCoverageStart.toIso8601String()}..'
       '${alarmCoverageEnd.toIso8601String()}',
     );
-    debugPrint(
+    AppLogger.debug(
       '$_logTag deviceId=$deviceId capabilities='
       'nativeSupported=${capabilities.supportsNativeAlarm} '
       'nativeProvider=${capabilities.nativeAlarmProvider} '
@@ -86,12 +87,12 @@ class ReconcileAlarmsUseCase {
     AlarmSettings settings;
     try {
       settings = await _alarmRepository.getAlarmSettings();
-      debugPrint(
+      AppLogger.debug(
         '$_logTag settings alarmsEnabled=${settings.alarmsEnabled} '
         'alarmOffset=${settings.alarmOffset}',
       );
     } catch (_) {
-      debugPrint('$_logTag settings unavailable');
+      AppLogger.debug('$_logTag settings unavailable');
       final result = _result(
         status: AlarmReconciliationStatus.settingsUnavailable,
         capabilities: capabilities,
@@ -106,7 +107,7 @@ class ReconcileAlarmsUseCase {
 
     if (!settings.alarmsEnabled) {
       final records = await _registryRepository.loadAll();
-      debugPrint(
+      AppLogger.debug(
         '$_logTag alarms disabled; canceling existingRecords=${records.length}',
       );
       await _cancelRecords(records);
@@ -127,15 +128,15 @@ class ReconcileAlarmsUseCase {
       await _alarmRepository.registerCurrentDevice(
         await _alarmRepository.buildCurrentDeviceInfo(),
       );
-      debugPrint('$_logTag registerCurrentDevice success');
+      AppLogger.debug('$_logTag registerCurrentDevice success');
     } catch (_) {
       // Device registration is diagnostic. Local scheduling can still proceed.
-      debugPrint('$_logTag registerCurrentDevice failed; continuing');
+      AppLogger.debug('$_logTag registerCurrentDevice failed; continuing');
     }
 
     late final List<ScheduleWithPreparationEntity> schedules;
     try {
-      debugPrint(
+      AppLogger.debug(
         '$_logTag getAlarmWindow request '
         '${scheduleWindowStart.toIso8601String()}..'
         '${scheduleWindowEnd.toIso8601String()}',
@@ -144,9 +145,10 @@ class ReconcileAlarmsUseCase {
         scheduleWindowStart,
         scheduleWindowEnd,
       );
-      debugPrint('$_logTag getAlarmWindow success count=${schedules.length}');
+      AppLogger.debug(
+          '$_logTag getAlarmWindow success count=${schedules.length}');
     } catch (error) {
-      debugPrint('$_logTag getAlarmWindow failed: $error');
+      AppLogger.debug('$_logTag getAlarmWindow failed: $error');
       final result = _result(
         status: AlarmReconciliationStatus.partial,
         capabilities: capabilities,
@@ -178,14 +180,14 @@ class ReconcileAlarmsUseCase {
               settings.alarmOffset,
             ))
         .length;
-    debugPrint(
+    AppLogger.debug(
       '$_logTag desiredRecords=${desiredRecords.length} '
       'skippedSchedules=$skippedScheduleCount '
       'desired=${_recordSummary(desiredRecords)}',
     );
 
     final existingRecords = await _registryRepository.loadAll();
-    debugPrint(
+    AppLogger.debug(
       '$_logTag existingRecords=${existingRecords.length} '
       'existing=${_recordSummary(existingRecords)}',
     );
@@ -202,7 +204,7 @@ class ReconcileAlarmsUseCase {
           !_recordMatches(record, desired) ||
           !_recordProviderMatchesCapabilities(record, capabilities);
     }).toList();
-    debugPrint(
+    AppLogger.debug(
       '$_logTag staleRecords=${staleRecords.length} '
       'stale=${_recordSummary(staleRecords)}',
     );
@@ -210,7 +212,7 @@ class ReconcileAlarmsUseCase {
 
     final nativePermission = await _checkNativePermission(capabilities);
     final fallbackPermission = await _checkFallbackPermission(capabilities);
-    debugPrint(
+    AppLogger.debug(
       '$_logTag permissions native=$nativePermission '
       'fallback=$fallbackPermission',
     );
@@ -224,7 +226,7 @@ class ReconcileAlarmsUseCase {
       if (existing != null &&
           _recordMatches(existing, desired) &&
           _recordProviderMatchesCapabilities(existing, capabilities)) {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag keeping existing alarm '
           'scheduleId=${existing.scheduleId} provider=${existing.provider}',
         );
@@ -240,21 +242,21 @@ class ReconcileAlarmsUseCase {
       );
 
       if (scheduled.record != null) {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag scheduled alarm '
           'scheduleId=${scheduled.record!.scheduleId} '
           'provider=${scheduled.record!.provider}',
         );
         finalRecords.add(scheduled.record!);
       } else if (scheduled.permissionIssue != null) {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag schedule permission issue '
           'scheduleId=${desired.scheduleId} '
           'issue=${scheduled.permissionIssue}',
         );
         permissionIssue ??= scheduled.permissionIssue;
       } else {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag schedule failure scheduleId=${desired.scheduleId} '
           'reason=${scheduled.failureReason} message=${scheduled.message}',
         );
@@ -269,7 +271,7 @@ class ReconcileAlarmsUseCase {
     }
 
     await _registryRepository.replaceAll(finalRecords);
-    debugPrint(
+    AppLogger.debug(
       '$_logTag registry replaced finalRecords=${finalRecords.length} '
       'final=${_recordSummary(finalRecords)}',
     );
@@ -298,7 +300,7 @@ class ReconcileAlarmsUseCase {
     );
 
     await _postStatusBestEffort(deviceId, result);
-    debugPrint(
+    AppLogger.debug(
       '$_logTag complete status=${result.status} '
       'armed=${result.armedScheduleCount} skipped=${result.skippedScheduleCount} '
       'permissionIssue=${result.permissionIssue} failures=${result.failures.length}',
@@ -362,7 +364,7 @@ class ReconcileAlarmsUseCase {
     if (record.alarmTime.isAfter(now)) return record;
 
     final adjustedAlarmTime = now.add(_recentlyMissedAlarmDeliveryDelay);
-    debugPrint(
+    AppLogger.debug(
       '$_logTag recently missed alarm catch-up '
       'scheduleId=${record.scheduleId} '
       'originalAlarmTime=${record.alarmTime.toIso8601String()} '
@@ -414,7 +416,7 @@ class ReconcileAlarmsUseCase {
         provider: capabilities.nativeAlarmProvider,
       );
       try {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag trying native schedule '
           'scheduleId=${nativeRecord.scheduleId} '
           'alarmTime=${nativeRecord.alarmTime.toIso8601String()}',
@@ -422,7 +424,7 @@ class ReconcileAlarmsUseCase {
         await _schedulerService.scheduleNativeAlarm(nativeRecord);
         return _ScheduleAttempt(record: nativeRecord);
       } on AlarmSchedulingException catch (error) {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag native schedule failed '
           'scheduleId=${nativeRecord.scheduleId} reason=${error.reason} '
           'permissionIssue=${error.permissionIssue} message=${error.message}',
@@ -435,7 +437,7 @@ class ReconcileAlarmsUseCase {
           );
         }
       } catch (error) {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag native schedule threw '
           'scheduleId=${nativeRecord.scheduleId} error=$error',
         );
@@ -454,7 +456,7 @@ class ReconcileAlarmsUseCase {
         provider: AlarmProvider.localNotification,
       );
       try {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag trying fallback schedule '
           'scheduleId=${fallbackRecord.scheduleId} '
           'alarmTime=${fallbackRecord.alarmTime.toIso8601String()}',
@@ -464,7 +466,7 @@ class ReconcileAlarmsUseCase {
         );
         return _ScheduleAttempt(record: fallbackRecord);
       } on AlarmSchedulingException catch (error) {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag fallback schedule failed '
           'scheduleId=${fallbackRecord.scheduleId} reason=${error.reason} '
           'permissionIssue=${error.permissionIssue} message=${error.message}',
@@ -477,7 +479,7 @@ class ReconcileAlarmsUseCase {
           message: error.message,
         );
       } catch (error) {
-        debugPrint(
+        AppLogger.debug(
           '$_logTag fallback schedule threw '
           'scheduleId=${fallbackRecord.scheduleId} error=$error',
         );
@@ -587,13 +589,13 @@ class ReconcileAlarmsUseCase {
     for (final record in records) {
       try {
         if (record.provider == AlarmProvider.localNotification) {
-          debugPrint(
+          AppLogger.debug(
             '$_logTag cancel fallback '
             'scheduleId=${record.scheduleId} provider=${record.provider}',
           );
           await _fallbackNotificationService.cancelFallbackAlarm(record);
         } else if (record.provider != AlarmProvider.none) {
-          debugPrint(
+          AppLogger.debug(
             '$_logTag cancel native '
             'scheduleId=${record.scheduleId} provider=${record.provider}',
           );
@@ -601,7 +603,7 @@ class ReconcileAlarmsUseCase {
         }
       } catch (_) {
         // Keep reconciliation moving; registry replacement is authoritative.
-        debugPrint(
+        AppLogger.debug(
           '$_logTag cancel failed; continuing '
           'scheduleId=${record.scheduleId} provider=${record.provider}',
         );
@@ -641,7 +643,7 @@ class ReconcileAlarmsUseCase {
     AlarmReconciliationResult result,
   ) async {
     try {
-      debugPrint(
+      AppLogger.debug(
         '$_logTag postAlarmStatus start deviceId=$deviceId '
         'status=${result.status} armed=${result.armedScheduleCount}',
       );
@@ -663,9 +665,9 @@ class ReconcileAlarmsUseCase {
           failures: result.failures,
         ),
       );
-      debugPrint('$_logTag postAlarmStatus success');
+      AppLogger.debug('$_logTag postAlarmStatus success');
     } on DeviceSessionNotActiveException {
-      debugPrint(
+      AppLogger.debug(
           '$_logTag postAlarmStatus device session inactive; signing out');
       final records = await _registryRepository.loadAll();
       await _cancelRecords(records);
@@ -673,7 +675,7 @@ class ReconcileAlarmsUseCase {
       await _userRepository?.signOut();
     } catch (_) {
       // Status reports are diagnostic; scheduling result should still return.
-      debugPrint('$_logTag postAlarmStatus failed; continuing');
+      AppLogger.debug('$_logTag postAlarmStatus failed; continuing');
     }
   }
 

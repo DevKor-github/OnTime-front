@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
+import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 
@@ -31,8 +31,10 @@ class TokenInterceptor implements InterceptorsWrapper {
       final token = await tokenLocalDataSource.getToken();
 
       options.headers['Authorization'] = 'Bearer ${token.accessToken}';
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (error) {
+      AppLogger.debug(
+        'token load failed for request errorType=${error.runtimeType}',
+      );
     }
     handler.next(options);
   }
@@ -113,7 +115,7 @@ class TokenInterceptor implements InterceptorsWrapper {
         ),
       );
       if (res.statusCode == 200) {
-        debugPrint("token refreshing success");
+        AppLogger.debug('token refreshing success');
         final accessToken = res.headers.value('authorization');
         final refreshedRefreshToken =
             res.headers.value('authorization-refresh');
@@ -129,11 +131,14 @@ class TokenInterceptor implements InterceptorsWrapper {
         );
         return true;
       } else {
-        debugPrint("refresh token fail ${res.statusMessage ?? res.toString()}");
+        AppLogger.debug(
+          'refresh token failed status=${res.statusCode} '
+          'message=${res.statusMessage}',
+        );
         return false;
       }
     } catch (error) {
-      debugPrint("refresh token fail $error");
+      AppLogger.debug('refresh token failed errorType=${error.runtimeType}');
       return false;
     }
   }

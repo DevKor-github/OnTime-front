@@ -75,6 +75,30 @@ final class AppLogger {
     return '$redacted length=${token.length}';
   }
 
+  static String summarizeMap(
+    Map<dynamic, dynamic>? values, {
+    Iterable<String> allowedKeys = const [
+      'scheduleId',
+      'nativeAlarmId',
+      'type',
+      'promptVariant',
+    ],
+  }) {
+    if (values == null) return 'null';
+    final allowedKeySet = allowedKeys.toSet();
+    final visibleEntries = <String>[];
+    for (final key in allowedKeySet) {
+      if (!values.containsKey(key)) continue;
+      final value = values[key];
+      if (value == null) continue;
+      visibleEntries.add('$key=${redactValueForKey(key, value)}');
+    }
+    return [
+      'keys=${values.length}',
+      ...visibleEntries,
+    ].join(' ');
+  }
+
   static String redactText(String message) {
     var result = message.replaceAllMapped(
       RegExp(

@@ -203,7 +203,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        NativeLog.d(TAG, "NativeAlarmReceiver onReceive action=${intent.action} extras=${intent.extras}")
+        NativeLog.d(TAG, "NativeAlarmReceiver onReceive ${NativeLog.summarizeIntent(intent)}")
         when (intent.action) {
             ACTION_FIRE_ALARM -> handleFireAlarm(context, intent)
             ACTION_DISMISS_ALARM -> handleDismissAlarm(context, intent)

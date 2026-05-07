@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 class GoogleSignInButton extends StatelessWidget {
@@ -22,8 +23,10 @@ class GoogleSignInButton extends StatelessWidget {
               throw Exception('Google Sign In Failed, Sign In Account is null');
             }
             await authenticationRepository.signInWithGoogle(googleAccount);
-          } catch (e) {
-            debugPrint(e.toString());
+          } catch (error) {
+            AppLogger.debug(
+              'Google Sign-In button failed errorType=${error.runtimeType}',
+            );
           }
         },
         style: ElevatedButton.styleFrom(

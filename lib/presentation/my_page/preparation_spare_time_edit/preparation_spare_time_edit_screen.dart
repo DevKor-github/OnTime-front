@@ -16,11 +16,8 @@ class PreparationSpareTimeEditScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<DefaultPreparationSpareTimeFormBloc>(
       create: (context) {
-        final spareTime = context
-                .read<AuthBloc>()
-                .state
-                .user
-                .mapOrNull((user) => user.spareTime) ??
+        final spareTime =
+            context.read<AuthBloc>().state.user.spareTimeOrNull ??
             Duration.zero;
         return getIt.get<DefaultPreparationSpareTimeFormBloc>()
           ..add(FormEditRequested(spareTime: spareTime));
@@ -35,14 +32,19 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<DefaultPreparationSpareTimeFormBloc,
-        DefaultPreparationSpareTimeFormState>(
+    return BlocBuilder<
+      DefaultPreparationSpareTimeFormBloc,
+      DefaultPreparationSpareTimeFormState
+    >(
       builder: (context, state) {
         if (state.status == DefaultPreparationSpareTimeStatus.success) {
           return BlocProvider<PreparationFormBloc>(
             create: (context) => getIt.get<PreparationFormBloc>()
-              ..add(PreparationFormEditRequested(
-                  preparationEntity: state.preparation!)),
+              ..add(
+                PreparationFormEditRequested(
+                  preparationEntity: state.preparation!,
+                ),
+              ),
             child: BlocBuilder<PreparationFormBloc, PreparationFormState>(
               builder: (context, state2) {
                 return Scaffold(
@@ -71,8 +73,8 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                                     .add(
                                       FormSubmitted(
                                         note: '',
-                                        preparation:
-                                            state2.toPreparationEntity(),
+                                        preparation: state2
+                                            .toPreparationEntity(),
                                       ),
                                     );
                                 context.pop();
@@ -93,12 +95,11 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                         children: [
                           SizedBox(
                             width: double.infinity,
-                            child:
-                                _SpareTimeSection(spareTime: state.spareTime!),
+                            child: _SpareTimeSection(
+                              spareTime: state.spareTime!,
+                            ),
                           ),
-                          SizedBox(
-                            height: 42.0,
-                          ),
+                          SizedBox(height: 42.0),
                           Expanded(
                             child: _PreparationSection(
                               preparationNameState: state2,
@@ -138,19 +139,17 @@ class _SpareTimeSection extends StatelessWidget {
             style: textTheme.titleMedium,
           ),
         ),
-        SizedBox(
-          height: 24.0,
-        ),
+        SizedBox(height: 24.0),
         TimeStepper(
           onSpareTimeIncreased: () {
             context.read<DefaultPreparationSpareTimeFormBloc>().add(
-                  const SpareTimeIncreased(),
-                );
+              const SpareTimeIncreased(),
+            );
           },
           onSpareTimeDecreased: () {
             context.read<DefaultPreparationSpareTimeFormBloc>().add(
-                  const SpareTimeDecreased(),
-                );
+              const SpareTimeDecreased(),
+            );
           },
           lowerBound: Duration(minutes: 10),
           value: spareTime,
@@ -178,9 +177,7 @@ class _PreparationSection extends StatelessWidget {
             style: textTheme.titleMedium,
           ),
         ),
-        SizedBox(
-          height: 24.0,
-        ),
+        SizedBox(height: 24.0),
         SizedBox(
           width: double.infinity,
           child: Padding(
@@ -188,8 +185,10 @@ class _PreparationSection extends StatelessWidget {
             child: Builder(
               builder: (context) {
                 final totalDuration = preparationNameState.preparationStepList
-                    .fold(Duration.zero,
-                        (prev, step) => prev + step.preparationTime.value);
+                    .fold(
+                      Duration.zero,
+                      (prev, step) => prev + step.preparationTime.value,
+                    );
                 return Text(
                   '${AppLocalizations.of(context)!.totalTime}${totalDuration.inMinutes}분',
                   textAlign: TextAlign.end,
@@ -203,16 +202,16 @@ class _PreparationSection extends StatelessWidget {
             preparationNameState: preparationNameState,
             onNameChanged: ({required int index, required String value}) {
               context.read<PreparationFormBloc>().add(
-                    PreparationFormPreparationStepNameChanged(
-                      index: index,
-                      preparationStepName: value,
-                    ),
-                  );
+                PreparationFormPreparationStepNameChanged(
+                  index: index,
+                  preparationStepName: value,
+                ),
+              );
             },
             onCreationRequested: () {
               context.read<PreparationFormBloc>().add(
-                    const PreparationFormPreparationStepCreationRequested(),
-                  );
+                const PreparationFormPreparationStepCreationRequested(),
+              );
             },
           ),
         ),

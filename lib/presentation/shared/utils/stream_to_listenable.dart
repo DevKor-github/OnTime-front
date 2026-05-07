@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 class StreamToListenable extends ChangeNotifier {
-  late final List<StreamSubscription> subscriptions;
+  late final List<StreamSubscription<dynamic>> subscriptions;
 
-  StreamToListenable(List<Stream> streams) {
+  StreamToListenable(List<Stream<dynamic>> streams) {
     subscriptions = [];
-    for (var e in streams) {
-      var s = e.asBroadcastStream().listen(_tt);
+    for (final e in streams) {
+      final s = e.asBroadcastStream().listen(_tt);
       subscriptions.add(s);
     }
     notifyListeners();
@@ -16,11 +16,11 @@ class StreamToListenable extends ChangeNotifier {
 
   @override
   void dispose() {
-    for (var e in subscriptions) {
+    for (final e in subscriptions) {
       e.cancel();
     }
     super.dispose();
   }
 
-  void _tt(event) => notifyListeners();
+  void _tt(Object? event) => notifyListeners();
 }

@@ -51,7 +51,18 @@ class _FakeUserRepository implements UserRepository {
   Stream<UserEntity> get userStream => const Stream.empty();
 
   @override
-  GoogleSignIn get googleSignIn => throw UnimplementedError();
+  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
+      const Stream.empty();
+
+  @override
+  bool get supportsGoogleAuthenticate => false;
+
+  @override
+  Future<GoogleSignInAccount> authenticateWithGoogle() =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> initializeGoogleSignIn() async {}
 
   @override
   Future<void> deleteAppleUser({String? feedbackMessage}) async {
@@ -92,8 +103,7 @@ class _FakeUserRepository implements UserRepository {
     required String authCode,
     required String fullName,
     String? email,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<void> signInWithGoogle(GoogleSignInAccount account) =>
@@ -107,6 +117,5 @@ class _FakeUserRepository implements UserRepository {
     required String email,
     required String password,
     required String name,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 }

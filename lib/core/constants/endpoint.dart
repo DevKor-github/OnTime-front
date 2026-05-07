@@ -12,26 +12,28 @@ class Endpoint {
   static const _feedback = '/feedback';
   static const _deleteUser = '/users/me/delete';
 
-  static get signIn => _signIn;
-  static get signUp => _signUp;
-  static get signInWithGoogle => _signInWithGoogle;
-  static get signInWithApple => _signInWithApple;
-  static get getUser => _getUser;
-  static get deleteGoogleMe => _deleteGoogleMe;
-  static get deleteAppleMe => _deleteAppleMe;
-  static get feedback => _feedback;
-  static get deleteUser => _deleteUser;
+  static String get signIn => _signIn;
+  static String get signUp => _signUp;
+  static String get signInWithGoogle => _signInWithGoogle;
+  static String get signInWithApple => _signInWithApple;
+  static String get getUser => _getUser;
+  static String get deleteGoogleMe => _deleteGoogleMe;
+  static String get deleteAppleMe => _deleteAppleMe;
+  static String get feedback => _feedback;
+  static String get deleteUser => _deleteUser;
 
   // schedule
   static const _schedules = '/schedules';
 
-  static getScheduleById(String scheduleId) => '$_schedules/$scheduleId';
-  static get getSchedulesByDate => _schedules;
+  static String getScheduleById(String scheduleId) => '$_schedules/$scheduleId';
+  static String get getSchedulesByDate => _schedules;
 
-  static get createSchedule => _schedules;
-  static updateSchedule(String scheduleId) => '$_schedules/$scheduleId';
-  static deleteScheduleById(String scheduleId) => '$_schedules/$scheduleId';
-  static finishSchedule(String scheduleId) => '$_schedules/$scheduleId/finish';
+  static String get createSchedule => _schedules;
+  static String updateSchedule(String scheduleId) => '$_schedules/$scheduleId';
+  static String deleteScheduleById(String scheduleId) =>
+      '$_schedules/$scheduleId';
+  static String finishSchedule(String scheduleId) =>
+      '$_schedules/$scheduleId/finish';
 
   // preparation
   static const _createDefaultPreparation =
@@ -39,29 +41,29 @@ class Endpoint {
 
   static const _defaultPreparation = '/users/preparations'; // 사용자 기본 준비과정 조회
 
-  static get createDefaultPreparation => _createDefaultPreparation;
+  static String get createDefaultPreparation => _createDefaultPreparation;
 
-  static _prepartionByScheduleId(String scheduleId) =>
+  static String _prepartionByScheduleId(String scheduleId) =>
       '$_schedules/$scheduleId/preparations';
 
-  static getCreateCustomPreparation(String scheduleId) =>
+  static String getCreateCustomPreparation(String scheduleId) =>
       _prepartionByScheduleId(scheduleId);
 
-  static getPreparationByScheduleId(String scheduleId) =>
+  static String getPreparationByScheduleId(String scheduleId) =>
       _prepartionByScheduleId(scheduleId);
 
-  static updatePreparationByScheduleId(String scheduleId) =>
+  static String updatePreparationByScheduleId(String scheduleId) =>
       _prepartionByScheduleId(scheduleId);
 
-  static get getDefaultPreparation => _defaultPreparation;
+  static String get getDefaultPreparation => _defaultPreparation;
 
-  static get updateDefaultPreparation => _defaultPreparation;
+  static String get updateDefaultPreparation => _defaultPreparation;
 
   static const _updateSpareTime = '/users/me/spare-time';
-  static get updateSpareTime => _updateSpareTime;
+  static String get updateSpareTime => _updateSpareTime;
 
   static const _fcmToken = '/firebase-token'; // 사용자 fcm 토큰 등록
-  static get fcmTokenRegister => _fcmToken;
+  static String get fcmTokenRegister => _fcmToken;
 
   // alarm
   static const _alarmSettings = '/users/me/alarm-settings';
@@ -69,8 +71,8 @@ class Endpoint {
   static const _alarmWindow = '$_schedules/alarm-window';
   static const _alarmStatus = '/users/me/alarm-status';
 
-  static get alarmSettings => _alarmSettings;
-  static get currentDevice => _currentDevice;
-  static get alarmWindow => _alarmWindow;
-  static get alarmStatus => _alarmStatus;
+  static String get alarmSettings => _alarmSettings;
+  static String get currentDevice => _currentDevice;
+  static String get alarmWindow => _alarmWindow;
+  static String get alarmStatus => _alarmStatus;
 }

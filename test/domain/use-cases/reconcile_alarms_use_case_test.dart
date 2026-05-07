@@ -100,16 +100,18 @@ class FakeAlarmRegistryRepository implements AlarmRegistryRepository {
 
   @override
   Future<void> upsert(ScheduledAlarmRecord record) async {
-    records = records
-        .where((existing) => existing.scheduleId != record.scheduleId)
-        .toList()
-      ..add(record);
+    records =
+        records
+            .where((existing) => existing.scheduleId != record.scheduleId)
+            .toList()
+          ..add(record);
   }
 
   @override
   Future<void> deleteByScheduleId(String scheduleId) async {
-    records =
-        records.where((record) => record.scheduleId != scheduleId).toList();
+    records = records
+        .where((record) => record.scheduleId != scheduleId)
+        .toList();
   }
 
   @override
@@ -159,9 +161,7 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
   }
 
   @override
-  Future<void> cancelAllNativeAlarms(
-    List<ScheduledAlarmRecord> records,
-  ) async {
+  Future<void> cancelAllNativeAlarms(List<ScheduledAlarmRecord> records) async {
     canceledNative.addAll(records);
   }
 
@@ -204,7 +204,18 @@ class FakeUserRepository implements UserRepository {
   Stream<UserEntity> get userStream => const Stream.empty();
 
   @override
-  GoogleSignIn get googleSignIn => throw UnimplementedError();
+  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
+      const Stream.empty();
+
+  @override
+  bool get supportsGoogleAuthenticate => false;
+
+  @override
+  Future<GoogleSignInAccount> authenticateWithGoogle() =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> initializeGoogleSignIn() async {}
 
   @override
   Future<void> signOut() async {
@@ -236,10 +247,7 @@ class FakeUserRepository implements UserRepository {
   Future<void> postFeedback(String message) => throw UnimplementedError();
 
   @override
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) =>
+  Future<void> signIn({required String email, required String password}) =>
       throw UnimplementedError();
 
   @override
@@ -248,8 +256,7 @@ class FakeUserRepository implements UserRepository {
     required String authCode,
     required String fullName,
     String? email,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<void> signInWithGoogle(GoogleSignInAccount account) =>
@@ -260,8 +267,7 @@ class FakeUserRepository implements UserRepository {
     required String email,
     required String password,
     required String name,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 }
 
 void main() {
@@ -290,54 +296,55 @@ void main() {
     );
   });
 
-  test('requests padded window and schedules only eligible 7-day alarms',
-      () async {
-    final eligible = scheduleWithAlarmAt(
-      id: 'eligible',
-      alarmTime: now.add(const Duration(hours: 1)),
-    );
-    final past = scheduleWithAlarmAt(
-      id: 'past',
-      alarmTime: now.subtract(const Duration(minutes: 1)),
-    );
-    final outsideCoverage = scheduleWithAlarmAt(
-      id: 'outside',
-      alarmTime: now.add(const Duration(days: 7, minutes: 1)),
-    );
-    final ended = scheduleWithAlarmAt(
-      id: 'ended',
-      alarmTime: now.add(const Duration(hours: 2)),
-      doneStatus: ScheduleDoneStatus.normalEnd,
-    );
-    alarmRepository.schedules = [
-      eligible,
-      past,
-      outsideCoverage,
-      ended,
-    ];
+  test(
+    'requests padded window and schedules only eligible 7-day alarms',
+    () async {
+      final eligible = scheduleWithAlarmAt(
+        id: 'eligible',
+        alarmTime: now.add(const Duration(hours: 1)),
+      );
+      final past = scheduleWithAlarmAt(
+        id: 'past',
+        alarmTime: now.subtract(const Duration(minutes: 1)),
+      );
+      final outsideCoverage = scheduleWithAlarmAt(
+        id: 'outside',
+        alarmTime: now.add(const Duration(days: 7, minutes: 1)),
+      );
+      final ended = scheduleWithAlarmAt(
+        id: 'ended',
+        alarmTime: now.add(const Duration(hours: 2)),
+        doneStatus: ScheduleDoneStatus.normalEnd,
+      );
+      alarmRepository.schedules = [eligible, past, outsideCoverage, ended];
 
-    final result = await useCase();
+      final result = await useCase();
 
-    expect(alarmRepository.requestedWindowStart, now);
-    expect(
-      alarmRepository.requestedWindowEnd,
-      now.add(const Duration(days: 8)),
-    );
-    expect(
-      schedulerService.scheduledNative.map((record) => record.scheduleId),
-      ['eligible'],
-    );
-    expect(result.armedScheduleIds, ['eligible']);
-    expect(result.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
-    expect(result.fallbackProvider, AlarmProvider.none);
-    expect(alarmRepository.statusReports.single.nativeAlarmProvider,
-        AlarmProvider.androidAlarmManager);
-    expect(alarmRepository.statusReports.single.fallbackProvider,
-        AlarmProvider.none);
-    expect(result.skippedScheduleCount, 3);
-    expect(result.alarmCoverageEnd, now.add(const Duration(days: 7)));
-    expect(registryRepository.records.single.scheduleId, 'eligible');
-  });
+      expect(alarmRepository.requestedWindowStart, now);
+      expect(
+        alarmRepository.requestedWindowEnd,
+        now.add(const Duration(days: 8)),
+      );
+      expect(
+        schedulerService.scheduledNative.map((record) => record.scheduleId),
+        ['eligible'],
+      );
+      expect(result.armedScheduleIds, ['eligible']);
+      expect(result.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
+      expect(result.fallbackProvider, AlarmProvider.none);
+      expect(
+        alarmRepository.statusReports.single.nativeAlarmProvider,
+        AlarmProvider.androidAlarmManager,
+      );
+      expect(
+        alarmRepository.statusReports.single.fallbackProvider,
+        AlarmProvider.none,
+      );
+      expect(result.skippedScheduleCount, 3);
+      expect(result.alarmCoverageEnd, now.add(const Duration(days: 7)));
+      expect(registryRepository.records.single.scheduleId, 'eligible');
+    },
+  );
 
   test('arms a just-missed alarm immediately within grace period', () async {
     alarmRepository.schedules = [
@@ -401,153 +408,168 @@ void main() {
     expect(schedulerService.scheduledNative.length, 1);
   });
 
-  test('cancels stale record before rescheduling changed fingerprint',
-      () async {
-    final changed = scheduleWithAlarmAt(
-      id: 'changed',
-      alarmTime: now.add(const Duration(hours: 1)),
-      preparationName: 'Updated',
-    );
-    final desiredRecord = buildScheduledAlarmRecord(
-      changed,
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.androidAlarmManager,
-    );
-    final staleRecord = ScheduledAlarmRecord(
-      scheduleId: desiredRecord.scheduleId,
-      alarmTime: desiredRecord.alarmTime,
-      preparationStartTime: desiredRecord.preparationStartTime,
-      scheduleFingerprint: 'old-fingerprint',
-      nativeAlarmId: desiredRecord.nativeAlarmId,
-      fallbackNotificationId: desiredRecord.fallbackNotificationId,
-      provider: AlarmProvider.androidAlarmManager,
-      scheduleTitle: desiredRecord.scheduleTitle,
-      payload: desiredRecord.payload,
-    );
-    registryRepository.records = [staleRecord];
-    alarmRepository.schedules = [changed];
-
-    await useCase();
-
-    expect(schedulerService.canceledNative.single.scheduleId, 'changed');
-    expect(schedulerService.scheduledNative.single.scheduleId, 'changed');
-    expect(
-      registryRepository.records.single.scheduleFingerprint,
-      desiredRecord.scheduleFingerprint,
-    );
-  });
-
-  test('reschedules stale record with old alarm launch payload version',
-      () async {
-    final schedule = scheduleWithAlarmAt(
-      id: 'old-payload',
-      alarmTime: now.add(const Duration(hours: 1)),
-    );
-    final desiredRecord = buildScheduledAlarmRecord(
-      schedule,
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.androidAlarmManager,
-    );
-    final stalePayload = Map<String, String>.from(desiredRecord.payload)
-      ..remove('alarmLaunchPayloadVersion');
-    final staleRecord = ScheduledAlarmRecord(
-      scheduleId: desiredRecord.scheduleId,
-      alarmTime: desiredRecord.alarmTime,
-      preparationStartTime: desiredRecord.preparationStartTime,
-      scheduleFingerprint: desiredRecord.scheduleFingerprint,
-      nativeAlarmId: desiredRecord.nativeAlarmId,
-      fallbackNotificationId: desiredRecord.fallbackNotificationId,
-      provider: AlarmProvider.androidAlarmManager,
-      scheduleTitle: desiredRecord.scheduleTitle,
-      payload: stalePayload,
-    );
-    registryRepository.records = [staleRecord];
-    alarmRepository.schedules = [schedule];
-
-    await useCase();
-
-    expect(schedulerService.canceledNative.single.scheduleId, 'old-payload');
-    expect(schedulerService.scheduledNative.single.scheduleId, 'old-payload');
-    expect(
-      registryRepository.records.single.payload['alarmLaunchPayloadVersion'],
-      alarmLaunchPayloadVersion,
-    );
-  });
-
-  test('uses local notification fallback when native alarms are unsupported',
-      () async {
-    schedulerService.capabilities = const AlarmSchedulerCapabilities(
-      supportsNativeAlarm: false,
-      nativeAlarmProvider: AlarmProvider.none,
-      fallbackProvider: AlarmProvider.localNotification,
-    );
-    schedulerService.nativePermission = AlarmPermissionState.unsupported;
-    fallbackService.permission = AlarmPermissionState.granted;
-    alarmRepository.schedules = [
-      scheduleWithAlarmAt(
-        id: 'fallback',
+  test(
+    'cancels stale record before rescheduling changed fingerprint',
+    () async {
+      final changed = scheduleWithAlarmAt(
+        id: 'changed',
         alarmTime: now.add(const Duration(hours: 1)),
-      ),
-    ];
+        preparationName: 'Updated',
+      );
+      final desiredRecord = buildScheduledAlarmRecord(
+        changed,
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      final staleRecord = ScheduledAlarmRecord(
+        scheduleId: desiredRecord.scheduleId,
+        alarmTime: desiredRecord.alarmTime,
+        preparationStartTime: desiredRecord.preparationStartTime,
+        scheduleFingerprint: 'old-fingerprint',
+        nativeAlarmId: desiredRecord.nativeAlarmId,
+        fallbackNotificationId: desiredRecord.fallbackNotificationId,
+        provider: AlarmProvider.androidAlarmManager,
+        scheduleTitle: desiredRecord.scheduleTitle,
+        payload: desiredRecord.payload,
+      );
+      registryRepository.records = [staleRecord];
+      alarmRepository.schedules = [changed];
 
-    final result = await useCase();
+      await useCase();
 
-    expect(schedulerService.scheduledNative, isEmpty);
-    expect(fallbackService.scheduledFallback.single.scheduleId, 'fallback');
-    expect(
-      registryRepository.records.single.provider,
-      AlarmProvider.localNotification,
-    );
-    expect(result.status, AlarmReconciliationStatus.armed);
-    expect(result.fallbackProvider, AlarmProvider.localNotification);
-  });
+      expect(schedulerService.canceledNative.single.scheduleId, 'changed');
+      expect(schedulerService.scheduledNative.single.scheduleId, 'changed');
+      expect(
+        registryRepository.records.single.scheduleFingerprint,
+        desiredRecord.scheduleFingerprint,
+      );
+    },
+  );
 
-  test('does not use notification fallback when fallback provider is disabled',
-      () async {
-    schedulerService.capabilities = const AlarmSchedulerCapabilities(
-      supportsNativeAlarm: true,
-      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
-      fallbackProvider: AlarmProvider.none,
-    );
-    schedulerService.nativePermission = AlarmPermissionState.denied;
-    fallbackService.permission = AlarmPermissionState.granted;
-    alarmRepository.schedules = [
-      scheduleWithAlarmAt(
-        id: 'native-only',
+  test(
+    'reschedules stale record with old alarm launch payload version',
+    () async {
+      final schedule = scheduleWithAlarmAt(
+        id: 'old-payload',
         alarmTime: now.add(const Duration(hours: 1)),
-      ),
-    ];
+      );
+      final desiredRecord = buildScheduledAlarmRecord(
+        schedule,
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      final stalePayload = Map<String, String>.from(desiredRecord.payload)
+        ..remove('alarmLaunchPayloadVersion');
+      final staleRecord = ScheduledAlarmRecord(
+        scheduleId: desiredRecord.scheduleId,
+        alarmTime: desiredRecord.alarmTime,
+        preparationStartTime: desiredRecord.preparationStartTime,
+        scheduleFingerprint: desiredRecord.scheduleFingerprint,
+        nativeAlarmId: desiredRecord.nativeAlarmId,
+        fallbackNotificationId: desiredRecord.fallbackNotificationId,
+        provider: AlarmProvider.androidAlarmManager,
+        scheduleTitle: desiredRecord.scheduleTitle,
+        payload: stalePayload,
+      );
+      registryRepository.records = [staleRecord];
+      alarmRepository.schedules = [schedule];
 
-    final result = await useCase();
+      await useCase();
 
-    expect(schedulerService.scheduledNative, isEmpty);
-    expect(fallbackService.scheduledFallback, isEmpty);
-    expect(result.status, AlarmReconciliationStatus.permissionNeeded);
-    expect(result.permissionIssue, AlarmPermissionIssue.nativePermissionDenied);
-    expect(result.fallbackProvider, AlarmProvider.none);
-  });
+      expect(schedulerService.canceledNative.single.scheduleId, 'old-payload');
+      expect(schedulerService.scheduledNative.single.scheduleId, 'old-payload');
+      expect(
+        registryRepository.records.single.payload['alarmLaunchPayloadVersion'],
+        alarmLaunchPayloadVersion,
+      );
+    },
+  );
 
-  test('settingsUnavailable reports without canceling existing registry',
-      () async {
-    alarmRepository.throwSettings = true;
-    final existing = buildScheduledAlarmRecord(
-      scheduleWithAlarmAt(
-        id: 'existing',
-        alarmTime: now.add(const Duration(hours: 1)),
-      ),
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.androidAlarmManager,
-    );
-    registryRepository.records = [existing];
+  test(
+    'uses local notification fallback when native alarms are unsupported',
+    () async {
+      schedulerService.capabilities = const AlarmSchedulerCapabilities(
+        supportsNativeAlarm: false,
+        nativeAlarmProvider: AlarmProvider.none,
+        fallbackProvider: AlarmProvider.localNotification,
+      );
+      schedulerService.nativePermission = AlarmPermissionState.unsupported;
+      fallbackService.permission = AlarmPermissionState.granted;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'fallback',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
 
-    final result = await useCase();
+      final result = await useCase();
 
-    expect(result.status, AlarmReconciliationStatus.settingsUnavailable);
-    expect(schedulerService.canceledNative, isEmpty);
-    expect(registryRepository.records, [existing]);
-    expect(alarmRepository.statusReports.single.status,
-        AlarmReconciliationStatus.settingsUnavailable);
-  });
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(fallbackService.scheduledFallback.single.scheduleId, 'fallback');
+      expect(
+        registryRepository.records.single.provider,
+        AlarmProvider.localNotification,
+      );
+      expect(result.status, AlarmReconciliationStatus.armed);
+      expect(result.fallbackProvider, AlarmProvider.localNotification);
+    },
+  );
+
+  test(
+    'does not use notification fallback when fallback provider is disabled',
+    () async {
+      schedulerService.capabilities = const AlarmSchedulerCapabilities(
+        supportsNativeAlarm: true,
+        nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+        fallbackProvider: AlarmProvider.none,
+      );
+      schedulerService.nativePermission = AlarmPermissionState.denied;
+      fallbackService.permission = AlarmPermissionState.granted;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'native-only',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+
+      final result = await useCase();
+
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(fallbackService.scheduledFallback, isEmpty);
+      expect(result.status, AlarmReconciliationStatus.permissionNeeded);
+      expect(
+        result.permissionIssue,
+        AlarmPermissionIssue.nativePermissionDenied,
+      );
+      expect(result.fallbackProvider, AlarmProvider.none);
+    },
+  );
+
+  test(
+    'settingsUnavailable reports without canceling existing registry',
+    () async {
+      alarmRepository.throwSettings = true;
+      final existing = buildScheduledAlarmRecord(
+        scheduleWithAlarmAt(
+          id: 'existing',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      registryRepository.records = [existing];
+
+      final result = await useCase();
+
+      expect(result.status, AlarmReconciliationStatus.settingsUnavailable);
+      expect(schedulerService.canceledNative, isEmpty);
+      expect(registryRepository.records, [existing]);
+      expect(
+        alarmRepository.statusReports.single.status,
+        AlarmReconciliationStatus.settingsUnavailable,
+      );
+    },
+  );
 
   test('alarm window failure reports partial without throwing', () async {
     alarmRepository.throwAlarmWindow = true;
@@ -555,43 +577,51 @@ void main() {
     final result = await useCase();
 
     expect(result.status, AlarmReconciliationStatus.partial);
-    expect(result.failures.single.reason,
-        AlarmFailureReason.preparationLoadFailed);
     expect(
-        result.failures.single.message, contains('alarm window unavailable'));
+      result.failures.single.reason,
+      AlarmFailureReason.preparationLoadFailed,
+    );
+    expect(
+      result.failures.single.message,
+      contains('alarm window unavailable'),
+    );
     expect(registryRepository.records, isEmpty);
-    expect(alarmRepository.statusReports.single.status,
-        AlarmReconciliationStatus.partial);
+    expect(
+      alarmRepository.statusReports.single.status,
+      AlarmReconciliationStatus.partial,
+    );
   });
 
-  test('global disabled cancels all local alarms and clears registry',
-      () async {
-    alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
-    final native = buildScheduledAlarmRecord(
-      scheduleWithAlarmAt(
-        id: 'native',
-        alarmTime: now.add(const Duration(hours: 1)),
-      ),
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.androidAlarmManager,
-    );
-    final fallback = buildScheduledAlarmRecord(
-      scheduleWithAlarmAt(
-        id: 'fallback',
-        alarmTime: now.add(const Duration(hours: 2)),
-      ),
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.localNotification,
-    );
-    registryRepository.records = [native, fallback];
+  test(
+    'global disabled cancels all local alarms and clears registry',
+    () async {
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+      final native = buildScheduledAlarmRecord(
+        scheduleWithAlarmAt(
+          id: 'native',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      final fallback = buildScheduledAlarmRecord(
+        scheduleWithAlarmAt(
+          id: 'fallback',
+          alarmTime: now.add(const Duration(hours: 2)),
+        ),
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.localNotification,
+      );
+      registryRepository.records = [native, fallback];
 
-    final result = await useCase();
+      final result = await useCase();
 
-    expect(result.status, AlarmReconciliationStatus.disabled);
-    expect(schedulerService.canceledNative, [native]);
-    expect(fallbackService.canceledFallback, [fallback]);
-    expect(registryRepository.records, isEmpty);
-  });
+      expect(result.status, AlarmReconciliationStatus.disabled);
+      expect(schedulerService.canceledNative, [native]);
+      expect(fallbackService.canceledFallback, [fallback]);
+      expect(registryRepository.records, isEmpty);
+    },
+  );
 
   test('reports partial when scheduling a desired alarm fails', () async {
     final failing = scheduleWithAlarmAt(
@@ -610,25 +640,27 @@ void main() {
     expect(registryRepository.records, isEmpty);
   });
 
-  test('session invalidation cancels alarms, clears registry, and signs out',
-      () async {
-    final existing = buildScheduledAlarmRecord(
-      scheduleWithAlarmAt(
-        id: 'old-device',
-        alarmTime: now.add(const Duration(hours: 1)),
-      ),
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.androidAlarmManager,
-    );
-    registryRepository.records = [existing];
-    alarmRepository.throwDeviceSessionNotActiveOnStatus = true;
+  test(
+    'session invalidation cancels alarms, clears registry, and signs out',
+    () async {
+      final existing = buildScheduledAlarmRecord(
+        scheduleWithAlarmAt(
+          id: 'old-device',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      registryRepository.records = [existing];
+      alarmRepository.throwDeviceSessionNotActiveOnStatus = true;
 
-    await useCase();
+      await useCase();
 
-    expect(schedulerService.canceledNative, [existing]);
-    expect(registryRepository.records, isEmpty);
-    expect(userRepository.signedOut, isTrue);
-  });
+      expect(schedulerService.canceledNative, [existing]);
+      expect(registryRepository.records, isEmpty);
+      expect(userRepository.signedOut, isTrue);
+    },
+  );
 }
 
 ScheduleWithPreparationEntity scheduleWithAlarmAt({

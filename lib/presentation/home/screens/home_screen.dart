@@ -30,13 +30,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final dateOfToday = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
-    final double score = context.select((AuthBloc bloc) =>
-        bloc.state.user.mapOrNull((user) => user.score) ?? -1);
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+      0,
+      0,
+      0,
+    );
+    final double score = context.select(
+      (AuthBloc bloc) => bloc.state.user.scoreOrNull ?? -1,
+    );
 
     return BlocProvider(
-      create: (context) => getIt.get<WeeklySchedulesBloc>()
-        ..add(WeeklySchedulesSubscriptionRequested(date: dateOfToday)),
+      create: (context) =>
+          getIt.get<WeeklySchedulesBloc>()
+            ..add(WeeklySchedulesSubscriptionRequested(date: dateOfToday)),
       child: BlocListener<ScheduleBloc, ScheduleState>(
         listenWhen: (previous, current) {
           return previous.status != ScheduleStatus.started &&
@@ -62,13 +70,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.only(
-                          top: 50.0, left: 16.0, right: 16.0),
-                      decoration: BoxDecoration(
-                        color: AppColors.blue[100],
+                        top: 50.0,
+                        left: 16.0,
+                        right: 16.0,
                       ),
-                      child: _WeeklySchedule(
-                        weeklySchedulesState: state,
-                      ),
+                      decoration: BoxDecoration(color: AppColors.blue[100]),
+                      child: _WeeklySchedule(weeklySchedulesState: state),
                     ),
                   ),
                 ],
@@ -121,12 +128,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: target == null
                               ? null
                               : () => context.go(
-                                    target.path,
-                                    extra: target.extra,
-                                  ),
+                                  target.path,
+                                  extra: target.extra,
+                                ),
                         );
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -141,9 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _WeeklySchedule extends StatelessWidget {
-  const _WeeklySchedule({
-    required this.weeklySchedulesState,
-  });
+  const _WeeklySchedule({required this.weeklySchedulesState});
 
   final WeeklySchedulesState weeklySchedulesState;
 
@@ -153,12 +158,8 @@ class _WeeklySchedule extends StatelessWidget {
       children: [
         _WeeklyScheduleHeader(),
         SizedBox(height: 23.0),
-        _WeekCalendar(
-          weeklySchedulesState: weeklySchedulesState,
-        ),
-        Expanded(
-          child: SizedBox(),
-        ),
+        _WeekCalendar(weeklySchedulesState: weeklySchedulesState),
+        Expanded(child: SizedBox()),
       ],
     );
   }
@@ -181,17 +182,22 @@ class _WeeklyScheduleHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(AppLocalizations.of(context)!.thisWeeksAppointments,
-            style: theme.textTheme.titleSmall),
+        Text(
+          AppLocalizations.of(context)!.thisWeeksAppointments,
+          style: theme.textTheme.titleSmall,
+        ),
         TextButton(
           onPressed: () {
             context.go('/calendar');
           },
           child: Row(
             children: [
-              Text(AppLocalizations.of(context)!.viewCalendar,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.outlineVariant)),
+              Text(
+                AppLocalizations.of(context)!.viewCalendar,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outlineVariant,
+                ),
+              ),
               arrowRightSvg,
             ],
           ),
@@ -227,9 +233,7 @@ class _WeekCalendar extends StatelessWidget {
 }
 
 class _PunctualityIndicator extends StatelessWidget {
-  const _PunctualityIndicator({
-    required this.score,
-  });
+  const _PunctualityIndicator({required this.score});
 
   final double score;
 
@@ -243,16 +247,21 @@ class _PunctualityIndicator extends StatelessWidget {
           score: 80,
           child: Center(
             child: Padding(
-              padding:
-                  const EdgeInsets.only(top: 52.0, right: 60.0, left: 60.0),
+              padding: const EdgeInsets.only(
+                top: 52.0,
+                right: 60.0,
+                left: 60.0,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _PunctualityScore(score: score),
                   SizedBox(height: 6.0),
                   _PunctualityComment(
-                      comment:
-                          AppLocalizations.of(context)!.punctualityComment(30)),
+                    comment: AppLocalizations.of(
+                      context,
+                    )!.punctualityComment(30),
+                  ),
                   SizedBox(height: 6.0),
                   _Character(),
                 ],
@@ -266,8 +275,11 @@ class _PunctualityIndicator extends StatelessWidget {
 }
 
 class AnimatedArcIndicator extends StatefulWidget {
-  const AnimatedArcIndicator(
-      {super.key, required this.score, required this.child});
+  const AnimatedArcIndicator({
+    super.key,
+    required this.score,
+    required this.child,
+  });
 
   final double score;
   final Widget child;
@@ -290,10 +302,14 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
   @override
   void initState() {
     super.initState();
-    _animationController =
-        AnimationController(duration: const Duration(seconds: 1), vsync: this);
-    _animation = Tween<double>(begin: 0, end: widget.score / 100)
-        .animate(_animationController);
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    _animation = Tween<double>(
+      begin: 0,
+      end: widget.score / 100,
+    ).animate(_animationController);
     _animationController.forward();
   }
 
@@ -303,10 +319,7 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
       animation: _animation,
       builder: (context, child) {
         return CustomPaint(
-          painter: ArcIndicator(
-            strokeWidth: 16,
-            progress: _animation.value,
-          ),
+          painter: ArcIndicator(strokeWidth: 16, progress: _animation.value),
           child: widget.child,
         );
       },
@@ -315,17 +328,17 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
 }
 
 class _PunctualityScore extends StatelessWidget {
-  const _PunctualityScore({
-    required this.score,
-  });
+  const _PunctualityScore({required this.score});
 
   final double score;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Text(AppLocalizations.of(context)!.points(score.toInt()),
-        style: textTheme.displaySmall);
+    return Text(
+      AppLocalizations.of(context)!.points(score.toInt()),
+      style: textTheme.displaySmall,
+    );
   }
 }
 
@@ -335,18 +348,14 @@ class _Character extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        height: 270.3,
-        child: SvgPicture.asset(
-          'characters/character.svg',
-          package: 'assets',
-        ));
+      height: 270.3,
+      child: SvgPicture.asset('characters/character.svg', package: 'assets'),
+    );
   }
 }
 
 class _PunctualityComment extends StatelessWidget {
-  const _PunctualityComment({
-    required this.comment,
-  });
+  const _PunctualityComment({required this.comment});
 
   final String comment;
 

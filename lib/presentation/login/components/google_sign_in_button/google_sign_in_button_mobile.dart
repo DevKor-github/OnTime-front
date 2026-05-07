@@ -16,11 +16,8 @@ class GoogleSignInButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: () async {
           try {
-            final googleAccount =
-                await authenticationRepository.googleSignIn.signIn();
-            if (googleAccount == null) {
-              throw Exception('Google Sign In Failed, Sign In Account is null');
-            }
+            final googleAccount = await authenticationRepository
+                .authenticateWithGoogle();
             await authenticationRepository.signInWithGoogle(googleAccount);
           } catch (e) {
             debugPrint(e.toString());

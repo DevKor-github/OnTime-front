@@ -12,6 +12,7 @@ import 'package:on_time_front/presentation/home/components/week_calendar.dart';
 import 'package:on_time_front/presentation/home/utils/today_tile_navigation.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -218,7 +219,7 @@ class _WeekCalendar extends StatelessWidget {
     return WeekCalendar(
       date: DateTime.now(),
       onDateSelected: (date) {
-        context.go('/calendar', extra: date);
+        context.go(calendarRouteLocation(date), extra: date);
       },
       highlightedDates: weeklySchedulesState.dates,
     );

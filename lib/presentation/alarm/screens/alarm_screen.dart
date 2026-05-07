@@ -12,6 +12,7 @@ import 'package:on_time_front/presentation/alarm/components/alarm_screen_top_sec
 import 'package:on_time_front/presentation/alarm/components/preparation_completion_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
@@ -135,7 +136,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
             isLate != null) {
           _resetFinishNavigation();
           context.go(
-            '/earlyLate',
+            earlyLateRouteLocation(
+              earlyLateTime: earlyLateSeconds,
+              isLate: isLate,
+            ),
             extra: {
               'earlyLateTime': earlyLateSeconds,
               'isLate': isLate,

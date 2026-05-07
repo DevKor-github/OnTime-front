@@ -9,6 +9,7 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
 
 enum ScheduleStartPromptVariant {
@@ -39,19 +40,20 @@ ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
 ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteExtra(
   Map<String, dynamic>? extra,
 ) {
-  final isFiveMinutesBefore = extra?['isFiveMinutesBefore'] as bool? ?? false;
+  final isFiveMinutesBefore =
+      routeBoolValue(extra?['isFiveMinutesBefore']) ?? false;
   if (isFiveMinutesBefore) {
     return ScheduleStartPromptVariant.earlyStart;
   }
   return scheduleStartPromptVariantFromRouteValue(
-    extra?['promptVariant'] as String?,
+    routeStringValue(extra?['promptVariant']),
   );
 }
 
 ScheduleStartLaunchAction scheduleStartLaunchActionFromRouteExtra(
   Map<String, dynamic>? extra,
 ) {
-  switch (extra?['alarmLaunchAction'] as String?) {
+  switch (routeStringValue(extra?['alarmLaunchAction'])) {
     case 'startPreparation':
     case 'startPreparing':
       return ScheduleStartLaunchAction.startPreparation;

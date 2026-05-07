@@ -23,6 +23,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_pr
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dart';
 import 'package:on_time_front/presentation/startup/screens/startup_screen.dart';
 
@@ -112,7 +113,7 @@ GoRouter goRouterConfig(
       GoRoute(
         path: '/calendar',
         builder: (context, state) => CalendarScreen(
-          initialDate: state.extra as DateTime?,
+          initialDate: calendarInitialDateFromState(state),
         ),
       ),
       GoRoute(
@@ -129,7 +130,7 @@ GoRouter goRouterConfig(
         path: '/scheduleStart',
         name: 'scheduleStart',
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
+          final extra = scheduleStartRouteExtraFromState(state);
           return _ScheduleStartRouteGate(extra: extra);
         },
       ),
@@ -141,14 +142,20 @@ GoRouter goRouterConfig(
       ),
       GoRoute(
         path: '/earlyLate',
+        redirect: (context, state) {
+          return earlyLateRouteArgumentsFromState(state) == null
+              ? '/home'
+              : null;
+        },
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          final earlyLateTime = extra['earlyLateTime'] as int;
-          final isLate = extra['isLate'] as bool;
+          final arguments = earlyLateRouteArgumentsFromState(state);
+          if (arguments == null) {
+            return const LoadingScreen();
+          }
 
           return EarlyLateScreen(
-            earlyLateTime: earlyLateTime,
-            isLate: isLate,
+            earlyLateTime: arguments.earlyLateTime,
+            isLate: arguments.isLate,
           );
         },
       ),
@@ -177,14 +184,14 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_requestedValidation) return;
-    final scheduleId = widget.extra?['scheduleId']?.toString();
+    final scheduleId = routeStringValue(widget.extra?['scheduleId']);
     if (scheduleId == null || scheduleId.isEmpty) return;
     _requestedValidation = true;
     context.read<ScheduleBloc>().add(
           ScheduleAlarmPromptRequested(
             scheduleId: scheduleId,
             scheduleFingerprint:
-                widget.extra?['scheduleFingerprint']?.toString(),
+                routeStringValue(widget.extra?['scheduleFingerprint']),
             startPreparation: scheduleStartLaunchActionFromRouteExtra(
                   widget.extra,
                 ) ==
@@ -200,9 +207,9 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
       return const AlarmScreen();
     }
 
-    final scheduleId = widget.extra?['scheduleId']?.toString();
+    final scheduleId = routeStringValue(widget.extra?['scheduleId']);
     final scheduleFingerprint =
-        widget.extra?['scheduleFingerprint']?.toString();
+        routeStringValue(widget.extra?['scheduleFingerprint']);
     final allowsStaleFingerprint = scheduleStartLaunchActionFromRouteExtra(
           widget.extra,
         ) ==

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/domain/use-cases/delete_user_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -130,8 +131,10 @@ class DeleteUserModal {
     try {
       final deleteUserUseCase = getIt<DeleteUserUseCase>();
       await deleteUserUseCase(controller.text);
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (error) {
+      AppLogger.debug(
+        'Delete user failed errorType=${error.runtimeType}',
+      );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.error)),
@@ -143,8 +146,10 @@ class DeleteUserModal {
     try {
       final userRepository = getIt<UserRepository>();
       await userRepository.signOut();
-    } catch (e) {
-      debugPrint(e.toString());
+    } catch (error) {
+      AppLogger.debug(
+        'Sign out after delete user failed errorType=${error.runtimeType}',
+      );
     }
 
     onConfirm();

@@ -64,7 +64,7 @@ class AlarmRingingActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        NativeLog.d(TAG, "AlarmRingingActivity onCreate action=${intent?.action} extras=${intent?.extras}")
+        NativeLog.d(TAG, "AlarmRingingActivity onCreate ${NativeLog.summarizeIntent(intent)}")
         configureWindow()
         capturePayload(intent)
         buildContent()
@@ -74,7 +74,7 @@ class AlarmRingingActivity : Activity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        NativeLog.d(TAG, "AlarmRingingActivity onNewIntent action=${intent.action} extras=${intent.extras}")
+        NativeLog.d(TAG, "AlarmRingingActivity onNewIntent ${NativeLog.summarizeIntent(intent)}")
         setIntent(intent)
         if (intent.action == NativeAlarmReceiver.ACTION_DISMISS_ALARM) {
             dismissAlarm()

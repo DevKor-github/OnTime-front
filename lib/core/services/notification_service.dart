@@ -61,9 +61,9 @@ class NotificationService {
     try {
       FirebaseMessaging.onBackgroundMessage(
           _firebaseMessagingBackgroundHandler);
-      debugPrint('[FCM] Background message handler 등록 완료');
+      AppLogger.debug('[FCM] Background message handler 등록 완료');
     } catch (e) {
-      debugPrint('[FCM] Background message handler 등록 실패: $e');
+      AppLogger.debug('[FCM] Background message handler 등록 실패: $e');
     }
 
     await _requestPermission();
@@ -78,7 +78,7 @@ class NotificationService {
         badge: true,
         sound: true,
       );
-      debugPrint('[FCM] iOS 포그라운드 알림 표시 옵션 설정 완료');
+      AppLogger.debug('[FCM] iOS 포그라운드 알림 표시 옵션 설정 완료');
     }
   }
 
@@ -103,7 +103,8 @@ class NotificationService {
         criticalAlert: false,
       );
 
-      debugPrint('[FCM] Permission status: ${settings.authorizationStatus}');
+      AppLogger.debug(
+          '[FCM] Permission status: ${settings.authorizationStatus}');
       return settings.authorizationStatus;
     }
   }
@@ -111,10 +112,10 @@ class NotificationService {
   Future<bool> openNotificationSettings() async {
     try {
       final opened = await permission_handler.openAppSettings();
-      debugPrint('[FCM] 앱 설정 열기: $opened');
+      AppLogger.debug('[FCM] 앱 설정 열기: $opened');
       return opened;
     } catch (e) {
-      debugPrint('[FCM] 앱 설정 열기 실패: $e');
+      AppLogger.debug('[FCM] 앱 설정 열기 실패: $e');
       return false;
     }
   }
@@ -133,7 +134,8 @@ class NotificationService {
         criticalAlert: false,
       );
 
-      debugPrint('[FCM] Permission status: ${settings.authorizationStatus}');
+      AppLogger.debug(
+          '[FCM] Permission status: ${settings.authorizationStatus}');
     }
   }
 
@@ -153,9 +155,9 @@ class NotificationService {
                   deviceId: deviceId,
                 ),
               );
-          debugPrint('[FCM] FCM Token 서버 등록 완료');
+          AppLogger.debug('[FCM] FCM Token 서버 등록 완료');
         } catch (e) {
-          debugPrint('[FCM] FCM Token 서버 등록 실패: $e');
+          AppLogger.debug('[FCM] FCM Token 서버 등록 실패: $e');
         }
       }
 
@@ -173,7 +175,7 @@ class NotificationService {
         });
       });
     } catch (e) {
-      debugPrint('[FCM] Token 요청 오류: $e');
+      AppLogger.debug('[FCM] Token 요청 오류: $e');
     }
   }
 
@@ -231,7 +233,7 @@ class NotificationService {
 
   Future<void> showNotification(RemoteMessage message) async {
     if (_isScheduleAlarmMessage(message)) {
-      debugPrint(
+      AppLogger.debug(
         '[FCM] schedule_alarm push suppressed; native/system alarm handles alarm UI',
       );
       return;
@@ -240,7 +242,7 @@ class NotificationService {
     try {
       await setupFlutterNotifications();
     } catch (e) {
-      debugPrint('[FCM] setupFlutterNotifications 오류: $e');
+      AppLogger.debug('[FCM] setupFlutterNotifications 오류: $e');
       return;
     }
 
@@ -287,9 +289,11 @@ class NotificationService {
         ),
         payload: jsonEncode(message.data),
       );
-    } catch (e, stackTrace) {
-      debugPrint('[FCM] 로컬 알림 표시 실패: $e');
-      debugPrint('[FCM] 스택 트레이스: $stackTrace');
+    } catch (error) {
+      AppLogger.debug(
+        '[FCM] local notification display failed '
+        'errorType=${error.runtimeType}',
+      );
     }
   }
 
@@ -299,7 +303,7 @@ class NotificationService {
     Map<String, dynamic>? payload,
   }) async {
     if (_isScheduleAlarmPayload(payload)) {
-      debugPrint(
+      AppLogger.debug(
         '[FCM] schedule_alarm local notification suppressed; native/system alarm handles alarm UI',
       );
       return;
@@ -308,7 +312,7 @@ class NotificationService {
     try {
       await setupFlutterNotifications();
     } catch (e) {
-      debugPrint('[FCM] setupFlutterNotifications 오류: $e');
+      AppLogger.debug('[FCM] setupFlutterNotifications 오류: $e');
       return;
     }
 
@@ -340,9 +344,11 @@ class NotificationService {
         ),
         payload: payload != null ? jsonEncode(payload) : null,
       );
-    } catch (e, stackTrace) {
-      debugPrint('[FCM] 로컬 알림 표시 실패: $e');
-      debugPrint('[FCM] 스택 트레이스: $stackTrace');
+    } catch (error) {
+      AppLogger.debug(
+        '[FCM] local notification display failed '
+        'errorType=${error.runtimeType}',
+      );
     }
   }
 
@@ -354,7 +360,9 @@ class NotificationService {
   }) async {
     // Disable case-3 alerts while app is in foreground.
     if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-      debugPrint('[FCM] Foreground 상태에서는 단계 변경 알림을 표시하지 않습니다.');
+      AppLogger.debug(
+        '[FCM] preparation step notification skipped in foreground',
+      );
       return;
     }
 
@@ -412,7 +420,7 @@ class NotificationService {
     final notificationId =
         record.fallbackNotificationId ?? stableAlarmId(record.scheduleId);
     final scheduledAt = tz.TZDateTime.from(record.alarmTime, tz.local);
-    debugPrint(
+    AppLogger.debug(
       '[FallbackAlarm] schedule notificationId=$notificationId '
       'scheduleId=${record.scheduleId} '
       'scheduledAt=${scheduledAt.toIso8601String()} '
@@ -466,23 +474,25 @@ class NotificationService {
       (message) {
         try {
           showNotification(message);
-        } catch (e, stackTrace) {
-          debugPrint('[FCM Foreground] 알림 표시 오류: $e');
-          debugPrint('[FCM Foreground] 스택 트레이스: $stackTrace');
+        } catch (error) {
+          AppLogger.debug(
+            '[FCM Foreground] notification display failed '
+            'errorType=${error.runtimeType}',
+          );
         }
       },
       onError: (error) {
-        debugPrint('[FCM Foreground] 리스너 오류: $error');
+        AppLogger.debug('[FCM Foreground] 리스너 오류: $error');
       },
       cancelOnError: false,
     );
-    debugPrint('[FCM] Foreground message handler 등록 완료');
+    AppLogger.debug('[FCM] Foreground message handler 등록 완료');
 
     // background message
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       _handleBackgroundMessage(message);
     });
-    debugPrint('[FCM] Background message handler 등록 완료');
+    AppLogger.debug('[FCM] Background message handler 등록 완료');
 
     // opened app
     final initialMessage = await _messaging.getInitialMessage();
@@ -492,7 +502,7 @@ class NotificationService {
   }
 
   void _handleLocalNotificationTap(String? payload) {
-    debugPrint('[FCM] 알림 탭');
+    AppLogger.debug('[FCM] 알림 탭');
     if (payload == null) {
       return;
     }
@@ -522,12 +532,12 @@ class NotificationService {
       //   getIt.get<NavigationService>().push('/alarmScreen');
       // }
     } catch (e) {
-      debugPrint('[FCM] 페이로드 파싱 오류: $e');
+      AppLogger.debug('[FCM] 페이로드 파싱 오류: $e');
     }
   }
 
   Future<void> _handleBackgroundMessage(RemoteMessage message) async {
-    debugPrint('[FCM] 백그라운드 메시지 처리');
+    AppLogger.debug('[FCM] 백그라운드 메시지 처리');
 
     final type = message.data['type'] as String?;
     final scheduleId = message.data['scheduleId'] as String?;

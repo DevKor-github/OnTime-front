@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/use-cases/get_adjacent_schedules_with_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_adjacent_schedule_with_preparation_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
+import 'package:on_time_front/domain/entities/adjacent_schedules_with_preparation_entity.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/input_models/schedule_date_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/input_models/schedule_time_input_model.dart';
-import 'package:on_time_front/domain/entities/adjacent_schedules_with_preparation_entity.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 part 'schedule_date_time_state.dart';
@@ -97,7 +98,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         endDate: endDate,
       );
     } catch (e) {
-      debugPrint('Error loading adjacent schedules: $e');
+      AppLogger.debug('Error loading adjacent schedules: $e');
     }
   }
 
@@ -132,7 +133,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       final endDate = dateRange.endDate;
 
       // Find adjacent schedules (previous and next) with preparation from stream
-      debugPrint(
+      AppLogger.debug(
           'Checking overlap for: $selectedDateTime, currentScheduleId: $currentScheduleId');
       final AdjacentSchedulesWithPreparationEntity adjacentSchedules =
           await _getNextScheduleWithPreparationUseCase(
@@ -142,7 +143,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         endDate: endDate,
       );
 
-      debugPrint(
+      AppLogger.debug(
           'Previous schedule found: ${adjacentSchedules.hasPrevious}, Next schedule found: ${adjacentSchedules.hasNext}');
 
       // Check overlap with next schedule
@@ -158,31 +159,28 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
             nextPreparationStartTime.difference(selectedDateTime);
         final minutesDifference = timeDifference.inMinutes;
 
-        debugPrint('=== Next Schedule Overlap Debug ===');
-        debugPrint('Next schedule name: ${nextSchedule.scheduleName}');
-        debugPrint('Next schedule time: ${nextSchedule.scheduleTime}');
-        debugPrint(
-            'Next schedule preparation start time: $nextPreparationStartTime');
-        debugPrint('Next schedule moveTime: ${nextSchedule.moveTime}');
-        debugPrint(
-            'Next schedule preparation totalDuration: ${nextSchedule.preparation.totalDuration}');
-        debugPrint(
-            'Next schedule spareTime: ${nextSchedule.scheduleSpareTime}');
-        debugPrint('Selected datetime: $selectedDateTime');
-        debugPrint('Time difference: $timeDifference');
-        debugPrint('Minutes difference: $minutesDifference');
-        debugPrint('===================================');
+        AppLogger.debug(
+          'Next schedule overlap check '
+          'scheduleId=${nextSchedule.id} '
+          'scheduleTime=${nextSchedule.scheduleTime} '
+          'preparationStartTime=$nextPreparationStartTime '
+          'moveMinutes=${nextSchedule.moveTime.inMinutes} '
+          'preparationMinutes=${nextSchedule.preparation.totalDuration.inMinutes} '
+          'spareMinutes=${nextSchedule.scheduleSpareTime?.inMinutes} '
+          'selectedDateTime=$selectedDateTime '
+          'minutesDifference=$minutesDifference',
+        );
 
         // Show warning if positive time difference, error if already overlapping (<= 0)
         if (minutesDifference > 0) {
-          debugPrint('Showing warning with $minutesDifference minutes');
+          AppLogger.debug('Showing warning with $minutesDifference minutes');
           // User requested to show only error when overlap, no warning for next schedule
           emit(state.copyWith(
             clearOverlap: true,
           ));
         } else {
           // Already overlapping - show as error
-          debugPrint(
+          AppLogger.debug(
               'Showing error - already overlapping (minutesDifference: $minutesDifference)');
           emit(state.copyWith(
             isOverlapping: true,
@@ -211,16 +209,14 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
             selectedDateTime.difference(previousScheduleEndTime);
         final minutesDifference = timeDifference.inMinutes;
 
-        debugPrint('=== Previous Schedule Overlap Debug ===');
-        debugPrint('Previous schedule name: ${previousSchedule.scheduleName}');
-        debugPrint('Previous schedule time: ${previousSchedule.scheduleTime}');
-        debugPrint(
-            'Previous schedule totalDuration: ${previousSchedule.totalDuration}');
-        debugPrint('Previous schedule end time: $previousScheduleEndTime');
-        debugPrint('Selected datetime: $selectedDateTime');
-        debugPrint('Time difference: $timeDifference');
-        debugPrint('Minutes difference: $minutesDifference');
-        debugPrint('======================================');
+        AppLogger.debug(
+          'Previous schedule overlap check '
+          'scheduleId=${previousSchedule.id} '
+          'scheduleTime=${previousSchedule.scheduleTime} '
+          'totalMinutes=${previousSchedule.totalDuration.inMinutes} '
+          'selectedDateTime=$selectedDateTime '
+          'minutesDifference=$minutesDifference',
+        );
 
         // If minutesDifference < 0, it means selected time is before previous ends (overlapping)
         // If minutesDifference >= 0, it means selected time is after previous ends (no overlap)
@@ -229,7 +225,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
           // This case should theoretically not happen if we assume preparation is before schedule time and we are creating a new schedule
           // But if it does, we treat it as available time being negative?
           // Or just show it as available time (which will be negative)
-          debugPrint(
+          AppLogger.debug(
               'Showing error - overlapping with previous schedule (minutesDifference: $minutesDifference)');
           emit(state.copyWith(
             previousOverlapDuration:
@@ -252,14 +248,14 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
               minutesDifference < scheduleOverlapWarningThresholdMinutes;
 
           if (isSmallTime) {
-            debugPrint(
+            AppLogger.debug(
                 'Showing warning - small available time from previous schedule (minutesDifference: $minutesDifference)');
             emit(state.copyWith(
               previousOverlapDuration: timeDifference,
               previousScheduleName: previousSchedule.scheduleName,
             ));
           } else {
-            debugPrint(
+            AppLogger.debug(
                 'Not showing warning - available time is large (minutesDifference: $minutesDifference)');
             emit(state.copyWith(
               previousOverlapDuration: timeDifference,
@@ -276,7 +272,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       }
     } catch (e) {
       // On error, clear both overlaps
-      debugPrint('Error checking schedule overlap: $e');
+      AppLogger.debug('Error checking schedule overlap: $e');
       emit(state.copyWith(clearOverlap: true, clearPreviousOverlap: true));
     }
 

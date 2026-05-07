@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
@@ -213,22 +214,26 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _activeEarlyStartScheduleId = null;
     if (_isAtPreparationStartBoundary(resolvedSchedule, now)) {
       emit(ScheduleState.upcoming(resolvedSchedule));
-      debugPrint('preparation boundary reached: $resolvedSchedule');
+      AppLogger.debug(
+        'preparation boundary reached scheduleId=${resolvedSchedule.id}',
+      );
       add(const ScheduleStarted());
       return;
     }
 
     if (_isPreparationOnGoing(resolvedSchedule, now)) {
       emit(ScheduleState.ongoing(resolvedSchedule));
-      debugPrint(
-          'ongoingSchedule: $resolvedSchedule, currentStep: ${resolvedSchedule.preparation.currentStep}');
+      AppLogger.debug(
+        'ongoing scheduleId=${resolvedSchedule.id} '
+        'currentStepId=${resolvedSchedule.preparation.currentStep?.id}',
+      );
       _startPreparationTimer();
       return;
     }
 
     _stopPreparationTimer();
     emit(ScheduleState.upcoming(resolvedSchedule));
-    debugPrint('upcomingSchedule: $resolvedSchedule');
+    AppLogger.debug('upcoming scheduleId=${resolvedSchedule.id}');
     _startScheduleTimer(resolvedSchedule);
   }
 
@@ -236,7 +241,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       ScheduleStarted event, Emitter<ScheduleState> emit) async {
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       if (_activeEarlyStartScheduleId == _currentScheduleId) return;
-      debugPrint('scheddle started: ${state.schedule}');
+      AppLogger.debug('schedule started scheduleId=${state.schedule!.id}');
       emit(ScheduleState.started(state.schedule!));
       _initializeNotificationTracking(state.schedule!);
       _navigationService.push('/scheduleStart');
@@ -248,7 +253,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleAlarmPromptRequested event,
     Emitter<ScheduleState> emit,
   ) async {
-    debugPrint(
+    AppLogger.debug(
       'alarm prompt requested: scheduleId=${event.scheduleId} '
       'startPreparation=${event.startPreparation} '
       'fingerprint=${event.scheduleFingerprint}',
@@ -267,7 +272,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (_getScheduleByIdUseCase == null ||
         _loadPreparationByScheduleIdUseCase == null ||
         _getPreparationByScheduleIdUseCase == null) {
-      debugPrint(
+      AppLogger.debug(
         'alarm prompt validation unavailable: missing schedule use cases '
         'scheduleId=${event.scheduleId}',
       );
@@ -282,7 +287,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     try {
       final schedule = await getScheduleByIdUseCase(event.scheduleId);
       if (_isEnded(schedule.doneStatus)) {
-        debugPrint(
+        AppLogger.debug(
           'alarm prompt rejected ended schedule: scheduleId=${event.scheduleId}',
         );
         await _cancelScheduleAlarmUseCase?.call(event.scheduleId);
@@ -303,14 +308,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
           event.scheduleFingerprint !=
               scheduleWithPreparation.cacheFingerprint) {
         if (event.startPreparation) {
-          debugPrint(
+          AppLogger.debug(
             'alarm prompt continuing start despite fingerprint mismatch: '
             'scheduleId=${event.scheduleId} '
             'expected=${event.scheduleFingerprint} '
             'actual=${scheduleWithPreparation.cacheFingerprint}',
           );
         } else {
-          debugPrint(
+          AppLogger.debug(
             'alarm prompt rejected fingerprint mismatch: '
             'scheduleId=${event.scheduleId} '
             'expected=${event.scheduleFingerprint} '
@@ -329,9 +334,12 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         source: 'remote',
       );
     } catch (error) {
-      debugPrint('alarm prompt validation failed: $error');
+      AppLogger.debug(
+        'alarm prompt validation failed '
+        'scheduleId=${event.scheduleId} errorType=${error.runtimeType}',
+      );
       if (event.startPreparation) {
-        debugPrint(
+        AppLogger.debug(
           'alarm prompt start kept on current route after validation failure: '
           'scheduleId=${event.scheduleId}',
         );
@@ -353,13 +361,13 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final fingerprint = event.scheduleFingerprint;
     if (fingerprint != null && fingerprint != cachedSchedule.cacheFingerprint) {
       if (!event.startPreparation) return null;
-      debugPrint(
+      AppLogger.debug(
         'alarm prompt using cached schedule despite fingerprint mismatch: '
         'scheduleId=${event.scheduleId} '
         'expected=$fingerprint actual=${cachedSchedule.cacheFingerprint}',
       );
     }
-    debugPrint(
+    AppLogger.debug(
       'alarm prompt using cached schedule: scheduleId=${event.scheduleId}',
     );
     return cachedSchedule;
@@ -379,7 +387,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _initializeNotificationTracking(schedule);
 
     if (!event.startPreparation) {
-      debugPrint(
+      AppLogger.debug(
         'alarm prompt ready: scheduleId=${schedule.id} source=$source',
       );
       emit(ScheduleState.upcoming(schedule));
@@ -387,7 +395,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       return;
     }
 
-    debugPrint(
+    AppLogger.debug(
       'alarm prompt showing schedule start: scheduleId=${schedule.id} '
       'source=$source',
     );
@@ -422,7 +430,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final oldStepId = state.schedule!.preparation.currentStep?.id;
     final updatedPreparation =
         state.schedule!.preparation.timeElapsed(event.elapsed);
-    debugPrint('elapsedTime: ${updatedPreparation.elapsedTime}');
+    AppLogger.debug('elapsedTime: ${updatedPreparation.elapsedTime}');
 
     final newSchedule =
         ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
@@ -461,7 +469,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _lastSnapshotSavedAt = null;
       emit(const ScheduleState.notExists());
     } catch (error) {
-      debugPrint('error finishing schedule: $error');
+      AppLogger.debug('error finishing schedule: $error');
     }
   }
 
@@ -491,7 +499,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         : _nowProvider().difference(state.schedule!.preparationStartTime) -
             state.schedule!.preparation.elapsedTime;
     if (elapsedTimeAfterLastTick > Duration.zero) {
-      debugPrint('elapsedTimeAfterLastTick: $elapsedTimeAfterLastTick');
+      AppLogger.debug('elapsedTimeAfterLastTick: $elapsedTimeAfterLastTick');
       if (!isClosed) {
         add(ScheduleTick(elapsedTimeAfterLastTick));
       }
@@ -632,7 +640,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     notifiedStepIds.add(newCurrentStep.id);
     _notifiedStepIdsByScheduleId[scheduleId] = notifiedStepIds;
 
-    debugPrint(
-        '[ScheduleBloc] 단계 변경 알림 표시: [${newSchedule.scheduleName}] ${newCurrentStep.preparationName}, stepId: ${newCurrentStep.id}');
+    AppLogger.debug(
+      '[ScheduleBloc] preparation step notification shown '
+      'scheduleId=$scheduleId stepId=${newCurrentStep.id}',
+    );
   }
 }

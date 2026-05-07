@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -54,9 +54,10 @@ class NotificationGateCubit extends Cubit<NotificationGateState> {
   Future<void> _initializeNotifications() async {
     try {
       await _notificationService.initialize();
-    } catch (error, stackTrace) {
-      debugPrint('[NotificationGate] initialize failed: $error');
-      debugPrintStack(stackTrace: stackTrace);
+    } catch (error) {
+      AppLogger.debug(
+        '[NotificationGate] initialize failed errorType=${error.runtimeType}',
+      );
     }
   }
 }

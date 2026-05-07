@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart' hide IconAlignment;
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AppleSignInButton extends StatelessWidget {
   const AppleSignInButton({super.key});
@@ -43,8 +44,10 @@ class AppleSignInButton extends StatelessWidget {
                 fullName: fullName,
                 email: credential.email,
               );
-            } catch (e) {
-              debugPrint('Apple Sign In Error: ${e.toString()}');
+            } catch (error) {
+              AppLogger.debug(
+                'Apple Sign-In button failed errorType=${error.runtimeType}',
+              );
             }
           },
           borderRadius: BorderRadius.circular(14),

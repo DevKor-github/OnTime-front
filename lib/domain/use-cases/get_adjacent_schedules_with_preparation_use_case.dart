@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/adjacent_schedules_with_preparation_entity.dart';
@@ -37,16 +37,12 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       final schedules =
           await _getSchedulesByDateUseCase(startDate, endDate).first;
 
-      debugPrint('=== Schedule Filtering Debug ===');
-      debugPrint('Selected datetime: $selectedDateTime');
-      debugPrint('Current schedule ID (to exclude): $currentScheduleId');
-      debugPrint('Date range: $startDate to $endDate');
-      debugPrint('Total schedules found: ${schedules.length}');
-
-      for (final schedule in schedules) {
-        debugPrint(
-            'Schedule: ${schedule.scheduleName} at ${schedule.scheduleTime}, doneStatus: ${schedule.doneStatus}, id: ${schedule.id}');
-      }
+      AppLogger.debug(
+        'Schedule filtering selectedDateTime=$selectedDateTime '
+        'currentScheduleId=$currentScheduleId '
+        'startDate=$startDate endDate=$endDate '
+        'totalSchedules=${schedules.length}',
+      );
 
       // Filter out the current schedule if editing, and find the next one after selectedDateTime
       // Note: We check all schedules in the future, regardless of doneStatus,
@@ -57,10 +53,13 @@ class GetAdjacentSchedulesWithPreparationUseCase {
         final timeComparison =
             schedule.scheduleTime.compareTo(selectedDateTime);
 
-        debugPrint(
-            'Schedule ${schedule.scheduleName}: scheduleTime=${schedule.scheduleTime}, selectedDateTime=$selectedDateTime');
-        debugPrint(
-            '  -> isNotCurrent=$isNotCurrent, isAfterSelected=$isAfterSelected, compareTo=$timeComparison (1=after, 0=same, -1=before), doneStatus=${schedule.doneStatus}');
+        AppLogger.debug(
+          'Next schedule filter scheduleId=${schedule.id} '
+          'scheduleTime=${schedule.scheduleTime} '
+          'selectedDateTime=$selectedDateTime '
+          'isNotCurrent=$isNotCurrent isAfterSelected=$isAfterSelected '
+          'compareTo=$timeComparison doneStatus=${schedule.doneStatus}',
+        );
 
         return isNotCurrent && isAfterSelected;
       }).toList();
@@ -71,19 +70,20 @@ class GetAdjacentSchedulesWithPreparationUseCase {
         final isBeforeSelected =
             schedule.scheduleTime.isBefore(selectedDateTime);
 
-        debugPrint(
-            'Previous check - Schedule ${schedule.scheduleName}: scheduleTime=${schedule.scheduleTime}, selectedDateTime=$selectedDateTime');
-        debugPrint(
-            '  -> isNotCurrent=$isNotCurrent, isBeforeSelected=$isBeforeSelected');
+        AppLogger.debug(
+          'Previous schedule filter scheduleId=${schedule.id} '
+          'scheduleTime=${schedule.scheduleTime} '
+          'selectedDateTime=$selectedDateTime '
+          'isNotCurrent=$isNotCurrent isBeforeSelected=$isBeforeSelected',
+        );
 
         return isNotCurrent && isBeforeSelected;
       }).toList();
 
-      debugPrint(
-          'Filtered schedules count (next): ${filteredSchedules.length}');
-      debugPrint(
-          'Filtered schedules count (previous): ${previousSchedules.length}');
-      debugPrint('================================');
+      AppLogger.debug(
+        'Filtered schedules nextCount=${filteredSchedules.length} '
+        'previousCount=${previousSchedules.length}',
+      );
 
       // Helper function to get preparation for a schedule
       // For overlap checking, we use the canonical preparation from the stream
@@ -114,7 +114,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
         } catch (e) {
           // If preparation is not in stream, return null
           // This can happen if the preparation hasn't been loaded yet or doesn't exist
-          debugPrint(
+          AppLogger.debug(
               'Preparation not found in stream for schedule ${schedule.id}: $e');
           return null;
         }
@@ -146,7 +146,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       );
     } catch (e) {
       // On error, return empty result
-      debugPrint('Error in GetNextScheduleWithPreparationUseCase: $e');
+      AppLogger.debug('Error in GetNextScheduleWithPreparationUseCase: $e');
       return const AdjacentSchedulesWithPreparationEntity();
     }
   }

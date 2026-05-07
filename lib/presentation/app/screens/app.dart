@@ -1,9 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
@@ -71,7 +71,7 @@ class _AppRouterViewState extends State<_AppRouterView>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      debugPrint('$_logTag initialize launch handling');
+      AppLogger.debug('$_logTag initialize launch handling');
       unawaited(
         getIt
             .get<AlarmSchedulerService>()
@@ -83,7 +83,7 @@ class _AppRouterViewState extends State<_AppRouterView>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('$_logTag lifecycle state=$state');
+    AppLogger.debug('$_logTag lifecycle state=$state');
     if (state != AppLifecycleState.resumed) return;
     unawaited(HardwareKeyboard.instance.syncKeyboardState().catchError((_) {}));
     unawaited(
@@ -98,7 +98,9 @@ class _AppRouterViewState extends State<_AppRouterView>
 
   void _handleAlarmLaunchPayload(Map<String, String> payload) {
     if (!mounted) return;
-    debugPrint('$_logTag received payload=$payload');
+    AppLogger.debug(
+      '$_logTag received payload ${AppLogger.summarizeMap(payload)}',
+    );
     _pendingAlarmLaunchPayload = payload;
     _drainPendingAlarmLaunchPayload();
   }
@@ -107,11 +109,17 @@ class _AppRouterViewState extends State<_AppRouterView>
     final payload = _pendingAlarmLaunchPayload;
     if (!mounted || payload == null) return;
     if (context.read<AuthBloc>().state.status != AuthStatus.authenticated) {
-      debugPrint('$_logTag waiting for authenticated state payload=$payload');
+      AppLogger.debug(
+        '$_logTag waiting for authenticated state '
+        '${AppLogger.summarizeMap(payload)}',
+      );
       return;
     }
     if (getIt.get<NavigationService>().navigatorKey.currentContext == null) {
-      debugPrint('$_logTag waiting for navigator context payload=$payload');
+      AppLogger.debug(
+        '$_logTag waiting for navigator context '
+        '${AppLogger.summarizeMap(payload)}',
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _drainPendingAlarmLaunchPayload();
       });
@@ -119,12 +127,15 @@ class _AppRouterViewState extends State<_AppRouterView>
     }
 
     _pendingAlarmLaunchPayload = null;
-    debugPrint('$_logTag navigating to /scheduleStart payload=$payload');
+    AppLogger.debug(
+      '$_logTag navigating to /scheduleStart '
+      '${AppLogger.summarizeMap(payload)}',
+    );
     getIt.get<NavigationService>().push('/scheduleStart', extra: payload);
   }
 
   void _schedulePendingAlarmLaunchPolls() {
-    debugPrint('$_logTag scheduling pending launch payload polls');
+    AppLogger.debug('$_logTag scheduling pending launch payload polls');
     for (final timer in _alarmLaunchPollTimers) {
       timer.cancel();
     }
@@ -139,7 +150,7 @@ class _AppRouterViewState extends State<_AppRouterView>
       _alarmLaunchPollTimers.add(
         Timer(delay, () {
           if (!mounted) return;
-          debugPrint('$_logTag poll getLaunchPayload delay=$delay');
+          AppLogger.debug('$_logTag poll getLaunchPayload delay=$delay');
           unawaited(alarmSchedulerService.dispatchPendingLaunchPayload());
         }),
       );

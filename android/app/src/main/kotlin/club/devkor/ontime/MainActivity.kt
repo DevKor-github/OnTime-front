@@ -29,10 +29,10 @@ open class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        NativeLog.d(TAG, "MainActivity onCreate action=${intent?.action} extras=${intent?.extras}")
+        NativeLog.d(TAG, "MainActivity onCreate ${NativeLog.summarizeIntent(intent)}")
         configureAlarmLaunchWindow(intent)
         payloadFromIntent(intent)?.let {
-            NativeLog.d(TAG, "Captured launch payload from onCreate: $it")
+            NativeLog.d(TAG, "Captured launch payload from onCreate ${NativeLog.summarizeMap(it)}")
             launchPayload = it
         }
     }
@@ -64,7 +64,7 @@ open class MainActivity : FlutterActivity() {
                 "scheduleNativeAlarm" -> scheduleNativeAlarm(call, result)
                 "cancelNativeAlarm" -> cancelNativeAlarm(call, result)
                 "getLaunchPayload" -> {
-                    NativeLog.d(TAG, "getLaunchPayload -> $launchPayload")
+                    NativeLog.d(TAG, "getLaunchPayload -> ${NativeLog.summarizeMap(launchPayload)}")
                     result.success(launchPayload)
                     launchPayload = null
                 }
@@ -75,11 +75,11 @@ open class MainActivity : FlutterActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        NativeLog.d(TAG, "MainActivity onNewIntent action=${intent.action} extras=${intent.extras}")
+        NativeLog.d(TAG, "MainActivity onNewIntent ${NativeLog.summarizeIntent(intent)}")
         setIntent(intent)
         configureAlarmLaunchWindow(intent)
         payloadFromIntent(intent)?.let {
-            NativeLog.d(TAG, "Captured launch payload from onNewIntent: $it")
+            NativeLog.d(TAG, "Captured launch payload from onNewIntent ${NativeLog.summarizeMap(it)}")
             launchPayload = it
             methodChannel?.invokeMethod("alarmLaunch", it)
         }
@@ -96,7 +96,7 @@ open class MainActivity : FlutterActivity() {
         val triggerAtMillis = (args["alarmTime"] as? Number)?.toLong()
         val scheduleId = args["scheduleId"]?.toString()
         if (triggerAtMillis == null || scheduleId.isNullOrEmpty()) {
-            NativeLog.w(TAG, "scheduleNativeAlarm invalid args=$args")
+            NativeLog.w(TAG, "scheduleNativeAlarm invalid ${NativeLog.summarizeMap(args)}")
             result.error("invalidArguments", "Missing scheduleId or alarmTime", null)
             return
         }
@@ -128,7 +128,11 @@ open class MainActivity : FlutterActivity() {
             PendingIntent.FLAG_UPDATE_CURRENT,
         )
         if (alarmIntent == null) {
-            NativeLog.w(TAG, "scheduleNativeAlarm unable to build broadcast pending intent args=$args")
+            NativeLog.w(
+                TAG,
+                "scheduleNativeAlarm unable to build broadcast pending intent " +
+                    NativeLog.summarizeMap(args),
+            )
             result.error("invalidArguments", "Unable to build alarm intent", null)
             return
         }

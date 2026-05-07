@@ -1,20 +1,52 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 SRCROOT="${SRCROOT:-$(pwd)}"
 
 OUTPUT_FILE="${SRCROOT}/Flutter/Dart-Defines.xcconfig"
-: > $OUTPUT_FILE
+REQUIRED_RELEASE_DEFINES=("GOOGLE_RESERVED_CLIENT_ID_IOS")
 
-function decode_url() { echo "${*}" | base64 --decode; }
+set -euo pipefail
 
-IFS=',' read -r -a define_items <<<"$DART_DEFINES"
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+: > "$OUTPUT_FILE"
+
+decode_base64() {
+    local value="$1"
+
+    if printf '%s' "$value" | base64 --decode >/dev/null 2>&1; then
+        printf '%s' "$value" | base64 --decode
+    else
+        printf '%s' "$value" | base64 -D
+    fi
+}
+
+is_release_configuration() {
+    [[ "${CONFIGURATION:-}" == "Release" ]]
+}
+
+IFS=',' read -r -a define_items <<<"${DART_DEFINES:-}"
 
 for index in "${!define_items[@]}"
 do
-    item=$(decode_url "${define_items[$index]}")
+    if [[ -z "${define_items[$index]}" ]]; then
+        continue
+    fi
+
+    item=$(decode_base64 "${define_items[$index]}")
 
     lowercase_item=$(echo "$item" | tr '[:upper:]' '[:lower:]')
     if [[ $lowercase_item != flutter* ]]; then
         echo "$item" >> "$OUTPUT_FILE"
     fi
 done
+
+if is_release_configuration; then
+    for required_define in "${REQUIRED_RELEASE_DEFINES[@]}"
+    do
+        if ! grep -Eq "^${required_define}=.+" "$OUTPUT_FILE"; then
+            echo "error: Missing required iOS release dart define: ${required_define}" >&2
+            echo "error: Pass it with --dart-define=${required_define}=<value> for release/archive builds." >&2
+            exit 1
+        fi
+    done
+fi

@@ -8,6 +8,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Wiki Management Guide](./Wiki-Management.md) - How to modify and upload wiki content
 - [Project Architecture](./Architecture.md) - Understanding the project structure
 - [Git Workflow](./Git.md) - Git strategy and commit message formats
+- [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
 
 ### Technical Deep Dives
 - [Error Handling System](./Error-Handling-Result-System.md) - Result-based error handling architecture

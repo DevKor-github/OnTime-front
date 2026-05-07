@@ -52,7 +52,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   final CreateCustomPreparationUseCase _createCustomPreparationUseCase;
   final UpdateScheduleUseCase _updateScheduleUseCase;
   final UpdatePreparationByScheduleIdUseCase
-      _updatePreparationByScheduleIdUseCase;
+  _updatePreparationByScheduleIdUseCase;
   final AuthBloc _authBloc;
 
   Future<void> _onEditRequested(
@@ -112,9 +112,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         await _getDefaultPreparationUseCase();
 
     // Get spareTime from user model
-    final userSpareTime = _authBloc.state.user.mapOrNull(
-      (user) => user.spareTime,
-    );
+    final userSpareTime = _authBloc.state.user.spareTimeOrNull;
     final now = DateTime.now();
     final initialScheduleTime = event.initialDate == null
         ? null

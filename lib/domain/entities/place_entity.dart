@@ -6,23 +6,14 @@ class PlaceEntity extends Equatable {
   final String id;
   final String placeName;
 
-  const PlaceEntity({
-    required this.id,
-    required this.placeName,
-  });
+  const PlaceEntity({required this.id, required this.placeName});
 
-  static fromModel(Place place) {
-    return PlaceEntity(
-      id: place.id,
-      placeName: place.placeName,
-    );
+  static PlaceEntity fromModel(Place place) {
+    return PlaceEntity(id: place.id, placeName: place.placeName);
   }
 
   Place toModel() {
-    return Place(
-      id: id,
-      placeName: placeName,
-    );
+    return Place(id: id, placeName: placeName);
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
@@ -14,24 +16,52 @@ import 'package:rxdart/subjects.dart';
 class UserRepositoryImpl implements UserRepository {
   static const _googleServerClientId =
       '456571312261-5kuf2r6i5i7lqjr7qealv06sdgkn3hcp.apps.googleusercontent.com';
+  static const _googleScopes = ['email', 'profile'];
 
   final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
   final TokenLocalDataSource _tokenLocalDataSource;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-    signInOption: SignInOption.standard,
-    serverClientId: _googleServerClientId,
-    forceCodeForRefreshToken: true,
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  Future<void>? _googleSignInInitialization;
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(
     const UserEntity.empty(),
   );
 
   @override
-  GoogleSignIn get googleSignIn => _googleSignIn;
+  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
+      _googleSignIn.authenticationEvents;
+
+  @override
+  bool get supportsGoogleAuthenticate => _googleSignIn.supportsAuthenticate();
 
   UserRepositoryImpl(
-      this._authenticationRemoteDataSource, this._tokenLocalDataSource);
+    this._authenticationRemoteDataSource,
+    this._tokenLocalDataSource,
+  );
+
+  @override
+  Future<void> initializeGoogleSignIn() {
+    return _googleSignInInitialization ??= _initializeGoogleSignIn();
+  }
+
+  Future<void> _initializeGoogleSignIn() async {
+    await _googleSignIn.initialize(serverClientId: _googleServerClientId);
+    final lightweightAuthentication = _googleSignIn
+        .attemptLightweightAuthentication();
+    if (lightweightAuthentication != null) {
+      unawaited(
+        lightweightAuthentication.catchError((Object error) {
+          AppLogger.debug('Google lightweight sign-in failed: $error');
+          return null;
+        }),
+      );
+    }
+  }
+
+  @override
+  Future<GoogleSignInAccount> authenticateWithGoogle() async {
+    await initializeGoogleSignIn();
+    return _googleSignIn.authenticate(scopeHint: _googleScopes);
+  }
 
   @override
   Future<UserEntity> getUser() async {
@@ -54,8 +84,10 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<void> signIn({required String email, required String password}) async {
     try {
-      final result =
-          await _authenticationRemoteDataSource.signIn(email, password);
+      final result = await _authenticationRemoteDataSource.signIn(
+        email,
+        password,
+      );
       await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (e) {
@@ -64,13 +96,17 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<void> signUp(
-      {required String email,
-      required String password,
-      required String name}) async {
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
     try {
-      final result =
-          await _authenticationRemoteDataSource.signUp(email, password, name);
+      final result = await _authenticationRemoteDataSource.signUp(
+        email,
+        password,
+        name,
+      );
       await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (e) {
@@ -87,26 +123,23 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<void> signInWithGoogle(GoogleSignInAccount googleUser) async {
     try {
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final String? idToken = googleAuth.idToken;
-      final String? accessToken = googleAuth.accessToken;
       if (idToken == null) {
         throw Exception('Google ID Token is null');
       }
       final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
         idToken: idToken,
-        refreshToken: accessToken ?? '',
+        refreshToken: '',
       );
       await _tokenLocalDataSource.deleteToken();
-      final result = await _authenticationRemoteDataSource
-          .signInWithGoogle(signInWithGoogleRequestModel);
+      final result = await _authenticationRemoteDataSource.signInWithGoogle(
+        signInWithGoogleRequestModel,
+      );
       await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (error) {
-      AppLogger.debug(
-        'Google Sign-In failed errorType=${error.runtimeType}',
-      );
+      AppLogger.debug('Google Sign-In failed errorType=${error.runtimeType}');
       rethrow;
     }
   }
@@ -126,14 +159,13 @@ class UserRepositoryImpl implements UserRepository {
         email: email,
       );
       await _tokenLocalDataSource.deleteToken();
-      final result = await _authenticationRemoteDataSource
-          .signInWithApple(signInWithAppleRequestModel);
+      final result = await _authenticationRemoteDataSource.signInWithApple(
+        signInWithAppleRequestModel,
+      );
       await _tokenLocalDataSource.storeTokens(result.$2);
       _userStreamController.add(result.$1);
     } catch (error) {
-      AppLogger.debug(
-        'Apple Sign-In failed errorType=${error.runtimeType}',
-      );
+      AppLogger.debug('Apple Sign-In failed errorType=${error.runtimeType}');
       rethrow;
     }
   }

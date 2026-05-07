@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_web/web_only.dart';
@@ -13,15 +15,26 @@ class GoogleSignInButton extends StatefulWidget {
 
 class _GoogleSignInButtonState extends State<GoogleSignInButton> {
   final authenticationRepository = getIt.get<UserRepository>();
+  late final Stream<GoogleSignInAuthenticationEvent> _authenticationEvents;
+  StreamSubscription<GoogleSignInAuthenticationEvent>?
+  _authenticationEventsSubscription;
+
   @override
   void initState() {
-    authenticationRepository.googleSignIn.onCurrentUserChanged
-        .listen((GoogleSignInAccount? account) {
-      if (account != null) {
-        getIt.get<UserRepository>().signInWithGoogle(account);
+    _authenticationEvents = authenticationRepository.googleAuthenticationEvents;
+    unawaited(authenticationRepository.initializeGoogleSignIn());
+    _authenticationEventsSubscription = _authenticationEvents.listen((event) {
+      if (event is GoogleSignInAuthenticationEventSignIn) {
+        unawaited(getIt.get<UserRepository>().signInWithGoogle(event.user));
       }
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    unawaited(_authenticationEventsSubscription?.cancel());
+    super.dispose();
   }
 
   @override

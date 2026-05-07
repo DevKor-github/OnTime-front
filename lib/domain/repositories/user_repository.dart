@@ -4,10 +4,19 @@ import 'package:on_time_front/domain/entities/user_entity.dart';
 abstract interface class UserRepository {
   Stream<UserEntity> get userStream;
 
-  GoogleSignIn get googleSignIn;
+  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents;
 
-  Future<void> signUp(
-      {required String email, required String password, required String name});
+  Future<void> initializeGoogleSignIn();
+
+  bool get supportsGoogleAuthenticate;
+
+  Future<GoogleSignInAccount> authenticateWithGoogle();
+
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String name,
+  });
 
   Future<void> signIn({required String email, required String password});
 

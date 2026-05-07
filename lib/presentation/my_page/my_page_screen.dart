@@ -27,8 +27,10 @@ class MyPageScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.myPageTitle,
-            style: Theme.of(context).textTheme.titleLarge),
+        title: Text(
+          AppLocalizations.of(context)!.myPageTitle,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
       body: SingleChildScrollView(
@@ -36,12 +38,10 @@ class MyPageScreen extends StatelessWidget {
           spacing: 12,
           children: [
             _FrameView(
-                title: AppLocalizations.of(context)!.myAccount,
-                child: _MyAccountView()),
-            const _FrameView(
-              title: '알람 설정',
-              child: _AlarmStatusView(),
+              title: AppLocalizations.of(context)!.myAccount,
+              child: _MyAccountView(),
             ),
+            const _FrameView(title: '알람 설정', child: _AlarmStatusView()),
             _FrameView(
               title: AppLocalizations.of(context)!.accountSettings,
               child: Column(
@@ -79,8 +79,9 @@ class MyPageScreen extends StatelessWidget {
                     title: AppLocalizations.of(context)!.editDefaultPreparation,
                     onTap: () async {
                       final PreparationEntity? updatedPreparation =
-                          await context
-                              .push('/defaultPreparationSpareTimeEdit');
+                          await context.push(
+                            '/defaultPreparationSpareTimeEdit',
+                          );
                       if (updatedPreparation != null) {}
                     },
                   ),
@@ -164,13 +165,16 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     required AlarmPermissionState fallbackPermission,
   }) {
     if (!settings.alarmsEnabled) return '꺼짐';
-    if (records.any((record) =>
-        record.provider == AlarmProvider.androidAlarmManager ||
-        record.provider == AlarmProvider.iosAlarmKit)) {
+    if (records.any(
+      (record) =>
+          record.provider == AlarmProvider.androidAlarmManager ||
+          record.provider == AlarmProvider.iosAlarmKit,
+    )) {
       return '네이티브 알람';
     }
-    if (records
-        .any((record) => record.provider == AlarmProvider.localNotification)) {
+    if (records.any(
+      (record) => record.provider == AlarmProvider.localNotification,
+    )) {
       return '알림 대체';
     }
     if (capabilities.supportsNativeAlarm &&
@@ -226,16 +230,11 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
             const SizedBox(height: 4),
             Text(
               _isLoading ? '확인 중' : _statusLabel,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.outline,
-              ),
+              style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
             ),
           ],
         ),
-        Switch(
-          value: _alarmsEnabled,
-          onChanged: _isUpdating ? null : _toggle,
-        ),
+        Switch(value: _alarmsEnabled, onChanged: _isUpdating ? null : _toggle),
       ],
     );
   }
@@ -251,12 +250,11 @@ class _MyAccountView extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state.status == AuthStatus.authenticated) {
-          final user = state.user.mapOrNull(
-            (user) => user,
-            empty: (_) => null,
-          );
+          final userName = state.user.nameOrNull;
+          final userEmail = state.user.emailOrNull;
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0) +
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0) +
                 EdgeInsets.only(bottom: 9),
             child: Row(
               spacing: 20,
@@ -271,11 +269,13 @@ class _MyAccountView extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(user!.name, style: textTheme.titleMedium),
-                    Text(user.email,
-                        style: textTheme.bodyMedium!.copyWith(
-                          color: colorScheme.outline,
-                        )),
+                    Text(userName ?? '', style: textTheme.titleMedium),
+                    Text(
+                      userEmail ?? '',
+                      style: textTheme.bodyMedium!.copyWith(
+                        color: colorScheme.outline,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -289,10 +289,7 @@ class _MyAccountView extends StatelessWidget {
 }
 
 class _FrameView extends StatelessWidget {
-  const _FrameView({
-    required this.title,
-    required this.child,
-  });
+  const _FrameView({required this.title, required this.child});
 
   final String title;
   final Widget child;
@@ -302,18 +299,17 @@ class _FrameView extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-      ),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 19),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 25,
           children: [
-            Text(title,
-                style:
-                    textTheme.bodyMedium!.copyWith(color: colorScheme.outline)),
+            Text(
+              title,
+              style: textTheme.bodyMedium!.copyWith(color: colorScheme.outline),
+            ),
             child,
           ],
         ),
@@ -323,10 +319,7 @@ class _FrameView extends StatelessWidget {
 }
 
 class _SettingTile extends StatelessWidget {
-  const _SettingTile({
-    required this.title,
-    required this.onTap,
-  });
+  const _SettingTile({required this.title, required this.onTap});
 
   final String title;
   final VoidCallback onTap;
@@ -341,8 +334,11 @@ class _SettingTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: textTheme.bodyLarge),
-          Icon(Icons.arrow_forward_ios,
-              size: 16, color: colorScheme.outlineVariant),
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: colorScheme.outlineVariant,
+          ),
         ],
       ),
     );

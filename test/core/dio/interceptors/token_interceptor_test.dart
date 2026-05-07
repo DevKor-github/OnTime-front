@@ -41,24 +41,27 @@ void main() {
     await getIt.reset();
   });
 
-  test('stores refreshed access and refresh tokens before retrying request',
-      () async {
-    final response = await dio.get<String>('/protected');
+  test(
+    'stores refreshed access and refresh tokens before retrying request',
+    () async {
+      final response = await dio.get<String>('/protected');
 
-    expect(response.statusCode, 200);
-    expect(
+      expect(response.statusCode, 200);
+      expect(
         tokenLocalDataSource.storedToken,
         const TokenEntity(
           accessToken: 'new-access-token',
           refreshToken: 'new-refresh-token',
-        ));
-    expect(tokenLocalDataSource.storeTokensCallCount, 1);
-    expect(adapter.refreshRequests, 1);
-    expect(
-      adapter.protectedAuthorizationHeaders,
-      contains('Bearer new-access-token'),
-    );
-  });
+        ),
+      );
+      expect(tokenLocalDataSource.storeTokensCallCount, 1);
+      expect(adapter.refreshRequests, 1);
+      expect(
+        adapter.protectedAuthorizationHeaders,
+        contains('Bearer new-access-token'),
+      );
+    },
+  );
 
   test('retries concurrent queued requests after a single refresh', () async {
     final refreshCompleter = Completer<void>();
@@ -78,8 +81,9 @@ void main() {
     expect(responses.map((response) => response.statusCode), everyElement(200));
     expect(adapter.refreshRequests, 1);
     expect(
-      adapter.protectedAuthorizationHeaders
-          .where((header) => header == 'Bearer new-access-token'),
+      adapter.protectedAuthorizationHeaders.where(
+        (header) => header == 'Bearer new-access-token',
+      ),
       hasLength(2),
     );
   });
@@ -113,7 +117,9 @@ void main() {
     );
 
     expect(
-        adapter.requestedPaths, containsAll(['/protected', '/refresh-token']));
+      adapter.requestedPaths,
+      containsAll(['/protected', '/refresh-token']),
+    );
     expect(adapter.refreshRequests, 1);
     expect(userRepository.signOutCalled, isTrue);
     expect(tokenLocalDataSource.deleteTokenCalled, isTrue);
@@ -153,8 +159,9 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
     requestedPaths.add(options.path);
     if (options.path == '/refresh-token') {
       refreshRequests++;
-      refreshAuthorizationHeaders
-          .add(options.headers['Authorization-refresh']?.toString());
+      refreshAuthorizationHeaders.add(
+        options.headers['Authorization-refresh']?.toString(),
+      );
       await refreshCompleter?.future;
       return ResponseBody.fromString(
         '{"message":"Refresh response"}',
@@ -170,8 +177,9 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
     }
 
     if (options.path.startsWith('/protected')) {
-      protectedAuthorizationHeaders
-          .add(options.headers['Authorization']?.toString());
+      protectedAuthorizationHeaders.add(
+        options.headers['Authorization']?.toString(),
+      );
       final requestCount = (_pathRequestCounts[options.path] ?? 0) + 1;
       _pathRequestCounts[options.path] = requestCount;
 
@@ -245,7 +253,18 @@ class _FakeUserRepository implements UserRepository {
   Stream<UserEntity> get userStream => const Stream.empty();
 
   @override
-  GoogleSignIn get googleSignIn => throw UnimplementedError();
+  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
+      const Stream.empty();
+
+  @override
+  bool get supportsGoogleAuthenticate => false;
+
+  @override
+  Future<GoogleSignInAccount> authenticateWithGoogle() =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> initializeGoogleSignIn() async {}
 
   @override
   Future<void> deleteAppleUser({String? feedbackMessage}) =>
@@ -281,8 +300,7 @@ class _FakeUserRepository implements UserRepository {
     required String authCode,
     required String fullName,
     String? email,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 
   @override
   Future<void> signInWithGoogle(GoogleSignInAccount account) =>
@@ -293,6 +311,5 @@ class _FakeUserRepository implements UserRepository {
     required String email,
     required String password,
     required String name,
-  }) =>
-      throw UnimplementedError();
+  }) => throw UnimplementedError();
 }

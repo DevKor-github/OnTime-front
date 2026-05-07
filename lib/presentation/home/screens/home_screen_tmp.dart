@@ -22,11 +22,18 @@ class HomeScreenTmp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateOfToday = DateTime(
-        DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0, 0);
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+      0,
+      0,
+      0,
+    );
 
     return BlocProvider(
-      create: (context) => getIt.get<MonthlySchedulesBloc>()
-        ..add(MonthlySchedulesSubscriptionRequested(date: dateOfToday)),
+      create: (context) =>
+          getIt.get<MonthlySchedulesBloc>()
+            ..add(MonthlySchedulesSubscriptionRequested(date: dateOfToday)),
       child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
         builder: (context, state) {
           return HomeScreenContent(state: state);
@@ -38,20 +45,16 @@ class HomeScreenTmp extends StatelessWidget {
 
 /// The actual home screen content that can be tested independently
 class HomeScreenContent extends StatelessWidget {
-  const HomeScreenContent({
-    super.key,
-    required this.state,
-    this.userScore,
-  });
+  const HomeScreenContent({super.key, required this.state, this.userScore});
 
   final MonthlySchedulesState state;
   final double? userScore;
 
   @override
   Widget build(BuildContext context) {
-    final double score = userScore ??
-        context.select((AuthBloc bloc) =>
-            bloc.state.user.mapOrNull((user) => user.score) ?? -1);
+    final double score =
+        userScore ??
+        context.select((AuthBloc bloc) => bloc.state.user.scoreOrNull ?? -1);
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocListener<ScheduleBloc, ScheduleState>(
@@ -105,9 +108,7 @@ class HomeScreenContent extends StatelessWidget {
                     left: metrics.sectionHorizontalPadding,
                     right: metrics.sectionHorizontalPadding,
                   ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                  ),
+                  decoration: BoxDecoration(color: colorScheme.surface),
                   child: _MonthlySchedule(
                     monthlySchedulesState: state,
                     metrics: metrics,
@@ -136,9 +137,9 @@ class _TodaysScheduleOverlay extends StatelessWidget {
       builder: (context, scheduleState) {
         final todaySchedule =
             scheduleState.status == ScheduleStatus.notExists ||
-                    scheduleState.status == ScheduleStatus.initial
-                ? null
-                : scheduleState.schedule;
+                scheduleState.status == ScheduleStatus.initial
+            ? null
+            : scheduleState.schedule;
         final hasSchedule = todaySchedule != null;
         final target = resolveTodayTileNavigationTarget(
           scheduleStatus: scheduleState.status,
@@ -187,12 +188,13 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                       children: [
                         Text(
                           AppLocalizations.of(context)!.todaysAppointments,
-                          style: (metrics.compact
-                                  ? theme.textTheme.titleSmall
-                                  : theme.textTheme.titleMedium)
-                              ?.copyWith(
-                            height: metrics.compact ? 22 / 16 : 22 / 18,
-                          ),
+                          style:
+                              (metrics.compact
+                                      ? theme.textTheme.titleSmall
+                                      : theme.textTheme.titleMedium)
+                                  ?.copyWith(
+                                    height: metrics.compact ? 22 / 16 : 22 / 18,
+                                  ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -204,10 +206,10 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                           onTap: target == null
                               ? null
                               : () => context.go(
-                                    target.path,
-                                    extra: target.extra,
-                                  ),
-                        )
+                                  target.path,
+                                  extra: target.extra,
+                                ),
+                        ),
                       ],
                     ),
                   ),
@@ -285,10 +287,11 @@ class _MonthlyScheduleHeader extends StatelessWidget {
             Expanded(
               child: Text(
                 AppLocalizations.of(context)!.calendarTitle,
-                style: (metrics.compact
-                        ? theme.textTheme.titleMedium
-                        : theme.textTheme.titleLarge)
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style:
+                    (metrics.compact
+                            ? theme.textTheme.titleMedium
+                            : theme.textTheme.titleLarge)
+                        ?.copyWith(fontWeight: FontWeight.w600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -310,8 +313,9 @@ class _MonthlyScheduleHeader extends StatelessWidget {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.viewCalendar,
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.outlineVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outlineVariant,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -402,14 +406,17 @@ class _HomeLayoutMetrics {
     required double textScale,
     required double safeAreaTop,
   }) {
-    final height =
-        constraints.maxHeight.isFinite ? constraints.maxHeight : 800.0;
+    final height = constraints.maxHeight.isFinite
+        ? constraints.maxHeight
+        : 800.0;
     final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 390.0;
     final heightPressure = (1 - ((height - 640) / 204)).clamp(0.0, 1.0);
     final widthPressure = width <= 380 ? 1.0 : 0.0;
     final textPressure = ((textScale - 1) / 0.3).clamp(0.0, 1.0);
-    final pressure =
-        math.max(heightPressure, math.max(widthPressure, textPressure));
+    final pressure = math.max(
+      heightPressure,
+      math.max(widthPressure, textPressure),
+    );
 
     double scale(double regular, double dense) {
       return regular + ((dense - regular) * pressure);
@@ -429,19 +436,21 @@ class _HomeLayoutMetrics {
     final calendarPadding = scale(16, 4);
     final calendarFabClearance = scale(28, 20);
     const calendarHeaderHeight = 72.0;
-    final calendarAvailableHeight = height -
+    final calendarAvailableHeight =
+        height -
         safeAreaGap -
         heroTopPadding -
         bannerHeight -
         todayOverlayHeight -
         sectionBottomPadding -
         monthlyHeaderHeight;
-    final calendarRowHeight = ((calendarAvailableHeight -
-                (calendarPadding * 2) -
-                calendarDaysOfWeekHeight -
-                calendarHeaderHeight) /
-            6)
-        .clamp(28.0, 50.0);
+    final calendarRowHeight =
+        ((calendarAvailableHeight -
+                    (calendarPadding * 2) -
+                    calendarDaysOfWeekHeight -
+                    calendarHeaderHeight) /
+                6)
+            .clamp(28.0, 50.0);
 
     return _HomeLayoutMetrics(
       compact: pressure > 0.2,
@@ -465,8 +474,11 @@ class _HomeLayoutMetrics {
 }
 
 class AnimatedArcIndicator extends StatefulWidget {
-  const AnimatedArcIndicator(
-      {super.key, required this.score, required this.child});
+  const AnimatedArcIndicator({
+    super.key,
+    required this.score,
+    required this.child,
+  });
 
   final double score;
   final Widget child;
@@ -489,10 +501,14 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
   @override
   void initState() {
     super.initState();
-    _animationController =
-        AnimationController(duration: const Duration(seconds: 1), vsync: this);
-    _animation = Tween<double>(begin: 0, end: widget.score / 100)
-        .animate(_animationController);
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+    _animation = Tween<double>(
+      begin: 0,
+      end: widget.score / 100,
+    ).animate(_animationController);
     _animationController.forward();
   }
 
@@ -502,10 +518,7 @@ class _AnimatedArcIndicatorState extends State<AnimatedArcIndicator>
       animation: _animation,
       builder: (context, child) {
         return CustomPaint(
-          painter: ArcIndicator(
-            strokeWidth: 16,
-            progress: _animation.value,
-          ),
+          painter: ArcIndicator(strokeWidth: 16, progress: _animation.value),
           child: widget.child,
         );
       },

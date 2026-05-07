@@ -13,6 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/home/components/month_calendar.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
+import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 
 /// Wrapper widget that provides the BlocProvider for HomeScreenTmp
 class HomeScreenTmp extends StatelessWidget {
@@ -249,7 +250,7 @@ class _MonthlySchedule extends StatelessWidget {
                 bottom: metrics.calendarPadding + metrics.calendarFabClearance,
               ),
               onDateSelected: (date) {
-                context.go('/calendar', extra: date);
+                context.go(calendarRouteLocation(date), extra: date);
               },
             ),
           ),

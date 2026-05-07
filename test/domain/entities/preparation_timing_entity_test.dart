@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
@@ -7,6 +9,39 @@ import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart'
 
 void main() {
   group('Preparation timing entities', () {
+    test('orders linked preparation steps before timing conversion', () {
+      final unordered = PreparationEntity(
+        preparationStepList: const [
+          PreparationStepEntity(
+            id: 's3',
+            preparationName: 'pack',
+            preparationTime: Duration(minutes: 5),
+            nextPreparationId: null,
+          ),
+          PreparationStepEntity(
+            id: 's1',
+            preparationName: 'wash',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: 's2',
+          ),
+          PreparationStepEntity(
+            id: 's2',
+            preparationName: 'dress',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: 's3',
+          ),
+        ],
+      );
+
+      final preparation = PreparationWithTimeEntity.fromPreparation(unordered);
+
+      expect(
+        preparation.preparationStepList.map((step) => step.id).toList(),
+        ['s1', 's2', 's3'],
+      );
+      expect(preparation.currentStep?.id, 's1');
+    });
+
     final preparation = PreparationWithTimeEntity(
       preparationStepList: const [
         PreparationStepWithTimeEntity(

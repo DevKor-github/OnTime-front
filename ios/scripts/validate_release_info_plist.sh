@@ -26,3 +26,10 @@ if ! /usr/libexec/PlistBuddy -c "Print :CFBundleURLTypes" "$info_plist" \
     echo "error: Expected CFBundleURLTypes to include: ${required_scheme}" >&2
     exit 1
 fi
+
+arbitrary_loads=$(/usr/libexec/PlistBuddy -c "Print :NSAppTransportSecurity:NSAllowsArbitraryLoads" "$info_plist" 2>/dev/null || true)
+if [[ "$arbitrary_loads" == "true" || "$arbitrary_loads" == "1" || "$arbitrary_loads" == "YES" ]]; then
+    echo "error: iOS release Info.plist must not allow arbitrary ATS loads." >&2
+    echo "error: Remove NSAppTransportSecurity:NSAllowsArbitraryLoads from the release plist." >&2
+    exit 1
+fi

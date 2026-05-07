@@ -3,7 +3,7 @@
 SRCROOT="${SRCROOT:-$(pwd)}"
 
 OUTPUT_FILE="${SRCROOT}/Flutter/Dart-Defines.xcconfig"
-REQUIRED_RELEASE_DEFINES=("GOOGLE_RESERVED_CLIENT_ID_IOS")
+REQUIRED_RELEASE_DEFINES=("GOOGLE_RESERVED_CLIENT_ID_IOS" "REST_API_URL")
 
 set -euo pipefail
 
@@ -49,4 +49,11 @@ if is_release_configuration; then
             exit 1
         fi
     done
+
+    rest_api_url=$(grep -E "^REST_API_URL=" "$OUTPUT_FILE" | tail -n 1 | cut -d= -f2-)
+    if [[ "$rest_api_url" != https://* ]]; then
+        echo "error: iOS release REST_API_URL must use HTTPS." >&2
+        echo "error: Received REST_API_URL=${rest_api_url}" >&2
+        exit 1
+    fi
 fi

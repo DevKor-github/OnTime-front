@@ -11,38 +11,55 @@ def googleServicesConfigFiles = [
     file("src/google-services.json"),
 ]
 
-def releaseKeystoreProperties = new Properties()
-def releaseKeystorePropertiesFile = rootProject.file("key.properties")
-if (releaseKeystorePropertiesFile.exists()) {
-    releaseKeystorePropertiesFile.withInputStream { releaseKeystoreProperties.load(it) }
-}
-
-def releaseSigningValue = { propertyName, envName ->
-    def propertyValue = releaseKeystoreProperties.getProperty(propertyName)
-    return propertyValue ?: System.getenv(envName)
-}
-
-def releaseStoreFile = releaseSigningValue("storeFile", "ONTIME_ANDROID_KEYSTORE_PATH")
-def releaseStorePassword = releaseSigningValue("storePassword", "ONTIME_ANDROID_KEYSTORE_PASSWORD")
-def releaseKeyAlias = releaseSigningValue("keyAlias", "ONTIME_ANDROID_KEY_ALIAS")
-def releaseKeyPassword = releaseSigningValue("keyPassword", "ONTIME_ANDROID_KEY_PASSWORD")
-def releaseStoreFileObject = releaseStoreFile ? new File(releaseStoreFile) : null
-def hasReleaseSigningConfig = [
-    releaseStoreFile,
-    releaseStorePassword,
-    releaseKeyAlias,
-    releaseKeyPassword
-].every { it != null && it.toString().trim() }
-
-def androidReleaseSigningMessage = """Missing Android release signing config.
-Provide android/key.properties with storeFile, storePassword, keyAlias, and keyPassword,
-or set ONTIME_ANDROID_KEYSTORE_PATH, ONTIME_ANDROID_KEYSTORE_PASSWORD,
-ONTIME_ANDROID_KEY_ALIAS, and ONTIME_ANDROID_KEY_PASSWORD."""
-
 if (googleServicesConfigFiles.any { it.exists() }) {
     apply plugin: "com.google.gms.google-services"
 } else {
     logger.lifecycle("google-services.json not found; skipping Google Services plugin for this local build.")
+}
+
+def isReleaseTask = gradle.startParameter.taskNames.any { it.toLowerCase().contains("release") }
+def releaseSigningProperties = new Properties()
+def releaseSigningPropertiesFile = rootProject.file("key.properties")
+
+if (releaseSigningPropertiesFile.exists()) {
+    releaseSigningPropertiesFile.withInputStream { releaseSigningProperties.load(it) }
+}
+
+def releaseSigningValue = { propertyName, environmentName, legacyEnvironmentName ->
+    releaseSigningProperties.getProperty(propertyName)
+        ?: System.getenv(environmentName)
+        ?: System.getenv(legacyEnvironmentName)
+}
+
+def releaseKeystorePath = releaseSigningValue("storeFile", "ANDROID_KEYSTORE_PATH", "ONTIME_ANDROID_KEYSTORE_PATH")
+def releaseKeystorePassword = releaseSigningValue("storePassword", "ANDROID_KEYSTORE_PASSWORD", "ONTIME_ANDROID_KEYSTORE_PASSWORD")
+def releaseKeyAlias = releaseSigningValue("keyAlias", "ANDROID_KEY_ALIAS", "ONTIME_ANDROID_KEY_ALIAS")
+def releaseKeyPassword = releaseSigningValue("keyPassword", "ANDROID_KEY_PASSWORD", "ONTIME_ANDROID_KEY_PASSWORD")
+def releaseKeystoreFile = releaseKeystorePath ? file(releaseKeystorePath) : null
+
+if (isReleaseTask) {
+    def missingReleaseSigningInputs = []
+
+    if (!releaseKeystorePath) {
+        missingReleaseSigningInputs << "storeFile, ANDROID_KEYSTORE_PATH, or ONTIME_ANDROID_KEYSTORE_PATH"
+    }
+    if (!releaseKeystorePassword) {
+        missingReleaseSigningInputs << "storePassword, ANDROID_KEYSTORE_PASSWORD, or ONTIME_ANDROID_KEYSTORE_PASSWORD"
+    }
+    if (!releaseKeyAlias) {
+        missingReleaseSigningInputs << "keyAlias, ANDROID_KEY_ALIAS, or ONTIME_ANDROID_KEY_ALIAS"
+    }
+    if (!releaseKeyPassword) {
+        missingReleaseSigningInputs << "keyPassword, ANDROID_KEY_PASSWORD, or ONTIME_ANDROID_KEY_PASSWORD"
+    }
+
+    if (releaseKeystoreFile && !releaseKeystoreFile.exists()) {
+        missingReleaseSigningInputs << "existing keystore file at ${releaseKeystoreFile}"
+    }
+
+    if (!missingReleaseSigningInputs.empty) {
+        throw new GradleException("Android release signing is required for release builds. Missing: ${missingReleaseSigningInputs.join(', ')}. Configure android/key.properties or Android release signing environment variables.")
+    }
 }
 
 android {
@@ -50,25 +67,14 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
-    signingConfigs {
-        if (hasReleaseSigningConfig) {
-            release {
-                storeFile = releaseStoreFileObject.isAbsolute() ? releaseStoreFileObject : rootProject.file(releaseStoreFile)
-                storePassword = releaseStorePassword
-                keyAlias = releaseKeyAlias
-                keyPassword = releaseKeyPassword
-            }
-        }
-    }
-
-    buildFeatures {
-        buildConfig = true
-    }
-
     compileOptions {
         coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     kotlinOptions {
@@ -87,19 +93,21 @@ android {
         ]
     }
 
-    buildTypes {
+    signingConfigs {
         release {
-            if (hasReleaseSigningConfig) {
-                signingConfig = signingConfigs.release
+            if (releaseKeystoreFile) {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
-}
 
-gradle.taskGraph.whenReady { taskGraph ->
-    def runsReleaseTask = taskGraph.allTasks.any { it.name.toLowerCase().contains("release") }
-    if (runsReleaseTask && !hasReleaseSigningConfig) {
-        throw new GradleException(androidReleaseSigningMessage)
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.release
+        }
     }
 }
 

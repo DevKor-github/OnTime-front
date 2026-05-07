@@ -47,11 +47,15 @@ keyPassword=<key-password>
 Alternatively, set environment variables:
 
 ```sh
-export ONTIME_ANDROID_KEYSTORE_PATH=/absolute/path/to/ontime-upload.jks
-export ONTIME_ANDROID_KEYSTORE_PASSWORD='<keystore-password>'
-export ONTIME_ANDROID_KEY_ALIAS=ontime
-export ONTIME_ANDROID_KEY_PASSWORD='<key-password>'
+export ANDROID_KEYSTORE_PATH=/absolute/path/to/ontime-upload.jks
+export ANDROID_KEYSTORE_PASSWORD='<keystore-password>'
+export ANDROID_KEY_ALIAS=ontime
+export ANDROID_KEY_PASSWORD='<key-password>'
 ```
+
+The Gradle build also accepts the legacy `ONTIME_ANDROID_KEYSTORE_PATH`,
+`ONTIME_ANDROID_KEYSTORE_PASSWORD`, `ONTIME_ANDROID_KEY_ALIAS`, and
+`ONTIME_ANDROID_KEY_PASSWORD` variable names for compatibility.
 
 ## Build a Signed Release
 

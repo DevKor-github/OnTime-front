@@ -20,7 +20,10 @@ OnTime.
 - Provide release signing through one of the following secret-free paths:
   - `android/key.properties` with `storeFile`, `storePassword`, `keyAlias`, and
     `keyPassword`.
-  - Environment variables `ONTIME_ANDROID_KEYSTORE_PATH`,
+  - Environment variables `ANDROID_KEYSTORE_PATH`,
+    `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and
+    `ANDROID_KEY_PASSWORD`.
+  - Legacy environment variables `ONTIME_ANDROID_KEYSTORE_PATH`,
     `ONTIME_ANDROID_KEYSTORE_PASSWORD`, `ONTIME_ANDROID_KEY_ALIAS`, and
     `ONTIME_ANDROID_KEY_PASSWORD`.
 - Follow `docs/Android-Signing-Setup.md` when creating or configuring the

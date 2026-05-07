@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
 
@@ -351,6 +352,12 @@ class NotificationService {
     required String scheduleId,
     required String stepId,
   }) async {
+    // Disable case-3 alerts while app is in foreground.
+    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+      debugPrint('[FCM] Foreground 상태에서는 단계 변경 알림을 표시하지 않습니다.');
+      return;
+    }
+
     final title = '[$scheduleName] $preparationName';
     final body = _getLocalizedText('이어서 준비하세요.', 'Continue preparing');
 

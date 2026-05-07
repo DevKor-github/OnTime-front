@@ -158,38 +158,76 @@ void main() {
   });
 
   group('getPreparationByScheduleId', () {
-    test('should return PreparationEntity when the response is successful',
+    test('should return PreparationEntity ordered by nextPreparationId',
         () async {
       // arrange
-      // when(dio.get(Endpoint.getPreparationByScheduleId(scheduleId))).thenAnswer(
-      //   (_) async => Response(
-      //     statusCode: 200,
-      //     data: [
-      //       {
-      //         "preparationId": preparationStep1.id,
-      //         "preparationName": preparationStep1.preparationName,
-      //         "preparationTime": preparationStep1.preparationTime.inMinutes,
-      //         "nextPreparationId": preparationStep1.nextPreparationId,
-      //       },
-      //       {
-      //         "preparationId": preparationStep2.id,
-      //         "preparationName": preparationStep2.preparationName,
-      //         "preparationTime": preparationStep2.preparationTime.inMinutes,
-      //         "nextPreparationId": preparationStep2.nextPreparationId,
-      //       },
-      //     ],
-      //     requestOptions: RequestOptions(
-      //       path: Endpoint.getPreparationByScheduleId(scheduleId),
-      //     ),
-      //   ),
-      // );
+      final orderedFirstStep = PreparationStepEntity(
+        id: uuid.v7(),
+        preparationName: 'Shower',
+        preparationTime: const Duration(minutes: 10),
+        nextPreparationId: null,
+      );
+      final orderedSecondStep = PreparationStepEntity(
+        id: uuid.v7(),
+        preparationName: 'Dress',
+        preparationTime: const Duration(minutes: 5),
+        nextPreparationId: null,
+      );
+      final orderedThirdStep = PreparationStepEntity(
+        id: uuid.v7(),
+        preparationName: 'Pack bag',
+        preparationTime: const Duration(minutes: 3),
+        nextPreparationId: null,
+      );
+      final linkedFirstStep =
+          orderedFirstStep.copyWith(nextPreparationId: orderedSecondStep.id);
+      final linkedSecondStep =
+          orderedSecondStep.copyWith(nextPreparationId: orderedThirdStep.id);
 
-      // // act
-      // final result =
-      //     await remoteDataSource.getPreparationByScheduleId(scheduleId);
+      when(dio.get(Endpoint.getPreparationByScheduleId(scheduleId))).thenAnswer(
+        (_) async => Response(
+          statusCode: 200,
+          data: {
+            'data': [
+              {
+                'preparationId': orderedThirdStep.id,
+                'preparationName': orderedThirdStep.preparationName,
+                'preparationTime': orderedThirdStep.preparationTime.inMinutes,
+                'nextPreparationId': orderedThirdStep.nextPreparationId,
+              },
+              {
+                'preparationId': linkedFirstStep.id,
+                'preparationName': linkedFirstStep.preparationName,
+                'preparationTime': linkedFirstStep.preparationTime.inMinutes,
+                'nextPreparationId': linkedFirstStep.nextPreparationId,
+              },
+              {
+                'preparationId': linkedSecondStep.id,
+                'preparationName': linkedSecondStep.preparationName,
+                'preparationTime': linkedSecondStep.preparationTime.inMinutes,
+                'nextPreparationId': linkedSecondStep.nextPreparationId,
+              },
+            ],
+          },
+          requestOptions: RequestOptions(
+            path: Endpoint.getPreparationByScheduleId(scheduleId),
+          ),
+        ),
+      );
 
-      // // assert
-      // expect(result.preparationStepList.length, 2);
+      // act
+      final result =
+          await remoteDataSource.getPreparationByScheduleId(scheduleId);
+
+      // assert
+      expect(
+        result.preparationStepList.map((step) => step.id).toList(),
+        [
+          orderedFirstStep.id,
+          orderedSecondStep.id,
+          orderedThirdStep.id,
+        ],
+      );
     });
 
     test('should throw an exception when the response code is not 200',

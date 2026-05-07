@@ -49,6 +49,6 @@ extension PreparationResponseModelListExtension
     on List<GetPreparationStepResponseModel> {
   PreparationEntity toPreparationEntity() {
     final steps = map((model) => model.toEntity()).toList();
-    return PreparationEntity(preparationStepList: steps);
+    return PreparationEntity(preparationStepList: steps).ordered;
   }
 }

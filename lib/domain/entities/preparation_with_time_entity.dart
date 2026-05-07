@@ -10,8 +10,9 @@ class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
 
   factory PreparationWithTimeEntity.fromPreparation(
       PreparationEntity preparation) {
+    final orderedPreparation = preparation.ordered;
     return PreparationWithTimeEntity(
-      preparationStepList: preparation.preparationStepList
+      preparationStepList: orderedPreparation.preparationStepList
           .map(
             (step) => PreparationStepWithTimeEntity(
               id: step.id,

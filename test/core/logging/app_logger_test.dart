@@ -102,8 +102,8 @@ void main() {
       )
           .where((file) {
             final source = file.readAsStringSync();
-            return source.contains('debugPrint(') ||
-                source.contains('debugPrintStack(');
+            return RegExp(r'(?<![A-Za-z0-9_])debugPrint(?:Stack)?\s*\(')
+                .hasMatch(source);
           })
           .map((file) => file.path)
           .toList();

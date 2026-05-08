@@ -1,5 +1,117 @@
 ## Git Strategy
 
+Use trunk-based development with short-lived feature branches and explicit
+release branches. Do not use full Git Flow for this repository.
+
+### Branches
+
+- `main`: production-ready history. Every commit on `main` should be
+  releasable and test-deployable. Protect this branch and require pull request
+  checks.
+- `feature/*`: short-lived work branches for normal changes.
+- `fix/*`: short-lived bug-fix branches for non-emergency fixes.
+- `release/x.y.z`: stabilization branches for real app releases. Only bug
+  fixes, localization fixes, version bumps, and release-specific release
+  tweaks belong here.
+- `hotfix/x.y.z`: urgent production repair branches created from the relevant
+  production tag or from `main` when the tag already matches `main`.
+
+Example branch names:
+
+```text
+feature/login-refresh
+feature/schedule-cache
+fix/ios-permission-copy
+release/1.4.0
+hotfix/1.4.1
+```
+
+Use annotated tags named `vX.Y.Z` as the source of truth for real production
+releases:
+
+```text
+v1.4.0
+v1.4.1
+```
+
+### Development Flow
+
+Normal work flows through pull requests into `main`:
+
+```text
+feature/* -> PR -> main
+fix/* -> PR -> main
+```
+
+Every PR into `main` must pass:
+
+```sh
+dart run build_runner build --delete-conflicting-outputs
+flutter analyze
+flutter test
+```
+
+Merges to `main` are continuously deployable to test channels. `main` maps to
+staging/test distribution, not production.
+
+### Release Flow
+
+When the app is ready for a real store candidate, create a release branch from
+`main`:
+
+```text
+main -> release/1.4.0
+```
+
+Use the release branch for final QA builds:
+
+```text
+release/1.4.0 -> Android closed/open testing
+release/1.4.0 -> TestFlight external testing
+```
+
+After QA approval:
+
+```text
+tag v1.4.0 from release/1.4.0
+v1.4.0 -> Play Store production
+v1.4.0 -> App Store production
+release/1.4.0 -> merge back to main
+```
+
+Production deployments must require manual approval in CI/CD. The tag is the
+production release identity; branch names are only workflow staging points.
+
+### Environment Mapping
+
+Use Dart defines for environment selection. Native Flutter flavors can be added
+later if the app needs separate bundle identifiers, app icons, or platform
+configuration per environment.
+
+```text
+feature/* PR builds -> ENV=dev
+main builds -> ENV=staging
+release/* builds -> ENV=staging
+v* tags -> ENV=prod
+```
+
+Build examples:
+
+```sh
+flutter build apk --dart-define=ENV=staging
+flutter build appbundle --release --dart-define=ENV=prod
+flutter build ipa --release --dart-define=ENV=prod
+```
+
+Keep Android and iOS versioning synchronized through `pubspec.yaml`:
+
+```yaml
+version: 1.4.0+123
+```
+
+`1.4.0` is the user-visible version. `123` is the build number, and CI may
+override it with a generated monotonic build number for store uploads.
+
 ## Commit Message Formats
 
 ### Default

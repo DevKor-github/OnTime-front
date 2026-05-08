@@ -5,6 +5,7 @@ Release and archive builds must provide the same Dart define values that debug b
 ## Required Dart Defines
 
 - `GOOGLE_RESERVED_CLIENT_ID_IOS`: reversed iOS client ID used by Google Sign-In as the callback URL scheme in `ios/Runner/Info.plist`.
+- `ENV`: app environment label. Use `staging` for release candidates and `prod` for tagged production builds.
 - `REST_API_URL`: production REST API base URL. Release builds must use an `https://` URL.
 
 ## Local Release Build
@@ -13,6 +14,7 @@ Run release builds with the required define:
 
 ```sh
 flutter build ios --release \
+  --dart-define=ENV=prod \
   --dart-define=GOOGLE_RESERVED_CLIENT_ID_IOS=<reversed-ios-client-id> \
   --dart-define=REST_API_URL=https://api.ontime.devkor.club
 ```

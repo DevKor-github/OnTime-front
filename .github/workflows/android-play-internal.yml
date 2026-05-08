@@ -1,6 +1,9 @@
 name: Android Play Internal Deploy
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       release_notes:
@@ -15,7 +18,7 @@ jobs:
   deploy_internal:
     name: Build and upload internal testing draft
     runs-on: ubuntu-latest
-    environment: release
+    environment: staging
     env:
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -118,10 +121,11 @@ jobs:
           flutter build appbundle --release \
             --build-name="$ANDROID_BUILD_NAME" \
             --build-number="${{ github.run_number }}" \
+            --dart-define=ENV=staging \
             --dart-define=REST_API_URL="$REST_API_URL"
 
       - name: Prepare Play release notes
-        if: ${{ inputs.release_notes != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_notes != '' }}
         env:
           RELEASE_NOTES: ${{ inputs.release_notes }}
         run: |
@@ -137,7 +141,7 @@ jobs:
           retention-days: 14
 
       - name: Upload internal testing draft with release notes
-        if: ${{ inputs.release_notes != '' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_notes != '' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
@@ -148,7 +152,7 @@ jobs:
           whatsNewDirectory: distribution/whatsnew
 
       - name: Upload internal testing draft
-        if: ${{ inputs.release_notes == '' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.release_notes == '' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}

@@ -37,6 +37,10 @@ uploads the signed `.aab` as a 14-day GitHub Actions artifact and creates a
 draft release on Google Play Internal Testing. If the optional release notes
 input is empty, the workflow uploads without custom release notes.
 
+The workflow is split into a build/check job and a Play upload job. If the
+upload fails after the `.aab` artifact is built, use GitHub Actions' rerun
+failed jobs option to retry only the upload job.
+
 `pubspec.yaml` remains the source of truth for `version: major.minor.patch+build`.
 Before dispatching the workflow, bump the build number so it is greater than
 every previously uploaded Google Play build for `club.devkor.ontime`. Duplicate

@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  deploy_internal:
-    name: Build and upload internal testing draft
+  validate_and_build:
+    name: Check and build signed app bundle
     runs-on: ubuntu-latest
     environment: release
     env:
@@ -53,7 +53,6 @@ jobs:
         env:
           ANDROID_GOOGLE_SERVICES_JSON_B64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_B64 }}
           ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
-          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           missing=0
           for name in \
@@ -62,7 +61,6 @@ jobs:
             ANDROID_KEYSTORE_PASSWORD \
             ANDROID_KEY_ALIAS \
             ANDROID_KEY_PASSWORD \
-            GOOGLE_PLAY_SERVICE_ACCOUNT_JSON \
             REST_API_URL
           do
             if [ -z "${!name}" ]; then
@@ -106,14 +104,6 @@ jobs:
       - name: Build Android app bundle
         run: flutter build appbundle --release --dart-define=REST_API_URL="$REST_API_URL"
 
-      - name: Prepare Play release notes
-        if: ${{ inputs.release_notes != '' }}
-        env:
-          RELEASE_NOTES: ${{ inputs.release_notes }}
-        run: |
-          mkdir -p distribution/whatsnew
-          printf '%s\n' "$RELEASE_NOTES" > distribution/whatsnew/whatsnew-en-US
-
       - name: Upload signed app bundle artifact
         uses: actions/upload-artifact@v4
         with:
@@ -121,6 +111,36 @@ jobs:
           path: build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 14
+
+  upload_internal:
+    name: Upload internal testing draft
+    runs-on: ubuntu-latest
+    needs: validate_and_build
+    environment: release
+
+    steps:
+      - name: Validate Google Play credentials
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is required for Android Play upload." >&2
+            exit 1
+          fi
+
+      - name: Download signed app bundle artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ontime-android-release-aab
+          path: build/app/outputs/bundle/release
+
+      - name: Prepare Play release notes
+        if: ${{ inputs.release_notes != '' }}
+        env:
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          mkdir -p distribution/whatsnew
+          printf '%s\n' "$RELEASE_NOTES" > distribution/whatsnew/whatsnew-en-US
 
       - name: Upload internal testing draft with release notes
         if: ${{ inputs.release_notes != '' }}

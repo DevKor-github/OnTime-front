@@ -49,7 +49,9 @@ export ANDROID_KEYSTORE_PASSWORD=<keystore-password>
 export ANDROID_KEY_ALIAS=<release-key-alias>
 export ANDROID_KEY_PASSWORD=<release-key-password>
 
-flutter build appbundle --release
+flutter build appbundle --release \
+  --build-name=<version name from pubspec.yaml> \
+  --build-number=<monotonic Android versionCode>
 ```
 
 ## How Validation Works

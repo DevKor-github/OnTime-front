@@ -82,7 +82,9 @@ and exports `ANDROID_KEYSTORE_PATH` to that temporary file. Do not create
 Google Play prefers Android App Bundles:
 
 ```sh
-flutter build appbundle --release
+flutter build appbundle --release \
+  --build-name=<version name from pubspec.yaml> \
+  --build-number=<monotonic Android versionCode>
 ```
 
 For APK validation outside Play:
@@ -120,8 +122,12 @@ Run these checks before handing a release build to QA or Play Console:
 ```sh
 flutter analyze
 flutter test
-flutter build appbundle --release
+flutter build appbundle --release \
+  --build-name=<version name from pubspec.yaml> \
+  --build-number=<monotonic Android versionCode>
 ```
 
-Confirm that `pubspec.yaml` has the intended `version` and that the build number
-is greater than every previous Play Console upload for `club.devkor.ontime`.
+Confirm that `pubspec.yaml` has the intended public version name. In GitHub
+Actions deploys, Android `versionCode` comes from `github.run_number`; for any
+manual Play upload, provide a build number greater than every previous Play
+Console upload for `club.devkor.ontime`.

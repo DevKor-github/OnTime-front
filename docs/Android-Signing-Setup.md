@@ -57,6 +57,26 @@ The Gradle build also accepts the legacy `ONTIME_ANDROID_KEYSTORE_PATH`,
 `ONTIME_ANDROID_KEYSTORE_PASSWORD`, `ONTIME_ANDROID_KEY_ALIAS`, and
 `ONTIME_ANDROID_KEY_PASSWORD` variable names for compatibility.
 
+## Configure CI Release Signing
+
+For GitHub Actions deploys, base64-encode the upload keystore and store it as
+the `ANDROID_UPLOAD_KEYSTORE_B64` secret in the protected `release`
+environment:
+
+```sh
+base64 -i ~/secure/ontime-upload.jks | pbcopy
+```
+
+On Linux, use:
+
+```sh
+base64 -w 0 ~/secure/ontime-upload.jks
+```
+
+The deploy workflow decodes this secret into `$RUNNER_TEMP/ontime-upload.jks`
+and exports `ANDROID_KEYSTORE_PATH` to that temporary file. Do not create
+`android/key.properties` in CI.
+
 ## Build a Signed Release
 
 Google Play prefers Android App Bundles:

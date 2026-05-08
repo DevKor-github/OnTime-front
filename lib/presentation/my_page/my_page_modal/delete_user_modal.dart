@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/domain/use-cases/delete_user_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -29,7 +31,9 @@ class DeleteUserModal {
   }
 
   Future<void> _showDeleteFeedbackModal(
-      BuildContext context, VoidCallback onConfirm) async {
+    BuildContext context,
+    VoidCallback onConfirm,
+  ) async {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context)!;
@@ -90,6 +94,11 @@ class DeleteUserModal {
             child: TextField(
               controller: controller,
               focusNode: focusNode,
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(
+                  BackendConstraints.maxLongTextLength,
+                ),
+              ],
               maxLines: null,
               expands: true,
               textAlign: TextAlign.start,
@@ -103,8 +112,9 @@ class DeleteUserModal {
                 color: colorScheme.onSurface,
               ),
               decoration: InputDecoration(
-                hintText:
-                    focusNode.hasFocus ? '' : l10n.deleteFeedbackPlaceholder,
+                hintText: focusNode.hasFocus
+                    ? ''
+                    : l10n.deleteFeedbackPlaceholder,
                 hintStyle: textTheme.bodyMedium?.copyWith(
                   fontFamily: 'Pretendard',
                   fontWeight: FontWeight.w400,
@@ -132,13 +142,11 @@ class DeleteUserModal {
       final deleteUserUseCase = getIt<DeleteUserUseCase>();
       await deleteUserUseCase(controller.text);
     } catch (error) {
-      AppLogger.debug(
-        'Delete user failed errorType=${error.runtimeType}',
-      );
+      AppLogger.debug('Delete user failed errorType=${error.runtimeType}');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.error)));
       }
       return;
     }

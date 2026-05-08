@@ -296,6 +296,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get scheduleTimePastError => 'Choose a future appointment time.';
+
+  @override
   String previousScheduleOverlapError(int minutes, String scheduleName) {
     return 'Overlapped with \"$scheduleName\"! You need to prepare $minutes minutes earlier.';
   }

@@ -10,120 +10,133 @@ import 'package:on_time_front/presentation/schedule_create/components/message_bu
 //TODO: Format DateTime string
 //TODO: Extract Text Field widget
 class ScheduleDateTimeForm extends StatelessWidget {
-  const ScheduleDateTimeForm({
-    super.key,
-  });
+  const ScheduleDateTimeForm({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final hintStyle = Theme.of(context).inputDecorationTheme.hintStyle ??
+    final hintStyle =
+        Theme.of(context).inputDecorationTheme.hintStyle ??
         Theme.of(context).textTheme.bodyLarge;
     final fadedHintStyle = hintStyle?.copyWith(
-      color: (hintStyle.color ?? Theme.of(context).hintColor)
-          .withValues(alpha: 0.45),
+      color: (hintStyle.color ?? Theme.of(context).hintColor).withValues(
+        alpha: 0.45,
+      ),
     );
 
     return BlocBuilder<ScheduleDateTimeCubit, ScheduleDateTimeState>(
-        builder: (context, state) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 2,
-                child: TextField(
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.appointmentTime,
-                    hintText: _localizedDateString(context, DateTime.now()),
-                    hintStyle: fadedHintStyle,
-                  ),
-                  controller: TextEditingController(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.appointmentTime,
+                      hintText: _localizedDateString(context, DateTime.now()),
+                      hintStyle: fadedHintStyle,
+                    ),
+                    controller: TextEditingController(
                       text: state.scheduleDate.value == null
                           ? null
                           : _localizedDateString(
-                              context, state.scheduleDate.value!)),
-                  onTap: () {
-                    context.showCupertinoDatePickerModal(
-                      title: AppLocalizations.of(context)!.enterDate,
-                      mode: CupertinoDatePickerMode.date,
-                      initialValue: state.scheduleDate.value ?? DateTime.now(),
-                      onDisposed: () {
-                        context
-                            .read<ScheduleDateTimeCubit>()
-                            .validateCurrentSelection();
-                      },
-                      onSaved: (DateTime newDateTime) {
-                        context
-                            .read<ScheduleDateTimeCubit>()
-                            .scheduleDateChanged(newDateTime);
-                      },
-                    );
-                  },
+                              context,
+                              state.scheduleDate.value!,
+                            ),
+                    ),
+                    onTap: () {
+                      context.showCupertinoDatePickerModal(
+                        title: AppLocalizations.of(context)!.enterDate,
+                        mode: CupertinoDatePickerMode.date,
+                        initialValue:
+                            state.scheduleDate.value ?? DateTime.now(),
+                        onDisposed: () {
+                          context
+                              .read<ScheduleDateTimeCubit>()
+                              .validateCurrentSelection();
+                        },
+                        onSaved: (DateTime newDateTime) {
+                          context
+                              .read<ScheduleDateTimeCubit>()
+                              .scheduleDateChanged(newDateTime);
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: 30,
-              ),
-              Expanded(
-                flex: 1,
-                child: TextField(
-                  readOnly: true,
-                  decoration: InputDecoration(
+                SizedBox(width: 30),
+                Expanded(
+                  flex: 1,
+                  child: TextField(
+                    readOnly: true,
+                    decoration: InputDecoration(
                       labelText: '',
                       hintText: DateFormat.jm(
-                              Localizations.localeOf(context).toString())
-                          .format(DateTime.now()),
-                      hintStyle: fadedHintStyle),
-                  controller: TextEditingController(
-                    text: state.scheduleTime.value == null
-                        ? null
-                        : DateFormat.jm(
-                                Localizations.localeOf(context).toString())
-                            .format(state.scheduleTime.value!),
+                        Localizations.localeOf(context).toString(),
+                      ).format(DateTime.now()),
+                      hintStyle: fadedHintStyle,
+                    ),
+                    controller: TextEditingController(
+                      text: state.scheduleTime.value == null
+                          ? null
+                          : DateFormat.jm(
+                              Localizations.localeOf(context).toString(),
+                            ).format(state.scheduleTime.value!),
+                    ),
+                    onTap: () {
+                      context.showCupertinoDatePickerModal(
+                        title: AppLocalizations.of(context)!.enterTime,
+                        mode: CupertinoDatePickerMode.time,
+                        initialValue:
+                            state.scheduleTime.value ?? DateTime.now(),
+                        onDisposed: () {
+                          context
+                              .read<ScheduleDateTimeCubit>()
+                              .validateCurrentSelection();
+                        },
+                        onSaved: (DateTime newDateTime) {
+                          context
+                              .read<ScheduleDateTimeCubit>()
+                              .scheduleTimeChanged(newDateTime);
+                        },
+                      );
+                    },
                   ),
-                  onTap: () {
-                    context.showCupertinoDatePickerModal(
-                      title: AppLocalizations.of(context)!.enterTime,
-                      mode: CupertinoDatePickerMode.time,
-                      initialValue: state.scheduleTime.value ?? DateTime.now(),
-                      onDisposed: () {
-                        context
-                            .read<ScheduleDateTimeCubit>()
-                            .validateCurrentSelection();
-                      },
-                      onSaved: (DateTime newDateTime) {
-                        context
-                            .read<ScheduleDateTimeCubit>()
-                            .scheduleTimeChanged(newDateTime);
-                      },
-                    );
-                  },
+                ),
+              ],
+            ),
+            if (state.hasPreviousOverlapMessage)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+                child: MessageBubble(
+                  message: state.getPreviousOverlapMessage(context)!,
+                  type: MessageBubbleType.warning,
                 ),
               ),
-            ],
-          ),
-          if (state.hasPreviousOverlapMessage)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 16.0),
-              child: MessageBubble(
-                message: state.getPreviousOverlapMessage(context)!,
-                type: MessageBubbleType.warning,
+            if (state.hasPastScheduleTimeMessage)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+                child: MessageBubble(
+                  message: state.getPastScheduleTimeMessage(context)!,
+                  type: MessageBubbleType.error,
+                ),
               ),
-            ),
-          if (state.isOverlapping)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 16.0),
-              child: MessageBubble(
-                message: state.getOverlapMessage(context)!,
-                type: MessageBubbleType.error,
+            if (state.isOverlapping)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+                child: MessageBubble(
+                  message: state.getOverlapMessage(context)!,
+                  type: MessageBubbleType.error,
+                ),
               ),
-            ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -132,7 +145,9 @@ String _localizedDateString(BuildContext context, DateTime date) {
   if (locale == 'ko') {
     return DateFormat('yyyy년 MM월 dd일', 'ko').format(date);
   } else {
-    return DateFormat('yyyy.MM.dd.', Localizations.localeOf(context).toString())
-        .format(date);
+    return DateFormat(
+      'yyyy.MM.dd.',
+      Localizations.localeOf(context).toString(),
+    ).format(date);
   }
 }

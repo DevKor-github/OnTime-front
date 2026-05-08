@@ -57,7 +57,11 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
         } else if (state.submissionStatus ==
             ScheduleFormSubmissionStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+            SnackBar(
+              content: Text(
+                state.submissionError ?? AppLocalizations.of(context)!.error,
+              ),
+            ),
           );
         }
       },
@@ -107,12 +111,13 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                       TopBar(
                         onNextPageButtonClicked:
                             (state.isValid && !isSubmitting)
-                                ? () => _onNextPageButtonClicked(context)
-                                : null,
+                            ? () => _onNextPageButtonClicked(context)
+                            : null,
                         // 버튼 활성화 판별
                         isNextButtonEnabled: state.isValid && !isSubmitting,
-                        onPreviousPageButtonClicked:
-                            isSubmitting ? null : _onPreviousPageButtonClicked,
+                        onPreviousPageButtonClicked: isSubmitting
+                            ? null
+                            : _onPreviousPageButtonClicked,
                       ),
                       SizedBox(height: 26),
                       StepProgress(
@@ -157,8 +162,9 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
         });
         break;
       case const (ScheduleDateTimeCubit):
-        final didSubmit =
-            context.read<ScheduleDateTimeCubit>().scheduleDateTimeSubmitted();
+        final didSubmit = context
+            .read<ScheduleDateTimeCubit>()
+            .scheduleDateTimeSubmitted();
         if (!didSubmit) {
           return;
         }

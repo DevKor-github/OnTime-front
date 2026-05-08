@@ -92,7 +92,7 @@ class StubCreateCustomPreparationUseCase
   StubCreateCustomPreparationUseCase(this.handler);
 
   final Future<void> Function(PreparationEntity preparation, String scheduleId)
-      handler;
+  handler;
 
   @override
   Future<void> call(PreparationEntity preparationEntity, String scheduleId) {
@@ -114,7 +114,7 @@ class StubUpdatePreparationByScheduleIdUseCase
   StubUpdatePreparationByScheduleIdUseCase(this.handler);
 
   final Future<void> Function(PreparationEntity preparation, String scheduleId)
-      handler;
+  handler;
 
   @override
   Future<void> call(PreparationEntity preparationEntity, String scheduleId) {
@@ -129,7 +129,8 @@ class StubLoadAdjacentScheduleWithPreparationUseCase
   final Future<void> Function({
     required DateTime startDate,
     required DateTime endDate,
-  }) handler;
+  })
+  handler;
 
   @override
   Future<void> call({required DateTime startDate, required DateTime endDate}) {
@@ -146,7 +147,8 @@ class StubGetAdjacentSchedulesWithPreparationUseCase
     String? currentScheduleId,
     required DateTime startDate,
     required DateTime endDate,
-  }) handler;
+  })
+  handler;
 
   @override
   Future<AdjacentSchedulesWithPreparationEntity> call({
@@ -166,7 +168,7 @@ class StubGetAdjacentSchedulesWithPreparationUseCase
 
 void main() {
   late StubLoadPreparationByScheduleIdUseCase
-      loadPreparationByScheduleIdUseCase;
+  loadPreparationByScheduleIdUseCase;
   late StubGetPreparationByScheduleIdUseCase getPreparationByScheduleIdUseCase;
   late StubGetDefaultPreparationUseCase getDefaultPreparationUseCase;
   late StubGetScheduleByIdUseCase getScheduleByIdUseCase;
@@ -174,13 +176,13 @@ void main() {
   late StubCreateCustomPreparationUseCase createCustomPreparationUseCase;
   late StubUpdateScheduleUseCase updateScheduleUseCase;
   late StubUpdatePreparationByScheduleIdUseCase
-      updatePreparationByScheduleIdUseCase;
+  updatePreparationByScheduleIdUseCase;
   late StubAuthBloc authBloc;
 
   late StubLoadAdjacentScheduleWithPreparationUseCase
-      loadAdjacentScheduleWithPreparationUseCase;
+  loadAdjacentScheduleWithPreparationUseCase;
   late StubGetAdjacentSchedulesWithPreparationUseCase
-      getAdjacentSchedulesWithPreparationUseCase;
+  getAdjacentSchedulesWithPreparationUseCase;
 
   final preparation = PreparationEntity(
     preparationStepList: const [
@@ -196,7 +198,7 @@ void main() {
     id: 'schedule-1',
     place: PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Meeting',
-    scheduleTime: DateTime(2026, 3, 20, 9, 0),
+    scheduleTime: DateTime(2027, 3, 20, 9, 0),
     moveTime: const Duration(minutes: 30),
     isChanged: false,
     isStarted: false,
@@ -271,9 +273,9 @@ void main() {
 
   Future<void> goToFinalStepAndSubmit(WidgetTester tester) async {
     Finder nextButton() => find.descendant(
-          of: find.byType(TopBar),
-          matching: find.byType(TextButton),
-        );
+      of: find.byType(TopBar),
+      matching: find.byType(TextButton),
+    );
 
     await tester.tap(nextButton());
     await tester.pumpAndSettle();
@@ -289,36 +291,40 @@ void main() {
   }
 
   setUp(() {
-    loadPreparationByScheduleIdUseCase =
-        StubLoadPreparationByScheduleIdUseCase((_) async {});
-    getPreparationByScheduleIdUseCase =
-        StubGetPreparationByScheduleIdUseCase((_) async => preparation);
-    getDefaultPreparationUseCase =
-        StubGetDefaultPreparationUseCase(() async => preparation);
+    loadPreparationByScheduleIdUseCase = StubLoadPreparationByScheduleIdUseCase(
+      (_) async {},
+    );
+    getPreparationByScheduleIdUseCase = StubGetPreparationByScheduleIdUseCase(
+      (_) async => preparation,
+    );
+    getDefaultPreparationUseCase = StubGetDefaultPreparationUseCase(
+      () async => preparation,
+    );
     getScheduleByIdUseCase = StubGetScheduleByIdUseCase((_) async => schedule);
-    createScheduleWithPlaceUseCase =
-        StubCreateScheduleWithPlaceUseCase((_) async {});
-    createCustomPreparationUseCase =
-        StubCreateCustomPreparationUseCase((_, __) async {});
+    createScheduleWithPlaceUseCase = StubCreateScheduleWithPlaceUseCase(
+      (_) async {},
+    );
+    createCustomPreparationUseCase = StubCreateCustomPreparationUseCase(
+      (_, __) async {},
+    );
     updateScheduleUseCase = StubUpdateScheduleUseCase((_) async {});
     updatePreparationByScheduleIdUseCase =
         StubUpdatePreparationByScheduleIdUseCase((_, __) async {});
 
     loadAdjacentScheduleWithPreparationUseCase =
         StubLoadAdjacentScheduleWithPreparationUseCase(
-      ({required startDate, required endDate}) async {},
-    );
+          ({required startDate, required endDate}) async {},
+        );
 
     getAdjacentSchedulesWithPreparationUseCase =
         StubGetAdjacentSchedulesWithPreparationUseCase(
-      ({
-        required selectedDateTime,
-        String? currentScheduleId,
-        required startDate,
-        required endDate,
-      }) async =>
-          const AdjacentSchedulesWithPreparationEntity(),
-    );
+          ({
+            required selectedDateTime,
+            String? currentScheduleId,
+            required startDate,
+            required endDate,
+          }) async => const AdjacentSchedulesWithPreparationEntity(),
+        );
 
     authBloc = StubAuthBloc(
       AuthState(
@@ -340,36 +346,38 @@ void main() {
 
     getIt
         .registerFactoryParam<ScheduleDateTimeCubit, ScheduleFormBloc, dynamic>(
-      (scheduleFormBloc, _) => ScheduleDateTimeCubit(
-        scheduleFormBloc,
-        loadAdjacentScheduleWithPreparationUseCase,
-        getAdjacentSchedulesWithPreparationUseCase,
-      ),
-    );
+          (scheduleFormBloc, _) => ScheduleDateTimeCubit(
+            scheduleFormBloc,
+            loadAdjacentScheduleWithPreparationUseCase,
+            getAdjacentSchedulesWithPreparationUseCase,
+          ),
+        );
   });
 
   tearDown(() async {
     await getIt.reset();
   });
 
-  testWidgets('final submit does not close sheet immediately while submitting',
-      (tester) async {
-    final submitCompleter = Completer<void>();
-    updateScheduleUseCase.handler = (_) => submitCompleter.future;
+  testWidgets(
+    'final submit does not close sheet immediately while submitting',
+    (tester) async {
+      final submitCompleter = Completer<void>();
+      updateScheduleUseCase.handler = (_) => submitCompleter.future;
 
-    final bloc = buildBloc();
-    addTearDown(bloc.close);
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
 
-    await primeEditState(bloc);
-    await pumpSheet(tester, bloc);
+      await primeEditState(bloc);
+      await pumpSheet(tester, bloc);
 
-    await goToFinalStepAndSubmit(tester);
+      await goToFinalStepAndSubmit(tester);
 
-    expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
+      expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
 
-    submitCompleter.complete();
-    await tester.pumpAndSettle();
-  });
+      submitCompleter.complete();
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('sheet closes after successful submit', (tester) async {
     final bloc = buildBloc();
@@ -384,8 +392,9 @@ void main() {
     expect(find.byType(ScheduleMultiPageForm), findsNothing);
   });
 
-  testWidgets('sheet stays open and shows error when submit fails',
-      (tester) async {
+  testWidgets('sheet stays open and shows error when submit fails', (
+    tester,
+  ) async {
     updateScheduleUseCase.handler = (_) => Future.error(Exception('update'));
 
     final bloc = buildBloc();
@@ -401,8 +410,9 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
-  testWidgets('edited name and place are submitted from form steps',
-      (tester) async {
+  testWidgets('edited name and place are submitted from form steps', (
+    tester,
+  ) async {
     ScheduleEntity? updatedSchedule;
     updateScheduleUseCase.handler = (schedule) async {
       updatedSchedule = schedule;
@@ -415,9 +425,9 @@ void main() {
     await pumpSheet(tester, bloc);
 
     Finder nextButton() => find.descendant(
-          of: find.byType(TopBar),
-          matching: find.byType(TextButton),
-        );
+      of: find.byType(TopBar),
+      matching: find.byType(TextButton),
+    );
 
     await tester.enterText(find.byType(TextFormField).first, 'Edited Meeting');
     await tester.pump();
@@ -443,27 +453,28 @@ void main() {
   testWidgets('date time overlap keeps next disabled', (tester) async {
     getAdjacentSchedulesWithPreparationUseCase =
         StubGetAdjacentSchedulesWithPreparationUseCase(
-      ({
-        required selectedDateTime,
-        String? currentScheduleId,
-        required startDate,
-        required endDate,
-      }) async =>
-          AdjacentSchedulesWithPreparationEntity(
-        nextSchedule: ScheduleWithPreparationEntity(
-          id: 'schedule-2',
-          place: const PlaceEntity(id: 'place-2', placeName: 'Next Office'),
-          scheduleName: 'Next Meeting',
-          scheduleTime: DateTime(2026, 3, 20, 9, 20),
-          moveTime: const Duration(minutes: 10),
-          isChanged: false,
-          isStarted: false,
-          scheduleSpareTime: Duration.zero,
-          scheduleNote: '',
-          preparation: PreparationWithTimeEntity.fromPreparation(preparation),
-        ),
-      ),
-    );
+          ({
+            required selectedDateTime,
+            String? currentScheduleId,
+            required startDate,
+            required endDate,
+          }) async => AdjacentSchedulesWithPreparationEntity(
+            nextSchedule: ScheduleWithPreparationEntity(
+              id: 'schedule-2',
+              place: const PlaceEntity(id: 'place-2', placeName: 'Next Office'),
+              scheduleName: 'Next Meeting',
+              scheduleTime: DateTime(2027, 3, 20, 9, 20),
+              moveTime: const Duration(minutes: 10),
+              isChanged: false,
+              isStarted: false,
+              scheduleSpareTime: Duration.zero,
+              scheduleNote: '',
+              preparation: PreparationWithTimeEntity.fromPreparation(
+                preparation,
+              ),
+            ),
+          ),
+        );
 
     final bloc = buildBloc();
     addTearDown(bloc.close);
@@ -472,9 +483,9 @@ void main() {
     await pumpSheet(tester, bloc);
 
     Finder nextButton() => find.descendant(
-          of: find.byType(TopBar),
-          matching: find.byType(TextButton),
-        );
+      of: find.byType(TopBar),
+      matching: find.byType(TextButton),
+    );
 
     await tester.tap(nextButton());
     await tester.pumpAndSettle();
@@ -483,8 +494,9 @@ void main() {
     expect(button.onPressed, isNull);
   });
 
-  testWidgets('cancelling date and time pickers keeps next disabled',
-      (tester) async {
+  testWidgets('cancelling date and time pickers keeps next disabled', (
+    tester,
+  ) async {
     final bloc = buildBloc();
     addTearDown(bloc.close);
 
@@ -492,9 +504,9 @@ void main() {
     await pumpSheet(tester, bloc);
 
     Finder nextButton() => find.descendant(
-          of: find.byType(TopBar),
-          matching: find.byType(TextButton),
-        );
+      of: find.byType(TopBar),
+      matching: find.byType(TextButton),
+    );
 
     await tester.enterText(find.byType(TextFormField).first, 'Meeting');
     await tester.pump();

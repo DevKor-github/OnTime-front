@@ -12,10 +12,11 @@ The release verification workflow decodes this secret to `android/app/src/releas
 
 Use the `Android Play Internal Deploy` GitHub Actions workflow to build a signed
 Android App Bundle and upload it to the Google Play Internal Testing track as a
-draft release. The workflow is manual-only and must be dispatched from `main`.
+draft release. The workflow runs automatically on pushes to `main` and can also
+be dispatched manually from `main`.
 
-Configure a GitHub environment named `release` with required reviewers before
-using the workflow. Store these environment secrets there:
+Configure a GitHub environment named `staging` for internal test distribution.
+Store these environment secrets there:
 
 - `ANDROID_GOOGLE_SERVICES_JSON_B64`: base64-encoded production Android
   Firebase config.
@@ -26,10 +27,9 @@ using the workflow. Store these environment secrets there:
 - `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`: raw service-account JSON for the Google
   Play Developer API.
 
-Store this environment variable in `release`:
+Store this environment variable in `staging`:
 
-- `REST_API_URL`: production API base URL passed to Flutter with
-  `--dart-define`.
+- `REST_API_URL`: target API base URL passed to Flutter with `--dart-define`.
 
 The deploy workflow runs package install, code generation, generated-file drift
 checking, analysis, tests, and then `flutter build appbundle --release`. It
@@ -40,6 +40,7 @@ derives Android `versionName` from the `pubspec.yaml` version name and supplies
 flutter build appbundle --release \
   --build-name=<version name from pubspec.yaml> \
   --build-number=${{ github.run_number }} \
+  --dart-define=ENV=staging \
   --dart-define=REST_API_URL="$REST_API_URL"
 ```
 
@@ -64,6 +65,7 @@ base64 --decode android-google-services.json.b64 > android/app/src/release/googl
 flutter build appbundle --release \
   --build-name=<version name from pubspec.yaml> \
   --build-number=<monotonic Android versionCode> \
+  --dart-define=ENV=prod \
   --dart-define=REST_API_URL=<api-url>
 ```
 

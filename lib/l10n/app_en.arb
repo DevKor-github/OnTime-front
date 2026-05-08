@@ -371,6 +371,10 @@
             }
         }
     },
+    "scheduleTimePastError": "Choose a future appointment time.",
+    "@scheduleTimePastError": {
+        "description": "Error message when selected appointment time is in the past"
+    },
     "previousScheduleOverlapError": "Overlapped with \"{scheduleName}\"! You need to prepare {minutes} minutes earlier.",
     "@previousScheduleOverlapError": {
         "description": "Error message when schedule is already overlapping with previous schedule",

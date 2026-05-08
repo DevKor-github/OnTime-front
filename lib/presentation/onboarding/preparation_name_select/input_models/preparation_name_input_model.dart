@@ -1,9 +1,7 @@
 import 'package:formz/formz.dart';
 
 /// Validation errors for the [PreparationNameInputModel] [FormzInput].
-enum PreparationNameValidationError {
-  empty,
-}
+enum PreparationNameValidationError { empty }
 
 class PreparationNameInputModel
     extends FormzInput<String, PreparationNameValidationError> {
@@ -12,6 +10,6 @@ class PreparationNameInputModel
 
   @override
   PreparationNameValidationError? validator(String value) {
-    return value.isEmpty ? PreparationNameValidationError.empty : null;
+    return value.trim().isEmpty ? PreparationNameValidationError.empty : null;
   }
 }

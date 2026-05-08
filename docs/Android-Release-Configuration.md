@@ -12,10 +12,11 @@ The release verification workflow decodes this secret to `android/app/src/releas
 
 Use the `Android Play Internal Deploy` GitHub Actions workflow to build a signed
 Android App Bundle and upload it to the Google Play Internal Testing track as a
-draft release. The workflow is manual-only and must be dispatched from `main`.
+draft release. The workflow runs automatically on pushes to `main` and can also
+be dispatched manually from `main`.
 
-Configure a GitHub environment named `release` with required reviewers before
-using the workflow. Store these environment secrets there:
+Configure a GitHub environment named `staging` for internal test distribution.
+Store these environment secrets there:
 
 - `ANDROID_GOOGLE_SERVICES_JSON_B64`: base64-encoded production Android
   Firebase config.
@@ -26,21 +27,33 @@ using the workflow. Store these environment secrets there:
 - `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`: raw service-account JSON for the Google
   Play Developer API.
 
-Store this environment variable in `release`:
+Store this environment variable in `staging`:
 
-- `REST_API_URL`: production API base URL passed to Flutter with
-  `--dart-define`.
+- `REST_API_URL`: target API base URL passed to Flutter with `--dart-define`.
 
 The deploy workflow runs package install, code generation, generated-file drift
 checking, analysis, tests, and then `flutter build appbundle --release`. It
-uploads the signed `.aab` as a 14-day GitHub Actions artifact and creates a
+derives Android `versionName` from the `pubspec.yaml` version name and supplies
+`${{ github.run_number }}` as Android `versionCode`:
+
+```sh
+flutter build appbundle --release \
+  --build-name=<version name from pubspec.yaml> \
+  --build-number=${{ github.run_number }} \
+  --dart-define=ENV=staging \
+  --dart-define=REST_API_URL="$REST_API_URL"
+```
+
+It uploads the signed `.aab` as a 14-day GitHub Actions artifact and creates a
 draft release on Google Play Internal Testing. If the optional release notes
 input is empty, the workflow uploads without custom release notes.
 
-`pubspec.yaml` remains the source of truth for `version: major.minor.patch+build`.
-Before dispatching the workflow, bump the build number so it is greater than
-every previously uploaded Google Play build for `club.devkor.ontime`. Duplicate
-build numbers fail during the Google Play upload step.
+Keep `pubspec.yaml` as the source of truth for the manually managed public
+version name, such as `version: 1.0.0+1`. Android CI ignores the checked-in
+build suffix for Play uploads, so do not open PRs only to bump `+2`, `+3`, and
+similar build numbers. The generated `github.run_number` must still be greater
+than every previously uploaded Google Play build for `club.devkor.ontime`;
+duplicate or lower build numbers fail during the Google Play upload step.
 
 ## Local Release Build
 
@@ -49,7 +62,11 @@ Create the release source-set config before building:
 ```sh
 mkdir -p android/app/src/release
 base64 --decode android-google-services.json.b64 > android/app/src/release/google-services.json
-flutter build appbundle --release --dart-define=REST_API_URL=<api-url>
+flutter build appbundle --release \
+  --build-name=<version name from pubspec.yaml> \
+  --build-number=<monotonic Android versionCode> \
+  --dart-define=ENV=prod \
+  --dart-define=REST_API_URL=<api-url>
 ```
 
 On macOS, use `base64 -D` instead of `base64 --decode`.

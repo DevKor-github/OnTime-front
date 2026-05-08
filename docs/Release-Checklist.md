@@ -5,12 +5,29 @@ OnTime.
 
 ## Versioning
 
+- Create store candidates from `release/x.y.z` branches and production releases
+  from `vX.Y.Z` tags.
+- Merge each release branch back into `main` after the production tag is cut so
+  release fixes and version bumps do not drift.
 - Keep `pubspec.yaml` as the source of truth for the app version.
-- Use semantic versioning for the build name and a monotonically increasing
-  build number, formatted as `major.minor.patch+build`.
+- Use semantic versioning for the public version name, formatted as
+  `major.minor.patch`.
 - The first production release is `1.0.0+1`.
-- For each store submission, bump the build number even if the public version
-  name is unchanged.
+- Keep the public version name manual in `pubspec.yaml`.
+- For Android Play deploys, CI derives `versionName` from `pubspec.yaml` and
+  uses `github.run_number` as the generated `versionCode`; do not open PRs only
+  to bump the checked-in build suffix.
+
+## Branch and Environment
+
+- Confirm the candidate branch is named `release/x.y.z` for planned releases or
+  `hotfix/x.y.z` for urgent production repairs.
+- Confirm final production deployments are triggered from a `vX.Y.Z` tag, not
+  directly from `main` or a release branch.
+- Use `ENV=staging` for release-candidate QA builds.
+- Use `ENV=prod` for tagged production builds.
+- Require manual approval before promoting tagged builds to Play Store or App
+  Store production.
 
 ## Android
 

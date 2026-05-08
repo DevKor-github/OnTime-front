@@ -1,9 +1,8 @@
 import 'package:formz/formz.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
 
 /// Validation errors for the [ScheduleNameInputModel] [FormzInput].
-enum ScheduleNameValidationError {
-  empty,
-}
+enum ScheduleNameValidationError { empty, tooLong }
 
 class ScheduleNameInputModel
     extends FormzInput<String, ScheduleNameValidationError> {
@@ -12,6 +11,13 @@ class ScheduleNameInputModel
 
   @override
   ScheduleNameValidationError? validator(String value) {
-    return value.isEmpty ? ScheduleNameValidationError.empty : null;
+    final trimmedValue = value.trim();
+    if (trimmedValue.isEmpty) {
+      return ScheduleNameValidationError.empty;
+    }
+    if (trimmedValue.length > BackendConstraints.maxScheduleNameLength) {
+      return ScheduleNameValidationError.tooLong;
+    }
+    return null;
   }
 }

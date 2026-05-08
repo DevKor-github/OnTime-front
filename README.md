@@ -81,6 +81,7 @@ The app reads compile-time values from Dart defines in `lib/core/constants/envir
 
 | Define | Required | Used for |
 | --- | --- | --- |
+| `ENV` | Optional | App environment label. Use `dev`, `staging`, or `prod`; defaults to `dev`. |
 | `REST_API_URL` | Yes | Base URL for Dio API calls. |
 | `REST_AUTH_TOKEN` | Optional | Static auth token override for development/test scenarios. |
 | `GOOGLE_RESERVED_CLIENT_ID_IOS` | iOS release/archive only | Reversed iOS Google client ID used as the iOS URL scheme for Google Sign-In. |
@@ -89,9 +90,11 @@ Pass defines directly on Flutter commands:
 
 ```sh
 flutter run -d chrome \
+  --dart-define=ENV=dev \
   --dart-define=REST_API_URL=<api-base-url>
 
 flutter build web --release \
+  --dart-define=ENV=staging \
   --dart-define=REST_API_URL=<api-base-url>
 ```
 
@@ -99,6 +102,7 @@ For iOS release and archive builds, include the Google URL scheme define:
 
 ```sh
 flutter build ios --release \
+  --dart-define=ENV=prod \
   --dart-define=REST_API_URL=<api-base-url> \
   --dart-define=GOOGLE_RESERVED_CLIENT_ID_IOS=<reversed-ios-client-id>
 ```
@@ -165,19 +169,41 @@ flutter test --coverage
 Run the web app locally:
 
 ```sh
-flutter run -d chrome --dart-define=REST_API_URL=<api-base-url>
+flutter run -d chrome \
+  --dart-define=ENV=dev \
+  --dart-define=REST_API_URL=<api-base-url>
 ```
 
 Do not use `npm test`; the root `package.json` script is a placeholder that intentionally fails.
 
 ## Build and Release
 
+This repository uses trunk-based development with release branches:
+
+```text
+main = always test-deployable
+release/* = store candidate
+v* tag = production release source of truth
+hotfix/* = emergency production repair
+```
+
+Normal changes should land through short-lived `feature/*` or `fix/*` branches
+into `main`. Create `release/x.y.z` from `main` for final store QA, cut
+`vX.Y.Z` tags from approved release branches, then merge the release branch back
+to `main`. See [docs/Git.md](docs/Git.md) for the full branch and deployment
+flow.
+
 ### Web
 
-Preview and production web deployments are handled by GitHub Actions and Firebase Hosting. CI uses the `REST_API_URL` GitHub environment variable and builds with:
+Preview and staging web deployments are handled by GitHub Actions and Firebase
+Hosting. Pull requests build with `ENV=dev`; merges to `main` build with
+`ENV=staging`. CI uses the `REST_API_URL` GitHub environment variable and builds
+with:
 
 ```sh
-flutter build web --release --dart-define=REST_API_URL=<api-base-url>
+flutter build web --release \
+  --dart-define=ENV=staging \
+  --dart-define=REST_API_URL=<api-base-url>
 ```
 
 Firebase Hosting deploys `build/web` to project `ontime-c63f1`.
@@ -188,6 +214,7 @@ Build a release APK:
 
 ```sh
 flutter build apk --release \
+  --dart-define=ENV=staging \
   --dart-define=REST_API_URL=<api-base-url>
 ```
 
@@ -195,6 +222,7 @@ Build an app bundle for Play Console upload:
 
 ```sh
 flutter build appbundle --release \
+  --dart-define=ENV=prod \
   --dart-define=REST_API_URL=<api-base-url>
 ```
 
@@ -206,6 +234,7 @@ Build locally:
 
 ```sh
 flutter build ios --release \
+  --dart-define=ENV=prod \
   --dart-define=REST_API_URL=<api-base-url> \
   --dart-define=GOOGLE_RESERVED_CLIENT_ID_IOS=<reversed-ios-client-id>
 ```

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/data/models/get_user_response_model.dart';
 import 'package:on_time_front/data/models/sign_in_user_response_model.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
@@ -13,13 +14,18 @@ abstract interface class AuthenticationRemoteDataSource {
   Future<(UserEntity, TokenEntity)> signIn(String email, String password);
 
   Future<(UserEntity, TokenEntity)> signUp(
-      String email, String password, String name);
+    String email,
+    String password,
+    String name,
+  );
 
   Future<(UserEntity, TokenEntity)> signInWithGoogle(
-      SignInWithGoogleRequestModel signInWithGoogleRequestModel);
+    SignInWithGoogleRequestModel signInWithGoogleRequestModel,
+  );
 
   Future<(UserEntity, TokenEntity)> signInWithApple(
-      SignInWithAppleRequestModel signInWithAppleRequestModel);
+    SignInWithAppleRequestModel signInWithAppleRequestModel,
+  );
 
   Future<UserEntity> getUser();
 
@@ -42,14 +48,13 @@ class AuthenticationRemoteDataSourceImpl
 
   @override
   Future<(UserEntity, TokenEntity)> signIn(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
       final result = await dio.post(
         Endpoint.signIn,
-        data: {
-          'email': email,
-          'password': password,
-        },
+        data: {'email': email, 'password': password},
       );
       if (result.statusCode == 200) {
         final user = SignInUserResponseModel.fromJson(result.data['data']);
@@ -65,15 +70,14 @@ class AuthenticationRemoteDataSourceImpl
 
   @override
   Future<(UserEntity, TokenEntity)> signUp(
-      String email, String password, String name) async {
+    String email,
+    String password,
+    String name,
+  ) async {
     try {
       final result = await dio.post(
         Endpoint.signUp,
-        data: {
-          'email': email,
-          'password': password,
-          'name': name,
-        },
+        data: {'email': email, 'password': password, 'name': name},
       );
       if (result.statusCode == 200) {
         final user = SignInUserResponseModel.fromJson(result.data['data']);
@@ -89,7 +93,8 @@ class AuthenticationRemoteDataSourceImpl
 
   @override
   Future<(UserEntity, TokenEntity)> signInWithGoogle(
-      SignInWithGoogleRequestModel signInWithGoogleRequestModel) async {
+    SignInWithGoogleRequestModel signInWithGoogleRequestModel,
+  ) async {
     try {
       final result = await dio.post(
         Endpoint.signInWithGoogle,
@@ -109,7 +114,8 @@ class AuthenticationRemoteDataSourceImpl
 
   @override
   Future<(UserEntity, TokenEntity)> signInWithApple(
-      SignInWithAppleRequestModel signInWithAppleRequestModel) async {
+    SignInWithAppleRequestModel signInWithAppleRequestModel,
+  ) async {
     try {
       final result = await dio.post(
         Endpoint.signInWithApple,
@@ -180,10 +186,11 @@ class AuthenticationRemoteDataSourceImpl
   Future<void> postFeedback(String message) async {
     try {
       final feedbackId = const Uuid().v4();
-      final result = await dio.post(Endpoint.feedback, data: {
-        'feedbackId': feedbackId,
-        'message': message,
-      });
+      final trimmedMessage = _trimLongText(message);
+      final result = await dio.post(
+        Endpoint.feedback,
+        data: {'feedbackId': feedbackId, 'message': trimmedMessage},
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -227,7 +234,9 @@ class AuthenticationRemoteDataSourceImpl
   }
 
   Map<String, dynamic> _buildDeleteFeedbackData(String? feedbackMessage) {
-    final trimmedMessage = feedbackMessage?.trim();
+    final trimmedMessage = feedbackMessage == null
+        ? null
+        : _trimLongText(feedbackMessage);
     if (trimmedMessage == null || trimmedMessage.isEmpty) {
       return <String, dynamic>{};
     }
@@ -236,5 +245,12 @@ class AuthenticationRemoteDataSourceImpl
       'feedbackId': const Uuid().v4(),
       'message': trimmedMessage,
     };
+  }
+
+  String _trimLongText(String value) {
+    return BackendConstraints.trimToMaxLength(
+      value,
+      BackendConstraints.maxLongTextLength,
+    );
   }
 }

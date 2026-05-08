@@ -602,6 +602,12 @@ abstract class AppLocalizations {
   /// **'Overlapped with next schedule {scheduleName}! Next schedule preparation starts at {startTime}'**
   String scheduleOverlapError(String scheduleName, String startTime);
 
+  /// Error message when selected appointment time is in the past
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a future appointment time.'**
+  String get scheduleTimePastError;
+
   /// Error message when schedule is already overlapping with previous schedule
   ///
   /// In en, this message translates to:

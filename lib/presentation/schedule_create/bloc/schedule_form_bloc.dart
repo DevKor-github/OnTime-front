@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -116,13 +117,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     final now = DateTime.now();
     final initialScheduleTime = event.initialDate == null
         ? null
-        : DateTime(
-            event.initialDate!.year,
-            event.initialDate!.month,
-            event.initialDate!.day,
-            now.hour,
-            now.minute,
-          );
+        : _initialScheduleTime(event.initialDate!, now);
 
     emit(
       state.copyWith(
@@ -239,7 +234,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.failure,
-          submissionError: e.toString(),
+          submissionError: ApiErrorMessage.fromException(e) ?? e.toString(),
         ),
       );
     }
@@ -279,7 +274,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.failure,
-          submissionError: e.toString(),
+          submissionError: ApiErrorMessage.fromException(e) ?? e.toString(),
         ),
       );
     }
@@ -290,5 +285,24 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     Emitter<ScheduleFormState> emit,
   ) {
     emit(state.copyWith(isValid: event.isValid));
+  }
+
+  DateTime _initialScheduleTime(DateTime initialDate, DateTime now) {
+    final selectedDate = DateTime(
+      initialDate.year,
+      initialDate.month,
+      initialDate.day,
+    );
+    final today = DateTime(now.year, now.month, now.day);
+    final initialTime = selectedDate == today
+        ? now.add(const Duration(minutes: 1))
+        : now;
+    return DateTime(
+      initialDate.year,
+      initialDate.month,
+      initialDate.day,
+      initialTime.hour,
+      initialTime.minute,
+    );
   }
 }

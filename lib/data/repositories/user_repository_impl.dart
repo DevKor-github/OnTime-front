@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
@@ -101,6 +102,10 @@ class UserRepositoryImpl implements UserRepository {
     required String password,
     required String name,
   }) async {
+    final passwordError = PasswordPolicy.validate(password);
+    if (passwordError != null) {
+      throw ArgumentError.value(password, 'password', passwordError.name);
+    }
     try {
       final result = await _authenticationRemoteDataSource.signUp(
         email,

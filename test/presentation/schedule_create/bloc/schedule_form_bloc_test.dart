@@ -78,7 +78,7 @@ class StubCreateCustomPreparationUseCase
   StubCreateCustomPreparationUseCase(this.handler);
 
   final Future<void> Function(PreparationEntity preparation, String scheduleId)
-      handler;
+  handler;
 
   @override
   Future<void> call(PreparationEntity preparationEntity, String scheduleId) {
@@ -100,7 +100,7 @@ class StubUpdatePreparationByScheduleIdUseCase
   StubUpdatePreparationByScheduleIdUseCase(this.handler);
 
   final Future<void> Function(PreparationEntity preparation, String scheduleId)
-      handler;
+  handler;
 
   @override
   Future<void> call(PreparationEntity preparationEntity, String scheduleId) {
@@ -110,7 +110,7 @@ class StubUpdatePreparationByScheduleIdUseCase
 
 void main() {
   late StubLoadPreparationByScheduleIdUseCase
-      loadPreparationByScheduleIdUseCase;
+  loadPreparationByScheduleIdUseCase;
   late StubGetPreparationByScheduleIdUseCase getPreparationByScheduleIdUseCase;
   late StubGetDefaultPreparationUseCase getDefaultPreparationUseCase;
   late StubGetScheduleByIdUseCase getScheduleByIdUseCase;
@@ -118,7 +118,7 @@ void main() {
   late StubCreateCustomPreparationUseCase createCustomPreparationUseCase;
   late StubUpdateScheduleUseCase updateScheduleUseCase;
   late StubUpdatePreparationByScheduleIdUseCase
-      updatePreparationByScheduleIdUseCase;
+  updatePreparationByScheduleIdUseCase;
   late StubAuthBloc authBloc;
 
   final preparation = PreparationEntity(
@@ -135,7 +135,7 @@ void main() {
     id: 'schedule-1',
     place: PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Meeting',
-    scheduleTime: DateTime(2026, 3, 20, 9, 0),
+    scheduleTime: DateTime(2027, 3, 20, 9, 0),
     moveTime: const Duration(minutes: 30),
     isChanged: false,
     isStarted: false,
@@ -158,17 +158,22 @@ void main() {
   }
 
   setUp(() {
-    loadPreparationByScheduleIdUseCase =
-        StubLoadPreparationByScheduleIdUseCase((_) async {});
-    getPreparationByScheduleIdUseCase =
-        StubGetPreparationByScheduleIdUseCase((_) async => preparation);
-    getDefaultPreparationUseCase =
-        StubGetDefaultPreparationUseCase(() async => preparation);
+    loadPreparationByScheduleIdUseCase = StubLoadPreparationByScheduleIdUseCase(
+      (_) async {},
+    );
+    getPreparationByScheduleIdUseCase = StubGetPreparationByScheduleIdUseCase(
+      (_) async => preparation,
+    );
+    getDefaultPreparationUseCase = StubGetDefaultPreparationUseCase(
+      () async => preparation,
+    );
     getScheduleByIdUseCase = StubGetScheduleByIdUseCase((_) async => schedule);
-    createScheduleWithPlaceUseCase =
-        StubCreateScheduleWithPlaceUseCase((_) async {});
-    createCustomPreparationUseCase =
-        StubCreateCustomPreparationUseCase((_, __) async {});
+    createScheduleWithPlaceUseCase = StubCreateScheduleWithPlaceUseCase(
+      (_) async {},
+    );
+    createCustomPreparationUseCase = StubCreateCustomPreparationUseCase(
+      (_, __) async {},
+    );
     updateScheduleUseCase = StubUpdateScheduleUseCase((_) async {});
     updatePreparationByScheduleIdUseCase =
         StubUpdatePreparationByScheduleIdUseCase((_, __) async {});
@@ -219,63 +224,64 @@ void main() {
     );
   });
 
-  test('ScheduleFormUpdated sends edited schedule fields to update use case',
-      () async {
-    ScheduleEntity? updatedSchedule;
-    updateScheduleUseCase = StubUpdateScheduleUseCase((schedule) async {
-      updatedSchedule = schedule;
-    });
+  test(
+    'ScheduleFormUpdated sends edited schedule fields to update use case',
+    () async {
+      ScheduleEntity? updatedSchedule;
+      updateScheduleUseCase = StubUpdateScheduleUseCase((schedule) async {
+        updatedSchedule = schedule;
+      });
 
-    final bloc = buildBloc();
-    addTearDown(bloc.close);
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
 
-    final editReady = bloc.stream.firstWhere(
-      (state) => state.status == ScheduleFormStatus.success,
-    );
-    bloc.add(const ScheduleFormEditRequested(scheduleId: 'schedule-1'));
-    await editReady;
+      final editReady = bloc.stream.firstWhere(
+        (state) => state.status == ScheduleFormStatus.success,
+      );
+      bloc.add(const ScheduleFormEditRequested(scheduleId: 'schedule-1'));
+      await editReady;
 
-    bloc.add(
-      const ScheduleFormScheduleNameChanged(scheduleName: 'Edited Meeting'),
-    );
-    bloc.add(
-      ScheduleFormScheduleDateTimeChanged(
-        scheduleDate: DateTime(2026, 3, 21),
-        scheduleTime: DateTime(2026, 3, 21, 10, 30),
-      ),
-    );
-    bloc.add(const ScheduleFormPlaceNameChanged(placeName: 'New Office'));
-    bloc.add(
-      const ScheduleFormMoveTimeChanged(moveTime: Duration(minutes: 45)),
-    );
-    bloc.add(
-      const ScheduleFormScheduleSpareTimeChanged(
-        scheduleSpareTime: Duration(minutes: 25),
-      ),
-    );
+      bloc.add(
+        const ScheduleFormScheduleNameChanged(scheduleName: 'Edited Meeting'),
+      );
+      bloc.add(
+        ScheduleFormScheduleDateTimeChanged(
+          scheduleDate: DateTime(2027, 3, 21),
+          scheduleTime: DateTime(2027, 3, 21, 10, 30),
+        ),
+      );
+      bloc.add(const ScheduleFormPlaceNameChanged(placeName: 'New Office'));
+      bloc.add(
+        const ScheduleFormMoveTimeChanged(moveTime: Duration(minutes: 45)),
+      );
+      bloc.add(
+        const ScheduleFormScheduleSpareTimeChanged(
+          scheduleSpareTime: Duration(minutes: 25),
+        ),
+      );
 
-    final submitDone = bloc.stream.firstWhere(
-      (state) => state.submissionStatus == ScheduleFormSubmissionStatus.success,
-    );
-    bloc.add(const ScheduleFormUpdated());
-    await submitDone;
+      final submitDone = bloc.stream.firstWhere(
+        (state) =>
+            state.submissionStatus == ScheduleFormSubmissionStatus.success,
+      );
+      bloc.add(const ScheduleFormUpdated());
+      await submitDone;
 
-    expect(updatedSchedule, isNotNull);
-    expect(updatedSchedule!.id, 'schedule-1');
-    expect(updatedSchedule!.place.id, 'place-1');
-    expect(updatedSchedule!.place.placeName, 'New Office');
-    expect(updatedSchedule!.scheduleName, 'Edited Meeting');
-    expect(updatedSchedule!.scheduleTime, DateTime(2026, 3, 21, 10, 30));
-    expect(updatedSchedule!.moveTime, const Duration(minutes: 45));
-    expect(
-      updatedSchedule!.scheduleSpareTime,
-      const Duration(minutes: 25),
-    );
-  });
+      expect(updatedSchedule, isNotNull);
+      expect(updatedSchedule!.id, 'schedule-1');
+      expect(updatedSchedule!.place.id, 'place-1');
+      expect(updatedSchedule!.place.placeName, 'New Office');
+      expect(updatedSchedule!.scheduleName, 'Edited Meeting');
+      expect(updatedSchedule!.scheduleTime, DateTime(2027, 3, 21, 10, 30));
+      expect(updatedSchedule!.moveTime, const Duration(minutes: 45));
+      expect(updatedSchedule!.scheduleSpareTime, const Duration(minutes: 25));
+    },
+  );
 
   test('ScheduleFormUpdated emits submitting then failure on error', () async {
-    updateScheduleUseCase =
-        StubUpdateScheduleUseCase((_) => Future.error(Exception('update')));
+    updateScheduleUseCase = StubUpdateScheduleUseCase(
+      (_) => Future.error(Exception('update')),
+    );
 
     final bloc = buildBloc();
     addTearDown(bloc.close);
@@ -326,8 +332,8 @@ void main() {
     bloc.add(const ScheduleFormScheduleNameChanged(scheduleName: 'Meeting'));
     bloc.add(
       ScheduleFormScheduleDateTimeChanged(
-        scheduleDate: DateTime(2026, 3, 20),
-        scheduleTime: DateTime(2026, 3, 20, 9, 0),
+        scheduleDate: DateTime(2027, 3, 20),
+        scheduleTime: DateTime(2027, 3, 20, 9, 0),
       ),
     );
     bloc.add(const ScheduleFormPlaceNameChanged(placeName: 'Office'));
@@ -356,8 +362,9 @@ void main() {
   });
 
   test('ScheduleFormCreated emits submitting then failure on error', () async {
-    createScheduleWithPlaceUseCase =
-        StubCreateScheduleWithPlaceUseCase((_) => Future.error(Exception()));
+    createScheduleWithPlaceUseCase = StubCreateScheduleWithPlaceUseCase(
+      (_) => Future.error(Exception()),
+    );
 
     final bloc = buildBloc();
     addTearDown(bloc.close);
@@ -377,8 +384,8 @@ void main() {
     bloc.add(const ScheduleFormScheduleNameChanged(scheduleName: 'Meeting'));
     bloc.add(
       ScheduleFormScheduleDateTimeChanged(
-        scheduleDate: DateTime(2026, 3, 20),
-        scheduleTime: DateTime(2026, 3, 20, 9, 0),
+        scheduleDate: DateTime(2027, 3, 20),
+        scheduleTime: DateTime(2027, 3, 20, 9, 0),
       ),
     );
     bloc.add(const ScheduleFormPlaceNameChanged(placeName: 'Office'));

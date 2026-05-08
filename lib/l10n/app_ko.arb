@@ -105,6 +105,10 @@
             }
         }
     },
+    "scheduleTimePastError": "미래의 약속 시간을 선택해주세요.",
+    "@scheduleTimePastError": {
+        "description": "Error message when selected appointment time is in the past"
+    },
     "previousScheduleOverlapError": "\"{scheduleName}\"과 겹쳤어요! {minutes}분 더 빨리 준비해야 해요",
     "@previousScheduleOverlapError": {
         "description": "Error message when schedule is already overlapping with previous schedule",

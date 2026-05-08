@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 part 'create_schedule_request_model.g.dart';
@@ -39,13 +40,19 @@ class CreateScheduleRequestModel {
       scheduleId: entity.id,
       placeId: entity.place.id,
       placeName: entity.place.placeName,
-      scheduleName: entity.scheduleName,
+      scheduleName: BackendConstraints.trimToMaxLength(
+        entity.scheduleName,
+        BackendConstraints.maxScheduleNameLength,
+      ),
       scheduleTime: entity.scheduleTime,
       moveTime: entity.moveTime.inMinutes,
       isChange: entity.isChanged,
       isStarted: entity.isStarted,
       scheduleSpareTime: entity.scheduleSpareTime?.inMinutes,
-      scheduleNote: entity.scheduleNote,
+      scheduleNote: BackendConstraints.trimToMaxLength(
+        entity.scheduleNote,
+        BackendConstraints.maxLongTextLength,
+      ),
     );
   }
 }

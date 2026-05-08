@@ -277,6 +277,9 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get scheduleTimePastError => '미래의 약속 시간을 선택해주세요.';
+
+  @override
   String previousScheduleOverlapError(int minutes, String scheduleName) {
     return '\"$scheduleName\"과 겹쳤어요! $minutes분 더 빨리 준비해야 해요';
   }

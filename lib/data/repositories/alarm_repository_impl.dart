@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/device_info_service/shared.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/data/data_sources/alarm_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
@@ -24,7 +25,8 @@ class AlarmRepositoryImpl implements AlarmRepository {
   Future<String> getDeviceId() async {
     final prefs = await SharedPreferences.getInstance();
     final existing = prefs.getString(_deviceIdKey);
-    if (existing != null && existing.isNotEmpty) {
+    if (existing != null &&
+        BackendConstraints.deviceIdPattern.hasMatch(existing)) {
       return existing;
     }
 
@@ -53,12 +55,8 @@ class AlarmRepositoryImpl implements AlarmRepository {
   }
 
   @override
-  Future<AlarmSettings> updateAlarmSettings({
-    required bool alarmsEnabled,
-  }) {
-    return remoteDataSource.updateAlarmSettings(
-      alarmsEnabled: alarmsEnabled,
-    );
+  Future<AlarmSettings> updateAlarmSettings({required bool alarmsEnabled}) {
+    return remoteDataSource.updateAlarmSettings(alarmsEnabled: alarmsEnabled);
   }
 
   @override

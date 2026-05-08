@@ -20,7 +20,32 @@ class ScheduleDateTimeState extends Equatable {
   final String? previousScheduleName;
 
   bool get isValid =>
-      Formz.validate([scheduleDate, scheduleTime]) && !isOverlapping;
+      Formz.validate([scheduleDate, scheduleTime]) &&
+      !isOverlapping &&
+      !isPastScheduleTime;
+
+  DateTime? get selectedScheduleDateTime {
+    if (scheduleDate.value == null || scheduleTime.value == null) {
+      return null;
+    }
+    final selectedDate = scheduleDate.value!;
+    final selectedTime = scheduleTime.value!;
+    return DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+  }
+
+  bool get isPastScheduleTime {
+    final selectedDateTime = selectedScheduleDateTime;
+    if (selectedDateTime == null) {
+      return false;
+    }
+    return selectedDateTime.isBefore(DateTime.now());
+  }
 
   /// Returns true if there's an overlap warning or error to display (for next schedule)
   bool get hasOverlapMessage => isOverlapping;
@@ -35,6 +60,8 @@ class ScheduleDateTimeState extends Equatable {
   /// Returns true if there's any overlap message to display
   bool get hasAnyOverlapMessage =>
       hasOverlapMessage || hasPreviousOverlapMessage;
+
+  bool get hasPastScheduleTimeMessage => isPastScheduleTime;
 
   /// Returns the overlap message for next schedule based on whether it's an error or warning
   /// Requires BuildContext for localization
@@ -65,6 +92,11 @@ class ScheduleDateTimeState extends Equatable {
     return localizations.scheduleOverlapWarning(minutes, scheduleName);
   }
 
+  String? getPastScheduleTimeMessage(BuildContext context) {
+    if (!isPastScheduleTime) return null;
+    return AppLocalizations.of(context)!.scheduleTimePastError;
+  }
+
   ScheduleDateTimeState copyWith({
     ScheduleDateInputModel? scheduleDate,
     ScheduleTimeInputModel? scheduleTime,
@@ -79,10 +111,12 @@ class ScheduleDateTimeState extends Equatable {
     return ScheduleDateTimeState(
       scheduleDate: scheduleDate ?? this.scheduleDate,
       scheduleTime: scheduleTime ?? this.scheduleTime,
-      isOverlapping:
-          clearOverlap ? false : (isOverlapping ?? this.isOverlapping),
-      nextScheduleName:
-          clearOverlap ? null : (nextScheduleName ?? this.nextScheduleName),
+      isOverlapping: clearOverlap
+          ? false
+          : (isOverlapping ?? this.isOverlapping),
+      nextScheduleName: clearOverlap
+          ? null
+          : (nextScheduleName ?? this.nextScheduleName),
       nextPreparationStartTime: clearOverlap
           ? null
           : (nextPreparationStartTime ?? this.nextPreparationStartTime),
@@ -104,12 +138,12 @@ class ScheduleDateTimeState extends Equatable {
 
   @override
   List<Object> get props => [
-        scheduleDate,
-        scheduleTime,
-        isOverlapping,
-        nextScheduleName ?? '',
-        nextPreparationStartTime ?? DateTime(0),
-        previousOverlapDuration ?? const Duration(),
-        previousScheduleName ?? '',
-      ];
+    scheduleDate,
+    scheduleTime,
+    isOverlapping,
+    nextScheduleName ?? '',
+    nextPreparationStartTime ?? DateTime(0),
+    previousOverlapDuration ?? const Duration(),
+    previousScheduleName ?? '',
+  ];
 }

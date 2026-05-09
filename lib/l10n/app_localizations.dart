@@ -629,7 +629,7 @@ abstract class AppLocalizations {
   /// Description of the delete account confirmation modal
   ///
   /// In en, this message translates to:
-  /// **'If you keep preparing with OnTime, you can reduce lateness by 60%.'**
+  /// **'This will request deletion for the account you are currently signed in with. You will be signed out when deletion succeeds.'**
   String get deleteAccountConfirmDescription;
 
   /// Button label to keep using the app
@@ -671,7 +671,7 @@ abstract class AppLocalizations {
   /// Delete feedback modal description
   ///
   /// In en, this message translates to:
-  /// **'Please let us know what was inconvenient so OnTime can improve.'**
+  /// **'Feedback is optional. When you continue, OnTime will submit your account deletion request.'**
   String get deleteFeedbackDescription;
 
   /// Placeholder for delete feedback input

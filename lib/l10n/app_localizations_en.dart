@@ -312,7 +312,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountConfirmDescription =>
-      'If you keep preparing with OnTime, you can reduce lateness by 60%.';
+      'This will request deletion for the account you are currently signed in with. You will be signed out when deletion succeeds.';
 
   @override
   String get keepUsing => 'I\'ll keep using it';
@@ -337,7 +337,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteFeedbackDescription =>
-      'Please let us know what was inconvenient so OnTime can improve.';
+      'Feedback is optional. When you continue, OnTime will submit your account deletion request.';
 
   @override
   String get deleteFeedbackPlaceholder =>

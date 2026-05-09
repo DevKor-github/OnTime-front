@@ -770,6 +770,18 @@ abstract class AppLocalizations {
   /// **'Notification permission was denied.\nPlease allow notifications in Settings.'**
   String get openNotificationSettingsDescription;
 
+  /// Dialog title when exact alarm permission is required
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Alarm Permission Required'**
+  String get exactAlarmPermissionRequired;
+
+  /// Dialog content explaining why exact alarm permission is needed
+  ///
+  /// In en, this message translates to:
+  /// **'OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.'**
+  String get exactAlarmPermissionRequiredDescription;
+
   /// Button text to open app settings
   ///
   /// In en, this message translates to:

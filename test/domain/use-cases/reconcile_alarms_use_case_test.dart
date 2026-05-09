@@ -516,6 +516,64 @@ void main() {
   );
 
   test(
+    'uses local notification fallback when exact alarm permission is denied',
+    () async {
+      schedulerService.nativePermission = AlarmPermissionState.denied;
+      fallbackService.permission = AlarmPermissionState.granted;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'fallback-permission',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+
+      final result = await useCase();
+
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(
+        fallbackService.scheduledFallback.single.scheduleId,
+        'fallback-permission',
+      );
+      expect(
+        registryRepository.records.single.provider,
+        AlarmProvider.localNotification,
+      );
+      expect(result.status, AlarmReconciliationStatus.armed);
+      expect(result.permissionIssue, isNull);
+      expect(result.fallbackProvider, AlarmProvider.localNotification);
+    },
+  );
+
+  test(
+    'reports permissionNeeded when exact alarm and fallback permissions are denied',
+    () async {
+      schedulerService.nativePermission = AlarmPermissionState.denied;
+      fallbackService.permission = AlarmPermissionState.denied;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'needs-exact-permission',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+
+      final result = await useCase();
+
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(fallbackService.scheduledFallback, isEmpty);
+      expect(registryRepository.records, isEmpty);
+      expect(result.status, AlarmReconciliationStatus.permissionNeeded);
+      expect(
+        result.permissionIssue,
+        AlarmPermissionIssue.nativePermissionDenied,
+      );
+      expect(
+        alarmRepository.statusReports.single.permissionIssue,
+        AlarmPermissionIssue.nativePermissionDenied,
+      );
+    },
+  );
+
+  test(
     'does not use notification fallback when fallback provider is disabled',
     () async {
       schedulerService.capabilities = const AlarmSchedulerCapabilities(

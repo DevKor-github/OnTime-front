@@ -8,6 +8,10 @@ configuration for Android/iOS builds.
 - Native alarm fires while the app is foregrounded.
 - Native alarm fires while the app is backgrounded.
 - Native alarm opens `/scheduleStart` after app termination.
+- Android 12+ exact alarm denied: enabling schedule alarms shows precise-timing rationale and Android alarm/reminder settings recovery.
+- Android 12+ exact alarm denied with notification permission allowed: reconciliation arms `localNotification` fallback and reports fallback provider.
+- Android 12+ exact alarm denied with notification permission denied: reconciliation reports `permissionNeeded` with `nativePermissionDenied`.
+- Android 12+ exact alarm allowed after settings recovery: relaunching or toggling schedule alarms reconciles future records as `androidAlarmManager`.
 - Alarm payload validation redirects home for deleted, ended, or fingerprint-changed schedules.
 - Notification fallback is used when native alarm scheduling is unavailable.
 - Notification fallback opens `/scheduleStart` with `promptVariant=alarm`.

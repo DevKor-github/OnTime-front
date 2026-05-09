@@ -10,8 +10,41 @@ import 'package:on_time_front/presentation/shared/components/modal_wide_button.d
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
+abstract interface class NotificationPermissionGateway {
+  Future<AuthorizationStatus> checkNotificationPermission();
+
+  Future<AuthorizationStatus> requestPermission();
+
+  Future<bool> openNotificationSettings();
+}
+
+class NotificationServicePermissionGateway
+    implements NotificationPermissionGateway {
+  const NotificationServicePermissionGateway();
+
+  @override
+  Future<AuthorizationStatus> checkNotificationPermission() {
+    return NotificationService.instance.checkNotificationPermission();
+  }
+
+  @override
+  Future<bool> openNotificationSettings() {
+    return NotificationService.instance.openNotificationSettings();
+  }
+
+  @override
+  Future<AuthorizationStatus> requestPermission() {
+    return NotificationService.instance.requestPermission();
+  }
+}
+
 class NotificationAllowScreen extends StatelessWidget {
-  const NotificationAllowScreen({super.key});
+  const NotificationAllowScreen({
+    super.key,
+    this.permissionGateway = const NotificationServicePermissionGateway(),
+  });
+
+  final NotificationPermissionGateway permissionGateway;
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +64,11 @@ class NotificationAllowScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 40,
-                  children: [
-                    _Image(),
-                    _Title(),
-                  ],
+                  children: [_Image(), _Title()],
                 ),
               ),
             ),
-            _Buttons(),
+            _Buttons(permissionGateway: permissionGateway),
           ],
         ),
       ),
@@ -47,7 +77,10 @@ class NotificationAllowScreen extends StatelessWidget {
 }
 
 class _Buttons extends StatelessWidget {
-  const _Buttons();
+  const _Buttons({required this.permissionGateway});
+
+  final NotificationPermissionGateway permissionGateway;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -60,7 +93,7 @@ class _Buttons extends StatelessWidget {
       children: [
         FilledButton(
           onPressed: () async {
-            await _handleNotificationPermission(context);
+            await _handleNotificationPermission(context, permissionGateway);
           },
           child: Text(
             AppLocalizations.of(context)!.allowNotifications,
@@ -110,18 +143,14 @@ class _Title extends StatelessWidget {
         Text(
           AppLocalizations.of(context)!.pleaseAllowNotifications,
           textAlign: TextAlign.center,
-          style: textTheme.headlineMedium?.copyWith(
-            color: colorScheme.primary,
-          ),
+          style: textTheme.headlineMedium?.copyWith(color: colorScheme.primary),
         ),
         SizedBox(
           width: 282,
           child: Text(
             AppLocalizations.of(context)!.notificationPermissionDescription,
             textAlign: TextAlign.center,
-            style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.outline,
-            ),
+            style: textTheme.titleMedium?.copyWith(color: colorScheme.outline),
           ),
         ),
       ],
@@ -141,25 +170,22 @@ class _Image extends StatelessWidget {
       padding: const EdgeInsets.all(17.50),
       decoration: ShapeDecoration(
         color: colorScheme.primaryContainer,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(35),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
       ),
       child: SvgPicture.asset(
         'bell-ringing.svg',
         package: 'assets',
-        colorFilter: ColorFilter.mode(
-          colorScheme.primary,
-          BlendMode.srcIn,
-        ),
+        colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
       ),
     );
   }
 }
 
-Future<void> _handleNotificationPermission(BuildContext context) async {
-  final notificationService = NotificationService.instance;
-  final currentStatus = await notificationService.checkNotificationPermission();
+Future<void> _handleNotificationPermission(
+  BuildContext context,
+  NotificationPermissionGateway permissionGateway,
+) async {
+  final currentStatus = await permissionGateway.checkNotificationPermission();
 
   if (!context.mounted) return;
 
@@ -171,7 +197,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
   } else if (currentStatus == AuthorizationStatus.denied) {
     final shouldOpenSettings = await _showGoToSettingsDialog(context);
     if (shouldOpenSettings == true) {
-      await notificationService.openNotificationSettings();
+      await permissionGateway.openNotificationSettings();
     } else if (context.mounted) {
       await context.read<NotificationGateCubit>().dismissPrompt();
       if (context.mounted) {
@@ -179,7 +205,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
       }
     }
   } else if (currentStatus == AuthorizationStatus.notDetermined) {
-    final newStatus = await notificationService.requestPermission();
+    final newStatus = await permissionGateway.requestPermission();
 
     if (!context.mounted) return;
 
@@ -191,7 +217,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
     } else if (newStatus == AuthorizationStatus.denied) {
       final shouldOpenSettings = await _showGoToSettingsDialog(context);
       if (shouldOpenSettings == true) {
-        await notificationService.openNotificationSettings();
+        await permissionGateway.openNotificationSettings();
       } else if (context.mounted) {
         await context.read<NotificationGateCubit>().dismissPrompt();
         if (context.mounted) {
@@ -202,7 +228,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
   } else {
     final shouldOpenSettings = await _showGoToSettingsDialog(context);
     if (shouldOpenSettings == true) {
-      await notificationService.openNotificationSettings();
+      await permissionGateway.openNotificationSettings();
     } else if (context.mounted) {
       await context.read<NotificationGateCubit>().dismissPrompt();
       if (context.mounted) {

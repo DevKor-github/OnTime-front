@@ -55,7 +55,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notificationPermissionDescription =>
-      '알림을 허용해야 온타임이 준비를 \n도와드릴 수 있어요';
+      '약속 준비 리마인더를 보내\n제시간에 준비할 수 있게 도와드려요.';
 
   @override
   String get late => ' 지각했어요';
@@ -345,14 +345,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notificationAlreadyEnabled => '알림이 이미 허용됨';
 
   @override
-  String get notificationAlreadyEnabledDescription => '현재 앱 알림이 활성화되어 있습니다.';
+  String get notificationAlreadyEnabledDescription =>
+      '약속 준비 리마인더가 현재 활성화되어 있습니다.';
 
   @override
   String get notificationPermissionRequired => '알림 권한 필요';
 
   @override
   String get notificationPermissionRequiredDescription =>
-      '약속 시간을 놓치지 않도록 알림을 보내드립니다.\n알림을 허용하시겠습니까?';
+      '온타임은 약속 준비 리마인더와 약속 알림을 보내기 위해 알림을 사용합니다.\n알림을 허용하시겠습니까?';
 
   @override
   String get allow => '허용';
@@ -361,14 +362,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notificationPermissionGranted => '알림 허용 완료';
 
   @override
-  String get notificationPermissionGrantedDescription => '알림이 성공적으로 활성화되었습니다.';
+  String get notificationPermissionGrantedDescription =>
+      '약속 준비 리마인더가 활성화되었습니다.';
 
   @override
   String get openNotificationSettings => '설정에서 알림 허용';
 
   @override
   String get openNotificationSettingsDescription =>
-      '알림 권한이 거부되었습니다.\n설정에서 직접 알림을 허용해주세요.';
+      '알림 권한이 거부되었습니다.\n약속 준비 리마인더를 받으려면 설정에서 알림을 허용해주세요.';
 
   @override
   String get openSettings => '설정 열기';

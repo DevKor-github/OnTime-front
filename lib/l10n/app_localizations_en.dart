@@ -57,7 +57,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPermissionDescription =>
-      'OnTime needs notifications to help you get ready';
+      'OnTime sends schedule preparation reminders so you can get ready on time.';
 
   @override
   String get late => ' late';
@@ -370,7 +370,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationAlreadyEnabledDescription =>
-      'App notifications are currently active.';
+      'Schedule preparation reminders are currently active.';
 
   @override
   String get notificationPermissionRequired =>
@@ -378,7 +378,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPermissionRequiredDescription =>
-      'We\'ll send you notifications so you don\'t miss your appointments.\nWould you like to allow notifications?';
+      'OnTime uses notifications for schedule preparation reminders and appointment alerts.\nWould you like to allow notifications?';
 
   @override
   String get allow => 'Allow';
@@ -388,14 +388,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPermissionGrantedDescription =>
-      'Notifications have been successfully activated.';
+      'Schedule preparation reminders are now active.';
 
   @override
   String get openNotificationSettings => 'Allow Notifications in Settings';
 
   @override
   String get openNotificationSettingsDescription =>
-      'Notification permission was denied.\nPlease allow notifications in Settings.';
+      'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.';
 
   @override
   String get openSettings => 'Open Settings';

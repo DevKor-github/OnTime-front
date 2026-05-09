@@ -12,6 +12,22 @@ Use this guide when preparing OnTime for Google Play release builds.
 - Do not commit keystores, passwords, `android/key.properties`, or generated
   release artifacts.
 
+## Ownership and Secret Storage
+
+The Android release owner for `club.devkor.ontime` owns the upload keystore
+process. This role is responsible for:
+
+- creating or confirming the current upload keystore;
+- storing the keystore file and passwords in the team password manager or CI
+  secret manager;
+- limiting access to release maintainers;
+- documenting recovery notes in the secure storage record;
+- rotating or requesting a Play Console upload-key reset if the upload key is
+  lost or exposed.
+
+Never store keystore files or passwords in git, issue comments, pull requests,
+chat logs, screenshots, or build artifacts.
+
 ## Create an Upload Key
 
 Create and store the keystore somewhere outside the repository:
@@ -77,6 +93,12 @@ The deploy workflow decodes this secret into `$RUNNER_TEMP/ontime-upload.jks`
 and exports `ANDROID_KEYSTORE_PATH` to that temporary file. Do not create
 `android/key.properties` in CI.
 
+The protected environment must also provide:
+
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+
 ## Build a Signed Release
 
 Google Play prefers Android App Bundles:
@@ -94,7 +116,10 @@ flutter build apk --release
 ```
 
 The Gradle config intentionally fails release builds when signing secrets are
-missing. Debug builds do not require release signing secrets.
+missing. The failure lists missing local or CI inputs, including
+`storeFile`/`ANDROID_KEYSTORE_PATH`, `storePassword`/`ANDROID_KEYSTORE_PASSWORD`,
+`keyAlias`/`ANDROID_KEY_ALIAS`, and `keyPassword`/`ANDROID_KEY_PASSWORD`. Debug
+builds do not require release signing secrets.
 
 ## First Play Console Release
 

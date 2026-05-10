@@ -122,6 +122,9 @@ flutter build appbundle --release
   `club.devkor.ontime`.
 - Keep keystores, passwords, and `key.properties` out of git.
 - Verify the release build fails clearly when signing secrets are missing.
+- After a signed release build is available, run the device smoke test from
+  `docs/Android-Release-Smoke-Test.md` and record the tested device, Android
+  version, build version, approved API endpoint, and pass/fail evidence.
 - After the signed AAB is uploaded to internal or closed testing, run the Google
   Play pre-launch report and record evidence using
   `docs/Play-Pre-Launch-Report.md` before widening release availability.

@@ -14,6 +14,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Android Play Signing Fingerprints](./Android-Play-Signing-Fingerprints.md) - Play App Signing, Firebase, and auth-provider fingerprint checklist
 - [Android Release Configuration](./Android-Release-Configuration.md) - Firebase config, signed AAB workflow, and Play internal deploy setup
 - [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
+- [Android Release Smoke Test](./Android-Release-Smoke-Test.md) - Device smoke-test runbook and evidence template for signed Android release builds
 - [Privacy Policy Hosting](./Privacy-Policy-Hosting.md) - Public HTTPS privacy policy hosting checklist and evidence form
 - [Google Play Data Safety Worksheet](./Google-Play-Data-Safety.md) - Source-backed Data safety evidence and pending owner inputs
 - [Play Pre-Launch Report](./Play-Pre-Launch-Report.md) - Google Play report runbook, triage gate, and evidence template

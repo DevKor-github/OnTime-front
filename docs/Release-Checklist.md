@@ -100,6 +100,10 @@ flutter build appbundle --release
 - Review `docs/Android-Manifest-Permissions.md` and confirm app-owned release
   manifest permissions are still limited to user-facing notification, exact
   alarm, full-screen alarm, boot restore, and vibration behavior.
+- Before Play submission, follow
+  `docs/Google-Play-Full-Screen-Intent-Declaration.md` for the
+  `USE_FULL_SCREEN_INTENT` declaration text, reviewer evidence, and manual QA
+  checklist.
 - Run Android alarm and notification device QA with
   `docs/Android-Alarm-Notification-QA.md` before closing release issue #457.
 - Provide release signing through one of the following secret-free paths:

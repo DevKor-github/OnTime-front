@@ -1,11 +1,12 @@
 name: Android Play Internal Deploy
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
+      android_version_code:
+        description: Must be greater than every Android version code already uploaded to Google Play.
+        required: true
+        type: number
       release_notes:
         description: Optional Google Play release notes for en-US.
         required: false
@@ -26,12 +27,39 @@ jobs:
       REST_API_URL: ${{ vars.REST_API_URL }}
 
     steps:
-      - name: Require main branch
+      - name: Validate workflow inputs
+        env:
+          ANDROID_VERSION_CODE: ${{ inputs.android_version_code }}
+          ANDROID_GOOGLE_SERVICES_JSON_B64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_B64 }}
+          ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           if [ "$GITHUB_REF" != "refs/heads/main" ]; then
             echo "Android Play Internal Deploy must be run from main." >&2
             exit 1
           fi
+
+          if ! [[ "$ANDROID_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+            echo "android_version_code must be a positive integer." >&2
+            exit 1
+          fi
+
+          missing=0
+          for name in \
+            ANDROID_GOOGLE_SERVICES_JSON_B64 \
+            ANDROID_UPLOAD_KEYSTORE_B64 \
+            ANDROID_KEYSTORE_PASSWORD \
+            ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD \
+            GOOGLE_PLAY_SERVICE_ACCOUNT_JSON \
+            REST_API_URL
+          do
+            if [ -z "${!name}" ]; then
+              echo "$name is required for Android Play internal deploy." >&2
+              missing=1
+            fi
+          done
+          exit "$missing"
 
       - uses: actions/checkout@v4
 
@@ -51,29 +79,6 @@ jobs:
 
       - name: Install native test dependencies
         run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev
-
-      - name: Validate release configuration
-        env:
-          ANDROID_GOOGLE_SERVICES_JSON_B64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_B64 }}
-          ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
-          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-        run: |
-          missing=0
-          for name in \
-            ANDROID_GOOGLE_SERVICES_JSON_B64 \
-            ANDROID_UPLOAD_KEYSTORE_B64 \
-            ANDROID_KEYSTORE_PASSWORD \
-            ANDROID_KEY_ALIAS \
-            ANDROID_KEY_PASSWORD \
-            GOOGLE_PLAY_SERVICE_ACCOUNT_JSON \
-            REST_API_URL
-          do
-            if [ -z "${!name}" ]; then
-              echo "$name is required for Android Play internal deploy." >&2
-              missing=1
-            fi
-          done
-          exit "$missing"
 
       - name: Decode Android Firebase config
         env:
@@ -120,12 +125,12 @@ jobs:
         run: |
           flutter build appbundle --release \
             --build-name="$ANDROID_BUILD_NAME" \
-            --build-number="${{ github.run_number }}" \
+            --build-number="${{ inputs.android_version_code }}" \
             --dart-define=ENV=staging \
             --dart-define=REST_API_URL="$REST_API_URL"
 
       - name: Prepare Play release notes
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_notes != '' }}
+        if: ${{ inputs.release_notes != '' }}
         env:
           RELEASE_NOTES: ${{ inputs.release_notes }}
         run: |
@@ -141,7 +146,7 @@ jobs:
           retention-days: 14
 
       - name: Upload internal testing draft with release notes
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_notes != '' }}
+        if: ${{ inputs.release_notes != '' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
@@ -152,7 +157,7 @@ jobs:
           whatsNewDirectory: distribution/whatsnew
 
       - name: Upload internal testing draft
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.release_notes == '' }}
+        if: ${{ inputs.release_notes == '' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}

@@ -14,8 +14,9 @@ The decoded file must include an Android client whose package name is `club.devk
 
 Use the `Android Play Internal Deploy` GitHub Actions workflow to build a signed
 Android App Bundle and upload it to the Google Play Internal Testing track as a
-draft release. The workflow runs automatically on pushes to `main` and can also
-be dispatched manually from `main`.
+draft release. The workflow is dispatched manually from `main` and requires an
+`android_version_code` input greater than every Android version code already
+uploaded to Google Play.
 
 Configure a GitHub environment named `staging` for internal test distribution.
 Store these environment secrets there:
@@ -36,12 +37,12 @@ Store this environment variable in `staging`:
 The deploy workflow runs package install, code generation, generated-file drift
 checking, analysis, tests, and then `flutter build appbundle --release`. It
 derives Android `versionName` from the `pubspec.yaml` version name and supplies
-`${{ github.run_number }}` as Android `versionCode`:
+the manual `android_version_code` workflow input as Android `versionCode`:
 
 ```sh
 flutter build appbundle --release \
   --build-name=<version name from pubspec.yaml> \
-  --build-number=${{ github.run_number }} \
+  --build-number=<android_version_code input> \
   --dart-define=ENV=staging \
   --dart-define=REST_API_URL="$REST_API_URL"
 ```
@@ -53,9 +54,10 @@ input is empty, the workflow uploads without custom release notes.
 Keep `pubspec.yaml` as the source of truth for the manually managed public
 version name, such as `version: 1.0.0+1`. Android CI ignores the checked-in
 build suffix for Play uploads, so do not open PRs only to bump `+2`, `+3`, and
-similar build numbers. The generated `github.run_number` must still be greater
-than every previously uploaded Google Play build for `club.devkor.ontime`;
-duplicate or lower build numbers fail during the Google Play upload step.
+similar build numbers. The manually supplied `android_version_code` must be
+greater than every previously uploaded Google Play build for
+`club.devkor.ontime`; duplicate or lower build numbers fail during the Google
+Play upload step.
 
 ## Local Release Build
 

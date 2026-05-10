@@ -155,6 +155,6 @@ flutter build appbundle --release \
 ```
 
 Confirm that `pubspec.yaml` has the intended public version name. In GitHub
-Actions deploys, Android `versionCode` comes from `github.run_number`; for any
-manual Play upload, provide a build number greater than every previous Play
-Console upload for `club.devkor.ontime`.
+Actions deploys, Android `versionCode` comes from the manual
+`android_version_code` workflow input. Provide a build number greater than every
+previous Play Console upload for `club.devkor.ontime`.

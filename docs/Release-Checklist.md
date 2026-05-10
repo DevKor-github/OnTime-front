@@ -40,10 +40,10 @@ flutter build appbundle --release
 - For local Android release builds, provide the signing, Firebase, `ENV`, and
   `REST_API_URL` inputs documented in `docs/Android-Release-Configuration.md`
   and `docs/Android-Release-Signing.md`.
-- For CI Play uploads, use the `Android Play Internal Deploy` workflow from
-  `main`; it runs package install, code generation, generated-file drift
-  checking, analysis, tests, AAB build, artifact upload, and internal testing
-  draft upload.
+- For CI Play uploads, dispatch the `Android Play Internal Deploy` workflow
+  from `main` with an explicit `android_version_code`; it runs package install,
+  code generation, generated-file drift checking, analysis, tests, AAB build,
+  artifact upload, and internal testing draft upload.
 - Record any command failure with the failing command, environment, and owner
   before release approval.
 
@@ -60,10 +60,11 @@ flutter build appbundle --release
   with checked-in Flutter build suffix `+1`.
 - Keep the public version name manual in `pubspec.yaml`.
 - For Android Play deploys, CI derives `versionName` from `pubspec.yaml` and
-  uses `github.run_number` as the generated `versionCode`; do not open PRs only
-  to bump the checked-in build suffix.
-- When uploading manually, choose an Android `versionCode` greater than every
-  previously uploaded Play build for `club.devkor.ontime`.
+  uses the manual `android_version_code` workflow input as `versionCode`; do
+  not open PRs only to bump the checked-in build suffix.
+- Choose an Android `versionCode` greater than every previously uploaded Play
+  build for `club.devkor.ontime`, including builds on internal, closed, and
+  production tracks.
 
 ## Generated Files And Dependencies
 

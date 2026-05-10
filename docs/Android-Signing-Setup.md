@@ -76,8 +76,8 @@ The Gradle build also accepts the legacy `ONTIME_ANDROID_KEYSTORE_PATH`,
 ## Configure CI Release Signing
 
 For GitHub Actions deploys, base64-encode the upload keystore and store it as
-the `ANDROID_UPLOAD_KEYSTORE_B64` secret in the protected `release`
-environment:
+the `ANDROID_UPLOAD_KEYSTORE_B64` secret in the protected `staging`
+environment used by the Android Play Internal Deploy workflow:
 
 ```sh
 base64 -i ~/secure/ontime-upload.jks | pbcopy

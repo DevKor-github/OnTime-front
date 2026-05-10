@@ -150,6 +150,10 @@ flutter build appbundle --release
   target stores.
 - Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
   short and full descriptions until product/design approve final copy.
+- Use `docs/Google-Play-Data-Safety.md` as the source-backed worksheet for
+  Play Data safety answers after privacy, backend deletion, account deletion
+  URL, and final SDK/provider prerequisites are resolved.
+- Track any brand, icon, screenshot, or store copy gaps before submission.
 - Verify screenshots against the release candidate build, not older debug or
   mock screens.
 - Re-check screenshot, feature graphic, app title, and listing copy after any

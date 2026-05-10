@@ -12,6 +12,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
   verification commands, store checks, and rollout handoff
 - [Android Release Signing](./Android-Release-Signing.md) - Required keystore inputs and release signing validation
 - [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
+- [Google Play Data Safety Worksheet](./Google-Play-Data-Safety.md) - Source-backed Data safety evidence and pending owner inputs
 - [Play Pre-Launch Report](./Play-Pre-Launch-Report.md) - Google Play report runbook, triage gate, and evidence template
 - [Release Rollout Monitoring](./Release-Rollout-Monitoring.md) - Release ownership, staged rollout gates, and post-launch monitoring
 - [Play Review Rejection Playbook](./Play-Review-Rejection-Playbook.md) - How to triage, fix, resubmit, or appeal Google Play review rejections

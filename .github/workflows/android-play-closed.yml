@@ -1,0 +1,171 @@
+name: Android Play Closed Testing Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      android_version_code:
+        description: Must be greater than every Android version code already uploaded to Google Play.
+        required: true
+        type: number
+      release_notes:
+        description: Optional Google Play release notes for en-US.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy_closed_testing:
+    name: Build and upload closed testing release
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      REST_API_URL: ${{ vars.REST_API_URL }}
+
+    steps:
+      - name: Validate workflow inputs
+        env:
+          ANDROID_VERSION_CODE: ${{ inputs.android_version_code }}
+          ANDROID_GOOGLE_SERVICES_JSON_B64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_B64 }}
+          ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/release/*|refs/heads/hotfix/*)
+              ;;
+            *)
+              echo "Android Play Closed Testing Deploy must be run from a release/** or hotfix/** branch." >&2
+              exit 1
+              ;;
+          esac
+
+          if ! [[ "$ANDROID_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+            echo "android_version_code must be a positive integer." >&2
+            exit 1
+          fi
+
+          missing=0
+          for name in \
+            ANDROID_GOOGLE_SERVICES_JSON_B64 \
+            ANDROID_UPLOAD_KEYSTORE_B64 \
+            ANDROID_KEYSTORE_PASSWORD \
+            ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD \
+            GOOGLE_PLAY_SERVICE_ACCOUNT_JSON \
+            REST_API_URL
+          do
+            if [ -z "${!name}" ]; then
+              echo "$name is required for Android Play closed testing deploy." >&2
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.6"
+          channel: stable
+          cache: true
+
+      - name: Set Android keystore path
+        run: echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/ontime-upload.jks" >> "$GITHUB_ENV"
+
+      - name: Install native test dependencies
+        run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev
+
+      - name: Decode Android Firebase config
+        env:
+          ANDROID_GOOGLE_SERVICES_JSON_B64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_B64 }}
+        run: |
+          mkdir -p android/app/src/release
+          printf '%s' "$ANDROID_GOOGLE_SERVICES_JSON_B64" | base64 --decode > android/app/src/release/google-services.json
+          test -s android/app/src/release/google-services.json
+
+      - name: Decode Android upload keystore
+        env:
+          ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+        run: |
+          printf '%s' "$ANDROID_UPLOAD_KEYSTORE_B64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          chmod 600 "$ANDROID_KEYSTORE_PATH"
+          test -s "$ANDROID_KEYSTORE_PATH"
+
+      - name: Install Flutter packages
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Verify generated files are current
+        run: git diff --exit-code
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Derive Android build name
+        run: |
+          app_version="$(sed -n 's/^version: *//p' pubspec.yaml | head -n 1)"
+          build_name="${app_version%%+*}"
+          if [ -z "$build_name" ]; then
+            echo "Unable to derive Android build name from pubspec.yaml version." >&2
+            exit 1
+          fi
+          echo "ANDROID_BUILD_NAME=$build_name" >> "$GITHUB_ENV"
+
+      - name: Build Android app bundle
+        run: |
+          flutter build appbundle --release \
+            --build-name="$ANDROID_BUILD_NAME" \
+            --build-number="${{ inputs.android_version_code }}" \
+            --dart-define=ENV=staging \
+            --dart-define=REST_API_URL="$REST_API_URL"
+
+      - name: Prepare Play release notes
+        if: ${{ inputs.release_notes != '' }}
+        env:
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          mkdir -p distribution/whatsnew
+          printf '%s\n' "$RELEASE_NOTES" > distribution/whatsnew/whatsnew-en-US
+
+      - name: Upload signed app bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ontime-android-closed-testing-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload closed testing release with release notes
+        if: ${{ inputs.release_notes != '' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: club.devkor.ontime
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          tracks: alpha
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
+
+      - name: Upload closed testing release
+        if: ${{ inputs.release_notes == '' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: club.devkor.ontime
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          tracks: alpha
+          status: completed

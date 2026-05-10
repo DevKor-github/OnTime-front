@@ -37,6 +37,10 @@ OnTime.
 - Review `docs/Android-Manifest-Permissions.md` and confirm app-owned release
   manifest permissions are still limited to user-facing notification, exact
   alarm, full-screen alarm, boot restore, and vibration behavior.
+- Before Play submission, follow
+  `docs/Google-Play-Full-Screen-Intent-Declaration.md` for the
+  `USE_FULL_SCREEN_INTENT` declaration text, reviewer evidence, and manual QA
+  checklist.
 - Provide release signing through one of the following secret-free paths:
   - `android/key.properties` with `storeFile`, `storePassword`, `keyAlias`, and
     `keyPassword`.

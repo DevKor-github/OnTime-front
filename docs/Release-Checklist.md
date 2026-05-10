@@ -159,6 +159,9 @@ flutter build appbundle --release
   target stores.
 - Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
   short and full descriptions until product/design approve final copy.
+- Use `docs/Account-Deletion-Request-URL.md` to create, verify, and record the
+  public account deletion request URL required for Google Play account deletion
+  disclosure.
 - Use `docs/Privacy-Policy-Hosting.md` to validate and record the final public
   privacy policy URL before entering it in store metadata.
 - Use `docs/Google-Play-Listing-Graphics.md` as the checklist for Play app

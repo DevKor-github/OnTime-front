@@ -100,6 +100,10 @@ flutter build appbundle --release
 - Review `docs/Android-Manifest-Permissions.md` and confirm app-owned release
   manifest permissions are still limited to user-facing notification, exact
   alarm, full-screen alarm, boot restore, and vibration behavior.
+- Before Play submission, follow
+  `docs/Google-Play-Full-Screen-Intent-Declaration.md` for the
+  `USE_FULL_SCREEN_INTENT` declaration text, reviewer evidence, and manual QA
+  checklist.
 - Run Android alarm and notification device QA with
   `docs/Android-Alarm-Notification-QA.md` before closing release issue #457.
 - Provide release signing through one of the following secret-free paths:
@@ -113,6 +117,9 @@ flutter build appbundle --release
     `ONTIME_ANDROID_KEY_PASSWORD`.
 - Follow `docs/Android-Signing-Setup.md` when creating or configuring the upload
   key.
+- Follow `docs/Android-Developer-Verification.md` to confirm Play Console
+  developer verification and package-name registration status for
+  `club.devkor.ontime`.
 - Keep keystores, passwords, and `key.properties` out of git.
 - Verify the release build fails clearly when signing secrets are missing.
 - After a signed release build is available, run the device smoke test from
@@ -155,6 +162,8 @@ flutter build appbundle --release
   target stores.
 - Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
   short and full descriptions until product/design approve final copy.
+- Use `docs/Privacy-Policy-Hosting.md` to validate and record the final public
+  privacy policy URL before entering it in store metadata.
 - Use `docs/Google-Play-Listing-Graphics.md` as the checklist for Play app
   icon, feature graphic, screenshot asset requirements, and launcher-icon
   consistency evidence.

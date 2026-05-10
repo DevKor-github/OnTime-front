@@ -81,7 +81,10 @@ const main = async () => {
       throw new Error('Uploaded Android App Bundle did not return a versionCode.');
     }
 
+    console.log(`Uploaded Android App Bundle versionCode ${versionCode}`);
+
     const release = {
+      name: `${process.env.ANDROID_BUILD_NAME || 'Android'} (${versionCode})`,
       status: 'draft',
       versionCodes: [String(versionCode)],
     };
@@ -90,6 +93,7 @@ const main = async () => {
       release.releaseNotes = releaseNotes;
     }
 
+    console.log(`Updating track "${track}" with draft release ${release.name}`);
     await publisher.edits.tracks.update({
       packageName,
       editId,
@@ -100,6 +104,7 @@ const main = async () => {
       },
     });
 
+    console.log(`Committing Google Play edit ${editId}`);
     const commitResponse = await publisher.edits.commit({
       packageName,
       editId,

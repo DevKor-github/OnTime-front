@@ -1,12 +1,10 @@
 package club.devkor.ontime
 
-import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -226,7 +224,7 @@ open class MainActivity : FlutterActivity() {
     private fun exactAlarmPermissionState(): String {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
             ?: return "unsupported"
-        return if (canScheduleExactAlarms(alarmManager) && canPostNotifications()) {
+        return if (canScheduleExactAlarms(alarmManager)) {
             "granted"
         } else {
             "denied"
@@ -240,7 +238,7 @@ open class MainActivity : FlutterActivity() {
             result.success("unsupported")
             return
         }
-        if (canScheduleExactAlarms(alarmManager) && canPostNotifications()) {
+        if (canScheduleExactAlarms(alarmManager)) {
             NativeLog.d(TAG, "requestPermission -> already granted")
             result.success("granted")
             return
@@ -266,12 +264,6 @@ open class MainActivity : FlutterActivity() {
     private fun canScheduleExactAlarms(alarmManager: AlarmManager): Boolean {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
             alarmManager.canScheduleExactAlarms()
-    }
-
-    private fun canPostNotifications(): Boolean {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
-            PackageManager.PERMISSION_GRANTED
     }
 
     private fun configureAlarmLaunchWindow(intent: Intent?) {

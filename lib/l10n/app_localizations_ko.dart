@@ -373,5 +373,12 @@ class AppLocalizationsKo extends AppLocalizations {
       '알림 권한이 거부되었습니다.\n약속 준비 리마인더를 받으려면 설정에서 알림을 허용해주세요.';
 
   @override
+  String get exactAlarmPermissionRequired => '정확한 알람 권한 필요';
+
+  @override
+  String get exactAlarmPermissionRequiredDescription =>
+      '온타임은 일정에 맞춰 준비를 시작할 수 있도록 정확한 알람 시간이 필요합니다.\nAndroid 설정에서 알람 및 리마인더를 허용해주세요.';
+
+  @override
   String get openSettings => '설정 열기';
 }

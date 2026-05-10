@@ -398,5 +398,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.';
 
   @override
+  String get exactAlarmPermissionRequired =>
+      'Precise Alarm Permission Required';
+
+  @override
+  String get exactAlarmPermissionRequiredDescription =>
+      'OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.';
+
+  @override
   String get openSettings => 'Open Settings';
 }

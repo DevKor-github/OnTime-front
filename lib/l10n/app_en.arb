@@ -496,6 +496,14 @@
     "@openNotificationSettingsDescription": {
         "description": "Dialog content to open notification settings"
     },
+    "exactAlarmPermissionRequired": "Precise Alarm Permission Required",
+    "@exactAlarmPermissionRequired": {
+        "description": "Dialog title when exact alarm permission is required"
+    },
+    "exactAlarmPermissionRequiredDescription": "OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.",
+    "@exactAlarmPermissionRequiredDescription": {
+        "description": "Dialog content explaining why exact alarm permission is needed"
+    },
     "openSettings": "Open Settings",
     "@openSettings": {
         "description": "Button text to open app settings"

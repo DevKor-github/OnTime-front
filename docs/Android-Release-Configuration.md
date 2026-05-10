@@ -8,6 +8,8 @@ Android release builds must include the production Firebase client config so Fir
 
 The release verification workflow decodes this secret to `android/app/src/release/google-services.json` before running the Android release build. Generated `google-services.json` files are ignored and must not be committed.
 
+The decoded file must include an Android client whose package name is `club.devkor.ontime`. Gradle validates this package match for release builds and through the focused validation task below.
+
 ## Google Play Internal Testing Deploy
 
 Use the `Android Play Internal Deploy` GitHub Actions workflow to build a signed
@@ -72,6 +74,19 @@ flutter build appbundle --release \
 On macOS, use `base64 -D` instead of `base64 --decode`.
 
 Debug/local builds may run without Android Firebase config. Release builds fail clearly if `android/app/src/release/google-services.json`, `android/app/google-services.json`, or `android/app/src/google-services.json` is missing.
+
+To validate only the Firebase config without requiring release signing inputs, materialize the ignored release config file and run:
+
+```sh
+cd android
+gradle :app:validateAndroidGoogleServices
+```
+
+The task fails if the file is missing, invalid JSON, or missing a `client_info.android_client_info.package_name` entry for `club.devkor.ontime`.
+
+## Auth Fingerprints
+
+Release SHA-1 and SHA-256 fingerprints must be added to Firebase after the release signing owner, upload key, and Play App Signing setup are finalized. Track that work in #454; do not rotate or replace `ANDROID_GOOGLE_SERVICES_JSON_B64` for fingerprint changes until the release owner confirms the final signing fingerprints.
 
 ## Verification
 

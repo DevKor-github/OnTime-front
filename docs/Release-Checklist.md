@@ -50,6 +50,9 @@ OnTime.
   upload key.
 - Keep keystores, passwords, and `key.properties` out of git.
 - Verify the release build fails clearly when signing secrets are missing.
+- After the signed AAB is uploaded to internal or closed testing, run the Google
+  Play pre-launch report and record evidence using
+  `docs/Play-Pre-Launch-Report.md` before widening release availability.
 
 ## iOS
 

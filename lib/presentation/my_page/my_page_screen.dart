@@ -2,6 +2,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:on_time_front/core/constants/external_links.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
@@ -19,8 +21,13 @@ import 'package:on_time_front/presentation/my_page/my_page_modal/logout_modal.da
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
+typedef PrivacyPolicyLauncher = Future<bool> Function(Uri uri);
+
 class MyPageScreen extends StatelessWidget {
-  const MyPageScreen({super.key});
+  const MyPageScreen({super.key, PrivacyPolicyLauncher? openPrivacyPolicy})
+    : _openPrivacyPolicy = openPrivacyPolicy;
+
+  final PrivacyPolicyLauncher? _openPrivacyPolicy;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +98,15 @@ class MyPageScreen extends StatelessWidget {
                       await _handleNotificationPermission(context);
                     },
                   ),
+                  _SettingTile(
+                    title: AppLocalizations.of(context)!.privacyPolicy,
+                    onTap: () async {
+                      await _handlePrivacyPolicyTap(
+                        context,
+                        _openPrivacyPolicy ?? _openPrivacyPolicyExternally,
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -99,6 +115,37 @@ class MyPageScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<bool> _openPrivacyPolicyExternally(Uri uri) {
+  return launchUrl(uri, mode: LaunchMode.externalApplication);
+}
+
+Future<void> _handlePrivacyPolicyTap(
+  BuildContext context,
+  PrivacyPolicyLauncher openPrivacyPolicy,
+) async {
+  var opened = false;
+  try {
+    opened = await openPrivacyPolicy(ExternalLinks.privacyPolicyUri);
+  } catch (_) {
+    opened = false;
+  }
+
+  if (opened || !context.mounted) return;
+
+  final l10n = AppLocalizations.of(context)!;
+  await showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: l10n.error,
+      description: l10n.privacyPolicyOpenError,
+      primaryAction: DialogActionConfig(
+        label: l10n.ok,
+        variant: ModalWideButtonVariant.primary,
+      ),
+    ),
+  );
 }
 
 class _AlarmStatusView extends StatefulWidget {

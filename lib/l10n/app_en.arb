@@ -327,6 +327,14 @@
     "@allowAppNotifications": {
         "description": "Setting tile for allowing app notifications"
     },
+    "privacyPolicy": "Privacy Policy",
+    "@privacyPolicy": {
+        "description": "Setting tile for opening the privacy policy"
+    },
+    "privacyPolicyOpenError": "Could not open the privacy policy. Please try again later.",
+    "@privacyPolicyOpenError": {
+        "description": "Dialog message shown when the privacy policy link cannot be opened"
+    },
     "logOut": "Log out",
     "@logOut": {
         "description": "Setting tile for logging out"

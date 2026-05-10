@@ -252,6 +252,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get allowAppNotifications => '앱 알림 허용';
 
   @override
+  String get privacyPolicy => '개인정보 처리방침';
+
+  @override
+  String get privacyPolicyOpenError => '개인정보 처리방침을 열 수 없습니다. 잠시 후 다시 시도해주세요.';
+
+  @override
   String get logOut => '로그아웃';
 
   @override

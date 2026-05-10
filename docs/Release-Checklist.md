@@ -75,6 +75,9 @@ OnTime.
   support contact, privacy policy, and category are ready for the target stores.
 - Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
   short and full descriptions until product/design approve final copy.
+- Use `docs/Google-Play-Data-Safety.md` as the source-backed worksheet for
+  Play Data safety answers after privacy, backend deletion, account deletion
+  URL, and final SDK/provider prerequisites are resolved.
 - Track any brand, icon, screenshot, or store copy gaps before submission.
 
 ## Content Category and UGC

@@ -560,6 +560,18 @@ abstract class AppLocalizations {
   /// **'Allow App Notifications'**
   String get allowAppNotifications;
 
+  /// Setting tile for opening the privacy policy
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// Dialog message shown when the privacy policy link cannot be opened
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the privacy policy. Please try again later.'**
+  String get privacyPolicyOpenError;
+
   /// Setting tile for logging out
   ///
   /// In en, this message translates to:

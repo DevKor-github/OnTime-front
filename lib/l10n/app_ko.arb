@@ -76,6 +76,8 @@
     "accountSettings": "계정 설정",
     "editDefaultPreparation": "기본 준비과정 / 여유시간 수정",
     "allowAppNotifications": "앱 알림 허용",
+    "privacyPolicy": "개인정보 처리방침",
+    "privacyPolicyOpenError": "개인정보 처리방침을 열 수 없습니다. 잠시 후 다시 시도해주세요.",
     "logOut": "로그아웃",
     "deleteAccount": "회원 탈퇴",
     "editSpareTime": "여유시간 수정",

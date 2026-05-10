@@ -271,6 +271,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allowAppNotifications => 'Allow App Notifications';
 
   @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get privacyPolicyOpenError =>
+      'Could not open the privacy policy. Please try again later.';
+
+  @override
   String get logOut => 'Log out';
 
   @override

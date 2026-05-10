@@ -56,7 +56,8 @@ flutter build appbundle --release
 - Keep `pubspec.yaml` as the source of truth for the app version.
 - Use semantic versioning for the public version name, formatted as
   `major.minor.patch`.
-- The first production release is `1.0.0+1`.
+- The first production release is `1.0.0+1`: public `versionName` `1.0.0`
+  with checked-in Flutter build suffix `+1`.
 - Keep the public version name manual in `pubspec.yaml`.
 - For Android Play deploys, CI derives `versionName` from `pubspec.yaml` and
   uses `github.run_number` as the generated `versionCode`; do not open PRs only

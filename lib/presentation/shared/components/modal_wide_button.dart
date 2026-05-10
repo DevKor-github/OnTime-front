@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
 
-enum ModalWideButtonVariant {
-  neutral,
-  primary,
-  destructive,
-}
+enum ModalWideButtonVariant { neutral, primary, destructive }
 
-enum ModalWideButtonLayout {
-  fixed,
-  full,
-  flex,
-}
+enum ModalWideButtonLayout { fixed, full, flex }
 
 class ModalWideButton extends StatelessWidget {
   const ModalWideButton({
@@ -22,6 +14,7 @@ class ModalWideButton extends StatelessWidget {
     this.height = 43,
     this.fixedWidth = 245,
     this.textStyle,
+    this.isLoading = false,
   });
 
   final VoidCallback? onPressed;
@@ -31,6 +24,7 @@ class ModalWideButton extends StatelessWidget {
   final double height;
   final double fixedWidth;
   final TextStyle? textStyle;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -39,17 +33,17 @@ class ModalWideButton extends StatelessWidget {
 
     final (backgroundColor, foregroundColor) = switch (variant) {
       ModalWideButtonVariant.neutral => (
-          colorScheme.surfaceContainerLow,
-          colorScheme.outline,
-        ),
+        colorScheme.surfaceContainerLow,
+        colorScheme.outline,
+      ),
       ModalWideButtonVariant.primary => (
-          colorScheme.primary,
-          colorScheme.onPrimary,
-        ),
+        colorScheme.primary,
+        colorScheme.onPrimary,
+      ),
       ModalWideButtonVariant.destructive => (
-          colorScheme.error,
-          colorScheme.onError,
-        ),
+        colorScheme.error,
+        colorScheme.onError,
+      ),
     };
 
     final defaultTextStyle = theme.textTheme.titleSmall?.copyWith(
@@ -74,13 +68,11 @@ class ModalWideButton extends StatelessWidget {
       },
       height: height,
       child: TextButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.all(backgroundColor),
           shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           padding: WidgetStateProperty.all(
             const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
@@ -90,13 +82,22 @@ class ModalWideButton extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: VisualDensity.compact,
         ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: textStyle ?? defaultTextStyle,
-        ),
+        child: isLoading
+            ? SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(foregroundColor),
+                ),
+              )
+            : Text(
+                text,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textStyle ?? defaultTextStyle,
+              ),
       ),
     );
 

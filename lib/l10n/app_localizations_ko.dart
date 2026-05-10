@@ -55,7 +55,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notificationPermissionDescription =>
-      '알림을 허용해야 온타임이 준비를 \n도와드릴 수 있어요';
+      '약속 준비 리마인더를 보내\n제시간에 준비할 수 있게 도와드려요.';
 
   @override
   String get late => ' 지각했어요';
@@ -292,7 +292,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get deleteAccountConfirmDescription =>
-      '계속 온타임과 준비를 함께하면\n지각을 60% 줄일 수 있어요.';
+      '현재 로그인한 계정의 탈퇴를 요청합니다.\n탈퇴가 완료되면 로그아웃됩니다.';
 
   @override
   String get keepUsing => '계속 사용할게요';
@@ -314,7 +314,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get deleteFeedbackDescription =>
-      '더 나은 온타임이 될 수 있도록,\n어떤 점이 불편하셨는지\n알려주시면 감사하겠습니다.';
+      '의견 입력은 선택 사항입니다.\n계속 진행하면 계정 탈퇴 요청이 전송됩니다.';
 
   @override
   String get deleteFeedbackPlaceholder => '탈퇴하시는 이유를 알려주세요.';
@@ -345,14 +345,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notificationAlreadyEnabled => '알림이 이미 허용됨';
 
   @override
-  String get notificationAlreadyEnabledDescription => '현재 앱 알림이 활성화되어 있습니다.';
+  String get notificationAlreadyEnabledDescription =>
+      '약속 준비 리마인더가 현재 활성화되어 있습니다.';
 
   @override
   String get notificationPermissionRequired => '알림 권한 필요';
 
   @override
   String get notificationPermissionRequiredDescription =>
-      '약속 시간을 놓치지 않도록 알림을 보내드립니다.\n알림을 허용하시겠습니까?';
+      '온타임은 약속 준비 리마인더와 약속 알림을 보내기 위해 알림을 사용합니다.\n알림을 허용하시겠습니까?';
 
   @override
   String get allow => '허용';
@@ -361,14 +362,22 @@ class AppLocalizationsKo extends AppLocalizations {
   String get notificationPermissionGranted => '알림 허용 완료';
 
   @override
-  String get notificationPermissionGrantedDescription => '알림이 성공적으로 활성화되었습니다.';
+  String get notificationPermissionGrantedDescription =>
+      '약속 준비 리마인더가 활성화되었습니다.';
 
   @override
   String get openNotificationSettings => '설정에서 알림 허용';
 
   @override
   String get openNotificationSettingsDescription =>
-      '알림 권한이 거부되었습니다.\n설정에서 직접 알림을 허용해주세요.';
+      '알림 권한이 거부되었습니다.\n약속 준비 리마인더를 받으려면 설정에서 알림을 허용해주세요.';
+
+  @override
+  String get exactAlarmPermissionRequired => '정확한 알람 권한 필요';
+
+  @override
+  String get exactAlarmPermissionRequiredDescription =>
+      '온타임은 일정에 맞춰 준비를 시작할 수 있도록 정확한 알람 시간이 필요합니다.\nAndroid 설정에서 알람 및 리마인더를 허용해주세요.';
 
   @override
   String get openSettings => '설정 열기';

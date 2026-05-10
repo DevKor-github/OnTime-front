@@ -191,7 +191,7 @@ abstract class AppLocalizations {
   /// Description explaining why notification permission is needed
   ///
   /// In en, this message translates to:
-  /// **'OnTime needs notifications to help you get ready'**
+  /// **'OnTime sends schedule preparation reminders so you can get ready on time.'**
   String get notificationPermissionDescription;
 
   /// Appended to the time when the user is late
@@ -629,7 +629,7 @@ abstract class AppLocalizations {
   /// Description of the delete account confirmation modal
   ///
   /// In en, this message translates to:
-  /// **'If you keep preparing with OnTime, you can reduce lateness by 60%.'**
+  /// **'This will request deletion for the account you are currently signed in with. You will be signed out when deletion succeeds.'**
   String get deleteAccountConfirmDescription;
 
   /// Button label to keep using the app
@@ -671,7 +671,7 @@ abstract class AppLocalizations {
   /// Delete feedback modal description
   ///
   /// In en, this message translates to:
-  /// **'Please let us know what was inconvenient so OnTime can improve.'**
+  /// **'Feedback is optional. When you continue, OnTime will submit your account deletion request.'**
   String get deleteFeedbackDescription;
 
   /// Placeholder for delete feedback input
@@ -725,7 +725,7 @@ abstract class AppLocalizations {
   /// Dialog content when notification is already enabled
   ///
   /// In en, this message translates to:
-  /// **'App notifications are currently active.'**
+  /// **'Schedule preparation reminders are currently active.'**
   String get notificationAlreadyEnabledDescription;
 
   /// Dialog title when requesting notification permission
@@ -737,7 +737,7 @@ abstract class AppLocalizations {
   /// Dialog content when requesting notification permission
   ///
   /// In en, this message translates to:
-  /// **'We\'ll send you notifications so you don\'t miss your appointments.\nWould you like to allow notifications?'**
+  /// **'OnTime uses notifications for schedule preparation reminders and appointment alerts.\nWould you like to allow notifications?'**
   String get notificationPermissionRequiredDescription;
 
   /// Button text to allow permission
@@ -755,7 +755,7 @@ abstract class AppLocalizations {
   /// Dialog content when notification permission is granted
   ///
   /// In en, this message translates to:
-  /// **'Notifications have been successfully activated.'**
+  /// **'Schedule preparation reminders are now active.'**
   String get notificationPermissionGrantedDescription;
 
   /// Dialog title to open notification settings
@@ -767,8 +767,20 @@ abstract class AppLocalizations {
   /// Dialog content to open notification settings
   ///
   /// In en, this message translates to:
-  /// **'Notification permission was denied.\nPlease allow notifications in Settings.'**
+  /// **'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.'**
   String get openNotificationSettingsDescription;
+
+  /// Dialog title when exact alarm permission is required
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Alarm Permission Required'**
+  String get exactAlarmPermissionRequired;
+
+  /// Dialog content explaining why exact alarm permission is needed
+  ///
+  /// In en, this message translates to:
+  /// **'OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.'**
+  String get exactAlarmPermissionRequiredDescription;
 
   /// Button text to open app settings
   ///

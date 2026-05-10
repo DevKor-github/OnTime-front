@@ -34,6 +34,9 @@ OnTime.
 - Confirm the application ID is `club.devkor.ontime`.
 - Confirm the app label is `OnTime`.
 - Review launcher icons in `android/app/src/main/res/mipmap-*`.
+- Review `docs/Android-Manifest-Permissions.md` and confirm app-owned release
+  manifest permissions are still limited to user-facing notification, exact
+  alarm, full-screen alarm, boot restore, and vibration behavior.
 - Provide release signing through one of the following secret-free paths:
   - `android/key.properties` with `storeFile`, `storePassword`, `keyAlias`, and
     `keyPassword`.
@@ -70,4 +73,27 @@ OnTime.
 
 - Confirm the app name, short description, full description, screenshots,
   support contact, privacy policy, and category are ready for the target stores.
+- Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
+  short and full descriptions until product/design approve final copy.
 - Track any brand, icon, screenshot, or store copy gaps before submission.
+
+## Content Category and UGC
+
+- Current release audit result (2026-05-09): no UGC is exposed to other users.
+  Users can create schedules, schedule notes, preparation steps,
+  account profile values, and deletion or feedback text, but the checked app
+  routes and API clients do not provide public profiles, shared schedules,
+  comments, chat, feeds, uploads, groups, or other user-to-user content surfaces.
+- Current restricted-category audit result (2026-05-09): OnTime is a schedule
+  preparation, alarm, reminder, and arrival-time planning app. The checked source
+  does not implement gambling, betting, regulated finance, trading, lending,
+  crypto, medical, adult, or other restricted-category flows.
+- Before each store submission, re-check `lib/core/constants/endpoint.dart`, the
+  schedule, preparation, authentication, notification, and alarm data sources,
+  and user-facing flows for any newly added shared or public content surfaces.
+- If user-created content becomes visible to other users, open release-blocking
+  issues for reporting, blocking, moderation or abuse handling, Play Data safety,
+  and content rating updates before release.
+- Keep store category and listing copy aligned with productivity, planner, alarm,
+  and reminder functionality unless a future feature and policy review supports a
+  different category.

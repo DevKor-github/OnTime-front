@@ -2,6 +2,18 @@
 
 Android release builds must be signed with the production release key. Debug signing is only for debug and profile builds.
 
+## Ownership and Storage
+
+The Android release owner is the person or team role with Google Play release
+responsibility for `club.devkor.ontime`. That owner is responsible for creating
+or confirming the upload keystore, keeping access limited to release maintainers,
+and rotating or resetting the upload key if access is lost.
+
+Store the upload keystore and passwords outside the repository in the team
+password manager or CI secret manager. Record the current owner and recovery
+notes in that secure system, not in git. Do not send keystores or passwords in
+issue comments, pull requests, chat logs, screenshots, or build artifacts.
+
 ## Required Signing Inputs
 
 Release builds require all of these values:
@@ -54,8 +66,19 @@ flutter build appbundle --release \
   --build-number=<monotonic Android versionCode>
 ```
 
+The GitHub Actions Play deploy workflow expects the keystore bytes in
+`ANDROID_UPLOAD_KEYSTORE_B64`, decodes them to a temporary runner path, and then
+exports `ANDROID_KEYSTORE_PATH`. The keystore file should never be written into
+the repository checkout in CI.
+
 ## How Validation Works
 
 Gradle checks release signing inputs only when a release task is requested. Debug and profile builds do not require release signing credentials.
 
 Release builds fail before packaging if any required value is absent or if the keystore file path does not exist. The error message lists the missing inputs so local and CI setup failures are explicit.
+
+Expected setup failures look like:
+
+```text
+Android release signing is required for release builds. Missing: storeFile, ANDROID_KEYSTORE_PATH, or ONTIME_ANDROID_KEYSTORE_PATH, ...
+```

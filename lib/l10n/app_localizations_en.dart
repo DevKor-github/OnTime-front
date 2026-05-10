@@ -57,7 +57,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPermissionDescription =>
-      'OnTime needs notifications to help you get ready';
+      'OnTime sends schedule preparation reminders so you can get ready on time.';
 
   @override
   String get late => ' late';
@@ -312,7 +312,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountConfirmDescription =>
-      'If you keep preparing with OnTime, you can reduce lateness by 60%.';
+      'This will request deletion for the account you are currently signed in with. You will be signed out when deletion succeeds.';
 
   @override
   String get keepUsing => 'I\'ll keep using it';
@@ -337,7 +337,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteFeedbackDescription =>
-      'Please let us know what was inconvenient so OnTime can improve.';
+      'Feedback is optional. When you continue, OnTime will submit your account deletion request.';
 
   @override
   String get deleteFeedbackPlaceholder =>
@@ -370,7 +370,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationAlreadyEnabledDescription =>
-      'App notifications are currently active.';
+      'Schedule preparation reminders are currently active.';
 
   @override
   String get notificationPermissionRequired =>
@@ -378,7 +378,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPermissionRequiredDescription =>
-      'We\'ll send you notifications so you don\'t miss your appointments.\nWould you like to allow notifications?';
+      'OnTime uses notifications for schedule preparation reminders and appointment alerts.\nWould you like to allow notifications?';
 
   @override
   String get allow => 'Allow';
@@ -388,14 +388,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationPermissionGrantedDescription =>
-      'Notifications have been successfully activated.';
+      'Schedule preparation reminders are now active.';
 
   @override
   String get openNotificationSettings => 'Allow Notifications in Settings';
 
   @override
   String get openNotificationSettingsDescription =>
-      'Notification permission was denied.\nPlease allow notifications in Settings.';
+      'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.';
+
+  @override
+  String get exactAlarmPermissionRequired =>
+      'Precise Alarm Permission Required';
+
+  @override
+  String get exactAlarmPermissionRequiredDescription =>
+      'OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.';
 
   @override
   String get openSettings => 'Open Settings';

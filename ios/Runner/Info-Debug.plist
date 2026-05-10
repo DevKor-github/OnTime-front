@@ -51,7 +51,7 @@
 		<true/>
 	</dict>
 	<key>NSAlarmKitUsageDescription</key>
-	<string>On Time uses alarms to remind you when it is time to prepare for schedules.</string>
+	<string>OnTime uses alarms to remind you when it is time to prepare for schedules.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

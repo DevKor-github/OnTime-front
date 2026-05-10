@@ -196,14 +196,27 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     });
     try {
       final alarmRepository = getIt.get<AlarmRepository>();
-      await alarmRepository.updateAlarmSettings(alarmsEnabled: value);
       if (value) {
         final schedulerService = getIt.get<AlarmSchedulerService>();
         final fallbackService = getIt.get<FallbackAlarmNotificationService>();
-        await schedulerService.requestPermission();
+
+        final nativePermission = await schedulerService.checkPermission();
+        if (!mounted) return;
+        if (_needsExactAlarmRecovery(nativePermission)) {
+          final shouldOpenSettings = await _showExactAlarmPermissionDialog(
+            context,
+          );
+          if (!mounted) return;
+          if (shouldOpenSettings == DialogActionResult.primary) {
+            await schedulerService.requestPermission();
+          }
+        }
+
         await fallbackService.requestPermission();
+        await alarmRepository.updateAlarmSettings(alarmsEnabled: true);
         await getIt.get<ReconcileAlarmsUseCase>()();
       } else {
+        await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
         await getIt.get<CancelAllAlarmsUseCase>()();
       }
       await _load();
@@ -238,6 +251,11 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
       ],
     );
   }
+}
+
+bool _needsExactAlarmRecovery(AlarmPermissionState permission) {
+  return permission == AlarmPermissionState.denied ||
+      permission == AlarmPermissionState.notDetermined;
 }
 
 class _MyAccountView extends StatelessWidget {
@@ -424,6 +442,28 @@ Future<bool?> _showPermissionRationaleDialog(BuildContext context) async {
   );
 
   return result == DialogActionResult.primary;
+}
+
+Future<DialogActionResult?> _showExactAlarmPermissionDialog(
+  BuildContext context,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+
+  return showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: l10n.exactAlarmPermissionRequired,
+      description: l10n.exactAlarmPermissionRequiredDescription,
+      secondaryAction: DialogActionConfig(
+        label: l10n.doItLater,
+        variant: ModalWideButtonVariant.neutral,
+      ),
+      primaryAction: DialogActionConfig(
+        label: l10n.openSettings,
+        variant: ModalWideButtonVariant.primary,
+      ),
+    ),
+  );
 }
 
 Future<void> _showPermissionGrantedDialog(BuildContext context) async {

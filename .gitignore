@@ -56,6 +56,10 @@ android/app/google-services.json
 android/app/src/debug/google-services.json
 android/app/src/release/google-services.json
 android/app/src/google-services.json
+android/key.properties
+*.jks
+*.keystore
+*.p12
 
 .cursor
 .codex/

@@ -395,7 +395,7 @@
     "@deleteAccountConfirmTitle": {
         "description": "Title of the delete account confirmation modal"
     },
-    "deleteAccountConfirmDescription": "If you keep preparing with OnTime, you can reduce lateness by 60%.",
+    "deleteAccountConfirmDescription": "This will request deletion for the account you are currently signed in with. You will be signed out when deletion succeeds.",
     "@deleteAccountConfirmDescription": {
         "description": "Description of the delete account confirmation modal"
     },
@@ -423,7 +423,7 @@
     "@deleteFeedbackTitle": {
         "description": "Delete feedback modal title"
     },
-    "deleteFeedbackDescription": "Please let us know what was inconvenient so OnTime can improve.",
+    "deleteFeedbackDescription": "Feedback is optional. When you continue, OnTime will submit your account deletion request.",
     "@deleteFeedbackDescription": {
         "description": "Delete feedback modal description"
     },

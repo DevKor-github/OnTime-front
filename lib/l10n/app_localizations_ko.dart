@@ -292,7 +292,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get deleteAccountConfirmDescription =>
-      '계속 온타임과 준비를 함께하면\n지각을 60% 줄일 수 있어요.';
+      '현재 로그인한 계정의 탈퇴를 요청합니다.\n탈퇴가 완료되면 로그아웃됩니다.';
 
   @override
   String get keepUsing => '계속 사용할게요';
@@ -314,7 +314,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get deleteFeedbackDescription =>
-      '더 나은 온타임이 될 수 있도록,\n어떤 점이 불편하셨는지\n알려주시면 감사하겠습니다.';
+      '의견 입력은 선택 사항입니다.\n계속 진행하면 계정 탈퇴 요청이 전송됩니다.';
 
   @override
   String get deleteFeedbackPlaceholder => '탈퇴하시는 이유를 알려주세요.';

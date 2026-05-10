@@ -13,6 +13,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Android Release Signing](./Android-Release-Signing.md) - Required keystore inputs and release signing validation
 - [Android Release Configuration](./Android-Release-Configuration.md) - Firebase config, signed AAB workflow, and Play internal deploy setup
 - [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
+- [Privacy Policy Hosting](./Privacy-Policy-Hosting.md) - Public HTTPS privacy policy hosting checklist and evidence form
 - [Google Play Data Safety Worksheet](./Google-Play-Data-Safety.md) - Source-backed Data safety evidence and pending owner inputs
 - [Play Pre-Launch Report](./Play-Pre-Launch-Report.md) - Google Play report runbook, triage gate, and evidence template
 - [Release Rollout Monitoring](./Release-Rollout-Monitoring.md) - Release ownership, staged rollout gates, and post-launch monitoring

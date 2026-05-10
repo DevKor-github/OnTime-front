@@ -113,6 +113,9 @@ flutter build appbundle --release
     `ONTIME_ANDROID_KEY_PASSWORD`.
 - Follow `docs/Android-Signing-Setup.md` when creating or configuring the upload
   key.
+- Follow `docs/Android-Developer-Verification.md` to confirm Play Console
+  developer verification and package-name registration status for
+  `club.devkor.ontime`.
 - Keep keystores, passwords, and `key.properties` out of git.
 - Verify the release build fails clearly when signing secrets are missing.
 - After the signed AAB is uploaded to internal or closed testing, run the Google

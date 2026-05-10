@@ -8,11 +8,13 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Wiki Management Guide](./Wiki-Management.md) - How to modify and upload wiki content
 - [Project Architecture](./Architecture.md) - Understanding the project structure
 - [Git Workflow](./Git.md) - Git strategy and commit message formats
+- [Release Checklist](./Release-Checklist.md) - Reusable release gates,
+  verification commands, store checks, and rollout handoff
 - [Android Release Signing](./Android-Release-Signing.md) - Required keystore inputs and release signing validation
 - [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
 - [Release Rollout Monitoring](./Release-Rollout-Monitoring.md) - Release ownership, staged rollout gates, and post-launch monitoring
 - [Play Review Rejection Playbook](./Play-Review-Rejection-Playbook.md) - How to triage, fix, resubmit, or appeal Google Play review rejections
-- [Privacy Policy Draft](./Privacy-Policy-Draft.md) - Draft privacy policy text and approval checklist for release
+- [Google Play Release Screenshots](./Google-Play-Release-Screenshots.md) - Capture checklist and evidence log for real release screenshots
 
 ### Technical Deep Dives
 - [Error Handling System](./Error-Handling-Result-System.md) - Result-based error handling architecture

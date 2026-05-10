@@ -75,6 +75,9 @@ OnTime.
   support contact, privacy policy, and category are ready for the target stores.
 - Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
   short and full descriptions until product/design approve final copy.
+- Use `docs/Account-Deletion-Request-URL.md` to create, verify, and record the
+  public account deletion request URL required for Google Play account deletion
+  disclosure.
 - Track any brand, icon, screenshot, or store copy gaps before submission.
 
 ## Content Category and UGC

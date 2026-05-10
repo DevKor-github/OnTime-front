@@ -75,6 +75,8 @@ OnTime.
   support contact, privacy policy, and category are ready for the target stores.
 - Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
   short and full descriptions until product/design approve final copy.
+- Use `docs/Privacy-Policy-Hosting.md` to validate and record the final public
+  privacy policy URL before entering it in store metadata.
 - Track any brand, icon, screenshot, or store copy gaps before submission.
 
 ## Content Category and UGC

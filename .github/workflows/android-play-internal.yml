@@ -154,6 +154,7 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: internal
           status: draft
+          changesNotSentForReview: true
           whatsNewDirectory: distribution/whatsnew
 
       - name: Upload internal testing draft
@@ -165,3 +166,4 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: internal
           status: draft
+          changesNotSentForReview: true

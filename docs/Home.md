@@ -10,6 +10,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Git Workflow](./Git.md) - Git strategy and commit message formats
 - [Android Release Signing](./Android-Release-Signing.md) - Required keystore inputs and release signing validation
 - [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
+- [Android Release Smoke Test](./Android-Release-Smoke-Test.md) - Device smoke-test runbook and evidence template for signed Android release builds
 - [Release Rollout Monitoring](./Release-Rollout-Monitoring.md) - Release ownership, staged rollout gates, and post-launch monitoring
 - [Play Review Rejection Playbook](./Play-Review-Rejection-Playbook.md) - How to triage, fix, resubmit, or appeal Google Play review rejections
 

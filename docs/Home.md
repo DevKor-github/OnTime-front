@@ -11,6 +11,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Release Checklist](./Release-Checklist.md) - Reusable release gates,
   verification commands, store checks, and rollout handoff
 - [Android Release Signing](./Android-Release-Signing.md) - Required keystore inputs and release signing validation
+- [Android Play Signing Fingerprints](./Android-Play-Signing-Fingerprints.md) - Play App Signing, Firebase, and auth-provider fingerprint checklist
 - [Android Release Configuration](./Android-Release-Configuration.md) - Firebase config, signed AAB workflow, and Play internal deploy setup
 - [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
 - [Privacy Policy Hosting](./Privacy-Policy-Hosting.md) - Public HTTPS privacy policy hosting checklist and evidence form

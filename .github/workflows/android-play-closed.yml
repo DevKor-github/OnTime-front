@@ -158,6 +158,7 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: alpha
           status: draft
+          changesNotSentForReview: true
           whatsNewDirectory: distribution/whatsnew
 
       - name: Upload closed testing draft
@@ -169,3 +170,4 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: alpha
           status: draft
+          changesNotSentForReview: true

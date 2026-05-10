@@ -113,6 +113,9 @@ flutter build appbundle --release
   key.
 - Keep keystores, passwords, and `key.properties` out of git.
 - Verify the release build fails clearly when signing secrets are missing.
+- After the signed AAB is uploaded to internal or closed testing, run the Google
+  Play pre-launch report and record evidence using
+  `docs/Play-Pre-Launch-Report.md` before widening release availability.
 - Confirm the release Firebase config is available through
   `ANDROID_GOOGLE_SERVICES_JSON_B64` in CI or
   `android/app/src/release/google-services.json` for local release builds.

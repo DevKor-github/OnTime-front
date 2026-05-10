@@ -59,7 +59,7 @@
     "@pleaseAllowNotifications": {
         "description": "Title asking the user to allow notifications"
     },
-    "notificationPermissionDescription": "OnTime needs notifications to help you get ready",
+    "notificationPermissionDescription": "OnTime sends schedule preparation reminders so you can get ready on time.",
     "@notificationPermissionDescription": {
         "description": "Description explaining why notification permission is needed"
     },
@@ -464,7 +464,7 @@
     "@notificationAlreadyEnabled": {
         "description": "Dialog title when notification is already enabled"
     },
-    "notificationAlreadyEnabledDescription": "App notifications are currently active.",
+    "notificationAlreadyEnabledDescription": "Schedule preparation reminders are currently active.",
     "@notificationAlreadyEnabledDescription": {
         "description": "Dialog content when notification is already enabled"
     },
@@ -472,7 +472,7 @@
     "@notificationPermissionRequired": {
         "description": "Dialog title when requesting notification permission"
     },
-    "notificationPermissionRequiredDescription": "We'll send you notifications so you don't miss your appointments.\nWould you like to allow notifications?",
+    "notificationPermissionRequiredDescription": "OnTime uses notifications for schedule preparation reminders and appointment alerts.\nWould you like to allow notifications?",
     "@notificationPermissionRequiredDescription": {
         "description": "Dialog content when requesting notification permission"
     },
@@ -484,7 +484,7 @@
     "@notificationPermissionGranted": {
         "description": "Dialog title when notification permission is granted"
     },
-    "notificationPermissionGrantedDescription": "Notifications have been successfully activated.",
+    "notificationPermissionGrantedDescription": "Schedule preparation reminders are now active.",
     "@notificationPermissionGrantedDescription": {
         "description": "Dialog content when notification permission is granted"
     },
@@ -492,7 +492,7 @@
     "@openNotificationSettings": {
         "description": "Dialog title to open notification settings"
     },
-    "openNotificationSettingsDescription": "Notification permission was denied.\nPlease allow notifications in Settings.",
+    "openNotificationSettingsDescription": "Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.",
     "@openNotificationSettingsDescription": {
         "description": "Dialog content to open notification settings"
     },

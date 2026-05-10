@@ -149,25 +149,14 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload closed testing draft with release notes
-        if: ${{ inputs.release_notes != '' }}
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: club.devkor.ontime
-          releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          tracks: alpha
-          status: draft
-          changesNotSentForReview: true
-          whatsNewDirectory: distribution/whatsnew
+      - name: Install Google Play upload dependencies
+        run: npm install --no-save --no-package-lock googleapis
 
       - name: Upload closed testing draft
-        if: ${{ inputs.release_notes == '' }}
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: club.devkor.ontime
-          releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          tracks: alpha
-          status: draft
-          changesNotSentForReview: true
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          PACKAGE_NAME: club.devkor.ontime
+          PLAY_TRACK: alpha
+          RELEASE_FILE: build/app/outputs/bundle/release/app-release.aab
+          RELEASE_NOTES_FILE: distribution/whatsnew/whatsnew-en-US
+        run: node .github/scripts/upload_google_play_draft.js

@@ -34,6 +34,9 @@ OnTime.
 - Confirm the application ID is `club.devkor.ontime`.
 - Confirm the app label is `OnTime`.
 - Review launcher icons in `android/app/src/main/res/mipmap-*`.
+- Review `docs/Android-Manifest-Permissions.md` and confirm app-owned release
+  manifest permissions are still limited to user-facing notification, exact
+  alarm, full-screen alarm, boot restore, and vibration behavior.
 - Provide release signing through one of the following secret-free paths:
   - `android/key.properties` with `storeFile`, `storePassword`, `keyAlias`, and
     `keyPassword`.

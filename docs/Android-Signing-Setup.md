@@ -131,6 +131,8 @@ builds do not require release signing secrets.
 5. Upload the `.aab` from `build/app/outputs/bundle/release/`.
 6. After Play App Signing is active, continue signing future uploads with the
    same local upload key.
+7. Record the Play app signing and upload key SHA-1/SHA-256 fingerprints using
+   `docs/Android-Play-Signing-Fingerprints.md`.
 
 ## Existing Play Console App
 

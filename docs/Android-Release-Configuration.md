@@ -86,7 +86,11 @@ The task fails if the file is missing, invalid JSON, or missing a `client_info.a
 
 ## Auth Fingerprints
 
-Release SHA-1 and SHA-256 fingerprints must be added to Firebase after the release signing owner, upload key, and Play App Signing setup are finalized. Track that work in #454; do not rotate or replace `ANDROID_GOOGLE_SERVICES_JSON_B64` for fingerprint changes until the release owner confirms the final signing fingerprints.
+Release SHA-1 and SHA-256 fingerprints must be added to Firebase after the
+release signing owner, upload key, and Play App Signing setup are finalized.
+Use `docs/Android-Play-Signing-Fingerprints.md` for the #454 checklist. Do not
+rotate or replace `ANDROID_GOOGLE_SERVICES_JSON_B64` for fingerprint changes
+until the release owner confirms the final signing fingerprints.
 
 ## Verification
 

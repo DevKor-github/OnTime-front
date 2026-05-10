@@ -149,7 +149,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload closed testing release with release notes
+      - name: Upload closed testing draft with release notes
         if: ${{ inputs.release_notes != '' }}
         uses: r0adkll/upload-google-play@v1
         with:
@@ -157,10 +157,10 @@ jobs:
           packageName: club.devkor.ontime
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: alpha
-          status: completed
+          status: draft
           whatsNewDirectory: distribution/whatsnew
 
-      - name: Upload closed testing release
+      - name: Upload closed testing draft
         if: ${{ inputs.release_notes == '' }}
         uses: r0adkll/upload-google-play@v1
         with:
@@ -168,4 +168,4 @@ jobs:
           packageName: club.devkor.ontime
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           tracks: alpha
-          status: completed
+          status: draft

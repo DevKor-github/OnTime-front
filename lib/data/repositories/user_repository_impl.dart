@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
@@ -15,6 +16,8 @@ import 'package:rxdart/subjects.dart';
 
 @Singleton(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
+  static const _googleIosClientId =
+      '456571312261-r35ah9qi0qaq7al007e2db0e0jmjcmb4.apps.googleusercontent.com';
   static const _googleServerClientId =
       '456571312261-5kuf2r6i5i7lqjr7qealv06sdgkn3hcp.apps.googleusercontent.com';
   static const _googleScopes = ['email', 'profile'];
@@ -45,17 +48,10 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   Future<void> _initializeGoogleSignIn() async {
-    await _googleSignIn.initialize(serverClientId: _googleServerClientId);
-    final lightweightAuthentication = _googleSignIn
-        .attemptLightweightAuthentication();
-    if (lightweightAuthentication != null) {
-      unawaited(
-        lightweightAuthentication.catchError((Object error) {
-          AppLogger.debug('Google lightweight sign-in failed: $error');
-          return null;
-        }),
-      );
-    }
+    await _googleSignIn.initialize(
+      clientId: _googleClientId,
+      serverClientId: _googleServerClientId,
+    );
   }
 
   @override
@@ -241,4 +237,11 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Stream<UserEntity> get userStream =>
       _userStreamController.asBroadcastStream();
+
+  String? get _googleClientId {
+    if (kIsWeb) return null;
+    return defaultTargetPlatform == TargetPlatform.iOS
+        ? _googleIosClientId
+        : null;
+  }
 }

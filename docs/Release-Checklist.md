@@ -75,6 +75,9 @@ OnTime.
   support contact, privacy policy, and category are ready for the target stores.
 - Use `docs/Google-Play-Listing-Copy.md` as the draft source for Google Play
   short and full descriptions until product/design approve final copy.
+- Use `docs/Google-Play-Listing-Graphics.md` as the checklist for Play app
+  icon, feature graphic, screenshot asset requirements, and launcher-icon
+  consistency evidence.
 - Track any brand, icon, screenshot, or store copy gaps before submission.
 
 ## Content Category and UGC

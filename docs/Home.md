@@ -12,6 +12,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [iOS Release Configuration](./iOS-Release-Configuration.md) - Required Dart defines and archive validation
 - [Release Rollout Monitoring](./Release-Rollout-Monitoring.md) - Release ownership, staged rollout gates, and post-launch monitoring
 - [Play Review Rejection Playbook](./Play-Review-Rejection-Playbook.md) - How to triage, fix, resubmit, or appeal Google Play review rejections
+- [Privacy Policy Draft](./Privacy-Policy-Draft.md) - Draft privacy policy text and approval checklist for release
 
 ### Technical Deep Dives
 - [Error Handling System](./Error-Handling-Result-System.md) - Result-based error handling architecture

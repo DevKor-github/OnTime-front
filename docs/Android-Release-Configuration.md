@@ -6,7 +6,7 @@ Android release builds must include the production Firebase client config so Fir
 
 - `ANDROID_GOOGLE_SERVICES_JSON_B64`: base64-encoded contents of the production Android `google-services.json` for Firebase project `ontime-c63f1`.
 
-The release verification workflow decodes this secret to `android/app/src/release/google-services.json` before running the Android release build. Generated `google-services.json` files are ignored and must not be committed.
+The Android Play Internal Deploy workflow decodes this secret to `android/app/src/release/google-services.json` before running the Android release build. Generated `google-services.json` files are ignored and must not be committed.
 
 The decoded file must include an Android client whose package name is `club.devkor.ontime`. Gradle validates this package match for release builds and through the focused validation task below.
 
@@ -90,4 +90,4 @@ Release SHA-1 and SHA-256 fingerprints must be added to Firebase after the relea
 
 ## Verification
 
-Use the `Android Release Verification` GitHub Actions workflow to confirm CI can reproduce the release build with the configured secret. For production readiness, also install a real Android release build and verify Firebase initializes and FCM token registration reaches the backend.
+Use the `Android Play Internal Deploy` GitHub Actions workflow to confirm CI can reproduce the signed release build with the configured secrets. For production readiness, also install a real Android release build and verify Firebase initializes and FCM token registration reaches the backend.

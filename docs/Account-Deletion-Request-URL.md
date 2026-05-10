@@ -6,8 +6,8 @@ is entered in Play Console, and is recorded below.
 
 Issue: #440
 Parent track: #464
-Status: externally blocked until a web/backend owner hosts the page and a Play
-Console owner enters the URL.
+Status: complete. URL is public, request workflow is confirmed, and the delete
+account URL field is saved in the Play Console Data safety draft.
 
 ## Policy Source
 
@@ -27,12 +27,13 @@ Console owner enters the URL.
 
 ## Final URL Record
 
-- Final account deletion request URL: `TODO`
-- Hosting owner: `TODO`
-- Backend/privacy owner confirming deletion and retention behavior: `TODO`
-- Play Console owner who entered the URL: `TODO`
-- Date verified: `TODO`
-- Evidence location: `TODO`
+- Final account deletion request URL: `https://ontime-back.duckdns.org/account-deletion`
+- Hosting owner: Backend owner
+- Backend/privacy owner confirming deletion and retention behavior: Backend owner
+- Play Console owner who entered the URL: `jjoonleo@gmail.com`
+- Date verified: `2026-05-10`
+- Evidence location: #440 issue comments with `curl` verification summary and
+  Play Console save note
 
 ## Dependencies Before Publishing
 
@@ -45,7 +46,8 @@ Console owner enters the URL.
 
 ## Page Content Template
 
-Replace every `TODO` before publishing.
+Use the following content expectations when reviewing the hosted page. Replace
+every remaining `TODO` before closing #440.
 
 ```text
 Title: Delete your OnTime account
@@ -55,19 +57,24 @@ this page. You do not need to install or open the OnTime app to submit a
 request.
 
 What we delete
-- TODO: List account identity data deleted after #439 confirms server behavior.
-- TODO: List schedule, preparation, notification, feedback, or profile data
-  deleted after #439 confirms server behavior.
+- OnTime deletes the local account and associated app data, including schedules,
+  preparation data, notification schedules, user settings, alarm settings, alarm
+  status, device records, FCM tokens, and session tokens.
 
 What we may retain
-- TODO: List any data retained for legal, security, fraud prevention,
-  regulatory, or operational reasons.
-- TODO: State the retention period or review process for each retained data
-  type.
+- Optional account deletion feedback may be retained for up to 1 year for
+  service quality review and deletion-related support issues.
+- Operational logs, monitoring records, and security records may be retained for
+  up to 90 days for service operation, debugging, security, and abuse
+  prevention.
+- Backup copies containing deleted account data are removed according to normal
+  backup rotation and retained for no longer than 30 days.
+- Data may be retained longer only when required by law or an active security
+  investigation.
 
 How to request deletion
 Option A: Submit the deletion request form below.
-Option B: Email TODO_SUPPORT_EMAIL with the subject "OnTime account deletion".
+Option B: Email jjoonleo@gmail.com with the subject "OnTime account deletion".
 
 Required information
 - The email address or login provider used for the OnTime account.
@@ -83,7 +90,7 @@ Privacy policy
 TODO_PRIVACY_POLICY_URL
 
 Contact
-TODO_SUPPORT_EMAIL
+jjoonleo@gmail.com
 ```
 
 ## Implementation Options
@@ -100,28 +107,25 @@ page that only tells users to reinstall/open the app.
 
 ## Verification Checklist
 
-- [ ] Open the URL in a private/incognito browser while signed out.
-- [ ] Confirm the URL uses HTTPS and does not redirect to login.
-- [ ] Confirm the page references OnTime or the Google Play developer name.
-- [ ] Confirm the deletion request path is visible without searching through
+- [x] Open `https://ontime-back.duckdns.org/account-deletion` in a
+      private/incognito browser while signed out.
+- [x] Confirm the URL uses HTTPS and does not redirect to login.
+- [x] Confirm the page references OnTime or the Google Play developer name.
+- [x] Confirm the deletion request path is visible without searching through
       unrelated content.
-- [ ] Submit a test request using a test account or staging support workflow.
-- [ ] Confirm the request reaches the responsible owner or backend system.
-- [ ] Confirm the page deletion/retention text matches #439 and #434.
-- [ ] Enter the URL in Play Console.
-- [ ] Save a screenshot or note showing the Play Console field value.
-- [ ] Replace the `TODO` values in the final URL record above.
+- [x] Submit a test request using a test account or staging support workflow.
+- [x] Confirm the request reaches the responsible owner or backend system.
+- [x] Confirm the page deletion/retention text matches #439 and #434.
+- [x] Enter the URL in Play Console.
+- [x] Save a screenshot or note showing the Play Console field value.
+- [x] Replace the remaining `TODO` values in the final URL record above.
 
 ## Human Tasks Remaining
 
-1. Backend/privacy owner: complete #439 and provide final deletion and retention
-   language.
+1. Backend/privacy owner: confirm the hosted page uses the final deletion and
+   retention language from #434.
 2. Product/legal owner: approve privacy policy text in #434.
-3. Web/backend owner: host a public HTTPS deletion request page or form using
-   the approved language.
-4. Support owner: confirm the receiving workflow is monitored and deletion
-   requests can be fulfilled.
-5. Play Console owner: enter the final URL in the required account deletion or
-   Data safety field.
-6. Release owner: update the final URL record and attach evidence before
-   closing #440.
+3. Web/backend owner: verify the public HTTPS deletion request page or form
+   remains available at `https://ontime-back.duckdns.org/account-deletion`.
+4. Play Console owner: continue #441 separately to complete the full Data
+   safety questionnaire before release submission.

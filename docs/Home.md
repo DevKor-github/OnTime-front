@@ -17,6 +17,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Android Release Smoke Test](./Android-Release-Smoke-Test.md) - Device smoke-test runbook and evidence template for signed Android release builds
 - [Privacy Policy Hosting](./Privacy-Policy-Hosting.md) - Public HTTPS privacy policy hosting checklist and evidence form
 - [Google Play Data Safety Worksheet](./Google-Play-Data-Safety.md) - Source-backed Data safety evidence and pending owner inputs
+- [Backend Account Deletion Retention Report](./Backend-Account-Deletion-Retention-Report.md) - Backend retention targets and confirmation checklist for account deletion
 - [Play Pre-Launch Report](./Play-Pre-Launch-Report.md) - Google Play report runbook, triage gate, and evidence template
 - [Release Rollout Monitoring](./Release-Rollout-Monitoring.md) - Release ownership, staged rollout gates, and post-launch monitoring
 - [Play Review Rejection Playbook](./Play-Review-Rejection-Playbook.md) - How to triage, fix, resubmit, or appeal Google Play review rejections

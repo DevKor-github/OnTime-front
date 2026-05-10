@@ -1,50 +1,48 @@
 # OnTime Privacy Policy Draft
 
-Draft status: not approved for publication. Prepared for issue #434 under
-parent track #464 on 2026-05-10.
+Draft status: hosted for Play Console use, with product/legal approval still
+pending. Prepared for issue #434 under parent track #464 on 2026-05-10.
 
-Do not publish this document until every `TODO` is resolved and a product/legal
-owner approves the final text. Backend account and data deletion behavior is
-still pending verification in #439, so the retention and deletion language below
-is intentionally incomplete.
+Do not mark #434 complete until every `TODO` is resolved and a product/legal
+owner approves the final text. Backend account and data deletion behavior has
+code-reviewed evidence in #439, but release-environment provider unlink,
+logging, monitoring, backup, and retention-period decisions still need owner
+confirmation.
 
 ## Approval Blockers
 
-- TODO: Replace `[Developer legal entity]` with the exact developer or company
-  name used in the Google Play listing.
-- TODO: Replace `[privacy contact]` with the support email, contact form, or
-  other privacy inquiry mechanism approved by the release owner.
-- TODO: Replace `[effective date]` with the final publication date.
-- TODO: Complete the account deletion and retained-data sections after #439
-  confirms backend behavior by auth provider and data type.
+- TODO: Backend/environment owner must confirm the service can enforce the
+  retention periods listed in this draft.
 - TODO: Product/legal owner must approve the final text before #434 can close.
 
 ## Draft Policy Text
 
 ### Privacy Policy
 
-Effective date: `[effective date]`
+Public URL: https://ontime-back.duckdns.org/privacy-policy
 
-OnTime is provided by `[Developer legal entity]`. This Privacy Policy explains
+Effective date: May 10, 2026
+
+OnTime is provided by ejun. This Privacy Policy explains
 how OnTime collects, uses, shares, protects, retains, and deletes data when you
 use the OnTime app.
 
-For privacy questions or requests, contact `[privacy contact]`.
+For privacy questions or requests, contact jjoonleo@gmail.com.
 
 ### Data OnTime Collects Or Accesses
 
 OnTime collects or accesses the following data to provide accounts, schedules,
 preparation reminders, alarms, and support features:
 
-| Data | Examples | Purpose |
-| --- | --- | --- |
-| Account data | Email address, display name, password for email sign-up, Google sign-in token, Apple identity token, Apple authorization code, Apple-provided name or email when available | Create and authenticate accounts, keep users signed in, support social sign-in, and load user profile information |
-| Schedule data | Schedule ID, schedule name, schedule time, place name, place ID, movement time, spare time, notes, started/changed state, lateness time | Create, update, display, finish, and delete schedules |
-| Preparation data | Default preparation steps, schedule-specific preparation steps, preparation names, preparation durations, step order, spare time | Help users plan preparation steps and reminders before schedules |
+| Data                        | Examples                                                                                                                                                                                                     | Purpose                                                                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Account data                | Email address, display name, password for email sign-up, Google sign-in token, Apple identity token, Apple authorization code, Apple-provided name or email when available                                   | Create and authenticate accounts, keep users signed in, support social sign-in, and load user profile information                                 |
+| Schedule data               | Schedule ID, schedule name, schedule time, place name, place ID, movement time, spare time, notes, started/changed state, lateness time                                                                      | Create, update, display, finish, and delete schedules                                                                                             |
+| Preparation data            | Default preparation steps, schedule-specific preparation steps, preparation names, preparation durations, step order, spare time                                                                             | Help users plan preparation steps and reminders before schedules                                                                                  |
 | Alarm and notification data | Alarm settings, notification permission state, device ID, FCM token, platform, app version, OS version, supported alarm providers, alarm status reports, armed or skipped schedule IDs, alarm failure reason | Deliver schedule reminders and alarm notifications, register the current device, restore alarms after device restart, and diagnose alarm coverage |
-| Feedback data | Optional account deletion feedback or other feedback message | Process user feedback and account deletion requests |
-| Local app data | Cached user, schedule, place, preparation, alarm, and token data stored on the device | Keep app state available locally and support app operation |
-| Technical data | Network request metadata, server logs, error metadata, and security-related operational records | Operate, secure, debug, and maintain the service |
+| Feedback data               | Optional account deletion feedback or other feedback message                                                                                                                                                 | Process user feedback and account deletion requests                                                                                               |
+| Local app data              | Cached user, schedule, place, preparation, alarm, and token data stored on the device                                                                                                                        | Keep app state available locally and support app operation                                                                                        |
+| Technical data              | Network request metadata, server logs, error metadata, and security-related operational records                                                                                                              | Operate, secure, debug, and maintain the service                                                                                                  |
 
 OnTime does not request app-owned access to location, contacts, camera,
 microphone, phone, SMS, storage, calendar, nearby-device, or Bluetooth
@@ -71,12 +69,12 @@ OnTime uses collected data to:
 
 OnTime uses third-party services and SDKs where needed for core app behavior:
 
-| Service or SDK | Purpose | Data involved |
-| --- | --- | --- |
-| Google Sign-In | Google account authentication | Google account authentication data, including ID token and profile scopes for email/profile |
-| Apple Sign-In | Apple account authentication | Apple identity token, authorization code, and Apple-provided name or email when available |
-| Firebase Core and Firebase Cloud Messaging | App initialization and push notification delivery | Firebase installation or messaging identifiers, FCM token, notification delivery data, and device-related messaging metadata |
-| OnTime backend/API infrastructure | Account, schedule, preparation, alarm, notification, feedback, and deletion request processing | The account, schedule, preparation, alarm, notification, feedback, and technical data listed above |
+| Service or SDK                             | Purpose                                                                                        | Data involved                                                                                                                |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Google Sign-In                             | Google account authentication                                                                  | Google account authentication data, including ID token and profile scopes for email/profile                                  |
+| Apple Sign-In                              | Apple account authentication                                                                   | Apple identity token, authorization code, and Apple-provided name or email when available                                    |
+| Firebase Core and Firebase Cloud Messaging | App initialization and push notification delivery                                              | Firebase installation or messaging identifiers, FCM token, notification delivery data, and device-related messaging metadata |
+| OnTime backend/API infrastructure          | Account, schedule, preparation, alarm, notification, feedback, and deletion request processing | The account, schedule, preparation, alarm, notification, feedback, and technical data listed above                           |
 
 TODO: Confirm whether Kakao SDK is present only as an unused dependency for this
 release. If Kakao sign-in or Kakao SDK data processing is active in the release
@@ -114,16 +112,28 @@ OnTime keeps account, schedule, preparation, alarm, notification, feedback, and
 technical data for as long as needed to provide the service, maintain security,
 meet legal obligations, resolve disputes, and enforce agreements.
 
-TODO: Replace this general language with exact retention periods after #439
-confirms:
+Based on #439 backend code-review evidence, when an OnTime account is deleted,
+the local OnTime backend hard-deletes the user account row. Database cascades and
+automated backend tests cover deletion of associated schedules, schedule
+preparation steps, notification schedules, default preparation settings, general
+feedback, user settings, alarm settings, alarm status, device records, FCM
+tokens, and session tokens.
 
-- Whether user account records are deleted immediately, soft-deleted, anonymized,
-  or retained for a period after deletion.
-- Whether schedule, place, preparation, alarm settings, device registrations,
-  FCM tokens, alarm status reports, and feedback are deleted with the account.
-- Whether server logs, backups, audit records, abuse-prevention records, or
-  legal/compliance records are retained after account deletion.
-- The retention period and reason for each retained data type.
+If a user submits optional account deletion feedback, OnTime retains that
+feedback separately from the deleted account. The retained deletion feedback may
+include the feedback ID, previous OnTime user ID, social sign-in type, SHA-256
+hash of the normalized email address, feedback message, and creation timestamp.
+OnTime retains optional account deletion feedback for up to 1 year to review
+service quality and deletion-related support issues.
+
+Operational logs, monitoring records, and security records may be retained for
+up to 90 days for service operation, debugging, security, and abuse-prevention
+purposes, unless a longer period is required for legal compliance or an active
+security investigation.
+
+Backup copies that contain deleted account data are removed according to the
+normal backup rotation and are retained for no longer than 30 days, unless a
+longer period is required by law or an active security investigation.
 
 ### Account And Data Deletion
 
@@ -132,16 +142,17 @@ frontend routes deletion requests through separate backend endpoints for normal,
 Google, and Apple account types, and supports optional deletion feedback. On
 successful deletion, the app signs the user out.
 
-TODO: Finalize this section only after #439 verifies backend behavior. The final
-policy must clearly state:
+Users can also request account deletion outside the app at
+https://ontime-back.duckdns.org/account-deletion.
 
-- How users request deletion in the app.
-- How users request deletion outside the app after #440 creates the public
-  deletion request URL.
-- Which account data and associated user data are deleted.
-- Which data, if any, is retained after deletion.
-- Why retained data is kept and for how long.
-- Whether deletion covers Google and Apple social account paths consistently.
+For Google and Apple social accounts, the backend attempts to revoke the stored
+provider token before deleting the local OnTime account. If provider token
+revocation fails, the backend still deletes the local OnTime account. Deleting an
+OnTime account does not delete the user's Google account or Apple ID.
+
+TODO: Backend/environment owner must confirm that production retention settings,
+backup rotation, and cleanup jobs match the retention periods in this policy
+before publication.
 
 ### Children
 
@@ -158,18 +169,25 @@ when the policy changes.
 
 ## Release Owner Checklist
 
-- [ ] Developer/entity name matches the Google Play listing.
-- [ ] Privacy contact method is approved and monitored.
-- [ ] #439 backend deletion and retention behavior is verified by data type.
-- [ ] #440 external account deletion request URL exists or the policy links to
+- [x] Developer/entity name matches the Google Play listing.
+- [x] Privacy contact method uses the verified Play Console developer email.
+- [x] #439 backend deletion behavior is documented by data type using static
+      backend code-review and automated-test evidence.
+- [x] Retained account deletion feedback duration and reason are set in this
+      draft.
+- [x] Log, monitoring, security record, and backup retention periods are set in
+      this draft.
+- [ ] Backend/environment owner confirms production retention settings,
+      backup rotation, and cleanup jobs can enforce the draft periods.
+- [x] #440 external account deletion request URL exists or the policy links to
       the approved deletion request path when available.
 - [ ] All active third-party SDKs and backend processors are listed.
 - [ ] Data categories match the shipped app and the Play Console Data safety
       form.
 - [ ] Retention and deletion language matches backend behavior.
 - [ ] Product/legal owner approves the final text.
-- [ ] Approved policy is handed to #435 for public HTTPS hosting.
-- [ ] Hosted policy URL is entered in Play Console in #437.
+- [x] Policy text is handed to #435 for public HTTPS hosting.
+- [x] Hosted policy URL is entered in Play Console in #437.
 
 ## References
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
+import 'package:on_time_front/presentation/shared/components/calendar/schedule_marker_builder.dart';
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -167,6 +168,13 @@ class _MonthCalendarState extends State<MonthCalendar> {
                   titleTextStyle: calendarTheme.headerStyle.titleTextStyle,
                   leftIcon: calendarTheme.headerStyle.leftChevronIcon,
                   rightIcon: calendarTheme.headerStyle.rightChevronIcon,
+                );
+              },
+              markerBuilder: (context, day, events) {
+                return selectedDayScheduleMarkerBuilder(
+                  selectedDay: _selectedDay,
+                  day: day,
+                  events: events,
                 );
               },
               selectedBuilder: (context, day, focusedDay) {

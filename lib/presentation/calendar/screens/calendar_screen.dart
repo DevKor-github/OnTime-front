@@ -13,6 +13,7 @@ import 'package:on_time_front/presentation/calendar/component/schedule_detail.da
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
+import 'package:on_time_front/presentation/shared/components/calendar/schedule_marker_builder.dart';
 import 'package:on_time_front/presentation/shared/components/two_button_delete_dialog.dart';
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
@@ -293,6 +294,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         .headerStyle.leftChevronIcon,
                                     rightIcon: calendarTheme
                                         .headerStyle.rightChevronIcon,
+                                  );
+                                },
+                                markerBuilder: (context, day, events) {
+                                  return selectedDayScheduleMarkerBuilder(
+                                    selectedDay: _selectedDate,
+                                    day: day,
+                                    events: events,
                                   );
                                 },
                                 selectedBuilder: (context, day, focusedDay) {

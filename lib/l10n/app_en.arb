@@ -339,14 +339,6 @@
     "@allowAppNotifications": {
         "description": "Setting tile for allowing app notifications"
     },
-    "manageAppNotifications": "Manage App Notifications",
-    "@manageAppNotifications": {
-        "description": "Dialog title for opening app notification settings"
-    },
-    "manageAppNotificationsDescription": "To turn app notifications on or off, update OnTime's notification permission in Settings.",
-    "@manageAppNotificationsDescription": {
-        "description": "Dialog description for opening app notification settings"
-    },
     "privacyPolicy": "Privacy Policy",
     "@privacyPolicy": {
         "description": "Setting tile for opening the privacy policy"

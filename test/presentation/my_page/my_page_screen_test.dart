@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,7 +15,6 @@ import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
-import 'package:on_time_front/presentation/notification_allow/screens/notification_allow_screen.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() {
@@ -89,72 +87,6 @@ void main() {
     expect(openedUris, [ExternalLinks.privacyPolicyUri]);
   });
 
-  testWidgets('shows notification permission switch on My Page', (
-    tester,
-  ) async {
-    await _pumpMyPage(tester, locale: const Locale('en'));
-
-    expect(find.text('Allow App Notifications'), findsOneWidget);
-    expect(
-      tester
-          .widget<Switch>(
-            find.byKey(const Key('notification_permission_switch')),
-          )
-          .value,
-      isFalse,
-    );
-  });
-
-  testWidgets('turning notification switch on requests permission', (
-    tester,
-  ) async {
-    final notificationGateway = _FakeNotificationPermissionGateway(
-      currentStatus: AuthorizationStatus.denied,
-      requestedStatus: AuthorizationStatus.authorized,
-    );
-
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      notificationPermissionGateway: notificationGateway,
-    );
-
-    await tester.tap(find.byKey(const Key('notification_permission_switch')));
-    await tester.pumpAndSettle();
-
-    expect(notificationGateway.requestCount, 1);
-    expect(notificationGateway.initializeCount, 1);
-    expect(
-      tester
-          .widget<Switch>(
-            find.byKey(const Key('notification_permission_switch')),
-          )
-          .value,
-      isTrue,
-    );
-  });
-
-  testWidgets('turning notification switch off opens settings path', (
-    tester,
-  ) async {
-    final notificationGateway = _FakeNotificationPermissionGateway(
-      currentStatus: AuthorizationStatus.authorized,
-    );
-
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      notificationPermissionGateway: notificationGateway,
-    );
-
-    await tester.tap(find.byKey(const Key('notification_permission_switch')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Open Settings'));
-    await tester.pumpAndSettle();
-
-    expect(notificationGateway.openSettingsCount, 1);
-  });
-
   testWidgets('keeps alarms disabled when exact alarm permission is missing', (
     tester,
   ) async {
@@ -174,19 +106,14 @@ void main() {
 
     await _pumpMyPage(tester, locale: const Locale('en'));
 
-    await tester.tap(find.byKey(const Key('alarm_permission_switch')));
+    await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
     await tester.tap(find.text("I'll do it later."));
     await tester.pumpAndSettle();
 
     expect(alarmRepository.updatedSettings, [false]);
     expect(cancelAllUseCase.callCount, 1);
-    expect(
-      tester
-          .widget<Switch>(find.byKey(const Key('alarm_permission_switch')))
-          .value,
-      isFalse,
-    );
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
   });
 }
 
@@ -194,10 +121,7 @@ Future<void> _pumpMyPage(
   WidgetTester tester, {
   required Locale locale,
   PrivacyPolicyLauncher? openPrivacyPolicy,
-  NotificationPermissionGateway? notificationPermissionGateway,
 }) async {
-  final notificationGateway =
-      notificationPermissionGateway ?? _FakeNotificationPermissionGateway();
   await tester.pumpWidget(
     MaterialApp(
       theme: themeData,
@@ -206,51 +130,11 @@ Future<void> _pumpMyPage(
       supportedLocales: AppLocalizations.supportedLocales,
       home: BlocProvider<AuthBloc>.value(
         value: _StubAuthBloc(),
-        child: MyPageScreen(
-          openPrivacyPolicy: openPrivacyPolicy,
-          notificationPermissionGateway: notificationGateway,
-        ),
+        child: MyPageScreen(openPrivacyPolicy: openPrivacyPolicy),
       ),
     ),
   );
   await tester.pumpAndSettle();
-}
-
-class _FakeNotificationPermissionGateway
-    implements NotificationPermissionGateway {
-  _FakeNotificationPermissionGateway({
-    this.currentStatus = AuthorizationStatus.denied,
-    this.requestedStatus = AuthorizationStatus.denied,
-  });
-
-  AuthorizationStatus currentStatus;
-  final AuthorizationStatus requestedStatus;
-  int requestCount = 0;
-  int initializeCount = 0;
-  int openSettingsCount = 0;
-
-  @override
-  Future<AuthorizationStatus> checkNotificationPermission() async {
-    return currentStatus;
-  }
-
-  @override
-  Future<void> initializeNotifications() async {
-    initializeCount += 1;
-  }
-
-  @override
-  Future<bool> openNotificationSettings() async {
-    openSettingsCount += 1;
-    return true;
-  }
-
-  @override
-  Future<AuthorizationStatus> requestPermission() async {
-    requestCount += 1;
-    currentStatus = requestedStatus;
-    return requestedStatus;
-  }
 }
 
 class _StubAuthBloc extends Mock implements AuthBloc {

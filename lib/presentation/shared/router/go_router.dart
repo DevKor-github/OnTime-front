@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -112,8 +112,22 @@ GoRouter goRouterConfig(
       ShellRoute(
         builder: (context, state, child) => BottomNavBarScaffold(child: child),
         routes: [
-          GoRoute(path: '/home', builder: (context, state) => HomeScreenTmp()),
-          GoRoute(path: '/myPage', builder: (context, state) => MyPageScreen()),
+          GoRoute(
+            path: '/home',
+            pageBuilder: (context, state) => _buildBottomNavSlidePage(
+              state: state,
+              beginOffset: const Offset(-1, 0),
+              child: HomeScreenTmp(),
+            ),
+          ),
+          GoRoute(
+            path: '/myPage',
+            pageBuilder: (context, state) => _buildBottomNavSlidePage(
+              state: state,
+              beginOffset: const Offset(1, 0),
+              child: MyPageScreen(),
+            ),
+          ),
         ],
       ),
       GoRoute(
@@ -174,6 +188,37 @@ GoRouter goRouterConfig(
       ),
       GoRoute(path: '/moving', builder: (context, state) => MovingScreen()),
     ],
+  );
+}
+
+CustomTransitionPage<void> _buildBottomNavSlidePage({
+  required GoRouterState state,
+  required Offset beginOffset,
+  required Widget child,
+}) {
+  final slideTween = Tween<Offset>(
+    begin: beginOffset,
+    end: Offset.zero,
+  ).chain(CurveTween(curve: Curves.easeOutCubic));
+  final secondarySlideTween = Tween<Offset>(
+    begin: Offset.zero,
+    end: beginOffset,
+  ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    transitionDuration: const Duration(milliseconds: 280),
+    reverseTransitionDuration: const Duration(milliseconds: 280),
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return SlideTransition(
+        position: secondaryAnimation.drive(secondarySlideTween),
+        child: SlideTransition(
+          position: animation.drive(slideTween),
+          child: child,
+        ),
+      );
+    },
   );
 }
 

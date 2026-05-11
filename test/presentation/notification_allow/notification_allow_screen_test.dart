@@ -96,7 +96,9 @@ void main() {
     expect(harness.gateCubit.state.status, NotificationGateStatus.allowed);
   });
 
-  testWidgets('denied permission opens settings recovery path', (tester) async {
+  testWidgets('denied permission retries request without opening settings', (
+    tester,
+  ) async {
     final permissionGateway = _FakePermissionGateway(
       currentStatus: AuthorizationStatus.denied,
     );
@@ -109,20 +111,13 @@ void main() {
     await tester.tap(find.text('Allow notifications'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text(
-        'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.',
-      ),
-      findsOneWidget,
-    );
-
-    await tester.tap(find.text('Open Settings'));
-    await tester.pumpAndSettle();
-
-    expect(permissionGateway.openSettingsCount, 1);
+    expect(permissionGateway.requestCount, 1);
+    expect(permissionGateway.openSettingsCount, 0);
+    expect(find.text('home'), findsOneWidget);
+    expect(harness.gateCubit.state.status, NotificationGateStatus.dismissed);
   });
 
-  testWidgets('settings grant automatically continues home on app resume', (
+  testWidgets('manual settings grant still continues home on app resume', (
     tester,
   ) async {
     final gateService = _FakeNotificationService();
@@ -135,11 +130,6 @@ void main() {
       gateService: gateService,
     );
     addTearDown(harness.dispose);
-
-    await tester.tap(find.text('Allow notifications'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Open Settings'));
-    await tester.pumpAndSettle();
 
     permissionGateway.currentStatus = AuthorizationStatus.authorized;
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
@@ -168,11 +158,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(permissionGateway.requestCount, 1);
-    expect(find.text('Allow Notifications in Settings'), findsOneWidget);
-
-    await tester.tap(find.text("I'll do it later.").last);
-    await tester.pumpAndSettle();
-
     expect(find.text('home'), findsOneWidget);
     expect(harness.gateCubit.state.status, NotificationGateStatus.dismissed);
   });

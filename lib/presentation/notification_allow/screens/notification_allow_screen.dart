@@ -6,8 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
-import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
-import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 abstract interface class NotificationPermissionGateway {
@@ -231,17 +229,7 @@ Future<void> _handleNotificationPermission(
     if (context.mounted) {
       context.go('/home');
     }
-  } else if (currentStatus == AuthorizationStatus.denied) {
-    final shouldOpenSettings = await _showGoToSettingsDialog(context);
-    if (shouldOpenSettings == true) {
-      await permissionGateway.openNotificationSettings();
-    } else if (context.mounted) {
-      await context.read<NotificationGateCubit>().dismissPrompt();
-      if (context.mounted) {
-        context.go('/home');
-      }
-    }
-  } else if (currentStatus == AuthorizationStatus.notDetermined) {
+  } else {
     final newStatus = await permissionGateway.requestPermission();
 
     if (!context.mounted) return;
@@ -251,49 +239,11 @@ Future<void> _handleNotificationPermission(
       if (context.mounted) {
         context.go('/home');
       }
-    } else if (newStatus == AuthorizationStatus.denied) {
-      final shouldOpenSettings = await _showGoToSettingsDialog(context);
-      if (shouldOpenSettings == true) {
-        await permissionGateway.openNotificationSettings();
-      } else if (context.mounted) {
-        await context.read<NotificationGateCubit>().dismissPrompt();
-        if (context.mounted) {
-          context.go('/home');
-        }
-      }
-    }
-  } else {
-    final shouldOpenSettings = await _showGoToSettingsDialog(context);
-    if (shouldOpenSettings == true) {
-      await permissionGateway.openNotificationSettings();
-    } else if (context.mounted) {
+    } else {
       await context.read<NotificationGateCubit>().dismissPrompt();
       if (context.mounted) {
         context.go('/home');
       }
     }
   }
-}
-
-Future<bool?> _showGoToSettingsDialog(BuildContext context) async {
-  final l10n = AppLocalizations.of(context)!;
-
-  final result = await showTwoActionDialog(
-    context,
-    config: TwoActionDialogConfig(
-      title: l10n.openNotificationSettings,
-      description: l10n.openNotificationSettingsDescription,
-      barrierDismissible: false,
-      secondaryAction: DialogActionConfig(
-        label: l10n.doItLater,
-        variant: ModalWideButtonVariant.neutral,
-      ),
-      primaryAction: DialogActionConfig(
-        label: l10n.openSettings,
-        variant: ModalWideButtonVariant.primary,
-      ),
-    ),
-  );
-
-  return result == DialogActionResult.primary;
 }

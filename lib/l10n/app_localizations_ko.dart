@@ -48,6 +48,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get allowNotifications => '알림 허용하기';
 
   @override
+  String get allowAlarms => '알람 허용하기';
+
+  @override
   String get doItLater => '나중에 할게요.';
 
   @override
@@ -56,6 +59,13 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get notificationPermissionDescription =>
       '약속 준비 리마인더를 보내\n제시간에 준비할 수 있게 도와드려요.';
+
+  @override
+  String get pleaseAllowAlarms => '알람을 허용해주세요';
+
+  @override
+  String get alarmPermissionDescription =>
+      '앱이 닫혀 있어도 약속 준비를 제시간에 시작할 수 있도록 알람을 사용해요.';
 
   @override
   String get late => ' 지각했어요';
@@ -250,6 +260,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get allowAppNotifications => '앱 알림 허용';
+
+  @override
+  String get manageAppNotifications => '앱 알림 관리';
+
+  @override
+  String get manageAppNotificationsDescription =>
+      '앱 알림을 켜거나 끄려면 설정에서 온타임 알림 권한을 변경해주세요.';
 
   @override
   String get privacyPolicy => '개인정보 처리방침';

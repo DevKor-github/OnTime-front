@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Allow notifications'**
   String get allowNotifications;
 
+  /// Button text to allow alarm permission
+  ///
+  /// In en, this message translates to:
+  /// **'Allow alarms'**
+  String get allowAlarms;
+
   /// Button text to skip a step and do it later
   ///
   /// In en, this message translates to:
@@ -193,6 +199,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'OnTime sends schedule preparation reminders so you can get ready on time.'**
   String get notificationPermissionDescription;
+
+  /// Title asking the user to allow alarm permission
+  ///
+  /// In en, this message translates to:
+  /// **'Please allow alarms'**
+  String get pleaseAllowAlarms;
+
+  /// Description explaining why alarm permission is needed
+  ///
+  /// In en, this message translates to:
+  /// **'OnTime uses alarms so preparation starts at the right moment, even when the app is closed.'**
+  String get alarmPermissionDescription;
 
   /// Appended to the time when the user is late
   ///
@@ -559,6 +577,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow App Notifications'**
   String get allowAppNotifications;
+
+  /// Dialog title for opening app notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Manage App Notifications'**
+  String get manageAppNotifications;
+
+  /// Dialog description for opening app notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'To turn app notifications on or off, update OnTime\'s notification permission in Settings.'**
+  String get manageAppNotificationsDescription;
 
   /// Setting tile for opening the privacy policy
   ///

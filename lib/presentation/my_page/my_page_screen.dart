@@ -7,7 +7,6 @@ import 'package:on_time_front/core/constants/external_links.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
-import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
@@ -18,16 +17,23 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/my_page/my_page_modal/delete_user_modal.dart';
 import 'package:on_time_front/presentation/my_page/my_page_modal/logout_modal.dart';
+import 'package:on_time_front/presentation/notification_allow/screens/notification_allow_screen.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 typedef PrivacyPolicyLauncher = Future<bool> Function(Uri uri);
 
 class MyPageScreen extends StatelessWidget {
-  const MyPageScreen({super.key, PrivacyPolicyLauncher? openPrivacyPolicy})
-    : _openPrivacyPolicy = openPrivacyPolicy;
+  const MyPageScreen({
+    super.key,
+    PrivacyPolicyLauncher? openPrivacyPolicy,
+    NotificationPermissionGateway notificationPermissionGateway =
+        const NotificationServicePermissionGateway(),
+  }) : _openPrivacyPolicy = openPrivacyPolicy,
+       _notificationPermissionGateway = notificationPermissionGateway;
 
   final PrivacyPolicyLauncher? _openPrivacyPolicy;
+  final NotificationPermissionGateway _notificationPermissionGateway;
 
   @override
   Widget build(BuildContext context) {
@@ -92,11 +98,8 @@ class MyPageScreen extends StatelessWidget {
                       if (updatedPreparation != null) {}
                     },
                   ),
-                  _SettingTile(
-                    title: AppLocalizations.of(context)!.allowAppNotifications,
-                    onTap: () async {
-                      await _handleNotificationPermission(context);
-                    },
+                  _NotificationStatusView(
+                    permissionGateway: _notificationPermissionGateway,
                   ),
                   _SettingTile(
                     title: AppLocalizations.of(context)!.privacyPolicy,
@@ -257,6 +260,14 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
           if (shouldOpenSettings == DialogActionResult.primary) {
             await schedulerService.requestPermission();
           }
+          final updatedNativePermission = await schedulerService
+              .checkPermission();
+          if (_needsExactAlarmRecovery(updatedNativePermission)) {
+            await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+            await getIt.get<CancelAllAlarmsUseCase>()();
+            await _load();
+            return;
+          }
         }
 
         await fallbackService.requestPermission();
@@ -294,7 +305,118 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
             ),
           ],
         ),
-        Switch(value: _alarmsEnabled, onChanged: _isUpdating ? null : _toggle),
+        Switch(
+          key: const Key('alarm_permission_switch'),
+          value: _alarmsEnabled,
+          onChanged: _isUpdating ? null : _toggle,
+        ),
+      ],
+    );
+  }
+}
+
+class _NotificationStatusView extends StatefulWidget {
+  const _NotificationStatusView({required this.permissionGateway});
+
+  final NotificationPermissionGateway permissionGateway;
+
+  @override
+  State<_NotificationStatusView> createState() =>
+      _NotificationStatusViewState();
+}
+
+class _NotificationStatusViewState extends State<_NotificationStatusView>
+    with WidgetsBindingObserver {
+  bool _isLoading = true;
+  bool _isUpdating = false;
+  bool _notificationsEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _load();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    _load();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final status = await widget.permissionGateway.checkNotificationPermission();
+    if (!mounted) return;
+    setState(() {
+      _notificationsEnabled = _isNotificationAllowed(status);
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _toggle(bool value) async {
+    setState(() {
+      _isUpdating = true;
+      _notificationsEnabled = value;
+    });
+    try {
+      if (value) {
+        final status = await widget.permissionGateway.requestPermission();
+        if (_isNotificationAllowed(status)) {
+          await widget.permissionGateway.initializeNotifications();
+        }
+      } else {
+        final shouldOpenSettings = await _showNotificationSettingsDialog(
+          context,
+        );
+        if (shouldOpenSettings == true) {
+          await widget.permissionGateway.openNotificationSettings();
+        }
+      }
+      await _load();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdating = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.allowAppNotifications,
+              style: textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _isLoading ? '확인 중' : (_notificationsEnabled ? '켜짐' : '꺼짐'),
+              style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
+            ),
+          ],
+        ),
+        Switch(
+          key: const Key('notification_permission_switch'),
+          value: _notificationsEnabled,
+          onChanged: _isUpdating ? null : _toggle,
+        ),
       ],
     );
   }
@@ -303,6 +425,11 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
 bool _needsExactAlarmRecovery(AlarmPermissionState permission) {
   return permission == AlarmPermissionState.denied ||
       permission == AlarmPermissionState.notDetermined;
+}
+
+bool _isNotificationAllowed(AuthorizationStatus status) {
+  return status == AuthorizationStatus.authorized ||
+      status == AuthorizationStatus.provisional;
 }
 
 class _MyAccountView extends StatelessWidget {
@@ -410,87 +537,6 @@ class _SettingTile extends StatelessWidget {
   }
 }
 
-Future<void> _handleNotificationPermission(BuildContext context) async {
-  final notificationService = NotificationService.instance;
-  final currentStatus = await notificationService.checkNotificationPermission();
-
-  if (!context.mounted) return;
-
-  if (currentStatus == AuthorizationStatus.authorized) {
-    await _showAlreadyEnabledDialog(context);
-  } else if (currentStatus == AuthorizationStatus.denied) {
-    final shouldRequest = await _showPermissionRationaleDialog(context);
-    if (shouldRequest == true && context.mounted) {
-      final newStatus = await notificationService.requestPermission();
-
-      if (!context.mounted) return;
-
-      if (newStatus == AuthorizationStatus.authorized) {
-        await notificationService.initialize();
-        if (!context.mounted) return;
-        await _showPermissionGrantedDialog(context);
-      } else if (newStatus == AuthorizationStatus.denied) {
-        await _showGoToSettingsDialog(context);
-      }
-    }
-  } else if (currentStatus == AuthorizationStatus.notDetermined) {
-    final shouldRequest = await _showPermissionRationaleDialog(context);
-    if (shouldRequest == true && context.mounted) {
-      final newStatus = await notificationService.requestPermission();
-
-      if (!context.mounted) return;
-
-      if (newStatus == AuthorizationStatus.authorized) {
-        await notificationService.initialize();
-        if (!context.mounted) return;
-        await _showPermissionGrantedDialog(context);
-      } else if (newStatus == AuthorizationStatus.denied) {
-        await _showGoToSettingsDialog(context);
-      }
-    }
-  } else {
-    await _showGoToSettingsDialog(context);
-  }
-}
-
-Future<void> _showAlreadyEnabledDialog(BuildContext context) async {
-  final l10n = AppLocalizations.of(context)!;
-
-  await showTwoActionDialog(
-    context,
-    config: TwoActionDialogConfig(
-      title: l10n.notificationAlreadyEnabled,
-      description: l10n.notificationAlreadyEnabledDescription,
-      primaryAction: DialogActionConfig(
-        label: l10n.ok,
-        variant: ModalWideButtonVariant.primary,
-      ),
-    ),
-  );
-}
-
-Future<bool?> _showPermissionRationaleDialog(BuildContext context) async {
-  final l10n = AppLocalizations.of(context)!;
-
-  final result = await showTwoActionDialog(
-    context,
-    config: TwoActionDialogConfig(
-      title: l10n.notificationPermissionRequired,
-      description: l10n.notificationPermissionRequiredDescription,
-      secondaryAction: DialogActionConfig(
-        label: l10n.cancel,
-        variant: ModalWideButtonVariant.neutral,
-      ),
-      primaryAction: DialogActionConfig(
-        label: l10n.allow,
-        variant: ModalWideButtonVariant.primary,
-      ),
-    ),
-  );
-
-  return result == DialogActionResult.primary;
-}
-
 Future<DialogActionResult?> _showExactAlarmPermissionDialog(
   BuildContext context,
 ) async {
@@ -513,30 +559,14 @@ Future<DialogActionResult?> _showExactAlarmPermissionDialog(
   );
 }
 
-Future<void> _showPermissionGrantedDialog(BuildContext context) async {
-  final l10n = AppLocalizations.of(context)!;
-
-  await showTwoActionDialog(
-    context,
-    config: TwoActionDialogConfig(
-      title: l10n.notificationPermissionGranted,
-      description: l10n.notificationPermissionGrantedDescription,
-      primaryAction: DialogActionConfig(
-        label: l10n.ok,
-        variant: ModalWideButtonVariant.primary,
-      ),
-    ),
-  );
-}
-
-Future<void> _showGoToSettingsDialog(BuildContext context) async {
+Future<bool?> _showNotificationSettingsDialog(BuildContext context) async {
   final l10n = AppLocalizations.of(context)!;
 
   final result = await showTwoActionDialog(
     context,
     config: TwoActionDialogConfig(
-      title: l10n.openNotificationSettings,
-      description: l10n.openNotificationSettingsDescription,
+      title: l10n.manageAppNotifications,
+      description: l10n.manageAppNotificationsDescription,
       secondaryAction: DialogActionConfig(
         label: l10n.cancel,
         variant: ModalWideButtonVariant.neutral,
@@ -548,7 +578,5 @@ Future<void> _showGoToSettingsDialog(BuildContext context) async {
     ),
   );
 
-  if (result == DialogActionResult.primary) {
-    await NotificationService.instance.openNotificationSettings();
-  }
+  return result == DialogActionResult.primary;
 }

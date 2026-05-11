@@ -50,6 +50,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allowNotifications => 'Allow notifications';
 
   @override
+  String get allowAlarms => 'Allow alarms';
+
+  @override
   String get doItLater => 'I\'ll do it later.';
 
   @override
@@ -58,6 +61,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationPermissionDescription =>
       'OnTime sends schedule preparation reminders so you can get ready on time.';
+
+  @override
+  String get pleaseAllowAlarms => 'Please allow alarms';
+
+  @override
+  String get alarmPermissionDescription =>
+      'OnTime uses alarms so preparation starts at the right moment, even when the app is closed.';
 
   @override
   String get late => ' late';
@@ -269,6 +279,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allowAppNotifications => 'Allow App Notifications';
+
+  @override
+  String get manageAppNotifications => 'Manage App Notifications';
+
+  @override
+  String get manageAppNotificationsDescription =>
+      'To turn app notifications on or off, update OnTime\'s notification permission in Settings.';
 
   @override
   String get privacyPolicy => 'Privacy Policy';

@@ -10,6 +10,7 @@ import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
+import 'package:on_time_front/presentation/app/cubit/alarm_gate_cubit.dart';
 import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
 import 'package:on_time_front/presentation/shared/router/go_router.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
@@ -31,6 +32,7 @@ class App extends StatelessWidget {
         BlocProvider<NotificationGateCubit>(
           create: (context) => NotificationGateCubit(),
         ),
+        BlocProvider<AlarmGateCubit>(create: (context) => AlarmGateCubit()),
       ],
       child: const AppView(),
     );
@@ -61,6 +63,7 @@ class _AppRouterViewState extends State<_AppRouterView>
     context.read<AuthBloc>(),
     context.read<ScheduleBloc>(),
     context.read<NotificationGateCubit>(),
+    context.read<AlarmGateCubit>(),
   );
   final _alarmLaunchPollTimers = <Timer>[];
   Map<String, String>? _pendingAlarmLaunchPayload;
@@ -73,11 +76,18 @@ class _AppRouterViewState extends State<_AppRouterView>
       if (!mounted) return;
       AppLogger.debug('$_logTag initialize launch handling');
       unawaited(
-        getIt
-            .get<AlarmSchedulerService>()
-            .initializeLaunchHandling(_handleAlarmLaunchPayload),
+        getIt.get<AlarmSchedulerService>().initializeLaunchHandling(
+          _handleAlarmLaunchPayload,
+        ),
       );
       _schedulePendingAlarmLaunchPolls();
+      if (context.read<AuthBloc>().state.status == AuthStatus.authenticated) {
+        unawaited(
+          context.read<AlarmGateCubit>().refreshPermission(
+            disableAlarmsWhenPermissionMissing: true,
+          ),
+        );
+      }
     });
   }
 
@@ -93,6 +103,11 @@ class _AppRouterViewState extends State<_AppRouterView>
     if (context.read<AuthBloc>().state.status != AuthStatus.authenticated) {
       return;
     }
+    unawaited(
+      context.read<AlarmGateCubit>().refreshPermission(
+        disableAlarmsWhenPermissionMissing: true,
+      ),
+    );
     unawaited(getIt.get<ReconcileAlarmsUseCase>()());
   }
 
@@ -170,7 +185,16 @@ class _AppRouterViewState extends State<_AppRouterView>
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) => _drainPendingAlarmLaunchPayload(),
+      listener: (context, state) {
+        _drainPendingAlarmLaunchPayload();
+        if (state.status == AuthStatus.authenticated) {
+          unawaited(
+            context.read<AlarmGateCubit>().refreshPermission(
+              disableAlarmsWhenPermissionMissing: true,
+            ),
+          );
+        }
+      },
       child: MaterialApp.router(
         theme: themeData,
         routerConfig: _router,

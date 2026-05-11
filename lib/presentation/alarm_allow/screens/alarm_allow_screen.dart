@@ -1,63 +1,23 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
+import 'package:on_time_front/presentation/app/cubit/alarm_gate_cubit.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
-abstract interface class NotificationPermissionGateway {
-  Future<AuthorizationStatus> checkNotificationPermission();
+class AlarmAllowScreen extends StatefulWidget {
+  const AlarmAllowScreen({super.key});
 
-  Future<AuthorizationStatus> requestPermission();
-
-  Future<void> initializeNotifications();
-
-  Future<bool> openNotificationSettings();
+  @override
+  State<AlarmAllowScreen> createState() => _AlarmAllowScreenState();
 }
 
-class NotificationServicePermissionGateway
-    implements NotificationPermissionGateway {
-  const NotificationServicePermissionGateway();
-
-  @override
-  Future<AuthorizationStatus> checkNotificationPermission() {
-    return NotificationService.instance.checkNotificationPermission();
-  }
-
-  @override
-  Future<void> initializeNotifications() {
-    return NotificationService.instance.initialize();
-  }
-
-  @override
-  Future<bool> openNotificationSettings() {
-    return NotificationService.instance.openNotificationSettings();
-  }
-
-  @override
-  Future<AuthorizationStatus> requestPermission() {
-    return NotificationService.instance.requestPermission();
-  }
-}
-
-class NotificationAllowScreen extends StatefulWidget {
-  const NotificationAllowScreen({
-    super.key,
-    this.permissionGateway = const NotificationServicePermissionGateway(),
-  });
-
-  final NotificationPermissionGateway permissionGateway;
-
-  @override
-  State<NotificationAllowScreen> createState() =>
-      _NotificationAllowScreenState();
-}
-
-class _NotificationAllowScreenState extends State<NotificationAllowScreen>
+class _AlarmAllowScreenState extends State<AlarmAllowScreen>
     with WidgetsBindingObserver {
+  bool _isRequesting = false;
+
   @override
   void initState() {
     super.initState();
@@ -67,7 +27,10 @@ class _NotificationAllowScreenState extends State<NotificationAllowScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
-    _continueIfPermissionAllowed();
+    context.read<AlarmGateCubit>().refreshPermission(
+      disableAlarmsWhenPermissionMissing: true,
+      enableAlarmsOnGrant: true,
+    );
   }
 
   @override
@@ -76,14 +39,23 @@ class _NotificationAllowScreenState extends State<NotificationAllowScreen>
     super.dispose();
   }
 
-  Future<void> _continueIfPermissionAllowed() async {
-    final currentStatus = await widget.permissionGateway
-        .checkNotificationPermission();
-    if (!mounted || currentStatus != AuthorizationStatus.authorized) {
-      return;
+  Future<void> _requestPermission() async {
+    setState(() {
+      _isRequesting = true;
+    });
+    final permission = await context.read<AlarmGateCubit>().requestPermission();
+    if (!mounted) return;
+    setState(() {
+      _isRequesting = false;
+    });
+    if (permission == AlarmPermissionState.granted ||
+        permission == AlarmPermissionState.unsupported) {
+      context.go('/home');
     }
+  }
 
-    await context.read<NotificationGateCubit>().markPermissionAllowed();
+  Future<void> _dismiss() async {
+    await context.read<AlarmGateCubit>().dismissPrompt();
     if (!mounted) return;
     context.go('/home');
   }
@@ -106,11 +78,15 @@ class _NotificationAllowScreenState extends State<NotificationAllowScreen>
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 40,
-                  children: [_Image(), _Title()],
+                  children: const [_Image(), _Title()],
                 ),
               ),
             ),
-            _Buttons(permissionGateway: widget.permissionGateway),
+            _Buttons(
+              isRequesting: _isRequesting,
+              onAllow: _requestPermission,
+              onDismiss: _dismiss,
+            ),
           ],
         ),
       ),
@@ -119,9 +95,15 @@ class _NotificationAllowScreenState extends State<NotificationAllowScreen>
 }
 
 class _Buttons extends StatelessWidget {
-  const _Buttons({required this.permissionGateway});
+  const _Buttons({
+    required this.isRequesting,
+    required this.onAllow,
+    required this.onDismiss,
+  });
 
-  final NotificationPermissionGateway permissionGateway;
+  final bool isRequesting;
+  final Future<void> Function() onAllow;
+  final Future<void> Function() onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -134,11 +116,9 @@ class _Buttons extends StatelessWidget {
       spacing: 24,
       children: [
         FilledButton(
-          onPressed: () async {
-            await _handleNotificationPermission(context, permissionGateway);
-          },
+          onPressed: isRequesting ? null : () => onAllow(),
           child: Text(
-            AppLocalizations.of(context)!.allowNotifications,
+            AppLocalizations.of(context)!.allowAlarms,
             textAlign: TextAlign.center,
             style: textTheme.titleMedium?.copyWith(
               color: colorScheme.onPrimary,
@@ -146,11 +126,7 @@ class _Buttons extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () async {
-            await context.read<NotificationGateCubit>().dismissPrompt();
-            if (!context.mounted) return;
-            context.go('/home');
-          },
+          onTap: isRequesting ? null : () => onDismiss(),
           child: SizedBox(
             width: 358,
             child: Text(
@@ -183,14 +159,14 @@ class _Title extends StatelessWidget {
       spacing: 12,
       children: [
         Text(
-          AppLocalizations.of(context)!.pleaseAllowNotifications,
+          AppLocalizations.of(context)!.pleaseAllowAlarms,
           textAlign: TextAlign.center,
           style: textTheme.headlineMedium?.copyWith(color: colorScheme.primary),
         ),
         SizedBox(
           width: 282,
           child: Text(
-            AppLocalizations.of(context)!.notificationPermissionDescription,
+            AppLocalizations.of(context)!.alarmPermissionDescription,
             textAlign: TextAlign.center,
             style: textTheme.titleMedium?.copyWith(color: colorScheme.outline),
           ),
@@ -220,37 +196,5 @@ class _Image extends StatelessWidget {
         colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
       ),
     );
-  }
-}
-
-Future<void> _handleNotificationPermission(
-  BuildContext context,
-  NotificationPermissionGateway permissionGateway,
-) async {
-  final currentStatus = await permissionGateway.checkNotificationPermission();
-
-  if (!context.mounted) return;
-
-  if (currentStatus == AuthorizationStatus.authorized) {
-    await context.read<NotificationGateCubit>().markPermissionAllowed();
-    if (context.mounted) {
-      context.go('/home');
-    }
-  } else {
-    final newStatus = await permissionGateway.requestPermission();
-
-    if (!context.mounted) return;
-
-    if (newStatus == AuthorizationStatus.authorized) {
-      await context.read<NotificationGateCubit>().markPermissionAllowed();
-      if (context.mounted) {
-        context.go('/home');
-      }
-    } else {
-      await context.read<NotificationGateCubit>().dismissPrompt();
-      if (context.mounted) {
-        context.go('/home');
-      }
-    }
   }
 }

@@ -51,6 +51,10 @@
     "@allowNotifications": {
         "description": "Button text to allow notifications"
     },
+    "allowAlarms": "Allow alarms",
+    "@allowAlarms": {
+        "description": "Button text to allow alarm permission"
+    },
     "doItLater": "I'll do it later.",
     "@doItLater": {
         "description": "Button text to skip a step and do it later"
@@ -62,6 +66,14 @@
     "notificationPermissionDescription": "OnTime sends schedule preparation reminders so you can get ready on time.",
     "@notificationPermissionDescription": {
         "description": "Description explaining why notification permission is needed"
+    },
+    "pleaseAllowAlarms": "Please allow alarms",
+    "@pleaseAllowAlarms": {
+        "description": "Title asking the user to allow alarm permission"
+    },
+    "alarmPermissionDescription": "OnTime uses alarms so preparation starts at the right moment, even when the app is closed.",
+    "@alarmPermissionDescription": {
+        "description": "Description explaining why alarm permission is needed"
     },
     "late": " late",
     "@late": {
@@ -326,6 +338,14 @@
     "allowAppNotifications": "Allow App Notifications",
     "@allowAppNotifications": {
         "description": "Setting tile for allowing app notifications"
+    },
+    "manageAppNotifications": "Manage App Notifications",
+    "@manageAppNotifications": {
+        "description": "Dialog title for opening app notification settings"
+    },
+    "manageAppNotificationsDescription": "To turn app notifications on or off, update OnTime's notification permission in Settings.",
+    "@manageAppNotificationsDescription": {
+        "description": "Dialog description for opening app notification settings"
     },
     "privacyPolicy": "Privacy Policy",
     "@privacyPolicy": {

@@ -96,7 +96,9 @@ void main() {
     expect(harness.gateCubit.state.status, NotificationGateStatus.allowed);
   });
 
-  testWidgets('denied permission opens settings recovery path', (tester) async {
+  testWidgets('denied permission retries request without opening settings', (
+    tester,
+  ) async {
     final permissionGateway = _FakePermissionGateway(
       currentStatus: AuthorizationStatus.denied,
     );
@@ -109,17 +111,34 @@ void main() {
     await tester.tap(find.text('Allow notifications'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text(
-        'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.',
-      ),
-      findsOneWidget,
-    );
+    expect(permissionGateway.requestCount, 1);
+    expect(permissionGateway.openSettingsCount, 0);
+    expect(find.text('home'), findsOneWidget);
+    expect(harness.gateCubit.state.status, NotificationGateStatus.dismissed);
+  });
 
-    await tester.tap(find.text('Open Settings'));
+  testWidgets('manual settings grant still continues home on app resume', (
+    tester,
+  ) async {
+    final gateService = _FakeNotificationService();
+    final permissionGateway = _FakePermissionGateway(
+      currentStatus: AuthorizationStatus.denied,
+    );
+    final harness = await _pumpNotificationAllowScreen(
+      tester,
+      permissionGateway: permissionGateway,
+      gateService: gateService,
+    );
+    addTearDown(harness.dispose);
+
+    permissionGateway.currentStatus = AuthorizationStatus.authorized;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
 
-    expect(permissionGateway.openSettingsCount, 1);
+    expect(find.text('home'), findsOneWidget);
+    expect(gateService.initializeCount, greaterThanOrEqualTo(1));
+    expect(harness.gateCubit.state.status, NotificationGateStatus.allowed);
   });
 
   testWidgets('request denial lets user dismiss prompt and continue home', (
@@ -139,11 +158,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(permissionGateway.requestCount, 1);
-    expect(find.text('Allow Notifications in Settings'), findsOneWidget);
-
-    await tester.tap(find.text("I'll do it later.").last);
-    await tester.pumpAndSettle();
-
     expect(find.text('home'), findsOneWidget);
     expect(harness.gateCubit.state.status, NotificationGateStatus.dismissed);
   });
@@ -217,6 +231,9 @@ class _FakePermissionGateway implements NotificationPermissionGateway {
   Future<AuthorizationStatus> checkNotificationPermission() async {
     return currentStatus;
   }
+
+  @override
+  Future<void> initializeNotifications() async {}
 
   @override
   Future<bool> openNotificationSettings() async {

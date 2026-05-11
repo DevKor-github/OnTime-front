@@ -38,13 +38,50 @@ class NotificationServicePermissionGateway
   }
 }
 
-class NotificationAllowScreen extends StatelessWidget {
+class NotificationAllowScreen extends StatefulWidget {
   const NotificationAllowScreen({
     super.key,
     this.permissionGateway = const NotificationServicePermissionGateway(),
   });
 
   final NotificationPermissionGateway permissionGateway;
+
+  @override
+  State<NotificationAllowScreen> createState() =>
+      _NotificationAllowScreenState();
+}
+
+class _NotificationAllowScreenState extends State<NotificationAllowScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    _continueIfPermissionAllowed();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Future<void> _continueIfPermissionAllowed() async {
+    final currentStatus = await widget.permissionGateway
+        .checkNotificationPermission();
+    if (!mounted || currentStatus != AuthorizationStatus.authorized) {
+      return;
+    }
+
+    await context.read<NotificationGateCubit>().markPermissionAllowed();
+    if (!mounted) return;
+    context.go('/home');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +105,7 @@ class NotificationAllowScreen extends StatelessWidget {
                 ),
               ),
             ),
-            _Buttons(permissionGateway: permissionGateway),
+            _Buttons(permissionGateway: widget.permissionGateway),
           ],
         ),
       ),

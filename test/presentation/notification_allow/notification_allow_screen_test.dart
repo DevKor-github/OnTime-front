@@ -122,6 +122,35 @@ void main() {
     expect(permissionGateway.openSettingsCount, 1);
   });
 
+  testWidgets('settings grant automatically continues home on app resume', (
+    tester,
+  ) async {
+    final gateService = _FakeNotificationService();
+    final permissionGateway = _FakePermissionGateway(
+      currentStatus: AuthorizationStatus.denied,
+    );
+    final harness = await _pumpNotificationAllowScreen(
+      tester,
+      permissionGateway: permissionGateway,
+      gateService: gateService,
+    );
+    addTearDown(harness.dispose);
+
+    await tester.tap(find.text('Allow notifications'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open Settings'));
+    await tester.pumpAndSettle();
+
+    permissionGateway.currentStatus = AuthorizationStatus.authorized;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(find.text('home'), findsOneWidget);
+    expect(gateService.initializeCount, greaterThanOrEqualTo(1));
+    expect(harness.gateCubit.state.status, NotificationGateStatus.allowed);
+  });
+
   testWidgets('request denial lets user dismiss prompt and continue home', (
     tester,
   ) async {

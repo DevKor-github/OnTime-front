@@ -14,14 +14,21 @@ class PreparationSpareTimeEditScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DefaultPreparationSpareTimeFormBloc>(
-      create: (context) {
-        final spareTime =
-            context.read<AuthBloc>().state.user.spareTimeOrNull ??
-            Duration.zero;
-        return getIt.get<DefaultPreparationSpareTimeFormBloc>()
-          ..add(FormEditRequested(spareTime: spareTime));
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<DefaultPreparationSpareTimeFormBloc>(
+          create: (context) {
+            final spareTime =
+                context.read<AuthBloc>().state.user.spareTimeOrNull ??
+                Duration.zero;
+            return getIt.get<DefaultPreparationSpareTimeFormBloc>()
+              ..add(FormEditRequested(spareTime: spareTime));
+          },
+        ),
+        BlocProvider<PreparationFormBloc>(
+          create: (context) => getIt.get<PreparationFormBloc>(),
+        ),
+      ],
       child: const _PreparationSpareTimeEditView(),
     );
   }
@@ -32,91 +39,149 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<
+      DefaultPreparationSpareTimeFormBloc,
+      DefaultPreparationSpareTimeFormState
+    >(
+      listenWhen: (previous, current) =>
+          current.status == DefaultPreparationSpareTimeStatus.success &&
+          current.preparation != null &&
+          previous.preparation != current.preparation,
+      listener: (context, state) {
+        context.read<PreparationFormBloc>().add(
+          PreparationFormEditRequested(preparationEntity: state.preparation!),
+        );
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          scrolledUnderElevation: 0,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            AppLocalizations.of(context)!.editDefaultPreparation,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          actions: [
+            BlocBuilder<
+              DefaultPreparationSpareTimeFormBloc,
+              DefaultPreparationSpareTimeFormState
+            >(
+              buildWhen: (previous, current) =>
+                  previous.status != current.status ||
+                  previous.spareTime != current.spareTime,
+              builder: (context, state2) {
+                return BlocBuilder<PreparationFormBloc, PreparationFormState>(
+                  buildWhen: (previous, current) =>
+                      previous.isValid != current.isValid,
+                  builder: (context, preparationState) {
+                    return TextButton(
+                      onPressed:
+                          state2.isReadyForEditing && preparationState.isValid
+                          ? () {
+                              context
+                                  .read<DefaultPreparationSpareTimeFormBloc>()
+                                  .add(
+                                    FormSubmitted(
+                                      note: '',
+                                      preparation: preparationState
+                                          .toPreparationEntity(),
+                                    ),
+                                  );
+                              context.pop();
+                            }
+                          : null,
+                      child: Text(AppLocalizations.of(context)!.ok),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(33),
+            child: SizedBox(height: 33),
+          ),
+        ),
+        body: const SafeArea(child: _PreparationSpareTimeEditBody()),
+      ),
+    );
+  }
+}
+
+class _PreparationSpareTimeEditBody extends StatelessWidget {
+  const _PreparationSpareTimeEditBody();
+
+  @override
+  Widget build(BuildContext context) {
     return BlocBuilder<
       DefaultPreparationSpareTimeFormBloc,
       DefaultPreparationSpareTimeFormState
     >(
+      buildWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.spareTime != current.spareTime ||
+          previous.preparation != current.preparation,
       builder: (context, state) {
-        if (state.status == DefaultPreparationSpareTimeStatus.success) {
-          return BlocProvider<PreparationFormBloc>(
-            create: (context) => getIt.get<PreparationFormBloc>()
-              ..add(
-                PreparationFormEditRequested(
-                  preparationEntity: state.preparation!,
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          child: state.isReadyForEditing
+              ? _PreparationSpareTimeEditContent(
+                  key: const ValueKey('preparation_spare_time_form'),
+                  spareTime: state.spareTime!,
+                )
+              : const _PreparationSpareTimeEditLoading(
+                  key: ValueKey('preparation_spare_time_loading'),
                 ),
-              ),
+        );
+      },
+    );
+  }
+}
+
+class _PreparationSpareTimeEditLoading extends StatelessWidget {
+  const _PreparationSpareTimeEditLoading({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: CircularProgressIndicator());
+  }
+}
+
+class _PreparationSpareTimeEditContent extends StatelessWidget {
+  const _PreparationSpareTimeEditContent({super.key, required this.spareTime});
+
+  final Duration spareTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: _SpareTimeSection(spareTime: spareTime),
+          ),
+          SizedBox(height: 42.0),
+          Expanded(
             child: BlocBuilder<PreparationFormBloc, PreparationFormState>(
-              builder: (context, state2) {
-                return Scaffold(
-                  appBar: AppBar(
-                    elevation: 0,
-                    shadowColor: Colors.transparent,
-                    scrolledUnderElevation: 0,
-                    backgroundColor: Colors.transparent,
-                    leading: IconButton(
-                      icon: Icon(
-                        Icons.arrow_back_ios_rounded,
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
-                      onPressed: () => context.pop(),
-                    ),
-                    title: Text(
-                      AppLocalizations.of(context)!.editDefaultPreparation,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: state2.isValid
-                            ? () {
-                                context
-                                    .read<DefaultPreparationSpareTimeFormBloc>()
-                                    .add(
-                                      FormSubmitted(
-                                        note: '',
-                                        preparation: state2
-                                            .toPreparationEntity(),
-                                      ),
-                                    );
-                                context.pop();
-                              }
-                            : null,
-                        child: Text(AppLocalizations.of(context)!.ok),
-                      ),
-                    ],
-                    bottom: const PreferredSize(
-                      preferredSize: Size.fromHeight(33),
-                      child: SizedBox(height: 33),
-                    ),
-                  ),
-                  body: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: _SpareTimeSection(
-                              spareTime: state.spareTime!,
-                            ),
-                          ),
-                          SizedBox(height: 42.0),
-                          Expanded(
-                            child: _PreparationSection(
-                              preparationNameState: state2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
+              builder: (context, state) {
+                return _PreparationSection(preparationNameState: state);
               },
             ),
-          );
-        }
-
-        return const Center(child: CircularProgressIndicator());
-      },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -157,6 +222,13 @@ class _SpareTimeSection extends StatelessWidget {
       ],
     );
   }
+}
+
+extension on DefaultPreparationSpareTimeFormState {
+  bool get isReadyForEditing =>
+      status == DefaultPreparationSpareTimeStatus.success &&
+      spareTime != null &&
+      preparation != null;
 }
 
 class _PreparationSection extends StatelessWidget {

@@ -10,6 +10,8 @@ import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
+import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
+import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
@@ -20,12 +22,33 @@ void main() {
 
   setUp(() async {
     await getIt.reset();
+    final alarmRepository = _FakeAlarmRepository();
+    final alarmRegistry = _FakeAlarmRegistry();
+    final alarmScheduler = _FakeAlarmSchedulerService();
+    final fallbackAlarmNotificationService =
+        _FakeFallbackAlarmNotificationService();
     getIt
-      ..registerSingleton<AlarmRepository>(_FakeAlarmRepository())
-      ..registerSingleton<AlarmRegistryRepository>(_FakeAlarmRegistry())
-      ..registerSingleton<AlarmSchedulerService>(_FakeAlarmSchedulerService())
+      ..registerSingleton<AlarmRepository>(alarmRepository)
+      ..registerSingleton<AlarmRegistryRepository>(alarmRegistry)
+      ..registerSingleton<AlarmSchedulerService>(alarmScheduler)
       ..registerSingleton<FallbackAlarmNotificationService>(
-        _FakeFallbackAlarmNotificationService(),
+        fallbackAlarmNotificationService,
+      )
+      ..registerSingleton<CancelAllAlarmsUseCase>(
+        _FakeCancelAllAlarmsUseCase(
+          alarmRepository,
+          alarmRegistry,
+          alarmScheduler,
+          fallbackAlarmNotificationService,
+        ),
+      )
+      ..registerSingleton<ReconcileAlarmsUseCase>(
+        _FakeReconcileAlarmsUseCase(
+          alarmRepository,
+          alarmRegistry,
+          alarmScheduler,
+          fallbackAlarmNotificationService,
+        ),
       );
   });
 
@@ -63,6 +86,35 @@ void main() {
 
     expect(openedUris, [ExternalLinks.privacyPolicyUri]);
   });
+
+  testWidgets('keeps alarms disabled when exact alarm permission is missing', (
+    tester,
+  ) async {
+    final alarmRepository =
+        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
+    final alarmScheduler =
+        getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
+    final cancelAllUseCase =
+        getIt.get<CancelAllAlarmsUseCase>() as _FakeCancelAllAlarmsUseCase;
+    alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+    alarmScheduler
+      ..capabilities = const AlarmSchedulerCapabilities(
+        supportsNativeAlarm: true,
+        nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+      )
+      ..permission = AlarmPermissionState.denied;
+
+    await _pumpMyPage(tester, locale: const Locale('en'));
+
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("I'll do it later."));
+    await tester.pumpAndSettle();
+
+    expect(alarmRepository.updatedSettings, [false]);
+    expect(cancelAllUseCase.callCount, 1);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+  });
 }
 
 Future<void> _pumpMyPage(
@@ -97,6 +149,9 @@ class _StubAuthBloc extends Mock implements AuthBloc {
 }
 
 class _FakeAlarmRepository implements AlarmRepository {
+  AlarmSettings settings = const AlarmSettings(alarmsEnabled: false);
+  final updatedSettings = <bool>[];
+
   @override
   Future<String> getDeviceId() => throw UnimplementedError();
 
@@ -106,12 +161,16 @@ class _FakeAlarmRepository implements AlarmRepository {
 
   @override
   Future<AlarmSettings> getAlarmSettings() async {
-    return const AlarmSettings(alarmsEnabled: false);
+    return settings;
   }
 
   @override
-  Future<AlarmSettings> updateAlarmSettings({required bool alarmsEnabled}) {
-    throw UnimplementedError();
+  Future<AlarmSettings> updateAlarmSettings({
+    required bool alarmsEnabled,
+  }) async {
+    updatedSettings.add(alarmsEnabled);
+    settings = AlarmSettings(alarmsEnabled: alarmsEnabled);
+    return settings;
   }
 
   @override
@@ -164,14 +223,25 @@ class _FakeAlarmRegistry implements AlarmRegistryRepository {
 }
 
 class _FakeAlarmSchedulerService extends AlarmSchedulerService {
+  AlarmSchedulerCapabilities capabilities =
+      AlarmSchedulerCapabilities.unsupported;
+  AlarmPermissionState permission = AlarmPermissionState.unsupported;
+  int requestCount = 0;
+
   @override
   Future<AlarmSchedulerCapabilities> getCapabilities() async {
-    return AlarmSchedulerCapabilities.unsupported;
+    return capabilities;
   }
 
   @override
   Future<AlarmPermissionState> checkPermission() async {
-    return AlarmPermissionState.unsupported;
+    return permission;
+  }
+
+  @override
+  Future<AlarmPermissionState> requestPermission() async {
+    requestCount += 1;
+    return permission;
   }
 }
 
@@ -195,5 +265,59 @@ class _FakeFallbackAlarmNotificationService
   @override
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) {
     throw UnimplementedError();
+  }
+}
+
+class _FakeCancelAllAlarmsUseCase extends CancelAllAlarmsUseCase {
+  // ignore: use_super_parameters
+  _FakeCancelAllAlarmsUseCase(
+    AlarmRepository alarmRepository,
+    AlarmRegistryRepository registryRepository,
+    AlarmSchedulerService schedulerService,
+    FallbackAlarmNotificationService fallbackNotificationService,
+  ) : super(
+        alarmRepository,
+        registryRepository,
+        schedulerService,
+        fallbackNotificationService,
+      );
+
+  int callCount = 0;
+
+  @override
+  Future<void> call({bool unregisterDevice = false}) async {
+    callCount += 1;
+  }
+}
+
+class _FakeReconcileAlarmsUseCase extends ReconcileAlarmsUseCase {
+  // ignore: use_super_parameters
+  _FakeReconcileAlarmsUseCase(
+    AlarmRepository alarmRepository,
+    AlarmRegistryRepository registryRepository,
+    AlarmSchedulerService schedulerService,
+    FallbackAlarmNotificationService fallbackNotificationService,
+  ) : super.test(
+        alarmRepository,
+        registryRepository,
+        schedulerService,
+        fallbackNotificationService,
+        nowProvider: () => DateTime(2026),
+      );
+
+  @override
+  Future<AlarmReconciliationResult> call() async {
+    return AlarmReconciliationResult(
+      status: AlarmReconciliationStatus.armed,
+      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+      fallbackProvider: AlarmProvider.localNotification,
+      armedScheduleIds: const [],
+      skippedScheduleCount: 0,
+      failures: const [],
+      scheduleWindowStart: DateTime(2026),
+      scheduleWindowEnd: DateTime(2026),
+      alarmCoverageStart: DateTime(2026),
+      alarmCoverageEnd: DateTime(2026),
+    );
   }
 }

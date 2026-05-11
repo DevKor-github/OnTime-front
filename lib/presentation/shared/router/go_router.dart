@@ -5,8 +5,10 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
 import 'package:on_time_front/presentation/alarm/screens/schedule_start_screen.dart';
+import 'package:on_time_front/presentation/alarm_allow/screens/alarm_allow_screen.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
+import 'package:on_time_front/presentation/app/cubit/alarm_gate_cubit.dart';
 import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
 import 'package:on_time_front/presentation/early_late/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
@@ -33,25 +35,32 @@ GoRouter goRouterConfig(
   AuthBloc authBloc,
   ScheduleBloc scheduleBloc,
   NotificationGateCubit notificationGateCubit,
+  AlarmGateCubit alarmGateCubit,
 ) {
   return GoRouter(
     refreshListenable: StreamToListenable([
       scheduleBloc.stream,
       authBloc.stream,
       notificationGateCubit.stream,
+      alarmGateCubit.stream,
     ]),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
     redirect: (BuildContext context, GoRouterState state) {
       final authStatus = authBloc.state.status;
       final notificationGateStatus = notificationGateCubit.state.status;
+      final alarmGateStatus = alarmGateCubit.state.status;
       final path = state.uri.path;
       final isStartupRoute = path == '/startup';
       final isPublicRoute = isStartupRoute || path == '/signIn';
       final isOnboardingRoute =
           path == '/onboarding' || path == '/onboarding/start';
       final isNotificationRoute = path == '/allowNotification';
+      final isAlarmRoute = path == '/allowAlarm';
       final isTransientRoute =
-          isPublicRoute || isOnboardingRoute || isNotificationRoute;
+          isPublicRoute ||
+          isOnboardingRoute ||
+          isNotificationRoute ||
+          isAlarmRoute;
 
       switch (authStatus) {
         case AuthStatus.loading:
@@ -59,11 +68,15 @@ GoRouter goRouterConfig(
         case AuthStatus.unauthenticated:
           return path == '/signIn' ? null : '/signIn';
         case AuthStatus.authenticated:
-          if (!notificationGateCubit.state.isResolved) {
+          if (!notificationGateCubit.state.isResolved ||
+              !alarmGateCubit.state.isResolved) {
             return isStartupRoute ? null : '/startup';
           }
           if (notificationGateStatus == NotificationGateStatus.required) {
             return isNotificationRoute ? null : '/allowNotification';
+          }
+          if (alarmGateStatus == AlarmGateStatus.required) {
+            return isAlarmRoute ? null : '/allowAlarm';
           }
           return isTransientRoute ? '/home' : null;
         case AuthStatus.onboardingNotCompleted:
@@ -83,26 +96,24 @@ GoRouter goRouterConfig(
         },
       ),
       GoRoute(
+        path: '/allowAlarm',
+        builder: (context, state) => const AlarmAllowScreen(),
+      ),
+      GoRoute(
         path: '/onboarding',
         builder: (context, state) => OnboardingScreen(),
         routes: [
           GoRoute(
             path: '/start',
             builder: (context, state) => OnboardingStartScreen(),
-          )
+          ),
         ],
       ),
       ShellRoute(
         builder: (context, state, child) => BottomNavBarScaffold(child: child),
         routes: [
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => HomeScreenTmp(),
-          ),
-          GoRoute(
-            path: '/myPage',
-            builder: (context, state) => MyPageScreen(),
-          ),
+          GoRoute(path: '/home', builder: (context, state) => HomeScreenTmp()),
+          GoRoute(path: '/myPage', builder: (context, state) => MyPageScreen()),
         ],
       ),
       GoRoute(
@@ -112,20 +123,22 @@ GoRouter goRouterConfig(
       GoRoute(path: '/signIn', builder: (context, state) => SignInMainScreen()),
       GoRoute(
         path: '/calendar',
-        builder: (context, state) => CalendarScreen(
-          initialDate: calendarInitialDateFromState(state),
-        ),
+        builder: (context, state) =>
+            CalendarScreen(initialDate: calendarInitialDateFromState(state)),
       ),
       GoRoute(
-          path: '/scheduleCreate',
-          builder: (context, state) => ScheduleCreateScreen()),
+        path: '/scheduleCreate',
+        builder: (context, state) => ScheduleCreateScreen(),
+      ),
       GoRoute(
-          path: '/scheduleEdit/:scheduleId',
-          builder: (context, state) => ScheduleEditScreen(
-              scheduleId: state.pathParameters['scheduleId']!)),
+        path: '/scheduleEdit/:scheduleId',
+        builder: (context, state) =>
+            ScheduleEditScreen(scheduleId: state.pathParameters['scheduleId']!),
+      ),
       GoRoute(
-          path: '/preparationEdit',
-          builder: (context, state) => const PreparationEditForm()),
+        path: '/preparationEdit',
+        builder: (context, state) => const PreparationEditForm(),
+      ),
       GoRoute(
         path: '/scheduleStart',
         name: 'scheduleStart',
@@ -159,10 +172,7 @@ GoRouter goRouterConfig(
           );
         },
       ),
-      GoRoute(
-        path: '/moving',
-        builder: (context, state) => MovingScreen(),
-      ),
+      GoRoute(path: '/moving', builder: (context, state) => MovingScreen()),
     ],
   );
 }
@@ -188,16 +198,16 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
     if (scheduleId == null || scheduleId.isEmpty) return;
     _requestedValidation = true;
     context.read<ScheduleBloc>().add(
-          ScheduleAlarmPromptRequested(
-            scheduleId: scheduleId,
-            scheduleFingerprint:
-                routeStringValue(widget.extra?['scheduleFingerprint']),
-            startPreparation: scheduleStartLaunchActionFromRouteExtra(
-                  widget.extra,
-                ) ==
-                ScheduleStartLaunchAction.startPreparation,
-          ),
-        );
+      ScheduleAlarmPromptRequested(
+        scheduleId: scheduleId,
+        scheduleFingerprint: routeStringValue(
+          widget.extra?['scheduleFingerprint'],
+        ),
+        startPreparation:
+            scheduleStartLaunchActionFromRouteExtra(widget.extra) ==
+            ScheduleStartLaunchAction.startPreparation,
+      ),
+    );
   }
 
   @override
@@ -208,11 +218,11 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
     }
 
     final scheduleId = routeStringValue(widget.extra?['scheduleId']);
-    final scheduleFingerprint =
-        routeStringValue(widget.extra?['scheduleFingerprint']);
-    final allowsStaleFingerprint = scheduleStartLaunchActionFromRouteExtra(
-          widget.extra,
-        ) ==
+    final scheduleFingerprint = routeStringValue(
+      widget.extra?['scheduleFingerprint'],
+    );
+    final allowsStaleFingerprint =
+        scheduleStartLaunchActionFromRouteExtra(widget.extra) ==
         ScheduleStartLaunchAction.startPreparation;
     final schedule = scheduleState.schedule;
     if (schedule == null) {
@@ -227,8 +237,9 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
       return const LoadingScreen();
     }
 
-    final promptVariant =
-        scheduleStartPromptVariantFromRouteExtra(widget.extra);
+    final promptVariant = scheduleStartPromptVariantFromRouteExtra(
+      widget.extra,
+    );
     return ScheduleStartScreen(promptVariant: promptVariant);
   }
 }

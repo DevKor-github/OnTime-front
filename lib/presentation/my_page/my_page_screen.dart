@@ -257,6 +257,14 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
           if (shouldOpenSettings == DialogActionResult.primary) {
             await schedulerService.requestPermission();
           }
+          final updatedNativePermission = await schedulerService
+              .checkPermission();
+          if (_needsExactAlarmRecovery(updatedNativePermission)) {
+            await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+            await getIt.get<CancelAllAlarmsUseCase>()();
+            await _load();
+            return;
+          }
         }
 
         await fallbackService.requestPermission();

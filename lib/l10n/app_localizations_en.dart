@@ -281,6 +281,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allowAppNotifications => 'Allow App Notifications';
 
   @override
+  String get manageAppNotifications => 'Manage App Notifications';
+
+  @override
+  String get manageAppNotificationsDescription =>
+      'To turn app notifications on or off, update OnTime\'s notification permission in Settings.';
+
+  @override
   String get privacyPolicy => 'Privacy Policy';
 
   @override

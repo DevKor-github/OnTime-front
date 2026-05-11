@@ -13,6 +13,8 @@ abstract interface class NotificationPermissionGateway {
 
   Future<AuthorizationStatus> requestPermission();
 
+  Future<void> initializeNotifications();
+
   Future<bool> openNotificationSettings();
 }
 
@@ -23,6 +25,11 @@ class NotificationServicePermissionGateway
   @override
   Future<AuthorizationStatus> checkNotificationPermission() {
     return NotificationService.instance.checkNotificationPermission();
+  }
+
+  @override
+  Future<void> initializeNotifications() {
+    return NotificationService.instance.initialize();
   }
 
   @override

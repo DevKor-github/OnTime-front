@@ -578,6 +578,18 @@ abstract class AppLocalizations {
   /// **'Allow App Notifications'**
   String get allowAppNotifications;
 
+  /// Dialog title for opening app notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'Manage App Notifications'**
+  String get manageAppNotifications;
+
+  /// Dialog description for opening app notification settings
+  ///
+  /// In en, this message translates to:
+  /// **'To turn app notifications on or off, update OnTime\'s notification permission in Settings.'**
+  String get manageAppNotificationsDescription;
+
   /// Setting tile for opening the privacy policy
   ///
   /// In en, this message translates to:

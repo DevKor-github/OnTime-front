@@ -233,6 +233,9 @@ class _FakePermissionGateway implements NotificationPermissionGateway {
   }
 
   @override
+  Future<void> initializeNotifications() async {}
+
+  @override
   Future<bool> openNotificationSettings() async {
     openSettingsCount += 1;
     return true;

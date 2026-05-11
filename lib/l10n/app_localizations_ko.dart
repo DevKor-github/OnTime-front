@@ -262,6 +262,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get allowAppNotifications => '앱 알림 허용';
 
   @override
+  String get manageAppNotifications => '앱 알림 관리';
+
+  @override
+  String get manageAppNotificationsDescription =>
+      '앱 알림을 켜거나 끄려면 설정에서 온타임 알림 권한을 변경해주세요.';
+
+  @override
   String get privacyPolicy => '개인정보 처리방침';
 
   @override

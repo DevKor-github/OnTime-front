@@ -1,28 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
-
-class _SwipeActionContent extends StatelessWidget {
-  const _SwipeActionContent({required this.icon, required this.color});
-
-  final Widget icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: color,
-      ),
-      padding: const EdgeInsets.all(18.0),
-      child: icon,
-    );
-  }
-}
 
 class PreparationFormReorderableList extends StatelessWidget {
   const PreparationFormReorderableList({
@@ -72,50 +52,36 @@ class PreparationFormReorderableList extends StatelessWidget {
         itemCount: preparationStepList.length,
         itemBuilder: (context, index) {
           final step = preparationStepList[index];
-          final theme = Theme.of(context);
 
-          return SwipeActionCell(
-            key: ValueKey<String>(step.id),
-            backgroundColor: Colors.transparent,
-            trailingActions: [
-              SwipeAction(
-                onTap: (controller) {
-                  if (preparationStepList.length <= 1) return;
-                  context.read<PreparationFormBloc>().add(
-                    PreparationFormPreparationStepRemoved(
-                      preparationStepId: step.id,
-                    ),
-                  );
-                },
-                color: Colors.transparent,
-                content: _SwipeActionContent(
-                  icon: const Icon(Icons.delete, color: Colors.white, size: 24),
-                  color: theme.colorScheme.error,
+          return PreparationFormListField(
+            key:
+                stepKeyFor?.call(step.id) ??
+                ValueKey<String>('field_${step.id}'),
+            index: index,
+            isAdding: step.id == addingStepId,
+            canRemove: preparationStepList.length > 1,
+            showValidationErrors: showValidationErrors,
+            focusNode: nameFocusNodeFor?.call(step.id),
+            preparationStep: step,
+            onRemove: () {
+              context.read<PreparationFormBloc>().add(
+                PreparationFormPreparationStepRemoved(
+                  preparationStepId: step.id,
                 ),
-              ),
-            ],
-            child: PreparationFormListField(
-              key:
-                  stepKeyFor?.call(step.id) ??
-                  ValueKey<String>('field_${step.id}'),
-              index: index,
-              isAdding: step.id == addingStepId,
-              showValidationErrors: showValidationErrors,
-              focusNode: nameFocusNodeFor?.call(step.id),
-              preparationStep: step,
-              onNameChanged: (value) {
-                onNameChanged(index, value);
-              },
-              onNameFocusLost: (value) {
-                onNameChanged(index, value);
-              },
-              onPreparationTimeTapped: () {
-                onTimeChanged(index, step.preparationTime.value);
-              },
-              onPreparationTimeChanged: (value) {
-                onTimeChanged(index, value);
-              },
-            ),
+              );
+            },
+            onNameChanged: (value) {
+              onNameChanged(index, value);
+            },
+            onNameFocusLost: (value) {
+              onNameChanged(index, value);
+            },
+            onPreparationTimeTapped: () {
+              onTimeChanged(index, step.preparationTime.value);
+            },
+            onPreparationTimeChanged: (value) {
+              onTimeChanged(index, value);
+            },
           );
         },
         onReorder: (int oldIndex, int newIndex) {

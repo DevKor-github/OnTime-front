@@ -7,11 +7,13 @@ class PreparationTimeInput extends StatelessWidget {
     super.key,
     required this.time,
     required this.onPreparationTimeChanged,
+    this.onTap,
     this.hasError = false,
   });
 
   final Duration time;
   final ValueChanged<Duration>? onPreparationTimeChanged;
+  final VoidCallback? onTap;
   final bool hasError;
 
   @override
@@ -42,6 +44,7 @@ class PreparationTimeInput extends StatelessWidget {
             ),
           ),
           onTap: () {
+            onTap?.call();
             context.showCupertinoMinutePickerModal(
               title: '시간을 선택해주세요',
               initialValue: time,

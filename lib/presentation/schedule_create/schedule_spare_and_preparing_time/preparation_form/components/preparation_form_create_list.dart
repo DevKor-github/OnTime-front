@@ -74,6 +74,23 @@ class PreparationFormCreateList extends StatelessWidget {
                       ),
                     );
                   },
+                  onNameFocusLost: (value) {
+                    context.read<PreparationFormBloc>().add(
+                      PreparationFormDraftStepNameChanged(
+                        preparationStepName: value,
+                      ),
+                    );
+                  },
+                  onPreparationTimeTapped: () {
+                    context.read<PreparationFormBloc>().add(
+                      PreparationFormDraftStepTimeChanged(
+                        preparationStepTime: preparationNameState
+                            .draftStep!
+                            .preparationTime
+                            .value,
+                      ),
+                    );
+                  },
                   onPreparationTimeChanged: (value) {
                     context.read<PreparationFormBloc>().add(
                       PreparationFormDraftStepTimeChanged(

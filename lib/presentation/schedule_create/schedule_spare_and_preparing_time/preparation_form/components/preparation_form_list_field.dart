@@ -15,7 +15,9 @@ class PreparationFormListField extends StatefulWidget {
     required this.preparationStep,
     this.index,
     this.onNameChanged,
+    this.onNameFocusLost,
     this.onPreparationTimeChanged,
+    this.onPreparationTimeTapped,
     this.onNameSaved,
     this.isAdding = false,
     this.showValidationErrors = false,
@@ -25,7 +27,9 @@ class PreparationFormListField extends StatefulWidget {
   final PreparationStepFormState preparationStep;
   final int? index;
   final ValueChanged<String>? onNameChanged;
+  final ValueChanged<String>? onNameFocusLost;
   final ValueChanged<Duration>? onPreparationTimeChanged;
+  final VoidCallback? onPreparationTimeTapped;
   final VoidCallback? onNameSaved;
   final bool isAdding;
   final bool showValidationErrors;
@@ -38,6 +42,7 @@ class PreparationFormListField extends StatefulWidget {
 
 class _PreparationFormListFieldState extends State<PreparationFormListField> {
   late final FocusNode _internalFocusNode;
+  late String _nameValue;
   bool _hasRequestedInitialFocus = false;
   final dragIndicatorSvg = SvgPicture.asset(
     'drag_indicator.svg',
@@ -59,6 +64,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   void initState() {
     super.initState();
     _internalFocusNode = FocusNode();
+    _nameValue = widget.preparationStep.preparationName.value;
     _effectiveFocusNode.addListener(_handleFocusChanged);
     _requestInitialFocusIfNeeded();
   }
@@ -66,6 +72,9 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   @override
   void didUpdateWidget(covariant PreparationFormListField oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.preparationStep.id != widget.preparationStep.id) {
+      _nameValue = widget.preparationStep.preparationName.value;
+    }
     if (!oldWidget.isAdding && widget.isAdding) {
       _hasRequestedInitialFocus = false;
     }
@@ -88,6 +97,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
 
   void _handleFocusChanged() {
     if (!_effectiveFocusNode.hasFocus) {
+      widget.onNameFocusLost?.call(_nameValue);
       widget.onNameSaved?.call();
     }
   }
@@ -153,6 +163,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
             trailing: PreparationTimeInput(
               time: widget.preparationStep.preparationTime.value,
               hasError: timeErrorText != null,
+              onTap: widget.onPreparationTimeTapped,
               onPreparationTimeChanged: widget.onPreparationTimeChanged,
             ),
             child: Expanded(
@@ -167,8 +178,15 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
                       ),
                       initialValue:
                           widget.preparationStep.preparationName.value,
-                      onChanged: widget.onNameChanged,
-                      onFieldSubmitted: (value) => widget.onNameSaved?.call(),
+                      onChanged: (value) {
+                        _nameValue = value;
+                        widget.onNameChanged?.call(value);
+                      },
+                      onFieldSubmitted: (value) {
+                        _nameValue = value;
+                        widget.onNameFocusLost?.call(value);
+                        widget.onNameSaved?.call();
+                      },
                       onTapOutside: (event) {
                         FocusManager.instance.primaryFocus?.unfocus();
                       },

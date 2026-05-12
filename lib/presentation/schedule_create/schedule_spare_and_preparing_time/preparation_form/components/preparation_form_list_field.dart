@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
+import 'package:flutter_swipe_action_cell/core/controller.dart';
 import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart';
@@ -47,6 +48,7 @@ class PreparationFormListField extends StatefulWidget {
 
 class _PreparationFormListFieldState extends State<PreparationFormListField> {
   late final FocusNode _internalFocusNode;
+  final SwipeActionController _swipeActionController = SwipeActionController();
   late String _nameValue;
   bool _hasRequestedInitialFocus = false;
   final dragIndicatorSvg = SvgPicture.asset(
@@ -61,6 +63,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   @override
   void dispose() {
     _effectiveFocusNode.removeListener(_handleFocusChanged);
+    _swipeActionController.dispose();
     _internalFocusNode.dispose();
     super.dispose();
   }
@@ -102,6 +105,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
 
   void _handleFocusChanged() {
     if (!_effectiveFocusNode.hasFocus) {
+      _swipeActionController.closeAllOpenCell();
       widget.onNameFocusLost?.call(_nameValue);
       widget.onNameSaved?.call();
     }
@@ -187,6 +191,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
                   widget.onNameSaved?.call();
                 },
                 onTapOutside: (event) {
+                  _swipeActionController.closeAllOpenCell();
                   FocusManager.instance.primaryFocus?.unfocus();
                 },
                 decoration: InputDecoration(
@@ -244,6 +249,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
     return SwipeActionCell(
       key: ValueKey<String>('swipe_${widget.preparationStep.id}'),
       backgroundColor: Colors.transparent,
+      controller: _swipeActionController,
       trailingActions: [
         SwipeAction(
           onTap: (controller) {

@@ -6,10 +6,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_pr
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 
 class _SwipeActionContent extends StatelessWidget {
-  const _SwipeActionContent({
-    required this.icon,
-    required this.color,
-  });
+  const _SwipeActionContent({required this.icon, required this.color});
 
   final Widget icon;
   final Color color;
@@ -31,12 +28,18 @@ class PreparationFormReorderableList extends StatelessWidget {
   const PreparationFormReorderableList({
     super.key,
     required this.preparationStepList,
+    required this.showValidationErrors,
+    required this.stepKeyFor,
+    required this.nameFocusNodeFor,
     required this.onNameChanged,
     required this.onTimeChanged,
     required this.onReorder,
   });
 
   final List<PreparationStepFormState> preparationStepList;
+  final bool showValidationErrors;
+  final Key Function(String stepId)? stepKeyFor;
+  final FocusNode Function(String stepId)? nameFocusNodeFor;
   final Function(int index, String value) onNameChanged;
   final Function(int index, Duration value) onTimeChanged;
   final Function(int oldIndex, int newIndex) onReorder;
@@ -44,13 +47,14 @@ class PreparationFormReorderableList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget proxyDecorator(
-        Widget child, int index, Animation<double> animation) {
+      Widget child,
+      int index,
+      Animation<double> animation,
+    ) {
       return AnimatedBuilder(
         animation: animation,
         builder: (BuildContext context, Widget? child) {
-          return SizedBox(
-            child: child,
-          );
+          return SizedBox(child: child);
         },
         child: child,
       );
@@ -76,25 +80,25 @@ class PreparationFormReorderableList extends StatelessWidget {
                 onTap: (controller) {
                   if (preparationStepList.length <= 1) return;
                   context.read<PreparationFormBloc>().add(
-                        PreparationFormPreparationStepRemoved(
-                          preparationStepId: step.id,
-                        ),
-                      );
+                    PreparationFormPreparationStepRemoved(
+                      preparationStepId: step.id,
+                    ),
+                  );
                 },
                 color: Colors.transparent,
                 content: _SwipeActionContent(
-                  icon: const Icon(
-                    Icons.delete,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  icon: const Icon(Icons.delete, color: Colors.white, size: 24),
                   color: theme.colorScheme.error,
                 ),
               ),
             ],
             child: PreparationFormListField(
-              key: ValueKey<String>('field_${step.id}'),
+              key:
+                  stepKeyFor?.call(step.id) ??
+                  ValueKey<String>('field_${step.id}'),
               index: index,
+              showValidationErrors: showValidationErrors,
+              focusNode: nameFocusNodeFor?.call(step.id),
               preparationStep: step,
               onNameChanged: (value) {
                 onNameChanged(index, value);

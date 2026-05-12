@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_time_input.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
@@ -14,6 +18,8 @@ class PreparationFormListField extends StatefulWidget {
     this.onPreparationTimeChanged,
     this.onNameSaved,
     this.isAdding = false,
+    this.showValidationErrors = false,
+    this.focusNode,
   });
 
   final PreparationStepFormState preparationStep;
@@ -22,6 +28,8 @@ class PreparationFormListField extends StatefulWidget {
   final ValueChanged<Duration>? onPreparationTimeChanged;
   final VoidCallback? onNameSaved;
   final bool isAdding;
+  final bool showValidationErrors;
+  final FocusNode? focusNode;
 
   @override
   State<PreparationFormListField> createState() =>
@@ -29,7 +37,8 @@ class PreparationFormListField extends StatefulWidget {
 }
 
 class _PreparationFormListFieldState extends State<PreparationFormListField> {
-  final FocusNode focusNode = FocusNode();
+  late final FocusNode _internalFocusNode;
+  bool _hasRequestedInitialFocus = false;
   final dragIndicatorSvg = SvgPicture.asset(
     'drag_indicator.svg',
     package: 'assets',
@@ -41,69 +50,184 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
 
   @override
   void dispose() {
-    focusNode.dispose();
+    _effectiveFocusNode.removeListener(_handleFocusChanged);
+    _internalFocusNode.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus) {
-        widget.onNameSaved?.call();
+    _internalFocusNode = FocusNode();
+    _effectiveFocusNode.addListener(_handleFocusChanged);
+    _requestInitialFocusIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant PreparationFormListField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isAdding && widget.isAdding) {
+      _hasRequestedInitialFocus = false;
+    }
+    _requestInitialFocusIfNeeded();
+  }
+
+  FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode;
+
+  void _requestInitialFocusIfNeeded() {
+    if (!widget.isAdding || _hasRequestedInitialFocus) {
+      return;
+    }
+    _hasRequestedInitialFocus = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _effectiveFocusNode.requestFocus();
       }
     });
+  }
+
+  void _handleFocusChanged() {
+    if (!_effectiveFocusNode.hasFocus) {
+      widget.onNameSaved?.call();
+    }
+  }
+
+  String? _nameErrorText(BuildContext context) {
+    if (!widget.showValidationErrors &&
+        widget.preparationStep.preparationName.isPure) {
+      return null;
+    }
+
+    final error = widget.preparationStep.preparationName.validator(
+      widget.preparationStep.preparationName.value,
+    );
+    return switch (error) {
+      PreparationNameValidationError.empty => AppLocalizations.of(
+        context,
+      )!.preparationNameRequired,
+      null => null,
+    };
+  }
+
+  String? _timeErrorText(BuildContext context) {
+    if (!widget.showValidationErrors &&
+        widget.preparationStep.preparationTime.isPure) {
+      return null;
+    }
+
+    final error = widget.preparationStep.preparationTime.validator(
+      widget.preparationStep.preparationTime.value,
+    );
+    final l10n = AppLocalizations.of(context)!;
+    return switch (error) {
+      PreparationTimeValidationError.zero ||
+      PreparationTimeValidationError.negative =>
+        l10n.preparationTimeMinimumError,
+      PreparationTimeValidationError.tooLarge =>
+        l10n.preparationTimeMaximumError(BackendConstraints.maxMinuteValue),
+      null => null,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    if (widget.isAdding) {
-      focusNode.requestFocus();
-    }
+    final colorScheme = Theme.of(context).colorScheme;
+    final nameErrorText = _nameErrorText(context);
+    final timeErrorText = _timeErrorText(context);
+    final errorTexts = [?nameErrorText, ?timeErrorText];
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: Tile(
-        key: ValueKey<String>(widget.preparationStep.id),
-        style: TileStyle(padding: EdgeInsets.fromLTRB(21, 19, 21, 19)),
-        leading: widget.index == null
-            ? dragIndicatorSvg
-            : ReorderableDragStartListener(
-                index: widget.index!,
-                child: dragIndicatorSvg,
-              ),
-        trailing: PreparationTimeInput(
-            time: widget.preparationStep.preparationTime.value,
-            onPreparationTimeChanged: widget.onPreparationTimeChanged),
-        child: Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18.0),
-            child: Container(
-              constraints: BoxConstraints(minHeight: 30),
-              child: Center(
-                child: TextFormField(
-                  scrollPadding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom + 56),
-                  initialValue: widget.preparationStep.preparationName.value,
-                  onChanged: widget.onNameChanged,
-                  onFieldSubmitted: (value) => widget.onNameSaved?.call(),
-                  onTapOutside: (event) {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                  },
-                  decoration: InputDecoration(
-                    isDense: true,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.all(3.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Tile(
+            key: ValueKey<String>(widget.preparationStep.id),
+            style: TileStyle(padding: EdgeInsets.fromLTRB(21, 19, 21, 19)),
+            leading: widget.index == null
+                ? dragIndicatorSvg
+                : ReorderableDragStartListener(
+                    index: widget.index!,
+                    child: dragIndicatorSvg,
                   ),
-                  style: textTheme.bodyLarge,
-                  focusNode: focusNode,
+            trailing: PreparationTimeInput(
+              time: widget.preparationStep.preparationTime.value,
+              hasError: timeErrorText != null,
+              onPreparationTimeChanged: widget.onPreparationTimeChanged,
+            ),
+            child: Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                child: Container(
+                  constraints: BoxConstraints(minHeight: 30),
+                  child: Center(
+                    child: TextFormField(
+                      scrollPadding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom + 56,
+                      ),
+                      initialValue:
+                          widget.preparationStep.preparationName.value,
+                      onChanged: widget.onNameChanged,
+                      onFieldSubmitted: (value) => widget.onNameSaved?.call(),
+                      onTapOutside: (event) {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                      },
+                      decoration: InputDecoration(
+                        isDense: true,
+                        border: nameErrorText == null
+                            ? InputBorder.none
+                            : UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: colorScheme.error,
+                                  width: 1.5,
+                                ),
+                              ),
+                        enabledBorder: nameErrorText == null
+                            ? InputBorder.none
+                            : UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: colorScheme.error,
+                                  width: 1.5,
+                                ),
+                              ),
+                        focusedBorder: nameErrorText == null
+                            ? InputBorder.none
+                            : UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: colorScheme.error,
+                                  width: 2,
+                                ),
+                              ),
+                        contentPadding: EdgeInsets.all(3.0),
+                      ),
+                      style: textTheme.bodyLarge,
+                      focusNode: _effectiveFocusNode,
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+          if (errorTexts.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(21, 6, 21, 2),
+              child: DefaultTextStyle(
+                style:
+                    textTheme.bodySmall?.copyWith(color: colorScheme.error) ??
+                    TextStyle(color: colorScheme.error),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final errorText in errorTexts)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(errorText),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

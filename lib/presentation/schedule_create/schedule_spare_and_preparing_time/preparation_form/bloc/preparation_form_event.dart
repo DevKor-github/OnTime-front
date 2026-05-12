@@ -28,8 +28,9 @@ final class PreparationFormPreparationStepCreated extends PreparationFormEvent {
 final class PreparationFormPreparationStepRemoved extends PreparationFormEvent {
   final String preparationStepId;
 
-  const PreparationFormPreparationStepRemoved(
-      {required this.preparationStepId});
+  const PreparationFormPreparationStepRemoved({
+    required this.preparationStepId,
+  });
 
   @override
   List<Object> get props => [preparationStepId];
@@ -40,8 +41,10 @@ final class PreparationFormPreparationStepNameChanged
   final int index;
   final String preparationStepName;
 
-  const PreparationFormPreparationStepNameChanged(
-      {required this.index, required this.preparationStepName});
+  const PreparationFormPreparationStepNameChanged({
+    required this.index,
+    required this.preparationStepName,
+  });
 
   @override
   List<Object> get props => [index, preparationStepName];
@@ -52,11 +55,35 @@ final class PreparationFormPreparationStepTimeChanged
   final int index;
   final Duration preparationStepTime;
 
-  const PreparationFormPreparationStepTimeChanged(
-      {required this.index, required this.preparationStepTime});
+  const PreparationFormPreparationStepTimeChanged({
+    required this.index,
+    required this.preparationStepTime,
+  });
 
   @override
   List<Object> get props => [index, preparationStepTime];
+}
+
+final class PreparationFormDraftStepNameChanged extends PreparationFormEvent {
+  final String preparationStepName;
+
+  const PreparationFormDraftStepNameChanged({
+    required this.preparationStepName,
+  });
+
+  @override
+  List<Object> get props => [preparationStepName];
+}
+
+final class PreparationFormDraftStepTimeChanged extends PreparationFormEvent {
+  final Duration preparationStepTime;
+
+  const PreparationFormDraftStepTimeChanged({
+    required this.preparationStepTime,
+  });
+
+  @override
+  List<Object> get props => [preparationStepTime];
 }
 
 final class PreparationFormPreparationStepOrderChanged
@@ -64,8 +91,10 @@ final class PreparationFormPreparationStepOrderChanged
   final int oldIndex;
   final int newIndex;
 
-  const PreparationFormPreparationStepOrderChanged(
-      {required this.oldIndex, required this.newIndex});
+  const PreparationFormPreparationStepOrderChanged({
+    required this.oldIndex,
+    required this.newIndex,
+  });
 
   @override
   List<Object> get props => [oldIndex, newIndex];
@@ -74,4 +103,8 @@ final class PreparationFormPreparationStepOrderChanged
 final class PreparationFormPreparationStepCreationRequested
     extends PreparationFormEvent {
   const PreparationFormPreparationStepCreationRequested();
+}
+
+final class PreparationFormValidationRequested extends PreparationFormEvent {
+  const PreparationFormValidationRequested();
 }

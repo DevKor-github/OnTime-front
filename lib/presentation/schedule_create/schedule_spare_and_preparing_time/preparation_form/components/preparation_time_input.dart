@@ -3,11 +3,16 @@ import 'package:on_time_front/presentation/shared/components/cupertino_picker_mo
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class PreparationTimeInput extends StatelessWidget {
-  const PreparationTimeInput(
-      {super.key, required this.time, required this.onPreparationTimeChanged});
+  const PreparationTimeInput({
+    super.key,
+    required this.time,
+    required this.onPreparationTimeChanged,
+    this.hasError = false,
+  });
 
   final Duration time;
   final ValueChanged<Duration>? onPreparationTimeChanged;
+  final bool hasError;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +26,9 @@ class PreparationTimeInput extends StatelessWidget {
             height: 30,
             decoration: BoxDecoration(
               color: AppColors.white,
+              border: hasError
+                  ? Border.all(color: colorScheme.error, width: 1.5)
+                  : null,
               borderRadius: BorderRadius.circular(4),
             ),
             child: Center(
@@ -42,7 +50,7 @@ class PreparationTimeInput extends StatelessWidget {
               },
             );
           },
-        )
+        ),
       ],
     );
   }

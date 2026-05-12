@@ -362,6 +362,24 @@ abstract class AppLocalizations {
   /// **'Preparation Time'**
   String get preparationTime;
 
+  /// Error shown when a preparation step name is empty
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a preparation name.'**
+  String get preparationNameRequired;
+
+  /// Error shown when a preparation step time is zero or negative
+  ///
+  /// In en, this message translates to:
+  /// **'Set preparation time to at least 1 minute.'**
+  String get preparationTimeMinimumError;
+
+  /// Error shown when a preparation step time exceeds the maximum allowed minutes
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation time can be up to {minutes} minutes.'**
+  String preparationTimeMaximumError(int minutes);
+
   /// Unit of time
   ///
   /// In en, this message translates to:

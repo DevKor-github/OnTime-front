@@ -256,7 +256,8 @@ class _PreparationSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 15.0),
             child: Builder(
               builder: (context) {
-                final totalDuration = preparationNameState.preparationStepList
+                final totalDuration = preparationNameState
+                    .visiblePreparationStepList
                     .fold(
                       Duration.zero,
                       (prev, step) => prev + step.preparationTime.value,

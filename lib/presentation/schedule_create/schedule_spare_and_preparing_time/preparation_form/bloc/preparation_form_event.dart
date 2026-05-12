@@ -50,6 +50,20 @@ final class PreparationFormPreparationStepNameChanged
   List<Object> get props => [index, preparationStepName];
 }
 
+final class PreparationFormPreparationStepNameFocusLost
+    extends PreparationFormEvent {
+  final int index;
+  final String preparationStepName;
+
+  const PreparationFormPreparationStepNameFocusLost({
+    required this.index,
+    required this.preparationStepName,
+  });
+
+  @override
+  List<Object> get props => [index, preparationStepName];
+}
+
 final class PreparationFormPreparationStepTimeChanged
     extends PreparationFormEvent {
   final int index;

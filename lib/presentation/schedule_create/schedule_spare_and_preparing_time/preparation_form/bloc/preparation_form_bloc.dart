@@ -26,6 +26,9 @@ class PreparationFormBloc
     on<PreparationFormPreparationStepNameChanged>(
       _onPreparationFormPreparationStepNameChanged,
     );
+    on<PreparationFormPreparationStepNameFocusLost>(
+      _onPreparationFormPreparationStepNameFocusLost,
+    );
     on<PreparationFormPreparationStepTimeChanged>(
       _onPreparationFormPreparationStepTimeChanged,
     );
@@ -138,6 +141,43 @@ class PreparationFormBloc
         status: shouldCommitAddingStep ? PreparationFormStatus.initial : null,
         clearAddingStepId: shouldCommitAddingStep,
         isValid: isValid,
+      ),
+    );
+  }
+
+  void _onPreparationFormPreparationStepNameFocusLost(
+    PreparationFormPreparationStepNameFocusLost event,
+    Emitter<PreparationFormState> emit,
+  ) {
+    final step = state.preparationStepList.elementAtOrNull(event.index);
+    if (step == null) {
+      return;
+    }
+
+    final isBlankAddingStep =
+        step.id == state.addingStepId &&
+        event.preparationStepName.trim().isEmpty &&
+        step.preparationTime.value == Duration.zero;
+    if (isBlankAddingStep) {
+      final changedList = List<PreparationStepFormState>.from(
+        state.preparationStepList,
+      )..removeAt(event.index);
+      final isValid = _validate(changedList);
+      emit(
+        state.copyWith(
+          preparationStepList: changedList,
+          status: PreparationFormStatus.initial,
+          clearAddingStepId: true,
+          isValid: isValid,
+        ),
+      );
+      return;
+    }
+
+    add(
+      PreparationFormPreparationStepNameChanged(
+        index: event.index,
+        preparationStepName: event.preparationStepName,
       ),
     );
   }

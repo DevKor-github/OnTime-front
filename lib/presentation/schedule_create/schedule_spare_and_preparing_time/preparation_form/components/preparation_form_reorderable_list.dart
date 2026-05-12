@@ -74,7 +74,12 @@ class PreparationFormReorderableList extends StatelessWidget {
               onNameChanged(index, value);
             },
             onNameFocusLost: (value) {
-              onNameChanged(index, value);
+              context.read<PreparationFormBloc>().add(
+                PreparationFormPreparationStepNameFocusLost(
+                  index: index,
+                  preparationStepName: value,
+                ),
+              );
             },
             onPreparationTimeTapped: () {
               onTimeChanged(index, step.preparationTime.value);

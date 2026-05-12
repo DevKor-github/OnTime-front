@@ -108,6 +108,87 @@ void main() {
     expect(state.preparationStepList.single.id, 'step-1');
   });
 
+  test('removes a blank newly added step when name focus is lost', () async {
+    final editState = waitForState(
+      (state) => state.preparationStepList.length == 1 && state.isValid,
+    );
+    bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+    await editState;
+
+    final addingState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.adding &&
+          state.addingStepId != null &&
+          state.preparationStepList.length == 2,
+    );
+    bloc.add(const PreparationFormPreparationStepCreationRequested());
+    await addingState;
+
+    final removedState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.initial &&
+          state.addingStepId == null &&
+          state.preparationStepList.length == 1,
+    );
+    bloc.add(
+      const PreparationFormPreparationStepNameFocusLost(
+        index: 1,
+        preparationStepName: '',
+      ),
+    );
+
+    final state = await removedState;
+
+    expect(state.preparationStepList.single.id, 'step-1');
+    expect(state.isValid, isTrue);
+  });
+
+  test('keeps a newly added step with time when name focus is lost', () async {
+    final editState = waitForState(
+      (state) => state.preparationStepList.length == 1 && state.isValid,
+    );
+    bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+    await editState;
+
+    final addingState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.adding &&
+          state.addingStepId != null &&
+          state.preparationStepList.length == 2,
+    );
+    bloc.add(const PreparationFormPreparationStepCreationRequested());
+    await addingState;
+
+    final timeChangedState = waitForState(
+      (state) =>
+          state.preparationStepList.last.preparationTime.value.inMinutes == 5,
+    );
+    bloc.add(
+      const PreparationFormPreparationStepTimeChanged(
+        index: 1,
+        preparationStepTime: Duration(minutes: 5),
+      ),
+    );
+    await timeChangedState;
+
+    final focusLostState = waitForState(
+      (state) =>
+          state.preparationStepList.length == 2 &&
+          state.preparationStepList.last.preparationName.isNotValid,
+    );
+    bloc.add(
+      const PreparationFormPreparationStepNameFocusLost(
+        index: 1,
+        preparationStepName: '',
+      ),
+    );
+
+    final state = await focusLostState;
+
+    expect(state.addingStepId, isNotNull);
+    expect(state.isValid, isFalse);
+  });
+
   test('can reorder a newly added preparation step', () async {
     final editState = waitForState(
       (state) => state.preparationStepList.length == 1 && state.isValid,

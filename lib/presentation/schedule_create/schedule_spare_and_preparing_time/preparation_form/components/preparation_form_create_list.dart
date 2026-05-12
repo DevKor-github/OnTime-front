@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/components/create_icon_button.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart';
 
 class PreparationFormCreateList extends StatelessWidget {
@@ -32,6 +31,7 @@ class PreparationFormCreateList extends StatelessWidget {
         children: [
           PreparationFormReorderableList(
             preparationStepList: preparationNameState.preparationStepList,
+            addingStepId: preparationNameState.addingStepId,
             showValidationErrors: preparationNameState.showValidationErrors,
             stepKeyFor: stepKeyFor,
             nameFocusNodeFor: nameFocusNodeFor,
@@ -53,53 +53,6 @@ class PreparationFormCreateList extends StatelessWidget {
                   ),
                 ),
           ),
-          preparationNameState.status == PreparationFormStatus.adding
-              ? PreparationFormListField(
-                  key:
-                      stepKeyFor?.call(preparationNameState.draftStep!.id) ??
-                      ValueKey<String>(
-                        'draft_${preparationNameState.draftStep!.id}',
-                      ),
-                  isAdding: true,
-                  showValidationErrors:
-                      preparationNameState.showValidationErrors,
-                  focusNode: nameFocusNodeFor?.call(
-                    preparationNameState.draftStep!.id,
-                  ),
-                  preparationStep: preparationNameState.draftStep!,
-                  onNameChanged: (value) {
-                    context.read<PreparationFormBloc>().add(
-                      PreparationFormDraftStepNameChanged(
-                        preparationStepName: value,
-                      ),
-                    );
-                  },
-                  onNameFocusLost: (value) {
-                    context.read<PreparationFormBloc>().add(
-                      PreparationFormDraftStepNameChanged(
-                        preparationStepName: value,
-                      ),
-                    );
-                  },
-                  onPreparationTimeTapped: () {
-                    context.read<PreparationFormBloc>().add(
-                      PreparationFormDraftStepTimeChanged(
-                        preparationStepTime: preparationNameState
-                            .draftStep!
-                            .preparationTime
-                            .value,
-                      ),
-                    );
-                  },
-                  onPreparationTimeChanged: (value) {
-                    context.read<PreparationFormBloc>().add(
-                      PreparationFormDraftStepTimeChanged(
-                        preparationStepTime: value,
-                      ),
-                    );
-                  },
-                )
-              : SizedBox.shrink(),
           SizedBox(height: 28.0),
           Center(
             child: SizedBox(

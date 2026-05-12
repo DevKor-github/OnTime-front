@@ -28,6 +28,7 @@ class PreparationFormReorderableList extends StatelessWidget {
   const PreparationFormReorderableList({
     super.key,
     required this.preparationStepList,
+    required this.addingStepId,
     required this.showValidationErrors,
     required this.stepKeyFor,
     required this.nameFocusNodeFor,
@@ -37,6 +38,7 @@ class PreparationFormReorderableList extends StatelessWidget {
   });
 
   final List<PreparationStepFormState> preparationStepList;
+  final String? addingStepId;
   final bool showValidationErrors;
   final Key Function(String stepId)? stepKeyFor;
   final FocusNode Function(String stepId)? nameFocusNodeFor;
@@ -97,6 +99,7 @@ class PreparationFormReorderableList extends StatelessWidget {
                   stepKeyFor?.call(step.id) ??
                   ValueKey<String>('field_${step.id}'),
               index: index,
+              isAdding: step.id == addingStepId,
               showValidationErrors: showValidationErrors,
               focusNode: nameFocusNodeFor?.call(step.id),
               preparationStep: step,

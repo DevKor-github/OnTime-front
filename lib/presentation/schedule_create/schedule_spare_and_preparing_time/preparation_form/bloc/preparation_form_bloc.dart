@@ -57,7 +57,7 @@ class PreparationFormBloc
       state.copyWith(
         status: PreparationFormStatus.initial,
         preparationStepList: preparationFormState.preparationStepList,
-        draftStep: null,
+        clearAddingStepId: true,
         showValidationErrors: false,
         isValid: isValid,
       ),
@@ -83,7 +83,7 @@ class PreparationFormBloc
         state.copyWith(
           preparationStepList: preparationStepList,
           status: PreparationFormStatus.initial,
-          draftStep: null,
+          clearAddingStepId: true,
           isValid: isValid,
         ),
       );
@@ -103,11 +103,16 @@ class PreparationFormBloc
     );
     removedList.removeWhere((element) => element.id == event.preparationStepId);
 
-    final isValid = _validate([
-      ...removedList,
-      if (state.draftStep != null) state.draftStep!,
-    ]);
-    emit(state.copyWith(preparationStepList: removedList, isValid: isValid));
+    final isValid = _validate(removedList);
+    final removedAddingStep = state.addingStepId == event.preparationStepId;
+    emit(
+      state.copyWith(
+        preparationStepList: removedList,
+        status: removedAddingStep ? PreparationFormStatus.initial : null,
+        clearAddingStepId: removedAddingStep,
+        isValid: isValid,
+      ),
+    );
   }
 
   void _onPreparationFormPreparationStepNameChanged(
@@ -123,11 +128,18 @@ class PreparationFormBloc
       ),
     );
 
-    final isValid = _validate([
-      ...changedList,
-      if (state.draftStep != null) state.draftStep!,
-    ]);
-    emit(state.copyWith(preparationStepList: changedList, isValid: isValid));
+    final isValid = _validate(changedList);
+    final shouldCommitAddingStep = _shouldCommitAddingStep(
+      changedList[event.index],
+    );
+    emit(
+      state.copyWith(
+        preparationStepList: changedList,
+        status: shouldCommitAddingStep ? PreparationFormStatus.initial : null,
+        clearAddingStepId: shouldCommitAddingStep,
+        isValid: isValid,
+      ),
+    );
   }
 
   void _onPreparationFormPreparationStepTimeChanged(
@@ -142,39 +154,62 @@ class PreparationFormBloc
         event.preparationStepTime,
       ),
     );
-    final isValid = _validate([
-      ...changedList,
-      if (state.draftStep != null) state.draftStep!,
-    ]);
-    emit(state.copyWith(preparationStepList: changedList, isValid: isValid));
+    final isValid = _validate(changedList);
+    final shouldCommitAddingStep = _shouldCommitAddingStep(
+      changedList[event.index],
+    );
+    emit(
+      state.copyWith(
+        preparationStepList: changedList,
+        status: shouldCommitAddingStep ? PreparationFormStatus.initial : null,
+        clearAddingStepId: shouldCommitAddingStep,
+        isValid: isValid,
+      ),
+    );
+  }
+
+  bool _shouldCommitAddingStep(PreparationStepFormState step) {
+    return step.id == state.addingStepId &&
+        step.preparationName.isValid &&
+        step.preparationTime.isValid;
   }
 
   void _onPreparationFormDraftStepNameChanged(
     PreparationFormDraftStepNameChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final draftStep = state.draftStep ?? PreparationStepFormState();
-    final changedDraft = draftStep.copyWith(
-      preparationName: PreparationNameInputModel.dirty(
-        event.preparationStepName,
+    final draftIndex = state.preparationStepList.indexWhere(
+      (step) => step.id == state.addingStepId,
+    );
+    if (draftIndex == -1) {
+      return;
+    }
+
+    add(
+      PreparationFormPreparationStepNameChanged(
+        index: draftIndex,
+        preparationStepName: event.preparationStepName,
       ),
     );
-    final isValid = _validate([...state.preparationStepList, changedDraft]);
-    emit(state.copyWith(draftStep: changedDraft, isValid: isValid));
   }
 
   void _onPreparationFormDraftStepTimeChanged(
     PreparationFormDraftStepTimeChanged event,
     Emitter<PreparationFormState> emit,
   ) {
-    final draftStep = state.draftStep ?? PreparationStepFormState();
-    final changedDraft = draftStep.copyWith(
-      preparationTime: PreparationTimeInputModel.dirty(
-        event.preparationStepTime,
+    final draftIndex = state.preparationStepList.indexWhere(
+      (step) => step.id == state.addingStepId,
+    );
+    if (draftIndex == -1) {
+      return;
+    }
+
+    add(
+      PreparationFormPreparationStepTimeChanged(
+        index: draftIndex,
+        preparationStepTime: event.preparationStepTime,
       ),
     );
-    final isValid = _validate([...state.preparationStepList, changedDraft]);
-    emit(state.copyWith(draftStep: changedDraft, isValid: isValid));
   }
 
   void _onPreparationFormPreparationStepOrderChanged(
@@ -193,10 +228,7 @@ class PreparationFormBloc
     final item = changedList.removeAt(oldIndex);
     changedList.insert(newIndex, item);
 
-    final isValid = _validate([
-      ...changedList,
-      if (state.draftStep != null) state.draftStep!,
-    ]);
+    final isValid = _validate(changedList);
     emit(state.copyWith(preparationStepList: changedList, isValid: isValid));
   }
 
@@ -221,12 +253,14 @@ class PreparationFormBloc
       return;
     }
 
-    final draftStep = PreparationStepFormState();
-    final isValid = _validate([...state.preparationStepList, draftStep]);
+    final addedStep = PreparationStepFormState();
+    final changedList = [...state.preparationStepList, addedStep];
+    final isValid = _validate(changedList);
     emit(
       state.copyWith(
         status: PreparationFormStatus.adding,
-        draftStep: draftStep,
+        preparationStepList: changedList,
+        addingStepId: addedStep.id,
         isValid: isValid,
       ),
     );

@@ -4,13 +4,11 @@ enum PreparationFormStatus { initial, success, adding }
 
 enum PreparationFormInvalidField { name, time }
 
-const _draftStepNoChange = Object();
-
 final class PreparationFormState extends Equatable {
   const PreparationFormState({
     this.status = PreparationFormStatus.initial,
     this.preparationStepList = const [],
-    this.draftStep,
+    this.addingStepId,
     this.showValidationErrors = false,
     this.isValid = false,
   });
@@ -64,14 +62,12 @@ final class PreparationFormState extends Equatable {
 
   final PreparationFormStatus status;
   final List<PreparationStepFormState> preparationStepList;
-  final PreparationStepFormState? draftStep;
+  final String? addingStepId;
   final bool showValidationErrors;
   final bool isValid;
 
-  List<PreparationStepFormState> get visiblePreparationStepList => [
-    ...preparationStepList,
-    if (draftStep != null) draftStep!,
-  ];
+  List<PreparationStepFormState> get visiblePreparationStepList =>
+      preparationStepList;
 
   PreparationStepFormState? get firstInvalidStep => visiblePreparationStepList
       .firstWhereOrNull((step) => invalidFieldFor(step) != null);
@@ -89,16 +85,17 @@ final class PreparationFormState extends Equatable {
   PreparationFormState copyWith({
     PreparationFormStatus? status,
     List<PreparationStepFormState>? preparationStepList,
-    Object? draftStep = _draftStepNoChange,
+    String? addingStepId,
+    bool clearAddingStepId = false,
     bool? showValidationErrors,
     bool? isValid,
   }) {
     return PreparationFormState(
       status: status ?? this.status,
       preparationStepList: preparationStepList ?? this.preparationStepList,
-      draftStep: identical(draftStep, _draftStepNoChange)
-          ? this.draftStep
-          : draftStep as PreparationStepFormState?,
+      addingStepId: clearAddingStepId
+          ? null
+          : addingStepId ?? this.addingStepId,
       showValidationErrors: showValidationErrors ?? this.showValidationErrors,
       isValid: isValid ?? this.isValid,
     );
@@ -108,7 +105,7 @@ final class PreparationFormState extends Equatable {
   List<Object?> get props => [
     status,
     preparationStepList,
-    draftStep,
+    addingStepId,
     showValidationErrors,
     isValid,
   ];

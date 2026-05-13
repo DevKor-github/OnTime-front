@@ -143,6 +143,218 @@ void main() {
     expect(state.isValid, isTrue);
   });
 
+  test('removes a blank newly added step when row interaction ends', () async {
+    final editState = waitForState(
+      (state) => state.preparationStepList.length == 1 && state.isValid,
+    );
+    bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+    await editState;
+
+    final addingState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.adding &&
+          state.addingStepId != null &&
+          state.preparationStepList.length == 2,
+    );
+    bloc.add(const PreparationFormPreparationStepCreationRequested());
+    await addingState;
+
+    final removedState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.initial &&
+          state.addingStepId == null &&
+          state.preparationStepList.length == 1,
+    );
+    bloc.add(
+      const PreparationFormPreparationStepInteractionEnded(
+        index: 1,
+        preparationStepName: '',
+      ),
+    );
+
+    final state = await removedState;
+
+    expect(state.preparationStepList.single.id, 'step-1');
+    expect(state.isValid, isTrue);
+  });
+
+  test('marks time dirty when named newly added step leaves row', () async {
+    final editState = waitForState(
+      (state) => state.preparationStepList.length == 1 && state.isValid,
+    );
+    bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+    await editState;
+
+    final addingState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.adding &&
+          state.addingStepId != null &&
+          state.preparationStepList.length == 2,
+    );
+    bloc.add(const PreparationFormPreparationStepCreationRequested());
+    await addingState;
+
+    final nameChangedState = waitForState(
+      (state) => state.preparationStepList.last.preparationName.value == 'Pack',
+    );
+    bloc.add(
+      const PreparationFormPreparationStepNameChanged(
+        index: 1,
+        preparationStepName: 'Pack',
+      ),
+    );
+    await nameChangedState;
+
+    final rowEndedState = waitForState(
+      (state) =>
+          state.preparationStepList.length == 2 &&
+          state.preparationStepList.last.preparationTime.isNotValid &&
+          !state.preparationStepList.last.preparationTime.isPure,
+    );
+    bloc.add(
+      const PreparationFormPreparationStepInteractionEnded(
+        index: 1,
+        preparationStepName: 'Pack',
+      ),
+    );
+
+    final state = await rowEndedState;
+
+    expect(state.addingStepId, isNotNull);
+    expect(state.preparationStepList.last.preparationName.isValid, isTrue);
+    expect(state.isValid, isFalse);
+  });
+
+  test(
+    'keeps name pure when newly added step gets time before leaving',
+    () async {
+      final editState = waitForState(
+        (state) => state.preparationStepList.length == 1 && state.isValid,
+      );
+      bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+      await editState;
+
+      final addingState = waitForState(
+        (state) =>
+            state.status == PreparationFormStatus.adding &&
+            state.addingStepId != null &&
+            state.preparationStepList.length == 2,
+      );
+      bloc.add(const PreparationFormPreparationStepCreationRequested());
+      await addingState;
+
+      final timeChangedState = waitForState(
+        (state) =>
+            state.preparationStepList.last.preparationTime.value.inMinutes == 5,
+      );
+      bloc.add(
+        const PreparationFormPreparationStepTimeChanged(
+          index: 1,
+          preparationStepTime: Duration(minutes: 5),
+        ),
+      );
+
+      final state = await timeChangedState;
+
+      expect(state.addingStepId, isNotNull);
+      expect(state.preparationStepList.last.preparationTime.isValid, isTrue);
+      expect(state.preparationStepList.last.preparationName.isPure, isTrue);
+      expect(state.preparationStepList.last.preparationName.isNotValid, isTrue);
+    },
+  );
+
+  test('marks name dirty when timed newly added step leaves row', () async {
+    final editState = waitForState(
+      (state) => state.preparationStepList.length == 1 && state.isValid,
+    );
+    bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+    await editState;
+
+    final addingState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.adding &&
+          state.addingStepId != null &&
+          state.preparationStepList.length == 2,
+    );
+    bloc.add(const PreparationFormPreparationStepCreationRequested());
+    await addingState;
+
+    final timeChangedState = waitForState(
+      (state) =>
+          state.preparationStepList.last.preparationTime.value.inMinutes == 5,
+    );
+    bloc.add(
+      const PreparationFormPreparationStepTimeChanged(
+        index: 1,
+        preparationStepTime: Duration(minutes: 5),
+      ),
+    );
+    await timeChangedState;
+
+    final rowEndedState = waitForState(
+      (state) =>
+          state.preparationStepList.length == 2 &&
+          state.preparationStepList.last.preparationName.isNotValid &&
+          !state.preparationStepList.last.preparationName.isPure,
+    );
+    bloc.add(
+      const PreparationFormPreparationStepInteractionEnded(
+        index: 1,
+        preparationStepName: '',
+      ),
+    );
+
+    final state = await rowEndedState;
+
+    expect(state.addingStepId, isNotNull);
+    expect(state.preparationStepList.last.preparationTime.isValid, isTrue);
+    expect(state.isValid, isFalse);
+  });
+
+  test(
+    'ignores stale time changes after a newly added step is removed',
+    () async {
+      final editState = waitForState(
+        (state) => state.preparationStepList.length == 1 && state.isValid,
+      );
+      bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+      await editState;
+
+      final addingState = waitForState(
+        (state) =>
+            state.status == PreparationFormStatus.adding &&
+            state.addingStepId != null &&
+            state.preparationStepList.length == 2,
+      );
+      bloc.add(const PreparationFormPreparationStepCreationRequested());
+      await addingState;
+
+      final removedState = waitForState(
+        (state) =>
+            state.status == PreparationFormStatus.initial &&
+            state.addingStepId == null &&
+            state.preparationStepList.length == 1,
+      );
+      bloc.add(
+        const PreparationFormPreparationStepNameFocusLost(
+          index: 1,
+          preparationStepName: '',
+        ),
+      );
+      final stateAfterRemoval = await removedState;
+
+      bloc.add(
+        const PreparationFormPreparationStepTimeChanged(
+          index: 1,
+          preparationStepTime: Duration(minutes: 5),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state, stateAfterRemoval);
+    },
+  );
+
   test('keeps a newly added step with time when name focus is lost', () async {
     final editState = waitForState(
       (state) => state.preparationStepList.length == 1 && state.isValid,

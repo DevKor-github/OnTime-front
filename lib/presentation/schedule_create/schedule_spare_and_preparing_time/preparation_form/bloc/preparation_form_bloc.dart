@@ -29,6 +29,9 @@ class PreparationFormBloc
     on<PreparationFormPreparationStepNameFocusLost>(
       _onPreparationFormPreparationStepNameFocusLost,
     );
+    on<PreparationFormPreparationStepInteractionEnded>(
+      _onPreparationFormPreparationStepInteractionEnded,
+    );
     on<PreparationFormPreparationStepTimeChanged>(
       _onPreparationFormPreparationStepTimeChanged,
     );
@@ -122,10 +125,15 @@ class PreparationFormBloc
     PreparationFormPreparationStepNameChanged event,
     Emitter<PreparationFormState> emit,
   ) {
+    final step = state.preparationStepList.elementAtOrNull(event.index);
+    if (step == null) {
+      return;
+    }
+
     final changedList = List<PreparationStepFormState>.from(
       state.preparationStepList,
     );
-    changedList[event.index] = changedList[event.index].copyWith(
+    changedList[event.index] = step.copyWith(
       preparationName: PreparationNameInputModel.dirty(
         event.preparationStepName,
       ),
@@ -182,14 +190,69 @@ class PreparationFormBloc
     );
   }
 
+  void _onPreparationFormPreparationStepInteractionEnded(
+    PreparationFormPreparationStepInteractionEnded event,
+    Emitter<PreparationFormState> emit,
+  ) {
+    final step = state.preparationStepList.elementAtOrNull(event.index);
+    if (step == null || step.id != state.addingStepId) {
+      return;
+    }
+
+    final isNameBlank = event.preparationStepName.trim().isEmpty;
+    final isTimeBlank = step.preparationTime.value == Duration.zero;
+    if (isNameBlank && isTimeBlank) {
+      final changedList = List<PreparationStepFormState>.from(
+        state.preparationStepList,
+      )..removeAt(event.index);
+      final isValid = _validate(changedList);
+      emit(
+        state.copyWith(
+          preparationStepList: changedList,
+          status: PreparationFormStatus.initial,
+          clearAddingStepId: true,
+          isValid: isValid,
+        ),
+      );
+      return;
+    }
+
+    final changedStep = step.copyWith(
+      preparationName: PreparationNameInputModel.dirty(
+        event.preparationStepName,
+      ),
+      preparationTime: PreparationTimeInputModel.dirty(
+        step.preparationTime.value,
+      ),
+    );
+    final changedList = List<PreparationStepFormState>.from(
+      state.preparationStepList,
+    )..[event.index] = changedStep;
+    final isValid = _validate(changedList);
+    final shouldCommitAddingStep = _shouldCommitAddingStep(changedStep);
+    emit(
+      state.copyWith(
+        preparationStepList: changedList,
+        status: shouldCommitAddingStep ? PreparationFormStatus.initial : null,
+        clearAddingStepId: shouldCommitAddingStep,
+        isValid: isValid,
+      ),
+    );
+  }
+
   void _onPreparationFormPreparationStepTimeChanged(
     PreparationFormPreparationStepTimeChanged event,
     Emitter<PreparationFormState> emit,
   ) {
+    final step = state.preparationStepList.elementAtOrNull(event.index);
+    if (step == null) {
+      return;
+    }
+
     final changedList = List<PreparationStepFormState>.from(
       state.preparationStepList,
     );
-    changedList[event.index] = changedList[event.index].copyWith(
+    changedList[event.index] = step.copyWith(
       preparationTime: PreparationTimeInputModel.dirty(
         event.preparationStepTime,
       ),
@@ -261,6 +324,13 @@ class PreparationFormBloc
     );
     int oldIndex = event.oldIndex;
     int newIndex = event.newIndex;
+    if (oldIndex < 0 ||
+        oldIndex >= changedList.length ||
+        newIndex < 0 ||
+        newIndex > changedList.length) {
+      return;
+    }
+
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }

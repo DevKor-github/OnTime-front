@@ -8,12 +8,14 @@ class PreparationTimeInput extends StatelessWidget {
     required this.time,
     required this.onPreparationTimeChanged,
     this.onTap,
+    this.onDisposed,
     this.hasError = false,
   });
 
   final Duration time;
   final ValueChanged<Duration>? onPreparationTimeChanged;
   final VoidCallback? onTap;
+  final VoidCallback? onDisposed;
   final bool hasError;
 
   @override
@@ -51,6 +53,7 @@ class PreparationTimeInput extends StatelessWidget {
               onSaved: (value) {
                 onPreparationTimeChanged?.call(value);
               },
+              onDisposed: onDisposed,
             );
           },
         ),

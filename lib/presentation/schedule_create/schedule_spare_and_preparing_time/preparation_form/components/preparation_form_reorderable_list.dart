@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_swipe_action_cell/core/controller.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 
-class PreparationFormReorderableList extends StatelessWidget {
+class PreparationFormReorderableList extends StatefulWidget {
   const PreparationFormReorderableList({
     super.key,
     required this.preparationStepList,
@@ -25,6 +26,21 @@ class PreparationFormReorderableList extends StatelessWidget {
   final Function(int index, String value) onNameChanged;
   final Function(int index, Duration value) onTimeChanged;
   final Function(int oldIndex, int newIndex) onReorder;
+
+  @override
+  State<PreparationFormReorderableList> createState() =>
+      _PreparationFormReorderableListState();
+}
+
+class _PreparationFormReorderableListState
+    extends State<PreparationFormReorderableList> {
+  final SwipeActionController _swipeActionController = SwipeActionController();
+
+  @override
+  void dispose() {
+    _swipeActionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,19 +65,20 @@ class PreparationFormReorderableList extends StatelessWidget {
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: preparationStepList.length,
+        itemCount: widget.preparationStepList.length,
         itemBuilder: (context, index) {
-          final step = preparationStepList[index];
+          final step = widget.preparationStepList[index];
 
           return PreparationFormListField(
             key:
-                stepKeyFor?.call(step.id) ??
+                widget.stepKeyFor?.call(step.id) ??
                 ValueKey<String>('field_${step.id}'),
             index: index,
-            isAdding: step.id == addingStepId,
-            canRemove: preparationStepList.length > 1,
-            showValidationErrors: showValidationErrors,
-            focusNode: nameFocusNodeFor?.call(step.id),
+            isAdding: step.id == widget.addingStepId,
+            canRemove: widget.preparationStepList.length > 1,
+            showValidationErrors: widget.showValidationErrors,
+            focusNode: widget.nameFocusNodeFor?.call(step.id),
+            swipeActionController: _swipeActionController,
             preparationStep: step,
             onRemove: () {
               context.read<PreparationFormBloc>().add(
@@ -71,7 +88,7 @@ class PreparationFormReorderableList extends StatelessWidget {
               );
             },
             onNameChanged: (value) {
-              onNameChanged(index, value);
+              widget.onNameChanged(index, value);
             },
             onNameFocusLost: (value) {
               context.read<PreparationFormBloc>().add(
@@ -81,16 +98,24 @@ class PreparationFormReorderableList extends StatelessWidget {
                 ),
               );
             },
+            onInteractionEnded: (value) {
+              context.read<PreparationFormBloc>().add(
+                PreparationFormPreparationStepInteractionEnded(
+                  index: index,
+                  preparationStepName: value,
+                ),
+              );
+            },
             onPreparationTimeTapped: () {
-              onTimeChanged(index, step.preparationTime.value);
+              widget.onTimeChanged(index, step.preparationTime.value);
             },
             onPreparationTimeChanged: (value) {
-              onTimeChanged(index, value);
+              widget.onTimeChanged(index, value);
             },
           );
         },
         onReorder: (int oldIndex, int newIndex) {
-          onReorder(oldIndex, newIndex);
+          widget.onReorder(oldIndex, newIndex);
         },
       ),
     );

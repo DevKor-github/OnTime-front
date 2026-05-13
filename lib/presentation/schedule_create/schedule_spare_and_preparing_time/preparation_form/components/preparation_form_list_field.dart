@@ -20,12 +20,14 @@ class PreparationFormListField extends StatefulWidget {
     this.onNameFocusLost,
     this.onPreparationTimeChanged,
     this.onPreparationTimeTapped,
+    this.onInteractionEnded,
     this.onRemove,
     this.onNameSaved,
     this.canRemove = true,
     this.isAdding = false,
     this.showValidationErrors = false,
     this.focusNode,
+    this.swipeActionController,
   });
 
   final PreparationStepFormState preparationStep;
@@ -34,12 +36,14 @@ class PreparationFormListField extends StatefulWidget {
   final ValueChanged<String>? onNameFocusLost;
   final ValueChanged<Duration>? onPreparationTimeChanged;
   final VoidCallback? onPreparationTimeTapped;
+  final ValueChanged<String>? onInteractionEnded;
   final VoidCallback? onRemove;
   final VoidCallback? onNameSaved;
   final bool canRemove;
   final bool isAdding;
   final bool showValidationErrors;
   final FocusNode? focusNode;
+  final SwipeActionController? swipeActionController;
 
   @override
   State<PreparationFormListField> createState() =>
@@ -48,9 +52,11 @@ class PreparationFormListField extends StatefulWidget {
 
 class _PreparationFormListFieldState extends State<PreparationFormListField> {
   late final FocusNode _internalFocusNode;
-  final SwipeActionController _swipeActionController = SwipeActionController();
+  final SwipeActionController _internalSwipeActionController =
+      SwipeActionController();
   late String _nameValue;
   bool _hasRequestedInitialFocus = false;
+  bool _isTimePickerOpen = false;
   final dragIndicatorSvg = SvgPicture.asset(
     'drag_indicator.svg',
     package: 'assets',
@@ -63,7 +69,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   @override
   void dispose() {
     _effectiveFocusNode.removeListener(_handleFocusChanged);
-    _swipeActionController.dispose();
+    _internalSwipeActionController.dispose();
     _internalFocusNode.dispose();
     super.dispose();
   }
@@ -80,6 +86,12 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   @override
   void didUpdateWidget(covariant PreparationFormListField oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final oldFocusNode = oldWidget.focusNode ?? _internalFocusNode;
+    final currentFocusNode = widget.focusNode ?? _internalFocusNode;
+    if (oldFocusNode != currentFocusNode) {
+      oldFocusNode.removeListener(_handleFocusChanged);
+      currentFocusNode.addListener(_handleFocusChanged);
+    }
     if (oldWidget.preparationStep.id != widget.preparationStep.id) {
       _nameValue = widget.preparationStep.preparationName.value;
     }
@@ -90,6 +102,9 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   }
 
   FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode;
+
+  SwipeActionController get _swipeActionController =>
+      widget.swipeActionController ?? _internalSwipeActionController;
 
   void _requestInitialFocusIfNeeded() {
     if (!widget.isAdding || _hasRequestedInitialFocus) {
@@ -104,11 +119,44 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   }
 
   void _handleFocusChanged() {
+    _swipeActionController.closeAllOpenCell();
     if (!_effectiveFocusNode.hasFocus) {
-      _swipeActionController.closeAllOpenCell();
-      widget.onNameFocusLost?.call(_nameValue);
-      widget.onNameSaved?.call();
+      _handleRowInteractionEnded();
     }
+  }
+
+  void _handleRowInteractionEnded([String? nameValue]) {
+    final value = nameValue ?? _nameValue;
+    if (widget.isAdding && _isTimePickerOpen) {
+      return;
+    }
+    if (widget.isAdding) {
+      widget.onInteractionEnded?.call(value);
+      return;
+    }
+    widget.onNameFocusLost?.call(value);
+    widget.onNameSaved?.call();
+  }
+
+  void _handlePreparationTimeTapped() {
+    _swipeActionController.closeAllOpenCell();
+    if (widget.isAdding) {
+      _isTimePickerOpen = true;
+      return;
+    }
+    widget.onPreparationTimeTapped?.call();
+  }
+
+  void _handlePreparationTimePickerDisposed() {
+    _isTimePickerOpen = false;
+    if (!widget.isAdding) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.isAdding) {
+        _effectiveFocusNode.requestFocus();
+      }
+    });
   }
 
   String? _nameErrorText(BuildContext context) {
@@ -168,7 +216,8 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
         trailing: PreparationTimeInput(
           time: widget.preparationStep.preparationTime.value,
           hasError: timeErrorText != null,
-          onTap: widget.onPreparationTimeTapped,
+          onTap: _handlePreparationTimeTapped,
+          onDisposed: _handlePreparationTimePickerDisposed,
           onPreparationTimeChanged: widget.onPreparationTimeChanged,
         ),
         child: Expanded(
@@ -188,9 +237,9 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
                   },
                   onFieldSubmitted: (value) {
                     _nameValue = value;
-                    widget.onNameFocusLost?.call(value);
-                    widget.onNameSaved?.call();
+                    _handleRowInteractionEnded(value);
                   },
+                  onTap: _swipeActionController.closeAllOpenCell,
                   onTapOutside: (event) {
                     _swipeActionController.closeAllOpenCell();
                     FocusManager.instance.primaryFocus?.unfocus();

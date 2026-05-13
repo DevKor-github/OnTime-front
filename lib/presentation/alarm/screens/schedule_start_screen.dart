@@ -12,16 +12,9 @@ import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
 
-enum ScheduleStartPromptVariant {
-  officialStart,
-  earlyStart,
-  alarm,
-}
+enum ScheduleStartPromptVariant { officialStart, earlyStart, alarm }
 
-enum ScheduleStartLaunchAction {
-  prompt,
-  startPreparation,
-}
+enum ScheduleStartLaunchAction { prompt, startPreparation }
 
 ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
   String? value,
@@ -140,8 +133,9 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
       return l10n.preparationStartsLaterStartEarly;
     }
 
-    final remainingLeadTime =
-        schedule.preparationStartTime.difference(DateTime.now());
+    final remainingLeadTime = schedule.preparationStartTime.difference(
+      DateTime.now(),
+    );
     if (remainingLeadTime.inMinutes <= 0) {
       return l10n.preparationStartsLaterStartEarly;
     }
@@ -150,107 +144,124 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     return l10n.preparationStartsEarlyBy(formattedLeadTime);
   }
 
-  void _onPrimaryActionPressed(
-    BuildContext context,
-    ScheduleStartPromptVariant variant,
-  ) {
-    if (variant == ScheduleStartPromptVariant.earlyStart ||
-        variant == ScheduleStartPromptVariant.alarm) {
-      context.read<ScheduleBloc>().add(const SchedulePreparationStarted());
-    }
-    context.go('/alarmScreen');
+  void _onPrimaryActionPressed(BuildContext context) {
+    context.read<ScheduleBloc>().add(const SchedulePreparationStarted());
   }
 
   @override
   Widget build(BuildContext context) {
-    final scheduleState = context.watch<ScheduleBloc>().state;
     final promptVariant = _resolvedPromptVariant();
-    final schedule = scheduleState.schedule;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final h = constraints.maxHeight;
-            final topGap = (h * 0.08).clamp(12.0, 60.0);
-            final titleFontSize = (h * 0.055).clamp(22.0, 40.0);
-            final placeFontSize = (h * 0.035).clamp(16.0, 25.0);
-            final messageFontSize = (h * 0.025).clamp(13.0, 18.0);
-            final imageHeight = (h * 0.38).clamp(120.0, 269.0);
-            final imageTopGap = (h * 0.06).clamp(10.0, 50.0);
-            final bottomGap = (h * 0.04).clamp(12.0, 30.0);
+    return BlocConsumer<ScheduleBloc, ScheduleState>(
+      listenWhen: (previous, current) {
+        return previous.status != current.status ||
+            previous.startError != current.startError;
+      },
+      listener: (context, state) {
+        if (state.status == ScheduleStatus.started) {
+          context.go('/alarmScreen');
+          return;
+        }
+        final startError = state.startError;
+        if (startError != null && startError.isNotEmpty) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(startError)));
+        }
+      },
+      builder: (context, scheduleState) {
+        final schedule = scheduleState.schedule;
 
-            return Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      SizedBox(height: topGap),
-                      Text(
-                        schedule?.scheduleName ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: titleFontSize,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xff5C79FB),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        schedule?.place.placeName ?? '',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: placeFontSize,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _buildPromptMessage(context, promptVariant, schedule),
-                        style: TextStyle(
-                          fontSize: messageFontSize,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.grey[950]!,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: imageTopGap),
-                      Expanded(
-                        child: Center(
-                          child: SvgPicture.asset(
-                            'characters/character.svg',
-                            package: 'assets',
-                            height: imageHeight,
-                            fit: BoxFit.contain,
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final h = constraints.maxHeight;
+                final topGap = (h * 0.08).clamp(12.0, 60.0);
+                final titleFontSize = (h * 0.055).clamp(22.0, 40.0);
+                final placeFontSize = (h * 0.035).clamp(16.0, 25.0);
+                final messageFontSize = (h * 0.025).clamp(13.0, 18.0);
+                final imageHeight = (h * 0.38).clamp(120.0, 269.0);
+                final imageTopGap = (h * 0.06).clamp(10.0, 50.0);
+                final bottomGap = (h * 0.04).clamp(12.0, 30.0);
+
+                return Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          SizedBox(height: topGap),
+                          Text(
+                            schedule?.scheduleName ?? '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: titleFontSize,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xff5C79FB),
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          Text(
+                            schedule?.place.placeName ?? '',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: placeFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _buildPromptMessage(
+                              context,
+                              promptVariant,
+                              schedule,
+                            ),
+                            style: TextStyle(
+                              fontSize: messageFontSize,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.grey[950]!,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: imageTopGap),
+                          Expanded(
+                            child: Center(
+                              child: SvgPicture.asset(
+                                'characters/character.svg',
+                                package: 'assets',
+                                height: imageHeight,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: bottomGap),
+                            child: _buildActionLayout(context, promptVariant),
+                          ),
+                        ],
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: bottomGap),
-                        child: _buildActionLayout(context, promptVariant),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () async => _showModal(context),
                       ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () async => _showModal(context),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -259,6 +270,9 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     ScheduleStartPromptVariant variant,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final isStarting = context.select(
+      (ScheduleBloc bloc) => bloc.state.isStartingPreparation,
+    );
     return Align(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 358),
@@ -266,15 +280,21 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
           width: double.infinity,
           height: 57,
           child: ElevatedButton(
-            onPressed: () async {
-              _onPrimaryActionPressed(context, variant);
-            },
-            child: Text(
-              variant == ScheduleStartPromptVariant.earlyStart ||
-                      variant == ScheduleStartPromptVariant.alarm
-                  ? l10n.startPreparingNow
-                  : l10n.startPreparing,
-            ),
+            onPressed: isStarting
+                ? null
+                : () => _onPrimaryActionPressed(context),
+            child: isStarting
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    variant == ScheduleStartPromptVariant.earlyStart ||
+                            variant == ScheduleStartPromptVariant.alarm
+                        ? l10n.startPreparingNow
+                        : l10n.startPreparing,
+                  ),
           ),
         ),
       ),
@@ -288,16 +308,16 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     switch (variant) {
       case ScheduleStartPromptVariant.earlyStart:
       case ScheduleStartPromptVariant.alarm:
-        return _buildTwoButtonLayout(context, variant);
+        return _buildTwoButtonLayout(context);
       case ScheduleStartPromptVariant.officialStart:
         return _buildPrimaryButton(context, variant);
     }
   }
 
-  Widget _buildTwoButtonLayout(
-    BuildContext context,
-    ScheduleStartPromptVariant variant,
-  ) {
+  Widget _buildTwoButtonLayout(BuildContext context) {
+    final isStarting = context.select(
+      (ScheduleBloc bloc) => bloc.state.isStartingPreparation,
+    );
     return Align(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 358),
@@ -308,10 +328,16 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
               width: double.infinity,
               height: 57,
               child: ElevatedButton(
-                onPressed: () async {
-                  _onPrimaryActionPressed(context, variant);
-                },
-                child: Text(AppLocalizations.of(context)!.startPreparingNow),
+                onPressed: isStarting
+                    ? null
+                    : () => _onPrimaryActionPressed(context),
+                child: isStarting
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(AppLocalizations.of(context)!.startPreparingNow),
               ),
             ),
             const SizedBox(height: 12),
@@ -319,12 +345,11 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
               width: double.infinity,
               height: 57,
               child: ElevatedButton(
-                onPressed: () async {
-                  context.go('/home');
-                },
+                onPressed: isStarting ? null : () => context.go('/home'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   foregroundColor: Theme.of(context).colorScheme.primary,
                 ),
                 child: Text(AppLocalizations.of(context)!.notNow),

@@ -1,4 +1,5 @@
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/started_schedule_entity.dart';
 
 abstract interface class ScheduleRepository {
   Stream<Set<ScheduleEntity>> get scheduleStream;
@@ -11,7 +12,9 @@ abstract interface class ScheduleRepository {
   /// if [endDate] is null, it will get all schedules after [startDate]
   /// This is for getting schedules by date
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate);
+    DateTime startDate,
+    DateTime? endDate,
+  );
 
   /// Get a schedule by [id]
   /// This is for getting a schedule by id
@@ -27,4 +30,7 @@ abstract interface class ScheduleRepository {
 
   /// Finish a schedule with lateness time
   Future<void> finishSchedule(String scheduleId, int latenessTime);
+
+  /// Start schedule preparation and return the server-frozen running state.
+  Future<StartedScheduleEntity> startSchedule(String scheduleId);
 }

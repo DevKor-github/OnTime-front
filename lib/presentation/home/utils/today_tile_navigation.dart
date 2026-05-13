@@ -17,6 +17,7 @@ TodayTileNavigationTarget? resolveTodayTileNavigationTarget({
 
   switch (scheduleStatus) {
     case ScheduleStatus.upcoming:
+    case ScheduleStatus.readyToStart:
       return const TodayTileNavigationTarget(
         '/scheduleStart',
         extra: {'promptVariant': 'earlyStart'},

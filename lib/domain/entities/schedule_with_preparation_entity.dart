@@ -16,6 +16,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     required super.scheduleNote,
     super.latenessTime,
     super.doneStatus,
+    super.startedAt,
     required this.preparation,
   });
 
@@ -77,7 +78,9 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   }
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(
-      ScheduleEntity schedule, PreparationWithTimeEntity preparation) {
+    ScheduleEntity schedule,
+    PreparationWithTimeEntity preparation,
+  ) {
     return ScheduleWithPreparationEntity(
       id: schedule.id,
       place: schedule.place,
@@ -90,21 +93,25 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       scheduleNote: schedule.scheduleNote,
       latenessTime: schedule.latenessTime,
       doneStatus: schedule.doneStatus,
+      startedAt: schedule.startedAt,
       preparation: preparation,
     );
   }
 
   @override
   List<Object?> get props => [
-        id,
-        place,
-        scheduleName,
-        scheduleTime,
-        moveTime,
-        isChanged,
-        isStarted,
-        scheduleSpareTime,
-        scheduleNote,
-        preparation
-      ];
+    id,
+    place,
+    scheduleName,
+    scheduleTime,
+    moveTime,
+    isChanged,
+    isStarted,
+    scheduleSpareTime,
+    scheduleNote,
+    latenessTime,
+    doneStatus,
+    startedAt,
+    preparation,
+  ];
 }

@@ -15,6 +15,7 @@ class GetScheduleResponseModel {
   final String scheduleNote;
   final int? latenessTime;
   final String? doneStatus;
+  final DateTime? startedAt;
 
   const GetScheduleResponseModel({
     required this.scheduleId,
@@ -26,6 +27,7 @@ class GetScheduleResponseModel {
     required this.scheduleNote,
     this.latenessTime = 0,
     this.doneStatus = 'NOT_ENDED',
+    this.startedAt,
   });
 
   ScheduleEntity toEntity() {
@@ -41,6 +43,7 @@ class GetScheduleResponseModel {
       scheduleNote: scheduleNote,
       latenessTime: latenessTime ?? -1,
       doneStatus: _mapDoneStatus(doneStatus),
+      startedAt: startedAt,
     );
   }
 

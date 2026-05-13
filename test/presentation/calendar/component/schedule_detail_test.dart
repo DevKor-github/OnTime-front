@@ -108,10 +108,13 @@ void main() {
     return actionContainers.evaluate().length;
   }
 
-  testWidgets('expanded tile shows travel, preparation, spare in order',
-      (tester) async {
-    await pumpScheduleDetail(tester,
-        preparationTime: const Duration(minutes: 20));
+  testWidgets('expanded tile shows travel, preparation, spare in order', (
+    tester,
+  ) async {
+    await pumpScheduleDetail(
+      tester,
+      preparationTime: const Duration(minutes: 20),
+    );
 
     await tester.tap(find.text('Design Review'));
     await tester.pumpAndSettle();
@@ -132,8 +135,9 @@ void main() {
     expect(preparationY, lessThan(spareY));
   });
 
-  testWidgets('preparation fallback is shown as dash when unavailable',
-      (tester) async {
+  testWidgets('preparation fallback is shown as dash when unavailable', (
+    tester,
+  ) async {
     await pumpScheduleDetail(tester);
 
     await tester.tap(find.text('Design Review'));
@@ -143,29 +147,36 @@ void main() {
     expect(find.text('-'), findsOneWidget);
   });
 
-  testWidgets('swipe action button height increases when schedule is expanded',
-      (tester) async {
-    await pumpScheduleDetail(tester,
-        preparationTime: const Duration(minutes: 20));
-    await openTrailingActions(tester);
-    final collapsedHeight = getMaxActionButtonHeight(tester);
+  testWidgets(
+    'swipe action button height increases when schedule is expanded',
+    (tester) async {
+      await pumpScheduleDetail(
+        tester,
+        preparationTime: const Duration(minutes: 20),
+      );
+      await openTrailingActions(tester);
+      final collapsedHeight = getMaxActionButtonHeight(tester);
 
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
 
-    await pumpScheduleDetail(tester,
-        preparationTime: const Duration(minutes: 20));
-    await tester.tap(find.byType(ListTile));
-    await tester.pumpAndSettle();
-    expect(find.text('Travel Time'), findsOneWidget);
-    await openTrailingActions(tester);
-    final expandedHeight = getMaxActionButtonHeight(tester);
+      await pumpScheduleDetail(
+        tester,
+        preparationTime: const Duration(minutes: 20),
+      );
+      await tester.tap(find.byType(ListTile));
+      await tester.pumpAndSettle();
+      expect(find.text('Travel Time'), findsOneWidget);
+      await openTrailingActions(tester);
+      final expandedHeight = getMaxActionButtonHeight(tester);
 
-    expect(expandedHeight, greaterThan(collapsedHeight));
-  });
+      expect(expandedHeight, greaterThan(collapsedHeight));
+    },
+  );
 
-  testWidgets('tile text updates when schedule fields change for same id',
-      (tester) async {
+  testWidgets('tile text updates when schedule fields change for same id', (
+    tester,
+  ) async {
     await pumpScheduleDetail(tester);
 
     expect(find.text('Design Review'), findsOneWidget);
@@ -184,10 +195,7 @@ void main() {
       scheduleNote: '',
     );
 
-    await pumpScheduleDetail(
-      tester,
-      customSchedule: updatedSchedule,
-    );
+    await pumpScheduleDetail(tester, customSchedule: updatedSchedule);
 
     expect(find.text('Edited Review'), findsOneWidget);
     expect(find.text('New Office'), findsOneWidget);
@@ -197,8 +205,9 @@ void main() {
     expect(find.text('09:00'), findsNothing);
   });
 
-  testWidgets('edit action is available before preparation starts',
-      (tester) async {
+  testWidgets('edit action is available before preparation starts', (
+    tester,
+  ) async {
     final futureSchedule = ScheduleEntity(
       id: 'schedule-2',
       place: PlaceEntity(id: 'place-1', placeName: 'Office'),
@@ -222,8 +231,8 @@ void main() {
     expect(getActionButtonCount(tester), 2);
   });
 
-  testWidgets('edit action is hidden after preparation start time',
-      (tester) async {
+  testWidgets('edit action remains available after preparation start time '
+      'when server has not started schedule', (tester) async {
     final scheduleInPreparation = ScheduleEntity(
       id: 'schedule-3',
       place: PlaceEntity(id: 'place-1', placeName: 'Office'),
@@ -244,11 +253,12 @@ void main() {
 
     await openTrailingActions(tester);
 
-    expect(getActionButtonCount(tester), 1);
+    expect(getActionButtonCount(tester), 2);
   });
 
-  testWidgets('edit action is hidden for early-started schedule',
-      (tester) async {
+  testWidgets('edit action is hidden for server-started schedule', (
+    tester,
+  ) async {
     final futureSchedule = ScheduleEntity(
       id: 'schedule-4',
       place: PlaceEntity(id: 'place-1', placeName: 'Office'),
@@ -259,17 +269,42 @@ void main() {
       isStarted: false,
       scheduleSpareTime: const Duration(minutes: 10),
       scheduleNote: '',
+      startedAt: DateTime.now(),
     );
 
     await pumpScheduleDetail(
       tester,
       customSchedule: futureSchedule,
       preparationTime: const Duration(minutes: 20),
-      isEarlyStarted: true,
     );
 
     await openTrailingActions(tester);
 
     expect(getActionButtonCount(tester), 1);
+  });
+
+  testWidgets('delete action is hidden for finished schedule', (tester) async {
+    final finishedSchedule = ScheduleEntity(
+      id: 'schedule-5',
+      place: PlaceEntity(id: 'place-1', placeName: 'Office'),
+      scheduleName: 'Planning',
+      scheduleTime: DateTime.now().add(const Duration(hours: 3)),
+      moveTime: const Duration(minutes: 30),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 10),
+      scheduleNote: '',
+      doneStatus: ScheduleDoneStatus.normalEnd,
+    );
+
+    await pumpScheduleDetail(
+      tester,
+      customSchedule: finishedSchedule,
+      preparationTime: const Duration(minutes: 20),
+    );
+
+    await openTrailingActions(tester);
+
+    expect(getActionButtonCount(tester), 0);
   });
 }

@@ -16,10 +16,7 @@ import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
-  const AlarmScreen({
-    super.key,
-    this.nowProvider = DateTime.now,
-  });
+  const AlarmScreen({super.key, this.nowProvider = DateTime.now});
 
   final DateTime Function() nowProvider;
 
@@ -81,9 +78,13 @@ class _AlarmScreenState extends State<AlarmScreen> {
   }
 
   void _onPreparationFinished(
-      BuildContext context, Duration timeRemainingBeforeLeaving, bool isLate) {
-    final latenessMinutes =
-        isLate ? (timeRemainingBeforeLeaving.inMinutes.abs()) : 0;
+    BuildContext context,
+    Duration timeRemainingBeforeLeaving,
+    bool isLate,
+  ) {
+    final latenessMinutes = isLate
+        ? (timeRemainingBeforeLeaving.inMinutes.abs())
+        : 0;
     _pendingEarlyLateSeconds = timeRemainingBeforeLeaving.inSeconds;
     _pendingIsLate = isLate;
     _navigateAfterFinish = true;
@@ -140,10 +141,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
               earlyLateTime: earlyLateSeconds,
               isLate: isLate,
             ),
-            extra: {
-              'earlyLateTime': earlyLateSeconds,
-              'isLate': isLate,
-            },
+            extra: {'earlyLateTime': earlyLateSeconds, 'isLate': isLate},
           );
           return;
         }
@@ -196,11 +194,11 @@ class _AlarmScreenState extends State<AlarmScreen> {
             }
 
             _ensureUiTicker(
-                preparation.isAllStepsDone && _isContinuingAfterCompletion);
-            return _buildAlarmScreen(
-              schedule: schedule,
+              preparation.isAllStepsDone && _isContinuingAfterCompletion,
             );
-          } else if (scheduleState.status == ScheduleStatus.upcoming &&
+            return _buildAlarmScreen(schedule: schedule);
+          } else if ((scheduleState.status == ScheduleStatus.upcoming ||
+                  scheduleState.status == ScheduleStatus.readyToStart) &&
               scheduleState.schedule != null) {
             _completionScheduleId = scheduleState.schedule!.id;
             _didNavigateForNotExistsTransition = false;
@@ -257,9 +255,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
     }
   }
 
-  Widget _buildAlarmScreen({
-    required ScheduleWithPreparationEntity schedule,
-  }) {
+  Widget _buildAlarmScreen({required ScheduleWithPreparationEntity schedule}) {
     final timeRemainingBeforeLeaving = _timeRemainingBeforeLeaving(schedule);
     final isLate = timeRemainingBeforeLeaving.isNegative;
     final preparation = schedule.preparation;
@@ -271,8 +267,8 @@ class _AlarmScreenState extends State<AlarmScreen> {
     final timerLabel = isLateContinueMode
         ? '지각이에요'
         : isReadyContinueMode
-            ? l10n.preparationReadyToGo
-            : preparation.currentStepName;
+        ? l10n.preparationReadyToGo
+        : preparation.currentStepName;
     final displayProgress = isLateContinueMode ? 0.0 : preparation.progress;
     final displayRemainingSeconds = isContinuingAfterCompletion
         ? timeRemainingBeforeLeaving.inSeconds.abs()
@@ -308,9 +304,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
                       child: AlarmScreenBottomSection(
                         preparation: preparation,
                         onSkip: () {
-                          context
-                              .read<ScheduleBloc>()
-                              .add(const ScheduleStepSkipped());
+                          context.read<ScheduleBloc>().add(
+                            const ScheduleStepSkipped(),
+                          );
                         },
                         onEndPreparation: () => _onPreparationFinished(
                           context,
@@ -394,9 +390,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
                 height: 57,
                 child: ElevatedButton(
                   onPressed: () {
-                    context
-                        .read<ScheduleBloc>()
-                        .add(const SchedulePreparationStarted());
+                    context.read<ScheduleBloc>().add(
+                      const SchedulePreparationStarted(),
+                    );
                   },
                   child: Text(l10n.startPreparing),
                 ),
@@ -408,8 +404,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
                 child: ElevatedButton(
                   onPressed: () => context.go('/home'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
                     foregroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   child: Text(l10n.home),

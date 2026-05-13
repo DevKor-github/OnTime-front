@@ -6,6 +6,7 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
+import 'package:on_time_front/domain/entities/started_schedule_entity.dart';
 import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
 import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
 import 'package:on_time_front/domain/use-cases/clear_early_start_session_use_case.dart';
@@ -16,6 +17,7 @@ import 'package:on_time_front/domain/use-cases/get_early_start_session_use_case.
 import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_use_case.dart';
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 
 class StubGetNearestUpcomingScheduleUseCase
@@ -65,6 +67,21 @@ class SpyFinishScheduleUseCase implements FinishScheduleUseCase {
   }
 }
 
+class SpyStartScheduleUseCase implements StartScheduleUseCase {
+  final List<String> calls = [];
+  Future<StartedScheduleEntity> Function(String scheduleId)? handler;
+
+  @override
+  Future<StartedScheduleEntity> call(String scheduleId) async {
+    calls.add(scheduleId);
+    final handler = this.handler;
+    if (handler == null) {
+      throw Exception('start handler not configured');
+    }
+    return handler(scheduleId);
+  }
+}
+
 class StubGetTimedPreparationSnapshotUseCase
     implements GetTimedPreparationSnapshotUseCase {
   final Map<String, TimedPreparationSnapshotEntity> snapshots = {};
@@ -106,7 +123,9 @@ class StubGetEarlyStartSessionUseCase implements GetEarlyStartSessionUseCase {
     final startedAt = marker.sessions[scheduleId];
     if (startedAt == null) return null;
     return EarlyStartSessionEntity(
-        scheduleId: scheduleId, startedAt: startedAt);
+      scheduleId: scheduleId,
+      startedAt: startedAt,
+    );
   }
 }
 
@@ -130,6 +149,7 @@ ScheduleWithPreparationEntity buildSchedule({
   required List<PreparationStepWithTimeEntity> steps,
   Duration moveTime = const Duration(minutes: 20),
   Duration scheduleSpareTime = const Duration(minutes: 10),
+  DateTime? startedAt,
 }) {
   return ScheduleWithPreparationEntity(
     id: id,
@@ -141,6 +161,7 @@ ScheduleWithPreparationEntity buildSchedule({
     isStarted: false,
     scheduleSpareTime: scheduleSpareTime,
     scheduleNote: '',
+    startedAt: startedAt,
     preparation: PreparationWithTimeEntity(preparationStepList: steps),
   );
 }
@@ -163,6 +184,7 @@ void main() {
     late SpyNavigationService navigationService;
     late SpySaveTimedPreparationUseCase saveUseCase;
     late SpyFinishScheduleUseCase finishUseCase;
+    late SpyStartScheduleUseCase startUseCase;
     late StubGetTimedPreparationSnapshotUseCase getSnapshotUseCase;
     late SpyClearTimedPreparationUseCase clearTimedUseCase;
     late SpyMarkEarlyStartSessionUseCase markEarlySessionUseCase;
@@ -178,13 +200,16 @@ void main() {
       navigationService = SpyNavigationService();
       saveUseCase = SpySaveTimedPreparationUseCase();
       finishUseCase = SpyFinishScheduleUseCase();
+      startUseCase = SpyStartScheduleUseCase();
       getSnapshotUseCase = StubGetTimedPreparationSnapshotUseCase();
       clearTimedUseCase = SpyClearTimedPreparationUseCase();
       markEarlySessionUseCase = SpyMarkEarlyStartSessionUseCase();
-      getEarlySessionUseCase =
-          StubGetEarlyStartSessionUseCase(markEarlySessionUseCase);
-      clearEarlySessionUseCase =
-          SpyClearEarlyStartSessionUseCase(markEarlySessionUseCase);
+      getEarlySessionUseCase = StubGetEarlyStartSessionUseCase(
+        markEarlySessionUseCase,
+      );
+      clearEarlySessionUseCase = SpyClearEarlyStartSessionUseCase(
+        markEarlySessionUseCase,
+      );
       now = DateTime(2026, 3, 20, 9, 0, 0);
       notifiedStepIds = [];
       bloc = ScheduleBloc.test(
@@ -194,19 +219,28 @@ void main() {
         getSnapshotUseCase,
         clearTimedUseCase,
         finishUseCase,
+        startScheduleUseCase: startUseCase,
         markEarlyStartSessionUseCase: markEarlySessionUseCase,
         getEarlyStartSessionUseCase: getEarlySessionUseCase,
         clearEarlyStartSessionUseCase: clearEarlySessionUseCase,
         nowProvider: () => now,
-        notifyPreparationStep: ({
-          required scheduleName,
-          required preparationName,
-          required scheduleId,
-          required stepId,
-        }) {
-          notifiedStepIds.add(stepId);
-        },
+        notifyPreparationStep:
+            ({
+              required scheduleName,
+              required preparationName,
+              required scheduleId,
+              required stepId,
+            }) {
+              notifiedStepIds.add(stepId);
+            },
       );
+      startUseCase.handler = (scheduleId) async {
+        final schedule = bloc.state.schedule!;
+        return StartedScheduleEntity(
+          schedule: schedule.copyWith(startedAt: now),
+          preparation: schedule.preparation,
+        );
+      };
     });
 
     tearDown(() async {
@@ -220,25 +254,27 @@ void main() {
       expect(bloc.state.status, ScheduleStatus.notExists);
     });
 
-    test('emits notExists when upcoming schedule time is already passed',
-        () async {
-      final schedule = buildSchedule(
-        id: 'past',
-        scheduleTime: now.subtract(const Duration(minutes: 1)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 5),
-            nextPreparationId: null,
-          ),
-        ],
-      );
+    test(
+      'emits notExists when upcoming schedule time is already passed',
+      () async {
+        final schedule = buildSchedule(
+          id: 'past',
+          scheduleTime: now.subtract(const Duration(minutes: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 5),
+              nextPreparationId: null,
+            ),
+          ],
+        );
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.status, ScheduleStatus.notExists);
-    });
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.notExists);
+      },
+    );
 
     test('emits upcoming when now is before preparationStartTime', () async {
       final schedule = buildSchedule(
@@ -260,7 +296,7 @@ void main() {
       expect(bloc.state.schedule?.id, 'upcoming');
     });
 
-    test('emits ongoing when now is inside preparation window', () async {
+    test('emits readyToStart when now is inside preparation window', () async {
       final schedule = buildSchedule(
         id: 'ongoing',
         scheduleTime: now.add(const Duration(minutes: 30)),
@@ -276,189 +312,201 @@ void main() {
 
       bloc.add(ScheduleUpcomingReceived(schedule));
       await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.status, ScheduleStatus.ongoing);
+      expect(bloc.state.status, ScheduleStatus.readyToStart);
       expect(bloc.state.schedule?.id, 'ongoing');
     });
 
     test(
-        'at preparation start boundary it transitions to started and navigates once',
-        () async {
-      final schedule = buildSchedule(
-        id: 'boundary',
-        scheduleTime: now.add(const Duration(milliseconds: 200)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(milliseconds: 100),
-            nextPreparationId: null,
-          ),
-        ],
-        moveTime: Duration.zero,
-        scheduleSpareTime: Duration.zero,
-      );
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.status, ScheduleStatus.upcoming);
+      'at preparation start boundary it transitions to readyToStart and navigates once',
+      () async {
+        final schedule = buildSchedule(
+          id: 'boundary',
+          scheduleTime: now.add(const Duration(milliseconds: 200)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(milliseconds: 100),
+              nextPreparationId: null,
+            ),
+          ],
+          moveTime: Duration.zero,
+          scheduleSpareTime: Duration.zero,
+        );
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
 
-      final started = await bloc.stream
-          .firstWhere((s) => s.status == ScheduleStatus.started);
-      expect(started.status, ScheduleStatus.started);
-      expect(navigationService.pushedRoutes, ['/scheduleStart']);
-    });
-
-    test(
-        'when received exactly at preparationStartTime it starts and navigates once',
-        () async {
-      final schedule = buildSchedule(
-        id: 'exact-boundary',
-        scheduleTime: now.add(const Duration(minutes: 40)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
-      expect(schedule.preparationStartTime, now);
-
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
-
-      expect(bloc.state.status, ScheduleStatus.started);
-      expect(bloc.state.schedule?.id, 'exact-boundary');
-      expect(bloc.state.isEarlyStarted, isFalse);
-      expect(navigationService.pushedRoutes, ['/scheduleStart']);
-    });
+        final ready = await bloc.stream.firstWhere(
+          (s) => s.status == ScheduleStatus.readyToStart,
+        );
+        expect(ready.status, ScheduleStatus.readyToStart);
+        expect(navigationService.pushedRoutes, ['/scheduleStart']);
+      },
+    );
 
     test(
-        'when early-started schedule is received at boundary it does not navigate again',
-        () async {
-      final schedule = buildSchedule(
-        id: 'early-boundary',
-        scheduleTime: now.add(const Duration(minutes: 40)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
-      expect(schedule.preparationStartTime, now);
-      markEarlySessionUseCase.sessions['early-boundary'] =
-          now.subtract(const Duration(minutes: 1));
+      'when received exactly at preparationStartTime it becomes readyToStart and navigates once',
+      () async {
+        final schedule = buildSchedule(
+          id: 'exact-boundary',
+          scheduleTime: now.add(const Duration(minutes: 40)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        expect(schedule.preparationStartTime, now);
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
-      expect(bloc.state.status, ScheduleStatus.started);
-      expect(bloc.state.schedule?.id, 'early-boundary');
-      expect(bloc.state.isEarlyStarted, isTrue);
-      expect(navigationService.pushedRoutes, isEmpty);
-    });
+        expect(bloc.state.status, ScheduleStatus.readyToStart);
+        expect(bloc.state.schedule?.id, 'exact-boundary');
+        expect(bloc.state.isEarlyStarted, isFalse);
+        expect(navigationService.pushedRoutes, ['/scheduleStart']);
+      },
+    );
 
-    test('late entry fast-forwards elapsed preparation to current step',
-        () async {
-      final schedule = buildSchedule(
-        id: 'late-entry',
-        scheduleTime: now.add(const Duration(minutes: 35)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 's1',
-            preparationName: 'wash',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: 's2',
-          ),
-          PreparationStepWithTimeEntity(
-            id: 's2',
-            preparationName: 'dress',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
+    test(
+      'when server-started schedule is received it does not navigate again',
+      () async {
+        final schedule = buildSchedule(
+          id: 'early-boundary',
+          scheduleTime: now.add(const Duration(minutes: 40)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+          startedAt: now.subtract(const Duration(minutes: 1)),
+        );
+        expect(schedule.preparationStartTime, now);
 
-      now = schedule.preparationStartTime.add(const Duration(minutes: 15));
-      bloc.add(ScheduleUpcomingReceived(schedule));
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.status, ScheduleStatus.ongoing);
-      expect(bloc.state.schedule!.preparation.currentStep?.id, 's2');
-      expect(
-        bloc.state.schedule!.preparation.preparationStepList[1].elapsedTime,
-        const Duration(minutes: 5),
-      );
-    });
+        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.schedule?.id, 'early-boundary');
+        expect(bloc.state.isEarlyStarted, isTrue);
+        expect(navigationService.pushedRoutes, isEmpty);
+      },
+    );
 
-    test('entering ongoing applies catch-up tick and accepts later ticks',
-        () async {
-      final schedule = buildSchedule(
-        id: 'tick',
-        scheduleTime: now.add(const Duration(minutes: 30)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 's1',
-            preparationName: 'wash',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
+    test(
+      'late entry fast-forwards elapsed preparation to current step',
+      () async {
+        final schedule = buildSchedule(
+          id: 'late-entry',
+          scheduleTime: now.add(const Duration(minutes: 35)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 's2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 's2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+          startedAt: now,
+        );
 
-      now = schedule.preparationStartTime.add(const Duration(seconds: 2));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
-      await Future<void>.delayed(Duration.zero);
+        now = schedule.preparationStartTime.add(const Duration(minutes: 15));
+        bloc.add(ScheduleUpcomingReceived(schedule));
 
-      final caughtUpElapsed = bloc.state.schedule!.preparation.elapsedTime;
-      expect(caughtUpElapsed, const Duration(seconds: 2));
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.schedule!.preparation.currentStep?.id, 's2');
+        expect(
+          bloc.state.schedule!.preparation.preparationStepList[1].elapsedTime,
+          const Duration(minutes: 5),
+        );
+      },
+    );
 
-      bloc.add(const ScheduleTick(Duration(seconds: 1)));
-      await Future<void>.delayed(Duration.zero);
-      expect(
-        bloc.state.schedule!.preparation.elapsedTime,
-        const Duration(seconds: 3),
-      );
-    });
+    test(
+      'entering ongoing applies catch-up tick and accepts later ticks',
+      () async {
+        final schedule = buildSchedule(
+          id: 'tick',
+          scheduleTime: now.add(const Duration(minutes: 30)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+          startedAt: now,
+        );
 
-    test('skip current step advances to next and persists timed preparation',
-        () async {
-      final schedule = buildSchedule(
-        id: 'skip',
-        scheduleTime: now.add(const Duration(minutes: 35)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 's1',
-            preparationName: 'wash',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: 's2',
-          ),
-          PreparationStepWithTimeEntity(
-            id: 's2',
-            preparationName: 'dress',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
-      now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        now = schedule.preparationStartTime.add(const Duration(seconds: 2));
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
+        await Future<void>.delayed(Duration.zero);
 
-      bloc.add(const ScheduleStepSkipped());
-      await Future<void>.delayed(Duration.zero);
+        final caughtUpElapsed = bloc.state.schedule!.preparation.elapsedTime;
+        expect(caughtUpElapsed, const Duration(seconds: 2));
 
-      expect(bloc.state.schedule!.preparation.currentStep?.id, 's2');
-      expect(saveUseCase.calls, isNotEmpty);
-      expect(saveUseCase.calls.last.$1, 'skip');
-    });
+        bloc.add(const ScheduleTick(Duration(seconds: 1)));
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          bloc.state.schedule!.preparation.elapsedTime,
+          const Duration(seconds: 3),
+        );
+      },
+    );
+
+    test(
+      'skip current step advances to next and persists timed preparation',
+      () async {
+        final schedule = buildSchedule(
+          id: 'skip',
+          scheduleTime: now.add(const Duration(minutes: 35)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 's2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 's2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+          startedAt: now,
+        );
+        now = schedule.preparationStartTime.add(const Duration(minutes: 1));
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
+
+        bloc.add(const ScheduleStepSkipped());
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.schedule!.preparation.currentStep?.id, 's2');
+        expect(saveUseCase.calls, isNotEmpty);
+        expect(saveUseCase.calls.last.$1, 'skip');
+      },
+    );
 
     test('skip on last remaining step marks all steps done', () async {
       final schedule = buildSchedule(
@@ -472,10 +520,11 @@ void main() {
             nextPreparationId: null,
           ),
         ],
+        startedAt: now,
       );
       now = schedule.preparationStartTime.add(const Duration(minutes: 1));
       bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
       bloc.add(const ScheduleStepSkipped());
       await Future<void>.delayed(Duration.zero);
@@ -497,10 +546,11 @@ void main() {
             elapsedTime: Duration(minutes: 10),
           ),
         ],
+        startedAt: now,
       );
       now = schedule.preparationStartTime.add(const Duration(minutes: 1));
       bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
       final before = bloc.state.schedule!.preparation;
       bloc.add(const ScheduleStepSkipped());
@@ -520,203 +570,248 @@ void main() {
             nextPreparationId: null,
           ),
         ],
+        startedAt: now,
       );
       now = schedule.preparationStartTime.add(const Duration(minutes: 1));
       bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
       bloc.add(const ScheduleFinished(7));
-      final finished = await bloc.stream
-          .firstWhere((s) => s.status == ScheduleStatus.notExists);
+      final finished = await bloc.stream.firstWhere(
+        (s) => s.status == ScheduleStatus.notExists,
+      );
       expect(finished.status, ScheduleStatus.notExists);
       expect(finishUseCase.calls.single, ('finish', 7));
     });
 
-    test('step change notification fires for non-first transitions only once',
-        () async {
-      final schedule = buildSchedule(
-        id: 'notify',
-        scheduleTime: now.add(const Duration(minutes: 50)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 's1',
-            preparationName: 'step1',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: 's2',
-          ),
-          PreparationStepWithTimeEntity(
-            id: 's2',
-            preparationName: 'step2',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
-      now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+    test(
+      'step change notification fires for non-first transitions only once',
+      () async {
+        final schedule = buildSchedule(
+          id: 'notify',
+          scheduleTime: now.add(const Duration(minutes: 50)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'step1',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 's2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 's2',
+              preparationName: 'step2',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+          startedAt: now,
+        );
+        now = schedule.preparationStartTime.add(const Duration(minutes: 1));
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
-      expect(notifiedStepIds, isEmpty);
-      bloc.add(const ScheduleTick(Duration(minutes: 10)));
-      await Future<void>.delayed(Duration.zero);
-      expect(notifiedStepIds, ['s2']);
+        expect(notifiedStepIds, isEmpty);
+        bloc.add(const ScheduleTick(Duration(minutes: 10)));
+        await Future<void>.delayed(Duration.zero);
+        expect(notifiedStepIds, ['s2']);
 
-      bloc.add(const ScheduleTick(Duration(minutes: 1)));
-      await Future<void>.delayed(Duration.zero);
-      expect(notifiedStepIds, ['s2']);
-    });
-
-    test('new upcoming schedule cancels old timer and tracks latest schedule',
-        () async {
-      final scheduleA = buildSchedule(
-        id: 'A',
-        scheduleTime: now.add(const Duration(milliseconds: 250)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a1',
-            preparationName: 'a',
-            preparationTime: Duration(milliseconds: 100),
-            nextPreparationId: null,
-          ),
-        ],
-        moveTime: Duration.zero,
-        scheduleSpareTime: Duration.zero,
-      );
-      final scheduleB = buildSchedule(
-        id: 'B',
-        scheduleTime: now.add(const Duration(milliseconds: 500)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'b1',
-            preparationName: 'b',
-            preparationTime: Duration(milliseconds: 100),
-            nextPreparationId: null,
-          ),
-        ],
-        moveTime: Duration.zero,
-        scheduleSpareTime: Duration.zero,
-      );
-
-      bloc.add(ScheduleUpcomingReceived(scheduleA));
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      bloc.add(ScheduleUpcomingReceived(scheduleB));
-      await Future<void>.delayed(const Duration(milliseconds: 220));
-
-      expect(bloc.state.schedule?.id, 'B');
-      expect(bloc.state.status, ScheduleStatus.upcoming);
-
-      final started = await bloc.stream
-          .firstWhere((s) => s.status == ScheduleStatus.started);
-      expect(started.schedule?.id, 'B');
-      expect(navigationService.pushedRoutes, ['/scheduleStart']);
-    });
-
-    test('early start from upcoming emits started and marks early session',
-        () async {
-      final schedule = buildSchedule(
-        id: 'early-start',
-        scheduleTime: now.add(const Duration(hours: 1)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
-
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.status, ScheduleStatus.upcoming);
-
-      bloc.add(const SchedulePreparationStarted());
-      await Future<void>.delayed(Duration.zero);
-
-      expect(bloc.state.status, ScheduleStatus.started);
-      expect(bloc.state.isEarlyStarted, isTrue);
-      expect(
-          markEarlySessionUseCase.sessions.containsKey('early-start'), isTrue);
-    });
-
-    test('alarm launch start action keeps cached schedule on start prompt',
-        () async {
-      final schedule = buildSchedule(
-        id: 'alarm-start',
-        scheduleTime: now.add(const Duration(hours: 1)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
-
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-
-      bloc.add(
-        ScheduleAlarmPromptRequested(
-          scheduleId: 'alarm-start',
-          scheduleFingerprint: schedule.cacheFingerprint,
-          startPreparation: true,
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
-
-      expect(bloc.state.status, ScheduleStatus.upcoming);
-      expect(bloc.state.schedule?.id, 'alarm-start');
-      expect(bloc.state.isEarlyStarted, isFalse);
-      expect(
-        markEarlySessionUseCase.sessions.containsKey('alarm-start'),
-        isFalse,
-      );
-      expect(navigationService.goRoutes, isEmpty);
-    });
+        bloc.add(const ScheduleTick(Duration(minutes: 1)));
+        await Future<void>.delayed(Duration.zero);
+        expect(notifiedStepIds, ['s2']);
+      },
+    );
 
     test(
-        'alarm launch start action keeps stale-fingerprint cached schedule on start prompt',
-        () async {
-      final schedule = buildSchedule(
-        id: 'alarm-stale-fingerprint',
-        scheduleTime: now.add(const Duration(hours: 1)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
+      'new upcoming schedule cancels old timer and tracks latest schedule',
+      () async {
+        final scheduleA = buildSchedule(
+          id: 'A',
+          scheduleTime: now.add(const Duration(milliseconds: 250)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a1',
+              preparationName: 'a',
+              preparationTime: Duration(milliseconds: 100),
+              nextPreparationId: null,
+            ),
+          ],
+          moveTime: Duration.zero,
+          scheduleSpareTime: Duration.zero,
+        );
+        final scheduleB = buildSchedule(
+          id: 'B',
+          scheduleTime: now.add(const Duration(milliseconds: 500)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'b1',
+              preparationName: 'b',
+              preparationTime: Duration(milliseconds: 100),
+              nextPreparationId: null,
+            ),
+          ],
+          moveTime: Duration.zero,
+          scheduleSpareTime: Duration.zero,
+        );
+
+        bloc.add(ScheduleUpcomingReceived(scheduleA));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        bloc.add(ScheduleUpcomingReceived(scheduleB));
+        await Future<void>.delayed(const Duration(milliseconds: 220));
+
+        expect(bloc.state.schedule?.id, 'B');
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+
+        final ready = await bloc.stream.firstWhere(
+          (s) => s.status == ScheduleStatus.readyToStart,
+        );
+        expect(ready.schedule?.id, 'B');
+        expect(navigationService.pushedRoutes, ['/scheduleStart']);
+      },
+    );
+
+    test(
+      'early start from upcoming emits started and marks early session',
+      () async {
+        final schedule = buildSchedule(
+          id: 'early-start',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+
+        bloc.add(const SchedulePreparationStarted());
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.isEarlyStarted, isTrue);
+        expect(
+          markEarlySessionUseCase.sessions.containsKey('early-start'),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'start failure stays out of started and exposes retry error',
+      () async {
+        final schedule = buildSchedule(
+          id: 'start-failure',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        startUseCase.handler = (_) async => throw Exception('nope');
+
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const SchedulePreparationStarted());
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(startUseCase.calls, ['start-failure']);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.isStartingPreparation, isFalse);
+        expect(bloc.state.startError, contains('Unable to start preparation'));
+      },
+    );
+
+    test(
+      'alarm launch start action keeps cached schedule on start prompt',
+      () async {
+        final schedule = buildSchedule(
+          id: 'alarm-start',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+
+        bloc.add(
+          ScheduleAlarmPromptRequested(
+            scheduleId: 'alarm-start',
+            scheduleFingerprint: schedule.cacheFingerprint,
+            startPreparation: true,
           ),
-        ],
-      );
+        );
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.schedule?.id, 'alarm-start');
+        expect(bloc.state.isEarlyStarted, isFalse);
+        expect(
+          markEarlySessionUseCase.sessions.containsKey('alarm-start'),
+          isFalse,
+        );
+        expect(navigationService.goRoutes, isEmpty);
+      },
+    );
 
-      bloc.add(
-        const ScheduleAlarmPromptRequested(
-          scheduleId: 'alarm-stale-fingerprint',
-          scheduleFingerprint: 'stale-fingerprint',
-          startPreparation: true,
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+    test(
+      'alarm launch start action keeps stale-fingerprint cached schedule on start prompt',
+      () async {
+        final schedule = buildSchedule(
+          id: 'alarm-stale-fingerprint',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
 
-      expect(bloc.state.status, ScheduleStatus.upcoming);
-      expect(bloc.state.schedule?.id, 'alarm-stale-fingerprint');
-      expect(bloc.state.isEarlyStarted, isFalse);
-      expect(
-        markEarlySessionUseCase.sessions.containsKey(
-          'alarm-stale-fingerprint',
-        ),
-        isFalse,
-      );
-      expect(navigationService.goRoutes, isEmpty);
-    });
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+
+        bloc.add(
+          const ScheduleAlarmPromptRequested(
+            scheduleId: 'alarm-stale-fingerprint',
+            scheduleFingerprint: 'stale-fingerprint',
+            startPreparation: true,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.schedule?.id, 'alarm-stale-fingerprint');
+        expect(bloc.state.isEarlyStarted, isFalse);
+        expect(
+          markEarlySessionUseCase.sessions.containsKey(
+            'alarm-stale-fingerprint',
+          ),
+          isFalse,
+        );
+        expect(navigationService.goRoutes, isEmpty);
+      },
+    );
 
     test('future upcoming schedule stops active preparation timer', () async {
       final active = buildSchedule(
@@ -764,57 +859,60 @@ void main() {
     });
 
     test(
-        'official start timer does not push scheduleStart when already early-started',
-        () async {
-      final schedule = buildSchedule(
-        id: 'early-no-push',
-        scheduleTime: now.add(const Duration(milliseconds: 220)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(milliseconds: 100),
-            nextPreparationId: null,
-          ),
-        ],
-        moveTime: Duration.zero,
-        scheduleSpareTime: Duration.zero,
-      );
+      'official start timer does not push scheduleStart when already early-started',
+      () async {
+        final schedule = buildSchedule(
+          id: 'early-no-push',
+          scheduleTime: now.add(const Duration(milliseconds: 220)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(milliseconds: 100),
+              nextPreparationId: null,
+            ),
+          ],
+          moveTime: Duration.zero,
+          scheduleSpareTime: Duration.zero,
+        );
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      bloc.add(const SchedulePreparationStarted());
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const SchedulePreparationStarted());
+        await Future<void>.delayed(Duration.zero);
+        await Future<void>.delayed(const Duration(milliseconds: 300));
 
-      expect(navigationService.pushedRoutes, isEmpty);
-    });
+        expect(navigationService.pushedRoutes, isEmpty);
+      },
+    );
 
-    test('same schedule re-emission preserves started state when early-started',
-        () async {
-      final schedule = buildSchedule(
-        id: 'same-reemit',
-        scheduleTime: now.add(const Duration(hours: 1)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
+    test(
+      'same schedule re-emission preserves started state when early-started',
+      () async {
+        final schedule = buildSchedule(
+          id: 'same-reemit',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      bloc.add(const SchedulePreparationStarted());
-      await Future<void>.delayed(Duration.zero);
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const SchedulePreparationStarted());
+        await Future<void>.delayed(Duration.zero);
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.status, ScheduleStatus.started);
-      expect(bloc.state.isEarlyStarted, isTrue);
-    });
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.isEarlyStarted, isTrue);
+      },
+    );
 
     test('finish clears timed preparation and early session state', () async {
       final schedule = buildSchedule(
@@ -854,6 +952,7 @@ void main() {
             nextPreparationId: null,
           ),
         ],
+        startedAt: now,
       );
       getSnapshotUseCase.snapshots['fingerprint'] = buildSnapshot(
         preparation: const PreparationWithTimeEntity(
@@ -882,39 +981,40 @@ void main() {
       );
     });
 
-    test('resume before official start when early session and snapshot exist',
-        () async {
-      final schedule = buildSchedule(
-        id: 'resume-early',
-        scheduleTime: now.add(const Duration(hours: 1)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 20),
-            nextPreparationId: null,
-            elapsedTime: Duration(minutes: 2),
-          ),
-        ],
-      );
+    test(
+      'resume before official start when server start and snapshot exist',
+      () async {
+        final schedule = buildSchedule(
+          id: 'resume-early',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 20),
+              nextPreparationId: null,
+              elapsedTime: Duration(minutes: 2),
+            ),
+          ],
+          startedAt: now.subtract(const Duration(minutes: 3)),
+        );
 
-      markEarlySessionUseCase.sessions['resume-early'] =
-          now.subtract(const Duration(minutes: 3));
-      getSnapshotUseCase.snapshots['resume-early'] = buildSnapshot(
-        preparation: schedule.preparation,
-        savedAt: now.subtract(const Duration(minutes: 1)),
-        fingerprint: schedule.cacheFingerprint,
-      );
+        getSnapshotUseCase.snapshots['resume-early'] = buildSnapshot(
+          preparation: schedule.preparation,
+          savedAt: now.subtract(const Duration(minutes: 1)),
+          fingerprint: schedule.cacheFingerprint,
+        );
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
 
-      expect(bloc.state.status, ScheduleStatus.started);
-      expect(bloc.state.isEarlyStarted, isTrue);
-      expect(
-        bloc.state.schedule!.preparation.elapsedTime,
-        greaterThan(const Duration(minutes: 2)),
-      );
-    });
+        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.isEarlyStarted, isTrue);
+        expect(
+          bloc.state.schedule!.preparation.elapsedTime,
+          greaterThan(const Duration(minutes: 2)),
+        );
+      },
+    );
   });
 }

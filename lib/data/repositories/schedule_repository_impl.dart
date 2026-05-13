@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/started_schedule_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:rxdart/subjects.dart';
@@ -128,6 +129,19 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     }
   }
 
+  @override
+  Future<StartedScheduleEntity> startSchedule(String scheduleId) async {
+    try {
+      final startedSchedule = await scheduleRemoteDataSource.startSchedule(
+        scheduleId,
+      );
+      _emitUpsertedSchedule(startedSchedule.schedule);
+      return startedSchedule;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   bool _isEnded(ScheduleDoneStatus doneStatus) {
     return doneStatus == ScheduleDoneStatus.normalEnd ||
         doneStatus == ScheduleDoneStatus.lateEnd ||
@@ -156,12 +170,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required Iterable<ScheduleEntity> schedules,
   }) {
     final nextSchedules =
-        Set<ScheduleEntity>.from(_scheduleStreamController.value)
-          ..removeWhere(
-            (existing) =>
-                !existing.scheduleTime.isBefore(startDate) &&
-                (endDate == null || existing.scheduleTime.isBefore(endDate)),
-          );
+        Set<ScheduleEntity>.from(_scheduleStreamController.value)..removeWhere(
+          (existing) =>
+              !existing.scheduleTime.isBefore(startDate) &&
+              (endDate == null || existing.scheduleTime.isBefore(endDate)),
+        );
     for (final schedule in schedules) {
       nextSchedules.add(schedule);
     }

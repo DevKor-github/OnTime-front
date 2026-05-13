@@ -258,7 +258,7 @@ class _ScheduleStartRouteGateState extends State<_ScheduleStartRouteGate> {
   @override
   Widget build(BuildContext context) {
     final scheduleState = context.watch<ScheduleBloc>().state;
-    if (scheduleState.isEarlyStarted) {
+    if (scheduleState.status == ScheduleStatus.started) {
       return const AlarmScreen();
     }
 

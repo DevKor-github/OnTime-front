@@ -15,6 +15,14 @@ class ApiErrorMessage {
       return null;
     }
 
+    final code = data['code'];
+    if (code == 'SCHEDULE_ALREADY_STARTED') {
+      return 'This schedule has already started and can no longer be edited.';
+    }
+    if (code == 'SCHEDULE_ALREADY_FINISHED') {
+      return 'This schedule has already finished and can no longer be edited.';
+    }
+
     final message = data['message'];
     if (message is String && message.trim().isNotEmpty) {
       return message.trim();

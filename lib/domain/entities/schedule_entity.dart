@@ -16,6 +16,7 @@ class ScheduleEntity extends Equatable {
   final String scheduleNote;
   final int latenessTime;
   final ScheduleDoneStatus doneStatus;
+  final DateTime? startedAt;
 
   const ScheduleEntity({
     required this.id,
@@ -29,10 +30,12 @@ class ScheduleEntity extends Equatable {
     required this.scheduleNote,
     this.latenessTime = 0,
     this.doneStatus = ScheduleDoneStatus.notEnded,
+    this.startedAt,
   });
 
   static ScheduleEntity fromScheduleWithPlaceModel(
-      ScheduleWithPlace scheduleWithPlace) {
+    ScheduleWithPlace scheduleWithPlace,
+  ) {
     final schedule = scheduleWithPlace.schedule;
     final place = scheduleWithPlace.place;
     return ScheduleEntity(
@@ -47,6 +50,7 @@ class ScheduleEntity extends Equatable {
       scheduleNote: schedule.scheduleNote ?? '',
       latenessTime: schedule.latenessTime,
       doneStatus: ScheduleDoneStatus.notEnded,
+      startedAt: null,
     );
   }
 
@@ -74,6 +78,7 @@ class ScheduleEntity extends Equatable {
 
   ScheduleEntity copyWith({
     ScheduleDoneStatus? doneStatus,
+    DateTime? startedAt,
   }) {
     return ScheduleEntity(
       id: id,
@@ -87,28 +92,30 @@ class ScheduleEntity extends Equatable {
       scheduleNote: scheduleNote,
       latenessTime: latenessTime,
       doneStatus: doneStatus ?? this.doneStatus,
+      startedAt: startedAt ?? this.startedAt,
     );
   }
 
   @override
   String toString() {
-    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote, latenessTime: $latenessTime)';
+    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote, latenessTime: $latenessTime, doneStatus: $doneStatus, startedAt: $startedAt)';
   }
 
   @override
   List<Object?> get props => [
-        id,
-        place,
-        scheduleName,
-        scheduleTime,
-        moveTime,
-        isChanged,
-        isStarted,
-        scheduleSpareTime,
-        scheduleNote,
-        latenessTime,
-        doneStatus,
-      ];
+    id,
+    place,
+    scheduleName,
+    scheduleTime,
+    moveTime,
+    isChanged,
+    isStarted,
+    scheduleSpareTime,
+    scheduleNote,
+    latenessTime,
+    doneStatus,
+    startedAt,
+  ];
 }
 
 enum ScheduleDoneStatus {

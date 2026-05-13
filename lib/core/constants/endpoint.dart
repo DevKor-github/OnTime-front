@@ -34,6 +34,8 @@ class Endpoint {
       '$_schedules/$scheduleId';
   static String finishSchedule(String scheduleId) =>
       '$_schedules/$scheduleId/finish';
+  static String startSchedule(String scheduleId) =>
+      '$_schedules/$scheduleId/start';
 
   // preparation
   static const _createDefaultPreparation =

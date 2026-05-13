@@ -31,4 +31,25 @@ void main() {
       expect(message, '이메일 형식이 올바르지 않습니다.');
     },
   );
+
+  test('maps schedule lifecycle conflict codes to client messages', () {
+    expect(
+      ApiErrorMessage.fromResponseData({
+        'status': 'error',
+        'code': 'SCHEDULE_ALREADY_STARTED',
+        'message': 'Started schedules cannot be edited.',
+        'data': null,
+      }),
+      'This schedule has already started and can no longer be edited.',
+    );
+    expect(
+      ApiErrorMessage.fromResponseData({
+        'status': 'error',
+        'code': 'SCHEDULE_ALREADY_FINISHED',
+        'message': 'Finished schedules cannot be edited.',
+        'data': null,
+      }),
+      'This schedule has already finished and can no longer be edited.',
+    );
+  });
 }

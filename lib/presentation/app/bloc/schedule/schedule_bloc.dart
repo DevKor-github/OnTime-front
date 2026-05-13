@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
@@ -22,17 +23,19 @@ import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_u
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/finish_schedule_use_case.dart';
+import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 
 part 'schedule_event.dart';
 part 'schedule_state.dart';
 
 typedef NowProvider = DateTime Function();
-typedef NotifyPreparationStep = void Function({
-  required String scheduleName,
-  required String preparationName,
-  required String scheduleId,
-  required String stepId,
-});
+typedef NotifyPreparationStep =
+    void Function({
+      required String scheduleName,
+      required String preparationName,
+      required String scheduleId,
+      required String stepId,
+    });
 
 void _defaultNotifyPreparationStep({
   required String scheduleName,
@@ -57,26 +60,26 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     this._getTimedPreparationSnapshotUseCase,
     this._clearTimedPreparationUseCase,
     this._finishScheduleUseCase, {
+    required StartScheduleUseCase startScheduleUseCase,
     required MarkEarlyStartSessionUseCase markEarlyStartSessionUseCase,
     required GetEarlyStartSessionUseCase getEarlyStartSessionUseCase,
     required ClearEarlyStartSessionUseCase clearEarlyStartSessionUseCase,
     required CancelScheduleAlarmUseCase cancelScheduleAlarmUseCase,
     required GetScheduleByIdUseCase getScheduleByIdUseCase,
     required LoadPreparationByScheduleIdUseCase
-        loadPreparationByScheduleIdUseCase,
+    loadPreparationByScheduleIdUseCase,
     required GetPreparationByScheduleIdUseCase
-        getPreparationByScheduleIdUseCase,
-  })  : _nowProvider = DateTime.now,
-        _markEarlyStartSessionUseCase = markEarlyStartSessionUseCase,
-        _getEarlyStartSessionUseCase = getEarlyStartSessionUseCase,
-        _clearEarlyStartSessionUseCase = clearEarlyStartSessionUseCase,
-        _cancelScheduleAlarmUseCase = cancelScheduleAlarmUseCase,
-        _getScheduleByIdUseCase = getScheduleByIdUseCase,
-        _loadPreparationByScheduleIdUseCase =
-            loadPreparationByScheduleIdUseCase,
-        _getPreparationByScheduleIdUseCase = getPreparationByScheduleIdUseCase,
-        _notifyPreparationStep = _defaultNotifyPreparationStep,
-        super(const ScheduleState.initial()) {
+    getPreparationByScheduleIdUseCase,
+  }) : _nowProvider = DateTime.now,
+       _startScheduleUseCase = startScheduleUseCase,
+       _markEarlyStartSessionUseCase = markEarlyStartSessionUseCase,
+       _clearEarlyStartSessionUseCase = clearEarlyStartSessionUseCase,
+       _cancelScheduleAlarmUseCase = cancelScheduleAlarmUseCase,
+       _getScheduleByIdUseCase = getScheduleByIdUseCase,
+       _loadPreparationByScheduleIdUseCase = loadPreparationByScheduleIdUseCase,
+       _getPreparationByScheduleIdUseCase = getPreparationByScheduleIdUseCase,
+       _notifyPreparationStep = _defaultNotifyPreparationStep,
+       super(const ScheduleState.initial()) {
     _registerHandlers();
   }
 
@@ -88,6 +91,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     this._getTimedPreparationSnapshotUseCase,
     this._clearTimedPreparationUseCase,
     this._finishScheduleUseCase, {
+    StartScheduleUseCase? startScheduleUseCase,
     required MarkEarlyStartSessionUseCase markEarlyStartSessionUseCase,
     required GetEarlyStartSessionUseCase getEarlyStartSessionUseCase,
     required ClearEarlyStartSessionUseCase clearEarlyStartSessionUseCase,
@@ -97,18 +101,17 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     GetPreparationByScheduleIdUseCase? getPreparationByScheduleIdUseCase,
     NowProvider? nowProvider,
     NotifyPreparationStep? notifyPreparationStep,
-  })  : _nowProvider = nowProvider ?? DateTime.now,
-        _markEarlyStartSessionUseCase = markEarlyStartSessionUseCase,
-        _getEarlyStartSessionUseCase = getEarlyStartSessionUseCase,
-        _clearEarlyStartSessionUseCase = clearEarlyStartSessionUseCase,
-        _cancelScheduleAlarmUseCase = cancelScheduleAlarmUseCase,
-        _getScheduleByIdUseCase = getScheduleByIdUseCase,
-        _loadPreparationByScheduleIdUseCase =
-            loadPreparationByScheduleIdUseCase,
-        _getPreparationByScheduleIdUseCase = getPreparationByScheduleIdUseCase,
-        _notifyPreparationStep =
-            notifyPreparationStep ?? _defaultNotifyPreparationStep,
-        super(const ScheduleState.initial()) {
+  }) : _nowProvider = nowProvider ?? DateTime.now,
+       _startScheduleUseCase = startScheduleUseCase,
+       _markEarlyStartSessionUseCase = markEarlyStartSessionUseCase,
+       _clearEarlyStartSessionUseCase = clearEarlyStartSessionUseCase,
+       _cancelScheduleAlarmUseCase = cancelScheduleAlarmUseCase,
+       _getScheduleByIdUseCase = getScheduleByIdUseCase,
+       _loadPreparationByScheduleIdUseCase = loadPreparationByScheduleIdUseCase,
+       _getPreparationByScheduleIdUseCase = getPreparationByScheduleIdUseCase,
+       _notifyPreparationStep =
+           notifyPreparationStep ?? _defaultNotifyPreparationStep,
+       super(const ScheduleState.initial()) {
     _registerHandlers();
   }
 
@@ -129,8 +132,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final GetTimedPreparationSnapshotUseCase _getTimedPreparationSnapshotUseCase;
   final ClearTimedPreparationUseCase _clearTimedPreparationUseCase;
   final FinishScheduleUseCase _finishScheduleUseCase;
+  final StartScheduleUseCase? _startScheduleUseCase;
   final MarkEarlyStartSessionUseCase _markEarlyStartSessionUseCase;
-  final GetEarlyStartSessionUseCase _getEarlyStartSessionUseCase;
   final ClearEarlyStartSessionUseCase _clearEarlyStartSessionUseCase;
   final CancelScheduleAlarmUseCase? _cancelScheduleAlarmUseCase;
   final GetScheduleByIdUseCase? _getScheduleByIdUseCase;
@@ -139,29 +142,33 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final NowProvider _nowProvider;
   final NotifyPreparationStep _notifyPreparationStep;
   StreamSubscription<ScheduleWithPreparationEntity?>?
-      _upcomingScheduleSubscription;
+  _upcomingScheduleSubscription;
   Timer? _scheduleStartTimer;
   String? _currentScheduleId;
-  String? _activeEarlyStartScheduleId;
   Timer? _preparationTimer;
   DateTime? _lastSnapshotSavedAt;
   final Map<String, Set<String>> _notifiedStepIdsByScheduleId = {};
 
   Future<void> _onSubscriptionRequested(
-      ScheduleSubscriptionRequested event, Emitter<ScheduleState> emit) async {
+    ScheduleSubscriptionRequested event,
+    Emitter<ScheduleState> emit,
+  ) async {
     await _upcomingScheduleSubscription?.cancel();
 
-    _upcomingScheduleSubscription =
-        _getNearestUpcomingScheduleUseCase().listen((upcomingSchedule) {
-      // ✅ Safety check: Only add events if bloc is still active
-      if (!isClosed) {
-        add(ScheduleUpcomingReceived(upcomingSchedule));
-      }
-    });
+    _upcomingScheduleSubscription = _getNearestUpcomingScheduleUseCase().listen(
+      (upcomingSchedule) {
+        // ✅ Safety check: Only add events if bloc is still active
+        if (!isClosed) {
+          add(ScheduleUpcomingReceived(upcomingSchedule));
+        }
+      },
+    );
   }
 
   Future<void> _onUpcomingReceived(
-      ScheduleUpcomingReceived event, Emitter<ScheduleState> emit) async {
+    ScheduleUpcomingReceived event,
+    Emitter<ScheduleState> emit,
+  ) async {
     if (isClosed) return;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
@@ -176,42 +183,51 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _stopPreparationTimer();
       emit(const ScheduleState.notExists());
       _currentScheduleId = null;
-      _activeEarlyStartScheduleId = null;
       _lastSnapshotSavedAt = null;
       _notifiedStepIdsByScheduleId.clear();
       return;
     }
 
-    final incoming = event.upcomingSchedule!;
+    final rawIncoming = event.upcomingSchedule!;
+    final currentSchedule = state.schedule;
+    final incoming =
+        currentSchedule != null &&
+            currentSchedule.id == rawIncoming.id &&
+            currentSchedule.startedAt != null &&
+            rawIncoming.startedAt == null
+        ? currentSchedule
+        : rawIncoming;
     if (_currentScheduleId != null && _currentScheduleId != incoming.id) {
       await _clearPersistedState(_currentScheduleId!);
       _notifiedStepIdsByScheduleId.remove(_currentScheduleId);
     }
     _currentScheduleId = incoming.id;
 
-    final hasEarlyStartSession = await _hasEarlyStartSession(incoming.id);
-    if (isClosed) return;
-
     ScheduleWithPreparationEntity resolvedSchedule;
-    if (!hasEarlyStartSession && incoming.preparationStartTime.isAfter(now)) {
+    if (incoming.startedAt != null) {
+      resolvedSchedule = await _restoreFromSnapshotIfValid(incoming);
+    } else if (incoming.preparationStartTime.isAfter(now)) {
       // Prevent stale pre-start cache from reviving outdated progress.
       await _clearTimedPreparationUseCase(incoming.id);
       resolvedSchedule = incoming;
     } else {
-      resolvedSchedule = await _restoreFromSnapshotIfValid(incoming);
+      resolvedSchedule = incoming;
     }
     if (isClosed) return;
     _initializeNotificationTracking(resolvedSchedule);
 
-    if (hasEarlyStartSession) {
-      _activeEarlyStartScheduleId = resolvedSchedule.id;
-      emit(ScheduleState.started(resolvedSchedule, isEarlyStarted: true));
+    if (resolvedSchedule.startedAt != null) {
+      final isEarlyStarted = resolvedSchedule.startedAt!.isBefore(
+        resolvedSchedule.preparationStartTime,
+      );
+      emit(
+        ScheduleState.started(resolvedSchedule, isEarlyStarted: isEarlyStarted),
+      );
       await _saveTimedPreparationSnapshot(resolvedSchedule, force: true);
       _startPreparationTimer();
       return;
     }
 
-    _activeEarlyStartScheduleId = null;
     if (_isAtPreparationStartBoundary(resolvedSchedule, now)) {
       emit(ScheduleState.upcoming(resolvedSchedule));
       AppLogger.debug(
@@ -222,12 +238,11 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     }
 
     if (_isPreparationOnGoing(resolvedSchedule, now)) {
-      emit(ScheduleState.ongoing(resolvedSchedule));
+      emit(ScheduleState.readyToStart(resolvedSchedule));
       AppLogger.debug(
-        'ongoing scheduleId=${resolvedSchedule.id} '
+        'readyToStart scheduleId=${resolvedSchedule.id} '
         'currentStepId=${resolvedSchedule.preparation.currentStep?.id}',
       );
-      _startPreparationTimer();
       return;
     }
 
@@ -238,14 +253,29 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   Future<void> _onScheduleStarted(
-      ScheduleStarted event, Emitter<ScheduleState> emit) async {
+    ScheduleStarted event,
+    Emitter<ScheduleState> emit,
+  ) async {
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
-      if (_activeEarlyStartScheduleId == _currentScheduleId) return;
-      AppLogger.debug('schedule started scheduleId=${state.schedule!.id}');
-      emit(ScheduleState.started(state.schedule!));
+      if (state.schedule!.startedAt != null) {
+        AppLogger.debug('schedule started scheduleId=${state.schedule!.id}');
+        emit(
+          ScheduleState.started(
+            state.schedule!,
+            isEarlyStarted: state.schedule!.startedAt!.isBefore(
+              state.schedule!.preparationStartTime,
+            ),
+          ),
+        );
+        _initializeNotificationTracking(state.schedule!);
+        _startPreparationTimer();
+        return;
+      }
+
+      AppLogger.debug('schedule readyToStart scheduleId=${state.schedule!.id}');
+      emit(ScheduleState.readyToStart(state.schedule!));
       _initializeNotificationTracking(state.schedule!);
       _navigationService.push('/scheduleStart');
-      _startPreparationTimer();
     }
   }
 
@@ -296,13 +326,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       }
 
       await loadPreparationByScheduleIdUseCase(event.scheduleId);
-      final preparation =
-          await getPreparationByScheduleIdUseCase(event.scheduleId);
+      final preparation = await getPreparationByScheduleIdUseCase(
+        event.scheduleId,
+      );
       final scheduleWithPreparation =
           ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-        schedule,
-        PreparationWithTimeEntity.fromPreparation(preparation),
-      );
+            schedule,
+            PreparationWithTimeEntity.fromPreparation(preparation),
+          );
 
       if (event.scheduleFingerprint != null &&
           event.scheduleFingerprint !=
@@ -380,11 +411,22 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     required String source,
   }) async {
     _currentScheduleId = schedule.id;
-    _activeEarlyStartScheduleId = null;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
     _stopPreparationTimer();
     _initializeNotificationTracking(schedule);
+
+    if (schedule.startedAt != null) {
+      final isEarlyStarted = schedule.startedAt!.isBefore(
+        schedule.preparationStartTime,
+      );
+      AppLogger.debug(
+        'alarm prompt already started: scheduleId=${schedule.id} source=$source',
+      );
+      emit(ScheduleState.started(schedule, isEarlyStarted: isEarlyStarted));
+      _startPreparationTimer();
+      return;
+    }
 
     if (!event.startPreparation) {
       AppLogger.debug(
@@ -404,37 +446,93 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   Future<void> _onPreparationStarted(
-      SchedulePreparationStarted event, Emitter<ScheduleState> emit) async {
+    SchedulePreparationStarted event,
+    Emitter<ScheduleState> emit,
+  ) async {
     final schedule = state.schedule;
     if (schedule == null) return;
-    if (_activeEarlyStartScheduleId == schedule.id) return;
+    if (state.isStartingPreparation) return;
+    if (schedule.startedAt != null) {
+      emit(
+        ScheduleState.started(
+          schedule,
+          isEarlyStarted: schedule.startedAt!.isBefore(
+            schedule.preparationStartTime,
+          ),
+        ),
+      );
+      _startPreparationTimer();
+      return;
+    }
+    final startScheduleUseCase = _startScheduleUseCase;
+    if (startScheduleUseCase == null) {
+      emit(
+        state.copyWith(
+          isStartingPreparation: false,
+          startError: 'Unable to start preparation.',
+        ),
+      );
+      return;
+    }
 
     _currentScheduleId = schedule.id;
-    _activeEarlyStartScheduleId = schedule.id;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
-
-    await _markEarlyStartSessionUseCase(
-      scheduleId: schedule.id,
-      startedAt: _nowProvider(),
+    final wasEarlyStarted = _nowProvider().isBefore(
+      schedule.preparationStartTime,
     );
-    await _cancelScheduleAlarmUseCase?.call(schedule.id);
 
-    emit(ScheduleState.started(schedule, isEarlyStarted: true));
-    await _saveTimedPreparationSnapshot(schedule, force: true);
-    _startPreparationTimer();
+    emit(state.copyWith(isStartingPreparation: true, startError: null));
+
+    try {
+      final startedSchedule = await startScheduleUseCase(schedule.id);
+      final resolvedSchedule = startedSchedule.scheduleWithPreparation;
+      final isEarlyStarted = resolvedSchedule.startedAt == null
+          ? wasEarlyStarted
+          : resolvedSchedule.startedAt!.isBefore(
+              resolvedSchedule.preparationStartTime,
+            );
+      if (isEarlyStarted) {
+        await _markEarlyStartSessionUseCase(
+          scheduleId: resolvedSchedule.id,
+          startedAt: resolvedSchedule.startedAt ?? _nowProvider(),
+        );
+      }
+      await _cancelScheduleAlarmUseCase?.call(resolvedSchedule.id);
+      _initializeNotificationTracking(resolvedSchedule);
+      emit(
+        ScheduleState.started(resolvedSchedule, isEarlyStarted: isEarlyStarted),
+      );
+      await _saveTimedPreparationSnapshot(resolvedSchedule, force: true);
+      _startPreparationTimer();
+    } catch (error) {
+      AppLogger.debug(
+        'error starting schedule: scheduleId=${schedule.id} error=$error',
+      );
+      emit(
+        state.copyWith(
+          isStartingPreparation: false,
+          startError:
+              ApiErrorMessage.fromException(error) ??
+              'Unable to start preparation. Please try again.',
+        ),
+      );
+    }
   }
 
   Future<void> _onTick(ScheduleTick event, Emitter<ScheduleState> emit) async {
     if (state.schedule == null) return;
     final oldStepId = state.schedule!.preparation.currentStep?.id;
-    final updatedPreparation =
-        state.schedule!.preparation.timeElapsed(event.elapsed);
+    final updatedPreparation = state.schedule!.preparation.timeElapsed(
+      event.elapsed,
+    );
     AppLogger.debug('elapsedTime: ${updatedPreparation.elapsedTime}');
 
     final newSchedule =
         ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-            state.schedule!, updatedPreparation);
+          state.schedule!,
+          updatedPreparation,
+        );
 
     _checkAndNotifyStepChange(state.schedule!, newSchedule);
 
@@ -444,18 +542,24 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   Future<void> _onStepSkipped(
-      ScheduleStepSkipped event, Emitter<ScheduleState> emit) async {
+    ScheduleStepSkipped event,
+    Emitter<ScheduleState> emit,
+  ) async {
     if (state.schedule == null) return;
     final updated = state.schedule!.preparation.skipCurrentStep();
     final newSchedule =
         ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-            state.schedule!, updated);
+          state.schedule!,
+          updated,
+        );
     emit(state.copyWith(schedule: newSchedule));
     await _saveTimedPreparationSnapshot(newSchedule, force: true);
   }
 
   Future<void> _onFinished(
-      ScheduleFinished event, Emitter<ScheduleState> emit) async {
+    ScheduleFinished event,
+    Emitter<ScheduleState> emit,
+  ) async {
     if (state.schedule == null) return;
     final scheduleId = state.schedule!.id;
     try {
@@ -465,7 +569,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _scheduleStartTimer?.cancel();
       await _clearPersistedState(scheduleId);
       _currentScheduleId = null;
-      _activeEarlyStartScheduleId = null;
       _lastSnapshotSavedAt = null;
       emit(const ScheduleState.notExists());
     } catch (error) {
@@ -497,7 +600,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final elapsedTimeAfterLastTick = state.isEarlyStarted
         ? Duration.zero
         : _nowProvider().difference(state.schedule!.preparationStartTime) -
-            state.schedule!.preparation.elapsedTime;
+              state.schedule!.preparation.elapsedTime;
     if (elapsedTimeAfterLastTick > Duration.zero) {
       AppLogger.debug('elapsedTimeAfterLastTick: $elapsedTimeAfterLastTick');
       if (!isClosed) {
@@ -544,11 +647,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       incoming,
       restoredPreparation,
     );
-  }
-
-  Future<bool> _hasEarlyStartSession(String scheduleId) async {
-    final session = await _getEarlyStartSessionUseCase(scheduleId);
-    return session != null;
   }
 
   Future<void> _saveTimedPreparationSnapshot(

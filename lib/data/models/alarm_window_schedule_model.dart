@@ -13,6 +13,7 @@ class AlarmWindowScheduleModel {
   final int moveTime;
   final int scheduleSpareTime;
   final String doneStatus;
+  final DateTime? startedAt;
   final List<AlarmWindowPreparationStepModel> preparations;
 
   const AlarmWindowScheduleModel({
@@ -23,6 +24,7 @@ class AlarmWindowScheduleModel {
     required this.moveTime,
     required this.scheduleSpareTime,
     required this.doneStatus,
+    this.startedAt,
     required this.preparations,
   });
 
@@ -41,9 +43,13 @@ class AlarmWindowScheduleModel {
       moveTime: (json['moveTime'] as num?)?.toInt() ?? 0,
       scheduleSpareTime: (json['scheduleSpareTime'] as num?)?.toInt() ?? 0,
       doneStatus: json['doneStatus'] as String? ?? 'NOT_ENDED',
+      startedAt: _parseNullableDateTime(json['startedAt']),
       preparations: preparationJson
-          .map((item) => AlarmWindowPreparationStepModel.fromJson(
-              item as Map<String, dynamic>))
+          .map(
+            (item) => AlarmWindowPreparationStepModel.fromJson(
+              item as Map<String, dynamic>,
+            ),
+          )
           .toList(),
     );
   }
@@ -60,14 +66,21 @@ class AlarmWindowScheduleModel {
       scheduleSpareTime: Duration(minutes: scheduleSpareTime),
       scheduleNote: '',
       doneStatus: _mapDoneStatus(doneStatus),
+      startedAt: startedAt,
       preparation: PreparationWithTimeEntity.fromPreparation(
         PreparationEntity(
-          preparationStepList:
-              preparations.map((step) => step.toEntity()).toList(),
+          preparationStepList: preparations
+              .map((step) => step.toEntity())
+              .toList(),
         ),
       ),
     );
   }
+}
+
+DateTime? _parseNullableDateTime(Object? value) {
+  if (value is! String || value.isEmpty) return null;
+  return DateTime.parse(value);
 }
 
 class AlarmWindowPreparationStepModel {

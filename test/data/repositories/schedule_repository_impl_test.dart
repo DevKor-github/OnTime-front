@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/started_schedule_entity.dart';
 import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
@@ -20,7 +22,8 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
 
   @override
   Future<TimedPreparationSnapshotEntity?> getTimedPreparationSnapshot(
-      String scheduleId) async {
+    String scheduleId,
+  ) async {
     return null;
   }
 
@@ -40,10 +43,7 @@ void main() {
   final uuid = Uuid();
   final scheduleEntityId = uuid.v7();
 
-  final tPlaceEntity = PlaceEntity(
-    id: uuid.v7(),
-    placeName: 'Office',
-  );
+  final tPlaceEntity = PlaceEntity(id: uuid.v7(), placeName: 'Office');
 
   final tScheduleEntity = ScheduleEntity(
     id: scheduleEntityId,
@@ -75,8 +75,9 @@ void main() {
     test(
       'when successful [createSchedule] should create a schedule with the given schedule entity',
       () async {
-        when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
+        when(
+          mockScheduleRemoteDataSource.createSchedule(tScheduleEntity),
+        ).thenAnswer((_) async {});
 
         await scheduleRepository.createSchedule(tScheduleEntity);
 
@@ -88,8 +89,9 @@ void main() {
     test(
       'when ScheduleRemoteDataSource throws an exception [createSchedule] should throw an exception',
       () async {
-        when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
-            .thenThrow(Exception());
+        when(
+          mockScheduleRemoteDataSource.createSchedule(tScheduleEntity),
+        ).thenThrow(Exception());
 
         final call = scheduleRepository.createSchedule(tScheduleEntity);
 
@@ -103,8 +105,9 @@ void main() {
     test(
       'when successful [deleteSchedule] clears timed cache for schedule id',
       () async {
-        when(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
+        when(
+          mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity),
+        ).thenAnswer((_) async {});
 
         await scheduleRepository.deleteSchedule(tScheduleEntity);
 
@@ -116,8 +119,9 @@ void main() {
     test(
       'when ScheduleRemoteDataSource throws an exception [deleteSchedule] should throw and not clear cache',
       () async {
-        when(mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity))
-            .thenThrow(Exception());
+        when(
+          mockScheduleRemoteDataSource.deleteSchedule(tScheduleEntity),
+        ).thenThrow(Exception());
 
         final call = scheduleRepository.deleteSchedule(tScheduleEntity);
 
@@ -131,11 +135,13 @@ void main() {
     test(
       'when schedule is not ended [getScheduleById] should not clear timed cache',
       () async {
-        when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => Future.value(tScheduleEntity));
+        when(
+          mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId),
+        ).thenAnswer((_) async => Future.value(tScheduleEntity));
 
-        final schedule =
-            await scheduleRepository.getScheduleById(scheduleEntityId);
+        final schedule = await scheduleRepository.getScheduleById(
+          scheduleEntityId,
+        );
 
         expect(schedule, tScheduleEntity);
         expect(fakeTimedPreparationRepository.clearedIds, isEmpty);
@@ -148,11 +154,13 @@ void main() {
         final endedSchedule = tScheduleEntity.copyWith(
           doneStatus: ScheduleDoneStatus.normalEnd,
         );
-        when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => Future.value(endedSchedule));
+        when(
+          mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId),
+        ).thenAnswer((_) async => Future.value(endedSchedule));
 
-        final schedule =
-            await scheduleRepository.getScheduleById(scheduleEntityId);
+        final schedule = await scheduleRepository.getScheduleById(
+          scheduleEntityId,
+        );
 
         expect(schedule.doneStatus, ScheduleDoneStatus.normalEnd);
         expect(fakeTimedPreparationRepository.clearedIds, [scheduleEntityId]);
@@ -162,8 +170,9 @@ void main() {
     test(
       'when ScheduleRemoteDataSource throws an exception [getScheduleById] should throw an exception',
       () async {
-        when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
-            .thenThrow(Exception());
+        when(
+          mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId),
+        ).thenThrow(Exception());
 
         final getScheduleById = scheduleRepository.getScheduleById;
 
@@ -178,12 +187,14 @@ void main() {
       'when successful [getSchedulesByDate] should return schedules',
       () async {
         final schedules = [tScheduleEntity];
-        when(mockScheduleRemoteDataSource.getSchedulesByDate(
-                tStartDate, tEndDate))
-            .thenAnswer((_) async => Future.value(schedules));
+        when(
+          mockScheduleRemoteDataSource.getSchedulesByDate(tStartDate, tEndDate),
+        ).thenAnswer((_) async => Future.value(schedules));
 
-        final result =
-            await scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
+        final result = await scheduleRepository.getSchedulesByDate(
+          tStartDate,
+          tEndDate,
+        );
 
         expect(result, schedules);
         expect(fakeTimedPreparationRepository.clearedIds, isEmpty);
@@ -234,25 +245,26 @@ void main() {
         );
 
         final schedules = [endedNormal, ongoing, endedLate, endedAbnormal];
-        when(mockScheduleRemoteDataSource.getSchedulesByDate(
-                tStartDate, tEndDate))
-            .thenAnswer((_) async => Future.value(schedules));
+        when(
+          mockScheduleRemoteDataSource.getSchedulesByDate(tStartDate, tEndDate),
+        ).thenAnswer((_) async => Future.value(schedules));
 
         await scheduleRepository.getSchedulesByDate(tStartDate, tEndDate);
 
-        expect(
-          fakeTimedPreparationRepository.clearedIds,
-          [endedNormal.id, endedLate.id, endedAbnormal.id],
-        );
+        expect(fakeTimedPreparationRepository.clearedIds, [
+          endedNormal.id,
+          endedLate.id,
+          endedAbnormal.id,
+        ]);
       },
     );
 
     test(
       'when ScheduleRemoteDataSource throws an exception [getSchedulesByDate] should throw an exception',
       () async {
-        when(mockScheduleRemoteDataSource.getSchedulesByDate(
-                tStartDate, tEndDate))
-            .thenThrow(Exception());
+        when(
+          mockScheduleRemoteDataSource.getSchedulesByDate(tStartDate, tEndDate),
+        ).thenThrow(Exception());
 
         final getscheduleByDate = scheduleRepository.getSchedulesByDate;
 
@@ -266,10 +278,12 @@ void main() {
     test(
       'when successful [updateSchedule] clears timed cache for schedule id',
       () async {
-        when(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
-        when(mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId))
-            .thenAnswer((_) async => tScheduleEntity);
+        when(
+          mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity),
+        ).thenAnswer((_) async {});
+        when(
+          mockScheduleRemoteDataSource.getScheduleById(scheduleEntityId),
+        ).thenAnswer((_) async => tScheduleEntity);
 
         await scheduleRepository.updateSchedule(tScheduleEntity);
 
@@ -282,8 +296,9 @@ void main() {
     test(
       'when ScheduleRemoteDataSource throws an exception [updateSchedule] should throw and not clear cache',
       () async {
-        when(mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity))
-            .thenThrow(Exception());
+        when(
+          mockScheduleRemoteDataSource.updateSchedule(tScheduleEntity),
+        ).thenThrow(Exception());
 
         final call = scheduleRepository.updateSchedule(tScheduleEntity);
 
@@ -297,16 +312,19 @@ void main() {
     test(
       'when successful [finishSchedule] clears timed cache for schedule id',
       () async {
-        when(mockScheduleRemoteDataSource.createSchedule(tScheduleEntity))
-            .thenAnswer((_) async {});
-        when(mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0))
-            .thenAnswer((_) async {});
+        when(
+          mockScheduleRemoteDataSource.createSchedule(tScheduleEntity),
+        ).thenAnswer((_) async {});
+        when(
+          mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0),
+        ).thenAnswer((_) async {});
 
         await scheduleRepository.createSchedule(tScheduleEntity);
         await scheduleRepository.finishSchedule(scheduleEntityId, 0);
 
         verify(
-            mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0));
+          mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0),
+        );
         expect(fakeTimedPreparationRepository.clearedIds, [scheduleEntityId]);
       },
     );
@@ -314,8 +332,9 @@ void main() {
     test(
       'when ScheduleRemoteDataSource throws an exception [finishSchedule] should throw and not clear cache',
       () async {
-        when(mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0))
-            .thenThrow(Exception());
+        when(
+          mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0),
+        ).thenThrow(Exception());
 
         final call = scheduleRepository.finishSchedule(scheduleEntityId, 0);
 
@@ -323,5 +342,26 @@ void main() {
         expect(fakeTimedPreparationRepository.clearedIds, isEmpty);
       },
     );
+  });
+
+  group('startSchedule', () {
+    test('when successful [startSchedule] upserts returned schedule', () async {
+      final started = StartedScheduleEntity(
+        schedule: tScheduleEntity.copyWith(startedAt: DateTime(2026, 5, 13)),
+        preparation: const PreparationWithTimeEntity(preparationStepList: []),
+      );
+      when(
+        mockScheduleRemoteDataSource.startSchedule(scheduleEntityId),
+      ).thenAnswer((_) async => started);
+
+      final result = await scheduleRepository.startSchedule(scheduleEntityId);
+
+      verify(mockScheduleRemoteDataSource.startSchedule(scheduleEntityId));
+      expect(result, started);
+      final schedules = await scheduleRepository.scheduleStream.firstWhere(
+        (items) => items.any((schedule) => schedule.startedAt != null),
+      );
+      expect(schedules.single.startedAt, DateTime(2026, 5, 13));
+    });
   });
 }

@@ -5,17 +5,32 @@ import 'package:on_time_front/presentation/home/utils/today_tile_navigation.dart
 void main() {
   group('Today tile navigation resolver', () {
     test(
-        'returns early-start scheduleStart target in upcoming when schedule exists',
-        () {
-      final target = resolveTodayTileNavigationTarget(
-        scheduleStatus: ScheduleStatus.upcoming,
-        hasSchedule: true,
-      );
+      'returns early-start scheduleStart target in upcoming when schedule exists',
+      () {
+        final target = resolveTodayTileNavigationTarget(
+          scheduleStatus: ScheduleStatus.upcoming,
+          hasSchedule: true,
+        );
 
-      expect(target, isNotNull);
-      expect(target!.path, '/scheduleStart');
-      expect(target.extra, {'promptVariant': 'earlyStart'});
-    });
+        expect(target, isNotNull);
+        expect(target!.path, '/scheduleStart');
+        expect(target.extra, {'promptVariant': 'earlyStart'});
+      },
+    );
+
+    test(
+      'returns scheduleStart target in readyToStart when schedule exists',
+      () {
+        final target = resolveTodayTileNavigationTarget(
+          scheduleStatus: ScheduleStatus.readyToStart,
+          hasSchedule: true,
+        );
+
+        expect(target, isNotNull);
+        expect(target!.path, '/scheduleStart');
+        expect(target.extra, {'promptVariant': 'earlyStart'});
+      },
+    );
 
     test('returns alarmScreen target in ongoing when schedule exists', () {
       final target = resolveTodayTileNavigationTarget(

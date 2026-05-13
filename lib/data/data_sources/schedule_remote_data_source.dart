@@ -4,15 +4,19 @@ import 'package:on_time_front/core/constants/endpoint.dart';
 
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
 import 'package:on_time_front/data/models/get_schedule_response_model.dart';
+import 'package:on_time_front/data/models/start_schedule_response_model.dart';
 import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/started_schedule_entity.dart';
 
 abstract interface class ScheduleRemoteDataSource {
   Future<void> createSchedule(ScheduleEntity schedule);
 
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate);
+    DateTime startDate,
+    DateTime? endDate,
+  );
 
   Future<ScheduleEntity> getScheduleById(String id);
 
@@ -21,6 +25,8 @@ abstract interface class ScheduleRemoteDataSource {
   Future<void> deleteSchedule(ScheduleEntity schedule);
 
   Future<void> finishSchedule(String scheduleId, int latenessTime);
+
+  Future<StartedScheduleEntity> startSchedule(String scheduleId);
 }
 
 @Injectable(as: ScheduleRemoteDataSource)
@@ -33,8 +39,10 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     try {
       CreateScheduleRequestModel createScheduleModel =
           CreateScheduleRequestModel.fromEntity(schedule);
-      final result = await dio.post(Endpoint.createSchedule,
-          data: createScheduleModel.toJson());
+      final result = await dio.post(
+        Endpoint.createSchedule,
+        data: createScheduleModel.toJson(),
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -50,8 +58,10 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     try {
       UpdateScheduleRequestModel updateScheduleModel =
           UpdateScheduleRequestModel.fromEntity(schedule);
-      final result = await dio.put(Endpoint.updateSchedule(schedule.id),
-          data: updateScheduleModel.toJson());
+      final result = await dio.put(
+        Endpoint.updateSchedule(schedule.id),
+        data: updateScheduleModel.toJson(),
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -81,15 +91,26 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     try {
       final result = await dio.put(
         Endpoint.finishSchedule(scheduleId),
-        data: {
-          'scheduleId': scheduleId,
-          'latenessTime': latenessTime,
-        },
+        data: {'scheduleId': scheduleId, 'latenessTime': latenessTime},
       );
       if (result.statusCode == 200) {
         return;
       } else {
         throw Exception('Error finishing schedule');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<StartedScheduleEntity> startSchedule(String scheduleId) async {
+    try {
+      final result = await dio.post(Endpoint.startSchedule(scheduleId));
+      if (result.statusCode == 200) {
+        return StartScheduleResponseModel.fromJson(result.data).toEntity();
+      } else {
+        throw Exception('Error starting schedule');
       }
     } catch (e) {
       rethrow;
@@ -114,17 +135,22 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate) async {
+    DateTime startDate,
+    DateTime? endDate,
+  ) async {
     try {
-      final result =
-          await dio.get(Endpoint.getSchedulesByDate, queryParameters: {
-        'startDate': startDate.toIso8601String(),
-        'endDate': endDate?.toIso8601String() ?? '',
-      });
+      final result = await dio.get(
+        Endpoint.getSchedulesByDate,
+        queryParameters: {
+          'startDate': startDate.toIso8601String(),
+          'endDate': endDate?.toIso8601String() ?? '',
+        },
+      );
       if (result.statusCode == 200) {
         final List<ScheduleEntity> schedules = result.data["data"]
             .map<ScheduleEntity>(
-                (e) => GetScheduleResponseModel.fromJson(e).toEntity())
+              (e) => GetScheduleResponseModel.fromJson(e).toEntity(),
+            )
             .toList();
         return schedules;
       } else {

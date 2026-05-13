@@ -222,6 +222,7 @@ void main() {
                   'latenessTime': -1,
                   'doneStatus': 'NOT_ENDED',
                   'startedAt': '2026-05-13T10:15:30Z',
+                  'finishedAt': null,
                 },
                 'preparations': [
                   {

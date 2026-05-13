@@ -561,6 +561,13 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     Emitter<ScheduleState> emit,
   ) async {
     if (state.schedule == null) return;
+    if (state.schedule!.startedAt == null) {
+      AppLogger.debug(
+        'finish ignored for unstarted schedule: '
+        'scheduleId=${state.schedule!.id}',
+      );
+      return;
+    }
     final scheduleId = state.schedule!.id;
     try {
       await _finishScheduleUseCase(scheduleId, event.latenessTime);

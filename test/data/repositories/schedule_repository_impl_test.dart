@@ -312,20 +312,27 @@ void main() {
     test(
       'when successful [finishSchedule] clears timed cache for schedule id',
       () async {
+        final startedSchedule = tScheduleEntity.copyWith(
+          startedAt: DateTime(2026, 5, 13, 10, 0),
+        );
         when(
-          mockScheduleRemoteDataSource.createSchedule(tScheduleEntity),
+          mockScheduleRemoteDataSource.createSchedule(startedSchedule),
         ).thenAnswer((_) async {});
         when(
           mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0),
         ).thenAnswer((_) async {});
 
-        await scheduleRepository.createSchedule(tScheduleEntity);
+        await scheduleRepository.createSchedule(startedSchedule);
         await scheduleRepository.finishSchedule(scheduleEntityId, 0);
 
         verify(
           mockScheduleRemoteDataSource.finishSchedule(scheduleEntityId, 0),
         );
         expect(fakeTimedPreparationRepository.clearedIds, [scheduleEntityId]);
+        final schedules = await scheduleRepository.scheduleStream.firstWhere(
+          (items) => items.any((schedule) => schedule.finishedAt != null),
+        );
+        expect(schedules.single.finishedAt, isNotNull);
       },
     );
 

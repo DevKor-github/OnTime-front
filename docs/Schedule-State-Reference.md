@@ -10,6 +10,8 @@ Server fields:
 | --- | --- | --- |
 | `doneStatus` | `NOT_ENDED`, `NORMAL`, `LATE`, `ABNORMAL` | Persistent completion state. `NOT_ENDED` means the schedule is still active. The other values mean the schedule is finished. |
 | `startedAt` | ISO-8601 datetime or `null` | Persistent preparation-start state. `null` means the user has not explicitly started preparation. Non-null means preparation has started and schedule editing is locked. |
+| `finishedAt` | ISO-8601 datetime or `null` | Persistent explicit-finish state. Non-null means the finish endpoint completed for this schedule. |
+| `latenessTime` | integer or `null` | Completion result. `-1` is legacy/unended data; new finish calls use `0` for normal or positive minutes for late. |
 | `isStarted` | legacy boolean | Compatibility only. Flutter must not use this for lifecycle, edit locks, or bloc decisions. |
 
 Derived server lifecycle:
@@ -18,9 +20,10 @@ Derived server lifecycle:
 | --- | --- | --- |
 | Unstarted | `doneStatus == NOT_ENDED && startedAt == null` | Schedule exists and can still be edited. Flutter may show a start prompt when local time reaches the preparation window. |
 | Started, unfinished | `doneStatus == NOT_ENDED && startedAt != null` | User has started preparation through `POST /schedules/{id}/start`. Schedule and schedule-specific preparation are frozen for editing. Running preparation uses the server snapshot. |
-| Finished normally | `doneStatus == NORMAL` | Schedule has ended without lateness. It is immutable. |
-| Finished late | `doneStatus == LATE` | Schedule has ended late. It is immutable. |
-| Finished abnormally | `doneStatus == ABNORMAL` | Schedule has ended through an abnormal finish path. It is immutable. |
+| Missed, unstarted | `doneStatus == NOT_ENDED && startedAt == null && scheduleTime < now` | User never started preparation. It is deletable and does not count toward punctuality score. |
+| Finished normally | `doneStatus == NORMAL && finishedAt != null` | Schedule has explicitly ended without lateness. It is immutable and counts toward punctuality score. |
+| Finished late | `doneStatus == LATE && finishedAt != null` | Schedule has explicitly ended late. It is immutable and counts toward punctuality score. |
+| Finished abnormally | `doneStatus == ABNORMAL` | Schedule has ended through an abnormal finish path. It is immutable and excluded from punctuality score. |
 
 ## Backend Restrictions
 
@@ -33,6 +36,7 @@ Derived server lifecycle:
 | Update schedule-specific preparation | Allowed | Reject with `SCHEDULE_ALREADY_STARTED`. | Reject with `SCHEDULE_ALREADY_FINISHED`. |
 | Delete schedule | Allowed | Allowed | Reject with `SCHEDULE_ALREADY_FINISHED`. |
 | Update default preparation template | Allowed | Allowed. Does not affect frozen started schedules. | Allowed. Does not affect finished schedules. |
+| Finish schedule | Reject with `SCHEDULE_NOT_STARTED`. Missed/unstarted schedules stay `NOT_ENDED`. | Allowed. Sets `finishedAt` and final `doneStatus`. | Reject with `SCHEDULE_ALREADY_FINISHED`. |
 
 Frontend action rules:
 
@@ -40,7 +44,12 @@ Frontend action rules:
 canEditSchedule = doneStatus == notEnded && startedAt == null
 canDeleteSchedule = doneStatus == notEnded
 isServerStarted = startedAt != null
+isExplicitlyFinished = finishedAt != null
 isFinished = doneStatus != notEnded
+includedInPunctualityScore =
+  startedAt != null &&
+  finishedAt != null &&
+  doneStatus in (normalEnd, lateEnd)
 ```
 
 `preparationStartTime` is only for prompts, timers, and countdown display. It must not be used as an edit-lock source.
@@ -142,5 +151,6 @@ When edit or preparation-update submissions fail with lifecycle conflicts, Flutt
 | --- | --- | --- |
 | `SCHEDULE_ALREADY_STARTED` | `startedAt` was set before or during the edit attempt. | This schedule has already started and can no longer be edited. |
 | `SCHEDULE_ALREADY_FINISHED` | `doneStatus` is no longer `NOT_ENDED`. | This schedule has already finished and can no longer be edited. |
+| `SCHEDULE_NOT_STARTED` | Finish was requested before `startedAt` was set. | Start preparation before finishing this schedule. |
 
-After either conflict, local state should be refreshed from the server so edit/delete controls match the authoritative lifecycle.
+After a lifecycle conflict, local state should be refreshed from the server so edit/delete controls match the authoritative lifecycle.

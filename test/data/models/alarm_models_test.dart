@@ -50,6 +50,8 @@ void main() {
       'moveTime': 20,
       'scheduleSpareTime': 10,
       'doneStatus': 'NOT_ENDED',
+      'startedAt': '2026-05-05T09:00:00.000Z',
+      'finishedAt': null,
       'preparations': [
         {
           'preparationId': 'prep-1',
@@ -63,6 +65,8 @@ void main() {
     expect(entity.id, 'schedule-1');
     expect(entity.place.placeName, 'Office');
     expect(entity.doneStatus, ScheduleDoneStatus.notEnded);
+    expect(entity.startedAt, DateTime.parse('2026-05-05T09:00:00.000Z'));
+    expect(entity.finishedAt, isNull);
     expect(entity.moveTime, const Duration(minutes: 20));
     expect(entity.preparation.preparationStepList.single.nextPreparationId,
         'prep-2');

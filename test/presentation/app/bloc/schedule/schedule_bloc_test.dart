@@ -150,6 +150,7 @@ ScheduleWithPreparationEntity buildSchedule({
   Duration moveTime = const Duration(minutes: 20),
   Duration scheduleSpareTime = const Duration(minutes: 10),
   DateTime? startedAt,
+  DateTime? finishedAt,
 }) {
   return ScheduleWithPreparationEntity(
     id: id,
@@ -162,6 +163,7 @@ ScheduleWithPreparationEntity buildSchedule({
     scheduleSpareTime: scheduleSpareTime,
     scheduleNote: '',
     startedAt: startedAt,
+    finishedAt: finishedAt,
     preparation: PreparationWithTimeEntity(preparationStepList: steps),
   );
 }
@@ -582,6 +584,28 @@ void main() {
       );
       expect(finished.status, ScheduleStatus.notExists);
       expect(finishUseCase.calls.single, ('finish', 7));
+    });
+
+    test('finish is ignored when schedule has not server-started', () async {
+      final schedule = buildSchedule(
+        id: 'unstarted-finish',
+        scheduleTime: now.add(const Duration(minutes: 35)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 's1',
+            preparationName: 'wash',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+      bloc.emit(ScheduleState.readyToStart(schedule));
+
+      bloc.add(const ScheduleFinished(0));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(finishUseCase.calls, isEmpty);
+      expect(bloc.state.status, ScheduleStatus.readyToStart);
     });
 
     test(

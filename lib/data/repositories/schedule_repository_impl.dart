@@ -123,7 +123,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       final schedule = _scheduleStreamController.value.firstWhere(
         (schedule) => schedule.id == scheduleId,
       );
-      _emitUpsertedSchedule(schedule.copyWith(doneStatus: lateStatus));
+      _emitUpsertedSchedule(
+        schedule.copyWith(doneStatus: lateStatus, finishedAt: DateTime.now()),
+      );
     } catch (e) {
       rethrow;
     }

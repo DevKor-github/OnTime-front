@@ -14,6 +14,7 @@ class AlarmWindowScheduleModel {
   final int scheduleSpareTime;
   final String doneStatus;
   final DateTime? startedAt;
+  final DateTime? finishedAt;
   final List<AlarmWindowPreparationStepModel> preparations;
 
   const AlarmWindowScheduleModel({
@@ -25,6 +26,7 @@ class AlarmWindowScheduleModel {
     required this.scheduleSpareTime,
     required this.doneStatus,
     this.startedAt,
+    this.finishedAt,
     required this.preparations,
   });
 
@@ -44,6 +46,7 @@ class AlarmWindowScheduleModel {
       scheduleSpareTime: (json['scheduleSpareTime'] as num?)?.toInt() ?? 0,
       doneStatus: json['doneStatus'] as String? ?? 'NOT_ENDED',
       startedAt: _parseNullableDateTime(json['startedAt']),
+      finishedAt: _parseNullableDateTime(json['finishedAt']),
       preparations: preparationJson
           .map(
             (item) => AlarmWindowPreparationStepModel.fromJson(
@@ -67,6 +70,7 @@ class AlarmWindowScheduleModel {
       scheduleNote: '',
       doneStatus: _mapDoneStatus(doneStatus),
       startedAt: startedAt,
+      finishedAt: finishedAt,
       preparation: PreparationWithTimeEntity.fromPreparation(
         PreparationEntity(
           preparationStepList: preparations

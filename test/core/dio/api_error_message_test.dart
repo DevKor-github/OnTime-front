@@ -51,5 +51,14 @@ void main() {
       }),
       'This schedule has already finished and can no longer be edited.',
     );
+    expect(
+      ApiErrorMessage.fromResponseData({
+        'status': 'error',
+        'code': 'SCHEDULE_NOT_STARTED',
+        'message': 'Schedules must be started before they can be finished.',
+        'data': null,
+      }),
+      'Start preparation before finishing this schedule.',
+    );
   });
 }

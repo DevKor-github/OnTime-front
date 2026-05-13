@@ -22,6 +22,9 @@ class ApiErrorMessage {
     if (code == 'SCHEDULE_ALREADY_FINISHED') {
       return 'This schedule has already finished and can no longer be edited.';
     }
+    if (code == 'SCHEDULE_NOT_STARTED') {
+      return 'Start preparation before finishing this schedule.';
+    }
 
     final message = data['message'];
     if (message is String && message.trim().isNotEmpty) {

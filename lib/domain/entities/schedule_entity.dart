@@ -17,6 +17,7 @@ class ScheduleEntity extends Equatable {
   final int latenessTime;
   final ScheduleDoneStatus doneStatus;
   final DateTime? startedAt;
+  final DateTime? finishedAt;
 
   const ScheduleEntity({
     required this.id,
@@ -31,6 +32,7 @@ class ScheduleEntity extends Equatable {
     this.latenessTime = 0,
     this.doneStatus = ScheduleDoneStatus.notEnded,
     this.startedAt,
+    this.finishedAt,
   });
 
   static ScheduleEntity fromScheduleWithPlaceModel(
@@ -51,6 +53,7 @@ class ScheduleEntity extends Equatable {
       latenessTime: schedule.latenessTime,
       doneStatus: ScheduleDoneStatus.notEnded,
       startedAt: null,
+      finishedAt: null,
     );
   }
 
@@ -79,6 +82,7 @@ class ScheduleEntity extends Equatable {
   ScheduleEntity copyWith({
     ScheduleDoneStatus? doneStatus,
     DateTime? startedAt,
+    DateTime? finishedAt,
   }) {
     return ScheduleEntity(
       id: id,
@@ -93,12 +97,13 @@ class ScheduleEntity extends Equatable {
       latenessTime: latenessTime,
       doneStatus: doneStatus ?? this.doneStatus,
       startedAt: startedAt ?? this.startedAt,
+      finishedAt: finishedAt ?? this.finishedAt,
     );
   }
 
   @override
   String toString() {
-    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote, latenessTime: $latenessTime, doneStatus: $doneStatus, startedAt: $startedAt)';
+    return 'ScheduleEntity(id: $id, place: $place, scheduleName: $scheduleName, scheduleTime: $scheduleTime, moveTime: $moveTime, isChanged: $isChanged, isStarted: $isStarted, scheduleSpareTime: $scheduleSpareTime, scheduleNote: $scheduleNote, latenessTime: $latenessTime, doneStatus: $doneStatus, startedAt: $startedAt, finishedAt: $finishedAt)';
   }
 
   @override
@@ -115,6 +120,7 @@ class ScheduleEntity extends Equatable {
     latenessTime,
     doneStatus,
     startedAt,
+    finishedAt,
   ];
 }
 

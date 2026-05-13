@@ -19,6 +19,7 @@ void main() {
           'latenessTime': -1,
           'doneStatus': 'NOT_ENDED',
           'startedAt': '2026-05-13T10:15:30Z',
+          'finishedAt': null,
         },
         'preparations': [
           {
@@ -33,6 +34,7 @@ void main() {
 
     expect(response.schedule.id, 'schedule-1');
     expect(response.schedule.startedAt, DateTime.parse('2026-05-13T10:15:30Z'));
+    expect(response.schedule.finishedAt, isNull);
     expect(response.preparation.preparationStepList.single.id, 'prep-1');
     expect(
       response.preparation.preparationStepList.single.preparationTime,

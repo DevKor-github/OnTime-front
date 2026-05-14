@@ -39,19 +39,45 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<
-      DefaultPreparationSpareTimeFormBloc,
-      DefaultPreparationSpareTimeFormState
-    >(
-      listenWhen: (previous, current) =>
-          current.status == DefaultPreparationSpareTimeStatus.success &&
-          current.preparation != null &&
-          previous.preparation != current.preparation,
-      listener: (context, state) {
-        context.read<PreparationFormBloc>().add(
-          PreparationFormEditRequested(preparationEntity: state.preparation!),
-        );
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<
+          DefaultPreparationSpareTimeFormBloc,
+          DefaultPreparationSpareTimeFormState
+        >(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == DefaultPreparationSpareTimeStatus.submitted) {
+              Navigator.of(context).pop();
+            } else if (state.status ==
+                DefaultPreparationSpareTimeStatus.error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    state.errorMessage ?? AppLocalizations.of(context)!.error,
+                  ),
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<
+          DefaultPreparationSpareTimeFormBloc,
+          DefaultPreparationSpareTimeFormState
+        >(
+          listenWhen: (previous, current) =>
+              current.status == DefaultPreparationSpareTimeStatus.success &&
+              current.preparation != null &&
+              previous.preparation != current.preparation,
+          listener: (context, state) {
+            context.read<PreparationFormBloc>().add(
+              PreparationFormEditRequested(
+                preparationEntity: state.preparation!,
+              ),
+            );
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
@@ -83,8 +109,7 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                       previous.isValid != current.isValid,
                   builder: (context, preparationState) {
                     return TextButton(
-                      onPressed:
-                          state2.isReadyForEditing && preparationState.isValid
+                      onPressed: state2.canSubmit && preparationState.isValid
                           ? () {
                               context
                                   .read<DefaultPreparationSpareTimeFormBloc>()
@@ -95,7 +120,6 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                                           .toPreparationEntity(),
                                     ),
                                   );
-                              context.pop();
                             }
                           : null,
                       child: Text(AppLocalizations.of(context)!.ok),
@@ -134,7 +158,7 @@ class _PreparationSpareTimeEditBody extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
-          child: state.isReadyForEditing
+          child: state.hasEditableData
               ? _PreparationSpareTimeEditContent(
                   key: const ValueKey('preparation_spare_time_form'),
                   spareTime: state.spareTime!,
@@ -225,8 +249,16 @@ class _SpareTimeSection extends StatelessWidget {
 }
 
 extension on DefaultPreparationSpareTimeFormState {
-  bool get isReadyForEditing =>
-      status == DefaultPreparationSpareTimeStatus.success &&
+  bool get hasEditableData =>
+      (status == DefaultPreparationSpareTimeStatus.success ||
+          status == DefaultPreparationSpareTimeStatus.submitting ||
+          status == DefaultPreparationSpareTimeStatus.error) &&
+      spareTime != null &&
+      preparation != null;
+
+  bool get canSubmit =>
+      (status == DefaultPreparationSpareTimeStatus.success ||
+          status == DefaultPreparationSpareTimeStatus.error) &&
       spareTime != null &&
       preparation != null;
 }

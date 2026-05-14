@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,18 +71,85 @@ void main() {
     expect(find.text('Coffee'), findsOneWidget);
     expect(find.text('15분'), findsOneWidget);
   });
+
+  testWidgets('save failure keeps editor open and shows error', (tester) async {
+    preparationStore.updateDefaultHandler = (_) async {
+      throw Exception('save failed');
+    };
+
+    await _pumpScreen(tester);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    await tester.tap(find.byType(TextButton).first);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PreparationSpareTimeEditScreen), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.textContaining('save failed'), findsOneWidget);
+  });
+
+  testWidgets('save waits for completion before navigating back', (
+    tester,
+  ) async {
+    final completer = Completer<void>();
+    preparationStore.updateDefaultHandler = (_) => completer.future;
+
+    await _pumpRoutedScreen(tester);
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(TextButton).first);
+    await tester.pump();
+
+    expect(find.byType(PreparationSpareTimeEditScreen), findsOneWidget);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PreparationSpareTimeEditScreen), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+  });
 }
 
 Future<void> _pumpScreen(WidgetTester tester) async {
   await tester.pumpWidget(
-    MaterialApp(
-      theme: themeData,
-      locale: const Locale('ko'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider<AuthBloc>.value(
-        value: _StubAuthBloc(),
-        child: const PreparationSpareTimeEditScreen(),
+    BlocProvider<AuthBloc>.value(
+      value: _StubAuthBloc(),
+      child: MaterialApp(
+        theme: themeData,
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const PreparationSpareTimeEditScreen(),
+      ),
+    ),
+  );
+}
+
+Future<void> _pumpRoutedScreen(WidgetTester tester) async {
+  await tester.pumpWidget(
+    BlocProvider<AuthBloc>.value(
+      value: _StubAuthBloc(),
+      child: MaterialApp(
+        theme: themeData,
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            return TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PreparationSpareTimeEditScreen(),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            );
+          },
+        ),
       ),
     ),
   );
@@ -92,6 +161,8 @@ class _FakePreparationStore {
   PreparationEntity defaultPreparation;
   PreparationEntity? updatedPreparation;
   Duration? updatedSpareTime;
+  Future<void> Function(PreparationEntity preparationEntity)?
+  updateDefaultHandler;
   int loadUserCount = 0;
 }
 
@@ -113,6 +184,11 @@ class _FakeUpdateDefaultPreparationUseCase extends Mock
 
   @override
   Future<void> call(PreparationEntity preparationEntity) async {
+    final handler = store.updateDefaultHandler;
+    if (handler != null) {
+      await handler(preparationEntity);
+      return;
+    }
     store.updatedPreparation = preparationEntity;
   }
 }

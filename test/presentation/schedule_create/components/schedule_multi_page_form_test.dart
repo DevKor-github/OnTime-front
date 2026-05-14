@@ -106,7 +106,10 @@ class StubUpdateScheduleUseCase implements UpdateScheduleUseCase {
   Future<void> Function(ScheduleEntity schedule) handler;
 
   @override
-  Future<void> call(ScheduleEntity schedule) => handler(schedule);
+  Future<void> call(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  }) => handler(schedule);
 }
 
 class StubUpdatePreparationByScheduleIdUseCase

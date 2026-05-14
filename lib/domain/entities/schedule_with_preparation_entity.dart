@@ -16,6 +16,14 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     required super.scheduleNote,
     super.latenessTime,
     super.doneStatus,
+    super.startedAt,
+    super.finishedAt,
+    super.preparationMode,
+    super.preparationTemplateId,
+    super.preparationTemplateName,
+    super.preparationTemplateDeleted,
+    super.preparationFrozen,
+    super.customPreparations,
     required this.preparation,
   });
 
@@ -77,7 +85,9 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   }
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(
-      ScheduleEntity schedule, PreparationWithTimeEntity preparation) {
+    ScheduleEntity schedule,
+    PreparationWithTimeEntity preparation,
+  ) {
     return ScheduleWithPreparationEntity(
       id: schedule.id,
       place: schedule.place,
@@ -90,21 +100,37 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       scheduleNote: schedule.scheduleNote,
       latenessTime: schedule.latenessTime,
       doneStatus: schedule.doneStatus,
+      startedAt: schedule.startedAt,
+      finishedAt: schedule.finishedAt,
+      preparationMode: schedule.preparationMode,
+      preparationTemplateId: schedule.preparationTemplateId,
+      preparationTemplateName: schedule.preparationTemplateName,
+      preparationTemplateDeleted: schedule.preparationTemplateDeleted,
+      preparationFrozen: schedule.preparationFrozen,
+      customPreparations: schedule.customPreparations,
       preparation: preparation,
     );
   }
 
   @override
   List<Object?> get props => [
-        id,
-        place,
-        scheduleName,
-        scheduleTime,
-        moveTime,
-        isChanged,
-        isStarted,
-        scheduleSpareTime,
-        scheduleNote,
-        preparation
-      ];
+    id,
+    place,
+    scheduleName,
+    scheduleTime,
+    moveTime,
+    isChanged,
+    isStarted,
+    scheduleSpareTime,
+    scheduleNote,
+    doneStatus,
+    startedAt,
+    finishedAt,
+    preparationMode,
+    preparationTemplateId,
+    preparationTemplateName,
+    preparationTemplateDeleted,
+    preparationFrozen,
+    preparation,
+  ];
 }

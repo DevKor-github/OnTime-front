@@ -43,6 +43,17 @@
     "appointmentPlace": "약속 장소",
     "travelTime": "이동시간",
     "preparationTime": "준비시간",
+    "preparationNameRequired": "준비 이름을 입력해 주세요.",
+    "preparationTimeMinimumError": "준비 시간을 1분 이상으로 설정해 주세요.",
+    "preparationTimeMaximumError": "준비 시간은 최대 {minutes}분까지 설정할 수 있어요.",
+    "@preparationTimeMaximumError": {
+        "description": "Error shown when a preparation step time exceeds the maximum allowed minutes",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
     "hours": "시간",
     "minutes": "분",
     "selectTime": "시간을 선택해 주세요",

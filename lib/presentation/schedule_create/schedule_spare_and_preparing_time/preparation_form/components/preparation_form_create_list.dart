@@ -2,68 +2,58 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/components/create_icon_button.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 
 class PreparationFormCreateList extends StatelessWidget {
-  const PreparationFormCreateList(
-      {super.key,
-      required this.preparationNameState,
-      required this.onNameChanged,
-      required this.onCreationRequested});
+  const PreparationFormCreateList({
+    super.key,
+    required this.preparationNameState,
+    required this.onNameChanged,
+    required this.onCreationRequested,
+    this.scrollController,
+    this.stepKeyFor,
+    this.nameFocusNodeFor,
+  });
 
+  final ScrollController? scrollController;
   final PreparationFormState preparationNameState;
+  final Key Function(String stepId)? stepKeyFor;
+  final FocusNode Function(String stepId)? nameFocusNodeFor;
   final void Function({required int index, required String value})
-      onNameChanged;
+  onNameChanged;
   final VoidCallback onCreationRequested;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      controller: scrollController,
       child: Column(
         children: [
           PreparationFormReorderableList(
             preparationStepList: preparationNameState.preparationStepList,
+            addingStepId: preparationNameState.addingStepId,
+            showValidationErrors: preparationNameState.showValidationErrors,
+            stepKeyFor: stepKeyFor,
+            nameFocusNodeFor: nameFocusNodeFor,
             onNameChanged: (index, value) {
               onNameChanged(index: index, value: value);
             },
-            onTimeChanged: (index, value) => context
-                .read<PreparationFormBloc>()
-                .add(PreparationFormPreparationStepTimeChanged(
-                    index: index, preparationStepTime: value)),
-            onReorder: (oldIndex, newIndex) => context
-                .read<PreparationFormBloc>()
-                .add(PreparationFormPreparationStepOrderChanged(
-                    oldIndex: oldIndex, newIndex: newIndex)),
+            onTimeChanged: (index, value) =>
+                context.read<PreparationFormBloc>().add(
+                  PreparationFormPreparationStepTimeChanged(
+                    index: index,
+                    preparationStepTime: value,
+                  ),
+                ),
+            onReorder: (oldIndex, newIndex) =>
+                context.read<PreparationFormBloc>().add(
+                  PreparationFormPreparationStepOrderChanged(
+                    oldIndex: oldIndex,
+                    newIndex: newIndex,
+                  ),
+                ),
           ),
-          preparationNameState.status == PreparationFormStatus.adding
-              ? BlocProvider<PreparationStepFormCubit>(
-                  create: (context) => PreparationStepFormCubit(
-                      PreparationStepFormState(),
-                      preparationFormBloc: context.read<PreparationFormBloc>()),
-                  child: BlocBuilder<PreparationStepFormCubit,
-                      PreparationStepFormState>(builder: (context, state) {
-                    return PreparationFormListField(
-                      isAdding: true,
-                      preparationStep: state,
-                      onNameChanged: (value) {
-                        context
-                            .read<PreparationStepFormCubit>()
-                            .nameChanged(value);
-                      },
-                      onNameSaved: () {
-                        context
-                            .read<PreparationStepFormCubit>()
-                            .preparationStepSaved();
-                      },
-                    );
-                  }),
-                )
-              : SizedBox.shrink(),
-          SizedBox(
-            height: 28.0,
-          ),
+          SizedBox(height: 28.0),
           Center(
             child: SizedBox(
               height: 30,

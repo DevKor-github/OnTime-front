@@ -23,14 +23,16 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
 
   @override
   Widget build(BuildContext context) {
-    final draft = getIt.get<PreparationEditDraftCubit>().state ??
+    final draft =
+        getIt.get<PreparationEditDraftCubit>().state ??
         const PreparationEntity(preparationStepList: []);
 
     return Scaffold(
       body: SafeArea(
         child: BlocProvider<PreparationFormBloc>(
-          create: (context) => getIt.get<PreparationFormBloc>()
-            ..add(PreparationFormEditRequested(preparationEntity: draft)),
+          create: (context) =>
+              getIt.get<PreparationFormBloc>()
+                ..add(PreparationFormEditRequested(preparationEntity: draft)),
           child: BlocBuilder<PreparationFormBloc, PreparationFormState>(
             builder: (context, state) {
               return Column(
@@ -38,9 +40,9 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                   TopBar(
                     onNextPageButtonClicked: state.isValid
                         ? () {
-                            getIt
-                                .get<PreparationEditDraftCubit>()
-                                .setDraft(state.toPreparationEntity());
+                            getIt.get<PreparationEditDraftCubit>().setDraft(
+                              state.toPreparationEntity(),
+                            );
                             context.pop();
                           }
                         : null,
@@ -51,15 +53,19 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                   Expanded(
                     child: PreparationFormCreateList(
                       preparationNameState: state,
-                      onNameChanged: (
-                          {required int index, required String value}) {
-                        context.read<PreparationFormBloc>().add(
-                            PreparationFormPreparationStepNameChanged(
-                                index: index, preparationStepName: value));
-                      },
+                      onNameChanged:
+                          ({required int index, required String value}) {
+                            context.read<PreparationFormBloc>().add(
+                              PreparationFormPreparationStepNameChanged(
+                                index: index,
+                                preparationStepName: value,
+                              ),
+                            );
+                          },
                       onCreationRequested: () {
                         context.read<PreparationFormBloc>().add(
-                            PreparationFormPreparationStepCreationRequested());
+                          PreparationFormPreparationStepCreationRequested(),
+                        );
                       },
                     ),
                   ),

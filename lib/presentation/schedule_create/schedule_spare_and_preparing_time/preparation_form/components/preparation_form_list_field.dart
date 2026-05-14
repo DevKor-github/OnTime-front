@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_swipe_action_cell/core/cell.dart';
+import 'package:flutter_swipe_action_cell/core/controller.dart';
+import 'package:on_time_front/core/validation/backend_constraints.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_time_input.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
@@ -11,17 +17,33 @@ class PreparationFormListField extends StatefulWidget {
     required this.preparationStep,
     this.index,
     this.onNameChanged,
+    this.onNameFocusLost,
     this.onPreparationTimeChanged,
+    this.onPreparationTimeTapped,
+    this.onInteractionEnded,
+    this.onRemove,
     this.onNameSaved,
+    this.canRemove = true,
     this.isAdding = false,
+    this.showValidationErrors = false,
+    this.focusNode,
+    this.swipeActionController,
   });
 
   final PreparationStepFormState preparationStep;
   final int? index;
   final ValueChanged<String>? onNameChanged;
+  final ValueChanged<String>? onNameFocusLost;
   final ValueChanged<Duration>? onPreparationTimeChanged;
+  final VoidCallback? onPreparationTimeTapped;
+  final ValueChanged<String>? onInteractionEnded;
+  final VoidCallback? onRemove;
   final VoidCallback? onNameSaved;
+  final bool canRemove;
   final bool isAdding;
+  final bool showValidationErrors;
+  final FocusNode? focusNode;
+  final SwipeActionController? swipeActionController;
 
   @override
   State<PreparationFormListField> createState() =>
@@ -29,7 +51,12 @@ class PreparationFormListField extends StatefulWidget {
 }
 
 class _PreparationFormListFieldState extends State<PreparationFormListField> {
-  final FocusNode focusNode = FocusNode();
+  late final FocusNode _internalFocusNode;
+  final SwipeActionController _internalSwipeActionController =
+      SwipeActionController();
+  late String _nameValue;
+  bool _hasRequestedInitialFocus = false;
+  bool _isTimePickerOpen = false;
   final dragIndicatorSvg = SvgPicture.asset(
     'drag_indicator.svg',
     package: 'assets',
@@ -41,28 +68,142 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
 
   @override
   void dispose() {
-    focusNode.dispose();
+    _effectiveFocusNode.removeListener(_handleFocusChanged);
+    _internalSwipeActionController.dispose();
+    _internalFocusNode.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus) {
-        widget.onNameSaved?.call();
+    _internalFocusNode = FocusNode();
+    _nameValue = widget.preparationStep.preparationName.value;
+    _effectiveFocusNode.addListener(_handleFocusChanged);
+    _requestInitialFocusIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant PreparationFormListField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldFocusNode = oldWidget.focusNode ?? _internalFocusNode;
+    final currentFocusNode = widget.focusNode ?? _internalFocusNode;
+    if (oldFocusNode != currentFocusNode) {
+      oldFocusNode.removeListener(_handleFocusChanged);
+      currentFocusNode.addListener(_handleFocusChanged);
+    }
+    if (oldWidget.preparationStep.id != widget.preparationStep.id) {
+      _nameValue = widget.preparationStep.preparationName.value;
+    }
+    if (!oldWidget.isAdding && widget.isAdding) {
+      _hasRequestedInitialFocus = false;
+    }
+    _requestInitialFocusIfNeeded();
+  }
+
+  FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode;
+
+  SwipeActionController get _swipeActionController =>
+      widget.swipeActionController ?? _internalSwipeActionController;
+
+  void _requestInitialFocusIfNeeded() {
+    if (!widget.isAdding || _hasRequestedInitialFocus) {
+      return;
+    }
+    _hasRequestedInitialFocus = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _effectiveFocusNode.requestFocus();
       }
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    if (widget.isAdding) {
-      focusNode.requestFocus();
+  void _handleFocusChanged() {
+    _swipeActionController.closeAllOpenCell();
+    if (!_effectiveFocusNode.hasFocus) {
+      _handleRowInteractionEnded();
     }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+  }
+
+  void _handleRowInteractionEnded([String? nameValue]) {
+    final value = nameValue ?? _nameValue;
+    if (widget.isAdding && _isTimePickerOpen) {
+      return;
+    }
+    if (widget.isAdding) {
+      widget.onInteractionEnded?.call(value);
+      return;
+    }
+    widget.onNameFocusLost?.call(value);
+    widget.onNameSaved?.call();
+  }
+
+  void _handlePreparationTimeTapped() {
+    _swipeActionController.closeAllOpenCell();
+    if (widget.isAdding) {
+      _isTimePickerOpen = true;
+      return;
+    }
+    widget.onPreparationTimeTapped?.call();
+  }
+
+  void _handlePreparationTimePickerDisposed() {
+    _isTimePickerOpen = false;
+    if (!widget.isAdding) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.isAdding) {
+        _effectiveFocusNode.requestFocus();
+      }
+    });
+  }
+
+  String? _nameErrorText(BuildContext context) {
+    if (!widget.showValidationErrors &&
+        widget.preparationStep.preparationName.isPure) {
+      return null;
+    }
+
+    final error = widget.preparationStep.preparationName.validator(
+      widget.preparationStep.preparationName.value,
+    );
+    return switch (error) {
+      PreparationNameValidationError.empty => AppLocalizations.of(
+        context,
+      )!.preparationNameRequired,
+      null => null,
+    };
+  }
+
+  String? _timeErrorText(BuildContext context) {
+    if (!widget.showValidationErrors &&
+        widget.preparationStep.preparationTime.isPure) {
+      return null;
+    }
+
+    final error = widget.preparationStep.preparationTime.validator(
+      widget.preparationStep.preparationTime.value,
+    );
+    final l10n = AppLocalizations.of(context)!;
+    return switch (error) {
+      PreparationTimeValidationError.zero ||
+      PreparationTimeValidationError.negative =>
+        l10n.preparationTimeMinimumError,
+      PreparationTimeValidationError.tooLarge =>
+        l10n.preparationTimeMaximumError(BackendConstraints.maxMinuteValue),
+      null => null,
+    };
+  }
+
+  Widget _buildTile({
+    required BuildContext context,
+    required String? nameErrorText,
+    required String? timeErrorText,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    return TextFieldTapRegion(
       child: Tile(
         key: ValueKey<String>(widget.preparationStep.id),
         style: TileStyle(padding: EdgeInsets.fromLTRB(21, 19, 21, 19)),
@@ -73,8 +214,12 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
                 child: dragIndicatorSvg,
               ),
         trailing: PreparationTimeInput(
-            time: widget.preparationStep.preparationTime.value,
-            onPreparationTimeChanged: widget.onPreparationTimeChanged),
+          time: widget.preparationStep.preparationTime.value,
+          hasError: timeErrorText != null,
+          onTap: _handlePreparationTimeTapped,
+          onDisposed: _handlePreparationTimePickerDisposed,
+          onPreparationTimeChanged: widget.onPreparationTimeChanged,
+        ),
         child: Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -83,28 +228,155 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
               child: Center(
                 child: TextFormField(
                   scrollPadding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom + 56),
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 56,
+                  ),
                   initialValue: widget.preparationStep.preparationName.value,
-                  onChanged: widget.onNameChanged,
-                  onFieldSubmitted: (value) => widget.onNameSaved?.call(),
+                  onChanged: (value) {
+                    _nameValue = value;
+                    widget.onNameChanged?.call(value);
+                  },
+                  onFieldSubmitted: (value) {
+                    _nameValue = value;
+                    _handleRowInteractionEnded(value);
+                  },
+                  onTap: _swipeActionController.closeAllOpenCell,
                   onTapOutside: (event) {
+                    _swipeActionController.closeAllOpenCell();
                     FocusManager.instance.primaryFocus?.unfocus();
                   },
                   decoration: InputDecoration(
                     isDense: true,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
+                    border: nameErrorText == null
+                        ? InputBorder.none
+                        : UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: colorScheme.error,
+                              width: 1.5,
+                            ),
+                          ),
+                    enabledBorder: nameErrorText == null
+                        ? InputBorder.none
+                        : UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: colorScheme.error,
+                              width: 1.5,
+                            ),
+                          ),
+                    focusedBorder: nameErrorText == null
+                        ? InputBorder.none
+                        : UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: colorScheme.error,
+                              width: 2,
+                            ),
+                          ),
                     contentPadding: EdgeInsets.all(3.0),
                   ),
                   style: textTheme.bodyLarge,
-                  focusNode: focusNode,
+                  focusNode: _effectiveFocusNode,
                 ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSwipeableTile({
+    required BuildContext context,
+    required String? nameErrorText,
+    required String? timeErrorText,
+  }) {
+    final tile = _buildTile(
+      context: context,
+      nameErrorText: nameErrorText,
+      timeErrorText: timeErrorText,
+    );
+    if (widget.onRemove == null) {
+      return tile;
+    }
+
+    return SwipeActionCell(
+      key: ValueKey<String>('swipe_${widget.preparationStep.id}'),
+      backgroundColor: Colors.transparent,
+      controller: _swipeActionController,
+      trailingActions: [
+        SwipeAction(
+          onTap: (controller) {
+            if (!widget.canRemove) {
+              return;
+            }
+            widget.onRemove?.call();
+          },
+          color: Colors.transparent,
+          content: _SwipeActionContent(
+            icon: const Icon(Icons.delete, color: Colors.white, size: 24),
+            color: Theme.of(context).colorScheme.error,
+          ),
+        ),
+      ],
+      child: tile,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final nameErrorText = _nameErrorText(context);
+    final timeErrorText = _timeErrorText(context);
+    final errorTexts = [?nameErrorText, ?timeErrorText];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildSwipeableTile(
+            context: context,
+            nameErrorText: nameErrorText,
+            timeErrorText: timeErrorText,
+          ),
+          if (errorTexts.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(21, 6, 21, 2),
+              child: DefaultTextStyle(
+                style:
+                    textTheme.bodySmall?.copyWith(color: colorScheme.error) ??
+                    TextStyle(color: colorScheme.error),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final errorText in errorTexts)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(errorText),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SwipeActionContent extends StatelessWidget {
+  const _SwipeActionContent({required this.icon, required this.color});
+
+  final Widget icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: color,
+      ),
+      padding: const EdgeInsets.all(18.0),
+      child: icon,
     );
   }
 }

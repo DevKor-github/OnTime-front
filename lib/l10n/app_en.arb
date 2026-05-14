@@ -175,6 +175,23 @@
     "@preparationTime": {
         "description": "Label for preparation time"
     },
+    "preparationNameRequired": "Please enter a preparation name.",
+    "@preparationNameRequired": {
+        "description": "Error shown when a preparation step name is empty"
+    },
+    "preparationTimeMinimumError": "Set preparation time to at least 1 minute.",
+    "@preparationTimeMinimumError": {
+        "description": "Error shown when a preparation step time is zero or negative"
+    },
+    "preparationTimeMaximumError": "Preparation time can be up to {minutes} minutes.",
+    "@preparationTimeMaximumError": {
+        "description": "Error shown when a preparation step time exceeds the maximum allowed minutes",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
     "hours": "hours",
     "@hours": {
         "description": "Unit of time"

@@ -151,6 +151,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preparationTime => 'Preparation Time';
 
   @override
+  String get preparationNameRequired => 'Please enter a preparation name.';
+
+  @override
+  String get preparationTimeMinimumError =>
+      'Set preparation time to at least 1 minute.';
+
+  @override
+  String preparationTimeMaximumError(int minutes) {
+    return 'Preparation time can be up to $minutes minutes.';
+  }
+
+  @override
   String get hours => 'hours';
 
   @override

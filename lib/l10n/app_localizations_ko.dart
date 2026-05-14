@@ -146,6 +146,17 @@ class AppLocalizationsKo extends AppLocalizations {
   String get preparationTime => '준비시간';
 
   @override
+  String get preparationNameRequired => '준비 이름을 입력해 주세요.';
+
+  @override
+  String get preparationTimeMinimumError => '준비 시간을 1분 이상으로 설정해 주세요.';
+
+  @override
+  String preparationTimeMaximumError(int minutes) {
+    return '준비 시간은 최대 $minutes분까지 설정할 수 있어요.';
+  }
+
+  @override
   String get hours => '시간';
 
   @override

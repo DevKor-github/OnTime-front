@@ -94,9 +94,15 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<void> updateSchedule(ScheduleEntity schedule) async {
+  Future<void> updateSchedule(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  }) async {
     try {
-      await scheduleRemoteDataSource.updateSchedule(schedule);
+      await scheduleRemoteDataSource.updateSchedule(
+        schedule,
+        includePreparationSource: includePreparationSource,
+      );
       await _clearTimedPreparationSafe(schedule.id);
       final refreshedSchedule = await scheduleRemoteDataSource.getScheduleById(
         schedule.id,
@@ -156,12 +162,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     required Iterable<ScheduleEntity> schedules,
   }) {
     final nextSchedules =
-        Set<ScheduleEntity>.from(_scheduleStreamController.value)
-          ..removeWhere(
-            (existing) =>
-                !existing.scheduleTime.isBefore(startDate) &&
-                (endDate == null || existing.scheduleTime.isBefore(endDate)),
-          );
+        Set<ScheduleEntity>.from(_scheduleStreamController.value)..removeWhere(
+          (existing) =>
+              !existing.scheduleTime.isBefore(startDate) &&
+              (endDate == null || existing.scheduleTime.isBefore(endDate)),
+        );
     for (final schedule in schedules) {
       nextSchedules.add(schedule);
     }

@@ -44,8 +44,9 @@ void main() {
     nextPreparationId: null,
   );
 
-  final tPreparationEntity =
-      PreparationEntity(preparationStepList: [tPreparationStep]);
+  final tPreparationEntity = PreparationEntity(
+    preparationStepList: [tPreparationStep],
+  );
 
   setUp(() {
     mockPreparationRemoteDataSource = MockPreparationRemoteDataSource();
@@ -147,29 +148,67 @@ void main() {
   group('updatePreparation', () {
     test('should call updatePreparation on remote data source', () async {
       // Arrange
-      when(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationEntity))
-          .thenAnswer((_) async {});
+      when(
+        mockPreparationRemoteDataSource.updateDefaultPreparation(
+          tPreparationEntity,
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        mockPreparationRemoteDataSource.getDefualtPreparation(),
+      ).thenAnswer((_) async => tPreparationEntity);
 
       // Act
       await preparationRepository.updateDefaultPreparation(tPreparationEntity);
 
       // Assert
-      verify(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationEntity))
-          .called(1);
+      verify(
+        mockPreparationRemoteDataSource.updateDefaultPreparation(
+          tPreparationEntity,
+        ),
+      ).called(1);
+      verify(mockPreparationRemoteDataSource.getDefualtPreparation()).called(1);
       verifyNoMoreInteractions(mockPreparationRemoteDataSource);
     });
 
+    test(
+      'should throw when backend does not persist updated preparation',
+      () async {
+        final persistedPreparation = PreparationEntity(
+          preparationStepList: [
+            tPreparationStep.copyWith(
+              preparationTime: const Duration(minutes: 5),
+            ),
+          ],
+        );
+        when(
+          mockPreparationRemoteDataSource.updateDefaultPreparation(
+            tPreparationEntity,
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          mockPreparationRemoteDataSource.getDefualtPreparation(),
+        ).thenAnswer((_) async => persistedPreparation);
+
+        final call = preparationRepository.updateDefaultPreparation(
+          tPreparationEntity,
+        );
+
+        expect(call, throwsA(isA<StateError>()));
+      },
+    );
+
     test('should throw an exception if remote data source fails', () async {
       // Arrange
-      when(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationEntity))
-          .thenThrow(Exception());
+      when(
+        mockPreparationRemoteDataSource.updateDefaultPreparation(
+          tPreparationEntity,
+        ),
+      ).thenThrow(Exception());
 
       // Act
-      final call =
-          preparationRepository.updateDefaultPreparation(tPreparationEntity);
+      final call = preparationRepository.updateDefaultPreparation(
+        tPreparationEntity,
+      );
 
       // Assert
       expect(call, throwsException);

@@ -17,8 +17,8 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   late final _preparationStreamController =
       BehaviorSubject<Map<String, PreparationEntity>>.seeded(
-    const <String, PreparationEntity>{},
-  );
+        const <String, PreparationEntity>{},
+      );
 
   PreparationRepositoryImpl({
     required this.preparationRemoteDataSource,
@@ -30,16 +30,19 @@ class PreparationRepositoryImpl implements PreparationRepository {
       _preparationStreamController.asBroadcastStream();
 
   @override
-  Future<void> createDefaultPreparation(
-      {required PreparationEntity preparationEntity,
-      required Duration spareTime,
-      required String note}) async {
+  Future<void> createDefaultPreparation({
+    required PreparationEntity preparationEntity,
+    required Duration spareTime,
+    required String note,
+  }) async {
     try {
       await preparationRemoteDataSource.createDefaultPreparation(
-          CreateDefaultPreparationRequestModel.fromEntity(
-              preparationEntity: preparationEntity,
-              spareTime: spareTime,
-              note: note));
+        CreateDefaultPreparationRequestModel.fromEntity(
+          preparationEntity: preparationEntity,
+          spareTime: spareTime,
+          note: note,
+        ),
+      );
     } catch (e) {
       rethrow;
     }
@@ -47,13 +50,18 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   @override
   Future<void> createCustomPreparation(
-      PreparationEntity preparationEntity, String scheduleId) async {
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
     try {
       await preparationRemoteDataSource.createCustomPreparation(
-          preparationEntity, scheduleId);
+        preparationEntity,
+        scheduleId,
+      );
       _preparationStreamController.add(
-          Map.from(_preparationStreamController.value)
-            ..[scheduleId] = preparationEntity);
+        Map.from(_preparationStreamController.value)
+          ..[scheduleId] = preparationEntity,
+      );
     } catch (e) {
       rethrow;
     }
@@ -65,8 +73,9 @@ class PreparationRepositoryImpl implements PreparationRepository {
       final remotePreparation = await preparationRemoteDataSource
           .getPreparationByScheduleId(scheduleId);
       _preparationStreamController.add(
-          Map.from(_preparationStreamController.value)
-            ..[scheduleId] = remotePreparation);
+        Map.from(_preparationStreamController.value)
+          ..[scheduleId] = remotePreparation,
+      );
     } catch (e) {
       rethrow;
     }
@@ -75,8 +84,8 @@ class PreparationRepositoryImpl implements PreparationRepository {
   @override
   Future<PreparationEntity> getDefualtPreparation() async {
     try {
-      final remotePreparation =
-          await preparationRemoteDataSource.getDefualtPreparation();
+      final remotePreparation = await preparationRemoteDataSource
+          .getDefualtPreparation();
       return remotePreparation;
     } catch (e) {
       rethrow;
@@ -85,10 +94,17 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   @override
   Future<void> updateDefaultPreparation(
-      PreparationEntity preparationEntity) async {
+    PreparationEntity preparationEntity,
+  ) async {
     try {
-      await preparationRemoteDataSource
-          .updateDefaultPreparation(preparationEntity);
+      await preparationRemoteDataSource.updateDefaultPreparation(
+        preparationEntity,
+      );
+      final persistedPreparation = await preparationRemoteDataSource
+          .getDefualtPreparation();
+      if (!_samePreparation(preparationEntity, persistedPreparation)) {
+        throw StateError('Default preparation update was not persisted.');
+      }
       // await preparationLocalDataSource.updatePreparation(preparationEntity);
     } catch (e) {
       rethrow;
@@ -97,13 +113,18 @@ class PreparationRepositoryImpl implements PreparationRepository {
 
   @override
   Future<void> updatePreparationByScheduleId(
-      PreparationEntity preparationEntity, String scheduleId) async {
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
     try {
       await preparationRemoteDataSource.updatePreparationByScheduleId(
-          preparationEntity, scheduleId);
+        preparationEntity,
+        scheduleId,
+      );
       _preparationStreamController.add(
-          Map.from(_preparationStreamController.value)
-            ..[scheduleId] = preparationEntity);
+        Map.from(_preparationStreamController.value)
+          ..[scheduleId] = preparationEntity,
+      );
     } catch (e) {
       rethrow;
     }
@@ -116,5 +137,24 @@ class PreparationRepositoryImpl implements PreparationRepository {
     } catch (e) {
       rethrow;
     }
+  }
+
+  bool _samePreparation(PreparationEntity expected, PreparationEntity actual) {
+    final expectedSteps = expected.ordered.preparationStepList;
+    final actualSteps = actual.ordered.preparationStepList;
+    if (expectedSteps.length != actualSteps.length) {
+      return false;
+    }
+    for (var index = 0; index < expectedSteps.length; index++) {
+      final expectedStep = expectedSteps[index];
+      final actualStep = actualSteps[index];
+      if (expectedStep.id != actualStep.id ||
+          expectedStep.preparationName.trim() !=
+              actualStep.preparationName.trim() ||
+          expectedStep.preparationTime != actualStep.preparationTime) {
+        return false;
+      }
+    }
+    return true;
   }
 }

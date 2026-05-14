@@ -11,7 +11,9 @@ abstract interface class ScheduleRepository {
   /// if [endDate] is null, it will get all schedules after [startDate]
   /// This is for getting schedules by date
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate);
+    DateTime startDate,
+    DateTime? endDate,
+  );
 
   /// Get a schedule by [id]
   /// This is for getting a schedule by id
@@ -19,7 +21,10 @@ abstract interface class ScheduleRepository {
 
   /// Update a schedule
   /// This is for updating a schedule
-  Future<void> updateSchedule(ScheduleEntity schedule);
+  Future<void> updateSchedule(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  });
 
   /// Delete a schedule
   /// This is for deleting a schedule

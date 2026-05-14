@@ -110,6 +110,33 @@ void main() {
     expect(find.byType(PreparationSpareTimeEditScreen), findsNothing);
     expect(find.text('open'), findsOneWidget);
   });
+
+  testWidgets('changed preparation step time is submitted', (tester) async {
+    await _pumpScreen(tester);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    final context = tester.element(find.byType(TextFormField).first);
+    context.read<PreparationFormBloc>().add(
+      const PreparationFormPreparationStepTimeChanged(
+        index: 0,
+        preparationStepTime: Duration(minutes: 15),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(TextButton).first);
+    await tester.pumpAndSettle();
+
+    expect(
+      preparationStore
+          .updatedPreparation!
+          .preparationStepList
+          .single
+          .preparationTime,
+      const Duration(minutes: 15),
+    );
+  });
 }
 
 Future<void> _pumpScreen(WidgetTester tester) async {

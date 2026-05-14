@@ -111,12 +111,15 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                     return TextButton(
                       onPressed: state2.canSubmit && preparationState.isValid
                           ? () {
+                              final currentPreparationState = context
+                                  .read<PreparationFormBloc>()
+                                  .state;
                               context
                                   .read<DefaultPreparationSpareTimeFormBloc>()
                                   .add(
                                     FormSubmitted(
                                       note: '',
-                                      preparation: preparationState
+                                      preparation: currentPreparationState
                                           .toPreparationEntity(),
                                     ),
                                   );

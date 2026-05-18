@@ -74,11 +74,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
       )
-      ..add(
-        MonthlySchedulesVisibleDateChanged(
-          date: _selectedDate,
-        ),
-      );
+      ..add(MonthlySchedulesVisibleDateChanged(date: _selectedDate));
   }
 
   void _onLeftArrowTap() {
@@ -124,11 +120,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _openCreateScheduleSheet(BuildContext context) async {
     final saved = await showModalBottomSheet<bool>(
       context: context,
+      isDismissible: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ScheduleCreateScreen(
-        initialDate: _selectedDate,
-      ),
+      builder: (context) => ScheduleCreateScreen(initialDate: _selectedDate),
     );
 
     _refreshSchedulesIfSaved(saved);
@@ -142,9 +137,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ScheduleEditScreen(
-        scheduleId: scheduleId,
-      ),
+      builder: (context) => ScheduleEditScreen(scheduleId: scheduleId),
     );
 
     _refreshSchedulesIfSaved(saved);
@@ -201,13 +194,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18.0) +
+            padding:
+                const EdgeInsets.symmetric(horizontal: 18.0) +
                 EdgeInsets.only(bottom: 12.0),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final detailGap = _calendarDetailGap(constraints.maxHeight);
-                final selectedDateHeadingGap =
-                    _selectedDateHeadingGap(constraints.maxHeight);
+                final selectedDateHeadingGap = _selectedDateHeadingGap(
+                  constraints.maxHeight,
+                );
 
                 return Column(
                   children: [
@@ -222,119 +217,145 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           vertical: _calendarVerticalPadding,
                           horizontal: _calendarHorizontalPadding,
                         ),
-                        child: BlocBuilder<MonthlySchedulesBloc,
-                            MonthlySchedulesState>(
-                          builder: (context, state) {
-                            if (state.status == MonthlySchedulesStatus.error) {
-                              return Text(AppLocalizations.of(context)!.error);
-                            }
+                        child:
+                            BlocBuilder<
+                              MonthlySchedulesBloc,
+                              MonthlySchedulesState
+                            >(
+                              builder: (context, state) {
+                                if (state.status ==
+                                    MonthlySchedulesStatus.error) {
+                                  return Text(
+                                    AppLocalizations.of(context)!.error,
+                                  );
+                                }
 
-                            return TableCalendar(
-                              locale:
-                                  Localizations.localeOf(context).toString(),
-                              daysOfWeekHeight: _calendarDaysOfWeekHeight,
-                              rowHeight: _calendarRowHeight,
-                              eventLoader: (day) {
-                                day = DateTime(day.year, day.month, day.day);
-                                return state.schedules[day] ?? [];
-                              },
-                              focusedDay: _selectedDate,
-                              selectedDayPredicate: (day) =>
-                                  isSameDay(_selectedDate, day),
-                              firstDay: _firstDay,
-                              lastDay: _lastDay,
-                              calendarFormat: CalendarFormat.month,
-                              headerStyle: calendarTheme.headerStyle,
-                              daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
-                              calendarStyle: calendarTheme.calendarStyle,
-                              onDaySelected: (selectedDay, focusedDay) {
-                                setState(() {
-                                  _selectedDate = _clampDay(
-                                      selectedDay, _firstDay, _lastDay);
-                                });
-                                _monthlySchedulesBloc.add(
-                                  MonthlySchedulesVisibleDateChanged(
-                                    date: _selectedDate,
+                                return TableCalendar(
+                                  locale: Localizations.localeOf(
+                                    context,
+                                  ).toString(),
+                                  daysOfWeekHeight: _calendarDaysOfWeekHeight,
+                                  rowHeight: _calendarRowHeight,
+                                  eventLoader: (day) {
+                                    day = DateTime(
+                                      day.year,
+                                      day.month,
+                                      day.day,
+                                    );
+                                    return state.schedules[day] ?? [];
+                                  },
+                                  focusedDay: _selectedDate,
+                                  selectedDayPredicate: (day) =>
+                                      isSameDay(_selectedDate, day),
+                                  firstDay: _firstDay,
+                                  lastDay: _lastDay,
+                                  calendarFormat: CalendarFormat.month,
+                                  headerStyle: calendarTheme.headerStyle,
+                                  daysOfWeekStyle:
+                                      calendarTheme.daysOfWeekStyle,
+                                  calendarStyle: calendarTheme.calendarStyle,
+                                  onDaySelected: (selectedDay, focusedDay) {
+                                    setState(() {
+                                      _selectedDate = _clampDay(
+                                        selectedDay,
+                                        _firstDay,
+                                        _lastDay,
+                                      );
+                                    });
+                                    _monthlySchedulesBloc.add(
+                                      MonthlySchedulesVisibleDateChanged(
+                                        date: _selectedDate,
+                                      ),
+                                    );
+                                  },
+                                  onPageChanged: (focusedDay) {
+                                    final clampedFocusedDay = _clampDay(
+                                      focusedDay,
+                                      _firstDay,
+                                      _lastDay,
+                                    );
+
+                                    setState(() {
+                                      _selectedDate = clampedFocusedDay;
+                                    });
+
+                                    _monthlySchedulesBloc.add(
+                                      MonthlySchedulesVisibleDateChanged(
+                                        date: _selectedDate,
+                                      ),
+                                    );
+
+                                    _monthlySchedulesBloc.add(
+                                      MonthlySchedulesMonthAdded(
+                                        date: DateTime(
+                                          clampedFocusedDay.year,
+                                          clampedFocusedDay.month,
+                                          clampedFocusedDay.day,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  calendarBuilders: CalendarBuilders(
+                                    headerTitleBuilder: (context, date) {
+                                      return CenteredCalendarHeader(
+                                        focusedMonth: date,
+                                        onLeftArrowTap: _onLeftArrowTap,
+                                        onRightArrowTap: _onRightArrowTap,
+                                        titleTextStyle: calendarTheme
+                                            .headerStyle
+                                            .titleTextStyle,
+                                        leftIcon: calendarTheme
+                                            .headerStyle
+                                            .leftChevronIcon,
+                                        rightIcon: calendarTheme
+                                            .headerStyle
+                                            .rightChevronIcon,
+                                      );
+                                    },
+                                    markerBuilder: (context, day, events) {
+                                      return selectedDayScheduleMarkerBuilder(
+                                        selectedDay: _selectedDate,
+                                        day: day,
+                                        events: events,
+                                      );
+                                    },
+                                    selectedBuilder:
+                                        (context, day, focusedDay) {
+                                          return Container(
+                                            margin: const EdgeInsets.all(2.0),
+                                            alignment: Alignment.center,
+                                            decoration: calendarTheme
+                                                .selectedDayDecoration,
+                                            child: Text(
+                                              DateFormat.d(
+                                                Localizations.localeOf(
+                                                  context,
+                                                ).toString(),
+                                              ).format(day),
+                                              style: calendarTheme
+                                                  .selectedDayTextStyle,
+                                            ),
+                                          );
+                                        },
+                                    todayBuilder: (context, day, focusedDay) =>
+                                        Container(
+                                          margin: const EdgeInsets.all(2.0),
+                                          alignment: Alignment.center,
+                                          decoration:
+                                              calendarTheme.todayDecoration,
+                                          child: Text(
+                                            DateFormat.d(
+                                              Localizations.localeOf(
+                                                context,
+                                              ).toString(),
+                                            ).format(day),
+                                            style: calendarTheme.todayTextStyle,
+                                          ),
+                                        ),
                                   ),
                                 );
                               },
-                              onPageChanged: (focusedDay) {
-                                final clampedFocusedDay =
-                                    _clampDay(focusedDay, _firstDay, _lastDay);
-
-                                setState(() {
-                                  _selectedDate = clampedFocusedDay;
-                                });
-
-                                _monthlySchedulesBloc.add(
-                                  MonthlySchedulesVisibleDateChanged(
-                                    date: _selectedDate,
-                                  ),
-                                );
-
-                                _monthlySchedulesBloc.add(
-                                  MonthlySchedulesMonthAdded(
-                                    date: DateTime(
-                                      clampedFocusedDay.year,
-                                      clampedFocusedDay.month,
-                                      clampedFocusedDay.day,
-                                    ),
-                                  ),
-                                );
-                              },
-                              calendarBuilders: CalendarBuilders(
-                                headerTitleBuilder: (context, date) {
-                                  return CenteredCalendarHeader(
-                                    focusedMonth: date,
-                                    onLeftArrowTap: _onLeftArrowTap,
-                                    onRightArrowTap: _onRightArrowTap,
-                                    titleTextStyle: calendarTheme
-                                        .headerStyle.titleTextStyle,
-                                    leftIcon: calendarTheme
-                                        .headerStyle.leftChevronIcon,
-                                    rightIcon: calendarTheme
-                                        .headerStyle.rightChevronIcon,
-                                  );
-                                },
-                                markerBuilder: (context, day, events) {
-                                  return selectedDayScheduleMarkerBuilder(
-                                    selectedDay: _selectedDate,
-                                    day: day,
-                                    events: events,
-                                  );
-                                },
-                                selectedBuilder: (context, day, focusedDay) {
-                                  return Container(
-                                    margin: const EdgeInsets.all(2.0),
-                                    alignment: Alignment.center,
-                                    decoration:
-                                        calendarTheme.selectedDayDecoration,
-                                    child: Text(
-                                      DateFormat.d(
-                                        Localizations.localeOf(context)
-                                            .toString(),
-                                      ).format(day),
-                                      style: calendarTheme.selectedDayTextStyle,
-                                    ),
-                                  );
-                                },
-                                todayBuilder: (context, day, focusedDay) =>
-                                    Container(
-                                  margin: const EdgeInsets.all(2.0),
-                                  alignment: Alignment.center,
-                                  decoration: calendarTheme.todayDecoration,
-                                  child: Text(
-                                    DateFormat.d(
-                                      Localizations.localeOf(context)
-                                          .toString(),
-                                    ).format(day),
-                                    style: calendarTheme.todayTextStyle,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                            ),
                       ),
                     ),
                     SizedBox(height: detailGap),
@@ -357,48 +378,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             ),
                             SizedBox(height: selectedDateHeadingGap),
                             Expanded(
-                              child: BlocBuilder<MonthlySchedulesBloc,
-                                  MonthlySchedulesState>(
-                                builder: (context, state) {
-                                  return _SelectedDateSchedulesContent(
-                                    selectedDate: _selectedDate,
-                                    state: state,
-                                    onAddSchedule: () =>
-                                        _openCreateScheduleSheet(context),
-                                    onEditSchedule: (scheduleId) =>
-                                        _openEditScheduleSheet(
-                                      context,
-                                      scheduleId: scheduleId,
-                                    ),
-                                    onDeleteSchedule: (schedule) {
-                                      showTwoButtonDeleteDialog(
-                                        context,
-                                        title: AppLocalizations.of(context)!
-                                            .scheduleDeleteConfirmTitle,
-                                        description: AppLocalizations.of(
-                                                context)!
-                                            .scheduleDeleteConfirmDescription,
-                                        cancelText:
-                                            AppLocalizations.of(context)!
-                                                .cancel,
-                                        confirmText:
-                                            AppLocalizations.of(context)!
-                                                .deleteScheduleConfirmAction,
-                                      ).then((confirmed) {
-                                        if (confirmed != true ||
-                                            !context.mounted) {
-                                          return;
-                                        }
-                                        _monthlySchedulesBloc.add(
-                                          MonthlySchedulesScheduleDeleted(
-                                            schedule: schedule,
-                                          ),
-                                        );
-                                      });
+                              child:
+                                  BlocBuilder<
+                                    MonthlySchedulesBloc,
+                                    MonthlySchedulesState
+                                  >(
+                                    builder: (context, state) {
+                                      return _SelectedDateSchedulesContent(
+                                        selectedDate: _selectedDate,
+                                        state: state,
+                                        onAddSchedule: () =>
+                                            _openCreateScheduleSheet(context),
+                                        onEditSchedule: (scheduleId) =>
+                                            _openEditScheduleSheet(
+                                              context,
+                                              scheduleId: scheduleId,
+                                            ),
+                                        onDeleteSchedule: (schedule) {
+                                          showTwoButtonDeleteDialog(
+                                            context,
+                                            title: AppLocalizations.of(
+                                              context,
+                                            )!.scheduleDeleteConfirmTitle,
+                                            description: AppLocalizations.of(
+                                              context,
+                                            )!.scheduleDeleteConfirmDescription,
+                                            cancelText: AppLocalizations.of(
+                                              context,
+                                            )!.cancel,
+                                            confirmText: AppLocalizations.of(
+                                              context,
+                                            )!.deleteScheduleConfirmAction,
+                                          ).then((confirmed) {
+                                            if (confirmed != true ||
+                                                !context.mounted) {
+                                              return;
+                                            }
+                                            _monthlySchedulesBloc.add(
+                                              MonthlySchedulesScheduleDeleted(
+                                                schedule: schedule,
+                                              ),
+                                            );
+                                          });
+                                        },
+                                      );
                                     },
-                                  );
-                                },
-                              ),
+                                  ),
                             ),
                           ],
                         ),
@@ -465,7 +490,8 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
 
         return BlocBuilder<ScheduleBloc, ScheduleState>(
           builder: (context, scheduleState) {
-            final isEarlyStarted = scheduleState.isEarlyStarted &&
+            final isEarlyStarted =
+                scheduleState.isEarlyStarted &&
                 scheduleState.schedule?.id == schedule.id;
 
             return ScheduleDetail(

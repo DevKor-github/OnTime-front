@@ -152,7 +152,10 @@ class _FakeScheduleRepository implements ScheduleRepository {
   ) async => const [];
 
   @override
-  Future<void> updateSchedule(ScheduleEntity schedule) async {
+  Future<void> updateSchedule(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  }) async {
     updatedSchedules.add(schedule);
   }
 }

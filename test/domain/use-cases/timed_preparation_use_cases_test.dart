@@ -372,7 +372,10 @@ class _FakeScheduleRepository implements ScheduleRepository {
   }
 
   @override
-  Future<void> updateSchedule(ScheduleEntity schedule) async {}
+  Future<void> updateSchedule(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  }) async {}
 }
 
 class _FakePreparationRepository implements PreparationRepository {

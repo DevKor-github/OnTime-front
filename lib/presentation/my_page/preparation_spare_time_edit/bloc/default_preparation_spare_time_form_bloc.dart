@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_default_preparation_use_case.dart';
@@ -11,9 +12,12 @@ part 'default_preparation_spare_time_form_event.dart';
 part 'default_preparation_spare_time_form_state.dart';
 
 @injectable
-class DefaultPreparationSpareTimeFormBloc extends Bloc<
-    DefaultPreparationSpareTimeFormEvent,
-    DefaultPreparationSpareTimeFormState> {
+class DefaultPreparationSpareTimeFormBloc
+    extends
+        Bloc<
+          DefaultPreparationSpareTimeFormEvent,
+          DefaultPreparationSpareTimeFormState
+        > {
   DefaultPreparationSpareTimeFormBloc(
     this._getDefaultPreparationUseCase,
     this._updateDefaultPreparationUseCase,
@@ -33,68 +37,91 @@ class DefaultPreparationSpareTimeFormBloc extends Bloc<
   final Duration lowerBound = Duration(minutes: 10);
   final Duration stepSize = Duration(minutes: 5);
 
-  Future<void> _onFormEditRequested(FormEditRequested event,
-      Emitter<DefaultPreparationSpareTimeFormState> emit) async {
-    emit(state.copyWith(
-      status: DefaultPreparationSpareTimeStatus.loading,
-    ));
+  Future<void> _onFormEditRequested(
+    FormEditRequested event,
+    Emitter<DefaultPreparationSpareTimeFormState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        status: DefaultPreparationSpareTimeStatus.loading,
+        errorMessage: null,
+      ),
+    );
 
     final preparation = await _getDefaultPreparationUseCase();
 
-    emit(state.copyWith(
-      status: DefaultPreparationSpareTimeStatus.success,
-      preparation: preparation,
-      spareTime: event.spareTime,
-    ));
+    emit(
+      state.copyWith(
+        status: DefaultPreparationSpareTimeStatus.success,
+        preparation: preparation,
+        spareTime: event.spareTime,
+        errorMessage: null,
+      ),
+    );
   }
 
-  void _onSpareTimeIncreased(SpareTimeIncreased event,
-      Emitter<DefaultPreparationSpareTimeFormState> emit) {
+  void _onSpareTimeIncreased(
+    SpareTimeIncreased event,
+    Emitter<DefaultPreparationSpareTimeFormState> emit,
+  ) {
     final currentSpareTime = state.spareTime ?? Duration.zero;
     final newSpareTime = currentSpareTime + stepSize;
 
-    emit(state.copyWith(
-      spareTime: newSpareTime,
-    ));
+    emit(state.copyWith(spareTime: newSpareTime));
   }
 
-  void _onSpareTimeDecreased(SpareTimeDecreased event,
-      Emitter<DefaultPreparationSpareTimeFormState> emit) {
+  void _onSpareTimeDecreased(
+    SpareTimeDecreased event,
+    Emitter<DefaultPreparationSpareTimeFormState> emit,
+  ) {
     final currentSpareTime = state.spareTime ?? Duration.zero;
     final newSpareTime = currentSpareTime - stepSize;
 
     if (newSpareTime >= lowerBound) {
-      emit(state.copyWith(
-        spareTime: newSpareTime,
-      ));
+      emit(state.copyWith(spareTime: newSpareTime));
     }
   }
 
-  Future<void> _onFormSubmitted(FormSubmitted event,
-      Emitter<DefaultPreparationSpareTimeFormState> emit) async {
+  Future<void> _onFormSubmitted(
+    FormSubmitted event,
+    Emitter<DefaultPreparationSpareTimeFormState> emit,
+  ) async {
     if (state.spareTime == null) {
-      emit(state.copyWith(
-        status: DefaultPreparationSpareTimeStatus.error,
-      ));
+      emit(
+        state.copyWith(
+          status: DefaultPreparationSpareTimeStatus.error,
+          errorMessage: null,
+        ),
+      );
       return;
     }
 
-    emit(state.copyWith(
-      status: DefaultPreparationSpareTimeStatus.loading,
-    ));
+    emit(
+      state.copyWith(
+        status: DefaultPreparationSpareTimeStatus.submitting,
+        errorMessage: null,
+      ),
+    );
 
     try {
       await _updateDefaultPreparationUseCase(event.preparation);
       await _updateSpareTimeUseCase(state.spareTime!);
       await _loadUserUseCase();
 
-      emit(state.copyWith(
-        status: DefaultPreparationSpareTimeStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          status: DefaultPreparationSpareTimeStatus.submitted,
+          preparation: event.preparation,
+          errorMessage: null,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: DefaultPreparationSpareTimeStatus.error,
-      ));
+      emit(
+        state.copyWith(
+          status: DefaultPreparationSpareTimeStatus.error,
+          errorMessage: ApiErrorMessage.fromException(e) ?? e.toString(),
+        ),
+      );
     }
   }
 }

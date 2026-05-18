@@ -1,10 +1,13 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:on_time_front/core/validation/backend_constraints.dart';
+import 'package:on_time_front/data/models/ordered_preparation_step_model.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 
 part 'create_schedule_request_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class CreateScheduleRequestModel {
   final String scheduleId;
   final String placeId;
@@ -16,6 +19,8 @@ class CreateScheduleRequestModel {
   final bool isStarted;
   final int? scheduleSpareTime;
   final String scheduleNote;
+  final String? preparationTemplateId;
+  final List<OrderedPreparationStepModel>? customPreparations;
 
   const CreateScheduleRequestModel({
     required this.scheduleId,
@@ -28,6 +33,8 @@ class CreateScheduleRequestModel {
     required this.isStarted,
     required this.scheduleSpareTime,
     required this.scheduleNote,
+    this.preparationTemplateId,
+    this.customPreparations,
   });
 
   factory CreateScheduleRequestModel.fromJson(Map<String, dynamic> json) =>
@@ -36,6 +43,16 @@ class CreateScheduleRequestModel {
   Map<String, dynamic> toJson() => _$CreateScheduleRequestModelToJson(this);
 
   static CreateScheduleRequestModel fromEntity(ScheduleEntity entity) {
+    final mode = _resolveCreateMode(entity);
+    final preparationTemplateId = mode == SchedulePreparationMode.template
+        ? _requireTemplateId(entity)
+        : null;
+    final customPreparations = mode == SchedulePreparationMode.custom
+        ? OrderedPreparationStepModel.fromPreparationEntity(
+            _requireCustomPreparations(entity),
+          )
+        : null;
+
     return CreateScheduleRequestModel(
       scheduleId: entity.id,
       placeId: entity.place.id,
@@ -53,6 +70,45 @@ class CreateScheduleRequestModel {
         entity.scheduleNote,
         BackendConstraints.maxLongTextLength,
       ),
+      preparationTemplateId: preparationTemplateId,
+      customPreparations: customPreparations,
     );
   }
+}
+
+SchedulePreparationMode _resolveCreateMode(ScheduleEntity entity) {
+  if (entity.preparationMode != null) {
+    return entity.preparationMode!;
+  }
+  if (entity.preparationTemplateId != null) {
+    return SchedulePreparationMode.template;
+  }
+  if (entity.customPreparations != null) {
+    return SchedulePreparationMode.custom;
+  }
+  return SchedulePreparationMode.defaultPreparation;
+}
+
+String _requireTemplateId(ScheduleEntity entity) {
+  final templateId = entity.preparationTemplateId;
+  if (templateId == null || templateId.isEmpty) {
+    throw ArgumentError('TEMPLATE schedules require preparationTemplateId');
+  }
+  if (entity.customPreparations != null) {
+    throw ArgumentError('TEMPLATE schedules cannot include customPreparations');
+  }
+  return templateId;
+}
+
+PreparationEntity _requireCustomPreparations(ScheduleEntity entity) {
+  final preparation = entity.customPreparations;
+  if (preparation == null) {
+    throw ArgumentError('CUSTOM schedules require customPreparations');
+  }
+  if (entity.preparationTemplateId != null) {
+    throw ArgumentError(
+      'CUSTOM schedules cannot include preparationTemplateId',
+    );
+  }
+  return preparation;
 }

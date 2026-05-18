@@ -5,6 +5,7 @@ void main() {
   group('PasswordPolicy', () {
     test('accepts 8-64 chars with letter number and special character', () {
       expect(PasswordPolicy.validate('Password1!'), isNull);
+      expect(PasswordPolicy.isValid('Password1!'), isTrue);
       expect(PasswordPolicy.validate('A1!aaaaa'), isNull);
       expect(PasswordPolicy.validate('${'A' * 62}1!'), isNull);
     });
@@ -42,5 +43,10 @@ void main() {
       BackendConstraints.deviceIdPattern.hasMatch('invalid device id'),
       isFalse,
     );
+  });
+
+  test('trimToMaxLength trims whitespace before enforcing backend limit', () {
+    expect(BackendConstraints.trimToMaxLength('  hello  ', 10), 'hello');
+    expect(BackendConstraints.trimToMaxLength('  hello world  ', 5), 'hello');
   });
 }

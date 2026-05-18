@@ -86,50 +86,79 @@ void main() {
       expect(summary, isNot(contains('Leave home')));
       expect(summary, isNot(contains('fcm-token')));
     });
+
+    test('handles nulls, plain urls, and empty token values safely', () {
+      AppLogger.configureFlutterDebugPrint();
+      expect(AppLogger.isEnabled, isA<bool>());
+      expect(AppLogger.redactValue(null), isNull);
+      expect(AppLogger.redactMap({'accessToken': 'secret'}), {
+        'accessToken': AppLogger.redacted,
+      });
+      expect(
+        AppLogger.redactUri(Uri.parse('https://api.example.test/path')),
+        'https://api.example.test/path',
+      );
+      expect(AppLogger.redactToken(null), AppLogger.redacted);
+      expect(AppLogger.redactToken(''), AppLogger.redacted);
+      expect(AppLogger.summarizeMap(null), 'null');
+      expect(
+        AppLogger.summarizeMap({'type': null, 'promptVariant': 'alarm'}),
+        'keys=2 promptVariant=alarm',
+      );
+      AppLogger.debug(
+        'request failed token=secret',
+        error: Uri.parse('https://api.example.test/path?token=secret'),
+        stackTrace: StackTrace.current,
+      );
+    });
   });
 
   group('logging source scan', () {
     test('Dart app code uses AppLogger instead of raw debugPrint', () {
-      final offenders = _sourceFiles(
-        roots: ['lib'],
-        extensions: ['.dart'],
-        excludedPathFragments: [
-          '/core/logging/app_logger.dart',
-          '/l10n/app_localizations',
-          '.g.dart',
-          '.freezed.dart',
-        ],
-      )
-          .where((file) {
-            final source = file.readAsStringSync();
-            return RegExp(r'(?<![A-Za-z0-9_])debugPrint(?:Stack)?\s*\(')
-                .hasMatch(source);
-          })
-          .map((file) => file.path)
-          .toList();
+      final offenders =
+          _sourceFiles(
+                roots: ['lib'],
+                extensions: ['.dart'],
+                excludedPathFragments: [
+                  '/core/logging/app_logger.dart',
+                  '/l10n/app_localizations',
+                  '.g.dart',
+                  '.freezed.dart',
+                ],
+              )
+              .where((file) {
+                final source = file.readAsStringSync();
+                return RegExp(
+                  r'(?<![A-Za-z0-9_])debugPrint(?:Stack)?\s*\(',
+                ).hasMatch(source);
+              })
+              .map((file) => file.path)
+              .toList();
 
       expect(offenders, isEmpty);
     });
 
     test('native logs do not dump full extras, args, or payload maps', () {
-      final offenders = _sourceFiles(
-        roots: ['android/app/src/main/kotlin', 'ios/Runner'],
-        extensions: ['.kt', '.swift'],
-      )
-          .where((file) {
-            final source = file.readAsStringSync();
-            final isNativeLog = file.path.endsWith('/NativeLog.kt');
-            return source.contains('extras=\${intent') ||
-                source.contains('extras=\${intent?') ||
-                source.contains('args=\$args') ||
-                source.contains('payload=\$payload') ||
-                source.contains('-> \$payload') ||
-                source.contains('-> \$launchPayload') ||
-                source.contains('encodedPayload=%@') ||
-                (!isNativeLog && RegExp(r'\bLog\.[diew]\(').hasMatch(source));
-          })
-          .map((file) => file.path)
-          .toList();
+      final offenders =
+          _sourceFiles(
+                roots: ['android/app/src/main/kotlin', 'ios/Runner'],
+                extensions: ['.kt', '.swift'],
+              )
+              .where((file) {
+                final source = file.readAsStringSync();
+                final isNativeLog = file.path.endsWith('/NativeLog.kt');
+                return source.contains('extras=\${intent') ||
+                    source.contains('extras=\${intent?') ||
+                    source.contains('args=\$args') ||
+                    source.contains('payload=\$payload') ||
+                    source.contains('-> \$payload') ||
+                    source.contains('-> \$launchPayload') ||
+                    source.contains('encodedPayload=%@') ||
+                    (!isNativeLog &&
+                        RegExp(r'\bLog\.[diew]\(').hasMatch(source));
+              })
+              .map((file) => file.path)
+              .toList();
 
       expect(offenders, isEmpty);
     });

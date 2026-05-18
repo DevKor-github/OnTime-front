@@ -59,6 +59,13 @@ class Endpoint {
 
   static String get updateDefaultPreparation => _defaultPreparation;
 
+  static const _preparationTemplates = '/preparation-templates';
+
+  static String get preparationTemplates => _preparationTemplates;
+
+  static String preparationTemplateById(String templateId) =>
+      '$_preparationTemplates/$templateId';
+
   static const _updateSpareTime = '/users/me/spare-time';
   static String get updateSpareTime => _updateSpareTime;
 

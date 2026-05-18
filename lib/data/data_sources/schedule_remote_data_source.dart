@@ -12,11 +12,16 @@ abstract interface class ScheduleRemoteDataSource {
   Future<void> createSchedule(ScheduleEntity schedule);
 
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate);
+    DateTime startDate,
+    DateTime? endDate,
+  );
 
   Future<ScheduleEntity> getScheduleById(String id);
 
-  Future<void> updateSchedule(ScheduleEntity schedule);
+  Future<void> updateSchedule(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  });
 
   Future<void> deleteSchedule(ScheduleEntity schedule);
 
@@ -33,8 +38,10 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     try {
       CreateScheduleRequestModel createScheduleModel =
           CreateScheduleRequestModel.fromEntity(schedule);
-      final result = await dio.post(Endpoint.createSchedule,
-          data: createScheduleModel.toJson());
+      final result = await dio.post(
+        Endpoint.createSchedule,
+        data: createScheduleModel.toJson(),
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -46,12 +53,20 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<void> updateSchedule(ScheduleEntity schedule) async {
+  Future<void> updateSchedule(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  }) async {
     try {
       UpdateScheduleRequestModel updateScheduleModel =
-          UpdateScheduleRequestModel.fromEntity(schedule);
-      final result = await dio.put(Endpoint.updateSchedule(schedule.id),
-          data: updateScheduleModel.toJson());
+          UpdateScheduleRequestModel.fromEntity(
+            schedule,
+            includePreparationSource: includePreparationSource,
+          );
+      final result = await dio.put(
+        Endpoint.updateSchedule(schedule.id),
+        data: updateScheduleModel.toJson(),
+      );
       if (result.statusCode == 200) {
         return;
       } else {
@@ -81,10 +96,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
     try {
       final result = await dio.put(
         Endpoint.finishSchedule(scheduleId),
-        data: {
-          'scheduleId': scheduleId,
-          'latenessTime': latenessTime,
-        },
+        data: {'scheduleId': scheduleId, 'latenessTime': latenessTime},
       );
       if (result.statusCode == 200) {
         return;
@@ -114,17 +126,22 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
 
   @override
   Future<List<ScheduleEntity>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate) async {
+    DateTime startDate,
+    DateTime? endDate,
+  ) async {
     try {
-      final result =
-          await dio.get(Endpoint.getSchedulesByDate, queryParameters: {
-        'startDate': startDate.toIso8601String(),
-        'endDate': endDate?.toIso8601String() ?? '',
-      });
+      final result = await dio.get(
+        Endpoint.getSchedulesByDate,
+        queryParameters: {
+          'startDate': startDate.toIso8601String(),
+          'endDate': endDate?.toIso8601String() ?? '',
+        },
+      );
       if (result.statusCode == 200) {
         final List<ScheduleEntity> schedules = result.data["data"]
             .map<ScheduleEntity>(
-                (e) => GetScheduleResponseModel.fromJson(e).toEntity())
+              (e) => GetScheduleResponseModel.fromJson(e).toEntity(),
+            )
             .toList();
         return schedules;
       } else {

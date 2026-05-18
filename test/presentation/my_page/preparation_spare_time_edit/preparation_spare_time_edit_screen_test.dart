@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,18 +71,245 @@ void main() {
     expect(find.text('Coffee'), findsOneWidget);
     expect(find.text('15분'), findsOneWidget);
   });
+
+  testWidgets('save failure keeps editor open and shows error', (tester) async {
+    preparationStore.updateDefaultHandler = (_) async {
+      throw Exception('save failed');
+    };
+
+    await _pumpScreen(tester);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    await tester.tap(find.byType(TextButton).first);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PreparationSpareTimeEditScreen), findsOneWidget);
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.textContaining('save failed'), findsOneWidget);
+  });
+
+  testWidgets('save waits for completion before navigating back', (
+    tester,
+  ) async {
+    final completer = Completer<void>();
+    preparationStore.updateDefaultHandler = (_) => completer.future;
+
+    await _pumpRoutedScreen(tester);
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(TextButton).first);
+    await tester.pump();
+
+    expect(find.byType(PreparationSpareTimeEditScreen), findsOneWidget);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PreparationSpareTimeEditScreen), findsNothing);
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('changed preparation step time is submitted', (tester) async {
+    await _pumpScreen(tester);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    final context = tester.element(find.byType(TextFormField).first);
+    context.read<PreparationFormBloc>().add(
+      const PreparationFormPreparationStepTimeChanged(
+        index: 0,
+        preparationStepTime: Duration(minutes: 15),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(TextButton).first);
+    await tester.pumpAndSettle();
+
+    expect(
+      preparationStore
+          .updatedPreparation!
+          .preparationStepList
+          .single
+          .preparationTime,
+      const Duration(minutes: 15),
+    );
+  });
+
+  test(
+    'form bloc loads defaults and edits spare time in five-minute steps',
+    () async {
+      final bloc = _buildBloc(preparationStore);
+      addTearDown(bloc.close);
+
+      bloc.add(const FormEditRequested(spareTime: Duration(minutes: 15)));
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          isA<DefaultPreparationSpareTimeFormState>().having(
+            (state) => state.status,
+            'status',
+            DefaultPreparationSpareTimeStatus.loading,
+          ),
+          isA<DefaultPreparationSpareTimeFormState>()
+              .having(
+                (state) => state.status,
+                'status',
+                DefaultPreparationSpareTimeStatus.success,
+              )
+              .having(
+                (state) => state.spareTime,
+                'spareTime',
+                const Duration(minutes: 15),
+              ),
+        ]),
+      );
+
+      bloc
+        ..add(const SpareTimeIncreased())
+        ..add(const SpareTimeDecreased())
+        ..add(const SpareTimeDecreased())
+        ..add(const SpareTimeDecreased());
+      await testerPumpEventQueue();
+
+      expect(bloc.state.spareTime, const Duration(minutes: 10));
+    },
+  );
+
+  test(
+    'form bloc persists preparation and spare time before reloading user',
+    () async {
+      final bloc = _buildBloc(preparationStore);
+      addTearDown(bloc.close);
+      const editedPreparation = PreparationEntity(
+        preparationStepList: [
+          PreparationStepEntity(
+            id: 'step-2',
+            preparationName: 'Pack bag',
+            preparationTime: Duration(minutes: 8),
+          ),
+        ],
+      );
+
+      bloc.add(const FormEditRequested(spareTime: Duration(minutes: 20)));
+      await bloc.stream.firstWhere(
+        (state) => state.status == DefaultPreparationSpareTimeStatus.success,
+      );
+      bloc.add(
+        const FormSubmitted(
+          note: 'Updated note',
+          preparation: editedPreparation,
+        ),
+      );
+      await bloc.stream.firstWhere(
+        (state) => state.status == DefaultPreparationSpareTimeStatus.submitted,
+      );
+
+      expect(preparationStore.updatedPreparation, editedPreparation);
+      expect(preparationStore.updatedSpareTime, const Duration(minutes: 20));
+      expect(preparationStore.loadUserCount, 1);
+    },
+  );
+
+  test(
+    'form bloc reports errors when spare time is absent or update fails',
+    () async {
+      final missingSpareBloc = _buildBloc(preparationStore);
+      addTearDown(missingSpareBloc.close);
+
+      missingSpareBloc.add(
+        const FormSubmitted(
+          note: '',
+          preparation: PreparationEntity(preparationStepList: []),
+        ),
+      );
+      await missingSpareBloc.stream.firstWhere(
+        (state) => state.status == DefaultPreparationSpareTimeStatus.error,
+      );
+      expect(preparationStore.updatedPreparation, isNull);
+
+      final failingStore =
+          _FakePreparationStore(preparationStore.defaultPreparation)
+            ..updateDefaultHandler = (_) async {
+              throw Exception('update failed');
+            };
+      final failingBloc = _buildBloc(failingStore);
+      addTearDown(failingBloc.close);
+
+      failingBloc.add(
+        const FormEditRequested(spareTime: Duration(minutes: 20)),
+      );
+      await failingBloc.stream.firstWhere(
+        (state) => state.status == DefaultPreparationSpareTimeStatus.success,
+      );
+      failingBloc.add(
+        const FormSubmitted(
+          note: '',
+          preparation: PreparationEntity(preparationStepList: []),
+        ),
+      );
+
+      await failingBloc.stream.firstWhere(
+        (state) => state.status == DefaultPreparationSpareTimeStatus.error,
+      );
+    },
+  );
+}
+
+Future<void> testerPumpEventQueue() async {
+  await Future<void>.delayed(Duration.zero);
+  await Future<void>.delayed(Duration.zero);
+}
+
+DefaultPreparationSpareTimeFormBloc _buildBloc(_FakePreparationStore store) {
+  return DefaultPreparationSpareTimeFormBloc(
+    _FakeGetDefaultPreparationUseCase(store),
+    _FakeUpdateDefaultPreparationUseCase(store),
+    _FakeUpdateSpareTimeUseCase(store),
+    _FakeLoadUserUseCase(store),
+  );
 }
 
 Future<void> _pumpScreen(WidgetTester tester) async {
   await tester.pumpWidget(
-    MaterialApp(
-      theme: themeData,
-      locale: const Locale('ko'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider<AuthBloc>.value(
-        value: _StubAuthBloc(),
-        child: const PreparationSpareTimeEditScreen(),
+    BlocProvider<AuthBloc>.value(
+      value: _StubAuthBloc(),
+      child: MaterialApp(
+        theme: themeData,
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const PreparationSpareTimeEditScreen(),
+      ),
+    ),
+  );
+}
+
+Future<void> _pumpRoutedScreen(WidgetTester tester) async {
+  await tester.pumpWidget(
+    BlocProvider<AuthBloc>.value(
+      value: _StubAuthBloc(),
+      child: MaterialApp(
+        theme: themeData,
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            return TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PreparationSpareTimeEditScreen(),
+                  ),
+                );
+              },
+              child: const Text('open'),
+            );
+          },
+        ),
       ),
     ),
   );
@@ -92,6 +321,8 @@ class _FakePreparationStore {
   PreparationEntity defaultPreparation;
   PreparationEntity? updatedPreparation;
   Duration? updatedSpareTime;
+  Future<void> Function(PreparationEntity preparationEntity)?
+  updateDefaultHandler;
   int loadUserCount = 0;
 }
 
@@ -113,6 +344,11 @@ class _FakeUpdateDefaultPreparationUseCase extends Mock
 
   @override
   Future<void> call(PreparationEntity preparationEntity) async {
+    final handler = store.updateDefaultHandler;
+    if (handler != null) {
+      await handler(preparationEntity);
+      return;
+    }
     store.updatedPreparation = preparationEntity;
   }
 }
@@ -130,8 +366,14 @@ class _FakeUpdateSpareTimeUseCase extends Mock
 }
 
 class _FakeLoadUserUseCase extends Mock implements LoadUserUseCase {
+  _FakeLoadUserUseCase([this.store]);
+
+  final _FakePreparationStore? store;
+
   @override
-  Future<void> call() async {}
+  Future<void> call() async {
+    store?.loadUserCount++;
+  }
 }
 
 class _StubAuthBloc extends Mock implements AuthBloc {

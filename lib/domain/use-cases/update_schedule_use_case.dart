@@ -10,13 +10,16 @@ class UpdateScheduleUseCase {
   final ScheduleRepository _scheduleRepository;
   final ReconcileAlarmsUseCase _reconcileAlarmsUseCase;
 
-  UpdateScheduleUseCase(
-    this._scheduleRepository,
-    this._reconcileAlarmsUseCase,
-  );
+  UpdateScheduleUseCase(this._scheduleRepository, this._reconcileAlarmsUseCase);
 
-  Future<void> call(ScheduleEntity schedule) async {
-    await _scheduleRepository.updateSchedule(schedule);
+  Future<void> call(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  }) async {
+    await _scheduleRepository.updateSchedule(
+      schedule,
+      includePreparationSource: includePreparationSource,
+    );
     unawaited(_reconcileAlarmsUseCase());
   }
 }

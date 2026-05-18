@@ -21,7 +21,9 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
+import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class _FakeSvgAssetBundle extends CachingAssetBundle {
   static const _svg =
@@ -36,8 +38,18 @@ class _FakeSvgAssetBundle extends CachingAssetBundle {
 
 class _StubLoadSchedulesForMonthUseCase
     implements LoadSchedulesForMonthUseCase {
+  _StubLoadSchedulesForMonthUseCase({this.throwOnCall = false});
+
+  final bool throwOnCall;
+  final calls = <DateTime>[];
+
   @override
-  Future<void> call(DateTime date) async {}
+  Future<void> call(DateTime date) async {
+    calls.add(date);
+    if (throwOnCall) {
+      throw Exception('month unavailable');
+    }
+  }
 }
 
 class _StubGetSchedulesByDateUseCase implements GetSchedulesByDateUseCase {
@@ -52,8 +64,12 @@ class _StubGetSchedulesByDateUseCase implements GetSchedulesByDateUseCase {
 }
 
 class _StubDeleteScheduleUseCase implements DeleteScheduleUseCase {
+  final deletedSchedules = <ScheduleEntity>[];
+
   @override
-  Future<void> call(ScheduleEntity schedule) async {}
+  Future<void> call(ScheduleEntity schedule) async {
+    deletedSchedules.add(schedule);
+  }
 }
 
 class _StubLoadPreparationByScheduleIdUseCase
@@ -105,12 +121,17 @@ void main() {
     required DateTime initialDate,
     List<ScheduleEntity> schedules = const [],
     double textScale = 1.0,
+    _StubLoadSchedulesForMonthUseCase? loadSchedulesForMonthUseCase,
+    _StubDeleteScheduleUseCase? deleteScheduleUseCase,
+    CalendarCreateSheetBuilder? createSheetBuilder,
   }) async {
+    final loadUseCase =
+        loadSchedulesForMonthUseCase ?? _StubLoadSchedulesForMonthUseCase();
     getIt.registerFactory<MonthlySchedulesBloc>(
       () => MonthlySchedulesBloc(
-        _StubLoadSchedulesForMonthUseCase(),
+        loadUseCase,
         _StubGetSchedulesByDateUseCase(schedules),
-        _StubDeleteScheduleUseCase(),
+        deleteScheduleUseCase ?? _StubDeleteScheduleUseCase(),
         _StubLoadPreparationByScheduleIdUseCase(),
         _StubGetPreparationByScheduleIdUseCase(),
         _StubStreamPreparationsUseCase(),
@@ -137,7 +158,10 @@ void main() {
             ),
             child: BlocProvider<ScheduleBloc>.value(
               value: _StubScheduleBloc(),
-              child: CalendarScreen(initialDate: initialDate),
+              child: CalendarScreen(
+                initialDate: initialDate,
+                createSheetBuilder: createSheetBuilder,
+              ),
             ),
           ),
         ),
@@ -146,8 +170,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('compact future empty state fits with add button',
-      (tester) async {
+  testWidgets('compact future empty state fits with add button', (
+    tester,
+  ) async {
     final futureDate = DateTime.now().add(const Duration(days: 7));
 
     await pumpCalendarScreen(
@@ -177,8 +202,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('compact selected day with schedules scrolls without overflow',
-      (tester) async {
+  testWidgets('compact selected day with schedules scrolls without overflow', (
+    tester,
+  ) async {
     final selectedDate = DateTime.now().add(const Duration(days: 7));
     final schedule = ScheduleEntity(
       id: 'schedule-1',
@@ -210,8 +236,136 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('android system back from calendar returns to home',
-      (tester) async {
+  testWidgets('initial date before supported range is clamped to first month', (
+    tester,
+  ) async {
+    final loadUseCase = _StubLoadSchedulesForMonthUseCase();
+
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 844),
+      initialDate: DateTime(2024, 1, 15),
+      loadSchedulesForMonthUseCase: loadUseCase,
+    );
+
+    expect(find.text('December 2024'), findsOneWidget);
+    expect(loadUseCase.calls.single, DateTime(2024, 12, 1));
+  });
+
+  testWidgets('calendar header arrows move the visible month', (tester) async {
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 844),
+      initialDate: DateTime(2026, 1, 15),
+    );
+
+    expect(find.text('January 2026'), findsOneWidget);
+
+    final headerButtons = find.descendant(
+      of: find.byType(CenteredCalendarHeader),
+      matching: find.byType(IconButton),
+    );
+
+    await tester.tap(headerButtons.at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('February 2026'), findsOneWidget);
+    expect(find.text('February 1'), findsOneWidget);
+
+    await tester.tap(headerButtons.at(0));
+    await tester.pumpAndSettle();
+
+    expect(find.text('January 2026'), findsOneWidget);
+    expect(find.text('January 1'), findsOneWidget);
+  });
+
+  testWidgets('selecting another day updates the detail list for that day', (
+    tester,
+  ) async {
+    final firstDay = DateTime(2026, 1, 15);
+    final secondDay = DateTime(2026, 1, 20);
+    final schedules = [
+      _schedule(id: 'first', name: 'Initial day appointment', date: firstDay),
+      _schedule(
+        id: 'second',
+        name: 'Selected day appointment',
+        date: secondDay,
+      ),
+    ];
+
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 844),
+      initialDate: firstDay,
+      schedules: schedules,
+    );
+
+    expect(find.text('Initial day appointment'), findsOneWidget);
+    expect(find.text('Selected day appointment'), findsNothing);
+
+    await tester.tap(find.text('20').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('January 20'), findsOneWidget);
+    expect(find.text('Initial day appointment'), findsNothing);
+    expect(find.text('Selected day appointment'), findsOneWidget);
+  });
+
+  testWidgets('saved create sheet refreshes the selected calendar date', (
+    tester,
+  ) async {
+    final selectedDate = DateTime.now().add(const Duration(days: 7));
+    final loadUseCase = _StubLoadSchedulesForMonthUseCase();
+    DateTime? sheetInitialDate;
+
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 844),
+      initialDate: selectedDate,
+      loadSchedulesForMonthUseCase: loadUseCase,
+      createSheetBuilder: (context, initialDate) {
+        sheetInitialDate = initialDate;
+        return Material(
+          child: TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Save new appointment'),
+          ),
+        );
+      },
+    );
+
+    await tester.tap(find.text('Add appointment'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save new appointment'));
+    await tester.pumpAndSettle();
+
+    expect(
+      sheetInitialDate,
+      DateTime(selectedDate.year, selectedDate.month, selectedDate.day),
+    );
+    expect(
+      loadUseCase.calls.last,
+      DateTime(selectedDate.year, selectedDate.month, selectedDate.day),
+    );
+  });
+
+  testWidgets('month load failures show calendar error state', (tester) async {
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 844),
+      initialDate: DateTime(2026, 1, 15),
+      loadSchedulesForMonthUseCase: _StubLoadSchedulesForMonthUseCase(
+        throwOnCall: true,
+      ),
+    );
+
+    expect(find.text('Error'), findsOneWidget);
+    expect(find.byType(TableCalendar), findsNothing);
+  });
+
+  testWidgets('android system back from calendar returns to home', (
+    tester,
+  ) async {
     getIt.registerFactory<MonthlySchedulesBloc>(
       () => MonthlySchedulesBloc(
         _StubLoadSchedulesForMonthUseCase(),
@@ -233,9 +387,8 @@ void main() {
       routes: [
         GoRoute(
           path: '/home',
-          builder: (context, state) => const Scaffold(
-            body: Text('Home Screen'),
-          ),
+          builder: (context, state) =>
+              const Scaffold(body: Text('Home Screen')),
         ),
         GoRoute(
           path: '/calendar',
@@ -263,4 +416,72 @@ void main() {
     expect(find.byType(CalendarScreen), findsNothing);
     expect(find.text('Home Screen'), findsOneWidget);
   });
+
+  testWidgets('app bar back button returns to home', (tester) async {
+    getIt.registerFactory<MonthlySchedulesBloc>(
+      () => MonthlySchedulesBloc(
+        _StubLoadSchedulesForMonthUseCase(),
+        _StubGetSchedulesByDateUseCase(const []),
+        _StubDeleteScheduleUseCase(),
+        _StubLoadPreparationByScheduleIdUseCase(),
+        _StubGetPreparationByScheduleIdUseCase(),
+        _StubStreamPreparationsUseCase(),
+      ),
+    );
+
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final router = GoRouter(
+      initialLocation: '/calendar',
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: (context, state) =>
+              const Scaffold(body: Text('Home Screen')),
+        ),
+        GoRoute(
+          path: '/calendar',
+          builder: (context, state) => const CalendarScreen(),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: themeData,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CalendarScreen), findsNothing);
+    expect(find.text('Home Screen'), findsOneWidget);
+  });
+}
+
+ScheduleEntity _schedule({
+  required String id,
+  required String name,
+  required DateTime date,
+}) {
+  return ScheduleEntity(
+    id: id,
+    place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
+    scheduleName: name,
+    scheduleTime: DateTime(date.year, date.month, date.day, 9),
+    moveTime: const Duration(minutes: 30),
+    isChanged: false,
+    isStarted: false,
+    scheduleSpareTime: const Duration(minutes: 10),
+    scheduleNote: '',
+  );
 }

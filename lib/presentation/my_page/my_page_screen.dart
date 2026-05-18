@@ -24,10 +24,15 @@ import 'package:on_time_front/presentation/shared/components/two_action_dialog.d
 typedef PrivacyPolicyLauncher = Future<bool> Function(Uri uri);
 
 class MyPageScreen extends StatelessWidget {
-  const MyPageScreen({super.key, PrivacyPolicyLauncher? openPrivacyPolicy})
-    : _openPrivacyPolicy = openPrivacyPolicy;
+  const MyPageScreen({
+    super.key,
+    PrivacyPolicyLauncher? openPrivacyPolicy,
+    NotificationService? notificationService,
+  }) : _openPrivacyPolicy = openPrivacyPolicy,
+       _notificationService = notificationService;
 
   final PrivacyPolicyLauncher? _openPrivacyPolicy;
+  final NotificationService? _notificationService;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +100,10 @@ class MyPageScreen extends StatelessWidget {
                   _SettingTile(
                     title: AppLocalizations.of(context)!.allowAppNotifications,
                     onTap: () async {
-                      await _handleNotificationPermission(context);
+                      await _handleNotificationPermission(
+                        context,
+                        _notificationService ?? NotificationService.instance,
+                      );
                     },
                   ),
                   _SettingTile(
@@ -418,8 +426,10 @@ class _SettingTile extends StatelessWidget {
   }
 }
 
-Future<void> _handleNotificationPermission(BuildContext context) async {
-  final notificationService = NotificationService.instance;
+Future<void> _handleNotificationPermission(
+  BuildContext context,
+  NotificationService notificationService,
+) async {
   final currentStatus = await notificationService.checkNotificationPermission();
 
   if (!context.mounted) return;
@@ -438,7 +448,7 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
         if (!context.mounted) return;
         await _showPermissionGrantedDialog(context);
       } else if (newStatus == AuthorizationStatus.denied) {
-        await _showGoToSettingsDialog(context);
+        await _showGoToSettingsDialog(context, notificationService);
       }
     }
   } else if (currentStatus == AuthorizationStatus.notDetermined) {
@@ -453,11 +463,11 @@ Future<void> _handleNotificationPermission(BuildContext context) async {
         if (!context.mounted) return;
         await _showPermissionGrantedDialog(context);
       } else if (newStatus == AuthorizationStatus.denied) {
-        await _showGoToSettingsDialog(context);
+        await _showGoToSettingsDialog(context, notificationService);
       }
     }
   } else {
-    await _showGoToSettingsDialog(context);
+    await _showGoToSettingsDialog(context, notificationService);
   }
 }
 
@@ -537,7 +547,10 @@ Future<void> _showPermissionGrantedDialog(BuildContext context) async {
   );
 }
 
-Future<void> _showGoToSettingsDialog(BuildContext context) async {
+Future<void> _showGoToSettingsDialog(
+  BuildContext context,
+  NotificationService notificationService,
+) async {
   final l10n = AppLocalizations.of(context)!;
 
   final result = await showTwoActionDialog(
@@ -557,6 +570,6 @@ Future<void> _showGoToSettingsDialog(BuildContext context) async {
   );
 
   if (result == DialogActionResult.primary) {
-    await NotificationService.instance.openNotificationSettings();
+    await notificationService.openNotificationSettings();
   }
 }

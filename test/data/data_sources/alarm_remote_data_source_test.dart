@@ -16,91 +16,349 @@ void main() {
     remoteDataSource = AlarmRemoteDataSourceImpl(dio);
   });
 
-  group('postAlarmStatus', () {
-    test('posts lower-camel backend contract without retry on success',
-        () async {
+  test('getAlarmSettings maps backend settings response', () async {
+    when(dio.get<dynamic>(Endpoint.alarmSettings)).thenAnswer(
+      (_) async => Response(
+        statusCode: 200,
+        data: {
+          'data': {
+            'alarmsEnabled': true,
+            'defaultAlarmOffsetMinutes': 8,
+            'updatedAt': '2026-05-05T09:00:00.000',
+          },
+        },
+        requestOptions: RequestOptions(path: Endpoint.alarmSettings),
+      ),
+    );
+
+    final settings = await remoteDataSource.getAlarmSettings();
+
+    expect(settings.alarmsEnabled, isTrue);
+    expect(settings.defaultAlarmOffsetMinutes, 8);
+    expect(settings.alarmOffset, const Duration(minutes: 8));
+  });
+
+  test(
+    'updateAlarmSettings patches the enabled flag and returns settings',
+    () async {
       when(
-        dio.post<dynamic>(
-          Endpoint.alarmStatus,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
-        ),
+        dio.patch<dynamic>(Endpoint.alarmSettings, data: anyNamed('data')),
       ).thenAnswer(
         (_) async => Response(
           statusCode: 200,
-          requestOptions: RequestOptions(path: Endpoint.alarmStatus),
+          data: {
+            'data': {'alarmsEnabled': false, 'defaultAlarmOffsetMinutes': 5},
+          },
+          requestOptions: RequestOptions(path: Endpoint.alarmSettings),
         ),
       );
 
-      await remoteDataSource.postAlarmStatus(_statusReport());
+      final settings = await remoteDataSource.updateAlarmSettings(
+        alarmsEnabled: false,
+      );
 
-      final verification = verify(
-        dio.post<dynamic>(
-          Endpoint.alarmStatus,
-          data: captureAnyNamed('data'),
-          options: captureAnyNamed('options'),
-        ),
-      )..called(1);
-      final data = verification.captured[0] as Map<String, dynamic>;
-      final options = verification.captured[1] as Options;
+      final data =
+          verify(
+                dio.patch<dynamic>(
+                  Endpoint.alarmSettings,
+                  data: captureAnyNamed('data'),
+                ),
+              ).captured.single
+              as Map<String, dynamic>;
+      expect(data, {'alarmsEnabled': false});
+      expect(settings.alarmsEnabled, isFalse);
+    },
+  );
 
-      expect(options.validateStatus!(400), isTrue);
-      expect(data.containsKey('permissionIssue'), isFalse);
-      expect(data['reconciledAt'], '2026-05-05T09:00:00.000Z');
-      expect(data['status'], 'armed');
-      expect(data['nativeAlarmProvider'], 'iosAlarmKit');
-      expect(data['fallbackProvider'], 'localNotification');
+  test('registerCurrentDevice posts device capability contract', () async {
+    when(
+      dio.put<dynamic>(Endpoint.currentDevice, data: anyNamed('data')),
+    ).thenAnswer(
+      (_) async => Response(
+        statusCode: 200,
+        requestOptions: RequestOptions(path: Endpoint.currentDevice),
+      ),
+    );
+
+    await remoteDataSource.registerCurrentDevice(
+      const AlarmDeviceInfo(
+        deviceId: 'device-1',
+        platform: 'android',
+        appVersion: '1.0.0',
+        osVersion: 'android-35',
+        supportsNativeAlarm: true,
+        nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+        fallbackProvider: AlarmProvider.localNotification,
+      ),
+    );
+
+    final data =
+        verify(
+              dio.put<dynamic>(
+                Endpoint.currentDevice,
+                data: captureAnyNamed('data'),
+              ),
+            ).captured.single
+            as Map<String, dynamic>;
+    expect(data['deviceId'], 'device-1');
+    expect(data['nativeAlarmProvider'], 'androidAlarmManager');
+    expect(data['fallbackProvider'], 'localNotification');
+  });
+
+  test('unregisterCurrentDevice deletes the current device by id', () async {
+    when(
+      dio.delete<dynamic>(Endpoint.currentDevice, data: anyNamed('data')),
+    ).thenAnswer(
+      (_) async => Response(
+        statusCode: 200,
+        requestOptions: RequestOptions(path: Endpoint.currentDevice),
+      ),
+    );
+
+    await remoteDataSource.unregisterCurrentDevice('device-1');
+
+    final data =
+        verify(
+              dio.delete<dynamic>(
+                Endpoint.currentDevice,
+                data: captureAnyNamed('data'),
+              ),
+            ).captured.single
+            as Map<String, dynamic>;
+    expect(data, {'deviceId': 'device-1'});
+  });
+
+  test('getAlarmWindow queries ISO range and maps schedules', () async {
+    final start = DateTime.utc(2026, 5, 5, 9);
+    final end = start.add(const Duration(days: 7));
+    when(
+      dio.get<dynamic>(
+        Endpoint.alarmWindow,
+        queryParameters: anyNamed('queryParameters'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        statusCode: 200,
+        data: {
+          'data': [
+            {
+              'scheduleId': 'schedule-1',
+              'scheduleName': 'Morning meeting',
+              'place': {'placeId': 'place-1', 'placeName': 'Office'},
+              'scheduleTime': '2026-05-06T10:00:00.000',
+              'moveTime': 20,
+              'scheduleSpareTime': 10,
+              'doneStatus': 'NOT_ENDED',
+              'preparations': [
+                {
+                  'preparationId': 'prep-1',
+                  'preparationName': 'Pack',
+                  'preparationTime': 5,
+                  'nextPreparationId': null,
+                },
+              ],
+            },
+          ],
+        },
+        requestOptions: RequestOptions(path: Endpoint.alarmWindow),
+      ),
+    );
+
+    final schedules = await remoteDataSource.getAlarmWindow(start, end);
+
+    final query =
+        verify(
+              dio.get<dynamic>(
+                Endpoint.alarmWindow,
+                queryParameters: captureAnyNamed('queryParameters'),
+              ),
+            ).captured.single
+            as Map<String, dynamic>;
+    expect(query, {
+      'startDate': start.toIso8601String(),
+      'endDate': end.toIso8601String(),
     });
+    expect(schedules.single.id, 'schedule-1');
+    expect(
+      schedules.single.preparation.preparationStepList.single.id,
+      'prep-1',
+    );
+  });
 
-    test('falls back to backend enum format after generic bad request',
-        () async {
-      var callCount = 0;
-      when(
-        dio.post<dynamic>(
-          Endpoint.alarmStatus,
-          data: anyNamed('data'),
-          options: anyNamed('options'),
+  test(
+    'non-200 alarm endpoints throw instead of returning partial data',
+    () async {
+      when(dio.get<dynamic>(Endpoint.alarmSettings)).thenAnswer(
+        (_) async => Response(
+          statusCode: 500,
+          requestOptions: RequestOptions(path: Endpoint.alarmSettings),
         ),
-      ).thenAnswer((_) async {
-        callCount += 1;
-        return Response(
-          statusCode: callCount == 1 ? 400 : 200,
-          data: callCount == 1
-              ? {
-                  'status': 'error',
-                  'code': 400,
-                  'message': 'bad request',
-                  'data': null,
-                }
-              : null,
-          requestOptions: RequestOptions(path: Endpoint.alarmStatus),
+      );
+
+      await expectLater(remoteDataSource.getAlarmSettings(), throwsException);
+    },
+  );
+
+  test('non-200 alarm mutations and window queries surface failures', () async {
+    when(
+      dio.patch<dynamic>(Endpoint.alarmSettings, data: anyNamed('data')),
+    ).thenAnswer(
+      (_) async => Response(
+        statusCode: 500,
+        requestOptions: RequestOptions(path: Endpoint.alarmSettings),
+      ),
+    );
+    await expectLater(
+      remoteDataSource.updateAlarmSettings(alarmsEnabled: true),
+      throwsException,
+    );
+
+    when(
+      dio.put<dynamic>(Endpoint.currentDevice, data: anyNamed('data')),
+    ).thenAnswer(
+      (_) async => Response(
+        statusCode: 500,
+        requestOptions: RequestOptions(path: Endpoint.currentDevice),
+      ),
+    );
+    await expectLater(
+      remoteDataSource.registerCurrentDevice(
+        const AlarmDeviceInfo(
+          deviceId: 'device-1',
+          platform: 'android',
+          appVersion: '1.0.0',
+          osVersion: 'android-35',
+          supportsNativeAlarm: true,
+          nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+          fallbackProvider: AlarmProvider.localNotification,
+        ),
+      ),
+      throwsException,
+    );
+
+    when(
+      dio.delete<dynamic>(Endpoint.currentDevice, data: anyNamed('data')),
+    ).thenAnswer(
+      (_) async => Response(
+        statusCode: 500,
+        requestOptions: RequestOptions(path: Endpoint.currentDevice),
+      ),
+    );
+    await expectLater(
+      remoteDataSource.unregisterCurrentDevice('device-1'),
+      throwsException,
+    );
+
+    when(
+      dio.get<dynamic>(
+        Endpoint.alarmWindow,
+        queryParameters: anyNamed('queryParameters'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        statusCode: 500,
+        requestOptions: RequestOptions(path: Endpoint.alarmWindow),
+      ),
+    );
+    final start = DateTime.utc(2026, 5, 5, 9);
+    await expectLater(
+      remoteDataSource.getAlarmWindow(
+        start,
+        start.add(const Duration(days: 7)),
+      ),
+      throwsException,
+    );
+  });
+
+  group('postAlarmStatus', () {
+    test(
+      'posts lower-camel backend contract without retry on success',
+      () async {
+        when(
+          dio.post<dynamic>(
+            Endpoint.alarmStatus,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenAnswer(
+          (_) async => Response(
+            statusCode: 200,
+            requestOptions: RequestOptions(path: Endpoint.alarmStatus),
+          ),
         );
-      });
 
-      await remoteDataSource.postAlarmStatus(_statusReport());
+        await remoteDataSource.postAlarmStatus(_statusReport());
 
-      final verification = verify(
-        dio.post<dynamic>(
-          Endpoint.alarmStatus,
-          data: captureAnyNamed('data'),
-          options: captureAnyNamed('options'),
-        ),
-      )..called(2);
-      final firstData = verification.captured[0] as Map<String, dynamic>;
-      final firstOptions = verification.captured[1] as Options;
-      final secondData = verification.captured[2] as Map<String, dynamic>;
-      final secondOptions = verification.captured[3] as Options;
+        final verification = verify(
+          dio.post<dynamic>(
+            Endpoint.alarmStatus,
+            data: captureAnyNamed('data'),
+            options: captureAnyNamed('options'),
+          ),
+        )..called(1);
+        final data = verification.captured[0] as Map<String, dynamic>;
+        final options = verification.captured[1] as Options;
 
-      expect(firstOptions.validateStatus!(400), isTrue);
-      expect(secondOptions.validateStatus!(400), isTrue);
-      expect(firstData.containsKey('permissionIssue'), isFalse);
-      expect(firstData['status'], 'armed');
-      expect(firstData['nativeAlarmProvider'], 'iosAlarmKit');
-      expect(secondData.containsKey('permissionIssue'), isFalse);
-      expect(secondData['status'], 'ARMED');
-      expect(secondData['nativeAlarmProvider'], 'IOS_ALARM_KIT');
-      expect(secondData['fallbackProvider'], 'LOCAL_NOTIFICATION');
-    });
+        expect(options.validateStatus!(400), isTrue);
+        expect(data.containsKey('permissionIssue'), isFalse);
+        expect(data['reconciledAt'], '2026-05-05T09:00:00.000Z');
+        expect(data['status'], 'armed');
+        expect(data['nativeAlarmProvider'], 'iosAlarmKit');
+        expect(data['fallbackProvider'], 'localNotification');
+      },
+    );
+
+    test(
+      'falls back to backend enum format after generic bad request',
+      () async {
+        var callCount = 0;
+        when(
+          dio.post<dynamic>(
+            Endpoint.alarmStatus,
+            data: anyNamed('data'),
+            options: anyNamed('options'),
+          ),
+        ).thenAnswer((_) async {
+          callCount += 1;
+          return Response(
+            statusCode: callCount == 1 ? 400 : 200,
+            data: callCount == 1
+                ? {
+                    'status': 'error',
+                    'code': 400,
+                    'message': 'bad request',
+                    'data': null,
+                  }
+                : null,
+            requestOptions: RequestOptions(path: Endpoint.alarmStatus),
+          );
+        });
+
+        await remoteDataSource.postAlarmStatus(_statusReport());
+
+        final verification = verify(
+          dio.post<dynamic>(
+            Endpoint.alarmStatus,
+            data: captureAnyNamed('data'),
+            options: captureAnyNamed('options'),
+          ),
+        )..called(2);
+        final firstData = verification.captured[0] as Map<String, dynamic>;
+        final firstOptions = verification.captured[1] as Options;
+        final secondData = verification.captured[2] as Map<String, dynamic>;
+        final secondOptions = verification.captured[3] as Options;
+
+        expect(firstOptions.validateStatus!(400), isTrue);
+        expect(secondOptions.validateStatus!(400), isTrue);
+        expect(firstData.containsKey('permissionIssue'), isFalse);
+        expect(firstData['status'], 'armed');
+        expect(firstData['nativeAlarmProvider'], 'iosAlarmKit');
+        expect(secondData.containsKey('permissionIssue'), isFalse);
+        expect(secondData['status'], 'ARMED');
+        expect(secondData['nativeAlarmProvider'], 'IOS_ALARM_KIT');
+        expect(secondData['fallbackProvider'], 'LOCAL_NOTIFICATION');
+      },
+    );
 
     test('does not retry semantic validation errors', () async {
       when(

@@ -19,10 +19,14 @@ import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+typedef CalendarCreateSheetBuilder =
+    Widget Function(BuildContext context, DateTime initialDate);
+
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key, this.initialDate});
+  const CalendarScreen({super.key, this.initialDate, this.createSheetBuilder});
 
   final DateTime? initialDate;
+  final CalendarCreateSheetBuilder? createSheetBuilder;
 
   @override
   State<CalendarScreen> createState() => _CalendarScreenState();
@@ -123,7 +127,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       isDismissible: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ScheduleCreateScreen(initialDate: _selectedDate),
+      builder: (context) =>
+          widget.createSheetBuilder?.call(context, _selectedDate) ??
+          ScheduleCreateScreen(initialDate: _selectedDate),
     );
 
     _refreshSchedulesIfSaved(saved);

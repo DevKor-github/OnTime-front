@@ -94,7 +94,7 @@ void main() {
   late StubGetSchedulesByDateUseCase getSchedulesByDateUseCase;
   late StubDeleteScheduleUseCase deleteScheduleUseCase;
   late StubLoadPreparationByScheduleIdUseCase
-      loadPreparationByScheduleIdUseCase;
+  loadPreparationByScheduleIdUseCase;
   late StubGetPreparationByScheduleIdUseCase getPreparationByScheduleIdUseCase;
   late StubStreamPreparationsUseCase streamPreparationsUseCase;
 
@@ -134,55 +134,57 @@ void main() {
             (loadCallsByScheduleId[scheduleId] ?? 0) + 1;
       },
     );
-    getPreparationByScheduleIdUseCase = StubGetPreparationByScheduleIdUseCase(
-      (scheduleId) async {
-        if (scheduleId == scheduleA.id) {
-          return const PreparationEntity(
-            preparationStepList: [
-              PreparationStepEntity(
-                id: 'prep-a',
-                preparationName: 'Shower',
-                preparationTime: Duration(minutes: 20),
-              ),
-            ],
-          );
-        }
+    getPreparationByScheduleIdUseCase = StubGetPreparationByScheduleIdUseCase((
+      scheduleId,
+    ) async {
+      if (scheduleId == scheduleA.id) {
         return const PreparationEntity(
           preparationStepList: [
             PreparationStepEntity(
-              id: 'prep-b',
-              preparationName: 'Dress',
-              preparationTime: Duration(minutes: 15),
+              id: 'prep-a',
+              preparationName: 'Shower',
+              preparationTime: Duration(minutes: 20),
             ),
           ],
         );
-      },
-    );
+      }
+      return const PreparationEntity(
+        preparationStepList: [
+          PreparationStepEntity(
+            id: 'prep-b',
+            preparationName: 'Dress',
+            preparationTime: Duration(minutes: 15),
+          ),
+        ],
+      );
+    });
   });
 
-  test('visible date + schedules prefetches preparations for visible schedules',
-      () async {
-    final bloc = buildBloc();
-    addTearDown(bloc.close);
+  test(
+    'visible date + schedules prefetches preparations for visible schedules',
+    () async {
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
 
-    bloc.add(MonthlySchedulesVisibleDateChanged(date: selectedDate));
-    bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      bloc.add(MonthlySchedulesVisibleDateChanged(date: selectedDate));
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
 
-    final loadedState = await bloc.stream.firstWhere(
-      (state) =>
-          state.preparationDurationByScheduleId.containsKey(scheduleA.id) &&
-          state.preparationDurationByScheduleId.containsKey(scheduleB.id),
-    );
+      final loadedState = await bloc.stream.firstWhere(
+        (state) =>
+            state.preparationDurationByScheduleId.containsKey(scheduleA.id) &&
+            state.preparationDurationByScheduleId.containsKey(scheduleB.id),
+      );
 
-    expect(
-      loadedState.preparationDurationByScheduleId[scheduleA.id],
-      const Duration(minutes: 20),
-    );
-    expect(
-      loadedState.preparationDurationByScheduleId[scheduleB.id],
-      const Duration(minutes: 15),
-    );
-  });
+      expect(
+        loadedState.preparationDurationByScheduleId[scheduleA.id],
+        const Duration(minutes: 20),
+      );
+      expect(
+        loadedState.preparationDurationByScheduleId[scheduleB.id],
+        const Duration(minutes: 15),
+      );
+    },
+  );
 
   test('cached schedule preparations are not fetched again', () async {
     getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase(
@@ -282,8 +284,10 @@ void main() {
     });
 
     await Future<void>.delayed(const Duration(milliseconds: 20));
-    expect(bloc.state.preparationDurationByScheduleId,
-        loadedState.preparationDurationByScheduleId);
+    expect(
+      bloc.state.preparationDurationByScheduleId,
+      loadedState.preparationDurationByScheduleId,
+    );
   });
 
   test('deleting a schedule removes its cached preparation duration', () async {
@@ -310,79 +314,79 @@ void main() {
     );
   });
 
-  test('schedule stream update refreshes schedule fields in monthly state',
-      () async {
-    final controller = StreamController<List<ScheduleEntity>>();
-    addTearDown(controller.close);
-    getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase(
-      (_, __) => controller.stream,
-    );
+  test(
+    'schedule stream update refreshes schedule fields in monthly state',
+    () async {
+      final controller = StreamController<List<ScheduleEntity>>();
+      addTearDown(controller.close);
+      getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase(
+        (_, __) => controller.stream,
+      );
 
-    final bloc = buildBloc();
-    addTearDown(bloc.close);
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
 
-    bloc.add(MonthlySchedulesVisibleDateChanged(date: selectedDate));
-    bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      bloc.add(MonthlySchedulesVisibleDateChanged(date: selectedDate));
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
 
-    controller.add([scheduleA, scheduleB]);
-    await bloc.stream.firstWhere(
-      (state) =>
-          state.schedules[selectedDate]?.any(
-            (schedule) => schedule.scheduleName == 'Meeting',
-          ) ??
-          false,
-    );
+      controller.add([scheduleA, scheduleB]);
+      await bloc.stream.firstWhere(
+        (state) =>
+            state.schedules[selectedDate]?.any(
+              (schedule) => schedule.scheduleName == 'Meeting',
+            ) ??
+            false,
+      );
 
-    final updatedScheduleA = ScheduleEntity(
-      id: scheduleA.id,
-      place: PlaceEntity(id: scheduleA.place.id, placeName: 'New Office'),
-      scheduleName: 'Edited Meeting',
-      scheduleTime: DateTime(2026, 3, 20, 10, 30),
-      moveTime: const Duration(minutes: 45),
-      isChanged: false,
-      isStarted: false,
-      scheduleSpareTime: const Duration(minutes: 20),
-      scheduleNote: '',
-    );
+      final updatedScheduleA = ScheduleEntity(
+        id: scheduleA.id,
+        place: PlaceEntity(id: scheduleA.place.id, placeName: 'New Office'),
+        scheduleName: 'Edited Meeting',
+        scheduleTime: DateTime(2026, 3, 20, 10, 30),
+        moveTime: const Duration(minutes: 45),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: const Duration(minutes: 20),
+        scheduleNote: '',
+      );
 
-    final updatedStateFuture = bloc.stream.firstWhere(
-      (state) =>
-          state.schedules[selectedDate]?.any(
-            (schedule) =>
-                schedule.id == scheduleA.id &&
-                schedule.scheduleName == 'Edited Meeting' &&
-                schedule.place.placeName == 'New Office' &&
-                schedule.scheduleTime == DateTime(2026, 3, 20, 10, 30),
-          ) ??
-          false,
-    );
-    controller.add([updatedScheduleA, scheduleB]);
-    final updatedState = await updatedStateFuture;
+      final updatedStateFuture = bloc.stream.firstWhere(
+        (state) =>
+            state.schedules[selectedDate]?.any(
+              (schedule) =>
+                  schedule.id == scheduleA.id &&
+                  schedule.scheduleName == 'Edited Meeting' &&
+                  schedule.place.placeName == 'New Office' &&
+                  schedule.scheduleTime == DateTime(2026, 3, 20, 10, 30),
+            ) ??
+            false,
+      );
+      controller.add([updatedScheduleA, scheduleB]);
+      final updatedState = await updatedStateFuture;
 
-    final updatedSchedule = updatedState.schedules[selectedDate]!.firstWhere(
-      (schedule) => schedule.id == scheduleA.id,
-    );
-    expect(updatedSchedule.scheduleName, 'Edited Meeting');
-    expect(updatedSchedule.place.placeName, 'New Office');
-    expect(updatedSchedule.scheduleTime, DateTime(2026, 3, 20, 10, 30));
-    expect(updatedSchedule.moveTime, const Duration(minutes: 45));
-    expect(updatedSchedule.scheduleSpareTime, const Duration(minutes: 20));
-  });
+      final updatedSchedule = updatedState.schedules[selectedDate]!.firstWhere(
+        (schedule) => schedule.id == scheduleA.id,
+      );
+      expect(updatedSchedule.scheduleName, 'Edited Meeting');
+      expect(updatedSchedule.place.placeName, 'New Office');
+      expect(updatedSchedule.scheduleTime, DateTime(2026, 3, 20, 10, 30));
+      expect(updatedSchedule.moveTime, const Duration(minutes: 45));
+      expect(updatedSchedule.scheduleSpareTime, const Duration(minutes: 20));
+    },
+  );
 
   test('refresh requested reloads schedules for current month', () async {
     var loadedDate = DateTime(2000);
-    loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase(
-      (date) async {
-        loadedDate = date;
-      },
-    );
+    loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase((
+      date,
+    ) async {
+      loadedDate = date;
+    });
 
     final bloc = buildBloc();
     addTearDown(bloc.close);
 
-    bloc.add(
-      MonthlySchedulesRefreshRequested(date: DateTime(2026, 3, 20)),
-    );
+    bloc.add(MonthlySchedulesRefreshRequested(date: DateTime(2026, 3, 20)));
 
     await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(loadedDate, DateTime(2026, 3, 20));
@@ -403,5 +407,275 @@ void main() {
     );
 
     expect(errorState.status, MonthlySchedulesStatus.error);
+  });
+
+  test(
+    'month already in loaded range reuses cached range without reloading',
+    () async {
+      final loadedDates = <DateTime>[];
+      loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase((
+        date,
+      ) async {
+        loadedDates.add(date);
+      });
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      await bloc.stream.firstWhere(
+        (state) => state.status == MonthlySchedulesStatus.success,
+      );
+
+      bloc.add(MonthlySchedulesMonthAdded(date: DateTime(2026, 3, 1)));
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(loadedDates, [selectedDate]);
+      expect(bloc.state.startDate, DateTime(2026, 3, 1));
+      expect(bloc.state.endDate, DateTime(2026, 4, 1));
+    },
+  );
+
+  test(
+    'adjacent month extends loaded range and groups returned schedules',
+    () async {
+      final loadedDates = <DateTime>[];
+      loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase((
+        date,
+      ) async {
+        loadedDates.add(date);
+      });
+
+      final aprilSchedule = ScheduleEntity(
+        id: 'schedule-april',
+        place: PlaceEntity(id: 'place-3', placeName: 'Library'),
+        scheduleName: 'April review',
+        scheduleTime: DateTime(2026, 4, 2, 9),
+        moveTime: const Duration(minutes: 10),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: Duration.zero,
+        scheduleNote: '',
+      );
+      getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase(
+        (_, __) => Stream.value([scheduleA, aprilSchedule]),
+      );
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      await bloc.stream.firstWhere(
+        (state) => state.status == MonthlySchedulesStatus.success,
+      );
+
+      bloc.add(MonthlySchedulesMonthAdded(date: DateTime(2026, 4, 1)));
+      final extendedState = await bloc.stream.firstWhere(
+        (state) =>
+            state.endDate == DateTime(2026, 5, 1) &&
+            (state.schedules[DateTime(2026, 4, 2)]?.contains(aprilSchedule) ??
+                false),
+      );
+
+      expect(loadedDates, [selectedDate, DateTime(2026, 4, 1)]);
+      expect(extendedState.startDate, DateTime(2026, 3, 1));
+      expect(extendedState.endDate, DateTime(2026, 5, 1));
+    },
+  );
+
+  test('non-consecutive month replaces the subscription range', () async {
+    final loadedDates = <DateTime>[];
+    loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase((
+      date,
+    ) async {
+      loadedDates.add(date);
+    });
+
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+    await bloc.stream.firstWhere(
+      (state) => state.status == MonthlySchedulesStatus.success,
+    );
+
+    bloc.add(MonthlySchedulesMonthAdded(date: DateTime(2026, 7, 1)));
+    final reloadedState = await bloc.stream.firstWhere(
+      (state) => state.startDate == DateTime(2026, 7, 1),
+    );
+
+    expect(loadedDates, [selectedDate, DateTime(2026, 7, 1)]);
+    expect(reloadedState.endDate, DateTime(2026, 8, 1));
+  });
+
+  test(
+    'adjacent month load failure emits error without dropping schedules',
+    () async {
+      var shouldFail = false;
+      loadSchedulesForMonthUseCase = StubLoadSchedulesForMonthUseCase((
+        date,
+      ) async {
+        if (shouldFail) {
+          throw Exception('network down');
+        }
+      });
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      final loadedState = await bloc.stream.firstWhere(
+        (state) => state.status == MonthlySchedulesStatus.success,
+      );
+
+      shouldFail = true;
+      bloc.add(MonthlySchedulesMonthAdded(date: DateTime(2026, 4, 1)));
+      final errorState = await bloc.stream.firstWhere(
+        (state) => state.status == MonthlySchedulesStatus.error,
+      );
+
+      expect(errorState.schedules, loadedState.schedules);
+    },
+  );
+
+  test(
+    'delete failure emits error state and keeps deleted schedule visible',
+    () async {
+      deleteScheduleUseCase = StubDeleteScheduleUseCase(
+        (_) async => throw Exception('cannot delete'),
+      );
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(MonthlySchedulesVisibleDateChanged(date: selectedDate));
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      await bloc.stream.firstWhere(
+        (state) =>
+            state.preparationDurationByScheduleId.containsKey(scheduleA.id) &&
+            state.preparationDurationByScheduleId.containsKey(scheduleB.id),
+      );
+
+      bloc.add(MonthlySchedulesScheduleDeleted(schedule: scheduleA));
+      final errorState = await bloc.stream.firstWhere(
+        (state) => state.status == MonthlySchedulesStatus.error,
+      );
+
+      expect(errorState.lastDeletedSchedule, scheduleA);
+      expect(
+        errorState.preparationDurationByScheduleId.containsKey(scheduleA.id),
+        isFalse,
+      );
+    },
+  );
+
+  test(
+    'preparation prefetch ignores failed schedule preparation loads',
+    () async {
+      loadPreparationByScheduleIdUseCase =
+          StubLoadPreparationByScheduleIdUseCase((scheduleId) async {
+            if (scheduleId == scheduleA.id) {
+              throw Exception('missing preparation');
+            }
+          });
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(
+        MonthlySchedulesPreparationsPrefetchRequested(
+          scheduleIds: [scheduleA.id, scheduleB.id],
+        ),
+      );
+
+      final prefetchedState = await bloc.stream.firstWhere(
+        (state) =>
+            state.preparationDurationByScheduleId.containsKey(scheduleB.id),
+      );
+
+      expect(
+        prefetchedState.preparationDurationByScheduleId[scheduleA.id],
+        isNull,
+      );
+      expect(
+        prefetchedState.preparationDurationByScheduleId[scheduleB.id],
+        const Duration(minutes: 15),
+      );
+    },
+  );
+
+  test('events and state expose value semantics used by the UI', () {
+    final refresh = MonthlySchedulesRefreshRequested(
+      date: DateTime(2026, 3, 20, 12),
+    );
+    final visible = MonthlySchedulesVisibleDateChanged(
+      date: DateTime(2026, 3, 20, 12),
+    );
+
+    expect(
+      MonthlySchedulesSubscriptionRequested(date: DateTime(2026, 3, 20)).props,
+      [DateTime(2026, 3, 1), DateTime(2026, 4, 1)],
+    );
+    expect(MonthlySchedulesMonthAdded(date: DateTime(2026, 3, 20)).props, [
+      DateTime(2026, 3, 20),
+    ]);
+    expect(
+      MonthlySchedulesMonthAdded(date: DateTime(2026, 12, 31)).startDate,
+      DateTime(2026, 12, 1),
+    );
+    expect(
+      MonthlySchedulesMonthAdded(date: DateTime(2026, 12, 31)).endDate,
+      DateTime(2027, 1, 1),
+    );
+    expect(refresh.props, [2026, 3]);
+    expect(visible.props, [2026, 3, 20]);
+    expect(MonthlySchedulesScheduleDeleted(schedule: scheduleA).props, [
+      scheduleA,
+    ]);
+    expect(
+      MonthlySchedulesPreparationsPrefetchRequested(
+        scheduleIds: [scheduleA.id],
+      ).props,
+      [
+        [scheduleA.id],
+      ],
+    );
+    expect(
+      MonthlySchedulesPreparationsStreamChanged(
+        preparations: const {
+          'schedule-a': PreparationEntity(preparationStepList: []),
+        },
+      ).props,
+      [
+        const {'schedule-a': PreparationEntity(preparationStepList: [])},
+      ],
+    );
+
+    final state = MonthlySchedulesState(
+      status: MonthlySchedulesStatus.loading,
+      schedules: {
+        selectedDate: [scheduleA],
+      },
+      preparationDurationByScheduleId: {
+        scheduleA.id: const Duration(minutes: 10),
+      },
+      lastDeletedSchedule: scheduleB,
+      startDate: DateTime(2026, 3, 1),
+      endDate: DateTime(2026, 4, 1),
+      visibleDate: selectedDate,
+    );
+    final copied = state.copyWith(
+      status: () => MonthlySchedulesStatus.success,
+      preparationDurationByScheduleId: () => const {},
+      lastDeletedSchedule: () => null,
+    );
+
+    expect(copied.status, MonthlySchedulesStatus.success);
+    expect(copied.schedules, state.schedules);
+    expect(copied.preparationDurationByScheduleId, isEmpty);
+    expect(copied.lastDeletedSchedule, isNull);
+    expect(copied.startDate, state.startDate);
+    expect(copied.endDate, state.endDate);
+    expect(copied.visibleDate, state.visibleDate);
   });
 }

@@ -27,7 +27,8 @@ class AlarmSchedulerService {
       return capabilities;
     } on MissingPluginException {
       AppLogger.debug(
-          '$_logTag getCapabilities -> unsupported: missing plugin');
+        '$_logTag getCapabilities -> unsupported: missing plugin',
+      );
       return AlarmSchedulerCapabilities.unsupported;
     } on PlatformException catch (error) {
       AppLogger.debug(
@@ -50,7 +51,8 @@ class AlarmSchedulerService {
       return state;
     } on MissingPluginException {
       AppLogger.debug(
-          '$_logTag checkPermission -> unsupported: missing plugin');
+        '$_logTag checkPermission -> unsupported: missing plugin',
+      );
       return AlarmPermissionState.unsupported;
     } on PlatformException catch (error) {
       AppLogger.debug(
@@ -73,7 +75,8 @@ class AlarmSchedulerService {
       return state;
     } on MissingPluginException {
       AppLogger.debug(
-          '$_logTag requestPermission -> unsupported: missing plugin');
+        '$_logTag requestPermission -> unsupported: missing plugin',
+      );
       return AlarmPermissionState.unsupported;
     } on PlatformException catch (error) {
       AppLogger.debug(
@@ -149,9 +152,7 @@ class AlarmSchedulerService {
     }
   }
 
-  Future<void> cancelAllNativeAlarms(
-    List<ScheduledAlarmRecord> records,
-  ) async {
+  Future<void> cancelAllNativeAlarms(List<ScheduledAlarmRecord> records) async {
     for (final record in records) {
       await cancelNativeAlarm(record);
     }
@@ -182,7 +183,8 @@ class AlarmSchedulerService {
     final launchPayloadHandler = _launchPayloadHandler;
     if (launchPayloadHandler == null) {
       AppLogger.debug(
-          '$_logTag dispatchPendingLaunchPayload skipped: no handler');
+        '$_logTag dispatchPendingLaunchPayload skipped: no handler',
+      );
       return;
     }
     if (kIsWeb) {
@@ -208,6 +210,9 @@ class AlarmSchedulerService {
         '$_logTag getLaunchPayload platform error: '
         '${error.code} ${error.message}',
       );
+      return;
+    } catch (error) {
+      AppLogger.debug('$_logTag getLaunchPayload invalid response: $error');
       return;
     }
   }
@@ -266,8 +271,6 @@ class AlarmSchedulerService {
 
   Map<String, String>? _payloadFromObject(Object? raw) {
     if (raw is! Map) return null;
-    return raw.map(
-      (key, value) => MapEntry(key.toString(), value.toString()),
-    );
+    return raw.map((key, value) => MapEntry(key.toString(), value.toString()));
   }
 }

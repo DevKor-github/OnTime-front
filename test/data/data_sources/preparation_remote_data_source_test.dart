@@ -1,301 +1,190 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
-import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
-import 'package:on_time_front/data/models/create_preparation_schedule_request_model.dart';
 import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:uuid/uuid.dart';
-
-import '../../helpers/mock.mocks.dart';
 
 void main() {
-  late Dio dio;
-  late PreparationRemoteDataSourceImpl remoteDataSource;
-  final uuid = Uuid();
-
-  final scheduleId = uuid.v7();
-
-  final preparationStep1 = PreparationStepEntity(
-    id: uuid.v7(),
-    preparationName: 'Step 1: Wake up',
-    preparationTime: Duration(minutes: 10),
-    nextPreparationId: null,
-  );
-
-  final preparationStep2 = PreparationStepEntity(
-    id: uuid.v7(),
-    preparationName: 'Step 2: Brush teeth',
-    preparationTime: Duration(minutes: 5),
-    nextPreparationId: null,
-  );
-
-  final preparationEntity = PreparationEntity(
-    preparationStepList: [preparationStep1, preparationStep2],
-  );
-
-  final tCreateDefualtPreparationRequestModel =
-      CreateDefaultPreparationRequestModel.fromEntity(
-          preparationEntity: preparationEntity,
-          spareTime: Duration(minutes: 10),
-          note: 'Wake up');
-
-  final tCreateScheduleRequestModel =
-      PreparationScheduleCreateRequestModelListExtension.fromEntityList(
-          preparationEntity.preparationStepList);
+  late _PreparationAdapter adapter;
+  late PreparationRemoteDataSourceImpl dataSource;
 
   setUp(() {
-    dio = MockAppDio();
-    remoteDataSource = PreparationRemoteDataSourceImpl(dio);
+    adapter = _PreparationAdapter();
+    final dio = Dio(
+      BaseOptions(baseUrl: 'https://example.com', validateStatus: (_) => true),
+    )..httpClientAdapter = adapter;
+    dataSource = PreparationRemoteDataSourceImpl(dio);
   });
 
-  group('createCustomPreparation', () {
-    test(
-        'should perform a POST request on the create custom preparation endpoint',
-        () async {
-      // arrange
-      when(dio.post(
-        Endpoint.getCreateCustomPreparation(scheduleId),
-        data:
-            tCreateScheduleRequestModel.map((model) => model.toJson()).toList(),
-      )).thenAnswer(
-        (_) async => Response(
-          statusCode: 200,
-          requestOptions: RequestOptions(
-            path: Endpoint.getCreateCustomPreparation(scheduleId),
-          ),
-        ),
-      );
+  test(
+    'create and update calls serialize preparation steps for backend',
+    () async {
+      final preparation = _preparation();
 
-      // act
-      await remoteDataSource.createCustomPreparation(
-          preparationEntity, scheduleId);
+      await dataSource.createCustomPreparation(preparation, 'schedule-1');
+      await dataSource.updatePreparationByScheduleId(preparation, 'schedule-1');
+      await dataSource.updateDefaultPreparation(preparation);
 
-      // assert
-      verify(dio.post(
-        Endpoint.getCreateCustomPreparation(scheduleId),
-        data:
-            tCreateScheduleRequestModel.map((model) => model.toJson()).toList(),
-      )).called(1);
-    });
-
-    test('should throw an exception when the response code is not 200',
-        () async {
-      // arrange
-      when(dio.post(
-        Endpoint.getCreateCustomPreparation(scheduleId),
-        data:
-            tCreateScheduleRequestModel.map((model) => model.toJson()).toList(),
-      )).thenAnswer(
-        (_) async => Response(
-          statusCode: 400,
-          requestOptions: RequestOptions(
-            path: Endpoint.getCreateCustomPreparation(scheduleId),
-          ),
-        ),
-      );
-
-      // act
-      final call = remoteDataSource.createCustomPreparation;
-
-      // assert
-      expect(() => call(preparationEntity, scheduleId), throwsException);
-    });
-  });
-
-  group('createDefaultPreparation', () {
-    test(
-        'should perform a POST request on the create default preparation endpoint',
-        () async {
-      // arrange
-      when(dio.put(
-        Endpoint.createDefaultPreparation,
-        data: tCreateDefualtPreparationRequestModel.toJson(),
-      )).thenAnswer(
-        (_) async => Response(
-          statusCode: 200,
-          requestOptions: RequestOptions(
-            path: Endpoint.createDefaultPreparation,
-          ),
-        ),
-      );
-
-      // act
-      await remoteDataSource
-          .createDefaultPreparation(tCreateDefualtPreparationRequestModel);
-
-      // assert
-      verify(dio.put(
-        Endpoint.createDefaultPreparation,
-        data: tCreateDefualtPreparationRequestModel.toJson(),
-      )).called(1);
-    });
-
-    test('should throw an exception when the response code is not 200',
-        () async {
-      // arrange
-      when(dio.put(
-        Endpoint.createDefaultPreparation,
-        data: tCreateDefualtPreparationRequestModel.toJson(),
-      )).thenAnswer(
-        (_) async => Response(
-          statusCode: 400,
-          requestOptions: RequestOptions(
-            path: Endpoint.createDefaultPreparation,
-          ),
-        ),
-      );
-
-      // act
-      final call = remoteDataSource.createDefaultPreparation;
-
-      // assert
+      expect(adapter.requests.map((request) => request.method), [
+        'POST',
+        'PUT',
+        'PUT',
+      ]);
+      expect(adapter.requests[0].body, isA<List<dynamic>>());
       expect(
-          () => call(tCreateDefualtPreparationRequestModel), throwsException);
-    });
-  });
+        (adapter.requests[0].body as List).first['preparationName'],
+        'Shower',
+      );
+      expect(
+        (adapter.requests[1].body as List).first['preparationId'],
+        'step-1',
+      );
+      expect(
+        (adapter.requests[2].body as List).first['preparationId'],
+        'step-1',
+      );
+    },
+  );
 
-  group('getPreparationByScheduleId', () {
-    test('should return PreparationEntity ordered by nextPreparationId',
-        () async {
-      // arrange
-      final orderedFirstStep = PreparationStepEntity(
-        id: uuid.v7(),
+  test(
+    'default create and spare time update send their request bodies',
+    () async {
+      await dataSource.createDefaultPreparation(
+        CreateDefaultPreparationRequestModel.fromEntity(
+          preparationEntity: _preparation(),
+          spareTime: const Duration(minutes: 5),
+          note: 'note',
+        ),
+      );
+      await dataSource.updateSpareTime(const Duration(minutes: 15));
+
+      expect(adapter.requests.first.method, 'PUT');
+      expect(
+        (adapter.requests.first.body
+            as Map<String, dynamic>)['preparationList'],
+        isA<List>(),
+      );
+      expect(
+        (adapter.requests.last.body as Map<String, dynamic>)['newSpareTime'],
+        15,
+      );
+    },
+  );
+
+  test(
+    'get preparation calls map ordered backend steps into entities',
+    () async {
+      final bySchedule = await dataSource.getPreparationByScheduleId(
+        'schedule-1',
+      );
+      final defaultPreparation = await dataSource.getDefualtPreparation();
+
+      expect(bySchedule.preparationStepList.map((step) => step.id), [
+        'step-1',
+        'step-2',
+      ]);
+      expect(defaultPreparation.preparationStepList.map((step) => step.id), [
+        'step-1',
+        'step-2',
+      ]);
+      expect(bySchedule.totalDuration, const Duration(minutes: 15));
+    },
+  );
+
+  test('non-200 responses surface failures', () async {
+    adapter.statusCode = 500;
+
+    await expectLater(
+      dataSource.createCustomPreparation(_preparation(), 'schedule-1'),
+      throwsException,
+    );
+    await expectLater(dataSource.getDefualtPreparation(), throwsException);
+  });
+}
+
+PreparationEntity _preparation() {
+  return const PreparationEntity(
+    preparationStepList: [
+      PreparationStepEntity(
+        id: 'step-1',
         preparationName: 'Shower',
-        preparationTime: const Duration(minutes: 10),
-        nextPreparationId: null,
-      );
-      final orderedSecondStep = PreparationStepEntity(
-        id: uuid.v7(),
-        preparationName: 'Dress',
-        preparationTime: const Duration(minutes: 5),
-        nextPreparationId: null,
-      );
-      final orderedThirdStep = PreparationStepEntity(
-        id: uuid.v7(),
-        preparationName: 'Pack bag',
-        preparationTime: const Duration(minutes: 3),
-        nextPreparationId: null,
-      );
-      final linkedFirstStep =
-          orderedFirstStep.copyWith(nextPreparationId: orderedSecondStep.id);
-      final linkedSecondStep =
-          orderedSecondStep.copyWith(nextPreparationId: orderedThirdStep.id);
+        preparationTime: Duration(minutes: 10),
+        nextPreparationId: 'step-2',
+      ),
+      PreparationStepEntity(
+        id: 'step-2',
+        preparationName: 'Pack',
+        preparationTime: Duration(minutes: 5),
+      ),
+    ],
+  );
+}
 
-      when(dio.get(Endpoint.getPreparationByScheduleId(scheduleId))).thenAnswer(
-        (_) async => Response(
-          statusCode: 200,
-          data: {
-            'data': [
-              {
-                'preparationId': orderedThirdStep.id,
-                'preparationName': orderedThirdStep.preparationName,
-                'preparationTime': orderedThirdStep.preparationTime.inMinutes,
-                'nextPreparationId': orderedThirdStep.nextPreparationId,
-              },
-              {
-                'preparationId': linkedFirstStep.id,
-                'preparationName': linkedFirstStep.preparationName,
-                'preparationTime': linkedFirstStep.preparationTime.inMinutes,
-                'nextPreparationId': linkedFirstStep.nextPreparationId,
-              },
-              {
-                'preparationId': linkedSecondStep.id,
-                'preparationName': linkedSecondStep.preparationName,
-                'preparationTime': linkedSecondStep.preparationTime.inMinutes,
-                'nextPreparationId': linkedSecondStep.nextPreparationId,
-              },
-            ],
-          },
-          requestOptions: RequestOptions(
-            path: Endpoint.getPreparationByScheduleId(scheduleId),
-          ),
-        ),
-      );
-
-      // act
-      final result =
-          await remoteDataSource.getPreparationByScheduleId(scheduleId);
-
-      // assert
-      expect(
-        result.preparationStepList.map((step) => step.id).toList(),
-        [
-          orderedFirstStep.id,
-          orderedSecondStep.id,
-          orderedThirdStep.id,
-        ],
-      );
-    });
-
-    test('should throw an exception when the response code is not 200',
-        () async {
-      // arrange
-      when(dio.get(Endpoint.getPreparationByScheduleId(scheduleId))).thenAnswer(
-        (_) async => Response(
-          statusCode: 400,
-          requestOptions: RequestOptions(
-            path: Endpoint.getPreparationByScheduleId(scheduleId),
-          ),
-        ),
-      );
-
-      // act
-      final call = remoteDataSource.getPreparationByScheduleId;
-
-      // assert
-      expect(() => call(scheduleId), throwsException);
-    });
+class _PreparationRequest {
+  const _PreparationRequest({
+    required this.method,
+    required this.path,
+    required this.body,
   });
 
-  // group('updatePreparation', () {
-  //   test('should perform a PUT request on the update preparation endpoint',
-  //       () async {
-  //     // arrange
-  //     when(dio.post(
-  //       Endpoint.updateDefaultPreparation,
-  //       data: tUpdateRequestModel.toJson(),
-  //     )).thenAnswer(
-  //       (_) async => Response(
-  //         statusCode: 200,
-  //         requestOptions: RequestOptions(
-  //           path: Endpoint.updateDefaultPreparation,
-  //         ),
-  //       ),
-  //     );
+  final String method;
+  final String path;
+  final Object? body;
+}
 
-  //     // act
-  //     await remoteDataSource.updateDefaultPreparation(preparationEntity);
+class _PreparationAdapter implements HttpClientAdapter {
+  int statusCode = 200;
+  final requests = <_PreparationRequest>[];
 
-  //     // assert
-  //     verify(dio.post(
-  //       Endpoint.updateDefaultPreparation,
-  //       data: tUpdateRequestModel.toJson(),
-  //     )).called(1);
-  //   });
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requests.add(
+      _PreparationRequest(
+        method: options.method,
+        path: options.path,
+        body: options.data,
+      ),
+    );
 
-  //   test('should throw an exception when the response code is not 200',
-  //       () async {
-  //     // arrange
-  //     when(dio.post(
-  //       Endpoint.updateDefaultPreparation,
-  //       data: tUpdateRequestModel.toJson(),
-  //     )).thenAnswer(
-  //       (_) async => Response(
-  //         statusCode: 400,
-  //         requestOptions: RequestOptions(
-  //           path: Endpoint.updateDefaultPreparation,
-  //         ),
-  //       ),
-  //     );
+    if (options.method == 'GET') {
+      return _json({
+        'data': [
+          {
+            'preparationId': 'step-1',
+            'preparationName': 'Shower',
+            'preparationTime': 10,
+            'nextPreparationId': 'step-2',
+          },
+          {
+            'preparationId': 'step-2',
+            'preparationName': 'Pack',
+            'preparationTime': 5,
+            'nextPreparationId': null,
+          },
+        ],
+      });
+    }
+    return _json({'data': null});
+  }
 
-  //     // act
-  //     final call = remoteDataSource.updateDefaultPreparation;
+  ResponseBody _json(Object body) {
+    return ResponseBody.fromString(
+      jsonEncode(body),
+      statusCode,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
 
-  //     // assert
-  //     expect(() => call(preparationEntity), throwsException);
-  //   });
-  // });
+  @override
+  void close({bool force = false}) {}
 }

@@ -68,7 +68,10 @@ class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<void> updateSchedule(ScheduleEntity schedule) {
+  Future<void> updateSchedule(
+    ScheduleEntity schedule, {
+    bool includePreparationSource = false,
+  }) {
     return updateScheduleHandler(schedule);
   }
 }

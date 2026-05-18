@@ -16,32 +16,37 @@ abstract interface class FallbackAlarmNotificationService {
 @Singleton(as: FallbackAlarmNotificationService)
 class FallbackAlarmNotificationServiceImpl
     implements FallbackAlarmNotificationService {
+  FallbackAlarmNotificationServiceImpl({
+    NotificationService? notificationService,
+  }) : _notificationService =
+           notificationService ?? NotificationService.instance;
+
+  final NotificationService _notificationService;
+
   @override
   Future<AlarmPermissionState> checkPermission() async {
     return _fromAuthorizationStatus(
-      await NotificationService.instance.checkNotificationPermission(),
+      await _notificationService.checkNotificationPermission(),
     );
   }
 
   @override
   Future<AlarmPermissionState> requestPermission() async {
     return _fromAuthorizationStatus(
-      await NotificationService.instance.requestPermission(),
+      await _notificationService.requestPermission(),
     );
   }
 
   @override
   Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) {
-    return NotificationService.instance.scheduleFallbackAlarm(record);
+    return _notificationService.scheduleFallbackAlarm(record);
   }
 
   @override
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) async {
     final notificationId =
         record.fallbackNotificationId ?? stableAlarmId(record.scheduleId);
-    await NotificationService.instance.cancelFallbackNotification(
-      notificationId,
-    );
+    await _notificationService.cancelFallbackNotification(notificationId);
   }
 
   AlarmPermissionState _fromAuthorizationStatus(AuthorizationStatus status) {

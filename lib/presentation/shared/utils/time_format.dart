@@ -1,4 +1,8 @@
 String formatTime(int seconds) {
+  if (seconds <= 0) {
+    return '0초';
+  }
+
   final int hours = seconds ~/ 3600;
   final int minutes = (seconds % 3600) ~/ 60;
   final int remainingSeconds = seconds % 60;
@@ -7,8 +11,6 @@ String formatTime(int seconds) {
     return minutes > 0 ? '$hours시간 $minutes분' : '$hours시간';
   } else if (minutes > 0) {
     return remainingSeconds > 0 ? '$minutes분 $remainingSeconds초' : '$minutes분';
-  } else if (seconds <= 0) {
-    return '0초';
   } else {
     return '$remainingSeconds초';
   }

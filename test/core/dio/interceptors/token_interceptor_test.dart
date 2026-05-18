@@ -124,6 +124,35 @@ void main() {
     expect(userRepository.signOutCalled, isTrue);
     expect(tokenLocalDataSource.deleteTokenCalled, isTrue);
   });
+
+  test(
+    'continues unauthenticated requests when local token lookup fails',
+    () async {
+      tokenLocalDataSource.throwOnGetToken = true;
+
+      final response = await dio.get<String>('/public');
+
+      expect(response.statusCode, 200);
+      expect(adapter.protectedAuthorizationHeaders, isEmpty);
+    },
+  );
+
+  test(
+    'missing refresh headers rejects request and signs out locally',
+    () async {
+      adapter = _TokenRefreshAdapter(omitRefreshHeaders: true);
+      dio.httpClientAdapter = adapter;
+
+      await expectLater(
+        dio.get<void>('/protected'),
+        throwsA(isA<DioException>()),
+      );
+
+      expect(adapter.refreshRequests, 1);
+      expect(userRepository.signOutCalled, isTrue);
+      expect(tokenLocalDataSource.deleteTokenCalled, isTrue);
+    },
+  );
 }
 
 Future<void> _flushMicrotasks() async {
@@ -137,11 +166,13 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
     this.refreshStatusCode = 200,
     this.retryStatusCode = 200,
     this.refreshCompleter,
+    this.omitRefreshHeaders = false,
   });
 
   final int refreshStatusCode;
   final int retryStatusCode;
   final Completer<void>? refreshCompleter;
+  final bool omitRefreshHeaders;
 
   final requestedPaths = <String>[];
   final protectedAuthorizationHeaders = <String?>[];
@@ -168,7 +199,7 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
         refreshStatusCode,
         headers: {
           Headers.contentTypeHeader: [Headers.jsonContentType],
-          if (refreshStatusCode == 200) ...{
+          if (refreshStatusCode == 200 && !omitRefreshHeaders) ...{
             'authorization': ['new-access-token'],
             'authorization-refresh': ['new-refresh-token'],
           },
@@ -215,6 +246,7 @@ class _FakeTokenLocalDataSource implements TokenLocalDataSource {
   TokenEntity? storedToken;
   bool deleteTokenCalled = false;
   int storeTokensCallCount = 0;
+  bool throwOnGetToken = false;
 
   @override
   Future<void> deleteToken() async {
@@ -223,6 +255,9 @@ class _FakeTokenLocalDataSource implements TokenLocalDataSource {
 
   @override
   Future<TokenEntity> getToken() async {
+    if (throwOnGetToken) {
+      throw Exception('token unavailable');
+    }
     return token;
   }
 

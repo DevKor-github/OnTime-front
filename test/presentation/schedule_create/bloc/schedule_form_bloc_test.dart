@@ -361,6 +361,121 @@ void main() {
     );
   });
 
+  test('ScheduleFormCreateRequested seeds a provided future date', () async {
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    final createReady = bloc.stream.firstWhere(
+      (state) => state.status == ScheduleFormStatus.success,
+    );
+    bloc.add(ScheduleFormCreateRequested(initialDate: DateTime(2027, 4, 5)));
+    final state = await createReady;
+
+    expect(state.scheduleTime, isNotNull);
+    expect(state.scheduleTime!.year, 2027);
+    expect(state.scheduleTime!.month, 4);
+    expect(state.scheduleTime!.day, 5);
+    expect(state.scheduleSpareTime, const Duration(minutes: 5));
+  });
+
+  test('ScheduleFormPreparationChanged marks unchanged preparations', () async {
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    final editReady = bloc.stream.firstWhere(
+      (state) => state.status == ScheduleFormStatus.success,
+    );
+    bloc.add(const ScheduleFormEditRequested(scheduleId: 'schedule-1'));
+    await editReady;
+
+    bloc.add(ScheduleFormPreparationChanged(preparation: preparation));
+    await pumpEventQueue();
+
+    expect(bloc.state.isChanged, IsPreparationChanged.unchanged);
+  });
+
+  test('ScheduleFormUpdated skips preparation update when unchanged', () async {
+    var preparationUpdateCount = 0;
+    updatePreparationByScheduleIdUseCase =
+        StubUpdatePreparationByScheduleIdUseCase((_, __) async {
+          preparationUpdateCount += 1;
+        });
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    final editReady = bloc.stream.firstWhere(
+      (state) => state.status == ScheduleFormStatus.success,
+    );
+    bloc.add(const ScheduleFormEditRequested(scheduleId: 'schedule-1'));
+    await editReady;
+
+    final submitDone = bloc.stream.firstWhere(
+      (state) => state.submissionStatus == ScheduleFormSubmissionStatus.success,
+    );
+    bloc.add(const ScheduleFormUpdated());
+    await submitDone;
+
+    expect(preparationUpdateCount, 0);
+  });
+
+  test(
+    'ScheduleFormCreated persists custom preparation when changed',
+    () async {
+      var customPreparationCount = 0;
+      createCustomPreparationUseCase = StubCreateCustomPreparationUseCase((
+        _,
+        __,
+      ) async {
+        customPreparationCount += 1;
+      });
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      final createReady = bloc.stream.firstWhere(
+        (state) => state.status == ScheduleFormStatus.success,
+      );
+      bloc.add(const ScheduleFormCreateRequested());
+      await createReady;
+
+      final changedPreparation = PreparationEntity(
+        preparationStepList: const [
+          PreparationStepEntity(
+            id: 'prep-2',
+            preparationName: 'Pack',
+            preparationTime: Duration(minutes: 15),
+          ),
+        ],
+      );
+      bloc
+        ..add(const ScheduleFormScheduleNameChanged(scheduleName: 'Meeting'))
+        ..add(
+          ScheduleFormScheduleDateTimeChanged(
+            scheduleDate: DateTime(2027, 3, 20),
+            scheduleTime: DateTime(2027, 3, 20, 9),
+          ),
+        )
+        ..add(const ScheduleFormPlaceNameChanged(placeName: 'Office'))
+        ..add(
+          const ScheduleFormMoveTimeChanged(moveTime: Duration(minutes: 30)),
+        )
+        ..add(
+          const ScheduleFormScheduleSpareTimeChanged(
+            scheduleSpareTime: Duration(minutes: 10),
+          ),
+        )
+        ..add(ScheduleFormPreparationChanged(preparation: changedPreparation));
+
+      final submitDone = bloc.stream.firstWhere(
+        (state) =>
+            state.submissionStatus == ScheduleFormSubmissionStatus.success,
+      );
+      bloc.add(const ScheduleFormCreated());
+      await submitDone;
+
+      expect(customPreparationCount, 1);
+    },
+  );
+
   test('ScheduleFormCreated emits submitting then failure on error', () async {
     createScheduleWithPlaceUseCase = StubCreateScheduleWithPlaceUseCase(
       (_) => Future.error(Exception()),

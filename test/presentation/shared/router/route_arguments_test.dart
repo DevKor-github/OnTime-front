@@ -26,8 +26,9 @@ void main() {
       expect(parseCalendarInitialDate(extra: 'not-a-date'), isNull);
     });
 
-    testWidgets('router does not throw for malformed calendar extras',
-        (tester) async {
+    testWidgets('router does not throw for malformed calendar extras', (
+      tester,
+    ) async {
       final router = GoRouter(
         initialLocation: '/calendar',
         routes: [
@@ -53,8 +54,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('router reads durable calendar query parameter',
-        (tester) async {
+    testWidgets('router reads durable calendar query parameter', (
+      tester,
+    ) async {
       final router = GoRouter(
         initialLocation: calendarRouteLocation(DateTime(2026, 5, 7)),
         routes: [
@@ -79,36 +81,81 @@ void main() {
   group('scheduleStart route arguments', () {
     test('rejects non-map extras and accepts string-keyed legacy maps', () {
       expect(routeExtraMap('bad-extra'), isNull);
-      expect(
-        routeExtraMap(<String, Object?>{'scheduleId': 'schedule-1'}),
-        {'scheduleId': 'schedule-1'},
-      );
+      expect(routeExtraMap(<String, Object?>{'scheduleId': 'schedule-1'}), {
+        'scheduleId': 'schedule-1',
+      });
+      expect(routeExtraMap(<Object, Object?>{'scheduleId': 'schedule-1'}), {
+        'scheduleId': 'schedule-1',
+      });
       expect(routeExtraMap(<Object, Object>{1: 'bad-key'}), isNull);
+    });
+
+    testWidgets('scheduleStart query parameters merge with explicit extras', (
+      tester,
+    ) async {
+      Map<String, dynamic>? capturedExtra;
+      final router = GoRouter(
+        initialLocation:
+            '/scheduleStart?scheduleId=query-id'
+            '&scheduleFingerprint=fingerprint'
+            '&promptVariant=officialStart'
+            '&alarmLaunchAction=startPreparation'
+            '&isFiveMinutesBefore=1',
+        routes: [
+          GoRoute(
+            path: '/scheduleStart',
+            builder: (context, state) {
+              capturedExtra = scheduleStartRouteExtraFromState(state);
+              return const Material(child: Text('schedule start'));
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpAndSettle();
+
+      router.go(
+        '/scheduleStart?scheduleId=query-id'
+        '&scheduleFingerprint=fingerprint'
+        '&promptVariant=officialStart'
+        '&alarmLaunchAction=startPreparation'
+        '&isFiveMinutesBefore=1',
+        extra: const {'scheduleId': 'extra-id'},
+      );
+      await tester.pumpAndSettle();
+
+      expect(capturedExtra, {
+        'scheduleId': 'extra-id',
+        'scheduleFingerprint': 'fingerprint',
+        'promptVariant': 'officialStart',
+        'alarmLaunchAction': 'startPreparation',
+        'isFiveMinutesBefore': true,
+      });
     });
 
     test('prompt helpers ignore malformed optional fields', () {
       expect(
-        scheduleStartPromptVariantFromRouteExtra(
-          const {'isFiveMinutesBefore': 'definitely'},
-        ),
+        scheduleStartPromptVariantFromRouteExtra(const {
+          'isFiveMinutesBefore': 'definitely',
+        }),
         ScheduleStartPromptVariant.officialStart,
       );
       expect(
-        scheduleStartPromptVariantFromRouteExtra(
-          const {'promptVariant': 1},
-        ),
+        scheduleStartPromptVariantFromRouteExtra(const {'promptVariant': 1}),
         ScheduleStartPromptVariant.officialStart,
       );
       expect(
-        scheduleStartLaunchActionFromRouteExtra(
-          const {'alarmLaunchAction': false},
-        ),
+        scheduleStartLaunchActionFromRouteExtra(const {
+          'alarmLaunchAction': false,
+        }),
         ScheduleStartLaunchAction.prompt,
       );
     });
 
-    testWidgets('router treats malformed scheduleStart extra as absent',
-        (tester) async {
+    testWidgets('router treats malformed scheduleStart extra as absent', (
+      tester,
+    ) async {
       final router = GoRouter(
         initialLocation: '/scheduleStart',
         routes: [
@@ -148,6 +195,8 @@ void main() {
       expect(extraArguments?.isLate, isFalse);
       expect(queryArguments?.earlyLateTime, -30);
       expect(queryArguments?.isLate, isTrue);
+      expect(routeBoolValue('FALSE'), isFalse);
+      expect(routeBoolValue(0), isFalse);
     });
 
     test('rejects missing and wrong-type required values', () {
@@ -156,7 +205,7 @@ void main() {
         parseEarlyLateRouteArguments(
           extra: const {
             'earlyLateTime': <int>[1],
-            'isLate': false
+            'isLate': false,
           },
         ),
         isNull,
@@ -165,15 +214,16 @@ void main() {
         parseEarlyLateRouteArguments(
           extra: const {
             'earlyLateTime': 1,
-            'isLate': <bool>[true]
+            'isLate': <bool>[true],
           },
         ),
         isNull,
       );
     });
 
-    testWidgets('router redirects missing and malformed earlyLate args home',
-        (tester) async {
+    testWidgets('router redirects missing and malformed earlyLate args home', (
+      tester,
+    ) async {
       final router = GoRouter(
         initialLocation: '/earlyLate',
         routes: [
@@ -206,8 +256,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('router accepts valid earlyLate query arguments',
-        (tester) async {
+    testWidgets('router accepts valid earlyLate query arguments', (
+      tester,
+    ) async {
       final router = GoRouter(
         initialLocation: earlyLateRouteLocation(
           earlyLateTime: 90,

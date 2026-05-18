@@ -161,6 +161,26 @@ void main() {
     expect(find.text('home'), findsOneWidget);
     expect(harness.gateCubit.state.status, NotificationGateStatus.dismissed);
   });
+
+  testWidgets('do it later dismisses prompt without requesting permission', (
+    tester,
+  ) async {
+    final permissionGateway = _FakePermissionGateway(
+      currentStatus: AuthorizationStatus.notDetermined,
+    );
+    final harness = await _pumpNotificationAllowScreen(
+      tester,
+      permissionGateway: permissionGateway,
+    );
+    addTearDown(harness.dispose);
+
+    await tester.tap(find.text("I'll do it later."));
+    await tester.pumpAndSettle();
+
+    expect(permissionGateway.requestCount, 0);
+    expect(find.text('home'), findsOneWidget);
+    expect(harness.gateCubit.state.status, NotificationGateStatus.dismissed);
+  });
 }
 
 Future<_NotificationAllowHarness> _pumpNotificationAllowScreen(

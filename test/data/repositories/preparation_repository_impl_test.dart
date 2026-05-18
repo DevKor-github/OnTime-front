@@ -1,178 +1,196 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
+import 'package:on_time_front/data/data_sources/preparation_local_data_source.dart';
+import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
+import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
+import 'package:on_time_front/data/repositories/preparation_repository_impl.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:uuid/uuid.dart';
-
-import '../../helpers/mock.mocks.dart';
-
-import 'package:on_time_front/data/repositories/preparation_repository_impl.dart';
 
 void main() {
-  late PreparationRepositoryImpl preparationRepository;
-  late MockPreparationRemoteDataSource mockPreparationRemoteDataSource;
-  late MockPreparationLocalDataSource mockPreparationLocalDataSource;
-
-  final uuid = Uuid();
-
-  final tPreparationStepList = [
-    PreparationStepEntity(
-      id: uuid.v7(),
-      preparationName: 'Meeting A Friend',
-      preparationTime: Duration(minutes: 30),
-      nextPreparationId: null,
-    ),
-    PreparationStepEntity(
-      id: uuid.v7(),
-      preparationName: 'Museum Tour',
-      preparationTime: Duration(minutes: 40),
-      nextPreparationId: null,
-    ),
-  ];
-
-  tPreparationStepList[0] = PreparationStepEntity(
-    id: tPreparationStepList[0].id,
-    preparationName: tPreparationStepList[0].preparationName,
-    preparationTime: tPreparationStepList[0].preparationTime,
-    nextPreparationId: tPreparationStepList[1].id,
-  );
-
-  final tPreparationStep = PreparationStepEntity(
-    id: uuid.v7(),
-    preparationName: 'Dress Up',
-    preparationTime: Duration(minutes: 10),
-    nextPreparationId: null,
-  );
-
-  final tPreparationEntity =
-      PreparationEntity(preparationStepList: [tPreparationStep]);
+  late _FakePreparationRemoteDataSource remoteDataSource;
+  late PreparationRepositoryImpl repository;
 
   setUp(() {
-    mockPreparationRemoteDataSource = MockPreparationRemoteDataSource();
-    mockPreparationLocalDataSource = MockPreparationLocalDataSource();
-    preparationRepository = PreparationRepositoryImpl(
-      preparationRemoteDataSource: mockPreparationRemoteDataSource,
-      preparationLocalDataSource: mockPreparationLocalDataSource,
+    remoteDataSource = _FakePreparationRemoteDataSource();
+    repository = PreparationRepositoryImpl(
+      preparationRemoteDataSource: remoteDataSource,
+      preparationLocalDataSource: _FakePreparationLocalDataSource(),
     );
   });
 
-  // group('getPreparationByScheduleId', () {
-  //   test(
-  //       'should emit local data first and then update local data if remote differs',
-  //       () async {
-  //     // Arrange
-  //     when(mockPreparationLocalDataSource
-  //             .getPreparationByScheduleId(scheduleEntityId))
-  //         .thenAnswer((_) async => tLocalPreparationEntity);
-  //     when(mockPreparationRemoteDataSource
-  //             .getPreparationByScheduleId(scheduleEntityId))
-  //         .thenAnswer((_) async => tPreparationEntity);
+  test(
+    'preparation stream starts empty and updates after custom create',
+    () async {
+      expect(await repository.preparationStream.first, isEmpty);
 
-  //     // Act
-  //     final result =
-  //         preparationRepository.getPreparationByScheduleId(scheduleEntityId);
+      await repository.createCustomPreparation(
+        _preparation('step-1'),
+        'schedule-1',
+      );
 
-  //     // Assert
-  //     await expectLater(
-  //       result,
-  //       emitsInOrder([
-  //         tLocalPreparationEntity,
-  //         tPreparationEntity,
-  //       ]),
-  //     );
+      expect(remoteDataSource.createdCustomSchedules, ['schedule-1']);
+      expect(await repository.preparationStream.first, {
+        'schedule-1': _preparation('step-1'),
+      });
+    },
+  );
 
-  //     verify(mockPreparationLocalDataSource
-  //             .getPreparationByScheduleId(scheduleEntityId))
-  //         .called(1);
-  //     verify(mockPreparationRemoteDataSource
-  //             .getPreparationByScheduleId(scheduleEntityId))
-  //         .called(1);
-  //   });
-  // });
+  test(
+    'remote schedule preparation load publishes the fetched preparation',
+    () async {
+      remoteDataSource.preparationsByScheduleId['schedule-1'] = _preparation(
+        'remote-step',
+      );
 
-  // group('getPreparationStepById', () {
-  //   test(
-  //       'should return PreparationStepEntity from local data source if available',
-  //       () async {
-  //     // Arrange
-  //     when(mockPreparationLocalDataSource
-  //             .getPreparationStepById(preparationStepEntityId))
-  //         .thenAnswer((_) async => tLocalPreparationStep);
-  //     when(mockPreparationRemoteDataSource
-  //             .getPreparationStepById(preparationStepEntityId))
-  //         .thenAnswer((_) async => tPreparationStep);
+      await repository.getPreparationByScheduleId('schedule-1');
 
-  //     // Act
-  //     final result =
-  //         preparationRepository.getPreparationStepById(preparationStepEntityId);
+      expect(await repository.preparationStream.first, {
+        'schedule-1': _preparation('remote-step'),
+      });
+    },
+  );
 
-  //     // Assert
-  //     await expectLater(
-  //       result,
-  //       emitsInOrder([
-  //         tLocalPreparationStep, // Local 데이터 방출
-  //         tPreparationStep, // Remote 데이터 방출
-  //       ]),
-  //     );
+  test(
+    'schedule preparation update publishes the edited preparation',
+    () async {
+      await repository.updatePreparationByScheduleId(
+        _preparation('updated-step'),
+        'schedule-1',
+      );
 
-  //     verify(mockPreparationLocalDataSource
-  //             .getPreparationStepById(preparationStepEntityId))
-  //         .called(1);
-  //     verify(mockPreparationRemoteDataSource
-  //             .getPreparationStepById(preparationStepEntityId))
-  //         .called(1);
-  //   });
-  // });
+      expect(remoteDataSource.updatedScheduleIds, ['schedule-1']);
+      expect(await repository.preparationStream.first, {
+        'schedule-1': _preparation('updated-step'),
+      });
+    },
+  );
 
-  // group('createDefaultPreparation', () {
-  //   test('should call createDefaultPreparation on remote data source',
-  //       () async {
-  //     // Arrange
+  test(
+    'default preparation and spare time calls delegate to remote source',
+    () async {
+      remoteDataSource.defaultPreparation = _preparation('default-step');
 
-  //     when(mockPreparationRemoteDataSource
-  //             .createDefaultPreparation(tCreateDefaultPreparationRequestModel))
-  //         .thenAnswer((_) async {});
+      await repository.createDefaultPreparation(
+        preparationEntity: _preparation('default-step'),
+        spareTime: const Duration(minutes: 5),
+        note: 'note',
+      );
+      final defaultPreparation = await repository.getDefualtPreparation();
+      await repository.updateDefaultPreparation(_preparation('default-step'));
+      await repository.updateSpareTime(const Duration(minutes: 15));
 
-  //     // Act
-  //     await preparationRepository.createDefaultPreparation(tCreateDefaultPreparationRequestModel);
+      expect(defaultPreparation, _preparation('default-step'));
+      expect(remoteDataSource.createdDefaultModels, hasLength(1));
+      expect(remoteDataSource.updatedDefaultPreparations, [
+        _preparation('default-step'),
+      ]);
+      expect(remoteDataSource.updatedSpareTimes, [const Duration(minutes: 15)]);
+    },
+  );
 
-  //     // Assert
-  //     verify(mockPreparationRemoteDataSource
-  //             .createDefaultPreparation(tCreateDefaultPreparationRequestModel))
-  //         .called(1);
-  //     verifyNoMoreInteractions(mockPreparationRemoteDataSource);
-  //   });
-  // });
+  test(
+    'remote failures are surfaced to callers without stream mutation',
+    () async {
+      remoteDataSource.throwOnNext = true;
 
-  group('updatePreparation', () {
-    test('should call updatePreparation on remote data source', () async {
-      // Arrange
-      when(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationEntity))
-          .thenAnswer((_) async {});
+      await expectLater(
+        repository.createCustomPreparation(
+          _preparation('step-1'),
+          'schedule-1',
+        ),
+        throwsException,
+      );
 
-      // Act
-      await preparationRepository.updateDefaultPreparation(tPreparationEntity);
+      expect(await repository.preparationStream.first, isEmpty);
+    },
+  );
+}
 
-      // Assert
-      verify(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationEntity))
-          .called(1);
-      verifyNoMoreInteractions(mockPreparationRemoteDataSource);
-    });
+PreparationEntity _preparation(String stepId) {
+  return PreparationEntity(
+    preparationStepList: [
+      PreparationStepEntity(
+        id: stepId,
+        preparationName: stepId,
+        preparationTime: const Duration(minutes: 10),
+      ),
+    ],
+  );
+}
 
-    test('should throw an exception if remote data source fails', () async {
-      // Arrange
-      when(mockPreparationRemoteDataSource
-              .updateDefaultPreparation(tPreparationEntity))
-          .thenThrow(Exception());
+class _FakePreparationRemoteDataSource implements PreparationRemoteDataSource {
+  final createdDefaultModels = <CreateDefaultPreparationRequestModel>[];
+  final createdCustomSchedules = <String>[];
+  final updatedDefaultPreparations = <PreparationEntity>[];
+  final updatedScheduleIds = <String>[];
+  final updatedSpareTimes = <Duration>[];
+  final preparationsByScheduleId = <String, PreparationEntity>{};
+  PreparationEntity defaultPreparation = _preparation('default');
+  bool throwOnNext = false;
 
-      // Act
-      final call =
-          preparationRepository.updateDefaultPreparation(tPreparationEntity);
+  void _maybeThrow() {
+    if (throwOnNext) {
+      throwOnNext = false;
+      throw Exception('remote failed');
+    }
+  }
 
-      // Assert
-      expect(call, throwsException);
-    });
-  });
+  @override
+  Future<void> createDefaultPreparation(
+    CreateDefaultPreparationRequestModel model,
+  ) async {
+    _maybeThrow();
+    createdDefaultModels.add(model);
+  }
+
+  @override
+  Future<void> createCustomPreparation(
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
+    _maybeThrow();
+    createdCustomSchedules.add(scheduleId);
+  }
+
+  @override
+  Future<PreparationEntity> getPreparationByScheduleId(
+    String scheduleId,
+  ) async {
+    _maybeThrow();
+    return preparationsByScheduleId[scheduleId] ?? _preparation('missing');
+  }
+
+  @override
+  Future<PreparationEntity> getDefualtPreparation() async {
+    _maybeThrow();
+    return defaultPreparation;
+  }
+
+  @override
+  Future<void> updateDefaultPreparation(
+    PreparationEntity preparationEntity,
+  ) async {
+    _maybeThrow();
+    updatedDefaultPreparations.add(preparationEntity);
+  }
+
+  @override
+  Future<void> updatePreparationByScheduleId(
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
+    _maybeThrow();
+    updatedScheduleIds.add(scheduleId);
+  }
+
+  @override
+  Future<void> updateSpareTime(Duration newSpareTime) async {
+    _maybeThrow();
+    updatedSpareTimes.add(newSpareTime);
+  }
+}
+
+class _FakePreparationLocalDataSource implements PreparationLocalDataSource {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

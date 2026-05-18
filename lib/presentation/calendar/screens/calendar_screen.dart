@@ -124,6 +124,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _openCreateScheduleSheet(BuildContext context) async {
     final saved = await showModalBottomSheet<bool>(
       context: context,
+      isDismissible: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) =>

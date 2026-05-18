@@ -101,6 +101,7 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           onPressed: () {
             showModalBottomSheet(
               context: context,
+              isDismissible: false,
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
               builder: (context) => const ScheduleCreateScreen(),
@@ -174,10 +175,7 @@ class _HomeIcon extends StatelessWidget {
       semanticsLabel: AppLocalizations.of(context)!.home,
       height: iconTheme.size,
       fit: BoxFit.contain,
-      colorFilter: ColorFilter.mode(
-        iconTheme.color!,
-        BlendMode.srcIn,
-      ),
+      colorFilter: ColorFilter.mode(iconTheme.color!, BlendMode.srcIn),
     );
   }
 }
@@ -194,10 +192,7 @@ class _MyIcon extends StatelessWidget {
       semanticsLabel: AppLocalizations.of(context)!.myPage,
       height: iconTheme.size,
       fit: BoxFit.contain,
-      colorFilter: ColorFilter.mode(
-        iconTheme.color!,
-        BlendMode.srcIn,
-      ),
+      colorFilter: ColorFilter.mode(iconTheme.color!, BlendMode.srcIn),
     );
   }
 }

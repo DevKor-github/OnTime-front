@@ -8,10 +8,10 @@ extension ModalBottomSheetExtension on BuildContext {
     required Duration initialValue,
     required CupertinoTimerPickerMode mode,
     required Function(Duration value) onSaved,
-    Function? onDisposed,
+    VoidCallback? onDisposed,
   }) {
     showModalBottomSheet<void>(
-      isDismissible: false,
+      isDismissible: true,
       context: this,
       builder: (BuildContext context) {
         final textTheme = Theme.of(context).textTheme;
@@ -41,18 +41,20 @@ extension ModalBottomSheetExtension on BuildContext {
                     Expanded(
                       flex: 1,
                       child: ElevatedButton(
-                          onPressed: () {
-                            //calling order matters
-                            Navigator.pop(context);
-                            onDisposed?.call();
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                                Color.fromARGB(255, 220, 227, 255)),
-                            foregroundColor: WidgetStatePropertyAll(
-                                Color.fromARGB(255, 92, 121, 251)),
+                        onPressed: () {
+                          //calling order matters
+                          Navigator.pop(context);
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                            Color.fromARGB(255, 220, 227, 255),
                           ),
-                          child: Text(AppLocalizations.of(this)!.cancel)),
+                          foregroundColor: WidgetStatePropertyAll(
+                            Color.fromARGB(255, 92, 121, 251),
+                          ),
+                        ),
+                        child: Text(AppLocalizations.of(this)!.cancel),
+                      ),
                     ),
                     SizedBox(width: 20.0),
                     Expanded(
@@ -61,7 +63,6 @@ extension ModalBottomSheetExtension on BuildContext {
                         onPressed: () {
                           Navigator.pop(context);
                           onSaved(duration);
-                          onDisposed?.call();
                         },
                         child: Text(AppLocalizations.of(this)!.ok),
                       ),
@@ -73,17 +74,19 @@ extension ModalBottomSheetExtension on BuildContext {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      onDisposed?.call();
+    });
   }
 
   void showCupertinoMinutePickerModal({
     required String title,
     required Duration initialValue,
     required Function(Duration value) onSaved,
-    Function? onDisposed,
+    VoidCallback? onDisposed,
   }) {
     showModalBottomSheet<void>(
-      isDismissible: false,
+      isDismissible: true,
       context: this,
       builder: (BuildContext context) {
         final textTheme = Theme.of(context).textTheme;
@@ -92,8 +95,10 @@ extension ModalBottomSheetExtension on BuildContext {
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
           child: Container(
             color: Theme.of(context).colorScheme.surface,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 29.0, vertical: 28.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 29.0,
+              vertical: 28.0,
+            ),
             child: SizedBox(
               height: 334,
               child: Column(
@@ -106,16 +111,19 @@ extension ModalBottomSheetExtension on BuildContext {
                         width: 69.0,
                         child: CupertinoPicker(
                           scrollController: FixedExtentScrollController(
-                              initialItem: initialValue.inMinutes),
+                            initialItem: initialValue.inMinutes,
+                          ),
                           looping: true,
                           itemExtent: 32,
                           onSelectedItemChanged: (int value) {
                             minutes = value;
                           },
                           children: List.generate(
-                              60,
-                              (index) => Text(
-                                  (index < 10 ? '0' : '') + index.toString())),
+                            60,
+                            (index) => Text(
+                              (index < 10 ? '0' : '') + index.toString(),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -127,18 +135,20 @@ extension ModalBottomSheetExtension on BuildContext {
                       Expanded(
                         flex: 1,
                         child: ElevatedButton(
-                            onPressed: () {
-                              //calling order matters
-                              Navigator.pop(context);
-                              onDisposed?.call();
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                  Color.fromARGB(255, 220, 227, 255)),
-                              foregroundColor: WidgetStatePropertyAll(
-                                  Color.fromARGB(255, 92, 121, 251)),
+                          onPressed: () {
+                            //calling order matters
+                            Navigator.pop(context);
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll(
+                              Color.fromARGB(255, 220, 227, 255),
                             ),
-                            child: Text(AppLocalizations.of(this)!.cancel)),
+                            foregroundColor: WidgetStatePropertyAll(
+                              Color.fromARGB(255, 92, 121, 251),
+                            ),
+                          ),
+                          child: Text(AppLocalizations.of(this)!.cancel),
+                        ),
                       ),
                       SizedBox(width: 20.0),
                       Expanded(
@@ -147,7 +157,6 @@ extension ModalBottomSheetExtension on BuildContext {
                           onPressed: () {
                             Navigator.pop(context);
                             onSaved(Duration(minutes: minutes));
-                            onDisposed?.call();
                           },
                           child: Text(AppLocalizations.of(this)!.ok),
                         ),
@@ -160,7 +169,9 @@ extension ModalBottomSheetExtension on BuildContext {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      onDisposed?.call();
+    });
   }
 
   void showCupertinoDatePickerModal({
@@ -168,10 +179,10 @@ extension ModalBottomSheetExtension on BuildContext {
     required DateTime initialValue,
     required Function(DateTime value) onSaved,
     required CupertinoDatePickerMode mode,
-    Function? onDisposed,
+    VoidCallback? onDisposed,
   }) {
     showModalBottomSheet<void>(
-      isDismissible: false,
+      isDismissible: true,
       context: this,
       builder: (BuildContext context) {
         final textTheme = Theme.of(context).textTheme;
@@ -203,18 +214,20 @@ extension ModalBottomSheetExtension on BuildContext {
                     Expanded(
                       flex: 1,
                       child: ElevatedButton(
-                          onPressed: () {
-                            //calling order matters
-                            Navigator.pop(context);
-                            onDisposed?.call();
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                                Color.fromARGB(255, 220, 227, 255)),
-                            foregroundColor: WidgetStatePropertyAll(
-                                Color.fromARGB(255, 92, 121, 251)),
+                        onPressed: () {
+                          //calling order matters
+                          Navigator.pop(context);
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                            Color.fromARGB(255, 220, 227, 255),
                           ),
-                          child: Text(AppLocalizations.of(this)!.cancel)),
+                          foregroundColor: WidgetStatePropertyAll(
+                            Color.fromARGB(255, 92, 121, 251),
+                          ),
+                        ),
+                        child: Text(AppLocalizations.of(this)!.cancel),
+                      ),
                     ),
                     SizedBox(width: 20.0),
                     Expanded(
@@ -223,7 +236,6 @@ extension ModalBottomSheetExtension on BuildContext {
                         onPressed: () {
                           Navigator.pop(context);
                           onSaved(dateTime);
-                          onDisposed?.call();
                         },
                         child: Text(AppLocalizations.of(this)!.ok),
                       ),
@@ -235,6 +247,8 @@ extension ModalBottomSheetExtension on BuildContext {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      onDisposed?.call();
+    });
   }
 }

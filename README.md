@@ -166,6 +166,18 @@ Run tests with coverage:
 flutter test --coverage
 ```
 
+Check the app-owned line coverage gate:
+
+```sh
+dart run tool/check_coverage.dart --min=80
+```
+
+The Flutter Testing GitHub Actions workflow runs tests with coverage, enforces
+an 80% line coverage gate for app-owned Dart files, and uploads
+`coverage/lcov.info` as the `flutter-coverage-lcov` artifact. The gate filters
+generated files, localization output, FlutterFire options, and Drift schema
+bootstrap definitions so the percentage reflects tested application behavior.
+
 Run the web app locally:
 
 ```sh

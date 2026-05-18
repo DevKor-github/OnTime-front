@@ -1,7 +1,40 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/models/get_preparation_step_response_model.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 void main() {
+  test('maps preparation step JSON and entity durations in minutes', () {
+    final model = GetPreparationStepResponseModel.fromJson({
+      'preparationId': 'prep-1',
+      'preparationName': 'Shower',
+      'preparationTime': 12,
+      'nextPreparationId': 'prep-2',
+    });
+
+    expect(model.id, 'prep-1');
+    expect(model.toJson(), {
+      'preparationId': 'prep-1',
+      'preparationName': 'Shower',
+      'preparationTime': 12,
+      'nextPreparationId': 'prep-2',
+    });
+
+    final entity = model.toEntity();
+    expect(entity.preparationTime, const Duration(minutes: 12));
+
+    final fromEntity = GetPreparationStepResponseModel.fromEntity(
+      const PreparationStepEntity(
+        id: 'prep-3',
+        preparationName: 'Pack bag',
+        preparationTime: Duration(minutes: 7),
+        nextPreparationId: null,
+      ),
+    );
+    expect(fromEntity.id, 'prep-3');
+    expect(fromEntity.preparationTime, 7);
+    expect(fromEntity.nextPreparationId, isNull);
+  });
+
   group('PreparationResponseModelListExtension', () {
     test('orders preparation steps by nextPreparationId chain', () {
       final models = [
@@ -27,10 +60,11 @@ void main() {
 
       final preparation = models.toPreparationEntity();
 
-      expect(
-        preparation.preparationStepList.map((step) => step.id),
-        ['first', 'second', 'third'],
-      );
+      expect(preparation.preparationStepList.map((step) => step.id), [
+        'first',
+        'second',
+        'third',
+      ]);
     });
 
     test('keeps unlinked steps instead of dropping them', () {
@@ -57,10 +91,11 @@ void main() {
 
       final preparation = models.toPreparationEntity();
 
-      expect(
-        preparation.preparationStepList.map((step) => step.id),
-        ['first', 'second', 'unlinked'],
-      );
+      expect(preparation.preparationStepList.map((step) => step.id), [
+        'first',
+        'second',
+        'unlinked',
+      ]);
     });
   });
 }

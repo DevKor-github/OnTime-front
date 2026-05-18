@@ -29,6 +29,8 @@ import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bl
 import 'package:on_time_front/presentation/schedule_create/components/schedule_multi_page_form.dart';
 import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 
 class StubAuthBloc extends Mock implements AuthBloc {
   StubAuthBloc(this._state);
@@ -37,6 +39,12 @@ class StubAuthBloc extends Mock implements AuthBloc {
 
   @override
   AuthState get state => _state;
+
+  @override
+  Stream<AuthState> get stream => const Stream.empty();
+
+  @override
+  bool get isClosed => false;
 }
 
 class StubLoadPreparationByScheduleIdUseCase
@@ -274,6 +282,27 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> pumpScheduleScreen(
+    WidgetTester tester, {
+    required Widget screen,
+  }) async {
+    getIt.registerFactoryParam<ScheduleFormBloc, AuthBloc, dynamic>(
+      (_, __) => buildBloc(),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BlocProvider<AuthBloc>.value(
+          value: authBloc,
+          child: Scaffold(body: screen),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   Future<void> goToFinalStepAndSubmit(WidgetTester tester) async {
     Finder nextButton() => find.descendant(
       of: find.byType(TopBar),
@@ -381,6 +410,30 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  testWidgets('create screen initializes form bloc with selected date', (
+    tester,
+  ) async {
+    await pumpScheduleScreen(
+      tester,
+      screen: ScheduleCreateScreen(initialDate: DateTime(2027, 3, 21)),
+    );
+
+    expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('edit screen initializes form bloc with requested schedule', (
+    tester,
+  ) async {
+    await pumpScheduleScreen(
+      tester,
+      screen: const ScheduleEditScreen(scheduleId: 'schedule-1'),
+    );
+
+    expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('sheet closes after successful submit', (tester) async {
     final bloc = buildBloc();

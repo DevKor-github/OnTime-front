@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 
 void main() {
   late PreparationFormBloc bloc;
@@ -458,6 +459,148 @@ void main() {
     expect(
       state.invalidFieldFor(state.firstInvalidStep!),
       PreparationFormInvalidField.name,
+    );
+  });
+
+  test('does not remove the last remaining preparation step', () async {
+    final editState = waitForState(
+      (state) => state.preparationStepList.length == 1 && state.isValid,
+    );
+    bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+    final originalState = await editState;
+
+    bloc.add(
+      const PreparationFormPreparationStepRemoved(preparationStepId: 'step-1'),
+    );
+    await pumpEventQueue();
+
+    expect(bloc.state, originalState);
+  });
+
+  test('ignores duplicate add requests while a draft row is active', () async {
+    final editState = waitForState(
+      (state) => state.preparationStepList.length == 1 && state.isValid,
+    );
+    bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+    await editState;
+
+    final addingState = waitForState(
+      (state) =>
+          state.status == PreparationFormStatus.adding &&
+          state.preparationStepList.length == 2,
+    );
+    bloc.add(const PreparationFormPreparationStepCreationRequested());
+    final stateAfterFirstAdd = await addingState;
+
+    bloc.add(const PreparationFormPreparationStepCreationRequested());
+    await pumpEventQueue();
+
+    expect(
+      bloc.state.preparationStepList,
+      stateAfterFirstAdd.preparationStepList,
+    );
+    expect(bloc.state.addingStepId, stateAfterFirstAdd.addingStepId);
+  });
+
+  test(
+    'created event exits adding mode without appending invalid step',
+    () async {
+      final editState = waitForState(
+        (state) => state.preparationStepList.length == 1 && state.isValid,
+      );
+      bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+      await editState;
+
+      final addingState = waitForState(
+        (state) =>
+            state.status == PreparationFormStatus.adding &&
+            state.preparationStepList.length == 2,
+      );
+      bloc.add(const PreparationFormPreparationStepCreationRequested());
+      await addingState;
+
+      final createdState = waitForState(
+        (state) =>
+            state.status == PreparationFormStatus.initial &&
+            state.addingStepId == null,
+      );
+      bloc.add(
+        PreparationFormPreparationStepCreated(
+          preparationStep: PreparationStepFormState(),
+        ),
+      );
+
+      final state = await createdState;
+
+      expect(state.preparationStepList, hasLength(2));
+      expect(state.preparationStepList.first.id, 'step-1');
+      expect(state.preparationStepList.last.preparationName.isValid, isFalse);
+      expect(state.isValid, isFalse);
+    },
+  );
+
+  test(
+    'draft name and time changes are ignored without active draft',
+    () async {
+      final editState = waitForState(
+        (state) => state.preparationStepList.length == 1 && state.isValid,
+      );
+      bloc.add(PreparationFormEditRequested(preparationEntity: preparation));
+      final originalState = await editState;
+
+      bloc
+        ..add(
+          const PreparationFormDraftStepNameChanged(
+            preparationStepName: 'Pack',
+          ),
+        )
+        ..add(
+          const PreparationFormDraftStepTimeChanged(
+            preparationStepTime: Duration(minutes: 5),
+          ),
+        );
+      await pumpEventQueue();
+
+      expect(bloc.state, originalState);
+    },
+  );
+
+  test('invalid reorder indices leave preparation order unchanged', () async {
+    final twoStepPreparation = PreparationEntity(
+      preparationStepList: [
+        ...preparation.preparationStepList,
+        const PreparationStepEntity(
+          id: 'step-2',
+          preparationName: 'Pack',
+          preparationTime: Duration(minutes: 5),
+          nextPreparationId: null,
+        ),
+      ],
+    );
+    bloc.add(
+      PreparationFormEditRequested(preparationEntity: twoStepPreparation),
+    );
+    await pumpEventQueue();
+    final originalState = bloc.state;
+
+    bloc
+      ..add(
+        const PreparationFormPreparationStepOrderChanged(
+          oldIndex: -1,
+          newIndex: 0,
+        ),
+      )
+      ..add(
+        const PreparationFormPreparationStepOrderChanged(
+          oldIndex: 0,
+          newIndex: 3,
+        ),
+      );
+    await pumpEventQueue();
+
+    expect(
+      bloc.state.preparationStepList.map((step) => step.id),
+      originalState.preparationStepList.map((step) => step.id),
     );
   });
 }

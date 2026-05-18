@@ -39,7 +39,9 @@ void main() {
     userDao = PreparationUserDao(appDatabase);
 
     // `Users` 테이블에 데이터 삽입
-    await appDatabase.into(appDatabase.users).insert(
+    await appDatabase
+        .into(appDatabase.users)
+        .insert(
           UsersCompanion(
             id: drift.Value(userId),
             email: drift.Value('testuser@example.com'),
@@ -51,7 +53,9 @@ void main() {
         );
 
     // `Places` 테이블에 데이터 삽입
-    await appDatabase.into(appDatabase.places).insert(
+    await appDatabase
+        .into(appDatabase.places)
+        .insert(
           PlacesCompanion(
             id: drift.Value(placeId),
             placeName: drift.Value('Test Place'),
@@ -59,7 +63,9 @@ void main() {
         );
 
     // `Schedules` 테이블에 필수 데이터 삽입
-    await appDatabase.into(appDatabase.schedules).insert(
+    await appDatabase
+        .into(appDatabase.schedules)
+        .insert(
           SchedulesCompanion(
             id: drift.Value(uuid.v7()),
             placeId: drift.Value(placeId),
@@ -80,23 +86,35 @@ void main() {
   });
 
   group('createPreparationUser', () {
-    test('should insert preparation steps and link them as a linked list',
-        () async {
-      // Act
-      await userDao.createPreparationUser(preparationEntity, userId);
+    test(
+      'should insert preparation steps and link them as a linked list',
+      () async {
+        // Act
+        await userDao.createPreparationUser(preparationEntity, userId);
 
-      // Assert
-      final result =
-          await appDatabase.select(appDatabase.preparationUsers).get();
-      expect(result.length, preparationEntity.preparationStepList.length);
+        // Assert
+        final result = await appDatabase
+            .select(appDatabase.preparationUsers)
+            .get();
+        expect(result.length, preparationEntity.preparationStepList.length);
 
-      // Linked List 검증
-      expect(result.first.nextPreparationId, result[1].id);
-      expect(result[1].nextPreparationId, isNull);
-    });
+        // Linked List 검증
+        expect(result.first.nextPreparationId, result[1].id);
+        expect(result[1].nextPreparationId, isNull);
+      },
+    );
   });
 
   group('getPreparationUsersByUserId', () {
+    test(
+      'should return an empty preparation list when user has no steps',
+      () async {
+        final result = await userDao.getPreparationUsersByUserId(userId);
+
+        expect(result.preparationStepList, isEmpty);
+      },
+    );
+
     test('should return ordered preparation steps for a given user', () async {
       // Arrange
       await userDao.createPreparationUser(preparationEntity, userId);
@@ -105,13 +123,37 @@ void main() {
       final result = await userDao.getPreparationUsersByUserId(userId);
 
       // Assert
-      expect(result.preparationStepList.length,
-          preparationEntity.preparationStepList.length);
+      expect(
+        result.preparationStepList.length,
+        preparationEntity.preparationStepList.length,
+      );
 
       // Linked List 검증
-      expect(result.preparationStepList.first.nextPreparationId,
-          result.preparationStepList[1].id);
+      expect(
+        result.preparationStepList.first.nextPreparationId,
+        result.preparationStepList[1].id,
+      );
       expect(result.preparationStepList[1].nextPreparationId, isNull);
+    });
+  });
+
+  group('getPreparationStepById', () {
+    test('should return one preparation step by id', () async {
+      await userDao.createPreparationUser(preparationEntity, userId);
+
+      final result = await userDao.getPreparationStepById(preparationStep1.id);
+
+      expect(result.id, preparationStep1.id);
+      expect(result.preparationName, preparationStep1.preparationName);
+      expect(result.preparationTime, preparationStep1.preparationTime);
+      expect(result.nextPreparationId, preparationStep2.id);
+    });
+
+    test('should throw when the preparation step does not exist', () async {
+      await expectLater(
+        userDao.getPreparationStepById(uuid.v7()),
+        throwsException,
+      );
     });
   });
 
@@ -149,9 +191,13 @@ void main() {
       // Assert
       final result = await userDao.getPreparationUsersByUserId(userId);
       expect(
-          result.preparationStepList.first.preparationName, 'Updated Step 1');
-      expect(result.preparationStepList.first.preparationTime,
-          Duration(minutes: 15));
+        result.preparationStepList.first.preparationName,
+        'Updated Step 1',
+      );
+      expect(
+        result.preparationStepList.first.preparationTime,
+        Duration(minutes: 15),
+      );
     });
   });
 }

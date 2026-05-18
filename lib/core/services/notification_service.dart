@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -12,6 +11,8 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/js_interop_service.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
+import 'package:on_time_front/core/services/notification_content.dart';
+import 'package:on_time_front/core/services/notification_routing.dart';
 import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
 import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
@@ -36,25 +37,48 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class NotificationService {
-  NotificationService._();
+  NotificationService._({
+    FirebaseMessaging? messaging,
+    FlutterLocalNotificationsPlugin? localNotifications,
+    String Function()? localeProvider,
+  }) : _messaging = messaging ?? FirebaseMessaging.instance,
+       _localNotifications =
+           localNotifications ?? FlutterLocalNotificationsPlugin(),
+       _localeProvider = localeProvider;
+
+  @visibleForTesting
+  NotificationService.test({
+    required FirebaseMessaging messaging,
+    required FlutterLocalNotificationsPlugin localNotifications,
+    String Function()? localeProvider,
+    bool isFlutterLocalNotificationsInitialized = false,
+    bool isTimezoneInitialized = false,
+  }) : _messaging = messaging,
+       _localNotifications = localNotifications,
+       _localeProvider = localeProvider,
+       _isFlutterLocalNotificationsInitialized =
+           isFlutterLocalNotificationsInitialized,
+       _isTimezoneInitialized = isTimezoneInitialized;
+
   static final NotificationService instance = NotificationService._();
 
-  final _messaging = FirebaseMessaging.instance;
-  final _localNotifications = FlutterLocalNotificationsPlugin();
+  final FirebaseMessaging _messaging;
+  final FlutterLocalNotificationsPlugin _localNotifications;
+  final String Function()? _localeProvider;
   bool _isFlutterLocalNotificationsInitialized = false;
   bool _isTimezoneInitialized = false;
 
   String get _locale {
+    final localeProvider = _localeProvider;
+    if (localeProvider != null) {
+      return localeProvider();
+    }
     try {
       final locale = ui.PlatformDispatcher.instance.locale;
       return locale.languageCode;
     } catch (e) {
       return 'ko';
     }
-  }
-
-  String _getLocalizedText(String ko, String en) {
-    return _locale == 'ko' ? ko : en;
   }
 
   Future<void> initialize() async {
@@ -252,31 +276,27 @@ class NotificationService {
       return;
     }
 
-    final notification = message.notification;
-    final String? title =
-        notification?.title ?? message.data['title'] ?? message.data['Title'];
-    final String? body =
-        notification?.body ??
-        message.data['content'] ??
-        message.data['body'] ??
-        message.data['Content'] ??
-        message.data['Body'];
+    final content = remoteNotificationDisplayContent(
+      data: message.data,
+      notificationTitle: message.notification?.title,
+      notificationBody: message.notification?.body,
+    );
 
-    if (title == null && body == null) {
+    if (content == null) {
       return;
     }
 
     try {
       final notificationId =
-          ((title ?? '') +
-                  (body ?? '') +
+          (content.title +
+                  content.body +
                   DateTime.now().millisecondsSinceEpoch.toString())
               .hashCode;
 
       await _localNotifications.show(
         id: notificationId,
-        title: title ?? '알림',
-        body: body ?? '',
+        title: content.title,
+        body: content.body,
         notificationDetails: NotificationDetails(
           android: const AndroidNotificationDetails(
             'high_importance_channel',
@@ -295,7 +315,7 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        payload: jsonEncode(message.data),
+        payload: content.payload,
       );
     } catch (error) {
       AppLogger.debug(
@@ -310,7 +330,7 @@ class NotificationService {
     required String body,
     Map<String, dynamic>? payload,
   }) async {
-    if (_isScheduleAlarmPayload(payload)) {
+    if (isScheduleAlarmPayload(payload)) {
       AppLogger.debug(
         '[FCM] schedule_alarm local notification suppressed; native/system alarm handles alarm UI',
       );
@@ -350,7 +370,7 @@ class NotificationService {
             presentSound: true,
           ),
         ),
-        payload: payload != null ? jsonEncode(payload) : null,
+        payload: encodeLocalNotificationPayload(payload),
       );
     } catch (error) {
       AppLogger.debug(
@@ -374,17 +394,16 @@ class NotificationService {
       return;
     }
 
-    final title = '[$scheduleName] $preparationName';
-    final body = _getLocalizedText('이어서 준비하세요.', 'Continue preparing');
-
     await showLocalNotification(
-      title: title,
-      body: body,
-      payload: {
-        'type': 'preparation_step',
-        'scheduleId': scheduleId,
-        'stepId': stepId,
-      },
+      title: preparationStepNotificationTitle(
+        scheduleName: scheduleName,
+        preparationName: preparationName,
+      ),
+      body: preparationStepNotificationBody(languageCode: _locale),
+      payload: preparationStepNotificationPayload(
+        scheduleId: scheduleId,
+        stepId: stepId,
+      ),
     );
   }
 
@@ -397,18 +416,7 @@ class NotificationService {
   bool _isScheduleAlarmMessage(RemoteMessage message) {
     final data = message.data;
     final title = message.notification?.title ?? data['title'] ?? data['Title'];
-    return _isScheduleAlarmPayload(data) ||
-        title == '약속 알림' ||
-        title == 'Schedule alarm';
-  }
-
-  bool _isScheduleAlarmPayload(Map<dynamic, dynamic>? payload) {
-    if (payload == null) return false;
-    final type = payload['type']?.toString();
-    final promptVariant = payload['promptVariant']?.toString();
-    return type == 'schedule_alarm' ||
-        payload['alarmLaunchPayloadVersion'] != null ||
-        (promptVariant == 'alarm' && payload['scheduleId'] != null);
+    return isScheduleAlarmMessagePayload(data: data, title: title?.toString());
   }
 
   Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {
@@ -423,8 +431,7 @@ class NotificationService {
     await setupFlutterNotifications();
     _ensureTimezoneInitialized();
 
-    final notificationId =
-        record.fallbackNotificationId ?? stableAlarmId(record.scheduleId);
+    final notificationId = fallbackNotificationIdForRecord(record);
     final scheduledAt = tz.TZDateTime.from(record.alarmTime, tz.local);
     AppLogger.debug(
       '[FallbackAlarm] schedule notificationId=$notificationId '
@@ -435,7 +442,7 @@ class NotificationService {
     await _localNotifications.zonedSchedule(
       id: notificationId,
       title: record.scheduleTitle,
-      body: _getLocalizedText('준비를 시작할 시간입니다.', 'It is time to get ready.'),
+      body: fallbackAlarmNotificationBody(languageCode: _locale),
       scheduledDate: scheduledAt,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
@@ -457,7 +464,7 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      payload: jsonEncode(record.payload),
+      payload: encodeLocalNotificationPayload(record.payload),
     );
   }
 
@@ -507,60 +514,18 @@ class NotificationService {
 
   void _handleLocalNotificationTap(String? payload) {
     AppLogger.debug('[FCM] 알림 탭');
-    if (payload == null) {
-      return;
-    }
-    try {
-      final data = jsonDecode(payload) as Map<String, dynamic>;
-      final type = data['type'] as String?;
-      final scheduleId = data['scheduleId'] as String?;
-      // final title = data['title'] as String?;
-
-      if (type == 'schedule_alarm' && scheduleId != null) {
-        getIt.get<NavigationService>().push('/scheduleStart', extra: data);
-      } else if (type != null && type.contains('5min')) {
-        getIt.get<NavigationService>().push(
-          '/scheduleStart',
-          extra: {'promptVariant': 'earlyStart'},
-        );
-      } else if (type != null &&
-              (type.startsWith('schedule_') ||
-                  type.startsWith('preparation_')) ||
-          scheduleId != null) {
-        getIt.get<NavigationService>().push('/alarmScreen');
-      }
-      // else if (title != null && title.contains('약속')) {
-      //   getIt.get<NavigationService>().push('/alarmScreen');
-      // }
-    } catch (e) {
-      AppLogger.debug('[FCM] 페이로드 파싱 오류: $e');
+    final target = notificationRouteForPayloadString(payload);
+    if (target != null) {
+      getIt.get<NavigationService>().push(target.path, extra: target.extra);
     }
   }
 
   Future<void> _handleBackgroundMessage(RemoteMessage message) async {
     AppLogger.debug('[FCM] 백그라운드 메시지 처리');
 
-    final type = message.data['type'] as String?;
-    final scheduleId = message.data['scheduleId'] as String?;
-    // final title = message.data['title'] as String?;
-
-    if (type == 'schedule_alarm' && scheduleId != null) {
-      getIt.get<NavigationService>().push(
-        '/scheduleStart',
-        extra: message.data,
-      );
-    } else if (type != null && type.contains('5min')) {
-      getIt.get<NavigationService>().push(
-        '/scheduleStart',
-        extra: {'promptVariant': 'earlyStart'},
-      );
-    } else if (type != null &&
-            (type.startsWith('schedule_') || type.startsWith('preparation_')) ||
-        scheduleId != null) {
-      getIt.get<NavigationService>().push('/alarmScreen');
+    final target = notificationRouteForData(message.data);
+    if (target != null) {
+      getIt.get<NavigationService>().push(target.path, extra: target.extra);
     }
-    // else if (title != null && title.contains('약속')) {
-    //   getIt.get<NavigationService>().push('/alarmScreen');
-    // }
   }
 }

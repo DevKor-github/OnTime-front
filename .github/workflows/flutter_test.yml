@@ -31,5 +31,14 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
       - name: Analyze
         run: flutter analyze
-      - name: Run test
-        run: flutter test
+      - name: Run test with coverage
+        run: flutter test --coverage
+      - name: Check coverage
+        run: dart run tool/check_coverage.dart --min=80
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-coverage-lcov
+          path: coverage/lcov.info
+          if-no-files-found: warn

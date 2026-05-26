@@ -11,6 +11,7 @@ class Endpoint {
   static const _deleteAppleMe = '/oauth2/apple/me';
   static const _feedback = '/feedback';
   static const _deleteUser = '/users/me/delete';
+  static const _analyticsPreference = '/users/me/analytics-preference';
 
   static String get signIn => _signIn;
   static String get signUp => _signUp;
@@ -21,6 +22,7 @@ class Endpoint {
   static String get deleteAppleMe => _deleteAppleMe;
   static String get feedback => _feedback;
   static String get deleteUser => _deleteUser;
+  static String get analyticsPreference => _analyticsPreference;
 
   // schedule
   static const _schedules = '/schedules';

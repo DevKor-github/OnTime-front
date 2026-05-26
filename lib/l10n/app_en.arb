@@ -356,6 +356,10 @@
     "@allowAppNotifications": {
         "description": "Setting tile for allowing app notifications"
     },
+    "helpImproveOnTime": "Help improve OnTime",
+    "@helpImproveOnTime": {
+        "description": "Setting switch label for optional privacy-safe analytics"
+    },
     "privacyPolicy": "Privacy Policy",
     "@privacyPolicy": {
         "description": "Setting tile for opening the privacy policy"

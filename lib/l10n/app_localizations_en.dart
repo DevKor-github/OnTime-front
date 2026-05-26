@@ -293,6 +293,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allowAppNotifications => 'Allow App Notifications';
 
   @override
+  String get helpImproveOnTime => 'Help improve OnTime';
+
+  @override
   String get privacyPolicy => 'Privacy Policy';
 
   @override

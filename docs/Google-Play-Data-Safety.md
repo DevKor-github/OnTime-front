@@ -50,6 +50,8 @@ Repo evidence reviewed for this worksheet:
 - `lib/domain/entities/alarm_entities.dart`
 - `docs/Android-Manifest-Permissions.md`
 - `docs/Release-Checklist.md`
+- `docs/Analytics-Preference-API.md`
+- `docs/Analytics-Event-Catalog.md`
 
 ## Current App Data Flow Inventory
 
@@ -72,11 +74,17 @@ deletion support must be approved by the release owner.
 | Local alarm registry | Scheduled alarm records are stored locally with schedule id, alarm time, preparation start time, fingerprint, notification ids, provider, schedule title, and payload. | On-device storage; disclose only if transmitted or shared elsewhere | Source-backed |
 | Android permissions | Release manifest includes notification, exact alarm, full-screen intent, boot restore, vibration, and dependency-owned network/Firebase/sign-in permissions. It does not include location, contacts, camera, microphone, phone, SMS, storage, calendar, nearby-device, or Bluetooth permissions. | Permission/API evidence for form consistency | Source-backed by #442 |
 | Firebase Cloud Messaging SDK | The app uses `firebase_core` and `firebase_messaging`. Firebase documentation says Cloud Messaging collects app version automatically and depends on Firebase Installations; FID and Firebase user agent handling must be considered. | SDK-collected data, device or other identifiers, app info and performance | Source-backed dependency, final SDK review pending |
+| Firebase Analytics Product Usage Events | Planned analytics release uses Firebase Analytics for workflow milestone events only, with Help Improve OnTime opt-out, pseudonymous analytics identifiers, schema-versioned event names, app version, platform, workflow result, stable error categories, and coarse counts or durations. The event catalog forbids raw schedule names, notes, place names, preparation step names, email, OAuth identifiers, FCM token, raw exceptions, request bodies, response bodies, and free text. | App activity, app info and performance, device or other identifiers; purposes include Analytics, app functionality, debugging and operations, and non-personalized experiments | Planned; not present in current `pubspec.yaml` until `firebase_analytics` is added |
 | Google Play services core SDKs | Google Play services base/basement/tasks may be present through dependencies. Google's disclosure page says the listed core SDKs do not collect end-user data, but app owners remain responsible for the overall disclosure. | SDK review | Dependency review pending |
 
 ## Saved Play Console Answers
 
 Entered in Play Console by `jjoonleo@gmail.com` on 2026-05-10.
+
+Important: these saved answers predate the planned Firebase Analytics release.
+Do not submit a build that includes Firebase Analytics until the privacy policy,
+Firebase console settings, SDK data handling, and Play Data safety answers below
+are reviewed and updated.
 
 Security and deletion:
 
@@ -111,6 +119,22 @@ Play Console preview showed:
 - Remaining blocker shown by Play Console before final app-content submission:
   target audience/content.
 
+## Firebase Analytics Release Delta
+
+Before releasing a build with Firebase Analytics, the release owner must revise
+the saved Play Console answers to cover Help Improve OnTime and Product Usage
+Events:
+
+| Area | Required review |
+| --- | --- |
+| SDK/provider set | Add `firebase_analytics` to the reviewed SDK set and confirm Firebase console settings, optional exports, linked Google services, and whether service-provider sharing remains accurate. |
+| App activity | Confirm `App interactions` covers workflow milestone Product Usage Events and mark the analytics collection as optional if the user can disable Help Improve OnTime and still use the app. |
+| App info and performance | Confirm diagnostics or crash/error categories used for `alarm_failed` and debugging/operations are declared with the correct purpose. |
+| Device or other IDs | Confirm Firebase installation or analytics identifiers and pseudonymous analytics subject handling are declared correctly. |
+| Purposes | Add or confirm Analytics as a purpose for Product Usage Events, with app functionality/debugging where appropriate. Marketing and personalization remain out of scope. |
+| Data deletion | Confirm account deletion stops future user-linked events and that historical analytics is retained only in aggregate or de-identified form. |
+| Required vs optional | Confirm whether each analytics-related data type is optional because Help Improve OnTime can be disabled. |
+
 ## Answers That Still Need Owner Confirmation
 
 The Play Console draft is saved, but the owners below should still confirm these
@@ -125,23 +149,26 @@ facts before final release submission.
 | Final privacy policy text approval | Product/legal owner and #434. Hosted URL is `https://ontime-back.duckdns.org/privacy-policy`. |
 | External account deletion request URL and page content | Closed in #440: `https://ontime-back.duckdns.org/account-deletion`. |
 | Final active auth providers for Android release | Release owner. Current source supports normal, Google, and Apple paths; Kakao dependencies are present but no active release flow was found in the checked auth path. |
-| Firebase optional exports such as FCM delivery metrics to BigQuery or Analytics-linked notification interaction events | Firebase project owner. No Analytics dependency was found in `pubspec.yaml`, but console settings must still be checked. |
+| Firebase Analytics release readiness | Firebase project owner, privacy owner, and release owner. Confirm `firebase_analytics` SDK behavior, console settings, optional exports, linked Google services, Help Improve OnTime opt-out behavior, and Play Data safety changes before release. |
+| Firebase optional exports such as FCM delivery metrics to BigQuery or Analytics-linked notification interaction events | Firebase project owner. Confirm whether optional exports or Analytics-linked notification interaction events are enabled. |
 | Play Console app-content submission | Play Console owner after target audience/content is complete. |
 
 ## Pre-Submission Checklist
 
 1. Confirm the release build's exact dependency set and SDK configuration.
 2. Re-run the source audit after final release branch changes.
-3. Confirm backend deletion and retention behavior for normal, Google, and Apple
+3. If Firebase Analytics is included, update the privacy policy and Play Data
+   safety answers using the Firebase Analytics Release Delta above.
+4. Confirm backend deletion and retention behavior for normal, Google, and Apple
    account paths.
-4. Approve the privacy policy and verify every declared data type appears in it.
-5. Verify the public privacy policy URL works without login and is the same URL
+5. Approve the privacy policy and verify every declared data type appears in it.
+6. Verify the public privacy policy URL works without login and is the same URL
    used in app and Play Console.
-6. Verify the public account deletion URL works without installing or opening
+7. Verify the public account deletion URL works without installing or opening
    the app and explains deleted and retained data.
-7. Confirm the saved Data safety answers above still match the approved policy
+8. Confirm the saved Data safety answers above still match the approved policy
    and final release build.
-8. Send the saved changes for review from Publishing overview after the
+9. Send the saved changes for review from Publishing overview after the
    remaining app-content blockers are resolved.
 
 ## Suggested Final Documentation Template

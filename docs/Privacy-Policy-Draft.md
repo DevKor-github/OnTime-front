@@ -13,6 +13,10 @@ confirmation.
 
 - TODO: Backend/environment owner must confirm the service can enforce the
   retention periods listed in this draft.
+- TODO: Product/legal owner must approve Firebase Analytics wording before any
+  release that enables Help Improve OnTime.
+- TODO: Backend-hosted privacy policy update is tracked in
+  DevKor-github/OnTime-back#319 for the Firebase Analytics release handoff.
 - TODO: Product/legal owner must approve the final text before #434 can close.
 
 ## Draft Policy Text
@@ -43,6 +47,7 @@ preparation reminders, alarms, and support features:
 | Feedback data               | Optional account deletion feedback or other feedback message                                                                                                                                                 | Process user feedback and account deletion requests                                                                                               |
 | Local app data              | Cached user, schedule, place, preparation, alarm, and token data stored on the device                                                                                                                        | Keep app state available locally and support app operation                                                                                        |
 | Technical data              | Network request metadata, server logs, error metadata, and security-related operational records                                                                                                              | Operate, secure, debug, and maintain the service                                                                                                  |
+| Product usage analytics data | Privacy-safe event names, app version, platform, workflow result, stable error category, coarse counts or durations, Analytics Preference, and pseudonymous analytics identifiers                            | Improve OnTime, debug and operate the service, and run non-personalized experiments when Help Improve OnTime is enabled                            |
 
 OnTime does not request app-owned access to location, contacts, camera,
 microphone, phone, SMS, storage, calendar, nearby-device, or Bluetooth
@@ -64,23 +69,30 @@ OnTime uses collected data to:
   delivery.
 - Process optional feedback and account deletion feedback.
 - Maintain security, prevent abuse, debug failures, and operate the service.
+- Collect privacy-safe Product Usage Events when Help Improve OnTime is enabled
+  to improve OnTime, debug and operate the service, and run non-personalized
+  experiments.
 
 ### Third-Party Services And Processors
 
 OnTime uses third-party services and SDKs where needed for core app behavior:
 
-| Service or SDK                             | Purpose                                                                                        | Data involved                                                                                                                |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Google Sign-In                             | Google account authentication                                                                  | Google account authentication data, including ID token and profile scopes for email/profile                                  |
-| Apple Sign-In                              | Apple account authentication                                                                   | Apple identity token, authorization code, and Apple-provided name or email when available                                    |
-| Firebase Core and Firebase Cloud Messaging | App initialization and push notification delivery                                              | Firebase installation or messaging identifiers, FCM token, notification delivery data, and device-related messaging metadata |
-| OnTime backend/API infrastructure          | Account, schedule, preparation, alarm, notification, feedback, and deletion request processing | The account, schedule, preparation, alarm, notification, feedback, and technical data listed above                           |
+| Service or SDK                             | Purpose                                                                                       | Data involved                                                                                                                 |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Google Sign-In                             | Google account authentication                                                                 | Google account authentication data, including ID token and profile scopes for email/profile                                   |
+| Apple Sign-In                              | Apple account authentication                                                                  | Apple identity token, authorization code, and Apple-provided name or email when available                                     |
+| Firebase Core and Firebase Cloud Messaging | App initialization and push notification delivery                                             | Firebase installation or messaging identifiers, FCM token, notification delivery data, and device-related messaging metadata  |
+| Firebase Analytics                         | Privacy-safe Product Usage Events for product improvement, debugging and operations, and non-personalized experiments when Help Improve OnTime is enabled | Product usage analytics data, app/device metadata handled by Firebase, and pseudonymous analytics identifiers |
+| OnTime backend/API infrastructure          | Account, schedule, preparation, alarm, notification, feedback, analytics preference, and deletion request processing | The account, schedule, preparation, alarm, notification, feedback, analytics preference, and technical data listed above |
 
 TODO: Confirm whether Kakao SDK is present only as an unused dependency for this
 release. If Kakao sign-in or Kakao SDK data processing is active in the release
 build, add Kakao to this table and update the Data safety form accordingly.
 
-TODO: Confirm the backend hosting, database, logging, monitoring, analytics, and
+TODO: Confirm Firebase Analytics console settings, including whether any exports
+or Google integrations are enabled, before release.
+
+TODO: Confirm the backend hosting, database, logging, monitoring, and
 crash-reporting providers used outside this frontend repository, then add each
 approved provider to this table if it processes personal or sensitive user data.
 
@@ -88,7 +100,9 @@ approved provider to this table if it processes personal or sensitive user data.
 
 OnTime shares data with service providers only as needed to provide app
 functionality, authentication, notifications, hosting, security, operations, and
-support. OnTime does not use in-app advertising in the current release build.
+support. When Help Improve OnTime is enabled, OnTime uses Firebase Analytics as
+an analytics service provider for privacy-safe Product Usage Events. OnTime does
+not use in-app advertising in the current release build.
 
 TODO: Product/legal owner must confirm whether any backend, analytics,
 monitoring, support, or legal/compliance sharing occurs outside the app code
@@ -125,6 +139,11 @@ include the feedback ID, previous OnTime user ID, social sign-in type, SHA-256
 hash of the normalized email address, feedback message, and creation timestamp.
 OnTime retains optional account deletion feedback for up to 1 year to review
 service quality and deletion-related support issues.
+
+When an account is deleted, OnTime stops future user-linked Product Usage Events
+and clears the app's Firebase Analytics user association. Historical analytics
+may be retained only in aggregate or de-identified form for product improvement,
+debugging and operations, and non-personalized experiments.
 
 Operational logs, monitoring records, and security records may be retained for
 up to 90 days for service operation, debugging, security, and abuse-prevention
@@ -175,8 +194,11 @@ when the policy changes.
       backend code-review and automated-test evidence.
 - [x] Retained account deletion feedback duration and reason are set in this
       draft.
+- [x] Firebase Analytics wording is drafted for Help Improve OnTime, product
+      improvement, debugging and operations, and non-personalized experiments.
 - [x] Log, monitoring, security record, and backup retention periods are set in
       this draft.
+- [ ] Firebase Analytics console settings and optional exports are confirmed.
 - [ ] Backend/environment owner confirms production retention settings,
       backup rotation, and cleanup jobs can enforce the draft periods.
 - [x] #440 external account deletion request URL exists or the policy links to
@@ -188,6 +210,8 @@ when the policy changes.
 - [ ] Product/legal owner approves the final text.
 - [x] Policy text is handed to #435 for public HTTPS hosting.
 - [x] Hosted policy URL is entered in Play Console in #437.
+- [ ] Firebase Analytics privacy policy update is handed to
+      DevKor-github/OnTime-back#319 before releasing Help Improve OnTime.
 
 ## References
 

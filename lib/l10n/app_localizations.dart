@@ -596,6 +596,12 @@ abstract class AppLocalizations {
   /// **'Allow App Notifications'**
   String get allowAppNotifications;
 
+  /// Setting switch label for optional privacy-safe analytics
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve OnTime'**
+  String get helpImproveOnTime;
+
   /// Setting tile for opening the privacy policy
   ///
   /// In en, this message translates to:

@@ -16,6 +16,7 @@ import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/presentation/app/cubit/analytics_preference_cubit.dart';
 import 'package:on_time_front/presentation/my_page/my_page_modal/delete_user_modal.dart';
 import 'package:on_time_front/presentation/my_page/my_page_modal/logout_modal.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
@@ -28,15 +29,20 @@ class MyPageScreen extends StatelessWidget {
     super.key,
     PrivacyPolicyLauncher? openPrivacyPolicy,
     NotificationService? notificationService,
+    AnalyticsPreferenceCubit? analyticsPreferenceCubit,
   }) : _openPrivacyPolicy = openPrivacyPolicy,
-       _notificationService = notificationService;
+       _notificationService = notificationService,
+       _analyticsPreferenceCubit = analyticsPreferenceCubit;
 
   final PrivacyPolicyLauncher? _openPrivacyPolicy;
   final NotificationService? _notificationService;
+  final AnalyticsPreferenceCubit? _analyticsPreferenceCubit;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final signedIn =
+        context.read<AuthBloc>().state.status == AuthStatus.authenticated;
+    final content = Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
       appBar: AppBar(
         title: Text(
@@ -106,6 +112,7 @@ class MyPageScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  const _AnalyticsPreferenceTile(),
                   _SettingTile(
                     title: AppLocalizations.of(context)!.privacyPolicy,
                     onTap: () async {
@@ -121,6 +128,61 @@ class MyPageScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+    if (_analyticsPreferenceCubit != null) {
+      final analyticsPreferenceCubit = _analyticsPreferenceCubit;
+      return BlocProvider<AnalyticsPreferenceCubit>.value(
+        value: analyticsPreferenceCubit..load(signedIn: signedIn),
+        child: content,
+      );
+    }
+    return BlocProvider<AnalyticsPreferenceCubit>(
+      create: (_) =>
+          getIt.get<AnalyticsPreferenceCubit>()..load(signedIn: signedIn),
+      child: content,
+    );
+  }
+}
+
+class _AnalyticsPreferenceTile extends StatelessWidget {
+  const _AnalyticsPreferenceTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final signedIn =
+        context.read<AuthBloc>().state.status == AuthStatus.authenticated;
+    return BlocBuilder<AnalyticsPreferenceCubit, AnalyticsPreferenceState>(
+      builder: (context, state) {
+        final isUpdating =
+            state.status == AnalyticsPreferenceStatus.loading ||
+            state.status == AnalyticsPreferenceStatus.updating;
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.helpImproveOnTime,
+                style: textTheme.bodyLarge,
+              ),
+            ),
+            Switch(
+              key: const Key('analyticsPreferenceSwitch'),
+              value: state.enabled,
+              activeColor: colorScheme.primary,
+              onChanged: isUpdating
+                  ? null
+                  : (value) {
+                      context.read<AnalyticsPreferenceCubit>().update(
+                        enabled: value,
+                        signedIn: signedIn,
+                      );
+                    },
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -310,7 +372,11 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
             ),
           ],
         ),
-        Switch(value: _alarmsEnabled, onChanged: _isUpdating ? null : _toggle),
+        Switch(
+          key: const Key('alarmSettingsSwitch'),
+          value: _alarmsEnabled,
+          onChanged: _isUpdating ? null : _toggle,
+        ),
       ],
     );
   }

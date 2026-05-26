@@ -10,6 +10,7 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
+import 'package:on_time_front/domain/entities/product_usage_event.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
@@ -21,6 +22,7 @@ import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_us
 import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_adjacent_schedule_with_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
+import 'package:on_time_front/domain/use-cases/track_product_usage_event_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -45,6 +47,11 @@ class StubAuthBloc extends Mock implements AuthBloc {
 
   @override
   bool get isClosed => false;
+}
+
+class NoopProductUsageEventTracker implements ProductUsageEventTracker {
+  @override
+  Future<void> track(ProductUsageEvent event) async {}
 }
 
 class StubLoadPreparationByScheduleIdUseCase
@@ -227,6 +234,7 @@ void main() {
       createCustomPreparationUseCase,
       updateScheduleUseCase,
       updatePreparationByScheduleIdUseCase,
+      NoopProductUsageEventTracker(),
       authBloc,
     );
   }

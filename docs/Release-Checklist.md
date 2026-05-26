@@ -210,6 +210,11 @@ If any trigger applies, block release approval until the release owner records
 which privacy policy section, Play Data safety answer, Play declaration, or
 store listing field was reviewed or changed.
 
+For any release that enables Firebase Analytics or Help Improve OnTime, also
+confirm the Firebase console settings, optional exports, analytics provider
+handling, account deletion retention behavior, and opt-out behavior documented
+in `docs/Google-Play-Data-Safety.md` and `docs/Privacy-Policy-Draft.md`.
+
 ## Content Category And UGC
 
 - Current release audit result (2026-05-09): no UGC is exposed to other users.

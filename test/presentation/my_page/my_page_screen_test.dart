@@ -8,15 +8,21 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/core/services/product_analytics_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/analytics_preference.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
+import 'package:on_time_front/domain/repositories/analytics_preference_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
+import 'package:on_time_front/domain/use-cases/load_analytics_preference_use_case.dart';
+import 'package:on_time_front/domain/use-cases/update_analytics_preference_use_case.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/presentation/app/cubit/analytics_preference_cubit.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
@@ -69,6 +75,39 @@ void main() {
     await _pumpMyPage(tester, locale: const Locale('ko'));
 
     expect(find.text('개인정보 처리방침'), findsOneWidget);
+  });
+
+  testWidgets('shows loaded Help improve OnTime preference switch', (
+    tester,
+  ) async {
+    final analyticsRepository = _FakeAnalyticsPreferenceRepository()
+      ..localPreference = const AnalyticsPreference(enabled: true)
+      ..accountPreference = const AnalyticsPreference(enabled: true);
+    final analyticsCubit = AnalyticsPreferenceCubit(
+      loadPreferenceUseCase: LoadAnalyticsPreferenceUseCase(
+        analyticsRepository,
+      ),
+      updatePreferenceUseCase: UpdateAnalyticsPreferenceUseCase(
+        analyticsRepository,
+      ),
+      analyticsService: ProductAnalyticsService(
+        client: _FakeAnalyticsProviderClient(),
+        collectionAllowedInBuild: true,
+      ),
+    );
+
+    await _pumpMyPage(
+      tester,
+      locale: const Locale('en'),
+      authState: AuthState(user: _authenticatedUser),
+      analyticsPreferenceCubit: analyticsCubit,
+    );
+
+    expect(find.text('Help improve OnTime'), findsOneWidget);
+    expect(
+      tester.widget<Switch>(find.byKey(const Key('analyticsPreferenceSwitch'))),
+      isA<Switch>().having((switchWidget) => switchWidget.value, 'value', true),
+    );
   });
 
   testWidgets('opens hosted privacy policy URL from setting', (tester) async {
@@ -253,14 +292,17 @@ void main() {
 
     await _pumpMyPage(tester, locale: const Locale('en'));
 
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
     await tester.pumpAndSettle();
     await tester.tap(find.text("I'll do it later."));
     await tester.pumpAndSettle();
 
     expect(alarmRepository.updatedSettings, [false]);
     expect(cancelAllUseCase.callCount, 1);
-    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    expect(
+      tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
+      isFalse,
+    );
   });
 
   testWidgets(
@@ -287,7 +329,7 @@ void main() {
 
       await _pumpMyPage(tester, locale: const Locale('en'));
 
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Open Settings'));
       await tester.pumpAndSettle();
@@ -296,7 +338,12 @@ void main() {
       expect(alarmRepository.updatedSettings, [true]);
       expect(fallbackService.requestCount, 1);
       expect(reconcileUseCase.callCount, 1);
-      expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+      expect(
+        tester
+            .widget<Switch>(find.byKey(const Key('alarmSettingsSwitch')))
+            .value,
+        isTrue,
+      );
     },
   );
 
@@ -355,7 +402,10 @@ void main() {
     await _pumpMyPage(tester, locale: const Locale('ko'));
 
     expect(find.text('네이티브 알람'), findsOneWidget);
-    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+    expect(
+      tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
+      isTrue,
+    );
   });
 
   testWidgets(
@@ -460,13 +510,16 @@ void main() {
     fallbackService.permission = AlarmPermissionState.granted;
 
     await _pumpMyPage(tester, locale: const Locale('ko'));
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
     await tester.pumpAndSettle();
 
     expect(alarmRepository.updatedSettings, [true]);
     expect(fallbackService.requestCount, 1);
     expect(reconcileUseCase.callCount, 1);
-    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+    expect(
+      tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
+      isTrue,
+    );
   });
 
   testWidgets(
@@ -479,12 +532,17 @@ void main() {
       alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
 
       await _pumpMyPage(tester, locale: const Locale('ko'));
-      await tester.tap(find.byType(Switch));
+      await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
       await tester.pumpAndSettle();
 
       expect(alarmRepository.updatedSettings, [false]);
       expect(cancelAllUseCase.callCount, 1);
-      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+      expect(
+        tester
+            .widget<Switch>(find.byKey(const Key('alarmSettingsSwitch')))
+            .value,
+        isFalse,
+      );
     },
   );
 }
@@ -494,10 +552,14 @@ Future<void> _pumpMyPage(
   required Locale locale,
   PrivacyPolicyLauncher? openPrivacyPolicy,
   NotificationService? notificationService,
+  AnalyticsPreferenceCubit? analyticsPreferenceCubit,
   AuthState authState = const AuthState.loading(),
   _StubAuthBloc? authBloc,
 }) async {
   final bloc = authBloc ?? _StubAuthBloc(authState);
+  final analyticsCubit =
+      analyticsPreferenceCubit ?? _buildAnalyticsPreferenceCubit();
+  addTearDown(analyticsCubit.close);
   await tester.pumpWidget(
     MaterialApp(
       theme: themeData,
@@ -509,11 +571,29 @@ Future<void> _pumpMyPage(
         child: MyPageScreen(
           openPrivacyPolicy: openPrivacyPolicy,
           notificationService: notificationService,
+          analyticsPreferenceCubit: analyticsCubit,
         ),
       ),
     ),
   );
   await tester.pumpAndSettle();
+}
+
+AnalyticsPreferenceCubit _buildAnalyticsPreferenceCubit({
+  _FakeAnalyticsPreferenceRepository? repository,
+}) {
+  final analyticsRepository =
+      repository ?? _FakeAnalyticsPreferenceRepository();
+  return AnalyticsPreferenceCubit(
+    loadPreferenceUseCase: LoadAnalyticsPreferenceUseCase(analyticsRepository),
+    updatePreferenceUseCase: UpdateAnalyticsPreferenceUseCase(
+      analyticsRepository,
+    ),
+    analyticsService: ProductAnalyticsService(
+      client: _FakeAnalyticsProviderClient(),
+      collectionAllowedInBuild: true,
+    ),
+  );
 }
 
 class _StubAuthBloc extends Mock implements AuthBloc {
@@ -535,6 +615,58 @@ class _StubAuthBloc extends Mock implements AuthBloc {
   void add(AuthEvent event) {
     addedEvents.add(event);
   }
+}
+
+const _authenticatedUser = UserEntity(
+  id: 'user-1',
+  email: 'user@example.com',
+  name: 'User',
+  spareTime: Duration(minutes: 10),
+  note: '',
+  score: 0,
+  isOnboardingCompleted: true,
+);
+
+class _FakeAnalyticsPreferenceRepository
+    implements AnalyticsPreferenceRepository {
+  AnalyticsPreference localPreference = const AnalyticsPreference(
+    enabled: false,
+  );
+  AnalyticsPreference accountPreference = const AnalyticsPreference(
+    enabled: false,
+  );
+
+  @override
+  Future<AnalyticsPreference> loadLocalPreference() async => localPreference;
+
+  @override
+  Future<void> saveLocalPreference(bool enabled) async {
+    localPreference = AnalyticsPreference(enabled: enabled);
+  }
+
+  @override
+  Future<AnalyticsPreference> loadAccountPreference() async =>
+      accountPreference;
+
+  @override
+  Future<AnalyticsPreference> updateAccountPreference(bool enabled) async {
+    accountPreference = AnalyticsPreference(enabled: enabled);
+    return accountPreference;
+  }
+}
+
+class _FakeAnalyticsProviderClient implements AnalyticsProviderClient {
+  @override
+  Future<void> setAnalyticsCollectionEnabled(bool enabled) async {}
+
+  @override
+  Future<void> logEvent({
+    required String name,
+    required Map<String, Object> parameters,
+  }) async {}
+
+  @override
+  Future<void> setUserId(String? userId) async {}
 }
 
 class _FakeNotificationService implements NotificationService {

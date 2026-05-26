@@ -18,6 +18,8 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 - [Privacy Policy Hosting](./Privacy-Policy-Hosting.md) - Public HTTPS privacy policy hosting checklist and evidence form
 - [Google Play Data Safety Worksheet](./Google-Play-Data-Safety.md) - Source-backed Data safety evidence and pending owner inputs
 - [Backend Account Deletion Retention Report](./Backend-Account-Deletion-Retention-Report.md) - Backend retention targets and confirmation checklist for account deletion
+- [Analytics Preference API](./Analytics-Preference-API.md) - Frontend contract for account-scoped analytics opt-out sync
+- [Analytics Event Catalog](./Analytics-Event-Catalog.md) - First-release workflow milestone events and parameter allowlist
 - [Play Pre-Launch Report](./Play-Pre-Launch-Report.md) - Google Play report runbook, triage gate, and evidence template
 - [Release Rollout Monitoring](./Release-Rollout-Monitoring.md) - Release ownership, staged rollout gates, and post-launch monitoring
 - [Play Review Rejection Playbook](./Play-Review-Rejection-Playbook.md) - How to triage, fix, resubmit, or appeal Google Play review rejections

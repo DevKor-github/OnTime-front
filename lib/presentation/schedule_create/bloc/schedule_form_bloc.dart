@@ -11,6 +11,8 @@ import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
+import 'package:on_time_front/domain/entities/product_usage_event.dart';
+import 'package:on_time_front/domain/use-cases/track_product_usage_event_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
@@ -30,6 +32,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     this._createCustomPreparationUseCase,
     this._updateScheduleUseCase,
     this._updatePreparationByScheduleIdUseCase,
+    this._productUsageEventTracker,
     @factoryParam this._authBloc,
   ) : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
@@ -54,6 +57,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   final UpdateScheduleUseCase _updateScheduleUseCase;
   final UpdatePreparationByScheduleIdUseCase
   _updatePreparationByScheduleIdUseCase;
+  final ProductUsageEventTracker _productUsageEventTracker;
   final AuthBloc _authBloc;
 
   Future<void> _onEditRequested(
@@ -264,6 +268,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
           scheduleEntity.id,
         );
       }
+      await _trackScheduleCreated(scheduleEntity);
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.success,
@@ -303,6 +308,24 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       initialDate.day,
       initialTime.hour,
       initialTime.minute,
+    );
+  }
+
+  Future<void> _trackScheduleCreated(ScheduleEntity scheduleEntity) async {
+    await _productUsageEventTracker.track(
+      ProductUsageEvent(
+        name: 'schedule_created',
+        workflow: 'schedule',
+        result: 'success',
+        parameters: {
+          'preparation_mode': scheduleEntity.preparationMode?.name ?? 'default',
+          'preparation_step_count':
+              state.preparation?.preparationStepList.length ?? 0,
+          'minutes_until_schedule': scheduleEntity.scheduleTime
+              .difference(DateTime.now())
+              .inMinutes,
+        },
+      ),
     );
   }
 }

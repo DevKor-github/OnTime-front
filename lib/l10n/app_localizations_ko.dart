@@ -273,6 +273,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get allowAppNotifications => '앱 알림 허용';
 
   @override
+  String get helpImproveOnTime => 'OnTime 개선에 참여';
+
+  @override
   String get privacyPolicy => '개인정보 처리방침';
 
   @override

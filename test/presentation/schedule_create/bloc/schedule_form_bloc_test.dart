@@ -3,8 +3,10 @@ import 'package:mockito/mockito.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/domain/entities/product_usage_event.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
+import 'package:on_time_front/domain/use-cases/track_product_usage_event_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
@@ -111,6 +113,15 @@ class StubUpdatePreparationByScheduleIdUseCase
   }
 }
 
+class StubProductUsageEventTracker implements ProductUsageEventTracker {
+  final events = <ProductUsageEvent>[];
+
+  @override
+  Future<void> track(ProductUsageEvent event) async {
+    events.add(event);
+  }
+}
+
 void main() {
   late StubLoadPreparationByScheduleIdUseCase
   loadPreparationByScheduleIdUseCase;
@@ -122,6 +133,7 @@ void main() {
   late StubUpdateScheduleUseCase updateScheduleUseCase;
   late StubUpdatePreparationByScheduleIdUseCase
   updatePreparationByScheduleIdUseCase;
+  late StubProductUsageEventTracker productUsageEventTracker;
   late StubAuthBloc authBloc;
 
   final preparation = PreparationEntity(
@@ -156,6 +168,7 @@ void main() {
       createCustomPreparationUseCase,
       updateScheduleUseCase,
       updatePreparationByScheduleIdUseCase,
+      productUsageEventTracker,
       authBloc,
     );
   }
@@ -180,6 +193,7 @@ void main() {
     updateScheduleUseCase = StubUpdateScheduleUseCase((_) async {});
     updatePreparationByScheduleIdUseCase =
         StubUpdatePreparationByScheduleIdUseCase((_, __) async {});
+    productUsageEventTracker = StubProductUsageEventTracker();
 
     authBloc = StubAuthBloc(
       AuthState(
@@ -361,6 +375,48 @@ void main() {
         ScheduleFormSubmissionStatus.submitting,
         ScheduleFormSubmissionStatus.success,
       ]),
+    );
+  });
+
+  test('ScheduleFormCreated tracks schedule_created after success', () async {
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    final createReady = bloc.stream.firstWhere(
+      (state) => state.status == ScheduleFormStatus.success,
+    );
+    bloc.add(const ScheduleFormCreateRequested());
+    await createReady;
+
+    bloc
+      ..add(const ScheduleFormScheduleNameChanged(scheduleName: 'Meeting'))
+      ..add(
+        ScheduleFormScheduleDateTimeChanged(
+          scheduleDate: DateTime(2027, 3, 20),
+          scheduleTime: DateTime(2027, 3, 20, 9),
+        ),
+      )
+      ..add(const ScheduleFormPlaceNameChanged(placeName: 'Office'))
+      ..add(const ScheduleFormMoveTimeChanged(moveTime: Duration(minutes: 30)))
+      ..add(
+        const ScheduleFormScheduleSpareTimeChanged(
+          scheduleSpareTime: Duration(minutes: 10),
+        ),
+      );
+
+    final submitDone = bloc.stream.firstWhere(
+      (state) => state.submissionStatus == ScheduleFormSubmissionStatus.success,
+    );
+    bloc.add(const ScheduleFormCreated());
+    await submitDone;
+
+    expect(productUsageEventTracker.events, hasLength(1));
+    expect(productUsageEventTracker.events.single.name, 'schedule_created');
+    expect(productUsageEventTracker.events.single.workflow, 'schedule');
+    expect(productUsageEventTracker.events.single.result, 'success');
+    expect(
+      productUsageEventTracker.events.single.parameters,
+      containsPair('preparation_step_count', 1),
     );
   });
 

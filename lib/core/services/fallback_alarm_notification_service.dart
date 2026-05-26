@@ -17,7 +17,7 @@ abstract interface class FallbackAlarmNotificationService {
 class FallbackAlarmNotificationServiceImpl
     implements FallbackAlarmNotificationService {
   FallbackAlarmNotificationServiceImpl({
-    NotificationService? notificationService,
+    @ignoreParam NotificationService? notificationService,
   }) : _notificationService =
            notificationService ?? NotificationService.instance;
 

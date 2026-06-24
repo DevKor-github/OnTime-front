@@ -100,11 +100,10 @@ flutter build appbundle --release
 - Review launcher icons in `android/app/src/main/res/mipmap-*`.
 - Review `docs/Android-Manifest-Permissions.md` and confirm app-owned release
   manifest permissions are still limited to user-facing notification, exact
-  alarm, full-screen alarm, boot restore, and vibration behavior.
-- Before Play submission, follow
-  `docs/Google-Play-Full-Screen-Intent-Declaration.md` for the
-  `USE_FULL_SCREEN_INTENT` declaration text, reviewer evidence, and manual QA
-  checklist.
+  alarm, boot restore, and vibration behavior.
+- Before Play submission, confirm
+  `docs/Google-Play-Full-Screen-Intent-Declaration.md` remains a removal and
+  remediation note, not a declaration to submit.
 - Run Android alarm and notification device QA with
   `docs/Android-Alarm-Notification-QA.md` before closing release issue #457.
 - Provide release signing through one of the following secret-free paths:
@@ -197,7 +196,7 @@ disclosures before submission when any release change adds, removes, or changes:
   other third party.
 - Authentication, account deletion, sign-out, data export, retention, or backend
   deletion behavior.
-- Notification, exact alarm, full-screen intent, boot restore, background
+- Notification, exact alarm, boot restore, background
   execution, location, photos, contacts, camera, microphone, health, finance, or
   other permission-sensitive behavior.
 - Store listing claims about privacy, security, notifications, alarms, account
@@ -259,8 +258,8 @@ in `docs/Google-Play-Data-Safety.md` and `docs/Privacy-Policy-Draft.md`.
   privacy policy link.
 - Test notification permission granted and denied states.
 - Test exact alarm permission granted and denied states.
-- Test alarm firing, full-screen alarm UI, fallback notification behavior, and
-  cancellation.
+- Test alarm firing, tap-through alarm notification behavior, fallback
+  notification behavior, and cancellation.
 - Test boot restore behavior after device restart where practical.
 - Test account deletion end to end with a release test account.
 - Record device model, Android version, app version, build number, API

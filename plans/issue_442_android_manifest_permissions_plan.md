@@ -41,5 +41,5 @@ behavior.
 
 - Notification permission UX changes for #443.
 - Exact alarm permission UX changes for #444.
-- Play Console full-screen intent declaration submission for #445.
+- Play Console full-screen intent remediation for #445.
 - Device alarm and notification QA for #457.

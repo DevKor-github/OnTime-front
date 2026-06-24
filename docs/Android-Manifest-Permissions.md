@@ -17,13 +17,18 @@ reload.
 
 | Permission | Status | Justification |
 | --- | --- | --- |
-| `android.permission.POST_NOTIFICATIONS` | Keep | Required on Android 13+ for OnTime reminder, preparation-step, and alarm notifications. Native alarm fallback also checks this permission before posting the full-screen alarm notification. |
+| `android.permission.POST_NOTIFICATIONS` | Keep | Required on Android 13+ for OnTime reminder, preparation-step, and alarm notifications. Native alarm handling also checks this permission before posting alarm notifications. |
 | `android.permission.SCHEDULE_EXACT_ALARM` | Keep | Required on Android 12+ for user-scheduled schedule alarms that must fire at the selected time. Native alarm scheduling checks `AlarmManager.canScheduleExactAlarms()` before using `setAlarmClock`. |
-| `android.permission.USE_FULL_SCREEN_INTENT` | Keep | Required for the user-scheduled alarm ringing notification to present `AlarmRingingActivity` as a full-screen alarm experience. Usage is tied to alarm-category notifications, not generic or promotional notifications. |
 | `android.permission.RECEIVE_BOOT_COMPLETED` | Keep | Required for `NativeAlarmBootReceiver` to restore persisted future native alarms after device restart. The receiver is not exported. |
 | `android.permission.VIBRATE` | Keep | Required so alarm and notification channels can use vibration behavior for time-sensitive reminders and alarms. |
 
-No unused app-owned release permission was found during the audit.
+No unused app-owned release permission remains in the manifest.
+
+## Removed Permission
+
+| Permission | Status | Reason |
+| --- | --- | --- |
+| `android.permission.USE_FULL_SCREEN_INTENT` | Removed | Google Play rejected OnTime's declaration for version code 52 and instructed the team to remove this permission from all submitted version codes. OnTime must not declare this permission or call `setFullScreenIntent(...)` in Play-bound builds. |
 
 ## Manifest Merge Notes
 
@@ -63,9 +68,9 @@ Debug and profile merged manifests may additionally contain their variant-owned
 
 - `MainActivity` checks exact alarm and notification permission state before
   scheduling native alarms.
-- `NativeAlarmReceiver` posts alarm-category full-screen notifications and
-  skips posting when notification permission is denied.
+- `NativeAlarmReceiver` posts alarm-category notifications and skips posting
+  when notification permission is denied.
 - `NativeAlarmBootReceiver` handles boot completion and exact-alarm permission
   state changes to restore persisted native alarms.
-- `AlarmRingingActivity` is the full-screen alarm UI launched only from the
-  alarm notification path.
+- `AlarmRingingActivity` is the tap-through alarm UI launched from the alarm
+  notification content intent.

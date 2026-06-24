@@ -52,9 +52,8 @@ preparation reminders, alarms, and support features:
 OnTime does not request app-owned access to location, contacts, camera,
 microphone, phone, SMS, storage, calendar, nearby-device, or Bluetooth
 permissions in the current Android release manifest. OnTime uses notification,
-exact alarm, full-screen intent, boot completion, vibration, Firebase messaging,
-and network-related permissions to provide schedule reminders and alarm
-functionality.
+exact alarm, boot completion, vibration, Firebase messaging, and network-related
+permissions to provide schedule reminders and alarm functionality.
 
 ### How OnTime Uses Data
 

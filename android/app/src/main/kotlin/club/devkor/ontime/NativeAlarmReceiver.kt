@@ -14,7 +14,7 @@ import android.os.Build
 class NativeAlarmReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "OnTimeNativeAlarm"
-        private const val ALARM_CHANNEL_ID = "on_time_alarm_full_screen"
+        private const val ALARM_CHANNEL_ID = "on_time_alarm"
         private const val ALARM_CHANNEL_NAME = "OnTime alarms"
         private const val NOTIFICATION_ID_OFFSET = 730000
 
@@ -223,7 +223,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             "Native alarm broadcast fired requestCode=$requestCode " +
                 "scheduleId=${extras["scheduleId"]} alarmTime=${extras["alarmTime"]}",
         )
-        postFullScreenAlarmNotification(context, requestCode, extras)
+        postAlarmNotification(context, requestCode, extras)
     }
 
     private fun handleDismissAlarm(context: Context, intent: Intent) {
@@ -246,7 +246,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
         )
     }
 
-    private fun postFullScreenAlarmNotification(
+    private fun postAlarmNotification(
         context: Context,
         requestCode: Int,
         extras: Map<String, String>,
@@ -265,7 +265,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             return
         }
         ensureAlarmChannel(manager)
-        val fullScreenIntent = activityPendingIntentForExtras(
+        val contentIntent = activityPendingIntentForExtras(
             context,
             requestCode,
             extras,
@@ -294,8 +294,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
-            .setFullScreenIntent(fullScreenIntent, true)
-            .setContentIntent(fullScreenIntent)
+            .setContentIntent(contentIntent)
             .addAction(
                 Notification.Action.Builder(
                     context.applicationInfo.icon,
@@ -307,7 +306,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
         manager.notify(notificationId(requestCode), notification)
         NativeLog.d(
             TAG,
-            "Full-screen alarm notification posted requestCode=$requestCode " +
+            "Alarm notification posted requestCode=$requestCode " +
                 "scheduleId=${extras["scheduleId"]}",
         )
     }
@@ -324,7 +323,7 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             ALARM_CHANNEL_NAME,
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Full-screen OnTime schedule alarms."
+            description = "OnTime schedule alarm alerts."
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setBypassDnd(true)
         }

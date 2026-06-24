@@ -28,8 +28,8 @@ Repo-side work that should not be done for #457 now:
 - #444 is closed by PR #472. Exact alarm permission UX was improved and tested.
 - #452 is still open and blocked. A signed release AAB or release-equivalent
   install path is still required for this issue.
-- #445 is still open/manual in the parent track order. Play Console full-screen
-  intent declaration work requires human account access.
+- #445 now requires replacing the rejected version code with a build that
+  removes `USE_FULL_SCREEN_INTENT`; the prior declaration path was rejected.
 
 ## Plan
 
@@ -48,8 +48,8 @@ The release owner or QA tester must attach evidence for:
 
 - Notification permission granted and denied states.
 - Exact alarm permission granted and denied states.
-- Native alarm firing, full-screen alarm UI, fallback notification behavior, and
-  cancellation.
+- Native alarm firing, alarm notification tap-through behavior, fallback
+  notification behavior, and cancellation.
 - Boot restore after device restart where practical.
 - Device model, Android version, install artifact, backend environment, account,
   schedule IDs, expected alarm times, results, and failures.

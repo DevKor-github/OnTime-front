@@ -1,26 +1,24 @@
-# Issue #445 Full-Screen Intent Declaration Plan
+# Issue #445 Full-Screen Intent Compliance Plan
 
 Parent track: #465
 
 ## Decision
 
-Prepare Play Console review material for `USE_FULL_SCREEN_INTENT`, but do not
-claim issue completion from the repo. The issue remains manually blocked until a
-human with Play Console access submits the declaration and QA records device
-evidence.
+Superseded by Google Play rejection for version code 52. Do not submit another
+`USE_FULL_SCREEN_INTENT` declaration for the same app scope. The compliance path
+is to remove the permission and API usage, then upload a replacement bundle that
+deactivates the rejected version code in every affected Play track.
 
 ## Scope
 
-- Confirm the app uses full-screen intent only for user-scheduled
-  alarm/reminder moments.
-- Document why OnTime qualifies as an alarm/reminder use case.
-- Prepare Play Console declaration wording and reviewer evidence.
-- Record QA checks needed to prove the full-screen UI is not used for
-  promotional, generic, or low-priority notifications.
+- Confirm the app no longer declares `USE_FULL_SCREEN_INTENT`.
+- Confirm the app no longer calls `Notification.Builder.setFullScreenIntent`.
+- Document the replacement Play Console remediation path.
+- Record QA checks for the remaining alarm notification tap-through behavior.
 
 ## Out Of Scope
 
-- Play Console submission.
+- Play Console upload/submission.
 - Closing #445 without account access and reviewer evidence.
 - Final Android alarm/notification QA for #457.
 - Changes to unrelated release-track issues.
@@ -29,17 +27,15 @@ evidence.
 
 1. Inspect parent issue #465 and sub-issue state.
 2. Inspect #445 prerequisites, labels, and acceptance criteria.
-3. Verify merged context from #442, #443, and #444.
-4. Inspect Android manifest, native alarm receiver/activity, notification
-   suppression, and alarm reconciliation code.
-5. Add a release document containing declaration copy, source evidence, and
-   human QA/submission checklist.
-6. Link the document from the release checklist.
+3. Remove `USE_FULL_SCREEN_INTENT` from the release manifest.
+4. Remove the native full-screen intent notification builder call.
+5. Replace declaration docs with compliance-removal guidance.
+6. Build and upload a version code greater than 52 through the approved release
+   workflow.
 
 ## Verification
 
 - Run `flutter analyze` if the checkout can resolve dependencies.
 - Run `git diff --check`.
-- No device or Play Console verification can be completed by Codex for this
-  manual issue.
-
+- Play Console verification is complete only after version code 52 is inactive
+  and has 0 releases in App bundle explorer.

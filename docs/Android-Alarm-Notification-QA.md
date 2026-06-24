@@ -8,8 +8,8 @@ signed release AAB or release-equivalent Android build.
 Do not mark #457 complete until these are satisfied:
 
 - #452 provides a signed release AAB or release-equivalent install path.
-- #445 full-screen intent declaration material is reviewed or submitted by a
-  human with Play Console access, per the parent track order.
+- The Play-bound Android build removes `USE_FULL_SCREEN_INTENT` and replaces
+  version code 52 in every affected Play track.
 - QA has access to an Android device or emulator with Google Play services, a
   backend environment with alarm APIs enabled, and a test account that can create
   schedules.
@@ -34,7 +34,7 @@ Minimum recommended coverage:
 
 - Android 13 or newer for `POST_NOTIFICATIONS`.
 - Android 12 or newer for exact alarm special access.
-- One physical device for boot restore and full-screen alarm behavior.
+- One physical device for boot restore and alarm notification behavior.
 
 ## Permission Setup
 
@@ -137,18 +137,19 @@ show fallback behavior instead of native exact alarm scheduling.
 Expected result: no native alarm or fallback notification is armed; the app
 surfaces permission recovery instead of silently claiming alarm coverage.
 
-### 6. Full-Screen Alarm UI
+### 6. Alarm Notification Tap-Through
 
 1. Allow exact alarm special access and notification permission.
 2. Create a near-future schedule.
 3. Lock the device or put the app in the background.
 4. Wait for the alarm.
-5. Use the full-screen alarm action to start preparing.
+5. Tap the alarm notification to start preparing.
 6. Repeat once and dismiss/cancel the ringing alarm instead of starting.
 
-Expected result: `AlarmRingingActivity` appears only for the user-scheduled
-alarm moment, the start action routes into schedule preparation, and dismissal
-stops ringing/vibration and removes the alarm notification.
+Expected result: an alarm notification appears for the user-scheduled alarm
+moment, tapping it opens `AlarmRingingActivity`, the start action routes into
+schedule preparation, and dismissal stops ringing/vibration and removes the
+alarm notification.
 
 ### 7. Cancellation
 

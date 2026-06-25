@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide IconAlignment;
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -29,8 +30,9 @@ class AppleSignInButton extends StatelessWidget {
               final fullNameRaw =
                   '${credential.givenName ?? ''} ${credential.familyName ?? ''}'
                       .trim();
-              final fullName =
-                  fullNameRaw.isNotEmpty ? fullNameRaw : 'Apple User';
+              final fullName = fullNameRaw.isNotEmpty
+                  ? fullNameRaw
+                  : 'Apple User';
 
               final identityToken = credential.identityToken;
               final authorizationCode = credential.authorizationCode;
@@ -44,10 +46,20 @@ class AppleSignInButton extends StatelessWidget {
                 fullName: fullName,
                 email: credential.email,
               );
-            } catch (error) {
+            } catch (error, stackTrace) {
               AppLogger.debug(
-                'Apple Sign-In button failed errorType=${error.runtimeType}',
+                'Apple Sign-In button failed errorType=${error.runtimeType} '
+                'message=$error stackTrace=$stackTrace',
               );
+              if (!context.mounted) {
+                return;
+              }
+              final message =
+                  ApiErrorMessage.fromException(error) ??
+                  'Apple 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(message)));
             }
           },
           borderRadius: BorderRadius.circular(14),

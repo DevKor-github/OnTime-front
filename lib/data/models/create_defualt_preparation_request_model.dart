@@ -6,7 +6,7 @@ part 'create_defualt_preparation_request_model.g.dart';
 
 @JsonSerializable()
 class CreateDefaultPreparationRequestModel {
-  final String spareTime;
+  final int spareTime;
   final String note;
   final List<CreatePreparationStepRequestModel> preparationList;
 
@@ -17,18 +17,19 @@ class CreateDefaultPreparationRequestModel {
   });
 
   factory CreateDefaultPreparationRequestModel.fromJson(
-          Map<String, dynamic> json) =>
-      _$CreateDefaultPreparationRequestModelFromJson(json);
+    Map<String, dynamic> json,
+  ) => _$CreateDefaultPreparationRequestModelFromJson(json);
 
   Map<String, dynamic> toJson() =>
       _$CreateDefaultPreparationRequestModelToJson(this);
 
-  static CreateDefaultPreparationRequestModel fromEntity(
-      {required PreparationEntity preparationEntity,
-      required Duration spareTime,
-      required String note}) {
+  static CreateDefaultPreparationRequestModel fromEntity({
+    required PreparationEntity preparationEntity,
+    required Duration spareTime,
+    required String note,
+  }) {
     return CreateDefaultPreparationRequestModel(
-      spareTime: spareTime.inMinutes.toString(),
+      spareTime: spareTime.inMinutes,
       note: note,
       preparationList: preparationEntity.preparationStepList
           .map((e) => CreatePreparationStepRequestModel.fromEntity(e))

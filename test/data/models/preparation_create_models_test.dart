@@ -73,9 +73,9 @@ void main() {
       note: 'Bring umbrella',
     );
 
-    expect(model.spareTime, '12');
+    expect(model.spareTime, 12);
     expect(model.note, 'Bring umbrella');
     expect(model.preparationList.single.id, 'step-1');
-    expect(model.toJson()['spareTime'], '12');
+    expect(model.toJson()['spareTime'], 12);
   });
 }

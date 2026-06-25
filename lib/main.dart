@@ -13,11 +13,11 @@ void main() async {
   AppLogger.configureFlutterDebugPrint();
   await HardwareKeyboard.instance.syncKeyboardState().catchError((_) {});
   await initializeDateFormatting();
-  configureDependencies();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   AppLogger.debug('[FCM Main] Firebase initialized');
+  configureDependencies();
 
   AppLogger.debug(
     'Device standalone mode=${DeviceInfoService.isInStandaloneMode}',

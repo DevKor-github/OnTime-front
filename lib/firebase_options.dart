@@ -66,11 +66,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyD9sTpL3rDqyuP8o7OQfVHJVcOgEyGuwRs',
-    appId: '1:456571312261:ios:c2b75e7959945f717e71ec',
+    appId: '1:456571312261:ios:0224dcabd68996867e71ec',
     messagingSenderId: '456571312261',
     projectId: 'ontime-c63f1',
     storageBucket: 'ontime-c63f1.firebasestorage.app',
-    iosClientId: '456571312261-r35ah9qi0qaq7al007e2db0e0jmjcmb4.apps.googleusercontent.com',
-    iosBundleId: 'club.devkor.ontime',
+    iosClientId: '456571312261-e0g33a9qnct35j1uud89dmfcnv9lffeq.apps.googleusercontent.com',
+    iosBundleId: 'club.devkor.ontime.ios',
   );
 }

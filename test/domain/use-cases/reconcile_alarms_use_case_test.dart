@@ -397,7 +397,7 @@ void main() {
     },
   );
 
-  test('arms a just-missed alarm immediately within grace period', () async {
+  test('skips a just-missed alarm instead of scheduling catch-up', () async {
     alarmRepository.schedules = [
       scheduleWithAlarmAt(
         id: 'just-missed',
@@ -407,18 +407,35 @@ void main() {
 
     final result = await useCase();
 
-    expect(result.armedScheduleIds, ['just-missed']);
-    expect(result.skippedScheduleCount, 0);
-    expect(schedulerService.scheduledNative, hasLength(1));
-    final scheduled = schedulerService.scheduledNative.single;
-    expect(scheduled.scheduleId, 'just-missed');
-    expect(scheduled.alarmTime, now.add(const Duration(seconds: 5)));
-    expect(scheduled.payload['missedAlarmCatchUp'], 'true');
-    expect(
-      scheduled.payload['scheduledAlarmTime'],
-      now.add(const Duration(seconds: 5)).toIso8601String(),
-    );
+    expect(result.armedScheduleIds, isEmpty);
+    expect(result.skippedScheduleCount, 1);
+    expect(schedulerService.scheduledNative, isEmpty);
   });
+
+  test(
+    'clears an already armed just-missed alarm instead of scheduling catch-up',
+    () async {
+      final schedule = scheduleWithAlarmAt(
+        id: 'already-fired',
+        alarmTime: now.subtract(const Duration(seconds: 5)),
+      );
+      final existing = buildScheduledAlarmRecord(
+        schedule,
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      alarmRepository.schedules = [schedule];
+      registryRepository.records = [existing];
+
+      final result = await useCase();
+
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(schedulerService.canceledNative, [existing]);
+      expect(registryRepository.records, isEmpty);
+      expect(result.armedScheduleIds, isEmpty);
+      expect(result.skippedScheduleCount, 1);
+    },
+  );
 
   test('android alarm manager arms exact alarms beyond 24 hours', () async {
     alarmRepository.schedules = [

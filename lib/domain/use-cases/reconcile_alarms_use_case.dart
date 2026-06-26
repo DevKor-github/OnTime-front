@@ -14,8 +14,6 @@ typedef AlarmNowProvider = DateTime Function();
 @Singleton()
 class ReconcileAlarmsUseCase {
   static const _logTag = '[ReconcileAlarms]';
-  static const _recentlyMissedAlarmGracePeriod = Duration(seconds: 30);
-  static const _recentlyMissedAlarmDeliveryDelay = Duration(seconds: 5);
 
   final AlarmRepository _alarmRepository;
   final AlarmRegistryRepository _registryRepository;
@@ -31,8 +29,8 @@ class ReconcileAlarmsUseCase {
     this._schedulerService,
     this._fallbackNotificationService,
     UserRepository userRepository,
-  )   : _userRepository = userRepository,
-        _nowProvider = DateTime.now;
+  ) : _userRepository = userRepository,
+      _nowProvider = DateTime.now;
 
   @visibleForTesting
   ReconcileAlarmsUseCase.test(
@@ -42,8 +40,8 @@ class ReconcileAlarmsUseCase {
     this._fallbackNotificationService, {
     required AlarmNowProvider nowProvider,
     UserRepository? userRepository,
-  })  : _userRepository = userRepository,
-        _nowProvider = nowProvider;
+  }) : _userRepository = userRepository,
+       _nowProvider = nowProvider;
 
   Future<AlarmReconciliationResult> call() {
     final running = _inFlight;
@@ -146,7 +144,8 @@ class ReconcileAlarmsUseCase {
         scheduleWindowEnd,
       );
       AppLogger.debug(
-          '$_logTag getAlarmWindow success count=${schedules.length}');
+        '$_logTag getAlarmWindow success count=${schedules.length}',
+      );
     } catch (error) {
       AppLogger.debug('$_logTag getAlarmWindow failed: $error');
       final result = _result(
@@ -173,12 +172,14 @@ class ReconcileAlarmsUseCase {
       alarmOffset: settings.alarmOffset,
     );
     final skippedScheduleCount = schedules
-        .where((schedule) => !_isDesired(
-              schedule,
-              now,
-              alarmCoverageEnd,
-              settings.alarmOffset,
-            ))
+        .where(
+          (schedule) => !_isDesired(
+            schedule,
+            now,
+            alarmCoverageEnd,
+            settings.alarmOffset,
+          ),
+        )
         .length;
     AppLogger.debug(
       '$_logTag desiredRecords=${desiredRecords.length} '
@@ -289,8 +290,9 @@ class ReconcileAlarmsUseCase {
       status: status,
       permissionIssue: permissionIssue,
       capabilities: _effectiveCapabilities(capabilities, finalRecords),
-      armedScheduleIds:
-          finalRecords.map((record) => record.scheduleId).toList(),
+      armedScheduleIds: finalRecords
+          .map((record) => record.scheduleId)
+          .toList(),
       skippedScheduleCount: skippedScheduleCount,
       failures: failures,
       scheduleWindowStart: scheduleWindowStart,
@@ -315,16 +317,13 @@ class ReconcileAlarmsUseCase {
     required Duration alarmOffset,
   }) {
     return schedules
-        .where((schedule) => _isDesired(
-              schedule,
-              now,
-              alarmCoverageEnd,
-              alarmOffset,
-            ))
+        .where(
+          (schedule) =>
+              _isDesired(schedule, now, alarmCoverageEnd, alarmOffset),
+        )
         .map(
-          (schedule) => _scheduledAlarmRecordFor(
-            schedule: schedule,
-            now: now,
+          (schedule) => buildScheduledAlarmRecord(
+            schedule,
             alarmOffset: alarmOffset,
             provider: AlarmProvider.none,
           ),
@@ -341,43 +340,9 @@ class ReconcileAlarmsUseCase {
     if (!isAlarmEligibleSchedule(schedule)) return false;
     if (schedule.id.isEmpty) return false;
     final alarmTime = computeAlarmTime(schedule, offset: alarmOffset);
-    final isFutureAlarm = alarmTime.isAfter(now);
-    final isRecentlyMissedAlarm = !isFutureAlarm &&
-        alarmTime.isAfter(now.subtract(_recentlyMissedAlarmGracePeriod)) &&
-        schedule.preparationStartTime.isAfter(now);
-    return (isFutureAlarm || isRecentlyMissedAlarm) &&
+    return alarmTime.isAfter(now) &&
         (alarmTime.isBefore(alarmCoverageEnd) ||
             alarmTime.isAtSameMomentAs(alarmCoverageEnd));
-  }
-
-  ScheduledAlarmRecord _scheduledAlarmRecordFor({
-    required ScheduleWithPreparationEntity schedule,
-    required DateTime now,
-    required Duration alarmOffset,
-    required AlarmProvider provider,
-  }) {
-    final record = buildScheduledAlarmRecord(
-      schedule,
-      alarmOffset: alarmOffset,
-      provider: provider,
-    );
-    if (record.alarmTime.isAfter(now)) return record;
-
-    final adjustedAlarmTime = now.add(_recentlyMissedAlarmDeliveryDelay);
-    AppLogger.debug(
-      '$_logTag recently missed alarm catch-up '
-      'scheduleId=${record.scheduleId} '
-      'originalAlarmTime=${record.alarmTime.toIso8601String()} '
-      'adjustedAlarmTime=${adjustedAlarmTime.toIso8601String()}',
-    );
-    return record.copyWith(
-      alarmTime: adjustedAlarmTime,
-      payload: {
-        ...record.payload,
-        'scheduledAlarmTime': adjustedAlarmTime.toIso8601String(),
-        'missedAlarmCatchUp': 'true',
-      },
-    );
   }
 
   Future<AlarmPermissionState> _checkNativePermission(
@@ -387,9 +352,9 @@ class ReconcileAlarmsUseCase {
         capabilities.nativeAlarmProvider == AlarmProvider.none) {
       return AlarmPermissionState.unsupported;
     }
-    return _schedulerService
-        .checkPermission()
-        .catchError((_) => AlarmPermissionState.unsupported);
+    return _schedulerService.checkPermission().catchError(
+      (_) => AlarmPermissionState.unsupported,
+    );
   }
 
   Future<AlarmPermissionState> _checkFallbackPermission(
@@ -398,9 +363,9 @@ class ReconcileAlarmsUseCase {
     if (capabilities.fallbackProvider != AlarmProvider.localNotification) {
       return AlarmPermissionState.unsupported;
     }
-    return _fallbackNotificationService
-        .checkPermission()
-        .catchError((_) => AlarmPermissionState.denied);
+    return _fallbackNotificationService.checkPermission().catchError(
+      (_) => AlarmPermissionState.denied,
+    );
   }
 
   Future<_ScheduleAttempt> _scheduleRecord(
@@ -517,7 +482,8 @@ class ReconcileAlarmsUseCase {
     required AlarmSchedulerCapabilities capabilities,
     required AlarmPermissionState fallbackPermission,
   }) {
-    final hasAnyProvider = capabilities.supportsNativeAlarm ||
+    final hasAnyProvider =
+        capabilities.supportsNativeAlarm ||
         fallbackPermission == AlarmPermissionState.granted;
     if (!hasAnyProvider) {
       if (permissionIssue != null) {
@@ -554,8 +520,9 @@ class ReconcileAlarmsUseCase {
     return AlarmSchedulerCapabilities(
       supportsNativeAlarm: capabilities.supportsNativeAlarm,
       nativeAlarmProvider: nativeProvider,
-      fallbackProvider:
-          usesFallback ? AlarmProvider.localNotification : AlarmProvider.none,
+      fallbackProvider: usesFallback
+          ? AlarmProvider.localNotification
+          : AlarmProvider.none,
     );
   }
 
@@ -567,8 +534,9 @@ class ReconcileAlarmsUseCase {
         existing.payload['alarmLaunchPayloadVersion'] ==
             desired.payload['alarmLaunchPayloadVersion'] &&
         existing.alarmTime.isAtSameMomentAs(desired.alarmTime) &&
-        existing.preparationStartTime
-            .isAtSameMomentAs(desired.preparationStartTime);
+        existing.preparationStartTime.isAtSameMomentAs(
+          desired.preparationStartTime,
+        );
   }
 
   bool _recordProviderMatchesCapabilities(
@@ -583,9 +551,7 @@ class ReconcileAlarmsUseCase {
         record.provider == capabilities.nativeAlarmProvider;
   }
 
-  Future<void> _cancelRecords(
-    List<ScheduledAlarmRecord> records,
-  ) async {
+  Future<void> _cancelRecords(List<ScheduledAlarmRecord> records) async {
     for (final record in records) {
       try {
         if (record.provider == AlarmProvider.localNotification) {
@@ -668,7 +634,8 @@ class ReconcileAlarmsUseCase {
       AppLogger.debug('$_logTag postAlarmStatus success');
     } on DeviceSessionNotActiveException {
       AppLogger.debug(
-          '$_logTag postAlarmStatus device session inactive; signing out');
+        '$_logTag postAlarmStatus device session inactive; signing out',
+      );
       final records = await _registryRepository.loadAll();
       await _cancelRecords(records);
       await _registryRepository.deleteAll();
@@ -683,7 +650,8 @@ class ReconcileAlarmsUseCase {
     if (records.isEmpty) return '[]';
     return records
         .map(
-          (record) => '{id=${record.scheduleId}, '
+          (record) =>
+              '{id=${record.scheduleId}, '
               'provider=${record.provider}, '
               'nativeId=${record.nativeAlarmId}, '
               'alarm=${record.alarmTime.toIso8601String()}}',

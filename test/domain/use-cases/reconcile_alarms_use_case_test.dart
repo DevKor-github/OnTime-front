@@ -356,7 +356,7 @@ void main() {
       );
       final past = scheduleWithAlarmAt(
         id: 'past',
-        alarmTime: now.subtract(const Duration(minutes: 1)),
+        alarmTime: now.subtract(const Duration(hours: 1)),
       );
       final outsideCoverage = scheduleWithAlarmAt(
         id: 'outside',
@@ -419,6 +419,28 @@ void main() {
       now.add(const Duration(seconds: 5)).toIso8601String(),
     );
   });
+
+  test(
+    'arms a catch-up alarm for newly created schedules with a missed offset',
+    () async {
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'late-created',
+          alarmTime: now.subtract(const Duration(minutes: 4)),
+        ),
+      ];
+
+      final result = await useCase();
+
+      expect(result.armedScheduleIds, ['late-created']);
+      expect(result.skippedScheduleCount, 0);
+      expect(schedulerService.scheduledNative, hasLength(1));
+      final scheduled = schedulerService.scheduledNative.single;
+      expect(scheduled.scheduleId, 'late-created');
+      expect(scheduled.alarmTime, now.add(const Duration(seconds: 5)));
+      expect(scheduled.payload['missedAlarmCatchUp'], 'true');
+    },
+  );
 
   test('android alarm manager arms exact alarms beyond 24 hours', () async {
     alarmRepository.schedules = [

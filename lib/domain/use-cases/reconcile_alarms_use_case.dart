@@ -345,7 +345,11 @@ class ReconcileAlarmsUseCase {
     final isRecentlyMissedAlarm = !isFutureAlarm &&
         alarmTime.isAfter(now.subtract(_recentlyMissedAlarmGracePeriod)) &&
         schedule.preparationStartTime.isAfter(now);
-    return (isFutureAlarm || isRecentlyMissedAlarm) &&
+    final isUpcomingScheduleCatchUp =
+        !isFutureAlarm && schedule.scheduleTime.isAfter(now);
+    return (isFutureAlarm ||
+            isRecentlyMissedAlarm ||
+            isUpcomingScheduleCatchUp) &&
         (alarmTime.isBefore(alarmCoverageEnd) ||
             alarmTime.isAtSameMomentAs(alarmCoverageEnd));
   }

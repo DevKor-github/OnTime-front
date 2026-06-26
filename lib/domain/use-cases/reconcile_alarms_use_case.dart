@@ -345,11 +345,7 @@ class ReconcileAlarmsUseCase {
     final isRecentlyMissedAlarm = !isFutureAlarm &&
         alarmTime.isAfter(now.subtract(_recentlyMissedAlarmGracePeriod)) &&
         schedule.preparationStartTime.isAfter(now);
-    final isUpcomingScheduleCatchUp =
-        !isFutureAlarm && schedule.scheduleTime.isAfter(now);
-    return (isFutureAlarm ||
-            isRecentlyMissedAlarm ||
-            isUpcomingScheduleCatchUp) &&
+    return (isFutureAlarm || isRecentlyMissedAlarm) &&
         (alarmTime.isBefore(alarmCoverageEnd) ||
             alarmTime.isAtSameMomentAs(alarmCoverageEnd));
   }
@@ -567,23 +563,12 @@ class ReconcileAlarmsUseCase {
     ScheduledAlarmRecord existing,
     ScheduledAlarmRecord desired,
   ) {
-    final sameScheduleContract =
-        existing.scheduleFingerprint == desired.scheduleFingerprint &&
+    return existing.scheduleFingerprint == desired.scheduleFingerprint &&
         existing.payload['alarmLaunchPayloadVersion'] ==
             desired.payload['alarmLaunchPayloadVersion'] &&
+        existing.alarmTime.isAtSameMomentAs(desired.alarmTime) &&
         existing.preparationStartTime
             .isAtSameMomentAs(desired.preparationStartTime);
-    if (!sameScheduleContract) return false;
-
-    if (_isCatchUpRecord(existing) && _isCatchUpRecord(desired)) {
-      return existing.payload['alarmTime'] == desired.payload['alarmTime'];
-    }
-
-    return existing.alarmTime.isAtSameMomentAs(desired.alarmTime);
-  }
-
-  bool _isCatchUpRecord(ScheduledAlarmRecord record) {
-    return record.payload['missedAlarmCatchUp'] == 'true';
   }
 
   bool _recordProviderMatchesCapabilities(

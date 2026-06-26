@@ -356,7 +356,7 @@ void main() {
       );
       final past = scheduleWithAlarmAt(
         id: 'past',
-        alarmTime: now.subtract(const Duration(hours: 1)),
+        alarmTime: now.subtract(const Duration(minutes: 1)),
       );
       final outsideCoverage = scheduleWithAlarmAt(
         id: 'outside',
@@ -419,50 +419,6 @@ void main() {
       now.add(const Duration(seconds: 5)).toIso8601String(),
     );
   });
-
-  test(
-    'arms a catch-up alarm for newly created schedules with a missed offset',
-    () async {
-      alarmRepository.schedules = [
-        scheduleWithAlarmAt(
-          id: 'late-created',
-          alarmTime: now.subtract(const Duration(minutes: 4)),
-        ),
-      ];
-
-      final result = await useCase();
-
-      expect(result.armedScheduleIds, ['late-created']);
-      expect(result.skippedScheduleCount, 0);
-      expect(schedulerService.scheduledNative, hasLength(1));
-      final scheduled = schedulerService.scheduledNative.single;
-      expect(scheduled.scheduleId, 'late-created');
-      expect(scheduled.alarmTime, now.add(const Duration(seconds: 5)));
-      expect(scheduled.payload['missedAlarmCatchUp'], 'true');
-    },
-  );
-
-  test(
-    'keeps an existing catch-up alarm instead of rearming on resume',
-    () async {
-      final schedule = scheduleWithAlarmAt(
-        id: 'late-created',
-        alarmTime: now.subtract(const Duration(minutes: 4)),
-      );
-      alarmRepository.schedules = [schedule];
-
-      await useCase();
-      final existing = registryRepository.records.single;
-      expect(existing.payload['missedAlarmCatchUp'], 'true');
-
-      now = now.add(const Duration(seconds: 15));
-      await useCase();
-
-      expect(schedulerService.canceledNative, isEmpty);
-      expect(schedulerService.scheduledNative, hasLength(1));
-      expect(registryRepository.records.single, existing);
-    },
-  );
 
   test('android alarm manager arms exact alarms beyond 24 hours', () async {
     alarmRepository.schedules = [

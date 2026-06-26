@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
@@ -51,6 +52,35 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       expect(cubit.state, const AlarmGateState.allowed());
       expect(prefs.getBool('alarm_prompt_dismissed'), isNull);
+      expect(repository.updatedAlarmSettings, [true]);
+      expect(reconcile.callCount, 1);
+    },
+  );
+
+  test(
+    'refreshPermission allows local notification fallback when native alarms are unsupported',
+    () async {
+      final repository = _FakeAlarmRepository();
+      final reconcile = _FakeReconcileAlarmsUseCase();
+      final cubit = _buildCubit(
+        scheduler: _FakeAlarmSchedulerService(
+          capabilities: const AlarmSchedulerCapabilities(
+            supportsNativeAlarm: false,
+            nativeAlarmProvider: AlarmProvider.none,
+            fallbackProvider: AlarmProvider.localNotification,
+          ),
+        ),
+        fallback: _FakeFallbackAlarmNotificationService(
+          checkPermissionState: AlarmPermissionState.granted,
+        ),
+        repository: repository,
+        reconcile: reconcile,
+      );
+      addTearDown(cubit.close);
+
+      await cubit.refreshPermission(enableAlarmsOnGrant: true);
+
+      expect(cubit.state, const AlarmGateState.allowed());
       expect(repository.updatedAlarmSettings, [true]);
       expect(reconcile.callCount, 1);
     },
@@ -117,6 +147,70 @@ void main() {
       expect(prefs.getBool('alarm_prompt_dismissed'), isNull);
       expect(repository.updatedAlarmSettings, [true]);
       expect(reconcile.callCount, 1);
+    },
+  );
+
+  test(
+    'requestPermission requests local notification fallback when native alarms are unsupported',
+    () async {
+      final repository = _FakeAlarmRepository();
+      final reconcile = _FakeReconcileAlarmsUseCase();
+      final fallback = _FakeFallbackAlarmNotificationService(
+        requestPermissionState: AlarmPermissionState.granted,
+      );
+      final scheduler = _FakeAlarmSchedulerService(
+        capabilities: const AlarmSchedulerCapabilities(
+          supportsNativeAlarm: false,
+          nativeAlarmProvider: AlarmProvider.none,
+          fallbackProvider: AlarmProvider.localNotification,
+        ),
+      );
+      final cubit = _buildCubit(
+        scheduler: scheduler,
+        fallback: fallback,
+        repository: repository,
+        reconcile: reconcile,
+      );
+      addTearDown(cubit.close);
+
+      final permission = await cubit.requestPermission();
+
+      expect(permission, AlarmPermissionState.granted);
+      expect(cubit.state, const AlarmGateState.allowed());
+      expect(scheduler.requestCount, 0);
+      expect(fallback.requestCount, 1);
+      expect(repository.updatedAlarmSettings, [true]);
+      expect(reconcile.callCount, 1);
+    },
+  );
+
+  test(
+    'refreshPermission does not disable alarms when fallback permission is granted',
+    () async {
+      final repository = _FakeAlarmRepository();
+      final cancelAll = _FakeCancelAllAlarmsUseCase();
+      final cubit = _buildCubit(
+        scheduler: _FakeAlarmSchedulerService(
+          checkPermissionState: AlarmPermissionState.denied,
+          capabilities: const AlarmSchedulerCapabilities(
+            supportsNativeAlarm: true,
+            nativeAlarmProvider: AlarmProvider.iosAlarmKit,
+            fallbackProvider: AlarmProvider.localNotification,
+          ),
+        ),
+        fallback: _FakeFallbackAlarmNotificationService(
+          checkPermissionState: AlarmPermissionState.granted,
+        ),
+        repository: repository,
+        cancelAll: cancelAll,
+      );
+      addTearDown(cubit.close);
+
+      await cubit.refreshPermission(disableAlarmsWhenPermissionMissing: true);
+
+      expect(cubit.state, const AlarmGateState.allowed());
+      expect(repository.updatedAlarmSettings, isEmpty);
+      expect(cancelAll.callCount, 0);
     },
   );
 
@@ -194,12 +288,15 @@ void main() {
 
 AlarmGateCubit _buildCubit({
   _FakeAlarmSchedulerService? scheduler,
+  _FakeFallbackAlarmNotificationService? fallback,
   _FakeAlarmRepository? repository,
   _FakeReconcileAlarmsUseCase? reconcile,
   _FakeCancelAllAlarmsUseCase? cancelAll,
 }) {
   return AlarmGateCubit(
     alarmSchedulerService: scheduler ?? _FakeAlarmSchedulerService(),
+    fallbackAlarmNotificationService:
+        fallback ?? _FakeFallbackAlarmNotificationService(),
     alarmRepository: repository ?? _FakeAlarmRepository(),
     reconcileAlarmsUseCase: reconcile ?? _FakeReconcileAlarmsUseCase(),
     cancelAllAlarmsUseCase: cancelAll ?? _FakeCancelAllAlarmsUseCase(),
@@ -210,17 +307,56 @@ class _FakeAlarmSchedulerService extends AlarmSchedulerService {
   _FakeAlarmSchedulerService({
     this.checkPermissionState = AlarmPermissionState.denied,
     this.requestPermissionState = AlarmPermissionState.denied,
+    this.capabilities = const AlarmSchedulerCapabilities(
+      supportsNativeAlarm: true,
+      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+      fallbackProvider: AlarmProvider.none,
+    ),
   });
 
   final AlarmPermissionState checkPermissionState;
   final AlarmPermissionState requestPermissionState;
+  final AlarmSchedulerCapabilities capabilities;
+  int requestCount = 0;
+
+  @override
+  Future<AlarmSchedulerCapabilities> getCapabilities() async => capabilities;
 
   @override
   Future<AlarmPermissionState> checkPermission() async => checkPermissionState;
 
   @override
-  Future<AlarmPermissionState> requestPermission() async =>
-      requestPermissionState;
+  Future<AlarmPermissionState> requestPermission() async {
+    requestCount += 1;
+    return requestPermissionState;
+  }
+}
+
+class _FakeFallbackAlarmNotificationService
+    implements FallbackAlarmNotificationService {
+  _FakeFallbackAlarmNotificationService({
+    this.checkPermissionState = AlarmPermissionState.denied,
+    this.requestPermissionState = AlarmPermissionState.denied,
+  });
+
+  final AlarmPermissionState checkPermissionState;
+  final AlarmPermissionState requestPermissionState;
+  int requestCount = 0;
+
+  @override
+  Future<AlarmPermissionState> checkPermission() async => checkPermissionState;
+
+  @override
+  Future<AlarmPermissionState> requestPermission() async {
+    requestCount += 1;
+    return requestPermissionState;
+  }
+
+  @override
+  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {}
+
+  @override
+  Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) async {}
 }
 
 class _FakeAlarmRepository implements AlarmRepository {

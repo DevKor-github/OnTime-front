@@ -18,6 +18,7 @@ class FinishScheduleUseCase {
   );
 
   Future<void> call(String scheduleId, int latenessTime) async {
+    await _scheduleRepository.startSchedule(scheduleId);
     await _scheduleRepository.finishSchedule(scheduleId, latenessTime);
     await _cancelScheduleAlarmUseCase(scheduleId);
     unawaited(_reconcileAlarmsUseCase());

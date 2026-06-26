@@ -34,6 +34,8 @@ class Endpoint {
   static String updateSchedule(String scheduleId) => '$_schedules/$scheduleId';
   static String deleteScheduleById(String scheduleId) =>
       '$_schedules/$scheduleId';
+  static String startSchedule(String scheduleId) =>
+      '$_schedules/$scheduleId/start';
   static String finishSchedule(String scheduleId) =>
       '$_schedules/$scheduleId/finish';
 

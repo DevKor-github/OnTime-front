@@ -170,7 +170,7 @@ class _AnalyticsPreferenceTile extends StatelessWidget {
             Switch(
               key: const Key('analyticsPreferenceSwitch'),
               value: state.enabled,
-              activeColor: colorScheme.primary,
+              activeThumbColor: colorScheme.primary,
               onChanged: isUpdating
                   ? null
                   : (value) {

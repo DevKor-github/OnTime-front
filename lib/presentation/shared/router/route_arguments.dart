@@ -70,7 +70,7 @@ Map<String, dynamic>? scheduleStartRouteExtraFromState(GoRouterState state) {
   if (queryExtra == null) return extra;
   return {
     ...queryExtra,
-    if (extra != null) ...extra,
+    ...?extra,
   };
 }
 

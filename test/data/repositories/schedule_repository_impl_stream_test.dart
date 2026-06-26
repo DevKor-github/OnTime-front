@@ -36,12 +36,12 @@ class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
     required this.getSchedulesByDateHandler,
     Future<ScheduleEntity> Function(String id)? getScheduleByIdHandler,
     Future<void> Function(ScheduleEntity schedule)? updateScheduleHandler,
-  })  : getScheduleByIdHandler =
-            getScheduleByIdHandler ?? ((_) async => throw UnimplementedError()),
-        updateScheduleHandler = updateScheduleHandler ?? ((_) async {});
+  }) : getScheduleByIdHandler =
+           getScheduleByIdHandler ?? ((_) async => throw UnimplementedError()),
+       updateScheduleHandler = updateScheduleHandler ?? ((_) async {});
 
   Future<List<ScheduleEntity>> Function(DateTime startDate, DateTime? endDate)
-      getSchedulesByDateHandler;
+  getSchedulesByDateHandler;
   Future<ScheduleEntity> Function(String id) getScheduleByIdHandler;
   Future<void> Function(ScheduleEntity schedule) updateScheduleHandler;
 
@@ -53,6 +53,9 @@ class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
 
   @override
   Future<void> finishSchedule(String scheduleId, int latenessTime) async {}
+
+  @override
+  Future<void> startSchedule(String scheduleId) async {}
 
   @override
   Future<ScheduleEntity> getScheduleById(String id) async {
@@ -82,7 +85,8 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
 
   @override
   Future<TimedPreparationSnapshotEntity?> getTimedPreparationSnapshot(
-      String scheduleId) async {
+    String scheduleId,
+  ) async {
     return null;
   }
 
@@ -94,63 +98,65 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
 }
 
 void main() {
-  test('getSchedulesByDate upserts existing schedule by id in stream cache',
-      () async {
-    final startDate = DateTime(2026, 3, 1);
-    final endDate = DateTime(2026, 4, 1);
+  test(
+    'getSchedulesByDate upserts existing schedule by id in stream cache',
+    () async {
+      final startDate = DateTime(2026, 3, 1);
+      final endDate = DateTime(2026, 4, 1);
 
-    final initialSchedule = ScheduleEntity(
-      id: 'schedule-1',
-      place: PlaceEntity(id: 'place-1', placeName: 'Old Place'),
-      scheduleName: 'Old Name',
-      scheduleTime: DateTime(2026, 3, 20, 9, 0),
-      moveTime: const Duration(minutes: 10),
-      isChanged: false,
-      isStarted: false,
-      scheduleSpareTime: const Duration(minutes: 5),
-      scheduleNote: 'old',
-    );
+      final initialSchedule = ScheduleEntity(
+        id: 'schedule-1',
+        place: PlaceEntity(id: 'place-1', placeName: 'Old Place'),
+        scheduleName: 'Old Name',
+        scheduleTime: DateTime(2026, 3, 20, 9, 0),
+        moveTime: const Duration(minutes: 10),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: const Duration(minutes: 5),
+        scheduleNote: 'old',
+      );
 
-    final refreshedSchedule = ScheduleEntity(
-      id: 'schedule-1',
-      place: PlaceEntity(id: 'place-1', placeName: 'New Place'),
-      scheduleName: 'New Name',
-      scheduleTime: DateTime(2026, 3, 20, 9, 0),
-      moveTime: const Duration(minutes: 25),
-      isChanged: true,
-      isStarted: false,
-      scheduleSpareTime: const Duration(minutes: 15),
-      scheduleNote: 'new',
-    );
+      final refreshedSchedule = ScheduleEntity(
+        id: 'schedule-1',
+        place: PlaceEntity(id: 'place-1', placeName: 'New Place'),
+        scheduleName: 'New Name',
+        scheduleTime: DateTime(2026, 3, 20, 9, 0),
+        moveTime: const Duration(minutes: 25),
+        isChanged: true,
+        isStarted: false,
+        scheduleSpareTime: const Duration(minutes: 15),
+        scheduleNote: 'new',
+      );
 
-    var callCount = 0;
-    final remote = FakeScheduleRemoteDataSource(
-      getSchedulesByDateHandler: (_, __) async {
-        callCount += 1;
-        return callCount == 1 ? [initialSchedule] : [refreshedSchedule];
-      },
-    );
+      var callCount = 0;
+      final remote = FakeScheduleRemoteDataSource(
+        getSchedulesByDateHandler: (_, __) async {
+          callCount += 1;
+          return callCount == 1 ? [initialSchedule] : [refreshedSchedule];
+        },
+      );
 
-    final repository = ScheduleRepositoryImpl(
-      scheduleLocalDataSource: FakeScheduleLocalDataSource(),
-      scheduleRemoteDataSource: remote,
-      timedPreparationRepository: FakeTimedPreparationRepository(),
-    );
+      final repository = ScheduleRepositoryImpl(
+        scheduleLocalDataSource: FakeScheduleLocalDataSource(),
+        scheduleRemoteDataSource: remote,
+        timedPreparationRepository: FakeTimedPreparationRepository(),
+      );
 
-    await repository.getSchedulesByDate(startDate, endDate);
-    await repository.getSchedulesByDate(startDate, endDate);
+      await repository.getSchedulesByDate(startDate, endDate);
+      await repository.getSchedulesByDate(startDate, endDate);
 
-    final latest = await repository.scheduleStream.firstWhere(
-      (schedules) =>
-          schedules.length == 1 && schedules.first.scheduleName == 'New Name',
-    );
+      final latest = await repository.scheduleStream.firstWhere(
+        (schedules) =>
+            schedules.length == 1 && schedules.first.scheduleName == 'New Name',
+      );
 
-    expect(latest.length, 1);
-    expect(latest.first.id, 'schedule-1');
-    expect(latest.first.scheduleName, 'New Name');
-    expect(latest.first.place.placeName, 'New Place');
-    expect(latest.first.moveTime, const Duration(minutes: 25));
-  });
+      expect(latest.length, 1);
+      expect(latest.first.id, 'schedule-1');
+      expect(latest.first.scheduleName, 'New Name');
+      expect(latest.first.place.placeName, 'New Place');
+      expect(latest.first.moveTime, const Duration(minutes: 25));
+    },
+  );
 
   test('updateSchedule refreshes edited schedule into stream cache', () async {
     final initialSchedule = ScheduleEntity(

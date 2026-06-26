@@ -29,10 +29,7 @@ class PreparationReorderableListFormField extends FormField<List<int>> {
               itemCount: itemCount,
               itemBuilder: (context, index) =>
                   itemBuilder(context, field.value![index]),
-              onReorder: (oldIndex, newIndex) {
-                if (oldIndex < newIndex) {
-                  newIndex -= 1;
-                }
+              onReorderItem: (oldIndex, newIndex) {
                 final item = field.value!.removeAt(oldIndex);
                 field.value!.insert(newIndex, item);
                 field.didChange(field.value!);

@@ -114,8 +114,9 @@ class _PreparationFormReorderableListState
             },
           );
         },
-        onReorder: (int oldIndex, int newIndex) {
-          widget.onReorder(oldIndex, newIndex);
+        onReorderItem: (int oldIndex, int newIndex) {
+          final legacyNewIndex = oldIndex < newIndex ? newIndex + 1 : newIndex;
+          widget.onReorder(oldIndex, legacyNewIndex);
         },
       ),
     );

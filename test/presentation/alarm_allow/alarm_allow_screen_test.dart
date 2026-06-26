@@ -100,6 +100,7 @@ Future<_AlarmAllowHarness> _pumpAlarmAllowScreen(
   );
   final gateCubit = AlarmGateCubit(
     alarmSchedulerService: scheduler,
+    fallbackAlarmNotificationService: fallback,
     alarmRepository: repository,
     reconcileAlarmsUseCase: reconcileUseCase,
     cancelAllAlarmsUseCase: cancelAllUseCase,
@@ -170,6 +171,15 @@ class _FakeAlarmSchedulerService extends AlarmSchedulerService {
 
   AlarmPermissionState permissionAfterRequest;
   int requestCount = 0;
+
+  @override
+  Future<AlarmSchedulerCapabilities> getCapabilities() async {
+    return const AlarmSchedulerCapabilities(
+      supportsNativeAlarm: true,
+      nativeAlarmProvider: AlarmProvider.iosAlarmKit,
+      fallbackProvider: AlarmProvider.localNotification,
+    );
+  }
 
   @override
   Future<AlarmPermissionState> checkPermission() async {

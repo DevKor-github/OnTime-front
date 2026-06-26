@@ -40,7 +40,10 @@ class PreparationReorderableList extends StatelessWidget {
               preparationStepOrderState: preparationOrderingList[index],
               index: index),
         ),
-        onReorder: onReorder,
+        onReorderItem: (oldIndex, newIndex) {
+          final legacyNewIndex = oldIndex < newIndex ? newIndex + 1 : newIndex;
+          onReorder(oldIndex, legacyNewIndex);
+        },
       ),
     );
   }

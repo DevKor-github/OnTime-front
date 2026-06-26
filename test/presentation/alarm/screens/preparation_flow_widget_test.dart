@@ -21,6 +21,7 @@ import 'package:on_time_front/domain/use-cases/get_early_start_session_use_case.
 import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_use_case.dart';
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/alarm/components/alarm_graph_animator.dart';
 import 'package:on_time_front/presentation/alarm/screens/alarm_screen.dart';
@@ -70,6 +71,11 @@ class SpyFinishScheduleUseCase implements FinishScheduleUseCase {
   Future<void> call(String scheduleId, int latenessTime) async {
     calls.add((scheduleId, latenessTime));
   }
+}
+
+class NoopStartScheduleUseCase implements StartScheduleUseCase {
+  @override
+  Future<void> call(String scheduleId) async {}
 }
 
 class StubGetTimedPreparationSnapshotUseCase
@@ -321,6 +327,7 @@ void main() {
   group('Preparation flow widgets', () {
     late StreamController<ScheduleWithPreparationEntity?> controller;
     late SpyNavigationService navigationService;
+    late NoopStartScheduleUseCase startUseCase;
     late SpyFinishScheduleUseCase finishUseCase;
     late StubGetTimedPreparationSnapshotUseCase getSnapshotUseCase;
     late NoopClearTimedPreparationUseCase clearTimedUseCase;
@@ -334,6 +341,7 @@ void main() {
     setUp(() {
       controller = StreamController<ScheduleWithPreparationEntity?>.broadcast();
       navigationService = SpyNavigationService();
+      startUseCase = NoopStartScheduleUseCase();
       finishUseCase = SpyFinishScheduleUseCase();
       getSnapshotUseCase = StubGetTimedPreparationSnapshotUseCase({});
       clearTimedUseCase = NoopClearTimedPreparationUseCase();
@@ -354,6 +362,7 @@ void main() {
         NoopSaveTimedPreparationUseCase(),
         getSnapshotUseCase,
         clearTimedUseCase,
+        startUseCase,
         finishUseCase,
         markEarlyStartSessionUseCase: markEarlyStartUseCase,
         getEarlyStartSessionUseCase: getEarlyStartUseCase,
@@ -919,6 +928,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1074,6 +1084,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1134,6 +1145,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1202,6 +1214,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1270,6 +1283,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1333,6 +1347,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1439,6 +1454,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1510,6 +1526,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1630,6 +1647,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1677,6 +1695,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1722,6 +1741,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,
@@ -1782,6 +1802,7 @@ void main() {
           NoopSaveTimedPreparationUseCase(),
           StubGetTimedPreparationSnapshotUseCase({}),
           NoopClearTimedPreparationUseCase(),
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: earlyBundle.markUseCase,
           getEarlyStartSessionUseCase: earlyBundle.getUseCase,

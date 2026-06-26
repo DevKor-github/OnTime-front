@@ -25,6 +25,8 @@ abstract interface class ScheduleRemoteDataSource {
 
   Future<void> deleteSchedule(ScheduleEntity schedule);
 
+  Future<void> startSchedule(String scheduleId);
+
   Future<void> finishSchedule(String scheduleId, int latenessTime);
 }
 
@@ -85,6 +87,20 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         return;
       } else {
         throw Exception('Error deleting schedule');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> startSchedule(String scheduleId) async {
+    try {
+      final result = await dio.post(Endpoint.startSchedule(scheduleId));
+      if (result.statusCode == 200) {
+        return;
+      } else {
+        throw Exception('Error starting schedule');
       }
     } catch (e) {
       rethrow;

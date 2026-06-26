@@ -23,6 +23,7 @@ import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_us
 import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 
 class StubGetNearestUpcomingScheduleUseCase
@@ -73,6 +74,15 @@ class SpyFinishScheduleUseCase implements FinishScheduleUseCase {
     if (throwOnCall) {
       throw Exception('finish failed');
     }
+  }
+}
+
+class SpyStartScheduleUseCase implements StartScheduleUseCase {
+  final List<String> calls = [];
+
+  @override
+  Future<void> call(String scheduleId) async {
+    calls.add(scheduleId);
   }
 }
 
@@ -217,6 +227,7 @@ void main() {
     late StreamController<ScheduleWithPreparationEntity?> controller;
     late SpyNavigationService navigationService;
     late SpySaveTimedPreparationUseCase saveUseCase;
+    late SpyStartScheduleUseCase startUseCase;
     late SpyFinishScheduleUseCase finishUseCase;
     late StubGetTimedPreparationSnapshotUseCase getSnapshotUseCase;
     late SpyClearTimedPreparationUseCase clearTimedUseCase;
@@ -238,6 +249,7 @@ void main() {
       controller = StreamController<ScheduleWithPreparationEntity?>.broadcast();
       navigationService = SpyNavigationService();
       saveUseCase = SpySaveTimedPreparationUseCase();
+      startUseCase = SpyStartScheduleUseCase();
       finishUseCase = SpyFinishScheduleUseCase();
       getSnapshotUseCase = StubGetTimedPreparationSnapshotUseCase();
       clearTimedUseCase = SpyClearTimedPreparationUseCase();
@@ -262,6 +274,7 @@ void main() {
         saveUseCase,
         getSnapshotUseCase,
         clearTimedUseCase,
+        startUseCase,
         finishUseCase,
         markEarlyStartSessionUseCase: markEarlySessionUseCase,
         getEarlyStartSessionUseCase: getEarlySessionUseCase,
@@ -303,6 +316,7 @@ void main() {
           saveUseCase,
           getSnapshotUseCase,
           clearTimedUseCase,
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: markEarlySessionUseCase,
           getEarlyStartSessionUseCase: getEarlySessionUseCase,
@@ -330,6 +344,7 @@ void main() {
           saveUseCase,
           getSnapshotUseCase,
           clearTimedUseCase,
+          startUseCase,
           finishUseCase,
           markEarlyStartSessionUseCase: markEarlySessionUseCase,
           getEarlyStartSessionUseCase: getEarlySessionUseCase,

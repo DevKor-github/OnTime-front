@@ -359,6 +359,9 @@ class _FakeScheduleRepository implements ScheduleRepository {
   Future<void> finishSchedule(String scheduleId, int latenessTime) async {}
 
   @override
+  Future<void> startSchedule(String scheduleId) async {}
+
+  @override
   Future<ScheduleEntity> getScheduleById(String id) async =>
       _schedules.firstWhere((schedule) => schedule.id == id);
 

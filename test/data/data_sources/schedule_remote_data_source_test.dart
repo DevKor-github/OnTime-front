@@ -20,24 +20,27 @@ void main() {
   });
 
   test(
-    'create, update, delete, and finish send schedule API contracts',
+    'create, update, delete, start, and finish send schedule API contracts',
     () async {
       final schedule = _schedule('schedule-1');
 
       await dataSource.createSchedule(schedule);
       await dataSource.updateSchedule(schedule);
       await dataSource.deleteSchedule(schedule);
+      await dataSource.startSchedule('schedule-1');
       await dataSource.finishSchedule('schedule-1', 7);
 
       expect(adapter.requests.map((request) => request.method), [
         'POST',
         'PUT',
         'DELETE',
+        'POST',
         'PUT',
       ]);
       expect(adapter.requests[0].body['scheduleName'], 'Meeting schedule-1');
       expect(adapter.requests[1].body['scheduleName'], 'Meeting schedule-1');
-      expect(adapter.requests[3].body, {
+      expect(adapter.requests[3].path, '/schedules/schedule-1/start');
+      expect(adapter.requests[4].body, {
         'scheduleId': 'schedule-1',
         'latenessTime': 7,
       });

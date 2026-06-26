@@ -13,6 +13,7 @@ import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/finish_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
+import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
 
 void main() {
@@ -84,8 +85,21 @@ void main() {
       await pumpEventQueue();
 
       expect(scheduleRepository.finishedSchedules, [('schedule-1', 12)]);
+      expect(scheduleRepository.startedScheduleIds, ['schedule-1']);
       expect(cancel.cancelledScheduleIds, ['schedule-1']);
       expect(reconcile.callCount, 1);
+    },
+  );
+
+  test(
+    'start schedule marks a preparation session on the repository',
+    () async {
+      final scheduleRepository = _FakeScheduleRepository();
+      final useCase = StartScheduleUseCase(scheduleRepository);
+
+      await useCase('schedule-1');
+
+      expect(scheduleRepository.startedScheduleIds, ['schedule-1']);
     },
   );
 
@@ -122,6 +136,7 @@ class _FakeScheduleRepository implements ScheduleRepository {
   final createdSchedules = <ScheduleEntity>[];
   final updatedSchedules = <ScheduleEntity>[];
   final deletedSchedules = <ScheduleEntity>[];
+  final startedScheduleIds = <String>[];
   final finishedSchedules = <(String, int)>[];
 
   @override
@@ -140,6 +155,11 @@ class _FakeScheduleRepository implements ScheduleRepository {
   @override
   Future<void> finishSchedule(String scheduleId, int latenessTime) async {
     finishedSchedules.add((scheduleId, latenessTime));
+  }
+
+  @override
+  Future<void> startSchedule(String scheduleId) async {
+    startedScheduleIds.add(scheduleId);
   }
 
   @override

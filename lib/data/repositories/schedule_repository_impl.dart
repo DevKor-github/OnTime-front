@@ -54,6 +54,15 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
+  Future<void> startSchedule(String scheduleId) async {
+    try {
+      await scheduleRemoteDataSource.startSchedule(scheduleId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
   Future<ScheduleEntity> getScheduleById(String id) async {
     try {
       final schedule = await scheduleRemoteDataSource.getScheduleById(id);

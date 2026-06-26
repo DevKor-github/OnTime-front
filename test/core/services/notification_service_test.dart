@@ -61,6 +61,46 @@ void main() {
     expect(messaging.requestPermissionCount, 1);
   });
 
+  test('iOS permission checks use local notification permission', () async {
+    final messaging = _FakeFirebaseMessaging(AuthorizationStatus.authorized);
+    final iosPlugin = _FakeIOSLocalNotificationsPlugin(
+      permissionsEnabled: false,
+    );
+    final service = NotificationService.test(
+      messaging: messaging,
+      localNotifications: _RecordingLocalNotifications(iosPlugin: iosPlugin),
+      isFlutterLocalNotificationsInitialized: true,
+      isIOSOverride: true,
+    );
+
+    expect(
+      await service.checkNotificationPermission(),
+      AuthorizationStatus.denied,
+    );
+    expect(iosPlugin.checkPermissionsCount, 1);
+  });
+
+  test('iOS permission requests ask local notification plugin too', () async {
+    final messaging = _FakeFirebaseMessaging(AuthorizationStatus.notDetermined)
+      ..requestedAuthorizationStatus = AuthorizationStatus.authorized;
+    final iosPlugin = _FakeIOSLocalNotificationsPlugin(
+      requestPermissionsResult: true,
+    );
+    final service = NotificationService.test(
+      messaging: messaging,
+      localNotifications: _RecordingLocalNotifications(iosPlugin: iosPlugin),
+      isFlutterLocalNotificationsInitialized: true,
+      isIOSOverride: true,
+    );
+
+    expect(await service.requestPermission(), AuthorizationStatus.authorized);
+    expect(messaging.requestPermissionCount, 1);
+    expect(iosPlugin.requestPermissionsCount, 1);
+    expect(iosPlugin.lastRequestedAlert, isTrue);
+    expect(iosPlugin.lastRequestedBadge, isTrue);
+    expect(iosPlugin.lastRequestedSound, isTrue);
+  });
+
   test(
     'initialize requests permission, sets up local notifications, and routes initial messages',
     () async {
@@ -431,6 +471,15 @@ void main() {
         localNotifications.scheduled.single.body,
         contains('time to get ready'),
       );
+      expect(
+        localNotifications
+            .scheduled
+            .single
+            .notificationDetails
+            .iOS
+            ?.interruptionLevel,
+        InterruptionLevel.timeSensitive,
+      );
       expect(localNotifications.cancelledIds, [stableAlarmId('schedule-1')]);
     },
   );
@@ -536,14 +585,25 @@ class _ShownNotification {
 }
 
 class _ScheduledNotification {
-  const _ScheduledNotification(this.id, this.title, this.body);
+  const _ScheduledNotification(
+    this.id,
+    this.title,
+    this.body,
+    this.scheduledDate,
+    this.notificationDetails,
+  );
 
   final int id;
   final String? title;
   final String? body;
+  final tz.TZDateTime scheduledDate;
+  final NotificationDetails notificationDetails;
 }
 
 class _RecordingLocalNotifications implements FlutterLocalNotificationsPlugin {
+  _RecordingLocalNotifications({this.iosPlugin});
+
+  final _FakeIOSLocalNotificationsPlugin? iosPlugin;
   final shown = <_ShownNotification>[];
   final scheduled = <_ScheduledNotification>[];
   final cancelledIds = <int>[];
@@ -557,6 +617,9 @@ class _RecordingLocalNotifications implements FlutterLocalNotificationsPlugin {
   T? resolvePlatformSpecificImplementation<
     T extends FlutterLocalNotificationsPlatform
   >() {
+    if (T == IOSFlutterLocalNotificationsPlugin) {
+      return iosPlugin as T?;
+    }
     return null;
   }
 
@@ -610,7 +673,15 @@ class _RecordingLocalNotifications implements FlutterLocalNotificationsPlugin {
     String? payload,
     DateTimeComponents? matchDateTimeComponents,
   }) async {
-    scheduled.add(_ScheduledNotification(id, title, body));
+    scheduled.add(
+      _ScheduledNotification(
+        id,
+        title,
+        body,
+        scheduledDate,
+        notificationDetails,
+      ),
+    );
   }
 
   @override
@@ -619,7 +690,69 @@ class _RecordingLocalNotifications implements FlutterLocalNotificationsPlugin {
   }
 
   @override
+  Future<List<PendingNotificationRequest>> pendingNotificationRequests() async {
+    return [
+      for (final notification in scheduled)
+        PendingNotificationRequest(
+          notification.id,
+          notification.title,
+          notification.body,
+          null,
+        ),
+    ];
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeIOSLocalNotificationsPlugin
+    extends IOSFlutterLocalNotificationsPlugin {
+  _FakeIOSLocalNotificationsPlugin({
+    this.permissionsEnabled = true,
+    this.requestPermissionsResult,
+  });
+
+  bool permissionsEnabled;
+  bool? requestPermissionsResult;
+  int checkPermissionsCount = 0;
+  int requestPermissionsCount = 0;
+  bool? lastRequestedAlert;
+  bool? lastRequestedBadge;
+  bool? lastRequestedSound;
+
+  @override
+  Future<NotificationsEnabledOptions?> checkPermissions() async {
+    checkPermissionsCount += 1;
+    return NotificationsEnabledOptions(
+      isEnabled: permissionsEnabled,
+      isSoundEnabled: permissionsEnabled,
+      isAlertEnabled: permissionsEnabled,
+      isBadgeEnabled: permissionsEnabled,
+      isProvisionalEnabled: false,
+      isCriticalEnabled: false,
+      isProvidesAppNotificationSettingsEnabled: false,
+    );
+  }
+
+  @override
+  Future<bool?> requestPermissions({
+    bool sound = false,
+    bool alert = false,
+    bool badge = false,
+    bool provisional = false,
+    bool critical = false,
+    bool carPlay = false,
+    bool providesAppNotificationSettings = false,
+  }) async {
+    requestPermissionsCount += 1;
+    lastRequestedAlert = alert;
+    lastRequestedBadge = badge;
+    lastRequestedSound = sound;
+    final result = requestPermissionsResult ?? permissionsEnabled;
+    permissionsEnabled = result;
+    return result;
+  }
 }
 
 class _FakeNavigationService implements NavigationService {

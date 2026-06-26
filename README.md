@@ -19,8 +19,8 @@ Primary supported targets are web, Android, and iOS. Desktop platform folders ar
 
 ## Requirements
 
-- Flutter stable. CI uses Flutter `3.32.6`; use that version for release parity when possible.
-- Dart SDK compatible with `pubspec.yaml` (`^3.5.4`).
+- Flutter stable. CI uses Flutter `3.44.4`; use that version for release parity when possible.
+- Dart SDK compatible with `pubspec.yaml` (`^3.8.0`).
 - Java and Android SDK for Android builds.
 - Xcode and CocoaPods for iOS builds.
 - Firebase CLI and FlutterFire CLI when regenerating Firebase config.

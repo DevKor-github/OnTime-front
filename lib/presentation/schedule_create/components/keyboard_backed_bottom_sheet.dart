@@ -10,6 +10,7 @@ class KeyboardBackedBottomSheet extends StatelessWidget {
   });
 
   static const keyboardBackplateKey = Key('keyboard_backed_bottom_sheet_plate');
+  static const sheetKey = Key('keyboard_backed_bottom_sheet');
 
   final Widget child;
   final double heightFactor;
@@ -30,6 +31,7 @@ class KeyboardBackedBottomSheet extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: SafeArea(
+        bottom: false,
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
@@ -51,6 +53,7 @@ class KeyboardBackedBottomSheet extends StatelessWidget {
               child: FractionallySizedBox(
                 heightFactor: heightFactor,
                 child: Container(
+                  key: sheetKey,
                   decoration: BoxDecoration(
                     color: backgroundColor,
                     borderRadius: borderRadius,

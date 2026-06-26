@@ -3,6 +3,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/presentation/schedule_create/components/keyboard_backed_bottom_sheet.dart';
 
 void main() {
+  testWidgets('fills the bottom safe area while keyboard is hidden', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.padding = FakeViewPadding(bottom: 34);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetPadding);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: KeyboardBackedBottomSheet(child: SizedBox.expand()),
+      ),
+    );
+
+    expect(
+      tester.getBottomLeft(find.byKey(KeyboardBackedBottomSheet.sheetKey)).dy,
+      844,
+    );
+  });
+
   testWidgets('paints a white backplate behind the iOS keyboard inset', (
     tester,
   ) async {

@@ -547,6 +547,7 @@ void main() {
           bloc.state.schedule!.preparation.preparationStepList[1].elapsedTime,
           const Duration(minutes: 5),
         );
+        expect(notifiedStepIds, isEmpty);
       },
     );
 

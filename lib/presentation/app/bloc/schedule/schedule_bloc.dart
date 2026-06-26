@@ -148,6 +148,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   String? _activeEarlyStartScheduleId;
   Timer? _preparationTimer;
   DateTime? _lastSnapshotSavedAt;
+  bool _suppressNextCatchUpStepNotification = false;
   final Set<String> _serverStartedScheduleIds = {};
   final Map<String, Set<String>> _notifiedStepIdsByScheduleId = {};
 
@@ -460,7 +461,12 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
           updatedPreparation,
         );
 
-    _checkAndNotifyStepChange(state.schedule!, newSchedule);
+    final shouldSuppressStepNotification =
+        _suppressNextCatchUpStepNotification;
+    _suppressNextCatchUpStepNotification = false;
+    if (!shouldSuppressStepNotification) {
+      _checkAndNotifyStepChange(state.schedule!, newSchedule);
+    }
 
     emit(state.copyWith(schedule: newSchedule));
     final stepChanged = oldStepId != newSchedule.preparation.currentStep?.id;
@@ -538,6 +544,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (elapsedTimeAfterLastTick > Duration.zero) {
       AppLogger.debug('elapsedTimeAfterLastTick: $elapsedTimeAfterLastTick');
       if (!isClosed) {
+        _suppressNextCatchUpStepNotification = true;
         add(ScheduleTick(elapsedTimeAfterLastTick));
       }
     }

@@ -567,12 +567,23 @@ class ReconcileAlarmsUseCase {
     ScheduledAlarmRecord existing,
     ScheduledAlarmRecord desired,
   ) {
-    return existing.scheduleFingerprint == desired.scheduleFingerprint &&
+    final sameScheduleContract =
+        existing.scheduleFingerprint == desired.scheduleFingerprint &&
         existing.payload['alarmLaunchPayloadVersion'] ==
             desired.payload['alarmLaunchPayloadVersion'] &&
-        existing.alarmTime.isAtSameMomentAs(desired.alarmTime) &&
         existing.preparationStartTime
             .isAtSameMomentAs(desired.preparationStartTime);
+    if (!sameScheduleContract) return false;
+
+    if (_isCatchUpRecord(existing) && _isCatchUpRecord(desired)) {
+      return existing.payload['alarmTime'] == desired.payload['alarmTime'];
+    }
+
+    return existing.alarmTime.isAtSameMomentAs(desired.alarmTime);
+  }
+
+  bool _isCatchUpRecord(ScheduledAlarmRecord record) {
+    return record.payload['missedAlarmCatchUp'] == 'true';
   }
 
   bool _recordProviderMatchesCapabilities(

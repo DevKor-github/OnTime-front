@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
+import 'package:on_time_front/presentation/schedule_create/components/keyboard_backed_bottom_sheet.dart';
 import 'package:on_time_front/presentation/schedule_create/components/schedule_multi_page_form.dart';
 
 class ScheduleEditScreen extends StatelessWidget {
@@ -12,37 +13,19 @@ class ScheduleEditScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    return Material(
-      color: Colors.transparent,
-      child: SafeArea(
-        child: AnimatedPadding(
-          padding: EdgeInsets.only(bottom: bottomInset),
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          child: FractionallySizedBox(
-            heightFactor: 0.85,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
+    return KeyboardBackedBottomSheet(
+      child: BlocProvider<ScheduleFormBloc>(
+        create: (context) =>
+            getIt.get<ScheduleFormBloc>(param1: context.read<AuthBloc>())
+              ..add(ScheduleFormEditRequested(scheduleId: scheduleId)),
+        child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
+          builder: (context, state) {
+            return ScheduleMultiPageForm(
+              onSaved: () => context.read<ScheduleFormBloc>().add(
+                const ScheduleFormUpdated(),
               ),
-              child: BlocProvider<ScheduleFormBloc>(
-                create: (context) => getIt.get<ScheduleFormBloc>(
-                  param1: context.read<AuthBloc>(),
-                )..add(ScheduleFormEditRequested(scheduleId: scheduleId)),
-                child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
-                  builder: (context, state) {
-                    return ScheduleMultiPageForm(
-                        onSaved: () => context.read<ScheduleFormBloc>().add(
-                              const ScheduleFormUpdated(),
-                            ));
-                  },
-                ),
-              ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

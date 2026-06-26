@@ -27,6 +27,7 @@ Welcome to the OnTime-front project documentation! This wiki contains everything
 
 ### Technical Deep Dives
 - [Error Handling System](./Error-Handling-Result-System.md) - Result-based error handling architecture
+- [Schedule Notification Flow](./Schedule-Notification-Flow.md) - OS-specific notification/alarm permission flows, status labels, and copy rules
 - [Schedule Preparation Flow SRD](./Schedule-Preparation-SRD.md) - End-to-end requirements, diagrams, and branch coverage for preparation start through finish, including early start
 - [Schedule Timer & Runtime Flow (v2)](./Schedule-Timer-System.md) - Official behavior for early start, timer transitions, cache coherence, and verification matrix
 

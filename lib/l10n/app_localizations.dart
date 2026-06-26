@@ -200,6 +200,12 @@ abstract class AppLocalizations {
   /// **'OnTime sends schedule preparation reminders so you can get ready on time.'**
   String get notificationPermissionDescription;
 
+  /// Button text to allow precise schedule notification timing
+  ///
+  /// In en, this message translates to:
+  /// **'Allow precise notifications'**
+  String get allowPreciseNotifications;
+
   /// Title asking the user to allow alarm permission
   ///
   /// In en, this message translates to:
@@ -836,16 +842,64 @@ abstract class AppLocalizations {
   /// **'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.'**
   String get openNotificationSettingsDescription;
 
+  /// Title asking the user to allow precise schedule notification timing
+  ///
+  /// In en, this message translates to:
+  /// **'Precise notification permission needed'**
+  String get preciseNotificationPermissionRequired;
+
+  /// Description explaining why precise schedule notification timing is needed
+  ///
+  /// In en, this message translates to:
+  /// **'OnTime needs this permission to notify you at the exact time to start preparing.'**
+  String get preciseNotificationPermissionDescription;
+
+  /// My Page setting label for schedule preparation notifications
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule notifications'**
+  String get scheduleNotificationSetting;
+
+  /// Status label when schedule delivery uses a real alarm experience
+  ///
+  /// In en, this message translates to:
+  /// **'Alarm'**
+  String get alarmStatus;
+
+  /// Status label when schedule delivery uses precise notification timing
+  ///
+  /// In en, this message translates to:
+  /// **'Precise notification'**
+  String get preciseNotificationStatus;
+
+  /// Status label when schedule delivery uses regular notifications
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get notificationStatus;
+
+  /// Status label when no upcoming schedule notification is armed
+  ///
+  /// In en, this message translates to:
+  /// **'No scheduled notifications'**
+  String get noScheduledNotificationStatus;
+
+  /// Status label when notifications cannot be shown without permission
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission needed'**
+  String get notificationPermissionNeededStatus;
+
   /// Dialog title when exact alarm permission is required
   ///
   /// In en, this message translates to:
-  /// **'Precise Alarm Permission Required'**
+  /// **'Precise notification permission needed'**
   String get exactAlarmPermissionRequired;
 
   /// Dialog content explaining why exact alarm permission is needed
   ///
   /// In en, this message translates to:
-  /// **'OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.'**
+  /// **'OnTime needs this permission to notify you at the exact time to start preparing.\nAllow alarms and reminders in Android settings.'**
   String get exactAlarmPermissionRequiredDescription;
 
   /// Button text to open app settings

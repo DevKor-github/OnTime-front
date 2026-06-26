@@ -23,7 +23,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('shows English alarm permission rationale', (tester) async {
+  testWidgets('shows English precise notification permission rationale', (
+    tester,
+  ) async {
     final harness = await _pumpAlarmAllowScreen(
       tester,
       locale: const Locale('en'),
@@ -33,13 +35,13 @@ void main() {
 
     expect(
       find.text(
-        'OnTime uses alarms so preparation starts at the right moment, even when the app is closed.',
+        'OnTime needs this permission to notify you at the exact time to start preparing.',
       ),
       findsOneWidget,
     );
   });
 
-  testWidgets('granted alarm permission enables alarms and continues home', (
+  testWidgets('granted precise notification permission enables notifications', (
     tester,
   ) async {
     final harness = await _pumpAlarmAllowScreen(
@@ -48,7 +50,7 @@ void main() {
     );
     addTearDown(harness.dispose);
 
-    await tester.tap(find.text('Allow alarms'));
+    await tester.tap(find.text('Allow precise notifications'));
     await tester.pumpAndSettle();
 
     expect(harness.scheduler.requestCount, 1);
@@ -58,7 +60,28 @@ void main() {
     expect(harness.gateCubit.state.status, AlarmGateStatus.allowed);
   });
 
-  testWidgets('dismiss disables alarms and continues home', (tester) async {
+  testWidgets('uses alarm language for iOS AlarmKit capability', (
+    tester,
+  ) async {
+    final harness = await _pumpAlarmAllowScreen(
+      tester,
+      locale: const Locale('en'),
+      capabilities: const AlarmSchedulerCapabilities(
+        supportsNativeAlarm: true,
+        nativeAlarmProvider: AlarmProvider.iosAlarmKit,
+        fallbackProvider: AlarmProvider.localNotification,
+      ),
+      permissionAfterRequest: AlarmPermissionState.denied,
+    );
+    addTearDown(harness.dispose);
+
+    expect(find.text('Please allow alarms'), findsOneWidget);
+    expect(find.text('Allow alarms'), findsOneWidget);
+  });
+
+  testWidgets('dismiss keeps notification delivery when fallback is available', (
+    tester,
+  ) async {
     final harness = await _pumpAlarmAllowScreen(
       tester,
       permissionAfterRequest: AlarmPermissionState.denied,
@@ -68,8 +91,8 @@ void main() {
     await tester.tap(find.text("I'll do it later."));
     await tester.pumpAndSettle();
 
-    expect(harness.repository.updatedSettings, [false]);
-    expect(harness.cancelAllUseCase.callCount, 1);
+    expect(harness.repository.updatedSettings, isEmpty);
+    expect(harness.cancelAllUseCase.callCount, 0);
     expect(find.text('home'), findsOneWidget);
     expect(harness.gateCubit.state.status, AlarmGateStatus.dismissed);
   });
@@ -79,10 +102,16 @@ Future<_AlarmAllowHarness> _pumpAlarmAllowScreen(
   WidgetTester tester, {
   Locale locale = const Locale('en'),
   required AlarmPermissionState permissionAfterRequest,
+  AlarmSchedulerCapabilities capabilities = const AlarmSchedulerCapabilities(
+    supportsNativeAlarm: true,
+    nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+    fallbackProvider: AlarmProvider.localNotification,
+  ),
 }) async {
   final repository = _FakeAlarmRepository();
   final registry = _FakeAlarmRegistry();
   final scheduler = _FakeAlarmSchedulerService(
+    capabilities: capabilities,
     permissionAfterRequest: permissionAfterRequest,
   );
   final fallback = _FakeFallbackAlarmNotificationService();
@@ -167,18 +196,18 @@ class _AlarmAllowHarness {
 }
 
 class _FakeAlarmSchedulerService extends AlarmSchedulerService {
-  _FakeAlarmSchedulerService({required this.permissionAfterRequest});
+  _FakeAlarmSchedulerService({
+    required this.capabilities,
+    required this.permissionAfterRequest,
+  });
 
+  final AlarmSchedulerCapabilities capabilities;
   AlarmPermissionState permissionAfterRequest;
   int requestCount = 0;
 
   @override
   Future<AlarmSchedulerCapabilities> getCapabilities() async {
-    return const AlarmSchedulerCapabilities(
-      supportsNativeAlarm: true,
-      nativeAlarmProvider: AlarmProvider.iosAlarmKit,
-      fallbackProvider: AlarmProvider.localNotification,
-    );
+    return capabilities;
   }
 
   @override

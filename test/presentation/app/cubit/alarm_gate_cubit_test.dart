@@ -185,7 +185,7 @@ void main() {
   );
 
   test(
-    'refreshPermission does not disable alarms when fallback permission is granted',
+    'refreshPermission still prompts for exact timing but keeps fallback delivery',
     () async {
       final repository = _FakeAlarmRepository();
       final cancelAll = _FakeCancelAllAlarmsUseCase();
@@ -208,9 +208,42 @@ void main() {
 
       await cubit.refreshPermission(disableAlarmsWhenPermissionMissing: true);
 
-      expect(cubit.state, const AlarmGateState.allowed());
+      expect(cubit.state, const AlarmGateState.required());
       expect(repository.updatedAlarmSettings, isEmpty);
       expect(cancelAll.callCount, 0);
+    },
+  );
+
+  test(
+    'requestPermission falls back to notification delivery when exact timing is denied',
+    () async {
+      final repository = _FakeAlarmRepository();
+      final reconcile = _FakeReconcileAlarmsUseCase();
+      final fallback = _FakeFallbackAlarmNotificationService(
+        requestPermissionState: AlarmPermissionState.granted,
+      );
+      final cubit = _buildCubit(
+        scheduler: _FakeAlarmSchedulerService(
+          requestPermissionState: AlarmPermissionState.denied,
+          capabilities: const AlarmSchedulerCapabilities(
+            supportsNativeAlarm: true,
+            nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+            fallbackProvider: AlarmProvider.localNotification,
+          ),
+        ),
+        fallback: fallback,
+        repository: repository,
+        reconcile: reconcile,
+      );
+      addTearDown(cubit.close);
+
+      final permission = await cubit.requestPermission();
+
+      expect(permission, AlarmPermissionState.granted);
+      expect(cubit.state, const AlarmGateState.allowed());
+      expect(fallback.requestCount, 1);
+      expect(repository.updatedAlarmSettings, [true]);
+      expect(reconcile.callCount, 1);
     },
   );
 

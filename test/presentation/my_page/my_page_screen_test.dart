@@ -387,7 +387,7 @@ void main() {
     expect(authBloc.addedEvents.single, isA<AuthSignOutPressed>());
   });
 
-  testWidgets('shows native alarm status when native records exist', (
+  testWidgets('shows precise notification status for Android alarm manager', (
     tester,
   ) async {
     final alarmRepository =
@@ -401,11 +401,24 @@ void main() {
 
     await _pumpMyPage(tester, locale: const Locale('ko'));
 
-    expect(find.text('네이티브 알람'), findsOneWidget);
+    expect(find.text('정확한 알림'), findsOneWidget);
     expect(
       tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
       isTrue,
     );
+  });
+
+  testWidgets('shows alarm status for iOS AlarmKit records', (tester) async {
+    final alarmRepository =
+        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
+    final alarmRegistry =
+        getIt.get<AlarmRegistryRepository>() as _FakeAlarmRegistry;
+    alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
+    alarmRegistry.records = [_alarmRecord(provider: AlarmProvider.iosAlarmKit)];
+
+    await _pumpMyPage(tester, locale: const Locale('ko'));
+
+    expect(find.text('알람'), findsOneWidget);
   });
 
   testWidgets(
@@ -422,25 +435,26 @@ void main() {
 
       await _pumpMyPage(tester, locale: const Locale('ko'));
 
-      expect(find.text('알림 대체'), findsOneWidget);
+      expect(find.text('알림'), findsOneWidget);
     },
   );
 
-  testWidgets('shows unsupported status when no alarm provider can be used', (
-    tester,
-  ) async {
-    final alarmRepository =
-        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-    final fallbackService =
-        getIt.get<FallbackAlarmNotificationService>()
-            as _FakeFallbackAlarmNotificationService;
-    alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
-    fallbackService.permission = AlarmPermissionState.denied;
+  testWidgets(
+    'shows notification permission needed when no delivery can be used',
+    (tester) async {
+      final alarmRepository =
+          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
+      final fallbackService =
+          getIt.get<FallbackAlarmNotificationService>()
+              as _FakeFallbackAlarmNotificationService;
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
+      fallbackService.permission = AlarmPermissionState.denied;
 
-    await _pumpMyPage(tester, locale: const Locale('ko'));
+      await _pumpMyPage(tester, locale: const Locale('ko'));
 
-    expect(find.text('지원 안 됨'), findsOneWidget);
-  });
+      expect(find.text('알림 권한 필요'), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'shows permission-needed status when all alarm permissions fail',
@@ -463,7 +477,7 @@ void main() {
 
       await _pumpMyPage(tester, locale: const Locale('ko'));
 
-      expect(find.text('권한 필요'), findsOneWidget);
+      expect(find.text('알림 권한 필요'), findsOneWidget);
     },
   );
 

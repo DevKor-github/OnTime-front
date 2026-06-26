@@ -17,11 +17,13 @@ class AlarmAllowScreen extends StatefulWidget {
 class _AlarmAllowScreenState extends State<AlarmAllowScreen>
     with WidgetsBindingObserver {
   bool _isRequesting = false;
+  bool _usesAlarmLanguage = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _loadPromptLanguage();
   }
 
   @override
@@ -54,6 +56,16 @@ class _AlarmAllowScreenState extends State<AlarmAllowScreen>
     }
   }
 
+  Future<void> _loadPromptLanguage() async {
+    final usesAlarmLanguage = await context
+        .read<AlarmGateCubit>()
+        .shouldUseAlarmLanguageForPrompt();
+    if (!mounted) return;
+    setState(() {
+      _usesAlarmLanguage = usesAlarmLanguage;
+    });
+  }
+
   Future<void> _dismiss() async {
     await context.read<AlarmGateCubit>().dismissPrompt();
     if (!mounted) return;
@@ -78,12 +90,13 @@ class _AlarmAllowScreenState extends State<AlarmAllowScreen>
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 40,
-                  children: const [_Image(), _Title()],
+                  children: [_Image(), _Title(_usesAlarmLanguage)],
                 ),
               ),
             ),
             _Buttons(
               isRequesting: _isRequesting,
+              usesAlarmLanguage: _usesAlarmLanguage,
               onAllow: _requestPermission,
               onDismiss: _dismiss,
             ),
@@ -97,11 +110,13 @@ class _AlarmAllowScreenState extends State<AlarmAllowScreen>
 class _Buttons extends StatelessWidget {
   const _Buttons({
     required this.isRequesting,
+    required this.usesAlarmLanguage,
     required this.onAllow,
     required this.onDismiss,
   });
 
   final bool isRequesting;
+  final bool usesAlarmLanguage;
   final Future<void> Function() onAllow;
   final Future<void> Function() onDismiss;
 
@@ -118,7 +133,9 @@ class _Buttons extends StatelessWidget {
         FilledButton(
           onPressed: isRequesting ? null : () => onAllow(),
           child: Text(
-            AppLocalizations.of(context)!.allowAlarms,
+            usesAlarmLanguage
+                ? AppLocalizations.of(context)!.allowAlarms
+                : AppLocalizations.of(context)!.allowPreciseNotifications,
             textAlign: TextAlign.center,
             style: textTheme.titleMedium?.copyWith(
               color: colorScheme.onPrimary,
@@ -146,7 +163,9 @@ class _Buttons extends StatelessWidget {
 }
 
 class _Title extends StatelessWidget {
-  const _Title();
+  const _Title(this.usesAlarmLanguage);
+
+  final bool usesAlarmLanguage;
 
   @override
   Widget build(BuildContext context) {
@@ -159,14 +178,22 @@ class _Title extends StatelessWidget {
       spacing: 12,
       children: [
         Text(
-          AppLocalizations.of(context)!.pleaseAllowAlarms,
+          usesAlarmLanguage
+              ? AppLocalizations.of(context)!.pleaseAllowAlarms
+              : AppLocalizations.of(
+                  context,
+                )!.preciseNotificationPermissionRequired,
           textAlign: TextAlign.center,
           style: textTheme.headlineMedium?.copyWith(color: colorScheme.primary),
         ),
         SizedBox(
           width: 282,
           child: Text(
-            AppLocalizations.of(context)!.alarmPermissionDescription,
+            usesAlarmLanguage
+                ? AppLocalizations.of(context)!.alarmPermissionDescription
+                : AppLocalizations.of(
+                    context,
+                  )!.preciseNotificationPermissionDescription,
             textAlign: TextAlign.center,
             style: textTheme.titleMedium?.copyWith(color: colorScheme.outline),
           ),

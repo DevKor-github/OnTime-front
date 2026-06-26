@@ -61,7 +61,8 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
       return;
     }
 
-    if (disableAlarmsWhenPermissionMissing) {
+    if (disableAlarmsWhenPermissionMissing &&
+        !await _hasGrantedFallbackPermission(capabilities)) {
       await _disableAlarmsBestEffort();
     }
 
@@ -89,7 +90,9 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
       return permission;
     }
 
-    await _disableAlarmsBestEffort();
+    if (!await _hasGrantedFallbackPermission(capabilities)) {
+      await _disableAlarmsBestEffort();
+    }
     emit(const AlarmGateState.required());
     return permission;
   }
@@ -102,12 +105,8 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
       return nativePermission;
     }
 
-    final fallbackPermission = await _checkFallbackPermission(capabilities);
-    if (fallbackPermission == AlarmPermissionState.granted) {
-      return fallbackPermission;
-    }
     if (nativePermission == AlarmPermissionState.unsupported) {
-      return fallbackPermission;
+      return _checkFallbackPermission(capabilities);
     }
     return nativePermission;
   }
@@ -120,11 +119,11 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
       return nativePermission;
     }
 
+    if (nativePermission == AlarmPermissionState.unsupported) {
+      return _requestFallbackPermission(capabilities);
+    }
     final fallbackPermission = await _requestFallbackPermission(capabilities);
     if (fallbackPermission == AlarmPermissionState.granted) {
-      return fallbackPermission;
-    }
-    if (nativePermission == AlarmPermissionState.unsupported) {
       return fallbackPermission;
     }
     return nativePermission;
@@ -171,8 +170,24 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
   Future<void> dismissPrompt() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_dismissedKey, true);
-    await _disableAlarmsBestEffort();
+    final capabilities = await _alarmSchedulerService.getCapabilities();
+    if (!await _hasGrantedFallbackPermission(capabilities)) {
+      await _disableAlarmsBestEffort();
+    }
     emit(const AlarmGateState.dismissed());
+  }
+
+  Future<bool> shouldUseAlarmLanguageForPrompt() async {
+    final capabilities = await _alarmSchedulerService.getCapabilities();
+    return capabilities.supportsNativeAlarm &&
+        capabilities.nativeAlarmProvider == AlarmProvider.iosAlarmKit;
+  }
+
+  Future<bool> _hasGrantedFallbackPermission(
+    AlarmSchedulerCapabilities capabilities,
+  ) async {
+    return await _checkFallbackPermission(capabilities) ==
+        AlarmPermissionState.granted;
   }
 
   Future<void> _enableAlarmsBestEffort() async {

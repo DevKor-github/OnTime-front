@@ -63,6 +63,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'OnTime sends schedule preparation reminders so you can get ready on time.';
 
   @override
+  String get allowPreciseNotifications => 'Allow precise notifications';
+
+  @override
   String get pleaseAllowAlarms => 'Please allow alarms';
 
   @override
@@ -437,12 +440,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notification permission was denied.\nTo receive schedule preparation reminders, please allow notifications in Settings.';
 
   @override
+  String get preciseNotificationPermissionRequired =>
+      'Precise notification permission needed';
+
+  @override
+  String get preciseNotificationPermissionDescription =>
+      'OnTime needs this permission to notify you at the exact time to start preparing.';
+
+  @override
+  String get scheduleNotificationSetting => 'Schedule notifications';
+
+  @override
+  String get alarmStatus => 'Alarm';
+
+  @override
+  String get preciseNotificationStatus => 'Precise notification';
+
+  @override
+  String get notificationStatus => 'Notification';
+
+  @override
+  String get noScheduledNotificationStatus => 'No scheduled notifications';
+
+  @override
+  String get notificationPermissionNeededStatus =>
+      'Notification permission needed';
+
+  @override
   String get exactAlarmPermissionRequired =>
-      'Precise Alarm Permission Required';
+      'Precise notification permission needed';
 
   @override
   String get exactAlarmPermissionRequiredDescription =>
-      'OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.';
+      'OnTime needs this permission to notify you at the exact time to start preparing.\nAllow alarms and reminders in Android settings.';
 
   @override
   String get openSettings => 'Open Settings';

@@ -61,6 +61,9 @@ class AppLocalizationsKo extends AppLocalizations {
       '약속 준비 리마인더를 보내\n제시간에 준비할 수 있게 도와드려요.';
 
   @override
+  String get allowPreciseNotifications => '정확한 알림 허용하기';
+
+  @override
   String get pleaseAllowAlarms => '알람을 허용해주세요';
 
   @override
@@ -410,11 +413,36 @@ class AppLocalizationsKo extends AppLocalizations {
       '알림 권한이 거부되었습니다.\n약속 준비 리마인더를 받으려면 설정에서 알림을 허용해주세요.';
 
   @override
-  String get exactAlarmPermissionRequired => '정확한 알람 권한 필요';
+  String get preciseNotificationPermissionRequired => '정확한 알림 권한이 필요해요';
+
+  @override
+  String get preciseNotificationPermissionDescription =>
+      '정확한 시간에 준비를 알려드리기 위해 이 권한이 필요해요.';
+
+  @override
+  String get scheduleNotificationSetting => '일정 알림';
+
+  @override
+  String get alarmStatus => '알람';
+
+  @override
+  String get preciseNotificationStatus => '정확한 알림';
+
+  @override
+  String get notificationStatus => '알림';
+
+  @override
+  String get noScheduledNotificationStatus => '예정된 알림 없음';
+
+  @override
+  String get notificationPermissionNeededStatus => '알림 권한 필요';
+
+  @override
+  String get exactAlarmPermissionRequired => '정확한 알림 권한이 필요해요';
 
   @override
   String get exactAlarmPermissionRequiredDescription =>
-      '온타임은 일정에 맞춰 준비를 시작할 수 있도록 정확한 알람 시간이 필요합니다.\nAndroid 설정에서 알람 및 리마인더를 허용해주세요.';
+      '정확한 시간에 준비를 알려드리기 위해 이 권한이 필요해요.\nAndroid 설정에서 알람 및 리마인더를 허용해주세요.';
 
   @override
   String get openSettings => '설정 열기';

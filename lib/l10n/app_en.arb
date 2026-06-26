@@ -67,6 +67,10 @@
     "@notificationPermissionDescription": {
         "description": "Description explaining why notification permission is needed"
     },
+    "allowPreciseNotifications": "Allow precise notifications",
+    "@allowPreciseNotifications": {
+        "description": "Button text to allow precise schedule notification timing"
+    },
     "pleaseAllowAlarms": "Please allow alarms",
     "@pleaseAllowAlarms": {
         "description": "Title asking the user to allow alarm permission"
@@ -545,11 +549,43 @@
     "@openNotificationSettingsDescription": {
         "description": "Dialog content to open notification settings"
     },
-    "exactAlarmPermissionRequired": "Precise Alarm Permission Required",
+    "preciseNotificationPermissionRequired": "Precise notification permission needed",
+    "@preciseNotificationPermissionRequired": {
+        "description": "Title asking the user to allow precise schedule notification timing"
+    },
+    "preciseNotificationPermissionDescription": "OnTime needs this permission to notify you at the exact time to start preparing.",
+    "@preciseNotificationPermissionDescription": {
+        "description": "Description explaining why precise schedule notification timing is needed"
+    },
+    "scheduleNotificationSetting": "Schedule notifications",
+    "@scheduleNotificationSetting": {
+        "description": "My Page setting label for schedule preparation notifications"
+    },
+    "alarmStatus": "Alarm",
+    "@alarmStatus": {
+        "description": "Status label when schedule delivery uses a real alarm experience"
+    },
+    "preciseNotificationStatus": "Precise notification",
+    "@preciseNotificationStatus": {
+        "description": "Status label when schedule delivery uses precise notification timing"
+    },
+    "notificationStatus": "Notification",
+    "@notificationStatus": {
+        "description": "Status label when schedule delivery uses regular notifications"
+    },
+    "noScheduledNotificationStatus": "No scheduled notifications",
+    "@noScheduledNotificationStatus": {
+        "description": "Status label when no upcoming schedule notification is armed"
+    },
+    "notificationPermissionNeededStatus": "Notification permission needed",
+    "@notificationPermissionNeededStatus": {
+        "description": "Status label when notifications cannot be shown without permission"
+    },
+    "exactAlarmPermissionRequired": "Precise notification permission needed",
     "@exactAlarmPermissionRequired": {
         "description": "Dialog title when exact alarm permission is required"
     },
-    "exactAlarmPermissionRequiredDescription": "OnTime uses precise alarm timing so preparation starts at the right moment for your schedule.\nAllow alarms and reminders in Android settings.",
+    "exactAlarmPermissionRequiredDescription": "OnTime needs this permission to notify you at the exact time to start preparing.\nAllow alarms and reminders in Android settings.",
     "@exactAlarmPermissionRequiredDescription": {
         "description": "Dialog content explaining why exact alarm permission is needed"
     },

@@ -244,23 +244,20 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     try {
       final alarmRepository = getIt.get<AlarmRepository>();
       final registryRepository = getIt.get<AlarmRegistryRepository>();
-      final schedulerService = getIt.get<AlarmSchedulerService>();
       final fallbackService = getIt.get<FallbackAlarmNotificationService>();
 
       final settings = await alarmRepository.getAlarmSettings();
       final records = await registryRepository.loadAll();
-      final capabilities = await schedulerService.getCapabilities();
-      final nativePermission = await schedulerService.checkPermission();
       final fallbackPermission = await fallbackService.checkPermission();
 
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
         _alarmsEnabled = settings.alarmsEnabled;
         _statusLabel = _buildStatusLabel(
+          l10n: l10n,
           settings: settings,
           records: records,
-          capabilities: capabilities,
-          nativePermission: nativePermission,
           fallbackPermission: fallbackPermission,
         );
         _isLoading = false;
@@ -275,35 +272,29 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
   }
 
   String _buildStatusLabel({
+    required AppLocalizations l10n,
     required AlarmSettings settings,
     required List<ScheduledAlarmRecord> records,
-    required AlarmSchedulerCapabilities capabilities,
-    required AlarmPermissionState nativePermission,
     required AlarmPermissionState fallbackPermission,
   }) {
     if (!settings.alarmsEnabled) return '꺼짐';
+    if (records.any((record) => record.provider == AlarmProvider.iosAlarmKit)) {
+      return l10n.alarmStatus;
+    }
     if (records.any(
-      (record) =>
-          record.provider == AlarmProvider.androidAlarmManager ||
-          record.provider == AlarmProvider.iosAlarmKit,
+      (record) => record.provider == AlarmProvider.androidAlarmManager,
     )) {
-      return '네이티브 알람';
+      return l10n.preciseNotificationStatus;
     }
     if (records.any(
       (record) => record.provider == AlarmProvider.localNotification,
     )) {
-      return '알림 대체';
+      return l10n.notificationStatus;
     }
-    if (capabilities.supportsNativeAlarm &&
-        nativePermission != AlarmPermissionState.granted &&
-        fallbackPermission != AlarmPermissionState.granted) {
-      return '권한 필요';
+    if (fallbackPermission != AlarmPermissionState.granted) {
+      return l10n.notificationPermissionNeededStatus;
     }
-    if (!capabilities.supportsNativeAlarm &&
-        fallbackPermission != AlarmPermissionState.granted) {
-      return '지원 안 됨';
-    }
-    return '대기 중';
+    return l10n.noScheduledNotificationStatus;
   }
 
   Future<void> _toggle(bool value) async {
@@ -364,7 +355,10 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('일정 알람', style: textTheme.bodyLarge),
+            Text(
+              AppLocalizations.of(context)!.scheduleNotificationSetting,
+              style: textTheme.bodyLarge,
+            ),
             const SizedBox(height: 4),
             Text(
               _isLoading ? '확인 중' : _statusLabel,

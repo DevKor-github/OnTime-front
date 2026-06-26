@@ -44,21 +44,19 @@ class _VerticalDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      width: 1,
-      color: theme.colorScheme.surfaceContainer,
-    );
+    return Container(width: 1, color: theme.colorScheme.surfaceContainer);
   }
 }
 
 class ScheduleDetail extends StatefulWidget {
-  ScheduleDetail(
-      {super.key,
-      required this.schedule,
-      this.preparationTime,
-      this.isEarlyStarted = false,
-      this.onDeleted,
-      this.onEdit});
+  ScheduleDetail({
+    super.key,
+    required this.schedule,
+    this.preparationTime,
+    this.isEarlyStarted = false,
+    this.onDeleted,
+    this.onEdit,
+  });
 
   final ScheduleEntity schedule;
   final Duration? preparationTime;
@@ -66,10 +64,7 @@ class ScheduleDetail extends StatefulWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDeleted;
 
-  final meatballsIcon = SvgPicture.asset(
-    'meatballs.svg',
-    package: 'assets',
-  );
+  final meatballsIcon = SvgPicture.asset('meatballs.svg', package: 'assets');
 
   @override
   State<ScheduleDetail> createState() => _ScheduleDetailState();
@@ -84,14 +79,14 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   );
 
   String get _scheduleRenderKey => [
-        widget.schedule.id,
-        widget.schedule.scheduleName,
-        widget.schedule.place.placeName,
-        widget.schedule.scheduleTime.millisecondsSinceEpoch,
-        widget.schedule.moveTime.inMinutes,
-        widget.schedule.scheduleSpareTime?.inMinutes ?? -1,
-        widget.schedule.doneStatus.name,
-      ].join('|');
+    widget.schedule.id,
+    widget.schedule.scheduleName,
+    widget.schedule.place.placeName,
+    widget.schedule.scheduleTime.millisecondsSinceEpoch,
+    widget.schedule.moveTime.inMinutes,
+    widget.schedule.scheduleSpareTime?.inMinutes ?? -1,
+    widget.schedule.doneStatus.name,
+  ].join('|');
 
   @override
   Widget build(BuildContext context) {
@@ -106,23 +101,26 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   List<SwipeAction> _buildSwipeActions(BuildContext context) {
     final theme = Theme.of(context);
     final now = DateTime.now();
-    final canEdit = widget.schedule.doneStatus == ScheduleDoneStatus.notEnded &&
+    final canEdit =
+        widget.schedule.doneStatus == ScheduleDoneStatus.notEnded &&
         !_hasPreparationStarted(now) &&
         !widget.schedule.scheduleTime.isBefore(now);
+    final canDelete = widget.schedule.doneStatus == ScheduleDoneStatus.notEnded;
     return [
-      SwipeAction(
-        widthSpace: _actionWidth,
-        onTap: (handler) async {
-          await handler(false);
-          widget.onDeleted?.call();
-        },
-        color: Colors.transparent,
-        content: _SwipeActionContent(
-          icon: const _TrashCanSvg(),
-          color: theme.colorScheme.error,
-          margin: _trailingActionMargin,
+      if (canDelete)
+        SwipeAction(
+          widthSpace: _actionWidth,
+          onTap: (handler) async {
+            await handler(false);
+            widget.onDeleted?.call();
+          },
+          color: Colors.transparent,
+          content: _SwipeActionContent(
+            icon: const _TrashCanSvg(),
+            color: theme.colorScheme.error,
+            margin: _trailingActionMargin,
+          ),
         ),
-      ),
       if (canEdit)
         SwipeAction(
           widthSpace: _actionWidth,
@@ -226,10 +224,11 @@ class _ScheduleTimeColumn extends StatelessWidget {
 }
 
 class _ScheduleDetailsColumn extends StatelessWidget {
-  const _ScheduleDetailsColumn(
-      {required this.schedule,
-      required this.placeName,
-      required this.preparationTime});
+  const _ScheduleDetailsColumn({
+    required this.schedule,
+    required this.placeName,
+    required this.preparationTime,
+  });
 
   final ScheduleEntity schedule;
   final String placeName;
@@ -242,8 +241,9 @@ class _ScheduleDetailsColumn extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
       child: Theme(
         data: Theme.of(context).copyWith(
-          visualDensity:
-              const VisualDensity(vertical: VisualDensity.minimumDensity),
+          visualDensity: const VisualDensity(
+            vertical: VisualDensity.minimumDensity,
+          ),
           listTileTheme: const ListTileThemeData(
             dense: true,
             minVerticalPadding: 0,
@@ -302,7 +302,9 @@ class _ScheduleDetailsColumn extends StatelessWidget {
                   _ScheduleInfoTile(
                     label: AppLocalizations.of(context)!.spareTime,
                     value: formatDuration(
-                        context, schedule.scheduleSpareTime ?? Duration.zero),
+                      context,
+                      schedule.scheduleSpareTime ?? Duration.zero,
+                    ),
                   ),
                 ],
               ),
@@ -361,10 +363,7 @@ class _MapPinFillSvg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'map_pin_fill.svg',
-      package: 'assets',
-    );
+    return SvgPicture.asset('map_pin_fill.svg', package: 'assets');
   }
 }
 
@@ -373,10 +372,7 @@ class _TrashCanSvg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'trash_can.svg',
-      package: 'assets',
-    );
+    return SvgPicture.asset('trash_can.svg', package: 'assets');
   }
 }
 
@@ -385,9 +381,6 @@ class _EditPencilSvg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'edit_pencil.svg',
-      package: 'assets',
-    );
+    return SvgPicture.asset('edit_pencil.svg', package: 'assets');
   }
 }

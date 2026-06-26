@@ -13,29 +13,32 @@ private let onTimeAlarmLaunchURLScheme = "ontime"
 private let onTimeAlarmLaunchURLHost = "alarm"
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private static weak var current: AppDelegate?
   private var nativeAlarmChannel: FlutterMethodChannel?
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    Self.current = self
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     }
     FirebaseApp.configure()
-    GeneratedPluginRegistrant.register(with: self)
-    if let controller = window?.rootViewController as? FlutterViewController {
-      let channel = FlutterMethodChannel(
-        name: "on_time_front/native_alarm",
-        binaryMessenger: controller.binaryMessenger
-      )
-      nativeAlarmChannel = channel
-      channel.setMethodCallHandler { call, result in
-        self.handleNativeAlarmCall(call, result: result)
-      }
-    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    let channel = FlutterMethodChannel(
+      name: "on_time_front/native_alarm",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    nativeAlarmChannel = channel
+    channel.setMethodCallHandler { call, result in
+      self.handleNativeAlarmCall(call, result: result)
+    }
   }
 
   private func handleNativeAlarmCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -64,7 +67,7 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey : Any] = [:]
   ) -> Bool {
-    if handleAlarmLaunchURL(url) {
+    if Self.handleAlarmLaunchURL(url) {
       return true
     }
     return super.application(app, open: url, options: options)
@@ -258,7 +261,7 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     return payload
   }
 
-  private func handleAlarmLaunchURL(_ url: URL) -> Bool {
+  static func handleAlarmLaunchURL(_ url: URL) -> Bool {
     guard url.scheme == onTimeAlarmLaunchURLScheme,
           url.host == onTimeAlarmLaunchURLHost else {
       return false
@@ -276,7 +279,7 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       }
     }
     storeAlarmLaunchPayload(payload)
-    notifyFlutterAlarmLaunch(payload)
+    current?.notifyFlutterAlarmLaunch(payload)
     return true
   }
 

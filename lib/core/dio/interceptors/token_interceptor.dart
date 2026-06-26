@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
@@ -8,11 +9,13 @@ import 'package:on_time_front/domain/repositories/user_repository.dart';
 class TokenInterceptor implements InterceptorsWrapper {
   static const _refreshTokenPath = '/refresh-token';
   static const _retryAfterRefreshKey = 'tokenInterceptor.retryAfterRefresh';
+  static const _tokenUnavailableMessage =
+      'Authentication token is unavailable for a protected request';
 
   final Dio dio;
   TokenInterceptor(this.dio);
-  final TokenLocalDataSource tokenLocalDataSource =
-      getIt.get<TokenLocalDataSource>();
+  final TokenLocalDataSource tokenLocalDataSource = getIt
+      .get<TokenLocalDataSource>();
 
   // when accessToken is expired & having multiple requests call
   // this variable to lock others request to make sure only trigger call refresh token 01 times
@@ -26,7 +29,9 @@ class TokenInterceptor implements InterceptorsWrapper {
 
   @override
   void onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     try {
       final token = await tokenLocalDataSource.getToken();
 
@@ -35,6 +40,15 @@ class TokenInterceptor implements InterceptorsWrapper {
       AppLogger.debug(
         'token load failed for request errorType=${error.runtimeType}',
       );
+      if (!_allowsMissingToken(options.path)) {
+        return handler.reject(
+          DioException(
+            requestOptions: options,
+            error: error,
+            message: _tokenUnavailableMessage,
+          ),
+        );
+      }
     }
     handler.next(options);
   }
@@ -98,6 +112,14 @@ class TokenInterceptor implements InterceptorsWrapper {
         requestOptions.extra[_retryAfterRefreshKey] != true;
   }
 
+  bool _allowsMissingToken(String path) {
+    return path == Endpoint.signIn ||
+        path == Endpoint.signUp ||
+        path == Endpoint.signInWithGoogle ||
+        path == Endpoint.signInWithApple ||
+        path == _refreshTokenPath;
+  }
+
   Future<bool> _refreshToken() async {
     try {
       final tokenEntity = await tokenLocalDataSource.getToken();
@@ -106,22 +128,20 @@ class TokenInterceptor implements InterceptorsWrapper {
       final res = await dio.get(
         _refreshTokenPath,
         options: Options(
-          extra: {
-            _retryAfterRefreshKey: true,
-          },
-          headers: {
-            'Authorization-refresh': 'Bearer $refreshToken',
-          },
+          extra: {_retryAfterRefreshKey: true},
+          headers: {'Authorization-refresh': 'Bearer $refreshToken'},
         ),
       );
       if (res.statusCode == 200) {
         AppLogger.debug('token refreshing success');
         final accessToken = res.headers.value('authorization');
-        final refreshedRefreshToken =
-            res.headers.value('authorization-refresh');
+        final refreshedRefreshToken = res.headers.value(
+          'authorization-refresh',
+        );
         if (accessToken == null || refreshedRefreshToken == null) {
           throw StateError(
-              'Refresh response must include authorization and authorization-refresh headers');
+            'Refresh response must include authorization and authorization-refresh headers',
+          );
         }
         await tokenLocalDataSource.storeTokens(
           TokenEntity(
@@ -158,10 +178,7 @@ class TokenInterceptor implements InterceptorsWrapper {
           requestNeedRetry.handler.reject(error);
         } catch (error) {
           requestNeedRetry.handler.reject(
-            DioException(
-              requestOptions: options,
-              error: error,
-            ),
+            DioException(requestOptions: options, error: error),
           );
         }
       }),

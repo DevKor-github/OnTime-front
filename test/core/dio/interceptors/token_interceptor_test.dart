@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/core/dio/interceptors/token_interceptor.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
@@ -126,14 +127,36 @@ void main() {
   });
 
   test(
-    'continues unauthenticated requests when local token lookup fails',
+    'continues authentication requests when local token lookup fails',
     () async {
       tokenLocalDataSource.throwOnGetToken = true;
 
-      final response = await dio.get<String>('/public');
+      final response = await dio.post<String>(Endpoint.signIn);
 
       expect(response.statusCode, 200);
       expect(adapter.protectedAuthorizationHeaders, isEmpty);
+    },
+  );
+
+  test(
+    'rejects protected requests locally when local token lookup fails',
+    () async {
+      tokenLocalDataSource.throwOnGetToken = true;
+
+      await expectLater(
+        dio.get<void>('/protected'),
+        throwsA(
+          isA<DioException>().having(
+            (error) => error.message,
+            'message',
+            contains('Authentication token is unavailable'),
+          ),
+        ),
+      );
+
+      expect(adapter.requestedPaths, isEmpty);
+      expect(userRepository.signOutCalled, isFalse);
+      expect(tokenLocalDataSource.deleteTokenCalled, isFalse);
     },
   );
 

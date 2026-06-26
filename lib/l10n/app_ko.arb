@@ -147,6 +147,8 @@
     "scheduleDeleteConfirmTitle": "정말 약속을 삭제할까요?",
     "scheduleDeleteConfirmDescription": "약속을 삭제하면 다시 되돌릴 수 없어요.",
     "deleteScheduleConfirmAction": "약속 삭제",
+    "scheduleDeleteFailedTitle": "약속을 삭제할 수 없어요",
+    "scheduleDeleteFailedDescription": "이 약속은 더 이상 삭제할 수 없어요. 상태가 방금 바뀐 경우 캘린더를 새로고침한 뒤 다시 확인해주세요.",
     "deleteFeedbackTitle": "더 좋은 서비스로 다시 만나요",
     "deleteFeedbackDescription": "의견 입력은 선택 사항입니다.\n계속 진행하면 계정 탈퇴 요청이 전송됩니다.",
     "deleteFeedbackPlaceholder": "탈퇴하시는 이유를 알려주세요.",

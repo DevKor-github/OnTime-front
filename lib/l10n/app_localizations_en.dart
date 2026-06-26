@@ -364,6 +364,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteScheduleConfirmAction => 'Delete appointment';
 
   @override
+  String get scheduleDeleteFailedTitle => 'Appointment cannot be deleted';
+
+  @override
+  String get scheduleDeleteFailedDescription =>
+      'This appointment can no longer be deleted. Please refresh the calendar and try again if the status changed recently.';
+
+  @override
   String get deleteFeedbackTitle =>
       'We hope to meet you again with a better service';
 

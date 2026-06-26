@@ -460,6 +460,14 @@
     "@deleteScheduleConfirmAction": {
         "description": "Button text to confirm schedule deletion"
     },
+    "scheduleDeleteFailedTitle": "Appointment cannot be deleted",
+    "@scheduleDeleteFailedTitle": {
+        "description": "Title shown when schedule deletion is rejected or fails"
+    },
+    "scheduleDeleteFailedDescription": "This appointment can no longer be deleted. Please refresh the calendar and try again if the status changed recently.",
+    "@scheduleDeleteFailedDescription": {
+        "description": "Description shown when schedule deletion is rejected or fails"
+    },
     "deleteFeedbackTitle": "We hope to meet you again with a better service",
     "@deleteFeedbackTitle": {
         "description": "Delete feedback modal title"

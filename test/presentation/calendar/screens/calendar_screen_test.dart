@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockito/mockito.dart';
@@ -64,11 +65,18 @@ class _StubGetSchedulesByDateUseCase implements GetSchedulesByDateUseCase {
 }
 
 class _StubDeleteScheduleUseCase implements DeleteScheduleUseCase {
+  _StubDeleteScheduleUseCase({this.error});
+
+  final Object? error;
   final deletedSchedules = <ScheduleEntity>[];
 
   @override
   Future<void> call(ScheduleEntity schedule) async {
     deletedSchedules.add(schedule);
+    final nextError = error;
+    if (nextError != null) {
+      throw nextError;
+    }
   }
 }
 
@@ -361,6 +369,64 @@ void main() {
 
     expect(find.text('Error'), findsOneWidget);
     expect(find.byType(TableCalendar), findsNothing);
+  });
+
+  testWidgets('delete failure keeps calendar visible and shows error dialog', (
+    tester,
+  ) async {
+    final selectedDate = DateTime.now().add(const Duration(days: 7));
+    final schedule = ScheduleEntity(
+      id: 'schedule-1',
+      place: PlaceEntity(id: 'place-1', placeName: 'Office'),
+      scheduleName: 'Design Review',
+      scheduleTime: DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        9,
+      ),
+      moveTime: const Duration(minutes: 30),
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: const Duration(minutes: 10),
+      scheduleNote: '',
+    );
+    final deleteUseCase = _StubDeleteScheduleUseCase(
+      error: Exception('cannot delete'),
+    );
+
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 844),
+      initialDate: selectedDate,
+      schedules: [schedule],
+      deleteScheduleUseCase: deleteUseCase,
+    );
+
+    await tester.drag(find.byType(SwipeActionCell), const Offset(-180, 0));
+    await tester.pumpAndSettle();
+
+    final deleteAction = find.byWidgetPredicate((widget) {
+      if (widget is! Container) return false;
+      final decoration = widget.decoration;
+      return decoration is BoxDecoration &&
+          decoration.color == themeData.colorScheme.error;
+    });
+    expect(deleteAction, findsOneWidget);
+
+    await tester.tap(deleteAction);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete appointment'));
+    await tester.pumpAndSettle();
+
+    expect(deleteUseCase.deletedSchedules, [schedule]);
+    expect(find.text('Appointment cannot be deleted'), findsOneWidget);
+    expect(
+      find.textContaining('This appointment can no longer be deleted'),
+      findsOneWidget,
+    );
+    expect(find.text('Design Review'), findsOneWidget);
+    expect(find.byType(TableCalendar), findsOneWidget);
   });
 
   testWidgets('android system back from calendar returns to home', (

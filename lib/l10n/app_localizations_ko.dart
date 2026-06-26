@@ -340,6 +340,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get deleteScheduleConfirmAction => '약속 삭제';
 
   @override
+  String get scheduleDeleteFailedTitle => '약속을 삭제할 수 없어요';
+
+  @override
+  String get scheduleDeleteFailedDescription =>
+      '이 약속은 더 이상 삭제할 수 없어요. 상태가 방금 바뀐 경우 캘린더를 새로고침한 뒤 다시 확인해주세요.';
+
+  @override
   String get deleteFeedbackTitle => '더 좋은 서비스로 다시 만나요';
 
   @override

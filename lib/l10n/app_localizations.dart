@@ -716,6 +716,18 @@ abstract class AppLocalizations {
   /// **'Delete appointment'**
   String get deleteScheduleConfirmAction;
 
+  /// Title shown when schedule deletion is rejected or fails
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment cannot be deleted'**
+  String get scheduleDeleteFailedTitle;
+
+  /// Description shown when schedule deletion is rejected or fails
+  ///
+  /// In en, this message translates to:
+  /// **'This appointment can no longer be deleted. Please refresh the calendar and try again if the status changed recently.'**
+  String get scheduleDeleteFailedDescription;
+
   /// Delete feedback modal title
   ///
   /// In en, this message translates to:

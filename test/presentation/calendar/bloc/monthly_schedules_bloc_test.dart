@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
@@ -539,10 +540,22 @@ void main() {
   );
 
   test(
-    'delete failure emits error state and keeps deleted schedule visible',
+    'delete failure keeps calendar state and emits a delete failure signal',
     () async {
       deleteScheduleUseCase = StubDeleteScheduleUseCase(
-        (_) async => throw Exception('cannot delete'),
+        (_) async => throw DioException(
+          requestOptions: RequestOptions(path: '/schedules/schedule-a'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/schedules/schedule-a'),
+            statusCode: 409,
+            data: {
+              'status': 'error',
+              'code': 'SCHEDULE_ALREADY_FINISHED',
+              'message': 'Finished schedules cannot be deleted.',
+              'data': null,
+            },
+          ),
+        ),
       );
 
       final bloc = buildBloc();
@@ -557,14 +570,19 @@ void main() {
       );
 
       bloc.add(MonthlySchedulesScheduleDeleted(schedule: scheduleA));
-      final errorState = await bloc.stream.firstWhere(
-        (state) => state.status == MonthlySchedulesStatus.error,
+      final failureState = await bloc.stream.firstWhere(
+        (state) => state.deleteFailureCount == 1,
       );
 
-      expect(errorState.lastDeletedSchedule, scheduleA);
+      expect(failureState.status, MonthlySchedulesStatus.success);
+      expect(failureState.lastDeletedSchedule, isNull);
       expect(
-        errorState.preparationDurationByScheduleId.containsKey(scheduleA.id),
-        isFalse,
+        failureState.deleteFailureMessage,
+        'Finished schedules cannot be deleted.',
+      );
+      expect(
+        failureState.preparationDurationByScheduleId[scheduleA.id],
+        const Duration(minutes: 20),
       );
     },
   );
@@ -660,6 +678,8 @@ void main() {
         scheduleA.id: const Duration(minutes: 10),
       },
       lastDeletedSchedule: scheduleB,
+      deleteFailureMessage: 'Cannot delete.',
+      deleteFailureCount: 2,
       startDate: DateTime(2026, 3, 1),
       endDate: DateTime(2026, 4, 1),
       visibleDate: selectedDate,
@@ -668,12 +688,16 @@ void main() {
       status: () => MonthlySchedulesStatus.success,
       preparationDurationByScheduleId: () => const {},
       lastDeletedSchedule: () => null,
+      deleteFailureMessage: () => null,
+      deleteFailureCount: () => 3,
     );
 
     expect(copied.status, MonthlySchedulesStatus.success);
     expect(copied.schedules, state.schedules);
     expect(copied.preparationDurationByScheduleId, isEmpty);
     expect(copied.lastDeletedSchedule, isNull);
+    expect(copied.deleteFailureMessage, isNull);
+    expect(copied.deleteFailureCount, 3);
     expect(copied.startDate, state.startDate);
     expect(copied.endDate, state.endDate);
     expect(copied.visibleDate, state.visibleDate);

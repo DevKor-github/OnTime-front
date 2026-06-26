@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -35,19 +36,15 @@ class MonthlySchedulesBloc
     on<MonthlySchedulesPreparationsPrefetchRequested>(
       _onPreparationsPrefetchRequested,
     );
-    on<MonthlySchedulesPreparationsStreamChanged>(
-      _onPreparationsStreamChanged,
-    );
+    on<MonthlySchedulesPreparationsStreamChanged>(_onPreparationsStreamChanged);
 
-    _preparationSubscription = _streamPreparationsUseCase().listen(
-      (preparations) {
-        add(
-          MonthlySchedulesPreparationsStreamChanged(
-            preparations: preparations,
-          ),
-        );
-      },
-    );
+    _preparationSubscription = _streamPreparationsUseCase().listen((
+      preparations,
+    ) {
+      add(
+        MonthlySchedulesPreparationsStreamChanged(preparations: preparations),
+      );
+    });
   }
 
   final LoadSchedulesForMonthUseCase _loadSchedulesForMonthUseCase;
@@ -85,9 +82,8 @@ class MonthlySchedulesBloc
         _requestVisibleDatePreparationPrefetch(nextState);
         return nextState;
       },
-      onError: (error, stackTrace) => state.copyWith(
-        status: () => MonthlySchedulesStatus.error,
-      ),
+      onError: (error, stackTrace) =>
+          state.copyWith(status: () => MonthlySchedulesStatus.error),
     );
   }
 
@@ -119,12 +115,14 @@ class MonthlySchedulesBloc
           ? event.endDate
           : state.endDate!;
 
-      emit(state.copyWith(
-        status: () => MonthlySchedulesStatus.loading,
-        schedules: () => state.schedules,
-        startDate: () => startDate,
-        endDate: () => endDate,
-      ));
+      emit(
+        state.copyWith(
+          status: () => MonthlySchedulesStatus.loading,
+          schedules: () => state.schedules,
+          startDate: () => startDate,
+          endDate: () => endDate,
+        ),
+      );
 
       try {
         await _loadSchedulesForMonthUseCase(event.date);
@@ -149,9 +147,7 @@ class MonthlySchedulesBloc
         return nextState;
       },
       onError: (error, stackTrace) {
-        return state.copyWith(
-          status: () => MonthlySchedulesStatus.error,
-        );
+        return state.copyWith(status: () => MonthlySchedulesStatus.error);
       },
     );
   }
@@ -160,19 +156,29 @@ class MonthlySchedulesBloc
     MonthlySchedulesScheduleDeleted event,
     Emitter<MonthlySchedulesState> emit,
   ) async {
+    final previousPreparationMap = Map<String, Duration>.from(
+      state.preparationDurationByScheduleId,
+    );
     try {
-      final updatedPreparationMap =
-          Map<String, Duration>.from(state.preparationDurationByScheduleId)
-            ..remove(event.schedule.id);
-      emit(state.copyWith(
-        lastDeletedSchedule: () => event.schedule,
-        preparationDurationByScheduleId: () => updatedPreparationMap,
-      ));
+      final updatedPreparationMap = Map<String, Duration>.from(
+        previousPreparationMap,
+      )..remove(event.schedule.id);
+      emit(
+        state.copyWith(
+          lastDeletedSchedule: () => event.schedule,
+          preparationDurationByScheduleId: () => updatedPreparationMap,
+        ),
+      );
       await _deleteScheduleUseCase(event.schedule);
     } catch (e) {
-      emit(state.copyWith(
-        status: () => MonthlySchedulesStatus.error,
-      ));
+      emit(
+        state.copyWith(
+          lastDeletedSchedule: () => null,
+          preparationDurationByScheduleId: () => previousPreparationMap,
+          deleteFailureMessage: () => ApiErrorMessage.fromException(e),
+          deleteFailureCount: () => state.deleteFailureCount + 1,
+        ),
+      );
     }
   }
 
@@ -183,9 +189,7 @@ class MonthlySchedulesBloc
     try {
       await _loadSchedulesForMonthUseCase(event.date);
     } catch (_) {
-      emit(state.copyWith(
-        status: () => MonthlySchedulesStatus.error,
-      ));
+      emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
     }
   }
 
@@ -193,8 +197,11 @@ class MonthlySchedulesBloc
     MonthlySchedulesVisibleDateChanged event,
     Emitter<MonthlySchedulesState> emit,
   ) {
-    final normalizedDate =
-        DateTime(event.date.year, event.date.month, event.date.day);
+    final normalizedDate = DateTime(
+      event.date.year,
+      event.date.month,
+      event.date.day,
+    );
     final nextState = state.copyWith(visibleDate: () => normalizedDate);
     emit(nextState);
     _requestVisibleDatePreparationPrefetch(nextState);
@@ -221,8 +228,9 @@ class MonthlySchedulesBloc
           // Stream update already has fresher data.
           continue;
         }
-        final preparation =
-            await _getPreparationByScheduleIdUseCase(scheduleId);
+        final preparation = await _getPreparationByScheduleIdUseCase(
+          scheduleId,
+        );
         fetchedDurations[scheduleId] = preparation.totalDuration;
         hasUpdates = true;
       } catch (_) {
@@ -234,11 +242,7 @@ class MonthlySchedulesBloc
       final updatedMap = Map<String, Duration>.from(
         state.preparationDurationByScheduleId,
       )..addAll(fetchedDurations);
-      emit(
-        state.copyWith(
-          preparationDurationByScheduleId: () => updatedMap,
-        ),
-      );
+      emit(state.copyWith(preparationDurationByScheduleId: () => updatedMap));
     }
   }
 
@@ -272,15 +276,12 @@ class MonthlySchedulesBloc
       return;
     }
 
-    emit(
-      state.copyWith(
-        preparationDurationByScheduleId: () => nextDurations,
-      ),
-    );
+    emit(state.copyWith(preparationDurationByScheduleId: () => nextDurations));
   }
 
   void _requestVisibleDatePreparationPrefetch(
-      MonthlySchedulesState sourceState) {
+    MonthlySchedulesState sourceState,
+  ) {
     final visibleDate = sourceState.visibleDate;
     if (visibleDate == null) {
       return;
@@ -292,29 +293,30 @@ class MonthlySchedulesBloc
     if (scheduleIds.isEmpty) {
       return;
     }
-    add(MonthlySchedulesPreparationsPrefetchRequested(
-        scheduleIds: scheduleIds));
+    add(
+      MonthlySchedulesPreparationsPrefetchRequested(scheduleIds: scheduleIds),
+    );
   }
 
   Map<DateTime, List<ScheduleEntity>> _groupSchedulesByDate(
     List<ScheduleEntity> schedules,
   ) {
-    return schedules.fold<Map<DateTime, List<ScheduleEntity>>>(
-      {},
-      (previousValue, element) {
-        final scheduleTime = DateTime(
-          element.scheduleTime.year,
-          element.scheduleTime.month,
-          element.scheduleTime.day,
-        );
-        if (previousValue.containsKey(scheduleTime)) {
-          previousValue[scheduleTime]!.add(element);
-        } else {
-          previousValue[scheduleTime] = [element];
-        }
-        return previousValue;
-      },
-    );
+    return schedules.fold<Map<DateTime, List<ScheduleEntity>>>({}, (
+      previousValue,
+      element,
+    ) {
+      final scheduleTime = DateTime(
+        element.scheduleTime.year,
+        element.scheduleTime.month,
+        element.scheduleTime.day,
+      );
+      if (previousValue.containsKey(scheduleTime)) {
+        previousValue[scheduleTime]!.add(element);
+      } else {
+        previousValue[scheduleTime] = [element];
+      }
+      return previousValue;
+    });
   }
 
   List<String> _getScheduleIdsForDate(
@@ -329,7 +331,8 @@ class MonthlySchedulesBloc
   }
 
   Set<String> _getCachedScheduleIds(
-      Map<DateTime, List<ScheduleEntity>> schedules) {
+    Map<DateTime, List<ScheduleEntity>> schedules,
+  ) {
     final ids = <String>{};
     for (final scheduleList in schedules.values) {
       for (final schedule in scheduleList) {

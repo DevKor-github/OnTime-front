@@ -139,7 +139,7 @@ flutter build appbundle --release
 
 ## iOS
 
-- Confirm the bundle identifier is `club.devkor.ontime`.
+- Confirm the bundle identifier is `club.devkor.ontime.ios`.
 - Confirm the display name and bundle name are `OnTime`.
 - Review the app icon set in `ios/Runner/Assets.xcassets/AppIcon.appiconset`.
 - Confirm the launch screen, supported orientations, background modes,

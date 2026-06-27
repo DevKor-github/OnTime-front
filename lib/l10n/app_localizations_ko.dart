@@ -106,6 +106,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get signInSlogan => '당신의 잃어버린 여유를 찾아드립니다.';
 
   @override
+  String get signInFailedTitle => '로그인에 실패했어요';
+
+  @override
+  String get signInFailedDescription => '잠시 후 다시 시도해 주세요.';
+
+  @override
   String get welcome => '반가워요!';
 
   @override

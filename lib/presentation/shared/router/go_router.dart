@@ -46,42 +46,12 @@ GoRouter goRouterConfig(
     ]),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
     redirect: (BuildContext context, GoRouterState state) {
-      final authStatus = authBloc.state.status;
-      final notificationGateStatus = notificationGateCubit.state.status;
-      final alarmGateStatus = alarmGateCubit.state.status;
-      final path = state.uri.path;
-      final isStartupRoute = path == '/startup';
-      final isPublicRoute = isStartupRoute || path == '/signIn';
-      final isOnboardingRoute =
-          path == '/onboarding' || path == '/onboarding/start';
-      final isNotificationRoute = path == '/allowNotification';
-      final isAlarmRoute = path == '/allowAlarm';
-      final isTransientRoute =
-          isPublicRoute ||
-          isOnboardingRoute ||
-          isNotificationRoute ||
-          isAlarmRoute;
-
-      switch (authStatus) {
-        case AuthStatus.loading:
-          return isStartupRoute ? null : '/startup';
-        case AuthStatus.unauthenticated:
-          return path == '/signIn' ? null : '/signIn';
-        case AuthStatus.authenticated:
-          if (!notificationGateCubit.state.isResolved ||
-              !alarmGateCubit.state.isResolved) {
-            return isStartupRoute ? null : '/startup';
-          }
-          if (notificationGateStatus == NotificationGateStatus.required) {
-            return isNotificationRoute ? null : '/allowNotification';
-          }
-          if (alarmGateStatus == AlarmGateStatus.required) {
-            return isAlarmRoute ? null : '/allowAlarm';
-          }
-          return isTransientRoute ? '/home' : null;
-        case AuthStatus.onboardingNotCompleted:
-          return isOnboardingRoute ? null : '/onboarding/start';
-      }
+      return appRedirectLocation(
+        authStatus: authBloc.state.status,
+        notificationGateState: notificationGateCubit.state,
+        alarmGateState: alarmGateCubit.state,
+        path: state.uri.path,
+      );
     },
     initialLocation: '/startup',
     routes: [
@@ -189,6 +159,43 @@ GoRouter goRouterConfig(
       GoRoute(path: '/moving', builder: (context, state) => MovingScreen()),
     ],
   );
+}
+
+@visibleForTesting
+String? appRedirectLocation({
+  required AuthStatus authStatus,
+  required NotificationGateState notificationGateState,
+  required AlarmGateState alarmGateState,
+  required String path,
+}) {
+  final isStartupRoute = path == '/startup';
+  final isPublicRoute = isStartupRoute || path == '/signIn';
+  final isOnboardingRoute =
+      path == '/onboarding' || path == '/onboarding/start';
+  final isNotificationRoute = path == '/allowNotification';
+  final isAlarmRoute = path == '/allowAlarm';
+  final isTransientRoute =
+      isPublicRoute || isOnboardingRoute || isNotificationRoute || isAlarmRoute;
+
+  switch (authStatus) {
+    case AuthStatus.loading:
+      return isStartupRoute ? null : '/startup';
+    case AuthStatus.unauthenticated:
+      return path == '/signIn' ? null : '/signIn';
+    case AuthStatus.authenticated:
+      if (notificationGateState.status == NotificationGateStatus.required) {
+        return isNotificationRoute ? null : '/allowNotification';
+      }
+      if (!notificationGateState.isResolved || !alarmGateState.isResolved) {
+        return isStartupRoute ? null : '/startup';
+      }
+      if (alarmGateState.status == AlarmGateStatus.required) {
+        return isAlarmRoute ? null : '/allowAlarm';
+      }
+      return isTransientRoute ? '/home' : null;
+    case AuthStatus.onboardingNotCompleted:
+      return isOnboardingRoute ? null : '/onboarding/start';
+  }
 }
 
 CustomTransitionPage<void> _buildBottomNavSlidePage({

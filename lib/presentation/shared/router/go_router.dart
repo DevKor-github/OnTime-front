@@ -25,6 +25,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_pr
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
+import 'package:on_time_front/presentation/shared/router/app_route_transition.dart';
 import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dart';
 import 'package:on_time_front/presentation/startup/screens/startup_screen.dart';
@@ -87,25 +88,43 @@ GoRouter goRouterConfig(
     routes: [
       GoRoute(
         path: '/startup',
-        builder: (context, state) => const StartupScreen(),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          transition: AppRouteTransition.fade,
+          child: const StartupScreen(),
+        ),
       ),
       GoRoute(
         path: '/allowNotification',
-        builder: (context, state) {
-          return NotificationAllowScreen();
-        },
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          transition: AppRouteTransition.fade,
+          child: NotificationAllowScreen(),
+        ),
       ),
       GoRoute(
         path: '/allowAlarm',
-        builder: (context, state) => const AlarmAllowScreen(),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          transition: AppRouteTransition.fade,
+          child: const AlarmAllowScreen(),
+        ),
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => OnboardingScreen(),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          transition: AppRouteTransition.fade,
+          child: OnboardingScreen(),
+        ),
         routes: [
           GoRoute(
             path: '/start',
-            builder: (context, state) => OnboardingStartScreen(),
+            pageBuilder: (context, state) => _buildAppRoutePage(
+              state: state,
+              transition: AppRouteTransition.fade,
+              child: OnboardingStartScreen(),
+            ),
           ),
         ],
       ),
@@ -114,17 +133,17 @@ GoRouter goRouterConfig(
         routes: [
           GoRoute(
             path: '/home',
-            pageBuilder: (context, state) => _buildBottomNavSlidePage(
+            pageBuilder: (context, state) => _buildAppRoutePage(
               state: state,
-              beginOffset: const Offset(-1, 0),
+              transition: AppRouteTransition.bottomNavFromLeft,
               child: HomeScreenTmp(),
             ),
           ),
           GoRoute(
             path: '/myPage',
-            pageBuilder: (context, state) => _buildBottomNavSlidePage(
+            pageBuilder: (context, state) => _buildAppRoutePage(
               state: state,
-              beginOffset: const Offset(1, 0),
+              transition: AppRouteTransition.bottomNavFromRight,
               child: MyPageScreen(),
             ),
           ),
@@ -132,40 +151,68 @@ GoRouter goRouterConfig(
       ),
       GoRoute(
         path: '/defaultPreparationSpareTimeEdit',
-        builder: (context, state) => PreparationSpareTimeEditScreen(),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: PreparationSpareTimeEditScreen(),
+        ),
       ),
-      GoRoute(path: '/signIn', builder: (context, state) => SignInMainScreen()),
+      GoRoute(
+        path: '/signIn',
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          transition: AppRouteTransition.fade,
+          child: SignInMainScreen(),
+        ),
+      ),
       GoRoute(
         path: '/calendar',
-        builder: (context, state) =>
-            CalendarScreen(initialDate: calendarInitialDateFromState(state)),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: CalendarScreen(
+            initialDate: calendarInitialDateFromState(state),
+          ),
+        ),
       ),
       GoRoute(
         path: '/scheduleCreate',
-        builder: (context, state) => ScheduleCreateScreen(),
+        pageBuilder: (context, state) =>
+            _buildAppRoutePage(state: state, child: ScheduleCreateScreen()),
       ),
       GoRoute(
         path: '/scheduleEdit/:scheduleId',
-        builder: (context, state) =>
-            ScheduleEditScreen(scheduleId: state.pathParameters['scheduleId']!),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: ScheduleEditScreen(
+            scheduleId: state.pathParameters['scheduleId']!,
+          ),
+        ),
       ),
       GoRoute(
         path: '/preparationEdit',
-        builder: (context, state) => const PreparationEditForm(),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: const PreparationEditForm(),
+        ),
       ),
       GoRoute(
         path: '/scheduleStart',
         name: 'scheduleStart',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = scheduleStartRouteExtraFromState(state);
-          return _ScheduleStartRouteGate(extra: extra);
+          return _buildAppRoutePage(
+            state: state,
+            transition: AppRouteTransition.scheduleFlow,
+            child: _ScheduleStartRouteGate(extra: extra),
+          );
         },
       ),
       GoRoute(
         path: '/alarmScreen',
-        builder: (context, state) {
-          return AlarmScreen();
-        },
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          transition: AppRouteTransition.scheduleFlow,
+          child: AlarmScreen(),
+        ),
       ),
       GoRoute(
         path: '/earlyLate',
@@ -174,51 +221,44 @@ GoRouter goRouterConfig(
               ? '/home'
               : null;
         },
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final arguments = earlyLateRouteArgumentsFromState(state);
           if (arguments == null) {
-            return const LoadingScreen();
+            return _buildAppRoutePage(
+              state: state,
+              transition: AppRouteTransition.scheduleFlow,
+              child: const LoadingScreen(),
+            );
           }
 
-          return EarlyLateScreen(
-            earlyLateTime: arguments.earlyLateTime,
-            isLate: arguments.isLate,
+          return _buildAppRoutePage(
+            state: state,
+            transition: AppRouteTransition.scheduleFlow,
+            child: EarlyLateScreen(
+              earlyLateTime: arguments.earlyLateTime,
+              isLate: arguments.isLate,
+            ),
           );
         },
       ),
-      GoRoute(path: '/moving', builder: (context, state) => MovingScreen()),
+      GoRoute(
+        path: '/moving',
+        pageBuilder: (context, state) =>
+            _buildAppRoutePage(state: state, child: MovingScreen()),
+      ),
     ],
   );
 }
 
-CustomTransitionPage<void> _buildBottomNavSlidePage({
+CustomTransitionPage<void> _buildAppRoutePage({
   required GoRouterState state,
-  required Offset beginOffset,
+  AppRouteTransition transition = AppRouteTransition.standard,
   required Widget child,
 }) {
-  final slideTween = Tween<Offset>(
-    begin: beginOffset,
-    end: Offset.zero,
-  ).chain(CurveTween(curve: Curves.easeOutCubic));
-  final secondarySlideTween = Tween<Offset>(
-    begin: Offset.zero,
-    end: beginOffset,
-  ).chain(CurveTween(curve: Curves.easeOutCubic));
-
-  return CustomTransitionPage<void>(
+  return buildAppRoutePage<void>(
     key: state.pageKey,
-    transitionDuration: const Duration(milliseconds: 280),
-    reverseTransitionDuration: const Duration(milliseconds: 280),
+    transition: transition,
     child: child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return SlideTransition(
-        position: secondaryAnimation.drive(secondarySlideTween),
-        child: SlideTransition(
-          position: animation.drive(slideTween),
-          child: child,
-        ),
-      );
-    },
   );
 }
 

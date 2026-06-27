@@ -123,6 +123,14 @@
     "@signInSlogan": {
         "description": "Slogan on the sign-in screen"
     },
+    "signInFailedTitle": "Sign-in failed",
+    "@signInFailedTitle": {
+        "description": "Dialog title shown when social sign-in fails after provider authentication"
+    },
+    "signInFailedDescription": "Please try again in a moment.",
+    "@signInFailedDescription": {
+        "description": "Dialog description shown when social sign-in fails after provider authentication"
+    },
     "welcome": "Welcome!",
     "@welcome": {
         "description": "Title on the onboarding start screen"

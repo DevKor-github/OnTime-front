@@ -108,6 +108,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInSlogan => 'We\'ll find your lost leisure.';
 
   @override
+  String get signInFailedTitle => 'Sign-in failed';
+
+  @override
+  String get signInFailedDescription => 'Please try again in a moment.';
+
+  @override
   String get welcome => 'Welcome!';
 
   @override

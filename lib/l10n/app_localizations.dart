@@ -284,6 +284,18 @@ abstract class AppLocalizations {
   /// **'We\'ll find your lost leisure.'**
   String get signInSlogan;
 
+  /// Dialog title shown when social sign-in fails after provider authentication
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in failed'**
+  String get signInFailedTitle;
+
+  /// Dialog description shown when social sign-in fails after provider authentication
+  ///
+  /// In en, this message translates to:
+  /// **'Please try again in a moment.'**
+  String get signInFailedDescription;
+
   /// Title on the onboarding start screen
   ///
   /// In en, this message translates to:

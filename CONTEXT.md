@@ -41,6 +41,14 @@ _Avoid_: Tracking vendor, analytics SDK
 A Product Usage Event that marks completion or failure of a meaningful user workflow step.
 _Avoid_: Tap event, raw navigation log, interaction trace
 
+**Provider Authentication Completed**:
+The state where the external Apple or Google account prompt has returned credentials to OnTime.
+_Avoid_: Login completed, signed in, session ready
+
+**OnTime Session Established**:
+The state where OnTime has accepted provider credentials, created an app session, and can route the user into the signed-in app experience.
+_Avoid_: Provider login completed, credential received
+
 **Analytics Event Parameter**:
 An allowlisted non-content value attached to a Product Usage Event.
 _Avoid_: Event payload, arbitrary metadata, raw detail
@@ -102,6 +110,9 @@ _Avoid_: Notification, native alarm
 - A **Product Usage Event** may describe a schedule, preparation, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
 - First-release **Product Usage Events** are **Workflow Milestone Events**, not every tap or raw navigation step.
 - First-release **Workflow Milestone Events** cover analytics preference, onboarding, authentication, schedule, notification permission, alarm, and schedule-finish outcomes.
+- **Provider Authentication Completed** precedes **OnTime Session Established** during Apple or Google sign-in.
+- **Provider Authentication Completed** does not mean the user is signed in to OnTime.
+- The signed-in app experience begins only after **OnTime Session Established**.
 - A **Product Usage Event** may include **Analytics Event Parameters** such as workflow, result, stable error category, coarse count, coarse duration, platform, or app version.
 - An **Analytics Event Parameter** must not contain user-authored text, direct identifiers, tokens, raw exception strings, request bodies, or response bodies.
 - A **Product Usage Event** uses a stable snake_case name and includes a schema version.
@@ -153,6 +164,7 @@ _Avoid_: Notification, native alarm
 - "Third party" was ambiguous for analytics; resolved: the canonical term is **Analytics Provider**.
 - "Event taxonomy" was broad; resolved: first-release analytics tracks **Workflow Milestone Events** only.
 - "Event payload" was too open-ended; resolved: events use allowlisted **Analytics Event Parameters** only.
+- "Login completed" was ambiguous for Apple and Google sign-in; resolved: external account prompt completion is **Provider Authentication Completed**, while usable OnTime sign-in is **OnTime Session Established**.
 - "Alarm permission" was ambiguous between **Exact Timing Permission** and notification permission; resolved: notification permission may enable a **Fallback Notification**, but does not mean **Exact Timing Permission** is granted.
 - "Pending" was ambiguous for notification status; resolved: the canonical state is **No Scheduled Notification** when notifications are enabled but no upcoming Schedule Notification is armed.
 - "Allowed" was ambiguous for permission requests; resolved: a request action is not the same as granted **Exact Timing Permission**.

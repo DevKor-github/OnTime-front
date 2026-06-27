@@ -7,7 +7,9 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 class GoogleSignInButton extends StatefulWidget {
-  const GoogleSignInButton({super.key});
+  const GoogleSignInButton({super.key, this.onPressed});
+
+  final VoidCallback? onPressed;
 
   @override
   State<GoogleSignInButton> createState() => _GoogleSignInButtonState();

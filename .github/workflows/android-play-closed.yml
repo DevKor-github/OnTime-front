@@ -106,7 +106,10 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Verify generated files are current
+      - name: Check generated Dart policy
+        run: dart run tool/check_generated_dart_policy.dart
+
+      - name: Verify generation left tracked files unchanged
         run: git diff --exit-code
 
       - name: Analyze

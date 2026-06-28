@@ -6,6 +6,7 @@ import 'package:mockito/mockito.dart';
 import 'package:on_time_front/core/constants/external_links.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/core/services/product_analytics_service.dart';
@@ -92,6 +93,7 @@ void main() {
       ),
       analyticsService: ProductAnalyticsService(
         client: _FakeAnalyticsProviderClient(),
+        appMetadataProvider: _FakeAppMetadataProvider(),
         collectionAllowedInBuild: true,
       ),
     );
@@ -605,6 +607,7 @@ AnalyticsPreferenceCubit _buildAnalyticsPreferenceCubit({
     ),
     analyticsService: ProductAnalyticsService(
       client: _FakeAnalyticsProviderClient(),
+      appMetadataProvider: _FakeAppMetadataProvider(),
       collectionAllowedInBuild: true,
     ),
   );
@@ -772,6 +775,13 @@ class _FakeAlarmRepository implements AlarmRepository {
   @override
   Future<void> postAlarmStatus(AlarmStatusReport report) {
     throw UnimplementedError();
+  }
+}
+
+class _FakeAppMetadataProvider implements AppMetadataProvider {
+  @override
+  Future<AppMetadata> getMetadata() async {
+    return const AppMetadata(version: '9.8.7', buildNumber: '654');
   }
 }
 

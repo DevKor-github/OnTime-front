@@ -1,16 +1,17 @@
-import 'dart:async';
-
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
-import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart';
 
 @Injectable()
 class UpdateScheduleUseCase {
   final ScheduleRepository _scheduleRepository;
-  final ReconcileAlarmsUseCase _reconcileAlarmsUseCase;
+  final ScheduleMutationAlarmEffectsCoordinator _alarmEffectsCoordinator;
 
-  UpdateScheduleUseCase(this._scheduleRepository, this._reconcileAlarmsUseCase);
+  UpdateScheduleUseCase(
+    this._scheduleRepository,
+    this._alarmEffectsCoordinator,
+  );
 
   Future<void> call(
     ScheduleEntity schedule, {
@@ -20,6 +21,9 @@ class UpdateScheduleUseCase {
       schedule,
       includePreparationSource: includePreparationSource,
     );
-    unawaited(_reconcileAlarmsUseCase());
+    await _alarmEffectsCoordinator(
+      operation: ScheduleMutationAlarmOperation.updated,
+      scheduleId: schedule.id,
+    );
   }
 }

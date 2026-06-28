@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/dio/api_error_message.dart';
-import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
@@ -20,6 +19,8 @@ part 'monthly_schedules_state.dart';
 @Injectable()
 class MonthlySchedulesBloc
     extends Bloc<MonthlySchedulesEvent, MonthlySchedulesState> {
+  static const int _maxPreparationPrefetchConcurrency = 4;
+
   MonthlySchedulesBloc(
     this._loadSchedulesForMonthUseCase,
     this._getSchedulesByDateUseCase,
@@ -37,6 +38,8 @@ class MonthlySchedulesBloc
       _onPreparationsPrefetchRequested,
     );
     on<MonthlySchedulesPreparationsStreamChanged>(_onPreparationsStreamChanged);
+    on<_MonthlySchedulesScheduleStreamChanged>(_onScheduleStreamChanged);
+    on<_MonthlySchedulesScheduleStreamFailed>(_onScheduleStreamFailed);
 
     _preparationSubscription = _streamPreparationsUseCase().listen((
       preparations,
@@ -54,36 +57,19 @@ class MonthlySchedulesBloc
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
   final StreamPreparationsUseCase _streamPreparationsUseCase;
 
+  StreamSubscription<List<ScheduleEntity>>? _scheduleSubscription;
   StreamSubscription<Map<String, PreparationEntity>>? _preparationSubscription;
+  int _scheduleRangeRequestId = 0;
 
   Future<void> _onSubscriptionRequested(
     MonthlySchedulesSubscriptionRequested event,
     Emitter<MonthlySchedulesState> emit,
   ) async {
-    emit(state.copyWith(status: () => MonthlySchedulesStatus.loading));
-
-    try {
-      await _loadSchedulesForMonthUseCase(event.date);
-    } catch (_) {
-      emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
-      return;
-    }
-
-    await emit.forEach(
-      _getSchedulesByDateUseCase(event.startDate, event.endDate),
-      onData: (schedules) {
-        final groupedSchedules = _groupSchedulesByDate(schedules);
-        final nextState = state.copyWith(
-          status: () => MonthlySchedulesStatus.success,
-          schedules: () => groupedSchedules,
-          startDate: () => event.startDate,
-          endDate: () => event.endDate,
-        );
-        _requestVisibleDatePreparationPrefetch(nextState);
-        return nextState;
-      },
-      onError: (error, stackTrace) =>
-          state.copyWith(status: () => MonthlySchedulesStatus.error),
+    await _loadAndWatchCalendarMonthRange(
+      loadDate: event.date,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      emit: emit,
     );
   }
 
@@ -91,64 +77,62 @@ class MonthlySchedulesBloc
     MonthlySchedulesMonthAdded event,
     Emitter<MonthlySchedulesState> emit,
   ) async {
-    late DateTime startDate;
-    late DateTime endDate;
-    if (!(state.startDate!.isAfter(event.startDate) ||
-        state.endDate!.isBefore(event.endDate))) {
-      // If the month is already loaded, we don't need to load the schedules again.
-      startDate = state.startDate!;
-      endDate = state.endDate!;
-    } else if (event.date.month !=
-            state.startDate!.subtract(Duration(days: 1)).month &&
-        (event.date.month != state.endDate!.month)) {
-      // If the month is not consecutive, we need to load the schedules for the
-      add(MonthlySchedulesSubscriptionRequested(date: event.date));
-      return;
-    } else {
-      // If the month is not consecutive, we need to load the schedules for the
-      // month and update the state with the new schedules.
-
-      startDate = event.startDate.isBefore(state.startDate!)
-          ? event.startDate
-          : state.startDate!;
-      endDate = event.endDate.isAfter(state.endDate!)
-          ? event.endDate
-          : state.endDate!;
-
-      emit(
-        state.copyWith(
-          status: () => MonthlySchedulesStatus.loading,
-          schedules: () => state.schedules,
-          startDate: () => startDate,
-          endDate: () => endDate,
-        ),
+    final currentStartDate = state.startDate;
+    final currentEndDate = state.endDate;
+    if (currentStartDate == null || currentEndDate == null) {
+      await _loadAndWatchCalendarMonthRange(
+        loadDate: event.date,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        emit: emit,
       );
-
-      try {
-        await _loadSchedulesForMonthUseCase(event.date);
-      } catch (_) {
-        emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
-        return;
-      }
+      return;
     }
 
-    AppLogger.debug('startDate: $startDate, endDate: $endDate');
-    await emit.forEach(
-      _getSchedulesByDateUseCase(startDate, endDate),
-      onData: (schedules) {
-        final groupedSchedules = _groupSchedulesByDate(schedules);
-        final nextState = state.copyWith(
-          status: () => MonthlySchedulesStatus.success,
-          schedules: () => groupedSchedules,
-          startDate: () => startDate,
-          endDate: () => endDate,
-        );
-        _requestVisibleDatePreparationPrefetch(nextState);
-        return nextState;
-      },
-      onError: (error, stackTrace) {
-        return state.copyWith(status: () => MonthlySchedulesStatus.error);
-      },
+    final eventIsInsideCurrentRange =
+        !currentStartDate.isAfter(event.startDate) &&
+        !currentEndDate.isBefore(event.endDate);
+    if (eventIsInsideCurrentRange) {
+      return;
+    }
+
+    final eventMonth = DateTime(event.date.year, event.date.month, 1);
+    final previousAdjacentMonth = DateTime(
+      currentStartDate.year,
+      currentStartDate.month - 1,
+      1,
+    );
+    final nextAdjacentMonth = DateTime(
+      currentEndDate.year,
+      currentEndDate.month,
+      1,
+    );
+    final eventIsAdjacent =
+        eventMonth == previousAdjacentMonth || eventMonth == nextAdjacentMonth;
+
+    if (!eventIsAdjacent) {
+      await _loadAndWatchCalendarMonthRange(
+        loadDate: event.date,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        emit: emit,
+      );
+      return;
+    }
+
+    final startDate = event.startDate.isBefore(currentStartDate)
+        ? event.startDate
+        : currentStartDate;
+    final endDate = event.endDate.isAfter(currentEndDate)
+        ? event.endDate
+        : currentEndDate;
+
+    await _loadAndWatchCalendarMonthRange(
+      loadDate: event.date,
+      startDate: startDate,
+      endDate: endDate,
+      emit: emit,
+      exposeLoadingRange: true,
     );
   }
 
@@ -219,30 +203,77 @@ class MonthlySchedulesBloc
     }
 
     final fetchedDurations = <String, Duration>{};
-    var hasUpdates = false;
-
-    for (final scheduleId in missingIds) {
-      try {
-        await _loadPreparationByScheduleIdUseCase(scheduleId);
-        if (state.preparationDurationByScheduleId.containsKey(scheduleId)) {
-          // Stream update already has fresher data.
-          continue;
-        }
-        final preparation = await _getPreparationByScheduleIdUseCase(
-          scheduleId,
-        );
-        fetchedDurations[scheduleId] = preparation.totalDuration;
-        hasUpdates = true;
-      } catch (_) {
-        // Keep fallback UI when loading fails.
+    await _forEachMissingPreparationId(missingIds, (scheduleId) async {
+      final duration = await _loadPreparationDuration(scheduleId);
+      if (duration != null) {
+        fetchedDurations[scheduleId] = duration;
       }
-    }
+    });
 
-    if (hasUpdates) {
+    if (fetchedDurations.isNotEmpty && !emit.isDone) {
       final updatedMap = Map<String, Duration>.from(
         state.preparationDurationByScheduleId,
-      )..addAll(fetchedDurations);
-      emit(state.copyWith(preparationDurationByScheduleId: () => updatedMap));
+      );
+      var hasUpdates = false;
+      for (final entry in fetchedDurations.entries) {
+        if (updatedMap.containsKey(entry.key)) {
+          continue;
+        }
+        updatedMap[entry.key] = entry.value;
+        hasUpdates = true;
+      }
+      if (hasUpdates) {
+        emit(state.copyWith(preparationDurationByScheduleId: () => updatedMap));
+      }
+    }
+  }
+
+  Future<void> _forEachMissingPreparationId(
+    Set<String> scheduleIds,
+    Future<void> Function(String scheduleId) load,
+  ) async {
+    final ids = scheduleIds.toList(growable: false);
+    var nextIndex = 0;
+    final workerCount = ids.length < _maxPreparationPrefetchConcurrency
+        ? ids.length
+        : _maxPreparationPrefetchConcurrency;
+
+    String? takeNextId() {
+      if (nextIndex >= ids.length) {
+        return null;
+      }
+      return ids[nextIndex++];
+    }
+
+    await Future.wait(
+      List<Future<void>>.generate(workerCount, (_) async {
+        while (true) {
+          final scheduleId = takeNextId();
+          if (scheduleId == null) {
+            return;
+          }
+          await load(scheduleId);
+        }
+      }),
+    );
+  }
+
+  Future<Duration?> _loadPreparationDuration(String scheduleId) async {
+    if (state.preparationDurationByScheduleId.containsKey(scheduleId)) {
+      return null;
+    }
+
+    try {
+      await _loadPreparationByScheduleIdUseCase(scheduleId);
+      if (state.preparationDurationByScheduleId.containsKey(scheduleId)) {
+        // Stream update already has fresher data.
+        return null;
+      }
+      final preparation = await _getPreparationByScheduleIdUseCase(scheduleId);
+      return preparation.totalDuration;
+    } catch (_) {
+      // Keep fallback UI when loading fails.
+      return null;
     }
   }
 
@@ -277,6 +308,97 @@ class MonthlySchedulesBloc
     }
 
     emit(state.copyWith(preparationDurationByScheduleId: () => nextDurations));
+  }
+
+  void _onScheduleStreamChanged(
+    _MonthlySchedulesScheduleStreamChanged event,
+    Emitter<MonthlySchedulesState> emit,
+  ) {
+    if (event.requestId != _scheduleRangeRequestId) {
+      return;
+    }
+
+    final groupedSchedules = _groupSchedulesByDate(event.schedules);
+    final nextState = state.copyWith(
+      status: () => MonthlySchedulesStatus.success,
+      schedules: () => groupedSchedules,
+      startDate: () => event.startDate,
+      endDate: () => event.endDate,
+    );
+    emit(nextState);
+    _requestVisibleDatePreparationPrefetch(nextState);
+  }
+
+  void _onScheduleStreamFailed(
+    _MonthlySchedulesScheduleStreamFailed event,
+    Emitter<MonthlySchedulesState> emit,
+  ) {
+    if (event.requestId != _scheduleRangeRequestId) {
+      return;
+    }
+
+    emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
+  }
+
+  Future<void> _loadAndWatchCalendarMonthRange({
+    required DateTime loadDate,
+    required DateTime startDate,
+    required DateTime endDate,
+    required Emitter<MonthlySchedulesState> emit,
+    bool exposeLoadingRange = false,
+  }) async {
+    final requestId = ++_scheduleRangeRequestId;
+    await _cancelScheduleSubscription();
+
+    var loadingState = state.copyWith(
+      status: () => MonthlySchedulesStatus.loading,
+    );
+    if (exposeLoadingRange) {
+      loadingState = loadingState.copyWith(
+        startDate: () => startDate,
+        endDate: () => endDate,
+      );
+    }
+    emit(loadingState);
+
+    try {
+      await _loadSchedulesForMonthUseCase(loadDate);
+    } catch (_) {
+      if (requestId == _scheduleRangeRequestId) {
+        emit(state.copyWith(status: () => MonthlySchedulesStatus.error));
+      }
+      return;
+    }
+
+    if (requestId != _scheduleRangeRequestId) {
+      return;
+    }
+
+    _scheduleSubscription = _getSchedulesByDateUseCase(startDate, endDate)
+        .listen(
+          (schedules) {
+            if (!isClosed && requestId == _scheduleRangeRequestId) {
+              add(
+                _MonthlySchedulesScheduleStreamChanged(
+                  requestId: requestId,
+                  startDate: startDate,
+                  endDate: endDate,
+                  schedules: schedules,
+                ),
+              );
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            if (!isClosed && requestId == _scheduleRangeRequestId) {
+              add(_MonthlySchedulesScheduleStreamFailed(requestId: requestId));
+            }
+          },
+        );
+  }
+
+  Future<void> _cancelScheduleSubscription() async {
+    await _scheduleSubscription?.cancel();
+    _scheduleSubscription = null;
   }
 
   void _requestVisibleDatePreparationPrefetch(
@@ -344,6 +466,7 @@ class MonthlySchedulesBloc
 
   @override
   Future<void> close() async {
+    await _cancelScheduleSubscription();
     await _preparationSubscription?.cancel();
     return super.close();
   }

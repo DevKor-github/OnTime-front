@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/input_models/schedule_name_input_model.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/input_models/schedule_moving_time_input_model.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/input_models/schedule_moving_time_input_model.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/input_models/schedule_spare_time_input_model.dart';
 
 void main() {

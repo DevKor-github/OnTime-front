@@ -4,10 +4,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/core/dio/interceptors/token_interceptor.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
@@ -311,20 +311,6 @@ class _FakeUserRepository implements UserRepository {
   Stream<UserEntity> get userStream => const Stream.empty();
 
   @override
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
-      const Stream.empty();
-
-  @override
-  bool get supportsGoogleAuthenticate => false;
-
-  @override
-  Future<GoogleSignInAccount> authenticateWithGoogle() =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> initializeGoogleSignIn() async {}
-
-  @override
   Future<void> deleteAppleUser({String? feedbackMessage}) =>
       throw UnimplementedError();
 
@@ -361,7 +347,7 @@ class _FakeUserRepository implements UserRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<void> signInWithGoogle(GoogleSignInAccount account) =>
+  Future<void> signInWithGoogle(GoogleAuthCredential credential) =>
       throw UnimplementedError();
 
   @override

@@ -1,23 +1,30 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:on_time_front/core/services/google_authentication_service.dart';
 import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/data/models/sign_in_with_apple_request_model.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
 import 'package:on_time_front/data/repositories/user_repository_impl.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
 void main() {
   late _FakeAuthenticationRemoteDataSource remoteDataSource;
   late _FakeTokenLocalDataSource tokenLocalDataSource;
+  late _FakeGoogleAuthenticationService googleAuthenticationService;
   late UserRepositoryImpl repository;
 
   setUp(() {
     remoteDataSource = _FakeAuthenticationRemoteDataSource();
     tokenLocalDataSource = _FakeTokenLocalDataSource();
-    repository = UserRepositoryImpl(remoteDataSource, tokenLocalDataSource);
+    googleAuthenticationService = _FakeGoogleAuthenticationService();
+    repository = UserRepositoryImpl(
+      remoteDataSource,
+      tokenLocalDataSource,
+      googleAuthenticationService,
+    );
   });
 
   test('signIn stores backend tokens and publishes signed-in user', () async {
@@ -197,7 +204,7 @@ void main() {
       remoteDataSource.authResult = (googleUser, _token);
 
       await repository.signInWithGoogle(
-        _FakeGoogleSignInAccount(idToken: 'google-id-token'),
+        const GoogleAuthCredential(idToken: 'google-id-token'),
       );
 
       expect(tokenLocalDataSource.deleteCount, 1);
@@ -208,9 +215,9 @@ void main() {
     },
   );
 
-  test('signInWithGoogle rejects accounts without an ID token', () async {
+  test('signInWithGoogle rejects credentials without an ID token', () async {
     await expectLater(
-      repository.signInWithGoogle(_FakeGoogleSignInAccount()),
+      repository.signInWithGoogle(const GoogleAuthCredential(idToken: '')),
       throwsException,
     );
 
@@ -277,8 +284,14 @@ void main() {
     await expectLater(repository.deleteAppleUser(), throwsException);
   });
 
-  test('disconnectGoogleSignIn absorbs plugin failures', () async {
+  test('disconnectGoogleSignIn absorbs provider adapter failures', () async {
+    googleAuthenticationService.disconnectHandler = () async {
+      throw Exception('disconnect failed');
+    };
+
     await repository.disconnectGoogleSignIn();
+
+    expect(googleAuthenticationService.disconnectCount, 1);
   });
 }
 
@@ -399,20 +412,6 @@ class _FakeAuthenticationRemoteDataSource
   }
 }
 
-class _FakeGoogleSignInAccount implements GoogleSignInAccount {
-  _FakeGoogleSignInAccount({this.idToken});
-
-  final String? idToken;
-
-  @override
-  GoogleSignInAuthentication get authentication {
-    return GoogleSignInAuthentication(idToken: idToken);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _FakeTokenLocalDataSource implements TokenLocalDataSource {
   final storedTokens = <TokenEntity>[];
   final storedAuthTokens = <String>[];
@@ -437,4 +436,28 @@ class _FakeTokenLocalDataSource implements TokenLocalDataSource {
   Future<void> deleteToken() async {
     deleteCount += 1;
   }
+}
+
+class _FakeGoogleAuthenticationService implements GoogleAuthenticationService {
+  Future<void> Function()? disconnectHandler;
+  int disconnectCount = 0;
+
+  @override
+  Stream<GoogleAuthCredential> get authenticationCredentials =>
+      const Stream.empty();
+
+  @override
+  bool get supportsAuthenticate => true;
+
+  @override
+  Future<GoogleAuthCredential> authenticate() => throw UnimplementedError();
+
+  @override
+  Future<void> disconnect() async {
+    disconnectCount += 1;
+    await disconnectHandler?.call();
+  }
+
+  @override
+  Future<void> initialize() async {}
 }

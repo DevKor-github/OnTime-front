@@ -348,8 +348,7 @@ class ReconcileAlarmsUseCase {
   Future<AlarmPermissionState> _checkNativePermission(
     AlarmSchedulerCapabilities capabilities,
   ) async {
-    if (!capabilities.supportsNativeAlarm ||
-        capabilities.nativeAlarmProvider == AlarmProvider.none) {
+    if (!_canUseNativeProvider(capabilities)) {
       return AlarmPermissionState.unsupported;
     }
     return _schedulerService.checkPermission().catchError(
@@ -374,8 +373,7 @@ class ReconcileAlarmsUseCase {
     required AlarmPermissionState nativePermission,
     required AlarmPermissionState fallbackPermission,
   }) async {
-    if (capabilities.supportsNativeAlarm &&
-        capabilities.nativeAlarmProvider != AlarmProvider.none &&
+    if (_canUseNativeProvider(capabilities) &&
         nativePermission == AlarmPermissionState.granted) {
       final nativeRecord = desired.copyWith(
         provider: capabilities.nativeAlarmProvider,
@@ -483,7 +481,7 @@ class ReconcileAlarmsUseCase {
     required AlarmPermissionState fallbackPermission,
   }) {
     final hasAnyProvider =
-        capabilities.supportsNativeAlarm ||
+        _canUseNativeProvider(capabilities) ||
         fallbackPermission == AlarmPermissionState.granted;
     if (!hasAnyProvider) {
       if (permissionIssue != null) {
@@ -547,8 +545,16 @@ class ReconcileAlarmsUseCase {
       return capabilities.fallbackProvider == AlarmProvider.localNotification;
     }
     if (record.provider == AlarmProvider.none) return false;
-    return capabilities.supportsNativeAlarm &&
+    return _canUseNativeProvider(capabilities) &&
         record.provider == capabilities.nativeAlarmProvider;
+  }
+
+  bool _canUseNativeProvider(AlarmSchedulerCapabilities capabilities) {
+    return capabilities.supportsNativeAlarm &&
+        capabilities.nativeAlarmProvider != AlarmProvider.none &&
+        nativeAlarmProviderAllowedByReleasePolicy(
+          capabilities.nativeAlarmProvider,
+        );
   }
 
   Future<void> _cancelRecords(List<ScheduledAlarmRecord> records) async {

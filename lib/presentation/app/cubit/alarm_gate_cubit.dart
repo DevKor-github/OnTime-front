@@ -133,7 +133,10 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
     AlarmSchedulerCapabilities capabilities,
   ) async {
     if (!capabilities.supportsNativeAlarm ||
-        capabilities.nativeAlarmProvider == AlarmProvider.none) {
+        capabilities.nativeAlarmProvider == AlarmProvider.none ||
+        !nativeAlarmProviderAllowedByReleasePolicy(
+          capabilities.nativeAlarmProvider,
+        )) {
       return AlarmPermissionState.unsupported;
     }
     return _alarmSchedulerService.checkPermission();
@@ -143,7 +146,10 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
     AlarmSchedulerCapabilities capabilities,
   ) async {
     if (!capabilities.supportsNativeAlarm ||
-        capabilities.nativeAlarmProvider == AlarmProvider.none) {
+        capabilities.nativeAlarmProvider == AlarmProvider.none ||
+        !nativeAlarmProviderAllowedByReleasePolicy(
+          capabilities.nativeAlarmProvider,
+        )) {
       return AlarmPermissionState.unsupported;
     }
     return _alarmSchedulerService.requestPermission();

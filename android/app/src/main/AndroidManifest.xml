@@ -38,8 +38,6 @@
             android:launchMode="singleTask"
             android:taskAffinity="club.devkor.ontime.alarm"
             android:theme="@style/NormalTheme"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
             android:excludeFromRecents="true"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true" />

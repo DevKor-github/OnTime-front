@@ -3,21 +3,25 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 
 const alarmDefaultOffset = Duration(minutes: 5);
-const alarmLaunchPayloadVersion = '7';
+const alarmLaunchPayloadVersion = '8';
 
-enum AlarmProvider {
-  androidAlarmManager,
-  iosAlarmKit,
-  localNotification,
-  none,
+enum AlarmProvider { androidAlarmManager, iosAlarmKit, localNotification, none }
+
+const androidFullScreenAlarmPolicyApproved = false;
+
+bool nativeAlarmProviderAllowedByReleasePolicy(AlarmProvider provider) {
+  switch (provider) {
+    case AlarmProvider.iosAlarmKit:
+      return true;
+    case AlarmProvider.androidAlarmManager:
+      return androidFullScreenAlarmPolicyApproved;
+    case AlarmProvider.localNotification:
+    case AlarmProvider.none:
+      return false;
+  }
 }
 
-enum AlarmPermissionState {
-  granted,
-  denied,
-  notDetermined,
-  unsupported,
-}
+enum AlarmPermissionState { granted, denied, notDetermined, unsupported }
 
 enum AlarmPermissionIssue {
   nativePermissionDenied,
@@ -222,10 +226,10 @@ class AlarmSettings extends Equatable {
 
   @override
   List<Object?> get props => [
-        alarmsEnabled,
-        defaultAlarmOffsetMinutes,
-        updatedAt,
-      ];
+    alarmsEnabled,
+    defaultAlarmOffsetMinutes,
+    updatedAt,
+  ];
 }
 
 class AlarmDeviceInfo extends Equatable {
@@ -249,14 +253,14 @@ class AlarmDeviceInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-        deviceId,
-        platform,
-        appVersion,
-        osVersion,
-        supportsNativeAlarm,
-        nativeAlarmProvider,
-        fallbackProvider,
-      ];
+    deviceId,
+    platform,
+    appVersion,
+    osVersion,
+    supportsNativeAlarm,
+    nativeAlarmProvider,
+    fallbackProvider,
+  ];
 }
 
 class AlarmSchedulerCapabilities extends Equatable {
@@ -278,10 +282,10 @@ class AlarmSchedulerCapabilities extends Equatable {
 
   @override
   List<Object?> get props => [
-        supportsNativeAlarm,
-        nativeAlarmProvider,
-        fallbackProvider,
-      ];
+    supportsNativeAlarm,
+    nativeAlarmProvider,
+    fallbackProvider,
+  ];
 }
 
 class ScheduledAlarmRecord extends Equatable {
@@ -333,16 +337,16 @@ class ScheduledAlarmRecord extends Equatable {
 
   @override
   List<Object?> get props => [
-        scheduleId,
-        alarmTime,
-        preparationStartTime,
-        scheduleFingerprint,
-        nativeAlarmId,
-        fallbackNotificationId,
-        provider,
-        scheduleTitle,
-        payload,
-      ];
+    scheduleId,
+    alarmTime,
+    preparationStartTime,
+    scheduleFingerprint,
+    nativeAlarmId,
+    fallbackNotificationId,
+    provider,
+    scheduleTitle,
+    payload,
+  ];
 }
 
 class AlarmFailure extends Equatable {
@@ -350,11 +354,7 @@ class AlarmFailure extends Equatable {
   final AlarmFailureReason reason;
   final String? message;
 
-  const AlarmFailure({
-    required this.reason,
-    this.scheduleId,
-    this.message,
-  });
+  const AlarmFailure({required this.reason, this.scheduleId, this.message});
 
   @override
   List<Object?> get props => [scheduleId, reason, message];
@@ -391,18 +391,18 @@ class AlarmReconciliationResult extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        permissionIssue,
-        nativeAlarmProvider,
-        fallbackProvider,
-        armedScheduleIds,
-        skippedScheduleCount,
-        failures,
-        scheduleWindowStart,
-        scheduleWindowEnd,
-        alarmCoverageStart,
-        alarmCoverageEnd,
-      ];
+    status,
+    permissionIssue,
+    nativeAlarmProvider,
+    fallbackProvider,
+    armedScheduleIds,
+    skippedScheduleCount,
+    failures,
+    scheduleWindowStart,
+    scheduleWindowEnd,
+    alarmCoverageStart,
+    alarmCoverageEnd,
+  ];
 }
 
 class AlarmStatusReport extends Equatable {
@@ -440,21 +440,21 @@ class AlarmStatusReport extends Equatable {
 
   @override
   List<Object?> get props => [
-        deviceId,
-        reconciledAt,
-        scheduleWindowStart,
-        scheduleWindowEnd,
-        alarmCoverageStart,
-        alarmCoverageEnd,
-        status,
-        permissionIssue,
-        nativeAlarmProvider,
-        fallbackProvider,
-        armedScheduleCount,
-        armedScheduleIds,
-        skippedScheduleCount,
-        failures,
-      ];
+    deviceId,
+    reconciledAt,
+    scheduleWindowStart,
+    scheduleWindowEnd,
+    alarmCoverageStart,
+    alarmCoverageEnd,
+    status,
+    permissionIssue,
+    nativeAlarmProvider,
+    fallbackProvider,
+    armedScheduleCount,
+    armedScheduleIds,
+    skippedScheduleCount,
+    failures,
+  ];
 }
 
 bool isAlarmEligibleSchedule(ScheduleWithPreparationEntity schedule) {
@@ -501,14 +501,14 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
     provider: provider,
     scheduleTitle: schedule.scheduleName,
     payload: {
-      'type': 'schedule_alarm',
+      'type': 'schedule_notification',
       'alarmLaunchPayloadVersion': alarmLaunchPayloadVersion,
       'scheduleId': schedule.id,
       'alarmTime': alarmTime.toIso8601String(),
       'preparationStartTime': preparationStartTime.toIso8601String(),
       'scheduleFingerprint': buildAlarmScheduleFingerprint(schedule),
       'placeName': schedule.place.placeName,
-      'promptVariant': 'alarm',
+      'promptVariant': 'notification',
     },
   );
 }

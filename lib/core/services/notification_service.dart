@@ -267,9 +267,9 @@ class NotificationService {
         ?.createNotificationChannel(channel);
 
     const alarmChannel = AndroidNotificationChannel(
-      'scheduled_alarm_channel',
-      'Scheduled alarms',
-      description: 'Schedule preparation alarm fallback notifications.',
+      'scheduled_notification_channel',
+      'Schedule notifications',
+      description: 'Schedule preparation notifications.',
       importance: Importance.max,
     );
 
@@ -491,13 +491,12 @@ class NotificationService {
       scheduledDate: scheduledAt,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          'scheduled_alarm_channel',
-          'Scheduled alarms',
-          channelDescription:
-              'Schedule preparation alarm fallback notifications.',
+          'scheduled_notification_channel',
+          'Schedule notifications',
+          channelDescription: 'Schedule preparation notifications.',
           importance: Importance.max,
           priority: Priority.max,
-          category: AndroidNotificationCategory.alarm,
+          category: AndroidNotificationCategory.reminder,
           icon: '@mipmap/ic_launcher',
           playSound: true,
           enableVibration: true,

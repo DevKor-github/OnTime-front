@@ -308,23 +308,26 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
         final schedulerService = getIt.get<AlarmSchedulerService>();
         final fallbackService = getIt.get<FallbackAlarmNotificationService>();
 
-        final nativePermission = await schedulerService.checkPermission();
-        if (!mounted) return;
-        if (_needsExactAlarmRecovery(nativePermission)) {
-          final shouldOpenSettings = await _showExactAlarmPermissionDialog(
-            context,
-          );
+        final capabilities = await schedulerService.getCapabilities();
+        if (_shouldRecoverNativeAlarmPermission(capabilities)) {
+          final nativePermission = await schedulerService.checkPermission();
           if (!mounted) return;
-          if (shouldOpenSettings == DialogActionResult.primary) {
-            await schedulerService.requestPermission();
-          }
-          final updatedNativePermission = await schedulerService
-              .checkPermission();
-          if (_needsExactAlarmRecovery(updatedNativePermission)) {
-            await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
-            await getIt.get<CancelAllAlarmsUseCase>()();
-            await _load();
-            return;
+          if (_needsExactAlarmRecovery(nativePermission)) {
+            final shouldOpenSettings = await _showExactAlarmPermissionDialog(
+              context,
+            );
+            if (!mounted) return;
+            if (shouldOpenSettings == DialogActionResult.primary) {
+              await schedulerService.requestPermission();
+            }
+            final updatedNativePermission = await schedulerService
+                .checkPermission();
+            if (_needsExactAlarmRecovery(updatedNativePermission)) {
+              await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+              await getIt.get<CancelAllAlarmsUseCase>()();
+              await _load();
+              return;
+            }
           }
         }
 
@@ -379,6 +382,16 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
 bool _needsExactAlarmRecovery(AlarmPermissionState permission) {
   return permission == AlarmPermissionState.denied ||
       permission == AlarmPermissionState.notDetermined;
+}
+
+bool _shouldRecoverNativeAlarmPermission(
+  AlarmSchedulerCapabilities capabilities,
+) {
+  return capabilities.supportsNativeAlarm &&
+      capabilities.nativeAlarmProvider != AlarmProvider.none &&
+      nativeAlarmProviderAllowedByReleasePolicy(
+        capabilities.nativeAlarmProvider,
+      );
 }
 
 class _MyAccountView extends StatelessWidget {

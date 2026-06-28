@@ -650,6 +650,75 @@ void main() {
     );
 
     test(
+      'restoring an ongoing run tolerates frozen preparation ids and preserves skip actions',
+      () async {
+        final startedAt = DateTime(2026, 3, 20, 9, 0);
+        final original = buildSchedule(
+          id: 'frozen-restore',
+          scheduleTime: startedAt.add(const Duration(minutes: 50)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'template-s1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 'template-s2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 'template-s2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        final frozen = buildSchedule(
+          id: 'frozen-restore',
+          scheduleTime: startedAt.add(const Duration(minutes: 50)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'frozen-s1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 'frozen-s2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 'frozen-s2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        now = startedAt.add(const Duration(minutes: 7));
+        getSnapshotUseCase.snapshots['frozen-restore'] = buildSnapshot(
+          preparation: original.preparation,
+          savedAt: startedAt.add(const Duration(minutes: 3)),
+          fingerprint: original.cacheFingerprint,
+          startedAt: startedAt,
+          actionEvents: [
+            PreparationActionEventEntity.skipStep(
+              stepId: 'template-s1',
+              occurredAt: startedAt.add(const Duration(minutes: 3)),
+            ),
+          ],
+        );
+
+        bloc.add(ScheduleUpcomingReceived(frozen));
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        await Future<void>.delayed(Duration.zero);
+
+        final restoredSteps =
+            bloc.state.schedule!.preparation.preparationStepList;
+        expect(clearTimedUseCase.calls, isNot(contains('frozen-restore')));
+        expect(restoredSteps[0].id, 'frozen-s1');
+        expect(restoredSteps[0].isDone, isTrue);
+        expect(restoredSteps[0].elapsedTime, const Duration(minutes: 3));
+        expect(bloc.state.schedule!.preparation.currentStep?.id, 'frozen-s2');
+        expect(restoredSteps[1].elapsedTime, const Duration(minutes: 4));
+      },
+    );
+
+    test(
       'refreshing active preparation derives elapsed from actual current time',
       () async {
         final startedAt = DateTime(2026, 3, 20, 9, 0);

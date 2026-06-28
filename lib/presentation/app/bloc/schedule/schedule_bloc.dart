@@ -653,7 +653,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (snapshot == null) {
       return incoming;
     }
-    if (snapshot.scheduleFingerprint != incoming.cacheFingerprint) {
+    if (snapshot.scheduleFingerprint != incoming.cacheFingerprint &&
+        !_canRestoreAcrossFingerprintMismatch(snapshot, incoming)) {
       await _clearPersistedState(incoming.id);
       return incoming;
     }
@@ -743,7 +744,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     PreparationActionEventEntity event,
   ) {
     final current = preparation.currentStep;
-    if (current == null || current.id != event.stepId) {
+    if (current == null) {
+      return preparation;
+    }
+    final eventStepId = event.stepId;
+    final eventStepStillExists =
+        eventStepId != null &&
+        preparation.preparationStepList.any((step) => step.id == eventStepId);
+    if (eventStepStillExists && current.id != eventStepId) {
       return preparation;
     }
     return preparation.copyWith(
@@ -752,6 +760,43 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
           step.id == current.id ? step.copyWith(isDone: true) : step,
       ],
     );
+  }
+
+  bool _canRestoreAcrossFingerprintMismatch(
+    TimedPreparationSnapshotEntity snapshot,
+    ScheduleWithPreparationEntity incoming,
+  ) {
+    return _scheduleTimingFingerprintPrefix(snapshot.scheduleFingerprint) ==
+            _scheduleTimingFingerprintPrefix(incoming.cacheFingerprint) &&
+        _hasSamePreparationShape(snapshot.preparation, incoming.preparation);
+  }
+
+  String _scheduleTimingFingerprintPrefix(String fingerprint) {
+    final parts = fingerprint.split('|');
+    if (parts.length < 4) {
+      return fingerprint;
+    }
+    return '${parts[0]}|${parts[1]}|${parts[2]}|';
+  }
+
+  bool _hasSamePreparationShape(
+    PreparationWithTimeEntity left,
+    PreparationWithTimeEntity right,
+  ) {
+    final leftSteps = left.preparationStepList;
+    final rightSteps = right.preparationStepList;
+    if (leftSteps.length != rightSteps.length) {
+      return false;
+    }
+    for (var index = 0; index < leftSteps.length; index++) {
+      final leftStep = leftSteps[index];
+      final rightStep = rightSteps[index];
+      if (leftStep.preparationName != rightStep.preparationName ||
+          leftStep.preparationTime != rightStep.preparationTime) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<EarlyStartSessionEntity?> _getEarlyStartSession(String scheduleId) {

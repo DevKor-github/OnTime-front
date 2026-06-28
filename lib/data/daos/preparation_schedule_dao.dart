@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 
@@ -20,22 +21,25 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
   PreparationScheduleDao(this.db) : super(db);
 
   Future<void> createPreparationSchedule(
-      PreparationEntity preparationEntity, String scheduleId) async {
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
     String? previousStepId;
 
     for (var step in preparationEntity.preparationStepList) {
       // Step 1: Insert the current preparation step
       final insertedStep = await into(db.preparationSchedules).insertReturning(
-        step.toPreparationScheduleModel(scheduleId).toCompanion(false),
+        step.toPreparationScheduleRow(scheduleId).toCompanion(false),
       );
 
       // Step 2: Update the `nextPreparationId` of the previous step
       if (previousStepId != null) {
-        await (update(db.preparationSchedules)
-              ..where((tbl) => tbl.id.equals(previousStepId!)))
-            .write(
+        await (update(
+          db.preparationSchedules,
+        )..where((tbl) => tbl.id.equals(previousStepId!))).write(
           PreparationSchedulesCompanion(
-              nextPreparationId: Value(insertedStep.id)),
+            nextPreparationId: Value(insertedStep.id),
+          ),
         );
       }
 
@@ -45,10 +49,11 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<PreparationEntity> getPreparationSchedulesByScheduleId(
-      String scheduleId) async {
-    final allSteps = await (select(db.preparationSchedules)
-          ..where((tbl) => tbl.scheduleId.equals(scheduleId)))
-        .get();
+    String scheduleId,
+  ) async {
+    final allSteps = await (select(
+      db.preparationSchedules,
+    )..where((tbl) => tbl.scheduleId.equals(scheduleId))).get();
 
     if (allSteps.isEmpty) {
       return PreparationEntity(preparationStepList: []);
@@ -80,10 +85,11 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId) async {
-    final result = await (select(db.preparationSchedules)
-          ..where((tbl) => tbl.id.equals(preparationStepId)))
-        .getSingleOrNull();
+    String preparationStepId,
+  ) async {
+    final result = await (select(
+      db.preparationSchedules,
+    )..where((tbl) => tbl.id.equals(preparationStepId))).getSingleOrNull();
 
     if (result == null) {
       throw Exception("Preparation step not found");
@@ -98,10 +104,12 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> updatePreparationSchedule(
-      PreparationStepEntity stepEntity, String scheduleId) async {
-    await (update(db.preparationSchedules)
-          ..where((tbl) => tbl.id.equals(stepEntity.id)))
-        .write(
+    PreparationStepEntity stepEntity,
+    String scheduleId,
+  ) async {
+    await (update(
+      db.preparationSchedules,
+    )..where((tbl) => tbl.id.equals(stepEntity.id))).write(
       PreparationSchedulesCompanion(
         preparationName: Value(stepEntity.preparationName),
         preparationTime: Value(stepEntity.preparationTime.inMinutes),
@@ -111,28 +119,30 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<PreparationEntity> deletePreparationSchedule(
-      String preparationId) async {
+    String preparationId,
+  ) async {
     // Step 1: 삭제할 준비 과정을 가져오기
-    final preparationToDelete = await (select(db.preparationSchedules)
-          ..where((tbl) => tbl.id.equals(preparationId)))
-        .getSingle();
+    final preparationToDelete = await (select(
+      db.preparationSchedules,
+    )..where((tbl) => tbl.id.equals(preparationId))).getSingle();
 
     // Step 2: 이전 노드의 nextPreparationId를 업데이트
-    await (update(db.preparationSchedules)
-          ..where((tbl) => tbl.nextPreparationId.equals(preparationId)))
-        .write(
+    await (update(
+      db.preparationSchedules,
+    )..where((tbl) => tbl.nextPreparationId.equals(preparationId))).write(
       PreparationSchedulesCompanion(
         nextPreparationId: Value(preparationToDelete.nextPreparationId),
       ),
     );
 
     // Step 3: 해당 노드 삭제
-    await (delete(db.preparationSchedules)
-          ..where((tbl) => tbl.id.equals(preparationId)))
-        .go();
+    await (delete(
+      db.preparationSchedules,
+    )..where((tbl) => tbl.id.equals(preparationId))).go();
 
     // Step 4: 재정렬된 PreparationEntity 반환
     return await getPreparationSchedulesByScheduleId(
-        preparationToDelete.scheduleId);
+      preparationToDelete.scheduleId,
+    );
   }
 }

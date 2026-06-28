@@ -1,6 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:on_time_front/core/database/database.dart';
-import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -9,7 +7,6 @@ import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart'
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
-import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 void main() {
   group('Preparation timing entities', () {
@@ -149,10 +146,6 @@ void main() {
       expect(progressed.currentStepRemainingTime, const Duration(minutes: 8));
       expect(progressed.currentStepName, 'dress');
       expect(progressed.stepElapsedTimesInSeconds, [600, 120]);
-      expect(progressed.preparationStepStates, [
-        PreparationStateEnum.done,
-        PreparationStateEnum.now,
-      ]);
       expect(progressed.progress, 0.6);
     });
 
@@ -162,10 +155,6 @@ void main() {
       expect(skipped.preparationStepList[0].isDone, isTrue);
       expect(skipped.preparationStepList[1].isDone, isFalse);
       expect(skipped.currentStep?.id, 's2');
-      expect(skipped.preparationStepStates, [
-        PreparationStateEnum.done,
-        PreparationStateEnum.now,
-      ]);
     });
 
     test('completed and empty preparations expose safe display fallbacks', () {
@@ -185,10 +174,6 @@ void main() {
       expect(completed.currentStepIndex, -1);
       expect(completed.resolvedCurrentStepIndex, 1);
       expect(completed.currentStepName, 'dress');
-      expect(completed.preparationStepStates, [
-        PreparationStateEnum.done,
-        PreparationStateEnum.done,
-      ]);
       expect(completed.skipCurrentStep(), same(completed));
       expect(
         completed.timeElapsed(const Duration(minutes: 1)),
@@ -197,7 +182,6 @@ void main() {
 
       expect(empty.currentStepName, '');
       expect(empty.progress, 0);
-      expect(empty.preparationStepStates, isEmpty);
       expect(zeroDuration.progress, 0);
     });
 
@@ -299,44 +283,7 @@ void main() {
     );
   });
 
-  group('ScheduleEntity model mapping', () {
-    test('maps to and from database models preserving user-visible fields', () {
-      final entity = ScheduleEntity.fromScheduleWithPlaceModel(
-        ScheduleWithPlace(
-          schedule: Schedule(
-            id: 'schedule-model',
-            placeId: 'place-model',
-            scheduleName: 'Doctor',
-            scheduleTime: DateTime(2026, 4, 1, 15),
-            moveTime: const Duration(minutes: 30),
-            isChanged: true,
-            isStarted: false,
-            scheduleSpareTime: const Duration(minutes: 5),
-            scheduleNote: null,
-            latenessTime: 7,
-          ),
-          place: const Place(id: 'place-model', placeName: 'Clinic'),
-        ),
-      );
-
-      expect(entity.id, 'schedule-model');
-      expect(entity.place.placeName, 'Clinic');
-      expect(entity.scheduleNote, '');
-      expect(entity.doneStatus, ScheduleDoneStatus.notEnded);
-
-      final model = entity
-          .copyWith(doneStatus: ScheduleDoneStatus.normalEnd)
-          .toScheduleWithPlaceModel();
-
-      expect(model.schedule.id, 'schedule-model');
-      expect(model.schedule.placeId, 'place-model');
-      expect(model.schedule.scheduleName, 'Doctor');
-      expect(model.schedule.moveTime, const Duration(minutes: 30));
-      expect(model.schedule.scheduleNote, '');
-      expect(model.schedule.latenessTime, 7);
-      expect(model.place.placeName, 'Clinic');
-    });
-
+  group('ScheduleEntity diagnostics', () {
     test(
       'string representation includes schedule identity for diagnostics',
       () {

@@ -21,18 +21,10 @@ void main() {
     sessionInvalidator = _FakeTokenSessionInvalidator(tokenLocalDataSource);
 
     adapter = _TokenRefreshAdapter();
-    dio = Dio(
-      BaseOptions(
-        baseUrl: 'https://example.com',
-        receiveDataWhenStatusError: true,
-      ),
-    )..httpClientAdapter = adapter;
-    dio.interceptors.add(
-      TokenInterceptor(
-        dio,
-        tokenLocalDataSource: tokenLocalDataSource,
-        sessionInvalidator: sessionInvalidator,
-      ),
+    dio = _dioWithTokenInterceptor(
+      adapter,
+      tokenLocalDataSource: tokenLocalDataSource,
+      sessionInvalidator: sessionInvalidator,
     );
   });
 
@@ -114,6 +106,41 @@ void main() {
 
     expect(responses.map((response) => response.statusCode), everyElement(200));
     expect(adapter.refreshRequests, 1);
+    expect(
+      adapter.protectedAuthorizationHeaders.where(
+        (header) => header == 'Bearer new-access-token',
+      ),
+      hasLength(2),
+    );
+  });
+
+  test('shares refresh coordination across interceptor instances', () async {
+    final refreshCompleter = Completer<void>();
+    adapter = _TokenRefreshAdapter(refreshCompleter: refreshCompleter);
+    final firstDio = _dioWithTokenInterceptor(
+      adapter,
+      tokenLocalDataSource: tokenLocalDataSource,
+      sessionInvalidator: sessionInvalidator,
+    );
+    final secondDio = _dioWithTokenInterceptor(
+      adapter,
+      tokenLocalDataSource: tokenLocalDataSource,
+      sessionInvalidator: sessionInvalidator,
+    );
+
+    final firstRequest = firstDio.get<String>('/protected/one');
+    await _flushMicrotasks();
+    final secondRequest = secondDio.get<String>('/protected/two');
+    await _flushMicrotasks();
+
+    expect(adapter.refreshRequests, 1);
+    refreshCompleter.complete();
+
+    final responses = await Future.wait([firstRequest, secondRequest]);
+
+    expect(responses.map((response) => response.statusCode), everyElement(200));
+    expect(adapter.refreshRequests, 1);
+    expect(tokenLocalDataSource.storeTokensCallCount, 1);
     expect(
       adapter.protectedAuthorizationHeaders.where(
         (header) => header == 'Bearer new-access-token',
@@ -209,6 +236,27 @@ void main() {
       expect(tokenLocalDataSource.deleteTokenCalled, isTrue);
     },
   );
+}
+
+Dio _dioWithTokenInterceptor(
+  HttpClientAdapter adapter, {
+  required TokenLocalDataSource tokenLocalDataSource,
+  required TokenSessionInvalidator sessionInvalidator,
+}) {
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://example.com',
+      receiveDataWhenStatusError: true,
+    ),
+  )..httpClientAdapter = adapter;
+  dio.interceptors.add(
+    TokenInterceptor(
+      dio,
+      tokenLocalDataSource: tokenLocalDataSource,
+      sessionInvalidator: sessionInvalidator,
+    ),
+  );
+  return dio;
 }
 
 Future<void> _flushMicrotasks() async {

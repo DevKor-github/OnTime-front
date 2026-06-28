@@ -17,7 +17,7 @@ class LoadAdjacentScheduleWithPreparationUseCase {
 
   /// Loads schedules and preparation data from the server for the given date range.
   /// This triggers fetching schedules and preparation from the remote data source
-  /// and updating the local cache/stream.
+  /// and updating repository streams.
   ///
   /// [startDate] - Start date for the search range
   /// [endDate] - End date for the search range
@@ -29,13 +29,16 @@ class LoadAdjacentScheduleWithPreparationUseCase {
     await _loadSchedulesByDateUseCase(startDate, endDate);
 
     // Get the schedules that were loaded
-    final schedules =
-        await _getSchedulesByDateUseCase(startDate, endDate).first;
+    final schedules = await _getSchedulesByDateUseCase(
+      startDate,
+      endDate,
+    ).first;
 
     // Load preparation for all schedules in the date range
     await Future.wait(
-      schedules
-          .map((schedule) => _loadPreparationByScheduleIdUseCase(schedule.id)),
+      schedules.map(
+        (schedule) => _loadPreparationByScheduleIdUseCase(schedule.id),
+      ),
     );
   }
 }

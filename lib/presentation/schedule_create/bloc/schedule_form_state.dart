@@ -22,6 +22,7 @@ final class ScheduleFormState extends Equatable {
   final Duration? scheduleSpareTime;
   final String? scheduleNote;
   final PreparationEntity? preparation;
+  final SchedulePreparationMode? originalPreparationMode;
   final bool isValid;
   final Duration? maxAvailableTime;
   final String? previousScheduleName;
@@ -40,6 +41,7 @@ final class ScheduleFormState extends Equatable {
     this.scheduleSpareTime,
     this.scheduleNote,
     this.preparation,
+    this.originalPreparationMode,
     this.isValid = false,
     this.maxAvailableTime,
     this.previousScheduleName,
@@ -59,6 +61,7 @@ final class ScheduleFormState extends Equatable {
     Duration? scheduleSpareTime,
     String? scheduleNote,
     PreparationEntity? preparation,
+    SchedulePreparationMode? originalPreparationMode,
     bool? isValid,
     Duration? maxAvailableTime,
     String? previousScheduleName,
@@ -79,6 +82,8 @@ final class ScheduleFormState extends Equatable {
       scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
       scheduleNote: scheduleNote ?? this.scheduleNote,
       preparation: preparation ?? this.preparation,
+      originalPreparationMode:
+          originalPreparationMode ?? this.originalPreparationMode,
       isValid: isValid ?? this.isValid,
       maxAvailableTime: maxAvailableTime ?? this.maxAvailableTime,
       previousScheduleName: previousScheduleName ?? this.previousScheduleName,
@@ -111,21 +116,22 @@ final class ScheduleFormState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        submissionStatus,
-        submissionError,
-        id,
-        placeId,
-        placeName,
-        scheduleName,
-        scheduleTime,
-        moveTime,
-        isChanged,
-        scheduleSpareTime,
-        scheduleNote,
-        preparation,
-        isValid,
-        maxAvailableTime,
-        previousScheduleName,
-      ];
+    status,
+    submissionStatus,
+    submissionError,
+    id,
+    placeId,
+    placeName,
+    scheduleName,
+    scheduleTime,
+    moveTime,
+    isChanged,
+    scheduleSpareTime,
+    scheduleNote,
+    preparation,
+    originalPreparationMode,
+    isValid,
+    maxAvailableTime,
+    previousScheduleName,
+  ];
 }

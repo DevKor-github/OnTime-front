@@ -187,6 +187,67 @@ void main() {
     },
   );
 
+  test(
+    'preparation prefetch starts multiple uncached schedule loads without serial waiting',
+    () async {
+      final loadStarted = <String, Completer<void>>{
+        scheduleA.id: Completer<void>(),
+        scheduleB.id: Completer<void>(),
+      };
+      final loadAllowedToFinish = <String, Completer<void>>{
+        scheduleA.id: Completer<void>(),
+        scheduleB.id: Completer<void>(),
+      };
+      addTearDown(() {
+        for (final completer in loadAllowedToFinish.values) {
+          if (!completer.isCompleted) {
+            completer.complete();
+          }
+        }
+      });
+
+      loadPreparationByScheduleIdUseCase =
+          StubLoadPreparationByScheduleIdUseCase((scheduleId) async {
+            loadStarted[scheduleId]?.complete();
+            await loadAllowedToFinish[scheduleId]?.future;
+          });
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(
+        MonthlySchedulesPreparationsPrefetchRequested(
+          scheduleIds: [scheduleA.id, scheduleB.id],
+        ),
+      );
+
+      await loadStarted[scheduleA.id]!.future.timeout(
+        const Duration(milliseconds: 50),
+      );
+      await loadStarted[scheduleB.id]!.future.timeout(
+        const Duration(milliseconds: 50),
+      );
+
+      loadAllowedToFinish[scheduleA.id]!.complete();
+      loadAllowedToFinish[scheduleB.id]!.complete();
+
+      final prefetchedState = await bloc.stream.firstWhere(
+        (state) =>
+            state.preparationDurationByScheduleId.containsKey(scheduleA.id) &&
+            state.preparationDurationByScheduleId.containsKey(scheduleB.id),
+      );
+
+      expect(
+        prefetchedState.preparationDurationByScheduleId[scheduleA.id],
+        const Duration(minutes: 20),
+      );
+      expect(
+        prefetchedState.preparationDurationByScheduleId[scheduleB.id],
+        const Duration(minutes: 15),
+      );
+    },
+  );
+
   test('cached schedule preparations are not fetched again', () async {
     getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase(
       (_, __) => Stream<List<ScheduleEntity>>.fromIterable([

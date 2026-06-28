@@ -53,6 +53,22 @@ _Avoid_: Provider login completed, credential received
 An allowlisted non-content value attached to a Product Usage Event.
 _Avoid_: Event payload, arbitrary metadata, raw detail
 
+**Schedule**:
+A planned commitment with an appointment time and place that OnTime helps the user prepare for.
+_Avoid_: Calendar event, meeting
+
+**Preparation**:
+The set of user-planned steps completed before leaving for a Schedule.
+_Avoid_: Prep routine, checklist
+
+**Preparation Duration**:
+The sum of a Schedule's Preparation step durations, excluding move time and Schedule Spare Time.
+_Avoid_: Total duration, travel time, buffer time
+
+**Schedule Spare Time**:
+A user buffer before a Schedule's appointment time, separate from travel time and Preparation Duration.
+_Avoid_: Preparation time, move time
+
 **Schedule Notification**:
 A user-facing notification that starts preparation for a scheduled commitment at the intended moment.
 _Avoid_: Schedule alarm, alarm, push
@@ -117,6 +133,8 @@ _Avoid_: Notification, native alarm
 - An **Analytics Event Parameter** must not contain user-authored text, direct identifiers, tokens, raw exception strings, request bodies, or response bodies.
 - A **Product Usage Event** uses a stable snake_case name and includes a schema version.
 - A changed **Product Usage Event** meaning requires a new event name or schema version.
+- A **Schedule** has a **Preparation** whose **Preparation Duration** contributes to preparation-start timing.
+- **Preparation Duration**, move time, and **Schedule Spare Time** are distinct schedule timing inputs.
 - User-facing copy should call a scheduled notification a **Schedule Notification**, not an **Alarm**, unless it opens an OnTime screen without the user first tapping a notification.
 - The profile setting for upcoming schedule preparation delivery should be called **Schedule Notification Setting**.
 - On iOS, user-facing copy may say **Alarm** only when OnTime can deliver an **iOS AlarmKit Alarm**.
@@ -180,3 +198,4 @@ _Avoid_: Notification, native alarm
 - "Time Sensitive" was too platform-specific for default user-facing status; resolved: fallback iOS delivery should be called notification.
 - "Status label" was ambiguous across platforms; resolved: Android uses precise notification or notification status, while iOS uses alarm status only for **iOS AlarmKit Alarm**.
 - "No scheduled alarm" was too capability-specific for an empty state; resolved: use **No Scheduled Notification** across platforms.
+- "Total duration" was ambiguous between **Preparation Duration** and the broader preparation-start timing calculation; resolved: **Preparation Duration** is steps only, while move time and **Schedule Spare Time** are separate inputs.

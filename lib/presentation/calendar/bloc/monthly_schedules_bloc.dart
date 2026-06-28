@@ -19,6 +19,8 @@ part 'monthly_schedules_state.dart';
 @Injectable()
 class MonthlySchedulesBloc
     extends Bloc<MonthlySchedulesEvent, MonthlySchedulesState> {
+  static const int _maxPreparationPrefetchConcurrency = 4;
+
   MonthlySchedulesBloc(
     this._loadSchedulesForMonthUseCase,
     this._getSchedulesByDateUseCase,
@@ -201,30 +203,77 @@ class MonthlySchedulesBloc
     }
 
     final fetchedDurations = <String, Duration>{};
-    var hasUpdates = false;
-
-    for (final scheduleId in missingIds) {
-      try {
-        await _loadPreparationByScheduleIdUseCase(scheduleId);
-        if (state.preparationDurationByScheduleId.containsKey(scheduleId)) {
-          // Stream update already has fresher data.
-          continue;
-        }
-        final preparation = await _getPreparationByScheduleIdUseCase(
-          scheduleId,
-        );
-        fetchedDurations[scheduleId] = preparation.totalDuration;
-        hasUpdates = true;
-      } catch (_) {
-        // Keep fallback UI when loading fails.
+    await _forEachMissingPreparationId(missingIds, (scheduleId) async {
+      final duration = await _loadPreparationDuration(scheduleId);
+      if (duration != null) {
+        fetchedDurations[scheduleId] = duration;
       }
-    }
+    });
 
-    if (hasUpdates) {
+    if (fetchedDurations.isNotEmpty && !emit.isDone) {
       final updatedMap = Map<String, Duration>.from(
         state.preparationDurationByScheduleId,
-      )..addAll(fetchedDurations);
-      emit(state.copyWith(preparationDurationByScheduleId: () => updatedMap));
+      );
+      var hasUpdates = false;
+      for (final entry in fetchedDurations.entries) {
+        if (updatedMap.containsKey(entry.key)) {
+          continue;
+        }
+        updatedMap[entry.key] = entry.value;
+        hasUpdates = true;
+      }
+      if (hasUpdates) {
+        emit(state.copyWith(preparationDurationByScheduleId: () => updatedMap));
+      }
+    }
+  }
+
+  Future<void> _forEachMissingPreparationId(
+    Set<String> scheduleIds,
+    Future<void> Function(String scheduleId) load,
+  ) async {
+    final ids = scheduleIds.toList(growable: false);
+    var nextIndex = 0;
+    final workerCount = ids.length < _maxPreparationPrefetchConcurrency
+        ? ids.length
+        : _maxPreparationPrefetchConcurrency;
+
+    String? takeNextId() {
+      if (nextIndex >= ids.length) {
+        return null;
+      }
+      return ids[nextIndex++];
+    }
+
+    await Future.wait(
+      List<Future<void>>.generate(workerCount, (_) async {
+        while (true) {
+          final scheduleId = takeNextId();
+          if (scheduleId == null) {
+            return;
+          }
+          await load(scheduleId);
+        }
+      }),
+    );
+  }
+
+  Future<Duration?> _loadPreparationDuration(String scheduleId) async {
+    if (state.preparationDurationByScheduleId.containsKey(scheduleId)) {
+      return null;
+    }
+
+    try {
+      await _loadPreparationByScheduleIdUseCase(scheduleId);
+      if (state.preparationDurationByScheduleId.containsKey(scheduleId)) {
+        // Stream update already has fresher data.
+        return null;
+      }
+      final preparation = await _getPreparationByScheduleIdUseCase(scheduleId);
+      return preparation.totalDuration;
+    } catch (_) {
+      // Keep fallback UI when loading fails.
+      return null;
     }
   }
 

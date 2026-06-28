@@ -14,31 +14,27 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   ScheduleDao(this.db) : super(db);
 
   Future<ScheduleWithPlace> createSchedule(
-      ScheduleWithPlace scheduleWithPlace) async {
+    ScheduleWithPlace scheduleWithPlace,
+  ) async {
     final placeModel = await db.placeDao.createPlace(scheduleWithPlace.place);
-    final scheduleModel = await into(db.schedules).insertReturning(
-      scheduleWithPlace.schedule.toCompanion(false),
-    );
+    final scheduleModel = await into(
+      db.schedules,
+    ).insertReturning(scheduleWithPlace.schedule.toCompanion(false));
 
-    return ScheduleWithPlace(
-      schedule: scheduleModel,
-      place: placeModel,
-    );
+    return ScheduleWithPlace(schedule: scheduleModel, place: placeModel);
   }
 
   Future<void> deleteSchedule(Schedule scheduleModel) async {
-    await (delete(db.schedules)
-          ..where((tbl) => tbl.id.equals(scheduleModel.id)))
-        .go();
+    await (delete(
+      db.schedules,
+    )..where((tbl) => tbl.id.equals(scheduleModel.id))).go();
   }
 
   Future<ScheduleWithPlace> getScheduleById(String id) async {
     try {
       final query = await (select(db.schedules).join([
         leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),
-      ])
-            ..where(db.schedules.id.equals(id)))
-          .getSingle();
+      ])..where(db.schedules.id.equals(id))).getSingle();
       return ScheduleWithPlace(
         schedule: query.readTable(db.schedules),
         place: query.readTable(db.places),
@@ -49,30 +45,40 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<Schedule> updateSchedule(Schedule scheduleModel) async {
-    final scheduleList = await (update(db.schedules)
-          ..where((tbl) => tbl.id.equals(scheduleModel.id)))
-        .writeReturning(scheduleModel.toCompanion(true));
+    final scheduleList =
+        await (update(db.schedules)
+              ..where((tbl) => tbl.id.equals(scheduleModel.id)))
+            .writeReturning(scheduleModel.toCompanion(true));
     assert(scheduleList.length == 1);
     return scheduleList.first;
   }
 
   Future<List<ScheduleWithPlace>> getSchedulesByDate(
-      DateTime startDate, DateTime? endDate) async {
-    final query = select(db.schedules).join([
-      leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),
-    ])
-      ..where(db.schedules.scheduleTime.isBiggerOrEqualValue(startDate) &
-          (endDate == null
-              ? Constant<bool>(true)
-              : db.schedules.scheduleTime.isSmallerOrEqualValue(endDate)));
+    DateTime startDate,
+    DateTime? endDate,
+  ) async {
+    final query =
+        select(db.schedules).join([
+          leftOuterJoin(
+            db.places,
+            db.places.id.equalsExp(db.schedules.placeId),
+          ),
+        ])..where(
+          db.schedules.scheduleTime.isBiggerOrEqualValue(startDate) &
+              (endDate == null
+                  ? Constant<bool>(true)
+                  : db.schedules.scheduleTime.isSmallerThanValue(endDate)),
+        );
     final result = await query.get();
     final List<ScheduleWithPlace> scheduleList = [];
 
     await Future.forEach(result, (schedule) async {
-      scheduleList.add(ScheduleWithPlace(
-        schedule: schedule.readTable(db.schedules),
-        place: schedule.readTable(db.places),
-      ));
+      scheduleList.add(
+        ScheduleWithPlace(
+          schedule: schedule.readTable(db.schedules),
+          place: schedule.readTable(db.places),
+        ),
+      );
     });
     return scheduleList;
   }
@@ -85,10 +91,12 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
     final List<ScheduleWithPlace> scheduleList = [];
 
     await Future.forEach(result, (schedule) async {
-      scheduleList.add(ScheduleWithPlace(
-        schedule: schedule.readTable(db.schedules),
-        place: schedule.readTable(db.places),
-      ));
+      scheduleList.add(
+        ScheduleWithPlace(
+          schedule: schedule.readTable(db.schedules),
+          place: schedule.readTable(db.places),
+        ),
+      );
     });
     return scheduleList;
   }

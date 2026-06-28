@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
@@ -18,10 +19,17 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
     accessibility: KeychainAccessibility.first_unlock_this_device,
   );
 
-  final storage = const FlutterSecureStorage(iOptions: _appleOptions);
+  TokenLocalDataSourceImpl()
+    : storage = const FlutterSecureStorage(iOptions: _appleOptions);
+
+  @visibleForTesting
+  TokenLocalDataSourceImpl.withStorage(this.storage);
+
+  final FlutterSecureStorage storage;
 
   final accessTokenKey = 'accessToken';
   final refreshTokenKey = 'refreshToken';
+  TokenEntity? _cachedToken;
 
   @override
   Future<void> storeTokens(TokenEntity token) async {
@@ -35,12 +43,19 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
       value: token.refreshToken,
       iOptions: _appleOptions,
     );
+    _cachedToken = token;
   }
 
   @override
   Future<TokenEntity> getToken() async {
+    final cachedToken = _cachedToken;
+    if (cachedToken != null) {
+      return cachedToken;
+    }
+
     final token = await _readToken(_appleOptions);
     if (token != null) {
+      _cachedToken = token;
       return token;
     }
 
@@ -65,6 +80,7 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
       key: refreshTokenKey,
       iOptions: IOSOptions.defaultOptions,
     );
+    _cachedToken = null;
   }
 
   @override
@@ -74,6 +90,16 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
       value: token,
       iOptions: _appleOptions,
     );
+    final cachedToken = _cachedToken;
+    final refreshToken =
+        cachedToken?.refreshToken ??
+        await storage.read(key: refreshTokenKey, iOptions: _appleOptions);
+    if (refreshToken != null) {
+      _cachedToken = TokenEntity(
+        accessToken: token,
+        refreshToken: refreshToken,
+      );
+    }
   }
 
   Future<TokenEntity?> _readToken(IOSOptions options) async {

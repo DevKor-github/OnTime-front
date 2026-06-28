@@ -32,6 +32,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/coverage/
+/ios/build/
 
 # Symbolication related
 app.*.symbols
@@ -60,6 +62,9 @@ android/key.properties
 *.jks
 *.keystore
 *.p12
+
+# Generated deploy caches
+/.firebase/
 
 .cursor
 .codex/

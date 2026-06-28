@@ -44,3 +44,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated Dart outputs are local/CI build artifacts; regenerate them but do
+# not commit them.
+*.g.dart
+*.mocks.dart
+*.config.dart
+*.freezed.dart

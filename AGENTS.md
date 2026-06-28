@@ -7,7 +7,7 @@ This Flutter app uses layered code under `lib/`. Platform services, database, DI
 ## Build, Test, and Development Commands
 
 - `flutter pub get`: install Dart and Flutter dependencies.
-- `dart run build_runner build --delete-conflicting-outputs`: regenerate Drift, JSON, Injectable, and other generated files.
+- `dart run build_runner build --delete-conflicting-outputs`: regenerate Drift, JSON, Injectable, Mockito, Freezed, and Widgetbook Dart outputs as ignored local build artifacts.
 - `flutter analyze`: run analyzer checks using `analysis_options.yaml`.
 - `flutter test`: run the full test suite.
 - `flutter test --coverage`: run tests and update `coverage/lcov.info`.
@@ -18,7 +18,7 @@ Do not use `npm test`; the root `package.json` placeholder script intentionally 
 
 ## Coding Style & Naming Conventions
 
-Follow `package:flutter_lints/flutter.yaml`. Use standard Dart formatting with two-space indentation; run `dart format lib test` before broad Dart edits are submitted. File names use `snake_case.dart`; classes, blocs, cubits, entities, and models use `PascalCase`; methods and fields use `camelCase`. Keep generated `*.g.dart` and `*.config.dart` files in sync. Preserve clean-architecture boundaries: UI should depend on domain use cases, not remote data sources.
+Follow `package:flutter_lints/flutter.yaml`. Use standard Dart formatting with two-space indentation; run `dart format lib test` before broad Dart edits are submitted. File names use `snake_case.dart`; classes, blocs, cubits, entities, and models use `PascalCase`; methods and fields use `camelCase`. Generated Dart outputs (`*.g.dart`, `*.config.dart`, `*.freezed.dart`, `*.mocks.dart`, including Widgetbook directories output) are ignored build artifacts; regenerate them before analyze/test but do not stage or commit them. Preserve clean-architecture boundaries: UI should depend on domain use cases, not remote data sources.
 
 ## Testing Guidelines
 
@@ -26,7 +26,7 @@ Place tests next to the matching layer path under `test/`, and name files `*_tes
 
 ## Commit & Pull Request Guidelines
 
-Commits follow Conventional Commits through commitlint, such as `feat: add schedule refresh` or `chore: update widget layout`; the configured header limit is 500 characters. PRs should include a description, linked issue when applicable, test results, and screenshots or recordings for UI changes. Call out generated-file updates.
+Commits follow Conventional Commits through commitlint, such as `feat: add schedule refresh` or `chore: update widget layout`; the configured header limit is 500 characters. PRs should include a description, linked issue when applicable, test results, and screenshots or recordings for UI changes. Call out generator or source changes when they affect generated Dart output, but do not include ignored generated Dart files in PRs.
 
 ## Agent-Specific Instructions
 

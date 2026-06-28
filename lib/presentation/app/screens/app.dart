@@ -61,7 +61,6 @@ class _AppRouterViewState extends State<_AppRouterView>
 
   late final _router = goRouterConfig(
     context.read<AuthBloc>(),
-    context.read<ScheduleBloc>(),
     context.read<NotificationGateCubit>(),
     context.read<AlarmGateCubit>(),
   );

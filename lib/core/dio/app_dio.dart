@@ -8,7 +8,7 @@ import 'package:on_time_front/core/dio/interceptors/token_session_invalidator.da
 import 'package:on_time_front/core/dio/transformers/logging_transformer.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 
-@Injectable(as: Dio)
+@LazySingleton(as: Dio)
 class AppDio with DioMixin implements Dio {
   AppDio(
     TokenLocalDataSource tokenLocalDataSource,

@@ -105,8 +105,23 @@ _Avoid_: Fallback, degraded, time sensitive
 The user-facing status for schedule delivery through an Alarm.
 _Avoid_: Notification, native alarm
 
+**Schedule**:
+A user commitment with a planned time and preparation context in OnTime.
+_Avoid_: Appointment, event, task
+
+**Monthly Calendar**:
+The calendar surface that shows Schedules grouped by day across a calendar month.
+_Avoid_: Month view, calendar grid
+
+**Calendar Month Range**:
+A contiguous span of calendar months whose Schedules are in scope for a Monthly Calendar.
+_Avoid_: Loaded range, stream range, cached range
+
 ## Relationships
 
+- A **Monthly Calendar** displays **Schedules** grouped by calendar day.
+- A **Calendar Month Range** starts at the first day of its first month and ends before the first day of the month after its last month.
+- A **Monthly Calendar** may extend a **Calendar Month Range** when the user moves to an adjacent month.
 - A **Product Usage Event** may describe a schedule, preparation, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
 - First-release **Product Usage Events** are **Workflow Milestone Events**, not every tap or raw navigation step.
 - First-release **Workflow Milestone Events** cover analytics preference, onboarding, authentication, schedule, notification permission, alarm, and schedule-finish outcomes.

@@ -33,6 +33,7 @@ import 'package:on_time_front/presentation/schedule_create/components/top_bar.da
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 class StubAuthBloc extends Mock implements AuthBloc {
   StubAuthBloc(this._state);
@@ -471,7 +472,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
-    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.byType(TwoActionDialog), findsOneWidget);
   });
 
   testWidgets('edited name and place are submitted from form steps', (

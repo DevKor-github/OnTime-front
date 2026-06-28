@@ -43,11 +43,16 @@ class NotificationService {
     FlutterLocalNotificationsPlugin? localNotifications,
     String Function()? localeProvider,
     bool? isIOSOverride,
+    Stream<RemoteMessage>? onMessage,
+    Stream<RemoteMessage>? onMessageOpenedApp,
   }) : _messaging = messaging ?? FirebaseMessaging.instance,
        _localNotifications =
            localNotifications ?? FlutterLocalNotificationsPlugin(),
        _localeProvider = localeProvider,
-       _isIOSOverride = isIOSOverride;
+       _isIOSOverride = isIOSOverride,
+       _onMessage = onMessage ?? FirebaseMessaging.onMessage,
+       _onMessageOpenedApp =
+           onMessageOpenedApp ?? FirebaseMessaging.onMessageOpenedApp;
 
   @visibleForTesting
   NotificationService.test({
@@ -57,10 +62,15 @@ class NotificationService {
     bool isFlutterLocalNotificationsInitialized = false,
     bool isTimezoneInitialized = false,
     bool? isIOSOverride,
+    Stream<RemoteMessage>? onMessage,
+    Stream<RemoteMessage>? onMessageOpenedApp,
   }) : _messaging = messaging,
        _localNotifications = localNotifications,
        _localeProvider = localeProvider,
        _isIOSOverride = isIOSOverride,
+       _onMessage = onMessage ?? FirebaseMessaging.onMessage,
+       _onMessageOpenedApp =
+           onMessageOpenedApp ?? FirebaseMessaging.onMessageOpenedApp,
        _isFlutterLocalNotificationsInitialized =
            isFlutterLocalNotificationsInitialized,
        _isTimezoneInitialized = isTimezoneInitialized;
@@ -74,8 +84,16 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications;
   final String Function()? _localeProvider;
   final bool? _isIOSOverride;
+  final Stream<RemoteMessage> _onMessage;
+  final Stream<RemoteMessage> _onMessageOpenedApp;
   bool _isFlutterLocalNotificationsInitialized = false;
   bool _isTimezoneInitialized = false;
+  bool _isInitialized = false;
+  bool _initialMessageHandled = false;
+  Future<void>? _initializationFuture;
+  StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
+  StreamSubscription<RemoteMessage>? _openedAppMessageSubscription;
+  StreamSubscription<String>? _tokenRefreshSubscription;
 
   bool get _isIOS => !kIsWeb && (_isIOSOverride ?? Platform.isIOS);
 
@@ -92,29 +110,50 @@ class NotificationService {
     }
   }
 
-  Future<void> initialize() async {
-    try {
-      FirebaseMessaging.onBackgroundMessage(
-        _firebaseMessagingBackgroundHandler,
-      );
-      AppLogger.debug('[FCM] Background message handler 등록 완료');
-    } catch (e) {
-      AppLogger.debug('[FCM] Background message handler 등록 실패: $e');
+  Future<void> initialize() {
+    if (_isInitialized) {
+      return Future.value();
     }
 
-    await _requestPermission();
-    await setupFlutterNotifications();
-    await _setupMessageHandlers();
+    final initializationFuture = _initializationFuture;
+    if (initializationFuture != null) {
+      return initializationFuture;
+    }
 
-    await requestNotificationToken();
+    final future = _initialize();
+    _initializationFuture = future;
+    return future;
+  }
 
-    if (_isIOS) {
-      await _messaging.setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      AppLogger.debug('[FCM] iOS 포그라운드 알림 표시 옵션 설정 완료');
+  Future<void> _initialize() async {
+    try {
+      try {
+        FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler,
+        );
+        AppLogger.debug('[FCM] Background message handler 등록 완료');
+      } catch (e) {
+        AppLogger.debug('[FCM] Background message handler 등록 실패: $e');
+      }
+
+      await _requestPermission();
+      await setupFlutterNotifications();
+      await _setupMessageHandlers();
+
+      await requestNotificationToken();
+
+      if (_isIOS) {
+        await _messaging.setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        AppLogger.debug('[FCM] iOS 포그라운드 알림 표시 옵션 설정 완료');
+      }
+
+      _isInitialized = true;
+    } finally {
+      _initializationFuture = null;
     }
   }
 
@@ -229,7 +268,9 @@ class NotificationService {
         }
       }
 
-      _messaging.onTokenRefresh.listen((newToken) {
+      _tokenRefreshSubscription ??= _messaging.onTokenRefresh.listen((
+        newToken,
+      ) {
         AppLogger.debug(
           '[FCM] token refreshed token=${AppLogger.redactToken(newToken)}',
         );
@@ -597,34 +638,41 @@ class NotificationService {
 
   Future<void> _setupMessageHandlers() async {
     //foreground message
-    FirebaseMessaging.onMessage.listen(
-      (message) {
-        try {
-          showNotification(message);
-        } catch (error) {
-          AppLogger.debug(
-            '[FCM Foreground] notification display failed '
-            'errorType=${error.runtimeType}',
-          );
-        }
-      },
-      onError: (error) {
-        AppLogger.debug('[FCM Foreground] 리스너 오류: $error');
-      },
-      cancelOnError: false,
-    );
-    AppLogger.debug('[FCM] Foreground message handler 등록 완료');
+    if (_foregroundMessageSubscription == null) {
+      _foregroundMessageSubscription = _onMessage.listen(
+        (message) {
+          try {
+            showNotification(message);
+          } catch (error) {
+            AppLogger.debug(
+              '[FCM Foreground] notification display failed '
+              'errorType=${error.runtimeType}',
+            );
+          }
+        },
+        onError: (error) {
+          AppLogger.debug('[FCM Foreground] 리스너 오류: $error');
+        },
+        cancelOnError: false,
+      );
+      AppLogger.debug('[FCM] Foreground message handler 등록 완료');
+    }
 
     // background message
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      _handleBackgroundMessage(message);
-    });
-    AppLogger.debug('[FCM] Background message handler 등록 완료');
+    if (_openedAppMessageSubscription == null) {
+      _openedAppMessageSubscription = _onMessageOpenedApp.listen((message) {
+        _handleBackgroundMessage(message);
+      });
+      AppLogger.debug('[FCM] Background message handler 등록 완료');
+    }
 
     // opened app
-    final initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      _handleBackgroundMessage(initialMessage);
+    if (!_initialMessageHandled) {
+      final initialMessage = await _messaging.getInitialMessage();
+      _initialMessageHandled = true;
+      if (initialMessage != null) {
+        _handleBackgroundMessage(initialMessage);
+      }
     }
   }
 

@@ -8,6 +8,7 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
@@ -244,11 +245,15 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     try {
       final alarmRepository = getIt.get<AlarmRepository>();
       final registryRepository = getIt.get<AlarmRegistryRepository>();
+      final schedulerService = getIt.get<AlarmSchedulerService>();
       final fallbackService = getIt.get<FallbackAlarmNotificationService>();
 
       final settings = await alarmRepository.getAlarmSettings();
       final records = await registryRepository.loadAll();
-      final fallbackPermission = await fallbackService.checkPermission();
+      final delivery = await _checkAlarmDeliveryPolicy(
+        schedulerService: schedulerService,
+        fallbackService: fallbackService,
+      );
 
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
@@ -258,7 +263,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
           l10n: l10n,
           settings: settings,
           records: records,
-          fallbackPermission: fallbackPermission,
+          delivery: delivery.policy,
         );
         _isLoading = false;
       });
@@ -275,7 +280,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     required AppLocalizations l10n,
     required AlarmSettings settings,
     required List<ScheduledAlarmRecord> records,
-    required AlarmPermissionState fallbackPermission,
+    required AlarmDeliveryPolicy delivery,
   }) {
     if (!settings.alarmsEnabled) return '꺼짐';
     if (records.any((record) => record.provider == AlarmProvider.iosAlarmKit)) {
@@ -291,7 +296,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     )) {
       return l10n.notificationStatus;
     }
-    if (fallbackPermission != AlarmPermissionState.granted) {
+    if (!delivery.canDeliver) {
       return l10n.notificationPermissionNeededStatus;
     }
     return l10n.noScheduledNotificationStatus;
@@ -308,30 +313,51 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
         final schedulerService = getIt.get<AlarmSchedulerService>();
         final fallbackService = getIt.get<FallbackAlarmNotificationService>();
 
-        final capabilities = await schedulerService.getCapabilities();
-        if (_shouldRecoverNativeAlarmPermission(capabilities)) {
-          final nativePermission = await schedulerService.checkPermission();
+        var delivery = await _checkAlarmDeliveryPolicy(
+          schedulerService: schedulerService,
+          fallbackService: fallbackService,
+        );
+        if (!mounted) return;
+        if (delivery.policy.blockingPermissionIssue ==
+            AlarmPermissionIssue.nativePermissionDenied) {
+          final shouldOpenSettings = await _showExactAlarmPermissionDialog(
+            context,
+          );
           if (!mounted) return;
-          if (_needsExactAlarmRecovery(nativePermission)) {
-            final shouldOpenSettings = await _showExactAlarmPermissionDialog(
-              context,
-            );
-            if (!mounted) return;
-            if (shouldOpenSettings == DialogActionResult.primary) {
-              await schedulerService.requestPermission();
-            }
-            final updatedNativePermission = await schedulerService
-                .checkPermission();
-            if (_needsExactAlarmRecovery(updatedNativePermission)) {
-              await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
-              await getIt.get<CancelAllAlarmsUseCase>()();
-              await _load();
-              return;
-            }
+          if (shouldOpenSettings == DialogActionResult.primary) {
+            await schedulerService.requestPermission();
+          }
+          delivery = await _checkAlarmDeliveryPolicy(
+            schedulerService: schedulerService,
+            fallbackService: fallbackService,
+          );
+          if (!delivery.policy.canDeliver &&
+              delivery.policy.shouldDisableAlarms) {
+            await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+            await getIt.get<CancelAllAlarmsUseCase>()();
+            await _load();
+            return;
           }
         }
 
-        await fallbackService.requestPermission();
+        final fallbackPermission = await fallbackService.requestPermission();
+        delivery = _AlarmDeliveryDecision(
+          policy: AlarmDeliveryPolicy.evaluate(
+            capabilities: delivery.capabilities,
+            nativePermission: delivery.nativePermission,
+            fallbackPermission: fallbackPermission,
+          ),
+          capabilities: delivery.capabilities,
+          nativePermission: delivery.nativePermission,
+          fallbackPermission: fallbackPermission,
+        );
+        if (!delivery.policy.canDeliver &&
+            delivery.policy.shouldDisableAlarms) {
+          await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+          await getIt.get<CancelAllAlarmsUseCase>()();
+          await _load();
+          return;
+        }
         await alarmRepository.updateAlarmSettings(alarmsEnabled: true);
         await getIt.get<ReconcileAlarmsUseCase>()();
       } else {
@@ -379,9 +405,63 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
   }
 }
 
-bool _needsExactAlarmRecovery(AlarmPermissionState permission) {
-  return permission == AlarmPermissionState.denied ||
-      permission == AlarmPermissionState.notDetermined;
+class _AlarmDeliveryDecision {
+  const _AlarmDeliveryDecision({
+    required this.policy,
+    required this.capabilities,
+    required this.nativePermission,
+    required this.fallbackPermission,
+  });
+
+  final AlarmDeliveryPolicy policy;
+  final AlarmSchedulerCapabilities capabilities;
+  final AlarmPermissionState nativePermission;
+  final AlarmPermissionState fallbackPermission;
+}
+
+Future<_AlarmDeliveryDecision> _checkAlarmDeliveryPolicy({
+  required AlarmSchedulerService schedulerService,
+  required FallbackAlarmNotificationService fallbackService,
+}) async {
+  final capabilities = await schedulerService.getCapabilities();
+  final nativePermission = await _checkNativePermission(
+    schedulerService,
+    capabilities,
+  );
+  final fallbackPermission = await _checkFallbackPermission(
+    fallbackService,
+    capabilities,
+  );
+  return _AlarmDeliveryDecision(
+    policy: AlarmDeliveryPolicy.evaluate(
+      capabilities: capabilities,
+      nativePermission: nativePermission,
+      fallbackPermission: fallbackPermission,
+    ),
+    capabilities: capabilities,
+    nativePermission: nativePermission,
+    fallbackPermission: fallbackPermission,
+  );
+}
+
+Future<AlarmPermissionState> _checkNativePermission(
+  AlarmSchedulerService schedulerService,
+  AlarmSchedulerCapabilities capabilities,
+) async {
+  if (!_shouldRecoverNativeAlarmPermission(capabilities)) {
+    return AlarmPermissionState.unsupported;
+  }
+  return schedulerService.checkPermission();
+}
+
+Future<AlarmPermissionState> _checkFallbackPermission(
+  FallbackAlarmNotificationService fallbackService,
+  AlarmSchedulerCapabilities capabilities,
+) async {
+  if (capabilities.fallbackProvider != AlarmProvider.localNotification) {
+    return AlarmPermissionState.unsupported;
+  }
+  return fallbackService.checkPermission();
 }
 
 bool _shouldRecoverNativeAlarmPermission(

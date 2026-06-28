@@ -1,5 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/device_info_service/shared.dart';
 import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/data/data_sources/alarm_remote_data_source.dart';
@@ -13,10 +14,12 @@ import 'package:uuid/uuid.dart';
 class AlarmRepositoryImpl implements AlarmRepository {
   final AlarmRemoteDataSource remoteDataSource;
   final AlarmSchedulerService schedulerService;
+  final AppMetadataProvider appMetadataProvider;
 
   AlarmRepositoryImpl({
     required this.remoteDataSource,
     required this.schedulerService,
+    required this.appMetadataProvider,
   });
 
   static const _deviceIdKey = 'alarm_device_id';
@@ -38,10 +41,11 @@ class AlarmRepositoryImpl implements AlarmRepository {
   @override
   Future<AlarmDeviceInfo> buildCurrentDeviceInfo() async {
     final capabilities = await schedulerService.getCapabilities();
+    final metadata = await appMetadataProvider.getMetadata();
     return AlarmDeviceInfo(
       deviceId: await getDeviceId(),
       platform: _platformWireValue(),
-      appVersion: '1.0.0',
+      appVersion: metadata.version,
       osVersion: _osWireValue(),
       supportsNativeAlarm: capabilities.supportsNativeAlarm,
       nativeAlarmProvider: capabilities.nativeAlarmProvider,

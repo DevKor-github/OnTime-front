@@ -47,158 +47,174 @@ void main() async {
   tearDown(() async {
     await appDatabase.close();
   });
-  group(
-    'createSchedule',
-    () {
-      test(
-        'should insert a schedule into the database',
-        () async {
-          final result =
-              await scheduleDao.createSchedule(scheduleWithPlaceModel);
-          expect(result, equals(scheduleWithPlaceModel));
-        },
-      );
-    },
-  );
+  group('createSchedule', () {
+    test('should insert a schedule into the database', () async {
+      final result = await scheduleDao.createSchedule(scheduleWithPlaceModel);
+      expect(result, equals(scheduleWithPlaceModel));
+    });
+  });
 
   group('updateSchedule', () {
-    test(
-      'should update a schedule in the database',
-      () async {
-        //arange
-        await appDatabase.into(appDatabase.places).insert(
-              placeModel.toCompanion(false),
-            );
-        await appDatabase.into(appDatabase.schedules).insertReturning(
-              scheduleModel.toCompanion(false),
-            );
+    test('should update a schedule in the database', () async {
+      //arange
+      await appDatabase
+          .into(appDatabase.places)
+          .insert(placeModel.toCompanion(false));
+      await appDatabase
+          .into(appDatabase.schedules)
+          .insertReturning(scheduleModel.toCompanion(false));
 
-        final updatedScheduleModel = scheduleModel.copyWith(
-          scheduleName: 'Updated Schedule',
-        );
+      final updatedScheduleModel = scheduleModel.copyWith(
+        scheduleName: 'Updated Schedule',
+      );
 
-        //act
-        final result = await scheduleDao.updateSchedule(updatedScheduleModel);
+      //act
+      final result = await scheduleDao.updateSchedule(updatedScheduleModel);
 
-        //assert
-        expect(result, equals(updatedScheduleModel));
-      },
-    );
+      //assert
+      expect(result, equals(updatedScheduleModel));
+    });
   });
-  group(
-    'deleteSchedule',
-    () {
-      test(
-        'should delete a schedule from the database',
-        () async {
-          //arange
-          await appDatabase.into(appDatabase.places).insert(
-                placeModel.toCompanion(false),
-              );
-          await appDatabase.into(appDatabase.schedules).insertReturning(
-                scheduleModel.toCompanion(false),
-              );
+  group('deleteSchedule', () {
+    test('should delete a schedule from the database', () async {
+      //arange
+      await appDatabase
+          .into(appDatabase.places)
+          .insert(placeModel.toCompanion(false));
+      await appDatabase
+          .into(appDatabase.schedules)
+          .insertReturning(scheduleModel.toCompanion(false));
 
-          appDatabase.select(appDatabase.schedules).get().then(
-            (value) {
-              expect(value, isNotEmpty);
-            },
-          );
+      appDatabase.select(appDatabase.schedules).get().then((value) {
+        expect(value, isNotEmpty);
+      });
 
-          //act
-          await scheduleDao.deleteSchedule(scheduleModel);
+      //act
+      await scheduleDao.deleteSchedule(scheduleModel);
 
-          //assert
-          appDatabase.select(appDatabase.schedules).get().then(
-            (value) {
-              expect(value, isEmpty);
-            },
-          );
-        },
-      );
-    },
-  );
-  group(
-    'getScheduleById',
-    () {
-      test(
-        'should return a schedule from the database of given [id]',
-        () async {
-          //arange
-          await appDatabase.into(appDatabase.places).insert(
-                placeModel.toCompanion(false),
-              );
-          await appDatabase.into(appDatabase.schedules).insertReturning(
-                scheduleModel.toCompanion(false),
-              );
+      //assert
+      appDatabase.select(appDatabase.schedules).get().then((value) {
+        expect(value, isEmpty);
+      });
+    });
+  });
+  group('getScheduleById', () {
+    test('should return a schedule from the database of given [id]', () async {
+      //arange
+      await appDatabase
+          .into(appDatabase.places)
+          .insert(placeModel.toCompanion(false));
+      await appDatabase
+          .into(appDatabase.schedules)
+          .insertReturning(scheduleModel.toCompanion(false));
 
-          //act
-          final result = await scheduleDao.getScheduleById(scheduleModel.id);
+      //act
+      final result = await scheduleDao.getScheduleById(scheduleModel.id);
 
-          //
-          expect(result, equals(scheduleWithPlaceModel));
-        },
-      );
-    },
-  );
+      //
+      expect(result, equals(scheduleWithPlaceModel));
+    });
+  });
 
   group('getSchedulesByDate', () {
-    test('should return a list of schedules between [startDate] and [endDate]',
-        () async {
-      //arange
-      final laterDate = scheduleTime.add(Duration(days: 4));
-      final laterScheduleModel = scheduleModel.copyWith(
+    test('includes start date and excludes exact end date', () async {
+      final rangeStart = DateTime(2026, 2, 1);
+      final rangeEnd = DateTime(2026, 3, 1);
+      final startBoundarySchedule = scheduleModel.copyWith(
         id: uuid.v7(),
-        scheduleTime: laterDate,
+        scheduleTime: rangeStart,
+      );
+      final lastDaySchedule = scheduleModel.copyWith(
+        id: uuid.v7(),
+        scheduleTime: DateTime(2026, 2, 28, 23, 59),
+      );
+      final endBoundarySchedule = scheduleModel.copyWith(
+        id: uuid.v7(),
+        scheduleTime: rangeEnd,
       );
 
-      await appDatabase.into(appDatabase.places).insert(
-            placeModel.toCompanion(false),
-          );
-      await appDatabase.into(appDatabase.schedules).insertReturning(
-            scheduleModel.toCompanion(false),
-          );
-      await appDatabase.into(appDatabase.schedules).insertReturning(
-            laterScheduleModel.toCompanion(false),
-          );
+      await appDatabase
+          .into(appDatabase.places)
+          .insert(placeModel.toCompanion(false));
+      await appDatabase
+          .into(appDatabase.schedules)
+          .insertReturning(startBoundarySchedule.toCompanion(false));
+      await appDatabase
+          .into(appDatabase.schedules)
+          .insertReturning(lastDaySchedule.toCompanion(false));
+      await appDatabase
+          .into(appDatabase.schedules)
+          .insertReturning(endBoundarySchedule.toCompanion(false));
 
-      //act
-      final result = await scheduleDao.getSchedulesByDate(startDate, endDate);
+      final result = await scheduleDao.getSchedulesByDate(rangeStart, rangeEnd);
 
-      //assert
-      expect(result, equals([scheduleWithPlaceModel]));
+      expect(
+        result.map((scheduleWithPlace) => scheduleWithPlace.schedule.id),
+        unorderedEquals([startBoundarySchedule.id, lastDaySchedule.id]),
+      );
     });
 
     test(
-        'should return a list of schedules later then [startDate] if [endDate] is null',
-        () async {
-      //arange
-      final laterDate = DateTime(2022, 1, 4, 0, 0, 0, 0);
-      final laterScheduleModel = scheduleModel.copyWith(
-        id: uuid.v7(),
-        scheduleTime: laterDate,
-      );
-      final laterScheduleWithPlaceModel = ScheduleWithPlace(
-        schedule: laterScheduleModel,
-        place: placeModel,
-      );
+      'should return a list of schedules between [startDate] and [endDate]',
+      () async {
+        //arange
+        final laterDate = scheduleTime.add(Duration(days: 4));
+        final laterScheduleModel = scheduleModel.copyWith(
+          id: uuid.v7(),
+          scheduleTime: laterDate,
+        );
 
-      await appDatabase.into(appDatabase.places).insert(
-            placeModel.toCompanion(false),
-          );
-      await appDatabase.into(appDatabase.schedules).insertReturning(
-            scheduleModel.toCompanion(false),
-          );
-      await appDatabase.into(appDatabase.schedules).insertReturning(
-            laterScheduleModel.toCompanion(false),
-          );
+        await appDatabase
+            .into(appDatabase.places)
+            .insert(placeModel.toCompanion(false));
+        await appDatabase
+            .into(appDatabase.schedules)
+            .insertReturning(scheduleModel.toCompanion(false));
+        await appDatabase
+            .into(appDatabase.schedules)
+            .insertReturning(laterScheduleModel.toCompanion(false));
 
-      //act
-      final result = await scheduleDao.getSchedulesByDate(startDate, null);
+        //act
+        final result = await scheduleDao.getSchedulesByDate(startDate, endDate);
 
-      //assert
-      expect(result,
-          equals([scheduleWithPlaceModel, laterScheduleWithPlaceModel]));
-    });
+        //assert
+        expect(result, equals([scheduleWithPlaceModel]));
+      },
+    );
+
+    test(
+      'should return a list of schedules later then [startDate] if [endDate] is null',
+      () async {
+        //arange
+        final laterDate = DateTime(2022, 1, 4, 0, 0, 0, 0);
+        final laterScheduleModel = scheduleModel.copyWith(
+          id: uuid.v7(),
+          scheduleTime: laterDate,
+        );
+        final laterScheduleWithPlaceModel = ScheduleWithPlace(
+          schedule: laterScheduleModel,
+          place: placeModel,
+        );
+
+        await appDatabase
+            .into(appDatabase.places)
+            .insert(placeModel.toCompanion(false));
+        await appDatabase
+            .into(appDatabase.schedules)
+            .insertReturning(scheduleModel.toCompanion(false));
+        await appDatabase
+            .into(appDatabase.schedules)
+            .insertReturning(laterScheduleModel.toCompanion(false));
+
+        //act
+        final result = await scheduleDao.getSchedulesByDate(startDate, null);
+
+        //assert
+        expect(
+          result,
+          equals([scheduleWithPlaceModel, laterScheduleWithPlaceModel]),
+        );
+      },
+    );
   });
 }

@@ -185,7 +185,7 @@ void main() {
   );
 
   test(
-    'refreshPermission still prompts for exact timing but keeps fallback delivery',
+    'refreshPermission allows fallback delivery when exact timing is denied',
     () async {
       final repository = _FakeAlarmRepository();
       final cancelAll = _FakeCancelAllAlarmsUseCase();
@@ -208,7 +208,8 @@ void main() {
 
       await cubit.refreshPermission(disableAlarmsWhenPermissionMissing: true);
 
-      expect(cubit.state, const AlarmGateState.required());
+      expect(cubit.state, const AlarmGateState.allowed());
+      expect(cubit.state.shouldPrompt, isFalse);
       expect(repository.updatedAlarmSettings, isEmpty);
       expect(cancelAll.callCount, 0);
     },

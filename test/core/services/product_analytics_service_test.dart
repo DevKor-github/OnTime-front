@@ -1,18 +1,28 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/product_analytics_service.dart';
 import 'package:on_time_front/domain/entities/analytics_preference.dart';
 import 'package:on_time_front/domain/entities/product_usage_event.dart';
 import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 
 void main() {
+  test('product usage events include the runtime app version', () async {
+    final client = _FakeAnalyticsProviderClient();
+    final service = _buildService(client);
+
+    await service.applyPreference(
+      const AnalyticsPreference(enabled: true, isConfirmed: true),
+    );
+    await service.track(_scheduleCreatedEvent());
+
+    expect(client.loggedEvents.single.parameters['app_version'], '9.8.7');
+  });
+
   test(
     'unconfirmed analytics preference does not log product usage events',
     () async {
       final client = _FakeAnalyticsProviderClient();
-      final service = ProductAnalyticsService(
-        client: client,
-        collectionAllowedInBuild: true,
-      );
+      final service = _buildService(client);
 
       await service.applyPreference(
         const AnalyticsPreference(enabled: true, isConfirmed: false),
@@ -28,10 +38,7 @@ void main() {
     'disabled analytics preference does not log product usage events',
     () async {
       final client = _FakeAnalyticsProviderClient();
-      final service = ProductAnalyticsService(
-        client: client,
-        collectionAllowedInBuild: true,
-      );
+      final service = _buildService(client);
 
       await service.applyPreference(
         const AnalyticsPreference(enabled: false, isConfirmed: true),
@@ -41,6 +48,16 @@ void main() {
       expect(client.collectionEnabledValues, [false]);
       expect(client.loggedEvents, isEmpty);
     },
+  );
+}
+
+ProductAnalyticsService _buildService(_FakeAnalyticsProviderClient client) {
+  return ProductAnalyticsService(
+    client: client,
+    appMetadataProvider: const _FakeAppMetadataProvider(
+      AppMetadata(version: '9.8.7', buildNumber: '654'),
+    ),
+    collectionAllowedInBuild: true,
   );
 }
 
@@ -71,4 +88,13 @@ class _FakeAnalyticsProviderClient implements AnalyticsProviderClient {
 
   @override
   Future<void> setUserId(String? userId) async {}
+}
+
+class _FakeAppMetadataProvider implements AppMetadataProvider {
+  const _FakeAppMetadataProvider(this.metadata);
+
+  final AppMetadata metadata;
+
+  @override
+  Future<AppMetadata> getMetadata() async => metadata;
 }

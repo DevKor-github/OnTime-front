@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
@@ -11,7 +10,6 @@ import 'package:rxdart/subjects.dart';
 
 @Singleton(as: ScheduleRepository)
 class ScheduleRepositoryImpl implements ScheduleRepository {
-  final ScheduleLocalDataSource scheduleLocalDataSource;
   final ScheduleRemoteDataSource scheduleRemoteDataSource;
   final TimedPreparationRepository timedPreparationRepository;
 
@@ -22,7 +20,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   final _scheduleListEquality = const ListEquality<ScheduleEntity>();
 
   ScheduleRepositoryImpl({
-    required this.scheduleLocalDataSource,
     required this.scheduleRemoteDataSource,
     required this.timedPreparationRepository,
   });
@@ -51,7 +48,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Future<void> createSchedule(ScheduleEntity schedule) async {
     try {
       await scheduleRemoteDataSource.createSchedule(schedule);
-      //await scheduleLocalDataSource.createSchedule(schedule);
       _emitUpsertedSchedule(schedule);
     } catch (e) {
       rethrow;
@@ -63,7 +59,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     try {
       await scheduleRemoteDataSource.deleteSchedule(schedule);
       await _clearTimedPreparationSafe(schedule.id);
-      //await scheduleLocalDataSource.deleteSchedule(schedule);
       _emitScheduleSet(
         Set.from(_scheduleStreamController.value)
           ..removeWhere((existing) => existing.id == schedule.id),
@@ -141,7 +136,6 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         await _clearTimedPreparationSafe(refreshedSchedule.id);
       }
       _emitUpsertedSchedule(refreshedSchedule);
-      //await scheduleLocalDataSource.updateSchedule(schedule);
     } catch (e) {
       rethrow;
     }

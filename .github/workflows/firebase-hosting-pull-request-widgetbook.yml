@@ -37,6 +37,9 @@ jobs:
       - run: dart run build_runner build -d
         working-directory: ${{ env.working-directory }}
 
+      - name: Check generated Dart policy
+        run: dart run tool/check_generated_dart_policy.dart
+
       - run: flutter build web --release
         working-directory: ${{ env.working-directory }}
 

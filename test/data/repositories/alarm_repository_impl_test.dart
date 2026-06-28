@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/data/data_sources/alarm_remote_data_source.dart';
 import 'package:on_time_front/data/repositories/alarm_repository_impl.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
@@ -9,15 +10,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   late _FakeAlarmRemoteDataSource remoteDataSource;
   late _FakeAlarmSchedulerService schedulerService;
+  late _FakeAppMetadataProvider appMetadataProvider;
   late AlarmRepositoryImpl repository;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     remoteDataSource = _FakeAlarmRemoteDataSource();
     schedulerService = _FakeAlarmSchedulerService();
+    appMetadataProvider = _FakeAppMetadataProvider(
+      const AppMetadata(version: '9.8.7', buildNumber: '654'),
+    );
     repository = AlarmRepositoryImpl(
       remoteDataSource: remoteDataSource,
       schedulerService: schedulerService,
+      appMetadataProvider: appMetadataProvider,
     );
   });
 
@@ -47,7 +53,7 @@ void main() {
   );
 
   test(
-    'buildCurrentDeviceInfo combines persisted id and scheduler capabilities',
+    'buildCurrentDeviceInfo combines persisted id, scheduler capabilities, and runtime app version',
     () async {
       SharedPreferences.setMockInitialValues({
         'alarm_device_id': '123e4567-e89b-12d3-a456-426614174000',
@@ -61,7 +67,7 @@ void main() {
       final info = await repository.buildCurrentDeviceInfo();
 
       expect(info.deviceId, '123e4567-e89b-12d3-a456-426614174000');
-      expect(info.appVersion, '1.0.0');
+      expect(info.appVersion, '9.8.7');
       expect(info.supportsNativeAlarm, isTrue);
       expect(info.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
       expect(info.fallbackProvider, AlarmProvider.localNotification);
@@ -88,7 +94,7 @@ void main() {
     const deviceInfo = AlarmDeviceInfo(
       deviceId: 'device-1',
       platform: 'android',
-      appVersion: '1.0.0',
+      appVersion: '9.8.7',
       osVersion: 'android',
       supportsNativeAlarm: true,
       nativeAlarmProvider: AlarmProvider.androidAlarmManager,
@@ -135,6 +141,15 @@ class _FakeAlarmSchedulerService extends AlarmSchedulerService {
 
   @override
   Future<AlarmSchedulerCapabilities> getCapabilities() async => capabilities;
+}
+
+class _FakeAppMetadataProvider implements AppMetadataProvider {
+  const _FakeAppMetadataProvider(this.metadata);
+
+  final AppMetadata metadata;
+
+  @override
+  Future<AppMetadata> getMetadata() async => metadata;
 }
 
 class _FakeAlarmRemoteDataSource implements AlarmRemoteDataSource {

@@ -4,6 +4,7 @@ import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
+import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
@@ -45,14 +46,14 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
     bool enableAlarmsOnGrant = false,
   }) async {
     final capabilities = await _alarmSchedulerService.getCapabilities();
-    final permission = await _checkEffectivePermission(capabilities);
-    if (permission == AlarmPermissionState.unsupported) {
+    final delivery = await _checkDeliveryPolicy(capabilities);
+    if (delivery.policy.isUnsupported) {
       emit(const AlarmGateState.unsupported());
       return;
     }
 
     final prefs = await SharedPreferences.getInstance();
-    if (permission == AlarmPermissionState.granted) {
+    if (delivery.policy.canDeliver) {
       await prefs.remove(_dismissedKey);
       if (enableAlarmsOnGrant) {
         await _enableAlarmsBestEffort();
@@ -62,7 +63,7 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
     }
 
     if (disableAlarmsWhenPermissionMissing &&
-        !await _hasGrantedFallbackPermission(capabilities)) {
+        delivery.policy.shouldDisableAlarms) {
       await _disableAlarmsBestEffort();
     }
 
@@ -76,13 +77,14 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
 
   Future<AlarmPermissionState> requestPermission() async {
     final capabilities = await _alarmSchedulerService.getCapabilities();
-    final permission = await _requestEffectivePermission(capabilities);
-    if (permission == AlarmPermissionState.unsupported) {
+    final delivery = await _requestDeliveryPolicy(capabilities);
+    final permission = delivery.permissionState;
+    if (delivery.policy.isUnsupported) {
       emit(const AlarmGateState.unsupported());
       return permission;
     }
 
-    if (permission == AlarmPermissionState.granted) {
+    if (delivery.policy.canDeliver) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_dismissedKey);
       await _enableAlarmsBestEffort();
@@ -90,43 +92,43 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
       return permission;
     }
 
-    if (!await _hasGrantedFallbackPermission(capabilities)) {
+    if (delivery.policy.shouldDisableAlarms) {
       await _disableAlarmsBestEffort();
     }
     emit(const AlarmGateState.required());
     return permission;
   }
 
-  Future<AlarmPermissionState> _checkEffectivePermission(
+  Future<_EvaluatedAlarmDelivery> _checkDeliveryPolicy(
     AlarmSchedulerCapabilities capabilities,
   ) async {
     final nativePermission = await _checkNativePermission(capabilities);
-    if (nativePermission == AlarmPermissionState.granted) {
-      return nativePermission;
-    }
-
-    if (nativePermission == AlarmPermissionState.unsupported) {
-      return _checkFallbackPermission(capabilities);
-    }
-    return nativePermission;
+    final fallbackPermission = await _checkFallbackPermission(capabilities);
+    return _EvaluatedAlarmDelivery(
+      policy: AlarmDeliveryPolicy.evaluate(
+        capabilities: capabilities,
+        nativePermission: nativePermission,
+        fallbackPermission: fallbackPermission,
+      ),
+      nativePermission: nativePermission,
+      fallbackPermission: fallbackPermission,
+    );
   }
 
-  Future<AlarmPermissionState> _requestEffectivePermission(
+  Future<_EvaluatedAlarmDelivery> _requestDeliveryPolicy(
     AlarmSchedulerCapabilities capabilities,
   ) async {
     final nativePermission = await _requestNativePermission(capabilities);
-    if (nativePermission == AlarmPermissionState.granted) {
-      return nativePermission;
-    }
-
-    if (nativePermission == AlarmPermissionState.unsupported) {
-      return _requestFallbackPermission(capabilities);
-    }
     final fallbackPermission = await _requestFallbackPermission(capabilities);
-    if (fallbackPermission == AlarmPermissionState.granted) {
-      return fallbackPermission;
-    }
-    return nativePermission;
+    return _EvaluatedAlarmDelivery(
+      policy: AlarmDeliveryPolicy.evaluate(
+        capabilities: capabilities,
+        nativePermission: nativePermission,
+        fallbackPermission: fallbackPermission,
+      ),
+      nativePermission: nativePermission,
+      fallbackPermission: fallbackPermission,
+    );
   }
 
   Future<AlarmPermissionState> _checkNativePermission(
@@ -171,7 +173,8 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_dismissedKey, true);
     final capabilities = await _alarmSchedulerService.getCapabilities();
-    if (!await _hasGrantedFallbackPermission(capabilities)) {
+    final delivery = await _checkDeliveryPolicy(capabilities);
+    if (delivery.policy.shouldDisableAlarms) {
       await _disableAlarmsBestEffort();
     }
     emit(const AlarmGateState.dismissed());
@@ -181,13 +184,6 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
     final capabilities = await _alarmSchedulerService.getCapabilities();
     return capabilities.supportsNativeAlarm &&
         capabilities.nativeAlarmProvider == AlarmProvider.iosAlarmKit;
-  }
-
-  Future<bool> _hasGrantedFallbackPermission(
-    AlarmSchedulerCapabilities capabilities,
-  ) async {
-    return await _checkFallbackPermission(capabilities) ==
-        AlarmPermissionState.granted;
   }
 
   Future<void> _enableAlarmsBestEffort() async {
@@ -210,5 +206,27 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
         '$_logTag disable alarms failed errorType=${error.runtimeType}',
       );
     }
+  }
+}
+
+class _EvaluatedAlarmDelivery {
+  const _EvaluatedAlarmDelivery({
+    required this.policy,
+    required this.nativePermission,
+    required this.fallbackPermission,
+  });
+
+  final AlarmDeliveryPolicy policy;
+  final AlarmPermissionState nativePermission;
+  final AlarmPermissionState fallbackPermission;
+
+  AlarmPermissionState get permissionState {
+    if (policy.canDeliver) return AlarmPermissionState.granted;
+    if (policy.isUnsupported) return AlarmPermissionState.unsupported;
+    if (policy.blockingPermissionIssue ==
+        AlarmPermissionIssue.notificationPermissionDenied) {
+      return fallbackPermission;
+    }
+    return nativePermission;
   }
 }

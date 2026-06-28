@@ -32,6 +32,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/coverage/
+/ios/build/
 
 # Symbolication related
 app.*.symbols
@@ -44,6 +46,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Generated Dart outputs are local/CI build artifacts; regenerate them but do
+# not commit them.
 *.g.dart
 *.mocks.dart
 *.config.dart
@@ -60,6 +64,9 @@ android/key.properties
 *.jks
 *.keystore
 *.p12
+
+# Generated deploy caches
+/.firebase/
 
 .cursor
 .codex/

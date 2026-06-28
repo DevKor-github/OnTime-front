@@ -6,6 +6,7 @@ import 'package:mockito/mockito.dart';
 import 'package:on_time_front/core/constants/external_links.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/core/services/product_analytics_service.dart';
@@ -92,6 +93,7 @@ void main() {
       ),
       analyticsService: ProductAnalyticsService(
         client: _FakeAnalyticsProviderClient(),
+        appMetadataProvider: _FakeAppMetadataProvider(),
         collectionAllowedInBuild: true,
       ),
     );
@@ -273,15 +275,18 @@ void main() {
     expect(notificationService.openSettingsCount, 1);
   });
 
-  testWidgets('keeps alarms disabled when exact alarm permission is missing', (
+  testWidgets('enables alarms through fallback when exact timing is denied', (
     tester,
   ) async {
     final alarmRepository =
         getIt.get<AlarmRepository>() as _FakeAlarmRepository;
     final alarmScheduler =
         getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
-    final cancelAllUseCase =
-        getIt.get<CancelAllAlarmsUseCase>() as _FakeCancelAllAlarmsUseCase;
+    final fallbackService =
+        getIt.get<FallbackAlarmNotificationService>()
+            as _FakeFallbackAlarmNotificationService;
+    final reconcileUseCase =
+        getIt.get<ReconcileAlarmsUseCase>() as _FakeReconcileAlarmsUseCase;
     alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
     alarmScheduler
       ..capabilities = const AlarmSchedulerCapabilities(
@@ -289,19 +294,20 @@ void main() {
         nativeAlarmProvider: AlarmProvider.androidAlarmManager,
       )
       ..permission = AlarmPermissionState.denied;
+    fallbackService.permission = AlarmPermissionState.granted;
 
     await _pumpMyPage(tester, locale: const Locale('en'));
 
     await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text("I'll do it later."));
-    await tester.pumpAndSettle();
 
-    expect(alarmRepository.updatedSettings, [false]);
-    expect(cancelAllUseCase.callCount, 1);
+    expect(find.text('Precise notification permission needed'), findsNothing);
+    expect(alarmRepository.updatedSettings, [true]);
+    expect(fallbackService.requestCount, 1);
+    expect(reconcileUseCase.callCount, 1);
     expect(
       tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
-      isFalse,
+      isTrue,
     );
   });
 
@@ -325,7 +331,7 @@ void main() {
         )
         ..permission = AlarmPermissionState.denied
         ..permissionAfterRequest = AlarmPermissionState.granted;
-      fallbackService.permission = AlarmPermissionState.granted;
+      fallbackService.permission = AlarmPermissionState.denied;
 
       await _pumpMyPage(tester, locale: const Locale('en'));
 
@@ -605,6 +611,7 @@ AnalyticsPreferenceCubit _buildAnalyticsPreferenceCubit({
     ),
     analyticsService: ProductAnalyticsService(
       client: _FakeAnalyticsProviderClient(),
+      appMetadataProvider: _FakeAppMetadataProvider(),
       collectionAllowedInBuild: true,
     ),
   );
@@ -772,6 +779,13 @@ class _FakeAlarmRepository implements AlarmRepository {
   @override
   Future<void> postAlarmStatus(AlarmStatusReport report) {
     throw UnimplementedError();
+  }
+}
+
+class _FakeAppMetadataProvider implements AppMetadataProvider {
+  @override
+  Future<AppMetadata> getMetadata() async {
+    return const AppMetadata(version: '9.8.7', buildNumber: '654');
   }
 }
 

@@ -75,10 +75,36 @@ final class MonthlySchedulesPreparationsStreamChanged
     extends MonthlySchedulesEvent {
   final Map<String, PreparationEntity> preparations;
 
-  const MonthlySchedulesPreparationsStreamChanged({
-    required this.preparations,
-  });
+  const MonthlySchedulesPreparationsStreamChanged({required this.preparations});
 
   @override
   List<Object> get props => [preparations];
+}
+
+final class _MonthlySchedulesScheduleStreamChanged
+    extends MonthlySchedulesEvent {
+  const _MonthlySchedulesScheduleStreamChanged({
+    required this.requestId,
+    required this.startDate,
+    required this.endDate,
+    required this.schedules,
+  });
+
+  final int requestId;
+  final DateTime startDate;
+  final DateTime endDate;
+  final List<ScheduleEntity> schedules;
+
+  @override
+  List<Object> get props => [requestId, startDate, endDate, schedules];
+}
+
+final class _MonthlySchedulesScheduleStreamFailed
+    extends MonthlySchedulesEvent {
+  const _MonthlySchedulesScheduleStreamFailed({required this.requestId});
+
+  final int requestId;
+
+  @override
+  List<Object> get props => [requestId];
 }

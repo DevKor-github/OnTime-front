@@ -7,7 +7,9 @@ import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/b
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_create_list.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/time_stepper.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 class PreparationSpareTimeEditScreen extends StatelessWidget {
   const PreparationSpareTimeEditScreen({super.key});
@@ -51,10 +53,14 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
               Navigator.of(context).pop();
             } else if (state.status ==
                 DefaultPreparationSpareTimeStatus.error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    state.errorMessage ?? AppLocalizations.of(context)!.error,
+              final l10n = AppLocalizations.of(context)!;
+              showTwoActionDialog(
+                context,
+                config: TwoActionDialogConfig(
+                  title: state.errorMessage ?? l10n.error,
+                  primaryAction: DialogActionConfig(
+                    label: l10n.ok,
+                    variant: ModalWideButtonVariant.destructive,
                   ),
                 ),
               );

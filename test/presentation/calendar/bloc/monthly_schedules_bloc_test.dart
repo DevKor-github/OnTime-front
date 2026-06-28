@@ -66,6 +66,41 @@ class StubStreamPreparationsUseCase implements StreamPreparationsUseCase {
   Stream<Map<String, PreparationEntity>> call() => handler();
 }
 
+class _TrackedScheduleStream {
+  _TrackedScheduleStream({
+    required this.startDate,
+    required this.endDate,
+    required void Function() onListen,
+    required void Function() onCancel,
+  }) : controller = StreamController<List<ScheduleEntity>>(
+         onListen: onListen,
+         onCancel: onCancel,
+       );
+
+  final DateTime startDate;
+  final DateTime endDate;
+  final StreamController<List<ScheduleEntity>> controller;
+
+  void add(List<ScheduleEntity> schedules) {
+    controller.add(schedules);
+  }
+
+  Future<void> close() => controller.close();
+}
+
+Future<void> _waitFor(
+  bool Function() condition, {
+  String reason = 'condition was not met',
+}) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 1));
+  while (!condition() && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+  }
+  if (!condition()) {
+    fail(reason);
+  }
+}
+
 void main() {
   final selectedDate = DateTime(2026, 3, 20);
   final scheduleA = ScheduleEntity(
@@ -434,6 +469,144 @@ void main() {
       expect(updatedSchedule.scheduleTime, DateTime(2026, 3, 20, 10, 30));
       expect(updatedSchedule.moveTime, const Duration(minutes: 45));
       expect(updatedSchedule.scheduleSpareTime, const Duration(minutes: 20));
+    },
+  );
+
+  test(
+    'adjacent Calendar Month Range changes keep one active schedule listener',
+    () async {
+      final trackedStreams = <_TrackedScheduleStream>[];
+      var activeListeners = 0;
+      getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase((
+        startDate,
+        endDate,
+      ) {
+        final trackedStream = _TrackedScheduleStream(
+          startDate: startDate,
+          endDate: endDate,
+          onListen: () => activeListeners++,
+          onCancel: () => activeListeners--,
+        );
+        trackedStreams.add(trackedStream);
+        addTearDown(trackedStream.close);
+        return trackedStream.controller.stream;
+      });
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      await _waitFor(
+        () => trackedStreams.length == 1 && activeListeners == 1,
+        reason: 'initial schedule listener was not attached',
+      );
+      trackedStreams.single.add([scheduleA]);
+      await bloc.stream.firstWhere(
+        (state) => state.status == MonthlySchedulesStatus.success,
+      );
+
+      bloc.add(MonthlySchedulesMonthAdded(date: DateTime(2026, 4, 1)));
+      await _waitFor(
+        () =>
+            trackedStreams.length == 2 &&
+            trackedStreams.last.startDate == DateTime(2026, 3, 1) &&
+            trackedStreams.last.endDate == DateTime(2026, 5, 1),
+        reason: 'April Calendar Month Range listener was not attached',
+      );
+      await _waitFor(
+        () => activeListeners == 1,
+        reason: 'April Calendar Month Range left stale listeners active',
+      );
+      trackedStreams.last.add([scheduleA]);
+      await bloc.stream.firstWhere(
+        (state) => state.endDate == DateTime(2026, 5, 1),
+      );
+
+      bloc.add(MonthlySchedulesMonthAdded(date: DateTime(2026, 5, 1)));
+      await _waitFor(
+        () =>
+            trackedStreams.length == 3 &&
+            trackedStreams.last.startDate == DateTime(2026, 3, 1) &&
+            trackedStreams.last.endDate == DateTime(2026, 6, 1),
+        reason: 'May Calendar Month Range listener was not attached',
+      );
+      await _waitFor(
+        () => activeListeners == 1,
+        reason: 'repeated Calendar Month Range changes accumulated listeners',
+      );
+    },
+  );
+
+  test(
+    'stale schedule stream cannot overwrite newer Calendar Month Range',
+    () async {
+      final trackedStreams = <_TrackedScheduleStream>[];
+      var activeListeners = 0;
+      getSchedulesByDateUseCase = StubGetSchedulesByDateUseCase((
+        startDate,
+        endDate,
+      ) {
+        final trackedStream = _TrackedScheduleStream(
+          startDate: startDate,
+          endDate: endDate,
+          onListen: () => activeListeners++,
+          onCancel: () => activeListeners--,
+        );
+        trackedStreams.add(trackedStream);
+        addTearDown(trackedStream.close);
+        return trackedStream.controller.stream;
+      });
+
+      final julySchedule = ScheduleEntity(
+        id: 'schedule-july',
+        place: PlaceEntity(id: 'place-july', placeName: 'Station'),
+        scheduleName: 'July planning',
+        scheduleTime: DateTime(2026, 7, 8, 14),
+        moveTime: const Duration(minutes: 5),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: Duration.zero,
+        scheduleNote: '',
+      );
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      bloc.add(MonthlySchedulesSubscriptionRequested(date: selectedDate));
+      await _waitFor(
+        () => trackedStreams.length == 1 && activeListeners == 1,
+        reason: 'initial schedule listener was not attached',
+      );
+      trackedStreams.first.add([scheduleA]);
+      await bloc.stream.firstWhere(
+        (state) => state.startDate == DateTime(2026, 3, 1),
+      );
+
+      bloc.add(MonthlySchedulesMonthAdded(date: DateTime(2026, 7, 1)));
+      await _waitFor(
+        () =>
+            trackedStreams.length == 2 &&
+            activeListeners == 1 &&
+            trackedStreams.last.startDate == DateTime(2026, 7, 1) &&
+            trackedStreams.last.endDate == DateTime(2026, 8, 1),
+        reason: 'July Calendar Month Range listener was not attached cleanly',
+      );
+      trackedStreams.last.add([julySchedule]);
+      await bloc.stream.firstWhere(
+        (state) =>
+            state.startDate == DateTime(2026, 7, 1) &&
+            (state.schedules[DateTime(2026, 7, 8)]?.contains(julySchedule) ??
+                false),
+      );
+
+      trackedStreams.first.add([scheduleA]);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(activeListeners, 1);
+      expect(bloc.state.startDate, DateTime(2026, 7, 1));
+      expect(bloc.state.endDate, DateTime(2026, 8, 1));
+      expect(bloc.state.schedules[DateTime(2026, 3, 20)], isNull);
+      expect(bloc.state.schedules[DateTime(2026, 7, 8)], [julySchedule]);
     },
   );
 

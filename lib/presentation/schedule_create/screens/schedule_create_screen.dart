@@ -15,9 +15,17 @@ class ScheduleCreateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return KeyboardBackedBottomSheet(
       child: BlocProvider<ScheduleFormBloc>(
-        create: (context) =>
-            getIt.get<ScheduleFormBloc>(param1: context.read<AuthBloc>())
-              ..add(ScheduleFormCreateRequested(initialDate: initialDate)),
+        create: (context) => getIt.get<ScheduleFormBloc>()
+          ..add(
+            ScheduleFormCreateRequested(
+              initialDate: initialDate,
+              currentUserSpareTime: context
+                  .read<AuthBloc>()
+                  .state
+                  .user
+                  .spareTimeOrNull,
+            ),
+          ),
         child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
           builder: (context, state) {
             return ScheduleMultiPageForm(

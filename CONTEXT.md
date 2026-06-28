@@ -53,6 +53,26 @@ _Avoid_: Provider login completed, credential received
 An allowlisted non-content value attached to a Product Usage Event.
 _Avoid_: Event payload, arbitrary metadata, raw detail
 
+**Schedule**:
+A planned commitment with a place, appointment time, travel time, optional buffer time, and preparation.
+_Avoid_: Event, appointment record
+
+**Preparation**:
+An ordered set of steps and durations used to get ready for a Schedule.
+_Avoid_: Routine, prep checklist
+
+**Default Preparation**:
+The user's fallback Preparation for new Schedules.
+_Avoid_: Base preparation, global preparation
+
+**Custom Preparation**:
+A Schedule-specific Preparation that differs from the user's fallback or selected template.
+_Avoid_: Changed preparation, edited default
+
+**Preparation Mode**:
+The category describing whether a Schedule uses Default Preparation, a preparation template, or Custom Preparation.
+_Avoid_: Preparation type, preparation source
+
 **Schedule Notification**:
 A user-facing notification that starts preparation for a scheduled commitment at the intended moment.
 _Avoid_: Schedule alarm, alarm, push
@@ -107,7 +127,11 @@ _Avoid_: Notification, native alarm
 
 ## Relationships
 
-- A **Product Usage Event** may describe a schedule, preparation, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
+- A **Product Usage Event** may describe a **Schedule**, **Preparation**, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
+- A **Schedule** has one effective **Preparation** for calculating preparation timing.
+- A **Default Preparation** may seed a new **Schedule** before the user chooses a different preparation.
+- A **Custom Preparation** belongs to one **Schedule**.
+- **Preparation Mode** may appear as an **Analytics Event Parameter** without exposing preparation step names.
 - First-release **Product Usage Events** are **Workflow Milestone Events**, not every tap or raw navigation step.
 - First-release **Workflow Milestone Events** cover analytics preference, onboarding, authentication, schedule, notification permission, alarm, and schedule-finish outcomes.
 - **Provider Authentication Completed** precedes **OnTime Session Established** during Apple or Google sign-in.
@@ -165,6 +189,7 @@ _Avoid_: Notification, native alarm
 - "Event taxonomy" was broad; resolved: first-release analytics tracks **Workflow Milestone Events** only.
 - "Event payload" was too open-ended; resolved: events use allowlisted **Analytics Event Parameters** only.
 - "Login completed" was ambiguous for Apple and Google sign-in; resolved: external account prompt completion is **Provider Authentication Completed**, while usable OnTime sign-in is **OnTime Session Established**.
+- "Preparation" was ambiguous between the user's fallback steps and a schedule-specific edited set; resolved: use **Default Preparation** for the fallback and **Custom Preparation** for the schedule-specific version.
 - "Alarm permission" was ambiguous between **Exact Timing Permission** and notification permission; resolved: notification permission may enable a **Fallback Notification**, but does not mean **Exact Timing Permission** is granted.
 - "Pending" was ambiguous for notification status; resolved: the canonical state is **No Scheduled Notification** when notifications are enabled but no upcoming Schedule Notification is armed.
 - "Allowed" was ambiguous for permission requests; resolved: a request action is not the same as granted **Exact Timing Permission**.

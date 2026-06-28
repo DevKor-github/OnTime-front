@@ -10,21 +10,15 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
-import 'package:on_time_front/domain/entities/product_usage_event.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
-import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
+import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_adjacent_schedules_with_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
-import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_adjacent_schedule_with_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
-import 'package:on_time_front/domain/use-cases/track_product_usage_event_use_case.dart';
-import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
-import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
+import 'package:on_time_front/domain/use-cases/load_schedule_form_draft_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
+import 'package:on_time_front/domain/use-cases/update_schedule_form_submission_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
@@ -33,6 +27,8 @@ import 'package:on_time_front/presentation/schedule_create/components/top_bar.da
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
+
+const _unset = Object();
 
 class StubAuthBloc extends Mock implements AuthBloc {
   StubAuthBloc(this._state);
@@ -49,94 +45,51 @@ class StubAuthBloc extends Mock implements AuthBloc {
   bool get isClosed => false;
 }
 
-class NoopProductUsageEventTracker implements ProductUsageEventTracker {
+class StubLoadScheduleFormDraftUseCase implements LoadScheduleFormDraftUseCase {
+  StubLoadScheduleFormDraftUseCase({
+    required this.createHandler,
+    required this.editHandler,
+  });
+
+  Future<ScheduleFormDraft> Function({
+    DateTime? initialDate,
+    Duration? currentUserSpareTime,
+  })
+  createHandler;
+  Future<ScheduleFormDraft> Function(String scheduleId) editHandler;
+
   @override
-  Future<void> track(ProductUsageEvent event) async {}
+  Future<ScheduleFormDraft> create({
+    DateTime? initialDate,
+    Duration? currentUserSpareTime,
+  }) {
+    return createHandler(
+      initialDate: initialDate,
+      currentUserSpareTime: currentUserSpareTime,
+    );
+  }
+
+  @override
+  Future<ScheduleFormDraft> edit(String scheduleId) => editHandler(scheduleId);
 }
 
-class StubLoadPreparationByScheduleIdUseCase
-    implements LoadPreparationByScheduleIdUseCase {
-  StubLoadPreparationByScheduleIdUseCase(this.handler);
-
-  final Future<void> Function(String scheduleId) handler;
+class SpyCreateScheduleFormSubmissionUseCase
+    implements CreateScheduleFormSubmissionUseCase {
+  Future<void> Function(ScheduleFormSubmission submission)? handler;
 
   @override
-  Future<void> call(String scheduleId) => handler(scheduleId);
-}
-
-class StubGetPreparationByScheduleIdUseCase
-    implements GetPreparationByScheduleIdUseCase {
-  StubGetPreparationByScheduleIdUseCase(this.handler);
-
-  final Future<PreparationEntity> Function(String scheduleId) handler;
-
-  @override
-  Future<PreparationEntity> call(String scheduleId) => handler(scheduleId);
-}
-
-class StubGetDefaultPreparationUseCase implements GetDefaultPreparationUseCase {
-  StubGetDefaultPreparationUseCase(this.handler);
-
-  final Future<PreparationEntity> Function() handler;
-
-  @override
-  Future<PreparationEntity> call() => handler();
-}
-
-class StubGetScheduleByIdUseCase implements GetScheduleByIdUseCase {
-  StubGetScheduleByIdUseCase(this.handler);
-
-  final Future<ScheduleEntity> Function(String id) handler;
-
-  @override
-  Future<ScheduleEntity> call(String id) => handler(id);
-}
-
-class StubCreateScheduleWithPlaceUseCase
-    implements CreateScheduleWithPlaceUseCase {
-  StubCreateScheduleWithPlaceUseCase(this.handler);
-
-  final Future<void> Function(ScheduleEntity schedule) handler;
-
-  @override
-  Future<void> call(ScheduleEntity schedule) => handler(schedule);
-}
-
-class StubCreateCustomPreparationUseCase
-    implements CreateCustomPreparationUseCase {
-  StubCreateCustomPreparationUseCase(this.handler);
-
-  final Future<void> Function(PreparationEntity preparation, String scheduleId)
-  handler;
-
-  @override
-  Future<void> call(PreparationEntity preparationEntity, String scheduleId) {
-    return handler(preparationEntity, scheduleId);
+  Future<void> call(ScheduleFormSubmission submission) async {
+    await handler?.call(submission);
   }
 }
 
-class StubUpdateScheduleUseCase implements UpdateScheduleUseCase {
-  StubUpdateScheduleUseCase(this.handler);
-
-  Future<void> Function(ScheduleEntity schedule) handler;
-
-  @override
-  Future<void> call(
-    ScheduleEntity schedule, {
-    bool includePreparationSource = false,
-  }) => handler(schedule);
-}
-
-class StubUpdatePreparationByScheduleIdUseCase
-    implements UpdatePreparationByScheduleIdUseCase {
-  StubUpdatePreparationByScheduleIdUseCase(this.handler);
-
-  final Future<void> Function(PreparationEntity preparation, String scheduleId)
-  handler;
+class SpyUpdateScheduleFormSubmissionUseCase
+    implements UpdateScheduleFormSubmissionUseCase {
+  Future<void> Function(ScheduleFormSubmission submission)? handler;
 
   @override
-  Future<void> call(PreparationEntity preparationEntity, String scheduleId) {
-    return handler(preparationEntity, scheduleId);
+  Future<void> call(ScheduleFormSubmission submission) async {
+    await handler?.call(submission);
   }
 }
 
@@ -185,16 +138,11 @@ class StubGetAdjacentSchedulesWithPreparationUseCase
 }
 
 void main() {
-  late StubLoadPreparationByScheduleIdUseCase
-  loadPreparationByScheduleIdUseCase;
-  late StubGetPreparationByScheduleIdUseCase getPreparationByScheduleIdUseCase;
-  late StubGetDefaultPreparationUseCase getDefaultPreparationUseCase;
-  late StubGetScheduleByIdUseCase getScheduleByIdUseCase;
-  late StubCreateScheduleWithPlaceUseCase createScheduleWithPlaceUseCase;
-  late StubCreateCustomPreparationUseCase createCustomPreparationUseCase;
-  late StubUpdateScheduleUseCase updateScheduleUseCase;
-  late StubUpdatePreparationByScheduleIdUseCase
-  updatePreparationByScheduleIdUseCase;
+  late StubLoadScheduleFormDraftUseCase loadScheduleFormDraftUseCase;
+  late SpyCreateScheduleFormSubmissionUseCase
+  createScheduleFormSubmissionUseCase;
+  late SpyUpdateScheduleFormSubmissionUseCase
+  updateScheduleFormSubmissionUseCase;
   late StubAuthBloc authBloc;
 
   late StubLoadAdjacentScheduleWithPreparationUseCase
@@ -226,16 +174,30 @@ void main() {
 
   ScheduleFormBloc buildBloc() {
     return ScheduleFormBloc(
-      loadPreparationByScheduleIdUseCase,
-      getPreparationByScheduleIdUseCase,
-      getDefaultPreparationUseCase,
-      getScheduleByIdUseCase,
-      createScheduleWithPlaceUseCase,
-      createCustomPreparationUseCase,
-      updateScheduleUseCase,
-      updatePreparationByScheduleIdUseCase,
-      NoopProductUsageEventTracker(),
-      authBloc,
+      loadScheduleFormDraftUseCase,
+      createScheduleFormSubmissionUseCase,
+      updateScheduleFormSubmissionUseCase,
+    );
+  }
+
+  ScheduleFormDraft draftFromSchedule({
+    bool preparationChanged = false,
+    Duration? spareTime = const Duration(minutes: 10),
+    Object? scheduleTime = _unset,
+  }) {
+    return ScheduleFormDraft(
+      id: schedule.id,
+      placeId: schedule.place.id,
+      placeName: schedule.place.placeName,
+      scheduleName: schedule.scheduleName,
+      scheduleTime: identical(scheduleTime, _unset)
+          ? schedule.scheduleTime
+          : scheduleTime as DateTime?,
+      moveTime: schedule.moveTime,
+      preparationChanged: preparationChanged,
+      scheduleSpareTime: spareTime,
+      scheduleNote: schedule.scheduleNote,
+      preparation: preparation,
     );
   }
 
@@ -294,9 +256,7 @@ void main() {
     WidgetTester tester, {
     required Widget screen,
   }) async {
-    getIt.registerFactoryParam<ScheduleFormBloc, AuthBloc, dynamic>(
-      (_, __) => buildBloc(),
-    );
+    getIt.registerFactory<ScheduleFormBloc>(() => buildBloc());
 
     await tester.pumpWidget(
       MaterialApp(
@@ -331,25 +291,20 @@ void main() {
   }
 
   setUp(() {
-    loadPreparationByScheduleIdUseCase = StubLoadPreparationByScheduleIdUseCase(
-      (_) async {},
+    loadScheduleFormDraftUseCase = StubLoadScheduleFormDraftUseCase(
+      createHandler:
+          ({DateTime? initialDate, Duration? currentUserSpareTime}) async {
+            return draftFromSchedule(
+              spareTime: currentUserSpareTime,
+              scheduleTime: initialDate,
+            );
+          },
+      editHandler: (_) async => draftFromSchedule(),
     );
-    getPreparationByScheduleIdUseCase = StubGetPreparationByScheduleIdUseCase(
-      (_) async => preparation,
-    );
-    getDefaultPreparationUseCase = StubGetDefaultPreparationUseCase(
-      () async => preparation,
-    );
-    getScheduleByIdUseCase = StubGetScheduleByIdUseCase((_) async => schedule);
-    createScheduleWithPlaceUseCase = StubCreateScheduleWithPlaceUseCase(
-      (_) async {},
-    );
-    createCustomPreparationUseCase = StubCreateCustomPreparationUseCase(
-      (_, __) async {},
-    );
-    updateScheduleUseCase = StubUpdateScheduleUseCase((_) async {});
-    updatePreparationByScheduleIdUseCase =
-        StubUpdatePreparationByScheduleIdUseCase((_, __) async {});
+    createScheduleFormSubmissionUseCase =
+        SpyCreateScheduleFormSubmissionUseCase();
+    updateScheduleFormSubmissionUseCase =
+        SpyUpdateScheduleFormSubmissionUseCase();
 
     loadAdjacentScheduleWithPreparationUseCase =
         StubLoadAdjacentScheduleWithPreparationUseCase(
@@ -402,7 +357,8 @@ void main() {
     'final submit does not close sheet immediately while submitting',
     (tester) async {
       final submitCompleter = Completer<void>();
-      updateScheduleUseCase.handler = (_) => submitCompleter.future;
+      updateScheduleFormSubmissionUseCase.handler = (_) =>
+          submitCompleter.future;
 
       final bloc = buildBloc();
       addTearDown(bloc.close);
@@ -459,7 +415,8 @@ void main() {
   testWidgets('sheet stays open and shows error when submit fails', (
     tester,
   ) async {
-    updateScheduleUseCase.handler = (_) => Future.error(Exception('update'));
+    updateScheduleFormSubmissionUseCase.handler = (_) =>
+        Future.error(Exception('update'));
 
     final bloc = buildBloc();
     addTearDown(bloc.close);
@@ -478,8 +435,8 @@ void main() {
     tester,
   ) async {
     ScheduleEntity? updatedSchedule;
-    updateScheduleUseCase.handler = (schedule) async {
-      updatedSchedule = schedule;
+    updateScheduleFormSubmissionUseCase.handler = (submission) async {
+      updatedSchedule = submission.schedule;
     };
 
     final bloc = buildBloc();

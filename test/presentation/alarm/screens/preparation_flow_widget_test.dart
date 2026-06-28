@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
@@ -61,6 +62,8 @@ class NoopSaveTimedPreparationUseCase implements SaveTimedPreparationUseCase {
     ScheduleWithPreparationEntity schedule,
     PreparationWithTimeEntity preparation, {
     DateTime? savedAt,
+    DateTime? startedAt,
+    List<PreparationActionEventEntity> actionEvents = const [],
   }) async {}
 }
 

@@ -12,7 +12,9 @@ import 'package:on_time_front/presentation/onboarding/schedule_spare_time/cubit/
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_form.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -22,10 +24,7 @@ class OnboardingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => getIt.get<OnboardingCubit>(),
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: _OnboardingForm(),
-      ),
+      child: Scaffold(resizeToAvoidBottomInset: false, body: _OnboardingForm()),
     );
   }
 }
@@ -91,47 +90,50 @@ class _OnboardingFormState extends State<_OnboardingForm>
               ),
             ),
           ],
-          child: Builder(builder: (context) {
-            return Column(
-              children: <Widget>[
-                _AppBar(
-                  tabController: _tabController,
-                  onUpdateCurrentPageIndex: _updateCurrentPageIndex,
-                ),
-                Expanded(
-                  child: PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    controller: _pageViewController,
-                    onPageChanged: _handlePageViewChanged,
-                    children: <Widget>[
-                      PreparationNameForm(),
-                      PreparationOrderForm(),
-                      PreparationTimeForm(),
-                      ScheduleSpareTimeForm(),
-                    ],
+          child: Builder(
+            builder: (context) {
+              return Column(
+                children: <Widget>[
+                  _AppBar(
+                    tabController: _tabController,
+                    onUpdateCurrentPageIndex: _updateCurrentPageIndex,
                   ),
-                ),
-                SizedBox(
+                  Expanded(
+                    child: PageView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      controller: _pageViewController,
+                      onPageChanged: _handlePageViewChanged,
+                      children: <Widget>[
+                        PreparationNameForm(),
+                        PreparationOrderForm(),
+                        PreparationTimeForm(),
+                        ScheduleSpareTimeForm(),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
                     height: 58,
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: !_isSubmitting &&
-                              context.select((OnboardingCubit cubit) =>
-                                  cubit.state.isValid)
+                      onPressed:
+                          !_isSubmitting &&
+                              context.select(
+                                (OnboardingCubit cubit) => cubit.state.isValid,
+                              )
                           ? () => _onNextPageButtonClicked(context)
                           : null,
                       child: _isSubmitting
                           ? const SizedBox.square(
                               dimension: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : Text(AppLocalizations.of(context)!.next),
-                    )),
-              ],
-            );
-          }),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -162,9 +164,15 @@ class _OnboardingFormState extends State<_OnboardingForm>
         await context.read<OnboardingCubit>().onboardingFormSubmitted();
       } catch (_) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.error),
+        final l10n = AppLocalizations.of(context)!;
+        await showTwoActionDialog(
+          context,
+          config: TwoActionDialogConfig(
+            title: l10n.error,
+            primaryAction: DialogActionConfig(
+              label: l10n.ok,
+              variant: ModalWideButtonVariant.destructive,
+            ),
           ),
         );
       } finally {
@@ -242,9 +250,7 @@ class _AppBar extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          width: iconButtonSize,
-        )
+        SizedBox(width: iconButtonSize),
       ],
     );
   }

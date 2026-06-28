@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
@@ -65,24 +65,11 @@ class _FakeUserRepository implements UserRepository {
   }
 
   @override
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
-      const Stream.empty();
-
-  @override
-  bool get supportsGoogleAuthenticate => false;
-
-  @override
-  Future<GoogleSignInAccount> authenticateWithGoogle() =>
-      throw UnimplementedError();
-
   @override
   Future<void> getUser() async {
     getUserCount += 1;
     events.add('getUser');
   }
-
-  @override
-  Future<void> initializeGoogleSignIn() async {}
 
   @override
   Future<void> deleteAppleUser({String? feedbackMessage}) =>
@@ -118,7 +105,7 @@ class _FakeUserRepository implements UserRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<void> signInWithGoogle(GoogleSignInAccount account) =>
+  Future<void> signInWithGoogle(GoogleAuthCredential credential) =>
       throw UnimplementedError();
 
   @override

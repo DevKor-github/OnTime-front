@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
+import 'package:on_time_front/core/services/google_authentication_service.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
@@ -105,8 +105,10 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
 
   Future<void> _defaultGoogleSignIn() async {
     final userRepository = getIt.get<UserRepository>();
-    final googleAccount = await userRepository.authenticateWithGoogle();
-    await userRepository.signInWithGoogle(googleAccount);
+    final credential = await getIt
+        .get<GoogleAuthenticationService>()
+        .authenticate();
+    await userRepository.signInWithGoogle(credential);
   }
 
   Future<void> _defaultAppleSignIn() async {
@@ -137,8 +139,7 @@ class _SignInMainScreenState extends State<SignInMainScreen> {
   }
 
   bool _isUserCancellation(Object error) {
-    return error is GoogleSignInException &&
-            error.code == GoogleSignInExceptionCode.canceled ||
+    return error is GoogleAuthenticationCanceledException ||
         error is SignInWithAppleAuthorizationException &&
             error.code == AuthorizationErrorCode.canceled;
   }

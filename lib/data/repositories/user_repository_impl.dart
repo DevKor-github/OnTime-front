@@ -1,64 +1,33 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
+import 'package:on_time_front/core/services/google_authentication_service.dart';
 import 'package:on_time_front/core/validation/backend_constraints.dart';
 import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
 import 'package:on_time_front/data/models/sign_in_with_apple_request_model.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
 
 @Singleton(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
-  static const _googleIosClientId =
-      '456571312261-r35ah9qi0qaq7al007e2db0e0jmjcmb4.apps.googleusercontent.com';
-  static const _googleServerClientId =
-      '456571312261-5kuf2r6i5i7lqjr7qealv06sdgkn3hcp.apps.googleusercontent.com';
-  static const _googleScopes = ['email', 'profile'];
-
   final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
   final TokenLocalDataSource _tokenLocalDataSource;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  Future<void>? _googleSignInInitialization;
+  final GoogleAuthenticationService _googleAuthenticationService;
   late final _userStreamController = BehaviorSubject<UserEntity>.seeded(
     const UserEntity.empty(),
   );
 
-  @override
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
-      _googleSignIn.authenticationEvents;
-
-  @override
-  bool get supportsGoogleAuthenticate => _googleSignIn.supportsAuthenticate();
-
   UserRepositoryImpl(
     this._authenticationRemoteDataSource,
     this._tokenLocalDataSource,
+    this._googleAuthenticationService,
   );
-
-  @override
-  Future<void> initializeGoogleSignIn() {
-    return _googleSignInInitialization ??= _initializeGoogleSignIn();
-  }
-
-  Future<void> _initializeGoogleSignIn() async {
-    await _googleSignIn.initialize(
-      clientId: _googleClientId,
-      serverClientId: _googleServerClientId,
-    );
-  }
-
-  @override
-  Future<GoogleSignInAccount> authenticateWithGoogle() async {
-    await initializeGoogleSignIn();
-    return _googleSignIn.authenticate(scopeHint: _googleScopes);
-  }
 
   @override
   Future<UserEntity> getUser() async {
@@ -122,16 +91,14 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<void> signInWithGoogle(GoogleSignInAccount googleUser) async {
+  Future<void> signInWithGoogle(GoogleAuthCredential credential) async {
     try {
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final String? idToken = googleAuth.idToken;
-      if (idToken == null) {
+      if (credential.idToken.isEmpty) {
         throw Exception('Google ID Token is null');
       }
       final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
-        idToken: idToken,
-        refreshToken: '',
+        idToken: credential.idToken,
+        refreshToken: credential.refreshToken,
       );
       await _tokenLocalDataSource.deleteToken();
       final result = await _authenticationRemoteDataSource.signInWithGoogle(
@@ -225,8 +192,7 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Future<void> disconnectGoogleSignIn() async {
     try {
-      await _googleSignIn.disconnect();
-      AppLogger.debug('Google Sign-In disconnected');
+      await _googleAuthenticationService.disconnect();
     } catch (error) {
       AppLogger.debug(
         'Google Sign-In disconnect failed errorType=${error.runtimeType}',
@@ -237,11 +203,4 @@ class UserRepositoryImpl implements UserRepository {
   @override
   Stream<UserEntity> get userStream =>
       _userStreamController.asBroadcastStream();
-
-  String? get _googleClientId {
-    if (kIsWeb) return null;
-    return defaultTargetPlatform == TargetPlatform.iOS
-        ? _googleIosClientId
-        : null;
-  }
 }

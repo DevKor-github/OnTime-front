@@ -2,31 +2,23 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get_it/get_it.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/core/dio/interceptors/token_interceptor.dart';
+import 'package:on_time_front/core/dio/interceptors/token_session_invalidator.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
-import 'package:on_time_front/domain/entities/user_entity.dart';
-import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 void main() {
-  final getIt = GetIt.instance;
-
   late Dio dio;
   late _FakeTokenLocalDataSource tokenLocalDataSource;
-  late _FakeUserRepository userRepository;
+  late _FakeTokenSessionInvalidator sessionInvalidator;
   late _TokenRefreshAdapter adapter;
 
   setUp(() async {
-    await getIt.reset();
-
     tokenLocalDataSource = _FakeTokenLocalDataSource();
-    userRepository = _FakeUserRepository(tokenLocalDataSource);
-    getIt.registerSingleton<TokenLocalDataSource>(tokenLocalDataSource);
-    getIt.registerSingleton<UserRepository>(userRepository);
+    sessionInvalidator = _FakeTokenSessionInvalidator(tokenLocalDataSource);
 
     adapter = _TokenRefreshAdapter();
     dio = Dio(
@@ -35,11 +27,52 @@ void main() {
         receiveDataWhenStatusError: true,
       ),
     )..httpClientAdapter = adapter;
-    dio.interceptors.add(TokenInterceptor(dio));
+    dio.interceptors.add(
+      TokenInterceptor(
+        dio,
+        tokenLocalDataSource: tokenLocalDataSource,
+        sessionInvalidator: sessionInvalidator,
+      ),
+    );
   });
 
-  tearDown(() async {
-    await getIt.reset();
+  test('reuses cached access token for repeated protected requests', () async {
+    final storage = _CountingSecureStorage({
+      'accessToken': 'access-token',
+      'refreshToken': 'refresh-token',
+    });
+    final cachedTokenLocalDataSource = TokenLocalDataSourceImpl.withStorage(
+      storage,
+    );
+
+    adapter = _TokenRefreshAdapter(authorizeProtectedRequests: true);
+    dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://example.com',
+        receiveDataWhenStatusError: true,
+      ),
+    )..httpClientAdapter = adapter;
+    dio.interceptors.add(
+      TokenInterceptor(
+        dio,
+        tokenLocalDataSource: cachedTokenLocalDataSource,
+        sessionInvalidator: _FakeTokenSessionInvalidator(
+          cachedTokenLocalDataSource,
+        ),
+      ),
+    );
+
+    final firstResponse = await dio.get<String>('/protected/one');
+    final secondResponse = await dio.get<String>('/protected/two');
+
+    expect(firstResponse.statusCode, 200);
+    expect(secondResponse.statusCode, 200);
+    expect(adapter.refreshRequests, 0);
+    expect(adapter.protectedAuthorizationHeaders, [
+      'Bearer access-token',
+      'Bearer access-token',
+    ]);
+    expect(storage.readsByKey, {'accessToken': 1, 'refreshToken': 1});
   });
 
   test(
@@ -105,7 +138,7 @@ void main() {
     );
 
     expect(adapter.refreshRequests, 1);
-    expect(userRepository.signOutCalled, isFalse);
+    expect(sessionInvalidator.signOutCalled, isFalse);
   });
 
   test('locally signs out when refresh token request returns 401', () async {
@@ -122,7 +155,7 @@ void main() {
       containsAll(['/protected', '/refresh-token']),
     );
     expect(adapter.refreshRequests, 1);
-    expect(userRepository.signOutCalled, isTrue);
+    expect(sessionInvalidator.signOutCalled, isTrue);
     expect(tokenLocalDataSource.deleteTokenCalled, isTrue);
   });
 
@@ -155,7 +188,7 @@ void main() {
       );
 
       expect(adapter.requestedPaths, isEmpty);
-      expect(userRepository.signOutCalled, isFalse);
+      expect(sessionInvalidator.signOutCalled, isFalse);
       expect(tokenLocalDataSource.deleteTokenCalled, isFalse);
     },
   );
@@ -172,7 +205,7 @@ void main() {
       );
 
       expect(adapter.refreshRequests, 1);
-      expect(userRepository.signOutCalled, isTrue);
+      expect(sessionInvalidator.signOutCalled, isTrue);
       expect(tokenLocalDataSource.deleteTokenCalled, isTrue);
     },
   );
@@ -190,12 +223,14 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
     this.retryStatusCode = 200,
     this.refreshCompleter,
     this.omitRefreshHeaders = false,
+    this.authorizeProtectedRequests = false,
   });
 
   final int refreshStatusCode;
   final int retryStatusCode;
   final Completer<void>? refreshCompleter;
   final bool omitRefreshHeaders;
+  final bool authorizeProtectedRequests;
 
   final requestedPaths = <String>[];
   final protectedAuthorizationHeaders = <String?>[];
@@ -237,7 +272,7 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
       final requestCount = (_pathRequestCounts[options.path] ?? 0) + 1;
       _pathRequestCounts[options.path] = requestCount;
 
-      if (requestCount == 1) {
+      if (!authorizeProtectedRequests && requestCount == 1) {
         return _response(401, '{"message":"Unauthorized"}');
       }
 
@@ -259,6 +294,27 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+class _CountingSecureStorage extends FlutterSecureStorage {
+  _CountingSecureStorage(this.values);
+
+  final Map<String, String?> values;
+  final readsByKey = <String, int>{};
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    readsByKey[key] = (readsByKey[key] ?? 0) + 1;
+    return values[key];
+  }
 }
 
 class _FakeTokenLocalDataSource implements TokenLocalDataSource {
@@ -295,79 +351,15 @@ class _FakeTokenLocalDataSource implements TokenLocalDataSource {
   }
 }
 
-class _FakeUserRepository implements UserRepository {
-  _FakeUserRepository(this._tokenLocalDataSource);
+class _FakeTokenSessionInvalidator implements TokenSessionInvalidator {
+  _FakeTokenSessionInvalidator(this._tokenLocalDataSource);
 
   final TokenLocalDataSource _tokenLocalDataSource;
   bool signOutCalled = false;
 
   @override
-  Future<void> signOut() async {
+  Future<void> signOutLocally() async {
     signOutCalled = true;
     await _tokenLocalDataSource.deleteToken();
   }
-
-  @override
-  Stream<UserEntity> get userStream => const Stream.empty();
-
-  @override
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
-      const Stream.empty();
-
-  @override
-  bool get supportsGoogleAuthenticate => false;
-
-  @override
-  Future<GoogleSignInAccount> authenticateWithGoogle() =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> initializeGoogleSignIn() async {}
-
-  @override
-  Future<void> deleteAppleUser({String? feedbackMessage}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> deleteGoogleUser({String? feedbackMessage}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> deleteUser({String? feedbackMessage}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> disconnectGoogleSignIn() => throw UnimplementedError();
-
-  @override
-  Future<void> getUser() => throw UnimplementedError();
-
-  @override
-  Future<String?> getUserSocialType() => throw UnimplementedError();
-
-  @override
-  Future<void> postFeedback(String message) => throw UnimplementedError();
-
-  @override
-  Future<void> signIn({required String email, required String password}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> signInWithApple({
-    required String idToken,
-    required String authCode,
-    required String fullName,
-    String? email,
-  }) => throw UnimplementedError();
-
-  @override
-  Future<void> signInWithGoogle(GoogleSignInAccount account) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> signUp({
-    required String email,
-    required String password,
-    required String name,
-  }) => throw UnimplementedError();
 }

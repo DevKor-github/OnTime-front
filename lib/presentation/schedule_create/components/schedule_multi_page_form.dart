@@ -7,11 +7,13 @@ import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cu
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/screens/schedule_date_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/screens/schedule_name_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/screens/schedule_place_moving_time_form.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/screens/schedule_place_moving_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
@@ -56,10 +58,14 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
           Navigator.of(context).pop(true);
         } else if (state.submissionStatus ==
             ScheduleFormSubmissionStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.submissionError ?? AppLocalizations.of(context)!.error,
+          final l10n = AppLocalizations.of(context)!;
+          showTwoActionDialog(
+            context,
+            config: TwoActionDialogConfig(
+              title: state.submissionError ?? l10n.error,
+              primaryAction: DialogActionConfig(
+                label: l10n.ok,
+                variant: ModalWideButtonVariant.destructive,
               ),
             ),
           );

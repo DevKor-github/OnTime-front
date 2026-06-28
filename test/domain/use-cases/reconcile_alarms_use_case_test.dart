@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -255,20 +255,6 @@ class FakeUserRepository implements UserRepository {
   Stream<UserEntity> get userStream => const Stream.empty();
 
   @override
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
-      const Stream.empty();
-
-  @override
-  bool get supportsGoogleAuthenticate => false;
-
-  @override
-  Future<GoogleSignInAccount> authenticateWithGoogle() =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> initializeGoogleSignIn() async {}
-
-  @override
   Future<void> signOut() async {
     signedOut = true;
   }
@@ -310,7 +296,7 @@ class FakeUserRepository implements UserRepository {
   }) => throw UnimplementedError();
 
   @override
-  Future<void> signInWithGoogle(GoogleSignInAccount account) =>
+  Future<void> signInWithGoogle(GoogleAuthCredential credential) =>
       throw UnimplementedError();
 
   @override
@@ -336,6 +322,7 @@ void main() {
     registryRepository = FakeAlarmRegistryRepository();
     schedulerService = FakeAlarmSchedulerService();
     fallbackService = FakeFallbackAlarmNotificationService();
+    fallbackService.permission = AlarmPermissionState.granted;
     userRepository = FakeUserRepository();
     useCase = ReconcileAlarmsUseCase.test(
       alarmRepository,
@@ -348,7 +335,7 @@ void main() {
   });
 
   test(
-    'requests padded window and schedules only eligible 7-day alarms',
+    'requests padded window and schedules eligible Android records as notifications',
     () async {
       final eligible = scheduleWithAlarmAt(
         id: 'eligible',
@@ -376,20 +363,21 @@ void main() {
         alarmRepository.requestedWindowEnd,
         now.add(const Duration(days: 8)),
       );
+      expect(schedulerService.scheduledNative, isEmpty);
       expect(
-        schedulerService.scheduledNative.map((record) => record.scheduleId),
+        fallbackService.scheduledFallback.map((record) => record.scheduleId),
         ['eligible'],
       );
       expect(result.armedScheduleIds, ['eligible']);
-      expect(result.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
-      expect(result.fallbackProvider, AlarmProvider.none);
+      expect(result.nativeAlarmProvider, AlarmProvider.none);
+      expect(result.fallbackProvider, AlarmProvider.localNotification);
       expect(
         alarmRepository.statusReports.single.nativeAlarmProvider,
-        AlarmProvider.androidAlarmManager,
+        AlarmProvider.none,
       );
       expect(
         alarmRepository.statusReports.single.fallbackProvider,
-        AlarmProvider.none,
+        AlarmProvider.localNotification,
       );
       expect(result.skippedScheduleCount, 3);
       expect(result.alarmCoverageEnd, now.add(const Duration(days: 7)));
@@ -437,7 +425,7 @@ void main() {
     },
   );
 
-  test('android alarm manager arms exact alarms beyond 24 hours', () async {
+  test('android schedule notifications arm beyond 24 hours', () async {
     alarmRepository.schedules = [
       scheduleWithAlarmAt(
         id: 'two-days',
@@ -447,15 +435,17 @@ void main() {
 
     final result = await useCase();
 
+    expect(schedulerService.scheduledNative, isEmpty);
     expect(
-      schedulerService.scheduledNative.map((record) => record.scheduleId),
+      fallbackService.scheduledFallback.map((record) => record.scheduleId),
       ['two-days'],
     );
     expect(
-      schedulerService.scheduledNative.single.provider,
-      AlarmProvider.androidAlarmManager,
+      fallbackService.scheduledFallback.single.provider,
+      AlarmProvider.localNotification,
     );
-    expect(result.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
+    expect(result.nativeAlarmProvider, AlarmProvider.none);
+    expect(result.fallbackProvider, AlarmProvider.localNotification);
     expect(result.alarmCoverageEnd, now.add(const Duration(days: 7)));
   });
 
@@ -473,7 +463,8 @@ void main() {
     expect(alarmRepository.alarmWindowRequestCount, 1);
     expect(alarmRepository.registeredDevices.length, 1);
     expect(alarmRepository.statusReports.length, 1);
-    expect(schedulerService.scheduledNative.length, 1);
+    expect(schedulerService.scheduledNative, isEmpty);
+    expect(fallbackService.scheduledFallback.length, 1);
   });
 
   test(
@@ -506,7 +497,12 @@ void main() {
       await useCase();
 
       expect(schedulerService.canceledNative.single.scheduleId, 'changed');
-      expect(schedulerService.scheduledNative.single.scheduleId, 'changed');
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(fallbackService.scheduledFallback.single.scheduleId, 'changed');
+      expect(
+        registryRepository.records.single.provider,
+        AlarmProvider.localNotification,
+      );
       expect(
         registryRepository.records.single.scheduleFingerprint,
         desiredRecord.scheduleFingerprint,
@@ -514,28 +510,39 @@ void main() {
     },
   );
 
-  test('keeps matching native registry record without rescheduling', () async {
-    final schedule = scheduleWithAlarmAt(
-      id: 'already-armed',
-      alarmTime: now.add(const Duration(hours: 1)),
-    );
-    final existing = buildScheduledAlarmRecord(
-      schedule,
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.androidAlarmManager,
-    );
-    registryRepository.records = [existing];
-    alarmRepository.schedules = [schedule];
+  test(
+    'replaces matching Android native registry record with notification',
+    () async {
+      final schedule = scheduleWithAlarmAt(
+        id: 'already-armed',
+        alarmTime: now.add(const Duration(hours: 1)),
+      );
+      final existing = buildScheduledAlarmRecord(
+        schedule,
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      registryRepository.records = [existing];
+      alarmRepository.schedules = [schedule];
 
-    final result = await useCase();
+      final result = await useCase();
 
-    expect(schedulerService.canceledNative, isEmpty);
-    expect(schedulerService.scheduledNative, isEmpty);
-    expect(registryRepository.records, [existing]);
-    expect(result.status, AlarmReconciliationStatus.armed);
-    expect(result.armedScheduleIds, ['already-armed']);
-    expect(result.nativeAlarmProvider, AlarmProvider.androidAlarmManager);
-  });
+      expect(schedulerService.canceledNative, [existing]);
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(
+        fallbackService.scheduledFallback.single.scheduleId,
+        'already-armed',
+      );
+      expect(
+        registryRepository.records.single.provider,
+        AlarmProvider.localNotification,
+      );
+      expect(result.status, AlarmReconciliationStatus.armed);
+      expect(result.armedScheduleIds, ['already-armed']);
+      expect(result.nativeAlarmProvider, AlarmProvider.none);
+      expect(result.fallbackProvider, AlarmProvider.localNotification);
+    },
+  );
 
   test(
     'keeps matching fallback registry record when fallback provider is available',
@@ -600,7 +607,15 @@ void main() {
       await useCase();
 
       expect(schedulerService.canceledNative.single.scheduleId, 'old-payload');
-      expect(schedulerService.scheduledNative.single.scheduleId, 'old-payload');
+      expect(schedulerService.scheduledNative, isEmpty);
+      expect(
+        fallbackService.scheduledFallback.single.scheduleId,
+        'old-payload',
+      );
+      expect(
+        registryRepository.records.single.provider,
+        AlarmProvider.localNotification,
+      );
       expect(
         registryRepository.records.single.payload['alarmLaunchPayloadVersion'],
         alarmLaunchPayloadVersion,
@@ -741,11 +756,11 @@ void main() {
       expect(result.status, AlarmReconciliationStatus.permissionNeeded);
       expect(
         result.permissionIssue,
-        AlarmPermissionIssue.nativePermissionDenied,
+        AlarmPermissionIssue.notificationPermissionDenied,
       );
       expect(
         alarmRepository.statusReports.single.permissionIssue,
-        AlarmPermissionIssue.nativePermissionDenied,
+        AlarmPermissionIssue.notificationPermissionDenied,
       );
     },
   );
@@ -771,11 +786,8 @@ void main() {
 
       expect(schedulerService.scheduledNative, isEmpty);
       expect(fallbackService.scheduledFallback, isEmpty);
-      expect(result.status, AlarmReconciliationStatus.permissionNeeded);
-      expect(
-        result.permissionIssue,
-        AlarmPermissionIssue.nativePermissionDenied,
-      );
+      expect(result.status, AlarmReconciliationStatus.unsupported);
+      expect(result.permissionIssue, isNull);
       expect(result.fallbackProvider, AlarmProvider.none);
     },
   );
@@ -858,40 +870,43 @@ void main() {
     },
   );
 
-  test('reports partial when scheduling a desired alarm fails', () async {
-    final failing = scheduleWithAlarmAt(
-      id: 'failing',
-      alarmTime: now.add(const Duration(hours: 1)),
-    );
-    alarmRepository.schedules = [failing];
-    schedulerService.throwOnScheduleIds.add('failing');
-    fallbackService.permission = AlarmPermissionState.denied;
-
-    final result = await useCase();
-
-    expect(result.status, AlarmReconciliationStatus.partial);
-    expect(result.failures.single.scheduleId, 'failing');
-    expect(result.failures.single.reason, AlarmFailureReason.platformError);
-    expect(registryRepository.records, isEmpty);
-  });
-
   test(
-    'generic platform failures are reported when no fallback is available',
+    'reports partial when scheduling a desired notification fails',
     () async {
       final failing = scheduleWithAlarmAt(
-        id: 'generic-native-failure',
+        id: 'failing',
         alarmTime: now.add(const Duration(hours: 1)),
       );
       alarmRepository.schedules = [failing];
-      schedulerService.throwGenericOnScheduleIds.add('generic-native-failure');
-      fallbackService.permission = AlarmPermissionState.denied;
+      fallbackService.throwOnScheduleIds.add('failing');
 
       final result = await useCase();
 
       expect(result.status, AlarmReconciliationStatus.partial);
-      expect(result.failures.single.scheduleId, 'generic-native-failure');
+      expect(result.failures.single.scheduleId, 'failing');
       expect(result.failures.single.reason, AlarmFailureReason.platformError);
-      expect(result.failures.single.message, contains('native channel failed'));
+      expect(registryRepository.records, isEmpty);
+    },
+  );
+
+  test(
+    'notification permission is reported when fallback notification is unavailable',
+    () async {
+      final failing = scheduleWithAlarmAt(
+        id: 'notification-unavailable',
+        alarmTime: now.add(const Duration(hours: 1)),
+      );
+      alarmRepository.schedules = [failing];
+      fallbackService.permission = AlarmPermissionState.denied;
+
+      final result = await useCase();
+
+      expect(result.status, AlarmReconciliationStatus.permissionNeeded);
+      expect(
+        result.permissionIssue,
+        AlarmPermissionIssue.notificationPermissionDenied,
+      );
+      expect(result.failures, isEmpty);
     },
   );
 

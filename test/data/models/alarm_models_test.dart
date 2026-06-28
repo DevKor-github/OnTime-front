@@ -365,7 +365,7 @@ void main() {
   });
 
   test(
-    'alarm scheduling helpers derive stable alarm records from schedules',
+    'schedule notification helpers derive stable notification records from schedules',
     () {
       final schedule = _scheduleWithPreparation(
         doneStatus: ScheduleDoneStatus.notEnded,
@@ -391,7 +391,8 @@ void main() {
         record.payload['alarmLaunchPayloadVersion'],
         alarmLaunchPayloadVersion,
       );
-      expect(record.payload['promptVariant'], 'alarm');
+      expect(record.payload['type'], 'schedule_notification');
+      expect(record.payload['promptVariant'], 'notification');
       expect(record.payload['placeName'], 'Office');
     },
   );

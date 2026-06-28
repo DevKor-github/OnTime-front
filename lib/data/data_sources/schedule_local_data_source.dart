@@ -1,4 +1,3 @@
-import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 
@@ -17,7 +16,7 @@ abstract interface class ScheduleLocalDataSource {
   Future<void> deleteSchedule(Schedule schedule);
 }
 
-@Injectable(as: ScheduleLocalDataSource)
+// Not registered with DI; schedule repository persistence is remote-only.
 class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   final AppDatabase appDatabase;
 

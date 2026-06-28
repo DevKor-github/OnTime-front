@@ -45,9 +45,15 @@ open class MainActivity : FlutterActivity() {
         methodChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
                 "getCapabilities" -> {
+                    val nativeAlarmApproved =
+                        NativeAlarmPolicy.isAndroidFullScreenAlarmApproved()
                     val capabilities = mapOf(
-                        "supportsNativeAlarm" to true,
-                        "nativeAlarmProvider" to "androidAlarmManager",
+                        "supportsNativeAlarm" to nativeAlarmApproved,
+                        "nativeAlarmProvider" to if (nativeAlarmApproved) {
+                            "androidAlarmManager"
+                        } else {
+                            "none"
+                        },
                         "fallbackProvider" to "localNotification",
                     )
                     NativeLog.d(TAG, "getCapabilities -> $capabilities")
@@ -84,6 +90,16 @@ open class MainActivity : FlutterActivity() {
     }
 
     private fun scheduleNativeAlarm(call: MethodCall, result: MethodChannel.Result) {
+        if (!NativeAlarmPolicy.isAndroidFullScreenAlarmApproved()) {
+            NativeLog.w(TAG, "scheduleNativeAlarm blocked: full-screen alarm approval is disabled")
+            result.error(
+                "unsupported",
+                "Android native alarms require full-screen alarm policy approval",
+                null,
+            )
+            return
+        }
+
         val args = call.arguments as? Map<*, *>
         if (args == null) {
             NativeLog.w(TAG, "scheduleNativeAlarm invalid: missing args")
@@ -267,6 +283,7 @@ open class MainActivity : FlutterActivity() {
     }
 
     private fun configureAlarmLaunchWindow(intent: Intent?) {
+        if (!NativeAlarmPolicy.isAndroidFullScreenAlarmApproved()) return
         if (payloadFromIntent(intent) == null) return
         NativeLog.d(TAG, "configureAlarmLaunchWindow for alarm launch")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {

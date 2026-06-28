@@ -1,41 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:on_time_front/core/database/database.dart';
-import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
 import 'package:on_time_front/data/models/create_schedule_request_model.dart';
 import 'package:on_time_front/data/models/get_place_response_model.dart';
 import 'package:on_time_front/data/models/get_schedule_response_model.dart';
 import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
-import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
-
-class FakeScheduleLocalDataSource implements ScheduleLocalDataSource {
-  @override
-  Future<void> createSchedule(ScheduleWithPlace schedule) async {}
-
-  @override
-  Future<void> deleteSchedule(Schedule schedule) async {}
-
-  @override
-  Future<ScheduleWithPlace> getScheduleById(String id) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ScheduleWithPlace>> getSchedulesByDate(
-    DateTime startDate,
-    DateTime? endDate,
-  ) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateSchedule(Schedule schedule) async {}
-}
 
 class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
   FakeScheduleRemoteDataSource({
@@ -104,6 +77,75 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
 }
 
 void main() {
+  test('createSchedule publishes created schedule to stream cache', () async {
+    final schedule = _schedule(
+      id: 'created',
+      scheduleTime: DateTime(2026, 3, 20, 9),
+    );
+    final repository = ScheduleRepositoryImpl(
+      scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
+        getSchedulesByDateHandler: (_, __) async => const [],
+      ),
+      timedPreparationRepository: FakeTimedPreparationRepository(),
+    );
+
+    await repository.createSchedule(schedule);
+
+    final latest = await repository.scheduleStream.firstWhere(
+      (schedules) => schedules.any((schedule) => schedule.id == 'created'),
+    );
+
+    expect(latest.single, schedule);
+  });
+
+  test('deleteSchedule removes deleted schedule from stream cache', () async {
+    final schedule = _schedule(
+      id: 'deleted',
+      scheduleTime: DateTime(2026, 3, 20, 9),
+    );
+    final repository = ScheduleRepositoryImpl(
+      scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
+        getSchedulesByDateHandler: (_, __) async => const [],
+      ),
+      timedPreparationRepository: FakeTimedPreparationRepository(),
+    );
+    final events = <Set<ScheduleEntity>>[];
+    final subscription = repository.scheduleStream.listen(events.add);
+    addTearDown(subscription.cancel);
+
+    await repository.createSchedule(schedule);
+    await repository.deleteSchedule(schedule);
+    await pumpEventQueue();
+
+    expect(events.map((event) => event.map((s) => s.id).toList()), [
+      <String>[],
+      ['deleted'],
+      <String>[],
+    ]);
+  });
+
+  test('getScheduleById publishes fetched schedule to stream cache', () async {
+    final schedule = _schedule(
+      id: 'fetched',
+      scheduleTime: DateTime(2026, 3, 20, 9),
+    );
+    final repository = ScheduleRepositoryImpl(
+      scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
+        getSchedulesByDateHandler: (_, __) async => const [],
+        getScheduleByIdHandler: (_) async => schedule,
+      ),
+      timedPreparationRepository: FakeTimedPreparationRepository(),
+    );
+
+    final result = await repository.getScheduleById(schedule.id);
+    final latest = await repository.scheduleStream.firstWhere(
+      (schedules) => schedules.any((schedule) => schedule.id == 'fetched'),
+    );
+
+    expect(result, schedule);
+    expect(latest.single, schedule);
+  });
+
   test(
     'watchSchedulesByDate emits inclusive-start exclusive-end schedules sorted by time',
     () async {
@@ -127,7 +169,6 @@ void main() {
       );
 
       final repository = ScheduleRepositoryImpl(
-        scheduleLocalDataSource: FakeScheduleLocalDataSource(),
         scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
           getSchedulesByDateHandler: (_, __) async => [
             insideLater,
@@ -170,7 +211,6 @@ void main() {
       );
 
       final repository = ScheduleRepositoryImpl(
-        scheduleLocalDataSource: FakeScheduleLocalDataSource(),
         scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
           getSchedulesByDateHandler: (startDate, _) async {
             if (startDate == marchStart) {
@@ -257,7 +297,6 @@ void main() {
       );
 
       final repository = ScheduleRepositoryImpl(
-        scheduleLocalDataSource: FakeScheduleLocalDataSource(),
         scheduleRemoteDataSource: remote,
         timedPreparationRepository: FakeTimedPreparationRepository(),
       );
@@ -304,7 +343,6 @@ void main() {
     );
 
     final repository = ScheduleRepositoryImpl(
-      scheduleLocalDataSource: FakeScheduleLocalDataSource(),
       scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
         getSchedulesByDateHandler: (_, __) async => [initialSchedule],
         getScheduleByIdHandler: (_) async => editedSchedule,

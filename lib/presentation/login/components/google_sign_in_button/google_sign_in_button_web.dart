@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_web/web_only.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/services/google_authentication_service.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 class GoogleSignInButton extends StatefulWidget {
@@ -16,26 +17,27 @@ class GoogleSignInButton extends StatefulWidget {
 }
 
 class _GoogleSignInButtonState extends State<GoogleSignInButton> {
-  final authenticationRepository = getIt.get<UserRepository>();
-  late final Stream<GoogleSignInAuthenticationEvent> _authenticationEvents;
-  StreamSubscription<GoogleSignInAuthenticationEvent>?
-  _authenticationEventsSubscription;
+  final googleAuthenticationService = getIt.get<GoogleAuthenticationService>();
+  late final Stream<GoogleAuthCredential> _authenticationCredentials;
+  StreamSubscription<GoogleAuthCredential>?
+  _authenticationCredentialsSubscription;
 
   @override
   void initState() {
-    _authenticationEvents = authenticationRepository.googleAuthenticationEvents;
-    unawaited(authenticationRepository.initializeGoogleSignIn());
-    _authenticationEventsSubscription = _authenticationEvents.listen((event) {
-      if (event is GoogleSignInAuthenticationEventSignIn) {
-        unawaited(getIt.get<UserRepository>().signInWithGoogle(event.user));
-      }
+    _authenticationCredentials =
+        googleAuthenticationService.authenticationCredentials;
+    unawaited(googleAuthenticationService.initialize());
+    _authenticationCredentialsSubscription = _authenticationCredentials.listen((
+      credential,
+    ) {
+      unawaited(getIt.get<UserRepository>().signInWithGoogle(credential));
     });
     super.initState();
   }
 
   @override
   void dispose() {
-    unawaited(_authenticationEventsSubscription?.cancel());
+    unawaited(_authenticationCredentialsSubscription?.cancel());
     super.dispose();
   }
 

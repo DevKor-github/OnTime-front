@@ -9,7 +9,7 @@ class LoadSchedulesByDateUseCase {
 
   /// Loads schedules for the given date range.
   /// This triggers fetching schedules from the remote data source
-  /// and updating the local cache/stream.
+  /// and updating the in-memory schedule stream.
   ///
   /// [startDate] - Start date of the range (inclusive)
   /// [endDate] - End date of the range (exclusive), or null for all schedules after startDate

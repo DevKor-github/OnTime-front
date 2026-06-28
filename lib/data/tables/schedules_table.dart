@@ -3,6 +3,8 @@ import 'package:on_time_front/core/utils/json_converters/duration_json_converter
 import 'package:on_time_front/data/tables/places_table.dart';
 import 'package:uuid/uuid.dart';
 
+@TableIndex(name: 'schedules_schedule_time_idx', columns: {#scheduleTime})
+@TableIndex(name: 'schedules_place_id_idx', columns: {#placeId})
 class Schedules extends Table {
   TextColumn get id => text().clientDefault(() => Uuid().v7())();
   TextColumn get placeId => text().references(Places, #id)();

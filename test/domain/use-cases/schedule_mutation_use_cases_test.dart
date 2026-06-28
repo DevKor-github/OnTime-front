@@ -1,34 +1,32 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
-import 'package:on_time_front/domain/use-cases/cancel_schedule_alarm_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/finish_schedule_use_case.dart';
-import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart';
 import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
 import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
 
 void main() {
   test(
-    'create and update schedule use cases persist then reconcile alarms',
+    'create and update schedule use cases persist then request alarm effects',
     () async {
       final scheduleRepository = _FakeScheduleRepository();
-      final reconcile = _FakeReconcileAlarmsUseCase();
+      final alarmEffects = _FakeScheduleMutationAlarmEffectsCoordinator();
       final createUseCase = CreateScheduleWithPlaceUseCase(
         scheduleRepository,
-        reconcile,
+        alarmEffects,
       );
       final updateUseCase = UpdateScheduleUseCase(
         scheduleRepository,
-        reconcile,
+        alarmEffects,
       );
       final schedule = _schedule('schedule-1');
 
@@ -43,51 +41,63 @@ void main() {
         scheduleRepository.updatedSchedules.single.doneStatus,
         ScheduleDoneStatus.lateEnd,
       );
-      expect(reconcile.callCount, 2);
+      expect(alarmEffects.calls, ['created:schedule-1', 'updated:schedule-1']);
     },
   );
 
   test(
-    'delete schedule removes schedule, cancels alarm, then reconciles',
+    'create and update schedule use cases skip alarm effects on repository failure',
     () async {
       final scheduleRepository = _FakeScheduleRepository();
-      final cancel = _FakeCancelScheduleAlarmUseCase();
-      final reconcile = _FakeReconcileAlarmsUseCase();
-      final useCase = DeleteScheduleUseCase(
+      final alarmEffects = _FakeScheduleMutationAlarmEffectsCoordinator();
+      final createUseCase = CreateScheduleWithPlaceUseCase(
         scheduleRepository,
-        cancel,
-        reconcile,
+        alarmEffects,
+      );
+      final updateUseCase = UpdateScheduleUseCase(
+        scheduleRepository,
+        alarmEffects,
       );
       final schedule = _schedule('schedule-1');
 
-      await useCase(schedule);
-      await pumpEventQueue();
+      scheduleRepository.failCreate = true;
+      await expectLater(createUseCase(schedule), throwsException);
 
-      expect(scheduleRepository.deletedSchedules, [schedule]);
-      expect(cancel.cancelledScheduleIds, ['schedule-1']);
-      expect(reconcile.callCount, 1);
+      scheduleRepository.failCreate = false;
+      scheduleRepository.failUpdate = true;
+      await expectLater(updateUseCase(schedule), throwsException);
+
+      expect(alarmEffects.calls, isEmpty);
     },
   );
 
   test(
-    'finish schedule records lateness, cancels alarm, then reconciles',
+    'delete schedule removes schedule then requests deleted alarm effects',
     () async {
       final scheduleRepository = _FakeScheduleRepository();
-      final cancel = _FakeCancelScheduleAlarmUseCase();
-      final reconcile = _FakeReconcileAlarmsUseCase();
-      final useCase = FinishScheduleUseCase(
-        scheduleRepository,
-        cancel,
-        reconcile,
-      );
+      final alarmEffects = _FakeScheduleMutationAlarmEffectsCoordinator();
+      final useCase = DeleteScheduleUseCase(scheduleRepository, alarmEffects);
+      final schedule = _schedule('schedule-1');
+
+      await useCase(schedule);
+
+      expect(scheduleRepository.deletedSchedules, [schedule]);
+      expect(alarmEffects.calls, ['deleted:schedule-1']);
+    },
+  );
+
+  test(
+    'finish schedule records lateness then requests finished alarm effects',
+    () async {
+      final scheduleRepository = _FakeScheduleRepository();
+      final alarmEffects = _FakeScheduleMutationAlarmEffectsCoordinator();
+      final useCase = FinishScheduleUseCase(scheduleRepository, alarmEffects);
 
       await useCase('schedule-1', 12);
-      await pumpEventQueue();
 
       expect(scheduleRepository.finishedSchedules, [('schedule-1', 12)]);
       expect(scheduleRepository.startedScheduleIds, ['schedule-1']);
-      expect(cancel.cancelledScheduleIds, ['schedule-1']);
-      expect(reconcile.callCount, 1);
+      expect(alarmEffects.calls, ['finished:schedule-1']);
     },
   );
 
@@ -138,6 +148,8 @@ class _FakeScheduleRepository implements ScheduleRepository {
   final deletedSchedules = <ScheduleEntity>[];
   final startedScheduleIds = <String>[];
   final finishedSchedules = <(String, int)>[];
+  bool failCreate = false;
+  bool failUpdate = false;
 
   @override
   Stream<Set<ScheduleEntity>> get scheduleStream => const Stream.empty();
@@ -150,6 +162,9 @@ class _FakeScheduleRepository implements ScheduleRepository {
 
   @override
   Future<void> createSchedule(ScheduleEntity schedule) async {
+    if (failCreate) {
+      throw Exception('create failed');
+    }
     createdSchedules.add(schedule);
   }
 
@@ -182,20 +197,11 @@ class _FakeScheduleRepository implements ScheduleRepository {
     ScheduleEntity schedule, {
     bool includePreparationSource = false,
   }) async {
+    if (failUpdate) {
+      throw Exception('update failed');
+    }
     updatedSchedules.add(schedule);
   }
-}
-
-class _FakeCancelScheduleAlarmUseCase implements CancelScheduleAlarmUseCase {
-  final cancelledScheduleIds = <String>[];
-
-  @override
-  Future<void> call(String scheduleId) async {
-    cancelledScheduleIds.add(scheduleId);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeCancelAllAlarmsUseCase implements CancelAllAlarmsUseCase {
@@ -210,24 +216,16 @@ class _FakeCancelAllAlarmsUseCase implements CancelAllAlarmsUseCase {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _FakeReconcileAlarmsUseCase implements ReconcileAlarmsUseCase {
-  int callCount = 0;
+class _FakeScheduleMutationAlarmEffectsCoordinator
+    implements ScheduleMutationAlarmEffectsCoordinator {
+  final calls = <String>[];
 
   @override
-  Future<AlarmReconciliationResult> call() async {
-    callCount += 1;
-    return AlarmReconciliationResult(
-      status: AlarmReconciliationStatus.armed,
-      nativeAlarmProvider: AlarmProvider.none,
-      fallbackProvider: AlarmProvider.localNotification,
-      armedScheduleIds: const [],
-      skippedScheduleCount: 0,
-      failures: const [],
-      scheduleWindowStart: DateTime.utc(2026, 5, 15),
-      scheduleWindowEnd: DateTime.utc(2026, 5, 23),
-      alarmCoverageStart: DateTime.utc(2026, 5, 15),
-      alarmCoverageEnd: DateTime.utc(2026, 5, 22),
-    );
+  Future<void> call({
+    required ScheduleMutationAlarmOperation operation,
+    required String scheduleId,
+  }) async {
+    calls.add('${operation.name}:$scheduleId');
   }
 
   @override
@@ -288,20 +286,5 @@ class _FakeUserRepository implements UserRepository {
   }) async {}
 
   @override
-  Future<void> signInWithGoogle(GoogleSignInAccount account) async {}
-
-  @override
-  Future<void> initializeGoogleSignIn() async {}
-
-  @override
-  bool get supportsGoogleAuthenticate => false;
-
-  @override
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
-      const Stream.empty();
-
-  @override
-  Future<GoogleSignInAccount> authenticateWithGoogle() async {
-    throw UnimplementedError();
-  }
+  Future<void> signInWithGoogle(GoogleAuthCredential credential) async {}
 }

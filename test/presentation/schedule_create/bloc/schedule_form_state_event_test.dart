@@ -10,8 +10,15 @@ void main() {
     final preparation = _preparation();
 
     expect(const ScheduleFormEditRequested(scheduleId: 's-1').props, ['s-1']);
-    expect(ScheduleFormCreateRequested(initialDate: date).props, [date]);
-    expect(const ScheduleFormCreateRequested().props.single, isA<DateTime>());
+    expect(
+      ScheduleFormCreateRequested(
+        initialDate: date,
+        currentUserSpareTime: const Duration(minutes: 5),
+      ).props,
+      [date, const Duration(minutes: 5)],
+    );
+    expect(const ScheduleFormCreateRequested().props.first, isA<DateTime>());
+    expect(const ScheduleFormCreateRequested().props.last, Duration.zero);
     expect(
       const ScheduleFormScheduleNameChanged(scheduleName: 'Meeting').props,
       ['Meeting'],

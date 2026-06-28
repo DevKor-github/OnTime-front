@@ -5,17 +5,11 @@ import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
-import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
-import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
-import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
-import 'package:on_time_front/domain/entities/product_usage_event.dart';
-import 'package:on_time_front/domain/use-cases/track_product_usage_event_use_case.dart';
-import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
-import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
-import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
+import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
+import 'package:on_time_front/domain/use-cases/load_schedule_form_draft_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
+import 'package:on_time_front/domain/use-cases/update_schedule_form_submission_use_case.dart';
 import 'package:uuid/uuid.dart';
 
 part 'schedule_form_event.dart';
@@ -24,16 +18,9 @@ part 'schedule_form_state.dart';
 @Injectable()
 class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   ScheduleFormBloc(
-    this._loadPreparationByScheduleIdUseCase,
-    this._getPreparationByScheduleIdUseCase,
-    this._getDefaultPreparationUseCase,
-    this._getScheduleByIdUseCase,
-    this._createScheduleWithPlaceUseCase,
-    this._createCustomPreparationUseCase,
-    this._updateScheduleUseCase,
-    this._updatePreparationByScheduleIdUseCase,
-    this._productUsageEventTracker,
-    @factoryParam this._authBloc,
+    this._loadScheduleFormDraftUseCase,
+    this._createScheduleFormSubmissionUseCase,
+    this._updateScheduleFormSubmissionUseCase,
   ) : super(ScheduleFormState()) {
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
@@ -48,17 +35,11 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormValidated>(_onValidated);
   }
 
-  final LoadPreparationByScheduleIdUseCase _loadPreparationByScheduleIdUseCase;
-  final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
-  final GetDefaultPreparationUseCase _getDefaultPreparationUseCase;
-  final GetScheduleByIdUseCase _getScheduleByIdUseCase;
-  final CreateScheduleWithPlaceUseCase _createScheduleWithPlaceUseCase;
-  final CreateCustomPreparationUseCase _createCustomPreparationUseCase;
-  final UpdateScheduleUseCase _updateScheduleUseCase;
-  final UpdatePreparationByScheduleIdUseCase
-  _updatePreparationByScheduleIdUseCase;
-  final ProductUsageEventTracker _productUsageEventTracker;
-  final AuthBloc _authBloc;
+  final LoadScheduleFormDraftUseCase _loadScheduleFormDraftUseCase;
+  final CreateScheduleFormSubmissionUseCase
+  _createScheduleFormSubmissionUseCase;
+  final UpdateScheduleFormSubmissionUseCase
+  _updateScheduleFormSubmissionUseCase;
 
   Future<void> _onEditRequested(
     ScheduleFormEditRequested event,
@@ -72,33 +53,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       ),
     );
 
-    await _loadPreparationByScheduleIdUseCase(event.scheduleId);
-    final PreparationEntity preparationEntity =
-        await _getPreparationByScheduleIdUseCase(event.scheduleId);
-
-    final ScheduleEntity scheduleEntity = await _getScheduleByIdUseCase(
-      event.scheduleId,
-    );
-
-    emit(
-      state.copyWith(
-        status: ScheduleFormStatus.success,
-        submissionStatus: ScheduleFormSubmissionStatus.idle,
-        submissionError: null,
-        id: scheduleEntity.id,
-        placeId: scheduleEntity.place.id,
-        placeName: scheduleEntity.place.placeName,
-        scheduleName: scheduleEntity.scheduleName,
-        scheduleTime: scheduleEntity.scheduleTime,
-        moveTime: scheduleEntity.moveTime,
-        isChanged: scheduleEntity.isChanged
-            ? IsPreparationChanged.changed
-            : IsPreparationChanged.unchanged,
-        scheduleSpareTime: scheduleEntity.scheduleSpareTime,
-        scheduleNote: scheduleEntity.scheduleNote,
-        preparation: preparationEntity,
-      ),
-    );
+    final draft = await _loadScheduleFormDraftUseCase.edit(event.scheduleId);
+    _emitLoadedDraft(draft, emit);
   }
 
   void _onCreateRequested(
@@ -113,33 +69,11 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       ),
     );
 
-    final PreparationEntity defaultPreparationStepList =
-        await _getDefaultPreparationUseCase();
-
-    // Get spareTime from user model
-    final userSpareTime = _authBloc.state.user.spareTimeOrNull;
-    final now = DateTime.now();
-    final initialScheduleTime = event.initialDate == null
-        ? null
-        : _initialScheduleTime(event.initialDate!, now);
-
-    emit(
-      state.copyWith(
-        status: ScheduleFormStatus.success,
-        submissionStatus: ScheduleFormSubmissionStatus.idle,
-        submissionError: null,
-        id: Uuid().v7(),
-        placeId: Uuid().v7(),
-        placeName: null,
-        scheduleName: null,
-        scheduleTime: initialScheduleTime,
-        moveTime: null,
-        isChanged: null,
-        scheduleSpareTime: userSpareTime,
-        scheduleNote: null,
-        preparation: defaultPreparationStepList,
-      ),
+    final draft = await _loadScheduleFormDraftUseCase.create(
+      initialDate: event.initialDate,
+      currentUserSpareTime: event.currentUserSpareTime,
     );
+    _emitLoadedDraft(draft, emit);
   }
 
   void _onScheduleNameChanged(
@@ -221,13 +155,9 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
 
     try {
       final ScheduleEntity scheduleEntity = state.createEntity(state);
-      await _updateScheduleUseCase(scheduleEntity);
-      if (state.isChanged != IsPreparationChanged.unchanged) {
-        await _updatePreparationByScheduleIdUseCase(
-          state.preparation!,
-          scheduleEntity.id,
-        );
-      }
+      await _updateScheduleFormSubmissionUseCase(
+        _submissionFor(scheduleEntity),
+      );
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.success,
@@ -261,14 +191,9 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
 
     try {
       final ScheduleEntity scheduleEntity = state.createEntity(state);
-      await _createScheduleWithPlaceUseCase(scheduleEntity);
-      if (state.isChanged != IsPreparationChanged.unchanged) {
-        await _createCustomPreparationUseCase(
-          state.preparation!,
-          scheduleEntity.id,
-        );
-      }
-      await _trackScheduleCreated(scheduleEntity);
+      await _createScheduleFormSubmissionUseCase(
+        _submissionFor(scheduleEntity),
+      );
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.success,
@@ -292,40 +217,38 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     emit(state.copyWith(isValid: event.isValid));
   }
 
-  DateTime _initialScheduleTime(DateTime initialDate, DateTime now) {
-    final selectedDate = DateTime(
-      initialDate.year,
-      initialDate.month,
-      initialDate.day,
-    );
-    final today = DateTime(now.year, now.month, now.day);
-    final initialTime = selectedDate == today
-        ? now.add(const Duration(minutes: 1))
-        : now;
-    return DateTime(
-      initialDate.year,
-      initialDate.month,
-      initialDate.day,
-      initialTime.hour,
-      initialTime.minute,
+  void _emitLoadedDraft(
+    ScheduleFormDraft draft,
+    Emitter<ScheduleFormState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        status: ScheduleFormStatus.success,
+        submissionStatus: ScheduleFormSubmissionStatus.idle,
+        submissionError: null,
+        id: draft.id,
+        placeId: draft.placeId,
+        placeName: draft.placeName,
+        scheduleName: draft.scheduleName,
+        scheduleTime: draft.scheduleTime,
+        moveTime: draft.moveTime,
+        isChanged: draft.preparationChanged
+            ? IsPreparationChanged.changed
+            : IsPreparationChanged.unchanged,
+        scheduleSpareTime: draft.scheduleSpareTime,
+        scheduleNote: draft.scheduleNote,
+        preparation: draft.preparation,
+        originalPreparationMode: draft.originalPreparationMode,
+      ),
     );
   }
 
-  Future<void> _trackScheduleCreated(ScheduleEntity scheduleEntity) async {
-    await _productUsageEventTracker.track(
-      ProductUsageEvent(
-        name: 'schedule_created',
-        workflow: 'schedule',
-        result: 'success',
-        parameters: {
-          'preparation_mode': scheduleEntity.preparationMode?.name ?? 'default',
-          'preparation_step_count':
-              state.preparation?.preparationStepList.length ?? 0,
-          'minutes_until_schedule': scheduleEntity.scheduleTime
-              .difference(DateTime.now())
-              .inMinutes,
-        },
-      ),
+  ScheduleFormSubmission _submissionFor(ScheduleEntity scheduleEntity) {
+    return ScheduleFormSubmission(
+      schedule: scheduleEntity,
+      preparation: state.preparation!,
+      preparationChanged: state.isChanged != IsPreparationChanged.unchanged,
+      originalPreparationMode: state.originalPreparationMode,
     );
   }
 }

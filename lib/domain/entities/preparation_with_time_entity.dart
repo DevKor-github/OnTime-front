@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
-import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
   const PreparationWithTimeEntity({
@@ -9,7 +8,8 @@ class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
   }) : super(preparationStepList: preparationStepList);
 
   factory PreparationWithTimeEntity.fromPreparation(
-      PreparationEntity preparation) {
+    PreparationEntity preparation,
+  ) {
     final orderedPreparation = preparation.ordered;
     return PreparationWithTimeEntity(
       preparationStepList: orderedPreparation.preparationStepList
@@ -52,7 +52,9 @@ class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
   }
 
   Duration get elapsedTime => preparationStepList.fold<Duration>(
-      Duration.zero, (sum, s) => sum + s.elapsedTime);
+    Duration.zero,
+    (sum, s) => sum + s.elapsedTime,
+  );
 
   /// Returns the progress as a value between 0.0 and 1.0
   double get progress {
@@ -98,28 +100,6 @@ class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
         .toList();
   }
 
-  /// Returns the preparation state for each step
-  List<PreparationStateEnum> get preparationStepStates {
-    final resolvedIndex = resolvedCurrentStepIndex;
-
-    return List<PreparationStateEnum>.generate(
-      preparationStepList.length,
-      (index) {
-        if (isAllStepsDone) {
-          // All steps are done
-          return PreparationStateEnum.done;
-        }
-        if (index < resolvedIndex) {
-          return PreparationStateEnum.done;
-        }
-        if (index == resolvedIndex && !isAllStepsDone) {
-          return PreparationStateEnum.now;
-        }
-        return PreparationStateEnum.yet;
-      },
-    );
-  }
-
   PreparationWithTimeEntity timeElapsed(Duration elapsed) {
     final current = currentStep;
     if (current == null) {
@@ -127,8 +107,9 @@ class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
     }
 
     Duration remainingElapsed = elapsed;
-    List<PreparationStepWithTimeEntity> updatedSteps =
-        List.from(preparationStepList);
+    List<PreparationStepWithTimeEntity> updatedSteps = List.from(
+      preparationStepList,
+    );
 
     // Find the current step index
     int currentIndex = updatedSteps.indexWhere((step) => step.id == current.id);
@@ -171,13 +152,13 @@ class PreparationWithTimeEntity extends PreparationEntity implements Equatable {
       return this; // All steps are done, no changes needed
     }
 
-    final updatedCurrentStep = current.copyWith(
-      isDone: true,
-    );
+    final updatedCurrentStep = current.copyWith(isDone: true);
     return copyWith(
       preparationStepList: preparationStepList
-          .map((step) =>
-              step.id == updatedCurrentStep.id ? updatedCurrentStep : step)
+          .map(
+            (step) =>
+                step.id == updatedCurrentStep.id ? updatedCurrentStep : step,
+          )
           .toList(),
     );
   }

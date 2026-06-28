@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
@@ -17,18 +18,20 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   PreparationUserDao(this.db) : super(db);
 
   Future<void> createPreparationUser(
-      PreparationEntity preparationEntity, String userId) async {
+    PreparationEntity preparationEntity,
+    String userId,
+  ) async {
     String? previousStepId;
 
     for (var step in preparationEntity.preparationStepList) {
-      final insertedStep = await into(db.preparationUsers).insertReturning(
-        step.toPreparationUserModel(userId).toCompanion(false),
-      );
+      final insertedStep = await into(
+        db.preparationUsers,
+      ).insertReturning(step.toPreparationUserRow(userId).toCompanion(false));
 
       if (previousStepId != null) {
-        await (update(db.preparationUsers)
-              ..where((tbl) => tbl.id.equals(previousStepId!)))
-            .write(
+        await (update(
+          db.preparationUsers,
+        )..where((tbl) => tbl.id.equals(previousStepId!))).write(
           PreparationUsersCompanion(nextPreparationId: Value(insertedStep.id)),
         );
       }
@@ -38,9 +41,9 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<PreparationEntity> getPreparationUsersByUserId(String userId) async {
-    final allSteps = await (select(db.preparationUsers)
-          ..where((tbl) => tbl.userId.equals(userId)))
-        .get();
+    final allSteps = await (select(
+      db.preparationUsers,
+    )..where((tbl) => tbl.userId.equals(userId))).get();
 
     if (allSteps.isEmpty) {
       return PreparationEntity(preparationStepList: []);
@@ -72,10 +75,11 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId) async {
-    final result = await (select(db.preparationUsers)
-          ..where((tbl) => tbl.id.equals(preparationStepId)))
-        .getSingleOrNull();
+    String preparationStepId,
+  ) async {
+    final result = await (select(
+      db.preparationUsers,
+    )..where((tbl) => tbl.id.equals(preparationStepId))).getSingleOrNull();
 
     if (result == null) {
       throw Exception("Preparation step not found");
@@ -90,10 +94,12 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> updatePreparationUser(
-      PreparationStepEntity stepEntity, String userId) async {
-    await (update(db.preparationUsers)
-          ..where((tbl) => tbl.id.equals(stepEntity.id)))
-        .write(
+    PreparationStepEntity stepEntity,
+    String userId,
+  ) async {
+    await (update(
+      db.preparationUsers,
+    )..where((tbl) => tbl.id.equals(stepEntity.id))).write(
       PreparationUsersCompanion(
         preparationName: Value(stepEntity.preparationName),
         preparationTime: Value(stepEntity.preparationTime.inMinutes),
@@ -102,21 +108,21 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<PreparationEntity> deletePreparationUser(String preparationId) async {
-    final preparationToDelete = await (select(db.preparationUsers)
-          ..where((tbl) => tbl.id.equals(preparationId)))
-        .getSingle();
+    final preparationToDelete = await (select(
+      db.preparationUsers,
+    )..where((tbl) => tbl.id.equals(preparationId))).getSingle();
 
-    await (update(db.preparationUsers)
-          ..where((tbl) => tbl.nextPreparationId.equals(preparationId)))
-        .write(
+    await (update(
+      db.preparationUsers,
+    )..where((tbl) => tbl.nextPreparationId.equals(preparationId))).write(
       PreparationUsersCompanion(
         nextPreparationId: Value(preparationToDelete.nextPreparationId),
       ),
     );
 
-    await (delete(db.preparationUsers)
-          ..where((tbl) => tbl.id.equals(preparationId)))
-        .go();
+    await (delete(
+      db.preparationUsers,
+    )..where((tbl) => tbl.id.equals(preparationId))).go();
 
     return await getPreparationUsersByUserId(preparationToDelete.userId);
   }

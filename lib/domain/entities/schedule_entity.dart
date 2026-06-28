@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 
-import '/core/database/database.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
@@ -48,49 +46,6 @@ class ScheduleEntity extends Equatable {
     this.preparationFrozen = false,
     this.customPreparations,
   });
-
-  static ScheduleEntity fromScheduleWithPlaceModel(
-    ScheduleWithPlace scheduleWithPlace,
-  ) {
-    final schedule = scheduleWithPlace.schedule;
-    final place = scheduleWithPlace.place;
-    return ScheduleEntity(
-      id: schedule.id,
-      place: PlaceEntity.fromModel(place),
-      scheduleName: schedule.scheduleName,
-      scheduleTime: schedule.scheduleTime,
-      moveTime: schedule.moveTime,
-      isChanged: schedule.isChanged,
-      isStarted: schedule.isStarted,
-      scheduleSpareTime: schedule.scheduleSpareTime,
-      scheduleNote: schedule.scheduleNote ?? '',
-      latenessTime: schedule.latenessTime,
-      doneStatus: ScheduleDoneStatus.notEnded,
-      preparationFrozen: schedule.isStarted,
-    );
-  }
-
-  Schedule toScheduleModel() {
-    return Schedule(
-      id: id,
-      placeId: place.id,
-      scheduleName: scheduleName,
-      scheduleTime: scheduleTime,
-      moveTime: moveTime,
-      isChanged: isChanged,
-      isStarted: isStarted,
-      scheduleSpareTime: scheduleSpareTime,
-      scheduleNote: scheduleNote,
-      latenessTime: latenessTime,
-    );
-  }
-
-  ScheduleWithPlace toScheduleWithPlaceModel() {
-    return ScheduleWithPlace(
-      schedule: toScheduleModel(),
-      place: place.toModel(),
-    );
-  }
 
   ScheduleEntity copyWith({
     ScheduleDoneStatus? doneStatus,

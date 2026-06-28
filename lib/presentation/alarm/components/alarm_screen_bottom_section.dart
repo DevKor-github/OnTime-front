@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_step_list_widget.dart';
+import 'package:on_time_front/presentation/alarm/utils/preparation_step_state_mapper.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
@@ -19,22 +20,22 @@ class AlarmScreenBottomSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final steps =
-        List<PreparationStepEntity>.from(preparation.preparationStepList);
+    final steps = List<PreparationStepEntity>.from(
+      preparation.preparationStepList,
+    );
 
     return Column(
       children: [
         Expanded(
-            child: _PreparationStepListSection(
-          preparationSteps: steps,
-          currentStepIndex: preparation.resolvedCurrentStepIndex,
-          stepElapsedTimes: preparation.stepElapsedTimesInSeconds,
-          preparationStepStates: preparation.preparationStepStates,
-          onSkip: onSkip,
-        )),
-        _EndPreparationButtonSection(
-          onEndPreparation: onEndPreparation,
+          child: _PreparationStepListSection(
+            preparationSteps: steps,
+            currentStepIndex: preparation.resolvedCurrentStepIndex,
+            stepElapsedTimes: preparation.stepElapsedTimesInSeconds,
+            preparationStepStates: preparation.preparationStepStates,
+            onSkip: onSkip,
+          ),
         ),
+        _EndPreparationButtonSection(onEndPreparation: onEndPreparation),
       ],
     );
   }
@@ -88,9 +89,7 @@ class _PreparationStepListSection extends StatelessWidget {
 class _EndPreparationButtonSection extends StatelessWidget {
   final VoidCallback onEndPreparation;
 
-  const _EndPreparationButtonSection({
-    required this.onEndPreparation,
-  });
+  const _EndPreparationButtonSection({required this.onEndPreparation});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -112,8 +111,9 @@ class _EndPreparationButtonSection extends StatelessWidget {
                 }
                 return colorScheme.primary;
               }),
-              foregroundColor:
-                  WidgetStatePropertyAll<Color>(colorScheme.onPrimary),
+              foregroundColor: WidgetStatePropertyAll<Color>(
+                colorScheme.onPrimary,
+              ),
             ),
             child: Text(AppLocalizations.of(context)!.finishPreparation),
           ),

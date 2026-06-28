@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:on_time_front/core/database/database.dart';
 
 class PreparationStepEntity extends Equatable {
   final String id;
@@ -13,26 +12,6 @@ class PreparationStepEntity extends Equatable {
     required this.preparationTime,
     this.nextPreparationId,
   });
-
-  PreparationUser toPreparationUserModel(String userId) {
-    return PreparationUser(
-      id: id,
-      userId: userId,
-      preparationName: preparationName,
-      preparationTime: preparationTime.inMinutes,
-      nextPreparationId: nextPreparationId,
-    );
-  }
-
-  PreparationSchedule toPreparationScheduleModel(String scheduleId) {
-    return PreparationSchedule(
-      id: id,
-      scheduleId: scheduleId,
-      preparationName: preparationName,
-      preparationTime: preparationTime.inMinutes,
-      nextPreparationId: nextPreparationId,
-    );
-  }
 
   @override
   String toString() {
@@ -54,6 +33,10 @@ class PreparationStepEntity extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, preparationName, preparationTime, nextPreparationId];
+  List<Object?> get props => [
+    id,
+    preparationName,
+    preparationTime,
+    nextPreparationId,
+  ];
 }

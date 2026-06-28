@@ -1,7 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
+import 'package:on_time_front/data/models/create_schedule_request_model.dart';
+import 'package:on_time_front/data/models/get_place_response_model.dart';
+import 'package:on_time_front/data/models/get_schedule_response_model.dart';
+import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
+import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
@@ -9,18 +15,18 @@ import 'package:on_time_front/domain/repositories/timed_preparation_repository.d
 
 class FakeScheduleLocalDataSource implements ScheduleLocalDataSource {
   @override
-  Future<void> createSchedule(ScheduleEntity scheduleEntity) async {}
+  Future<void> createSchedule(ScheduleWithPlace schedule) async {}
 
   @override
-  Future<void> deleteSchedule(ScheduleEntity scheduleEntity) async {}
+  Future<void> deleteSchedule(Schedule schedule) async {}
 
   @override
-  Future<ScheduleEntity> getScheduleById(String id) async {
+  Future<ScheduleWithPlace> getScheduleById(String id) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<List<ScheduleEntity>> getSchedulesByDate(
+  Future<List<ScheduleWithPlace>> getSchedulesByDate(
     DateTime startDate,
     DateTime? endDate,
   ) async {
@@ -28,14 +34,15 @@ class FakeScheduleLocalDataSource implements ScheduleLocalDataSource {
   }
 
   @override
-  Future<void> updateSchedule(ScheduleEntity scheduleEntity) async {}
+  Future<void> updateSchedule(Schedule schedule) async {}
 }
 
 class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
   FakeScheduleRemoteDataSource({
     required this.getSchedulesByDateHandler,
     Future<ScheduleEntity> Function(String id)? getScheduleByIdHandler,
-    Future<void> Function(ScheduleEntity schedule)? updateScheduleHandler,
+    Future<void> Function(UpdateScheduleRequestModel schedule)?
+    updateScheduleHandler,
   }) : getScheduleByIdHandler =
            getScheduleByIdHandler ?? ((_) async => throw UnimplementedError()),
        updateScheduleHandler = updateScheduleHandler ?? ((_) async {});
@@ -43,13 +50,14 @@ class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
   Future<List<ScheduleEntity>> Function(DateTime startDate, DateTime? endDate)
   getSchedulesByDateHandler;
   Future<ScheduleEntity> Function(String id) getScheduleByIdHandler;
-  Future<void> Function(ScheduleEntity schedule) updateScheduleHandler;
+  Future<void> Function(UpdateScheduleRequestModel schedule)
+  updateScheduleHandler;
 
   @override
-  Future<void> createSchedule(ScheduleEntity schedule) async {}
+  Future<void> createSchedule(CreateScheduleRequestModel schedule) async {}
 
   @override
-  Future<void> deleteSchedule(ScheduleEntity schedule) async {}
+  Future<void> deleteSchedule(String scheduleId) async {}
 
   @override
   Future<void> finishSchedule(String scheduleId, int latenessTime) async {}
@@ -58,23 +66,21 @@ class FakeScheduleRemoteDataSource implements ScheduleRemoteDataSource {
   Future<void> startSchedule(String scheduleId) async {}
 
   @override
-  Future<ScheduleEntity> getScheduleById(String id) async {
-    return getScheduleByIdHandler(id);
+  Future<GetScheduleResponseModel> getScheduleById(String id) async {
+    return _responseFrom(await getScheduleByIdHandler(id));
   }
 
   @override
-  Future<List<ScheduleEntity>> getSchedulesByDate(
+  Future<List<GetScheduleResponseModel>> getSchedulesByDate(
     DateTime startDate,
     DateTime? endDate,
-  ) {
-    return getSchedulesByDateHandler(startDate, endDate);
+  ) async {
+    final schedules = await getSchedulesByDateHandler(startDate, endDate);
+    return schedules.map(_responseFrom).toList();
   }
 
   @override
-  Future<void> updateSchedule(
-    ScheduleEntity schedule, {
-    bool includePreparationSource = false,
-  }) {
+  Future<void> updateSchedule(UpdateScheduleRequestModel schedule) {
     return updateScheduleHandler(schedule);
   }
 }
@@ -337,4 +343,38 @@ ScheduleEntity _schedule({required String id, required DateTime scheduleTime}) {
     scheduleSpareTime: const Duration(minutes: 5),
     scheduleNote: '',
   );
+}
+
+GetScheduleResponseModel _responseFrom(ScheduleEntity schedule) {
+  return GetScheduleResponseModel(
+    scheduleId: schedule.id,
+    place: GetPlaceResponseModel.fromEntity(schedule.place),
+    scheduleName: schedule.scheduleName,
+    scheduleTime: schedule.scheduleTime,
+    moveTime: schedule.moveTime.inMinutes,
+    scheduleSpareTime: schedule.scheduleSpareTime?.inMinutes ?? 0,
+    scheduleNote: schedule.scheduleNote,
+    latenessTime: schedule.latenessTime,
+    doneStatus: _serverDoneStatus(schedule.doneStatus),
+    startedAt: schedule.startedAt,
+    finishedAt: schedule.finishedAt,
+    preparationMode: schedule.preparationMode,
+    preparationTemplateId: schedule.preparationTemplateId,
+    preparationTemplateName: schedule.preparationTemplateName,
+    preparationTemplateDeleted: schedule.preparationTemplateDeleted,
+    preparationFrozen: schedule.preparationFrozen,
+  );
+}
+
+String _serverDoneStatus(ScheduleDoneStatus status) {
+  switch (status) {
+    case ScheduleDoneStatus.lateEnd:
+      return 'LATE';
+    case ScheduleDoneStatus.normalEnd:
+      return 'NORMAL';
+    case ScheduleDoneStatus.abnormalEnd:
+      return 'ABNORMAL';
+    case ScheduleDoneStatus.notEnded:
+      return 'NOT_ENDED';
+  }
 }

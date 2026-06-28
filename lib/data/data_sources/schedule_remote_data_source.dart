@@ -6,24 +6,19 @@ import 'package:on_time_front/data/models/create_schedule_request_model.dart';
 import 'package:on_time_front/data/models/get_schedule_response_model.dart';
 import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
-
 abstract interface class ScheduleRemoteDataSource {
-  Future<void> createSchedule(ScheduleEntity schedule);
+  Future<void> createSchedule(CreateScheduleRequestModel schedule);
 
-  Future<List<ScheduleEntity>> getSchedulesByDate(
+  Future<List<GetScheduleResponseModel>> getSchedulesByDate(
     DateTime startDate,
     DateTime? endDate,
   );
 
-  Future<ScheduleEntity> getScheduleById(String id);
+  Future<GetScheduleResponseModel> getScheduleById(String id);
 
-  Future<void> updateSchedule(
-    ScheduleEntity schedule, {
-    bool includePreparationSource = false,
-  });
+  Future<void> updateSchedule(UpdateScheduleRequestModel schedule);
 
-  Future<void> deleteSchedule(ScheduleEntity schedule);
+  Future<void> deleteSchedule(String scheduleId);
 
   Future<void> startSchedule(String scheduleId);
 
@@ -36,13 +31,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   ScheduleRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<void> createSchedule(ScheduleEntity schedule) async {
+  Future<void> createSchedule(CreateScheduleRequestModel schedule) async {
     try {
-      CreateScheduleRequestModel createScheduleModel =
-          CreateScheduleRequestModel.fromEntity(schedule);
       final result = await dio.post(
         Endpoint.createSchedule,
-        data: createScheduleModel.toJson(),
+        data: schedule.toJson(),
       );
       if (result.statusCode == 200) {
         return;
@@ -55,19 +48,11 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<void> updateSchedule(
-    ScheduleEntity schedule, {
-    bool includePreparationSource = false,
-  }) async {
+  Future<void> updateSchedule(UpdateScheduleRequestModel schedule) async {
     try {
-      UpdateScheduleRequestModel updateScheduleModel =
-          UpdateScheduleRequestModel.fromEntity(
-            schedule,
-            includePreparationSource: includePreparationSource,
-          );
       final result = await dio.put(
-        Endpoint.updateSchedule(schedule.id),
-        data: updateScheduleModel.toJson(),
+        Endpoint.updateSchedule(schedule.scheduleId),
+        data: schedule.toJson(),
       );
       if (result.statusCode == 200) {
         return;
@@ -80,9 +65,9 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<void> deleteSchedule(ScheduleEntity schedule) async {
+  Future<void> deleteSchedule(String scheduleId) async {
     try {
-      final result = await dio.delete(Endpoint.deleteScheduleById(schedule.id));
+      final result = await dio.delete(Endpoint.deleteScheduleById(scheduleId));
       if (result.statusCode == 200) {
         return;
       } else {
@@ -125,13 +110,13 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<ScheduleEntity> getScheduleById(String id) async {
+  Future<GetScheduleResponseModel> getScheduleById(String id) async {
     try {
       final result = await dio.get(Endpoint.getScheduleById(id));
       if (result.statusCode == 200) {
         final GetScheduleResponseModel schedule =
             GetScheduleResponseModel.fromJson(result.data["data"]);
-        return schedule.toEntity();
+        return schedule;
       } else {
         throw Exception('Error getting schedules');
       }
@@ -141,7 +126,7 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
   }
 
   @override
-  Future<List<ScheduleEntity>> getSchedulesByDate(
+  Future<List<GetScheduleResponseModel>> getSchedulesByDate(
     DateTime startDate,
     DateTime? endDate,
   ) async {
@@ -154,9 +139,9 @@ class ScheduleRemoteDataSourceImpl implements ScheduleRemoteDataSource {
         },
       );
       if (result.statusCode == 200) {
-        final List<ScheduleEntity> schedules = result.data["data"]
-            .map<ScheduleEntity>(
-              (e) => GetScheduleResponseModel.fromJson(e).toEntity(),
+        final List<GetScheduleResponseModel> schedules = result.data["data"]
+            .map<GetScheduleResponseModel>(
+              (e) => GetScheduleResponseModel.fromJson(e),
             )
             .toList();
         return schedules;

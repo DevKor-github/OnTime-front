@@ -5,6 +5,26 @@ release, and feature discussions use the same terms.
 
 ## Language
 
+**OnTime User**:
+A person's OnTime account profile that owns schedules, places, preparation defaults, and notification preferences.
+_Avoid_: User identity, analytics subject, device
+
+**Schedule**:
+A planned commitment with an intended time, destination place, travel time, and optional preparation plan.
+_Avoid_: Alarm, notification, calendar row
+
+**Place**:
+The destination or location label attached to a Schedule.
+_Avoid_: Route, address record, notification location
+
+**Preparation**:
+An ordered plan of steps the user intends to complete before leaving for a Schedule.
+_Avoid_: Reminder, notification, alarm
+
+**Preparation Step**:
+One named action in a Preparation with an expected duration.
+_Avoid_: UI row, checklist widget, notification step
+
 **Product Usage Event**:
 A named record that a user performed a product-relevant action, excluding raw personal content.
 _Avoid_: User activity, tracking event, raw interaction log
@@ -107,6 +127,12 @@ _Avoid_: Notification, native alarm
 
 ## Relationships
 
+- An **OnTime User** may own zero or more **Schedules**.
+- A **Schedule** has one **Place**.
+- A **Schedule** may use one **Preparation**.
+- A **Preparation** contains zero or more **Preparation Steps** in user-defined order.
+- A **Preparation Step** belongs to exactly one **Preparation**.
+- A **Schedule Notification** uses **Schedule** and **Preparation** timing, but is not itself a **Schedule** or **Preparation**.
 - A **Product Usage Event** may describe a schedule, preparation, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
 - First-release **Product Usage Events** are **Workflow Milestone Events**, not every tap or raw navigation step.
 - First-release **Workflow Milestone Events** cover analytics preference, onboarding, authentication, schedule, notification permission, alarm, and schedule-finish outcomes.
@@ -155,8 +181,14 @@ _Avoid_: Notification, native alarm
 > **Dev:** "Should the analytics event include the schedule note so we can understand why users are late?"
 > **Domain expert:** "No. A **Product Usage Event** can say a schedule was finished late, but it must not include the user's raw note."
 
+> **Dev:** "Can a **Schedule Notification** replace the **Schedule** if the user taps it?"
+> **Domain expert:** "No. The **Schedule Notification** only prompts preparation for the **Schedule**; the **Schedule** remains the planned commitment."
+
 ## Flagged ambiguities
 
+- "User" was overloaded as both the human actor and stored profile; resolved: use **OnTime User** for the account/profile concept and plain user only for the person performing an action.
+- "Schedule" was used near notification and alarm flows; resolved: a **Schedule** is the planned commitment, while notifications and alarms are delivery experiences for preparation timing.
+- "Preparation state" was ambiguous between step progress and display styling; resolved: **Preparation Step** progress belongs to preparation language, while visual labels should not redefine the domain.
 - "User activities" was used broadly; resolved: the canonical term is **Product Usage Event**, and raw personal content is out of scope.
 - "Analytics" was used to include all possible purposes; resolved: marketing and personalization are deferred, not first-release purposes.
 - "User identity" for analytics was ambiguous; resolved: analytics uses a **Pseudonymous Analytics Subject**, not directly identifying user data.

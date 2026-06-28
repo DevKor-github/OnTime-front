@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
-import 'package:on_time_front/domain/entities/place_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/data/models/create_schedule_request_model.dart';
+import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 
 void main() {
   late _ScheduleAdapter adapter;
@@ -22,11 +22,12 @@ void main() {
   test(
     'create, update, delete, start, and finish send schedule API contracts',
     () async {
-      final schedule = _schedule('schedule-1');
+      final createRequest = _createRequest('schedule-1');
+      final updateRequest = _updateRequest('schedule-1');
 
-      await dataSource.createSchedule(schedule);
-      await dataSource.updateSchedule(schedule);
-      await dataSource.deleteSchedule(schedule);
+      await dataSource.createSchedule(createRequest);
+      await dataSource.updateSchedule(updateRequest);
+      await dataSource.deleteSchedule('schedule-1');
       await dataSource.startSchedule('schedule-1');
       await dataSource.finishSchedule('schedule-1', 7);
 
@@ -47,22 +48,17 @@ void main() {
     },
   );
 
-  test(
-    'getScheduleById maps backend response into a schedule entity',
-    () async {
-      final schedule = await dataSource.getScheduleById('schedule-1');
+  test('getScheduleById returns the backend response model', () async {
+    final schedule = await dataSource.getScheduleById('schedule-1');
 
-      expect(schedule.id, 'schedule-1');
-      expect(
-        schedule.place,
-        const PlaceEntity(id: 'place-1', placeName: 'Office'),
-      );
-      expect(schedule.scheduleName, 'Morning meeting');
-      expect(schedule.moveTime, const Duration(minutes: 20));
-      expect(schedule.scheduleSpareTime, const Duration(minutes: 5));
-      expect(schedule.doneStatus, ScheduleDoneStatus.normalEnd);
-    },
-  );
+    expect(schedule.scheduleId, 'schedule-1');
+    expect(schedule.place.placeId, 'place-1');
+    expect(schedule.place.placeName, 'Office');
+    expect(schedule.scheduleName, 'Morning meeting');
+    expect(schedule.moveTime, 20);
+    expect(schedule.scheduleSpareTime, 5);
+    expect(schedule.doneStatus, 'NORMAL');
+  });
 
   test(
     'getSchedulesByDate passes date query parameters and maps list response',
@@ -72,7 +68,7 @@ void main() {
 
       final schedules = await dataSource.getSchedulesByDate(start, end);
 
-      expect(schedules.map((schedule) => schedule.id), [
+      expect(schedules.map((schedule) => schedule.scheduleId), [
         'schedule-1',
         'schedule-2',
       ]);
@@ -88,7 +84,7 @@ void main() {
     adapter.statusCode = 500;
 
     await expectLater(
-      dataSource.createSchedule(_schedule('schedule-1')),
+      dataSource.createSchedule(_createRequest('schedule-1')),
       throwsException,
     );
     await expectLater(
@@ -98,16 +94,30 @@ void main() {
   });
 }
 
-ScheduleEntity _schedule(String id) {
-  return ScheduleEntity(
-    id: id,
-    place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
+CreateScheduleRequestModel _createRequest(String id) {
+  return CreateScheduleRequestModel(
+    scheduleId: id,
+    placeId: 'place-1',
+    placeName: 'Office',
     scheduleName: 'Meeting $id',
     scheduleTime: DateTime(2026, 5, 15, 9),
-    moveTime: const Duration(minutes: 20),
-    isChanged: false,
+    moveTime: 20,
+    isChange: false,
     isStarted: false,
-    scheduleSpareTime: const Duration(minutes: 5),
+    scheduleSpareTime: 5,
+    scheduleNote: 'note',
+  );
+}
+
+UpdateScheduleRequestModel _updateRequest(String id) {
+  return UpdateScheduleRequestModel(
+    scheduleId: id,
+    placeId: 'place-1',
+    placeName: 'Office',
+    scheduleName: 'Meeting $id',
+    scheduleTime: DateTime(2026, 5, 15, 9),
+    moveTime: 20,
+    scheduleSpareTime: 5,
     scheduleNote: 'note',
   );
 }

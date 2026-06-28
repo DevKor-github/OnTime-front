@@ -4,6 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
+import 'package:on_time_front/data/models/create_schedule_request_model.dart';
+import 'package:on_time_front/data/models/update_schedule_request_model.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
@@ -50,7 +52,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Future<void> createSchedule(ScheduleEntity schedule) async {
     try {
-      await scheduleRemoteDataSource.createSchedule(schedule);
+      await scheduleRemoteDataSource.createSchedule(
+        CreateScheduleRequestModel.fromEntity(schedule),
+      );
       //await scheduleLocalDataSource.createSchedule(schedule);
       _emitUpsertedSchedule(schedule);
     } catch (e) {
@@ -61,7 +65,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
     try {
-      await scheduleRemoteDataSource.deleteSchedule(schedule);
+      await scheduleRemoteDataSource.deleteSchedule(schedule.id);
       await _clearTimedPreparationSafe(schedule.id);
       //await scheduleLocalDataSource.deleteSchedule(schedule);
       _emitScheduleSet(
@@ -86,7 +90,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Future<ScheduleEntity> getScheduleById(String id) async {
     try {
-      final schedule = await scheduleRemoteDataSource.getScheduleById(id);
+      final schedule = (await scheduleRemoteDataSource.getScheduleById(
+        id,
+      )).toEntity();
       if (_isEnded(schedule.doneStatus)) {
         await _clearTimedPreparationSafe(schedule.id);
       }
@@ -103,10 +109,10 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     DateTime? endDate,
   ) async {
     try {
-      final schedules = await scheduleRemoteDataSource.getSchedulesByDate(
+      final schedules = (await scheduleRemoteDataSource.getSchedulesByDate(
         startDate,
         endDate,
-      );
+      )).map((schedule) => schedule.toEntity()).toList();
       for (final schedule in schedules) {
         if (_isEnded(schedule.doneStatus)) {
           await _clearTimedPreparationSafe(schedule.id);
@@ -130,13 +136,15 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }) async {
     try {
       await scheduleRemoteDataSource.updateSchedule(
-        schedule,
-        includePreparationSource: includePreparationSource,
+        UpdateScheduleRequestModel.fromEntity(
+          schedule,
+          includePreparationSource: includePreparationSource,
+        ),
       );
       await _clearTimedPreparationSafe(schedule.id);
-      final refreshedSchedule = await scheduleRemoteDataSource.getScheduleById(
+      final refreshedSchedule = (await scheduleRemoteDataSource.getScheduleById(
         schedule.id,
-      );
+      )).toEntity();
       if (_isEnded(refreshedSchedule.doneStatus)) {
         await _clearTimedPreparationSafe(refreshedSchedule.id);
       }

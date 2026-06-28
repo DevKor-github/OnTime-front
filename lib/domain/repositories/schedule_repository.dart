@@ -3,6 +3,14 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 abstract interface class ScheduleRepository {
   Stream<Set<ScheduleEntity>> get scheduleStream;
 
+  /// Watch schedules already loaded in the given date range.
+  ///
+  /// [startDate] is inclusive and [endDate] is exclusive.
+  Stream<List<ScheduleEntity>> watchSchedulesByDate(
+    DateTime startDate,
+    DateTime endDate,
+  );
+
   /// Create a schedule
   /// This is for creating a schedule
   Future<void> createSchedule(ScheduleEntity schedule);

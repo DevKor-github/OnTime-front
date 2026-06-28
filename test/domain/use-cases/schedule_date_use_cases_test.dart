@@ -17,28 +17,23 @@ import 'package:on_time_front/domain/use-cases/load_schedules_for_week_use_case.
 
 void main() {
   test(
-    'GetSchedulesByDateUseCase filters inclusive start exclusive end sorted',
+    'GetSchedulesByDateUseCase watches requested schedule date range',
     () async {
       final repository = _FakeScheduleRepository();
       final useCase = GetSchedulesByDateUseCase(repository);
       final start = DateTime(2026, 5, 10);
       final end = DateTime(2026, 5, 17);
-      final resultFuture = useCase(start, end).first;
-      await pumpEventQueue();
-
-      repository.emit([
-        _schedule('late', DateTime(2026, 5, 18)),
+      repository.watchResult = [
         _schedule('inside-later', DateTime(2026, 5, 12, 9)),
         _schedule('inside-start', DateTime(2026, 5, 10)),
-        _schedule('before', DateTime(2026, 5, 9, 23, 59)),
-        _schedule('exclusive-end', end),
-      ]);
+      ];
 
-      final result = await resultFuture;
+      final result = await useCase(start, end).first;
 
+      expect(repository.watchedRanges, [(start, end)]);
       expect(result.map((schedule) => schedule.id), [
-        'inside-start',
         'inside-later',
+        'inside-start',
       ]);
     },
   );
@@ -186,15 +181,23 @@ class _RecordingLoadSchedulesByDateUseCase
 }
 
 class _FakeScheduleRepository implements ScheduleRepository {
-  final _controller = StreamController<Set<ScheduleEntity>>.broadcast();
   final loadedRanges = <(DateTime, DateTime?)>[];
+  final watchedRanges = <(DateTime, DateTime)>[];
+  List<ScheduleEntity> watchResult = const [];
 
-  void emit(List<ScheduleEntity> schedules) {
-    _controller.add(schedules.toSet());
+  @override
+  Stream<Set<ScheduleEntity>> get scheduleStream {
+    throw StateError('Use watchSchedulesByDate for range schedule streams.');
   }
 
   @override
-  Stream<Set<ScheduleEntity>> get scheduleStream => _controller.stream;
+  Stream<List<ScheduleEntity>> watchSchedulesByDate(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    watchedRanges.add((startDate, endDate));
+    return Stream.value(watchResult);
+  }
 
   @override
   Future<List<ScheduleEntity>> getSchedulesByDate(

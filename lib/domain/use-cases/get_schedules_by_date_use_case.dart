@@ -8,18 +8,7 @@ class GetSchedulesByDateUseCase {
 
   GetSchedulesByDateUseCase(this._scheduleRepository);
 
-  Stream<List<ScheduleEntity>> call(
-      DateTime startDate, DateTime endDate) async* {
-    final schedulesStream = _scheduleRepository.scheduleStream;
-    await for (final schedules in schedulesStream) {
-      final filteredSchedules = schedules
-          .where((schedule) =>
-              schedule.scheduleTime.compareTo(startDate) >= 0 &&
-              schedule.scheduleTime.isBefore(endDate))
-          .toList();
-      filteredSchedules
-          .sort((a, b) => a.scheduleTime.compareTo(b.scheduleTime));
-      yield filteredSchedules;
-    }
+  Stream<List<ScheduleEntity>> call(DateTime startDate, DateTime endDate) {
+    return _scheduleRepository.watchSchedulesByDate(startDate, endDate);
   }
 }

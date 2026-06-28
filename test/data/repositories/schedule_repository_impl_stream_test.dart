@@ -99,6 +99,120 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
 
 void main() {
   test(
+    'watchSchedulesByDate emits inclusive-start exclusive-end schedules sorted by time',
+    () async {
+      final startDate = DateTime(2026, 3, 1);
+      final endDate = DateTime(2026, 4, 1);
+      final insideLater = _schedule(
+        id: 'inside-later',
+        scheduleTime: DateTime(2026, 3, 20, 13),
+      );
+      final insideStart = _schedule(
+        id: 'inside-start',
+        scheduleTime: startDate,
+      );
+      final before = _schedule(
+        id: 'before',
+        scheduleTime: DateTime(2026, 2, 28, 23, 59),
+      );
+      final exclusiveEnd = _schedule(
+        id: 'exclusive-end',
+        scheduleTime: endDate,
+      );
+
+      final repository = ScheduleRepositoryImpl(
+        scheduleLocalDataSource: FakeScheduleLocalDataSource(),
+        scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
+          getSchedulesByDateHandler: (_, __) async => [
+            insideLater,
+            before,
+            exclusiveEnd,
+            insideStart,
+          ],
+        ),
+        timedPreparationRepository: FakeTimedPreparationRepository(),
+      );
+
+      final rangeStream = repository.watchSchedulesByDate(startDate, endDate);
+      await repository.getSchedulesByDate(startDate, endDate);
+
+      final schedules = await rangeStream.firstWhere(
+        (schedules) => schedules.length == 2,
+      );
+
+      expect(schedules.map((schedule) => schedule.id), [
+        'inside-start',
+        'inside-later',
+      ]);
+    },
+  );
+
+  test(
+    'active date range watches update only when their visible schedules change',
+    () async {
+      final marchStart = DateTime(2026, 3, 1);
+      final marchEnd = DateTime(2026, 4, 1);
+      final aprilStart = DateTime(2026, 4, 1);
+      final aprilEnd = DateTime(2026, 5, 1);
+      final marchSchedule = _schedule(
+        id: 'march',
+        scheduleTime: DateTime(2026, 3, 20, 9),
+      );
+      final aprilSchedule = _schedule(
+        id: 'april',
+        scheduleTime: DateTime(2026, 4, 10, 9),
+      );
+
+      final repository = ScheduleRepositoryImpl(
+        scheduleLocalDataSource: FakeScheduleLocalDataSource(),
+        scheduleRemoteDataSource: FakeScheduleRemoteDataSource(
+          getSchedulesByDateHandler: (startDate, _) async {
+            if (startDate == marchStart) {
+              return [marchSchedule];
+            }
+            return [aprilSchedule];
+          },
+        ),
+        timedPreparationRepository: FakeTimedPreparationRepository(),
+      );
+      final marchEvents = <List<ScheduleEntity>>[];
+      final aprilEvents = <List<ScheduleEntity>>[];
+      final marchSubscription = repository
+          .watchSchedulesByDate(marchStart, marchEnd)
+          .listen(marchEvents.add);
+      final aprilSubscription = repository
+          .watchSchedulesByDate(aprilStart, aprilEnd)
+          .listen(aprilEvents.add);
+      addTearDown(marchSubscription.cancel);
+      addTearDown(aprilSubscription.cancel);
+      await pumpEventQueue();
+
+      await repository.getSchedulesByDate(marchStart, marchEnd);
+      await pumpEventQueue();
+
+      expect(marchEvents.map((event) => event.map((s) => s.id).toList()), [
+        <String>[],
+        ['march'],
+      ]);
+      expect(aprilEvents.map((event) => event.map((s) => s.id).toList()), [
+        <String>[],
+      ]);
+
+      await repository.getSchedulesByDate(aprilStart, aprilEnd);
+      await pumpEventQueue();
+
+      expect(marchEvents.map((event) => event.map((s) => s.id).toList()), [
+        <String>[],
+        ['march'],
+      ]);
+      expect(aprilEvents.map((event) => event.map((s) => s.id).toList()), [
+        <String>[],
+        ['april'],
+      ]);
+    },
+  );
+
+  test(
     'getSchedulesByDate upserts existing schedule by id in stream cache',
     () async {
       final startDate = DateTime(2026, 3, 1);
@@ -209,4 +323,18 @@ void main() {
     expect(latest.first.moveTime, const Duration(minutes: 20));
     expect(latest.first.scheduleSpareTime, const Duration(minutes: 15));
   });
+}
+
+ScheduleEntity _schedule({required String id, required DateTime scheduleTime}) {
+  return ScheduleEntity(
+    id: id,
+    place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
+    scheduleName: id,
+    scheduleTime: scheduleTime,
+    moveTime: const Duration(minutes: 10),
+    isChanged: false,
+    isStarted: false,
+    scheduleSpareTime: const Duration(minutes: 5),
+    scheduleNote: '',
+  );
 }

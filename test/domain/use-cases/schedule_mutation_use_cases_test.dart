@@ -143,6 +143,12 @@ class _FakeScheduleRepository implements ScheduleRepository {
   Stream<Set<ScheduleEntity>> get scheduleStream => const Stream.empty();
 
   @override
+  Stream<List<ScheduleEntity>> watchSchedulesByDate(
+    DateTime startDate,
+    DateTime endDate,
+  ) => const Stream.empty();
+
+  @override
   Future<void> createSchedule(ScheduleEntity schedule) async {
     createdSchedules.add(schedule);
   }

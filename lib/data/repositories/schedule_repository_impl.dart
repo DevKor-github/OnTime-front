@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/data_sources/schedule_local_data_source.dart';
 import 'package:on_time_front/data/data_sources/schedule_remote_data_source.dart';
@@ -16,6 +17,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   late final _scheduleStreamController =
       BehaviorSubject<Set<ScheduleEntity>>.seeded(const <ScheduleEntity>{});
+  final _rangeStreamControllers =
+      <_ScheduleDateRange, BehaviorSubject<List<ScheduleEntity>>>{};
+  final _scheduleListEquality = const ListEquality<ScheduleEntity>();
 
   ScheduleRepositoryImpl({
     required this.scheduleLocalDataSource,
@@ -26,6 +30,22 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   @override
   Stream<Set<ScheduleEntity>> get scheduleStream =>
       _scheduleStreamController.stream;
+
+  @override
+  Stream<List<ScheduleEntity>> watchSchedulesByDate(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    final range = _ScheduleDateRange(startDate: startDate, endDate: endDate);
+    return _rangeStreamControllers
+        .putIfAbsent(
+          range,
+          () => BehaviorSubject<List<ScheduleEntity>>.seeded(
+            _schedulesInRange(range),
+          ),
+        )
+        .stream;
+  }
 
   @override
   Future<void> createSchedule(ScheduleEntity schedule) async {
@@ -44,9 +64,10 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
       await scheduleRemoteDataSource.deleteSchedule(schedule);
       await _clearTimedPreparationSafe(schedule.id);
       //await scheduleLocalDataSource.deleteSchedule(schedule);
-      _scheduleStreamController.add(
+      _emitScheduleSet(
         Set.from(_scheduleStreamController.value)
           ..removeWhere((existing) => existing.id == schedule.id),
+        affectedRanges: _rangesContaining(schedule.scheduleTime),
       );
     } catch (e) {
       rethrow;
@@ -158,11 +179,23 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   void _emitUpsertedSchedule(ScheduleEntity schedule) {
+    final existingSchedules = _scheduleStreamController.value.where(
+      (existing) => existing.id == schedule.id,
+    );
+    final previousSchedule = existingSchedules.isEmpty
+        ? null
+        : existingSchedules.first;
     final nextSchedules =
         Set<ScheduleEntity>.from(_scheduleStreamController.value)
           ..removeWhere((existing) => existing.id == schedule.id)
           ..add(schedule);
-    _scheduleStreamController.add(nextSchedules);
+    _emitScheduleSet(
+      nextSchedules,
+      affectedRanges: _rangesContainingAny([
+        schedule.scheduleTime,
+        if (previousSchedule != null) previousSchedule.scheduleTime,
+      ]),
+    );
   }
 
   void _replaceSchedulesInRange({
@@ -179,6 +212,88 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     for (final schedule in schedules) {
       nextSchedules.add(schedule);
     }
-    _scheduleStreamController.add(nextSchedules);
+    final loadedRange = endDate == null
+        ? null
+        : _ScheduleDateRange(startDate: startDate, endDate: endDate);
+    _emitScheduleSet(
+      nextSchedules,
+      affectedRanges: loadedRange == null
+          ? _rangeStreamControllers.keys
+          : _rangesOverlapping(loadedRange),
+    );
   }
+
+  void _emitScheduleSet(
+    Set<ScheduleEntity> nextSchedules, {
+    required Iterable<_ScheduleDateRange> affectedRanges,
+  }) {
+    _scheduleStreamController.add(nextSchedules);
+    _publishRangeUpdates(affectedRanges);
+  }
+
+  Iterable<_ScheduleDateRange> _rangesContaining(DateTime scheduleTime) {
+    return _rangeStreamControllers.keys.where(
+      (range) => range.contains(scheduleTime),
+    );
+  }
+
+  Iterable<_ScheduleDateRange> _rangesContainingAny(
+    Iterable<DateTime> scheduleTimes,
+  ) {
+    return _rangeStreamControllers.keys.where(
+      (range) => scheduleTimes.any(range.contains),
+    );
+  }
+
+  Iterable<_ScheduleDateRange> _rangesOverlapping(_ScheduleDateRange range) {
+    return _rangeStreamControllers.keys.where(range.overlaps);
+  }
+
+  void _publishRangeUpdates(Iterable<_ScheduleDateRange> affectedRanges) {
+    for (final range in affectedRanges) {
+      final controller = _rangeStreamControllers[range];
+      if (controller == null || controller.isClosed) {
+        continue;
+      }
+      final nextSchedules = _schedulesInRange(range);
+      if (!_scheduleListEquality.equals(controller.value, nextSchedules)) {
+        controller.add(nextSchedules);
+      }
+    }
+  }
+
+  List<ScheduleEntity> _schedulesInRange(_ScheduleDateRange range) {
+    final schedules = _scheduleStreamController.value
+        .where((schedule) => range.contains(schedule.scheduleTime))
+        .toList();
+    schedules.sort((a, b) => a.scheduleTime.compareTo(b.scheduleTime));
+    return schedules;
+  }
+}
+
+class _ScheduleDateRange {
+  const _ScheduleDateRange({required this.startDate, required this.endDate});
+
+  final DateTime startDate;
+  final DateTime endDate;
+
+  bool contains(DateTime dateTime) {
+    return dateTime.compareTo(startDate) >= 0 && dateTime.isBefore(endDate);
+  }
+
+  bool overlaps(_ScheduleDateRange other) {
+    return startDate.isBefore(other.endDate) &&
+        other.startDate.isBefore(endDate);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        other is _ScheduleDateRange &&
+            startDate == other.startDate &&
+            endDate == other.endDate;
+  }
+
+  @override
+  int get hashCode => Object.hash(startDate, endDate);
 }

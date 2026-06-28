@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/daos/preparation_user_dao.dart';
+import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -135,6 +136,97 @@ void main() {
       );
       expect(result.preparationStepList[1].nextPreparationId, isNull);
     });
+
+    test(
+      'should return ordered preparation steps when rows are out of order',
+      () async {
+        const lastStep = PreparationStepEntity(
+          id: 'step-3',
+          preparationName: 'Step 3: Leave',
+          preparationTime: Duration(minutes: 15),
+          nextPreparationId: null,
+        );
+        final middleStep = preparationStep2.copyWith(
+          nextPreparationId: lastStep.id,
+        );
+        final firstStep = preparationStep1.copyWith(
+          nextPreparationId: middleStep.id,
+        );
+
+        await appDatabase
+            .into(appDatabase.preparationUsers)
+            .insert(lastStep.toPreparationUserRow(userId).toCompanion(false));
+        await appDatabase
+            .into(appDatabase.preparationUsers)
+            .insert(middleStep.toPreparationUserRow(userId).toCompanion(false));
+        await appDatabase
+            .into(appDatabase.preparationUsers)
+            .insert(firstStep.toPreparationUserRow(userId).toCompanion(false));
+
+        final result = await userDao.getPreparationUsersByUserId(userId);
+
+        expect(result.preparationStepList.map((step) => step.id), [
+          preparationStep1.id,
+          preparationStep2.id,
+          lastStep.id,
+        ]);
+      },
+    );
+
+    test(
+      'should keep remaining preparation steps when a link is broken',
+      () async {
+        final firstStep = preparationStep1.copyWith(
+          nextPreparationId: 'missing-step',
+        );
+
+        await appDatabase.customStatement('PRAGMA foreign_keys = OFF');
+        await appDatabase
+            .into(appDatabase.preparationUsers)
+            .insert(firstStep.toPreparationUserRow(userId).toCompanion(false));
+        await appDatabase
+            .into(appDatabase.preparationUsers)
+            .insert(
+              preparationStep2.toPreparationUserRow(userId).toCompanion(false),
+            );
+        await appDatabase.customStatement('PRAGMA foreign_keys = ON');
+
+        final result = await userDao.getPreparationUsersByUserId(userId);
+
+        expect(result.preparationStepList.map((step) => step.id), [
+          preparationStep1.id,
+          preparationStep2.id,
+        ]);
+      },
+    );
+
+    test(
+      'should return each preparation step once when links form a cycle',
+      () async {
+        final firstStep = preparationStep1.copyWith(
+          nextPreparationId: preparationStep2.id,
+        );
+        final secondStep = preparationStep2.copyWith(
+          nextPreparationId: preparationStep1.id,
+        );
+
+        await appDatabase.customStatement('PRAGMA foreign_keys = OFF');
+        await appDatabase
+            .into(appDatabase.preparationUsers)
+            .insert(firstStep.toPreparationUserRow(userId).toCompanion(false));
+        await appDatabase
+            .into(appDatabase.preparationUsers)
+            .insert(secondStep.toPreparationUserRow(userId).toCompanion(false));
+        await appDatabase.customStatement('PRAGMA foreign_keys = ON');
+
+        final result = await userDao.getPreparationUsersByUserId(userId);
+
+        expect(result.preparationStepList.map((step) => step.id), [
+          preparationStep1.id,
+          preparationStep2.id,
+        ]);
+      },
+    );
   });
 
   group('getPreparationStepById', () {

@@ -25,7 +25,6 @@ bool isScheduleAlarmPayload(Map<dynamic, dynamic>? payload) {
   final type = payload['type']?.toString();
   final promptVariant = payload['promptVariant']?.toString();
   return type == 'schedule_alarm' ||
-      payload['alarmLaunchPayloadVersion'] != null ||
       (promptVariant == 'alarm' && payload['scheduleId'] != null);
 }
 
@@ -56,7 +55,8 @@ NotificationRouteTarget? notificationRouteForData(Map<dynamic, dynamic> data) {
   final type = data['type']?.toString();
   final scheduleId = data['scheduleId']?.toString();
 
-  if (type == 'schedule_alarm' && scheduleId != null) {
+  if ((type == 'schedule_alarm' || type == 'schedule_notification') &&
+      scheduleId != null) {
     return NotificationRouteTarget(
       '/scheduleStart',
       extra: Map<String, dynamic>.from(data),

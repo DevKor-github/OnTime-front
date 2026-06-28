@@ -8,6 +8,7 @@ import 'package:on_time_front/domain/use-cases/delete_user_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/two_button_delete_dialog.dart';
 
 class DeleteUserModal {
@@ -259,9 +260,21 @@ class _DeleteFeedbackDialogState extends State<_DeleteFeedbackDialog> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.error)),
+      final l10n = AppLocalizations.of(context)!;
+      await showTwoActionDialog(
+        context,
+        config: TwoActionDialogConfig(
+          title: l10n.error,
+          primaryAction: DialogActionConfig(
+            label: l10n.ok,
+            variant: ModalWideButtonVariant.destructive,
+          ),
+        ),
       );
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _isDeleting = false;
       });

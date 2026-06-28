@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/daos/preparation_schedule_dao.dart';
 import 'package:on_time_front/data/daos/preparation_user_dao.dart';
+import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -204,6 +205,118 @@ void main() {
             .getPreparationSchedulesByScheduleId(scheduleId);
 
         expect(result.preparationStepList, isEmpty);
+      },
+    );
+
+    test(
+      'getPreparationSchedulesByScheduleId orders three linked steps when rows are out of order',
+      () async {
+        const lastStep = PreparationStepEntity(
+          id: 'step-3',
+          preparationName: 'Step 3: Leave',
+          preparationTime: Duration(minutes: 15),
+          nextPreparationId: null,
+        );
+        final middleStep = preparationStep2.copyWith(
+          nextPreparationId: lastStep.id,
+        );
+        final firstStep = preparationStep1.copyWith(
+          nextPreparationId: middleStep.id,
+        );
+
+        await appDatabase
+            .into(appDatabase.preparationSchedules)
+            .insert(
+              lastStep.toPreparationScheduleRow(scheduleId).toCompanion(false),
+            );
+        await appDatabase
+            .into(appDatabase.preparationSchedules)
+            .insert(
+              middleStep
+                  .toPreparationScheduleRow(scheduleId)
+                  .toCompanion(false),
+            );
+        await appDatabase
+            .into(appDatabase.preparationSchedules)
+            .insert(
+              firstStep.toPreparationScheduleRow(scheduleId).toCompanion(false),
+            );
+
+        final result = await schedulePreparationDao
+            .getPreparationSchedulesByScheduleId(scheduleId);
+
+        expect(result.preparationStepList.map((step) => step.id), [
+          preparationStep1.id,
+          preparationStep2.id,
+          lastStep.id,
+        ]);
+      },
+    );
+
+    test(
+      'getPreparationSchedulesByScheduleId keeps remaining steps when a link is broken',
+      () async {
+        final firstStep = preparationStep1.copyWith(
+          nextPreparationId: 'missing-step',
+        );
+
+        await appDatabase.customStatement('PRAGMA foreign_keys = OFF');
+        await appDatabase
+            .into(appDatabase.preparationSchedules)
+            .insert(
+              firstStep.toPreparationScheduleRow(scheduleId).toCompanion(false),
+            );
+        await appDatabase
+            .into(appDatabase.preparationSchedules)
+            .insert(
+              preparationStep2
+                  .toPreparationScheduleRow(scheduleId)
+                  .toCompanion(false),
+            );
+        await appDatabase.customStatement('PRAGMA foreign_keys = ON');
+
+        final result = await schedulePreparationDao
+            .getPreparationSchedulesByScheduleId(scheduleId);
+
+        expect(result.preparationStepList.map((step) => step.id), [
+          preparationStep1.id,
+          preparationStep2.id,
+        ]);
+      },
+    );
+
+    test(
+      'getPreparationSchedulesByScheduleId returns each step once when links form a cycle',
+      () async {
+        final firstStep = preparationStep1.copyWith(
+          nextPreparationId: preparationStep2.id,
+        );
+        final secondStep = preparationStep2.copyWith(
+          nextPreparationId: preparationStep1.id,
+        );
+
+        await appDatabase.customStatement('PRAGMA foreign_keys = OFF');
+        await appDatabase
+            .into(appDatabase.preparationSchedules)
+            .insert(
+              firstStep.toPreparationScheduleRow(scheduleId).toCompanion(false),
+            );
+        await appDatabase
+            .into(appDatabase.preparationSchedules)
+            .insert(
+              secondStep
+                  .toPreparationScheduleRow(scheduleId)
+                  .toCompanion(false),
+            );
+        await appDatabase.customStatement('PRAGMA foreign_keys = ON');
+
+        final result = await schedulePreparationDao
+            .getPreparationSchedulesByScheduleId(scheduleId);
+
+        expect(result.preparationStepList.map((step) => step.id), [
+          preparationStep1.id,
+          preparationStep2.id,
+        ]);
       },
     );
 

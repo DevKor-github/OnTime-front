@@ -199,10 +199,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
 ## Code Generation Files
 
-**Never manually edit** generated files (`.g.dart`, `.freezed.dart`, `di_setup.config.dart`). These are created by:
+**Never manually edit or commit** generated Dart files (`.g.dart`, `.freezed.dart`, `.mocks.dart`, `di_setup.config.dart`, Widgetbook `*.directories.g.dart`). These are ignored build artifacts created by:
 
 - `build_runner` for JSON serialization, Freezed, Injectable, Drift
-- Regenerate after modifying annotated classes
+- Widgetbook code generation for component directories
+- Regenerate after modifying annotated classes, then stage only source/configuration changes
 
 ## Testing
 

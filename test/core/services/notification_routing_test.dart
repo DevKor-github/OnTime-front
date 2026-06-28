@@ -19,7 +19,7 @@ void main() {
 
   group('isScheduleAlarmPayload', () {
     test(
-      'detects native alarm payloads by type, version, and prompt variant',
+      'detects native alarm payloads without suppressing schedule notifications',
       () {
         expect(isScheduleAlarmPayload(null), isFalse);
         expect(
@@ -27,8 +27,11 @@ void main() {
           isTrue,
         );
         expect(
-          isScheduleAlarmPayload(const {'alarmLaunchPayloadVersion': 1}),
-          isTrue,
+          isScheduleAlarmPayload(const {
+            'type': 'schedule_notification',
+            'alarmLaunchPayloadVersion': 1,
+          }),
+          isFalse,
         );
         expect(
           isScheduleAlarmPayload(const {
@@ -77,23 +80,26 @@ void main() {
   });
 
   group('notificationRouteForPayloadString', () {
-    test('routes full schedule alarm payload to the schedule start screen', () {
-      final payload = jsonEncode({
-        'type': 'schedule_alarm',
-        'scheduleId': 'schedule-1',
-        'title': 'Morning meeting',
-      });
+    test(
+      'routes schedule notification payload to the schedule start screen',
+      () {
+        final payload = jsonEncode({
+          'type': 'schedule_notification',
+          'scheduleId': 'schedule-1',
+          'title': 'Morning meeting',
+        });
 
-      final target = notificationRouteForPayloadString(payload);
+        final target = notificationRouteForPayloadString(payload);
 
-      expect(target, isNotNull);
-      expect(target!.path, '/scheduleStart');
-      expect(target.extra, {
-        'type': 'schedule_alarm',
-        'scheduleId': 'schedule-1',
-        'title': 'Morning meeting',
-      });
-    });
+        expect(target, isNotNull);
+        expect(target!.path, '/scheduleStart');
+        expect(target.extra, {
+          'type': 'schedule_notification',
+          'scheduleId': 'schedule-1',
+          'title': 'Morning meeting',
+        });
+      },
+    );
 
     test('routes five-minute prompts as early-start schedule starts', () {
       final target = notificationRouteForPayloadString(
@@ -149,12 +155,12 @@ void main() {
     test('routes background message data with the same notification rules', () {
       expect(
         notificationRouteForData(const {
-          'type': 'schedule_alarm',
+          'type': 'schedule_notification',
           'scheduleId': 'schedule-2',
         }),
         const NotificationRouteTarget(
           '/scheduleStart',
-          extra: {'type': 'schedule_alarm', 'scheduleId': 'schedule-2'},
+          extra: {'type': 'schedule_notification', 'scheduleId': 'schedule-2'},
         ),
       );
       expect(

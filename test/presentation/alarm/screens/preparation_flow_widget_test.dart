@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
@@ -62,6 +63,8 @@ class NoopSaveTimedPreparationUseCase implements SaveTimedPreparationUseCase {
     ScheduleWithPreparationEntity schedule,
     PreparationWithTimeEntity preparation, {
     DateTime? savedAt,
+    DateTime? startedAt,
+    List<PreparationActionEventEntity> actionEvents = const [],
   }) async {}
 }
 
@@ -198,7 +201,11 @@ class TestSchedulePreparationSessionUseCase
       startedAt: startedAt,
     );
     await startSchedulePreparation(schedule.id);
-    await saveTimedPreparationSnapshot(schedule, savedAt: startedAt);
+    await saveTimedPreparationSnapshot(
+      schedule,
+      savedAt: startedAt,
+      startedAt: startedAt,
+    );
   }
 
   @override
@@ -213,14 +220,23 @@ class TestSchedulePreparationSessionUseCase
   }
 
   @override
+  Future<EarlyStartSessionEntity?> getEarlyStartSession(String scheduleId) {
+    return getEarlyStartSessionUseCase(scheduleId);
+  }
+
+  @override
   Future<void> saveTimedPreparationSnapshot(
     ScheduleWithPreparationEntity schedule, {
     DateTime? savedAt,
+    DateTime? startedAt,
+    List<PreparationActionEventEntity> actionEvents = const [],
   }) {
     return saveTimedPreparationUseCase(
       schedule,
       schedule.preparation,
       savedAt: savedAt,
+      startedAt: startedAt,
+      actionEvents: actionEvents,
     );
   }
 
@@ -228,6 +244,7 @@ class TestSchedulePreparationSessionUseCase
   Future<ScheduleWithPreparationEntity> restoreTimedPreparationIfValid(
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
+    RestoredSessionCallback? onRestoredSession,
   }) async {
     final snapshot = await getTimedPreparationSnapshotUseCase(schedule.id);
     if (snapshot == null) return schedule;
@@ -235,6 +252,10 @@ class TestSchedulePreparationSessionUseCase
       await clearPersistedState(schedule.id);
       return schedule;
     }
+    onRestoredSession?.call(
+      startedAt: snapshot.startedAt,
+      actionEvents: snapshot.actionEvents,
+    );
     final elapsedSinceSave = now.difference(snapshot.savedAt);
     final restoredPreparation = elapsedSinceSave.isNegative
         ? snapshot.preparation

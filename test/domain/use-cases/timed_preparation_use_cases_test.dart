@@ -126,6 +126,8 @@ void main() {
       original.preparation,
       original.savedAt,
       'fingerprint-1',
+      null,
+      const [],
     ]);
   });
 

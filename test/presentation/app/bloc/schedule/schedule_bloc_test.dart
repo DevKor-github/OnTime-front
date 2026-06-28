@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
@@ -53,15 +54,26 @@ class SpyNavigationService extends NavigationService {
 }
 
 class SpySaveTimedPreparationUseCase implements SaveTimedPreparationUseCase {
-  final List<(String, PreparationWithTimeEntity, DateTime?)> calls = [];
+  final List<
+    (
+      String,
+      PreparationWithTimeEntity,
+      DateTime?,
+      DateTime?,
+      List<PreparationActionEventEntity>,
+    )
+  >
+  calls = [];
 
   @override
   Future<void> call(
     ScheduleWithPreparationEntity schedule,
     PreparationWithTimeEntity preparation, {
     DateTime? savedAt,
+    DateTime? startedAt,
+    List<PreparationActionEventEntity> actionEvents = const [],
   }) async {
-    calls.add((schedule.id, preparation, savedAt));
+    calls.add((schedule.id, preparation, savedAt, startedAt, actionEvents));
   }
 }
 
@@ -235,7 +247,12 @@ class FakeSchedulePreparationSessionUseCase
     );
     await startSchedulePreparation(schedule.id);
     await cancelScheduleAlarmUseCase(schedule.id);
-    await saveTimedPreparationSnapshot(schedule, savedAt: startedAt);
+    await saveTimedPreparationSnapshot(
+      schedule,
+      savedAt: startedAt,
+      startedAt: startedAt,
+      actionEvents: const [],
+    );
   }
 
   @override
@@ -250,14 +267,23 @@ class FakeSchedulePreparationSessionUseCase
   }
 
   @override
+  Future<EarlyStartSessionEntity?> getEarlyStartSession(String scheduleId) {
+    return getEarlyStartSessionUseCase(scheduleId);
+  }
+
+  @override
   Future<void> saveTimedPreparationSnapshot(
     ScheduleWithPreparationEntity schedule, {
     DateTime? savedAt,
+    DateTime? startedAt,
+    List<PreparationActionEventEntity> actionEvents = const [],
   }) {
     return saveTimedPreparationUseCase(
       schedule,
       schedule.preparation,
       savedAt: savedAt,
+      startedAt: startedAt,
+      actionEvents: actionEvents,
     );
   }
 
@@ -265,18 +291,29 @@ class FakeSchedulePreparationSessionUseCase
   Future<ScheduleWithPreparationEntity> restoreTimedPreparationIfValid(
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
+    RestoredSessionCallback? onRestoredSession,
   }) async {
     final snapshot = await getTimedPreparationSnapshotUseCase(schedule.id);
     if (snapshot == null) return schedule;
-    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint) {
+    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint &&
+        !_canRestoreAcrossFingerprintMismatch(snapshot, schedule)) {
       await clearPersistedState(schedule.id);
       return schedule;
     }
 
-    final elapsedSinceSave = now.difference(snapshot.savedAt);
-    final restoredPreparation = elapsedSinceSave.isNegative
-        ? snapshot.preparation
-        : snapshot.preparation.timeElapsed(elapsedSinceSave);
+    final startedAt = snapshot.startedAt;
+    onRestoredSession?.call(
+      startedAt: startedAt,
+      actionEvents: snapshot.actionEvents,
+    );
+    final restoredPreparation = startedAt == null
+        ? _restoreElapsedSnapshot(snapshot, now)
+        : _derivePreparationRun(
+            schedule.preparation,
+            startedAt: startedAt,
+            actionEvents: snapshot.actionEvents,
+            now: now,
+          );
     return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
       schedule,
       restoredPreparation,
@@ -344,6 +381,129 @@ class FakeSchedulePreparationSessionUseCase
         doneStatus == ScheduleDoneStatus.lateEnd ||
         doneStatus == ScheduleDoneStatus.abnormalEnd;
   }
+
+  PreparationWithTimeEntity _restoreElapsedSnapshot(
+    TimedPreparationSnapshotEntity snapshot,
+    DateTime now,
+  ) {
+    final elapsedSinceSave = now.difference(snapshot.savedAt);
+    return elapsedSinceSave.isNegative
+        ? snapshot.preparation
+        : snapshot.preparation.timeElapsed(elapsedSinceSave);
+  }
+
+  PreparationWithTimeEntity _derivePreparationRun(
+    PreparationWithTimeEntity source, {
+    required DateTime startedAt,
+    required List<PreparationActionEventEntity> actionEvents,
+    required DateTime now,
+  }) {
+    var preparation = _resetPreparationProgress(source);
+    var cursor = startedAt;
+    final orderedEvents =
+        actionEvents.where((event) => !event.occurredAt.isAfter(now)).toList()
+          ..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+
+    for (final event in orderedEvents) {
+      if (event.occurredAt.isAfter(cursor)) {
+        preparation = preparation.timeElapsed(
+          event.occurredAt.difference(cursor),
+        );
+        cursor = event.occurredAt;
+      }
+
+      switch (event.type) {
+        case PreparationActionEventType.start:
+          cursor = event.occurredAt;
+        case PreparationActionEventType.skipStep:
+          preparation = _skipCurrentStepForEvent(preparation, event);
+          cursor = event.occurredAt;
+        case PreparationActionEventType.finish:
+          return preparation.timeElapsed(now.difference(cursor));
+      }
+    }
+
+    if (now.isAfter(cursor)) {
+      preparation = preparation.timeElapsed(now.difference(cursor));
+    }
+    return preparation;
+  }
+
+  PreparationWithTimeEntity _resetPreparationProgress(
+    PreparationWithTimeEntity source,
+  ) {
+    return PreparationWithTimeEntity(
+      preparationStepList: [
+        for (final step in source.preparationStepList)
+          PreparationStepWithTimeEntity(
+            id: step.id,
+            preparationName: step.preparationName,
+            preparationTime: step.preparationTime,
+            nextPreparationId: step.nextPreparationId,
+          ),
+      ],
+    );
+  }
+
+  PreparationWithTimeEntity _skipCurrentStepForEvent(
+    PreparationWithTimeEntity preparation,
+    PreparationActionEventEntity event,
+  ) {
+    final current = preparation.currentStep;
+    if (current == null) {
+      return preparation;
+    }
+    final eventStepId = event.stepId;
+    final eventStepStillExists =
+        eventStepId != null &&
+        preparation.preparationStepList.any((step) => step.id == eventStepId);
+    if (eventStepStillExists && current.id != eventStepId) {
+      return preparation;
+    }
+    return preparation.copyWith(
+      preparationStepList: [
+        for (final step in preparation.preparationStepList)
+          step.id == current.id ? step.copyWith(isDone: true) : step,
+      ],
+    );
+  }
+
+  bool _canRestoreAcrossFingerprintMismatch(
+    TimedPreparationSnapshotEntity snapshot,
+    ScheduleWithPreparationEntity schedule,
+  ) {
+    return _scheduleTimingFingerprintPrefix(snapshot.scheduleFingerprint) ==
+            _scheduleTimingFingerprintPrefix(schedule.cacheFingerprint) &&
+        _hasSamePreparationShape(snapshot.preparation, schedule.preparation);
+  }
+
+  String _scheduleTimingFingerprintPrefix(String fingerprint) {
+    final parts = fingerprint.split('|');
+    if (parts.length < 4) {
+      return fingerprint;
+    }
+    return '${parts[0]}|${parts[1]}|${parts[2]}|';
+  }
+
+  bool _hasSamePreparationShape(
+    PreparationWithTimeEntity left,
+    PreparationWithTimeEntity right,
+  ) {
+    final leftSteps = left.preparationStepList;
+    final rightSteps = right.preparationStepList;
+    if (leftSteps.length != rightSteps.length) {
+      return false;
+    }
+    for (var index = 0; index < leftSteps.length; index++) {
+      final leftStep = leftSteps[index];
+      final rightStep = rightSteps[index];
+      if (leftStep.preparationName != rightStep.preparationName ||
+          leftStep.preparationTime != rightStep.preparationTime) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 ScheduleWithPreparationEntity buildSchedule({
@@ -371,11 +531,15 @@ TimedPreparationSnapshotEntity buildSnapshot({
   required PreparationWithTimeEntity preparation,
   required DateTime savedAt,
   required String fingerprint,
+  DateTime? startedAt,
+  List<PreparationActionEventEntity> actionEvents = const [],
 }) {
   return TimedPreparationSnapshotEntity(
     preparation: preparation,
     savedAt: savedAt,
     scheduleFingerprint: fingerprint,
+    startedAt: startedAt,
+    actionEvents: actionEvents,
   );
 }
 
@@ -742,6 +906,166 @@ void main() {
     );
 
     test(
+      'restoring an ongoing run derives current step from start time skip action and now',
+      () async {
+        final startedAt = DateTime(2026, 3, 20, 9, 0);
+        final schedule = buildSchedule(
+          id: 'event-restore',
+          scheduleTime: startedAt.add(const Duration(minutes: 50)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 's2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 's2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        now = startedAt.add(const Duration(minutes: 7));
+        getSnapshotUseCase.snapshots['event-restore'] = buildSnapshot(
+          preparation: schedule.preparation,
+          savedAt: startedAt.add(const Duration(minutes: 3)),
+          fingerprint: schedule.cacheFingerprint,
+          startedAt: startedAt,
+          actionEvents: [
+            PreparationActionEventEntity.skipStep(
+              stepId: 's1',
+              occurredAt: startedAt.add(const Duration(minutes: 3)),
+            ),
+          ],
+        );
+
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        await Future<void>.delayed(Duration.zero);
+
+        final restoredSteps =
+            bloc.state.schedule!.preparation.preparationStepList;
+        expect(bloc.state.schedule!.preparation.currentStep?.id, 's2');
+        expect(restoredSteps[0].isDone, isTrue);
+        expect(restoredSteps[0].elapsedTime, const Duration(minutes: 3));
+        expect(restoredSteps[1].elapsedTime, const Duration(minutes: 4));
+      },
+    );
+
+    test(
+      'restoring an ongoing run tolerates frozen preparation ids and preserves skip actions',
+      () async {
+        final startedAt = DateTime(2026, 3, 20, 9, 0);
+        final original = buildSchedule(
+          id: 'frozen-restore',
+          scheduleTime: startedAt.add(const Duration(minutes: 50)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'template-s1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 'template-s2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 'template-s2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        final frozen = buildSchedule(
+          id: 'frozen-restore',
+          scheduleTime: startedAt.add(const Duration(minutes: 50)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'frozen-s1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 'frozen-s2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 'frozen-s2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        now = startedAt.add(const Duration(minutes: 7));
+        getSnapshotUseCase.snapshots['frozen-restore'] = buildSnapshot(
+          preparation: original.preparation,
+          savedAt: startedAt.add(const Duration(minutes: 3)),
+          fingerprint: original.cacheFingerprint,
+          startedAt: startedAt,
+          actionEvents: [
+            PreparationActionEventEntity.skipStep(
+              stepId: 'template-s1',
+              occurredAt: startedAt.add(const Duration(minutes: 3)),
+            ),
+          ],
+        );
+
+        bloc.add(ScheduleUpcomingReceived(frozen));
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        await Future<void>.delayed(Duration.zero);
+
+        final restoredSteps =
+            bloc.state.schedule!.preparation.preparationStepList;
+        expect(clearTimedUseCase.calls, isNot(contains('frozen-restore')));
+        expect(restoredSteps[0].id, 'frozen-s1');
+        expect(restoredSteps[0].isDone, isTrue);
+        expect(restoredSteps[0].elapsedTime, const Duration(minutes: 3));
+        expect(bloc.state.schedule!.preparation.currentStep?.id, 'frozen-s2');
+        expect(restoredSteps[1].elapsedTime, const Duration(minutes: 4));
+      },
+    );
+
+    test(
+      'refreshing active preparation derives elapsed from actual current time',
+      () async {
+        final startedAt = DateTime(2026, 3, 20, 9, 0);
+        final schedule = buildSchedule(
+          id: 'refresh-run',
+          scheduleTime: startedAt.add(const Duration(minutes: 50)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 's1',
+              preparationName: 'wash',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: 's2',
+            ),
+            PreparationStepWithTimeEntity(
+              id: 's2',
+              preparationName: 'dress',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        now = startedAt.add(const Duration(minutes: 1));
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          bloc.state.schedule!.preparation.elapsedTime,
+          const Duration(minutes: 1),
+        );
+
+        now = startedAt.add(const Duration(minutes: 6));
+        bloc.add(const SchedulePreparationTimeRefreshRequested());
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          bloc.state.schedule!.preparation.elapsedTime,
+          const Duration(minutes: 6),
+        );
+      },
+    );
+
+    test(
       'skip current step advances to next and persists timed preparation',
       () async {
         final schedule = buildSchedule(
@@ -774,6 +1098,42 @@ void main() {
         expect(saveUseCase.calls.last.$1, 'skip');
       },
     );
+
+    test('skip current step persists a skip action event', () async {
+      final startedAt = DateTime(2026, 3, 20, 9, 0);
+      final schedule = buildSchedule(
+        id: 'skip-event',
+        scheduleTime: startedAt.add(const Duration(minutes: 50)),
+        steps: const [
+          PreparationStepWithTimeEntity(
+            id: 's1',
+            preparationName: 'wash',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: 's2',
+          ),
+          PreparationStepWithTimeEntity(
+            id: 's2',
+            preparationName: 'dress',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: null,
+          ),
+        ],
+      );
+      now = startedAt.add(const Duration(minutes: 1));
+      bloc.add(ScheduleUpcomingReceived(schedule));
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      await Future<void>.delayed(Duration.zero);
+      saveUseCase.calls.clear();
+
+      now = startedAt.add(const Duration(minutes: 3));
+      bloc.add(const ScheduleStepSkipped());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(saveUseCase.calls.last.$4, startedAt);
+      expect(saveUseCase.calls.last.$5, [
+        PreparationActionEventEntity.skipStep(stepId: 's1', occurredAt: now),
+      ]);
+    });
 
     test('skip on last remaining step marks all steps done', () async {
       final schedule = buildSchedule(
@@ -1247,6 +1607,36 @@ void main() {
         expect(
           bloc.state.schedule!.preparation.elapsedTime,
           greaterThan(const Duration(minutes: 2)),
+        );
+      },
+    );
+
+    test(
+      'resume before official start with only early session derives elapsed from session start',
+      () async {
+        final schedule = buildSchedule(
+          id: 'resume-early-session-only',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 20),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        markEarlySessionUseCase.sessions['resume-early-session-only'] = now
+            .subtract(const Duration(minutes: 3));
+
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.isEarlyStarted, isTrue);
+        expect(
+          bloc.state.schedule!.preparation.elapsedTime,
+          const Duration(minutes: 3),
         );
       },
     );

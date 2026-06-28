@@ -40,6 +40,10 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
     }
 
     private fun restorePersistedNativeAlarms(context: Context) {
+        if (!NativeAlarmPolicy.isAndroidFullScreenAlarmApproved()) {
+            NativeLog.d(TAG, "restorePersistedNativeAlarms skipped: full-screen alarm approval is disabled")
+            return
+        }
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
         if (alarmManager == null) {
             NativeLog.w(TAG, "restorePersistedNativeAlarms skipped: AlarmManager unavailable")

@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
@@ -14,6 +17,12 @@ import 'package:on_time_front/domain/use-cases/cancel_schedule_alarm_use_case.da
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 
 enum SchedulePreparationPromptStatus { ready, rejected, unavailable }
+
+typedef RestoredSessionCallback =
+    void Function({
+      required DateTime? startedAt,
+      required List<PreparationActionEventEntity> actionEvents,
+    });
 
 class SchedulePreparationPromptResult {
   const SchedulePreparationPromptResult._({
@@ -64,7 +73,12 @@ class SchedulePreparationSessionUseCase {
     );
     await startSchedulePreparation(schedule.id);
     await _cancelScheduleAlarmUseCase(schedule.id);
-    await saveTimedPreparationSnapshot(schedule, savedAt: startedAt);
+    await saveTimedPreparationSnapshot(
+      schedule,
+      savedAt: startedAt,
+      startedAt: startedAt,
+      actionEvents: const [],
+    );
   }
 
   Future<void> startSchedulePreparation(String scheduleId) async {
@@ -76,14 +90,22 @@ class SchedulePreparationSessionUseCase {
     return await _earlyStartSessionRepository.getSession(scheduleId) != null;
   }
 
+  Future<EarlyStartSessionEntity?> getEarlyStartSession(String scheduleId) {
+    return _earlyStartSessionRepository.getSession(scheduleId);
+  }
+
   Future<void> saveTimedPreparationSnapshot(
     ScheduleWithPreparationEntity schedule, {
     DateTime? savedAt,
+    DateTime? startedAt,
+    List<PreparationActionEventEntity> actionEvents = const [],
   }) {
     final snapshot = TimedPreparationSnapshotEntity(
       preparation: schedule.preparation,
       savedAt: savedAt ?? DateTime.now(),
       scheduleFingerprint: schedule.cacheFingerprint,
+      startedAt: startedAt,
+      actionEvents: actionEvents,
     );
     return _timedPreparationRepository.saveTimedPreparationSnapshot(
       schedule.id,
@@ -94,19 +116,30 @@ class SchedulePreparationSessionUseCase {
   Future<ScheduleWithPreparationEntity> restoreTimedPreparationIfValid(
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
+    RestoredSessionCallback? onRestoredSession,
   }) async {
     final snapshot = await _timedPreparationRepository
         .getTimedPreparationSnapshot(schedule.id);
     if (snapshot == null) return schedule;
-    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint) {
+    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint &&
+        !_canRestoreAcrossFingerprintMismatch(snapshot, schedule)) {
       await clearPersistedState(schedule.id);
       return schedule;
     }
 
-    final elapsedSinceSave = now.difference(snapshot.savedAt);
-    final restoredPreparation = elapsedSinceSave.isNegative
-        ? snapshot.preparation
-        : snapshot.preparation.timeElapsed(elapsedSinceSave);
+    final startedAt = snapshot.startedAt;
+    onRestoredSession?.call(
+      startedAt: startedAt,
+      actionEvents: snapshot.actionEvents,
+    );
+    final restoredPreparation = startedAt == null
+        ? _restoreElapsedSnapshot(snapshot, now)
+        : _derivePreparationRun(
+            schedule.preparation,
+            startedAt: startedAt,
+            actionEvents: snapshot.actionEvents,
+            now: now,
+          );
 
     return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
       schedule,
@@ -177,5 +210,128 @@ class SchedulePreparationSessionUseCase {
     return doneStatus == ScheduleDoneStatus.normalEnd ||
         doneStatus == ScheduleDoneStatus.lateEnd ||
         doneStatus == ScheduleDoneStatus.abnormalEnd;
+  }
+
+  PreparationWithTimeEntity _restoreElapsedSnapshot(
+    TimedPreparationSnapshotEntity snapshot,
+    DateTime now,
+  ) {
+    final elapsedSinceSave = now.difference(snapshot.savedAt);
+    return elapsedSinceSave.isNegative
+        ? snapshot.preparation
+        : snapshot.preparation.timeElapsed(elapsedSinceSave);
+  }
+
+  PreparationWithTimeEntity _derivePreparationRun(
+    PreparationWithTimeEntity source, {
+    required DateTime startedAt,
+    required List<PreparationActionEventEntity> actionEvents,
+    required DateTime now,
+  }) {
+    var preparation = _resetPreparationProgress(source);
+    var cursor = startedAt;
+    final orderedEvents =
+        actionEvents.where((event) => !event.occurredAt.isAfter(now)).toList()
+          ..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+
+    for (final event in orderedEvents) {
+      if (event.occurredAt.isAfter(cursor)) {
+        preparation = preparation.timeElapsed(
+          event.occurredAt.difference(cursor),
+        );
+        cursor = event.occurredAt;
+      }
+
+      switch (event.type) {
+        case PreparationActionEventType.start:
+          cursor = event.occurredAt;
+        case PreparationActionEventType.skipStep:
+          preparation = _skipCurrentStepForEvent(preparation, event);
+          cursor = event.occurredAt;
+        case PreparationActionEventType.finish:
+          return preparation.timeElapsed(now.difference(cursor));
+      }
+    }
+
+    if (now.isAfter(cursor)) {
+      preparation = preparation.timeElapsed(now.difference(cursor));
+    }
+    return preparation;
+  }
+
+  PreparationWithTimeEntity _resetPreparationProgress(
+    PreparationWithTimeEntity source,
+  ) {
+    return PreparationWithTimeEntity(
+      preparationStepList: [
+        for (final step in source.preparationStepList)
+          PreparationStepWithTimeEntity(
+            id: step.id,
+            preparationName: step.preparationName,
+            preparationTime: step.preparationTime,
+            nextPreparationId: step.nextPreparationId,
+          ),
+      ],
+    );
+  }
+
+  PreparationWithTimeEntity _skipCurrentStepForEvent(
+    PreparationWithTimeEntity preparation,
+    PreparationActionEventEntity event,
+  ) {
+    final current = preparation.currentStep;
+    if (current == null) {
+      return preparation;
+    }
+    final eventStepId = event.stepId;
+    final eventStepStillExists =
+        eventStepId != null &&
+        preparation.preparationStepList.any((step) => step.id == eventStepId);
+    if (eventStepStillExists && current.id != eventStepId) {
+      return preparation;
+    }
+    return preparation.copyWith(
+      preparationStepList: [
+        for (final step in preparation.preparationStepList)
+          step.id == current.id ? step.copyWith(isDone: true) : step,
+      ],
+    );
+  }
+
+  bool _canRestoreAcrossFingerprintMismatch(
+    TimedPreparationSnapshotEntity snapshot,
+    ScheduleWithPreparationEntity schedule,
+  ) {
+    return _scheduleTimingFingerprintPrefix(snapshot.scheduleFingerprint) ==
+            _scheduleTimingFingerprintPrefix(schedule.cacheFingerprint) &&
+        _hasSamePreparationShape(snapshot.preparation, schedule.preparation);
+  }
+
+  String _scheduleTimingFingerprintPrefix(String fingerprint) {
+    final parts = fingerprint.split('|');
+    if (parts.length < 4) {
+      return fingerprint;
+    }
+    return '${parts[0]}|${parts[1]}|${parts[2]}|';
+  }
+
+  bool _hasSamePreparationShape(
+    PreparationWithTimeEntity left,
+    PreparationWithTimeEntity right,
+  ) {
+    final leftSteps = left.preparationStepList;
+    final rightSteps = right.preparationStepList;
+    if (leftSteps.length != rightSteps.length) {
+      return false;
+    }
+    for (var index = 0; index < leftSteps.length; index++) {
+      final leftStep = leftSteps[index];
+      final rightStep = rightSteps[index];
+      if (leftStep.preparationName != rightStep.preparationName ||
+          leftStep.preparationTime != rightStep.preparationTime) {
+        return false;
+      }
+    }
+    return true;
   }
 }

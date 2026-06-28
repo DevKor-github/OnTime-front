@@ -9,8 +9,8 @@ class LoadSchedulesForMonthUseCase {
 
   Future<void> call(DateTime date) async {
     final startOfMonth = DateTime(date.year, date.month, 1);
-    final endOfMonth = DateTime(date.year, date.month + 1, 0);
+    final startOfNextMonth = DateTime(date.year, date.month + 1, 1);
 
-    await _loadSchedulesByDateUseCase(startOfMonth, endOfMonth);
+    await _loadSchedulesByDateUseCase(startOfMonth, startOfNextMonth);
   }
 }

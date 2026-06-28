@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/data_sources/preparation_with_time_local_data_source.dart';
 import 'package:on_time_front/data/repositories/timed_preparation_repository_impl.dart';
+import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/timed_preparation_snapshot_entity.dart';
@@ -24,6 +25,27 @@ void main() {
     expect(loaded, snapshot);
     expect(loaded!.preparation.currentStep?.id, 'step-2');
     expect(loaded.preparation.stepElapsedTimesInSeconds, [600, 120]);
+  });
+
+  test('savePreparation persists preparation run action events', () async {
+    final startedAt = DateTime(2026, 5, 15, 8);
+    final skipAt = startedAt.add(const Duration(minutes: 3));
+    final snapshot = _snapshot(
+      startedAt: startedAt,
+      actionEvents: [
+        PreparationActionEventEntity.skipStep(
+          stepId: 'step-1',
+          occurredAt: skipAt,
+        ),
+      ],
+    );
+
+    await dataSource.savePreparation('schedule-1', snapshot);
+
+    final loaded = await dataSource.loadPreparation('schedule-1');
+
+    expect(loaded!.startedAt, startedAt);
+    expect(loaded.actionEvents, snapshot.actionEvents);
   });
 
   test(
@@ -111,10 +133,14 @@ void main() {
 
 TimedPreparationSnapshotEntity _snapshot({
   String scheduleFingerprint = 'fingerprint',
+  DateTime? startedAt,
+  List<PreparationActionEventEntity> actionEvents = const [],
 }) {
   return TimedPreparationSnapshotEntity(
     savedAt: DateTime.fromMillisecondsSinceEpoch(1778774400000),
     scheduleFingerprint: scheduleFingerprint,
+    startedAt: startedAt,
+    actionEvents: actionEvents,
     preparation: const PreparationWithTimeEntity(
       preparationStepList: [
         PreparationStepWithTimeEntity(

@@ -41,7 +41,7 @@ void main() {
     );
   });
 
-  testWidgets('granted precise notification permission enables notifications', (
+  testWidgets('granted Android notification permission enables notifications', (
     tester,
   ) async {
     final harness = await _pumpAlarmAllowScreen(
@@ -53,7 +53,8 @@ void main() {
     await tester.tap(find.text('Allow precise notifications'));
     await tester.pumpAndSettle();
 
-    expect(harness.scheduler.requestCount, 1);
+    expect(harness.scheduler.requestCount, 0);
+    expect(harness.fallback.requestCount, 1);
     expect(harness.repository.updatedSettings, [true]);
     expect(harness.reconcileUseCase.callCount, 1);
     expect(find.text('home'), findsOneWidget);
@@ -79,23 +80,24 @@ void main() {
     expect(find.text('Allow alarms'), findsOneWidget);
   });
 
-  testWidgets('dismiss keeps notification delivery when fallback is available', (
-    tester,
-  ) async {
-    final harness = await _pumpAlarmAllowScreen(
-      tester,
-      permissionAfterRequest: AlarmPermissionState.denied,
-    );
-    addTearDown(harness.dispose);
+  testWidgets(
+    'dismiss keeps notification delivery when fallback is available',
+    (tester) async {
+      final harness = await _pumpAlarmAllowScreen(
+        tester,
+        permissionAfterRequest: AlarmPermissionState.denied,
+      );
+      addTearDown(harness.dispose);
 
-    await tester.tap(find.text("I'll do it later."));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text("I'll do it later."));
+      await tester.pumpAndSettle();
 
-    expect(harness.repository.updatedSettings, isEmpty);
-    expect(harness.cancelAllUseCase.callCount, 0);
-    expect(find.text('home'), findsOneWidget);
-    expect(harness.gateCubit.state.status, AlarmGateStatus.dismissed);
-  });
+      expect(harness.repository.updatedSettings, isEmpty);
+      expect(harness.cancelAllUseCase.callCount, 0);
+      expect(find.text('home'), findsOneWidget);
+      expect(harness.gateCubit.state.status, AlarmGateStatus.dismissed);
+    },
+  );
 }
 
 Future<_AlarmAllowHarness> _pumpAlarmAllowScreen(
@@ -167,6 +169,7 @@ Future<_AlarmAllowHarness> _pumpAlarmAllowScreen(
     router: router,
     repository: repository,
     scheduler: scheduler,
+    fallback: fallback,
     reconcileUseCase: reconcileUseCase,
     cancelAllUseCase: cancelAllUseCase,
   );
@@ -178,6 +181,7 @@ class _AlarmAllowHarness {
     required this.router,
     required this.repository,
     required this.scheduler,
+    required this.fallback,
     required this.reconcileUseCase,
     required this.cancelAllUseCase,
   });
@@ -186,6 +190,7 @@ class _AlarmAllowHarness {
   final GoRouter router;
   final _FakeAlarmRepository repository;
   final _FakeAlarmSchedulerService scheduler;
+  final _FakeFallbackAlarmNotificationService fallback;
   final _FakeReconcileAlarmsUseCase reconcileUseCase;
   final _FakeCancelAllAlarmsUseCase cancelAllUseCase;
 
@@ -348,6 +353,8 @@ class _FakeAlarmRegistry implements AlarmRegistryRepository {
 
 class _FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
+  int requestCount = 0;
+
   @override
   Future<AlarmPermissionState> checkPermission() async {
     return AlarmPermissionState.granted;
@@ -355,6 +362,7 @@ class _FakeFallbackAlarmNotificationService
 
   @override
   Future<AlarmPermissionState> requestPermission() async {
+    requestCount += 1;
     return AlarmPermissionState.granted;
   }
 

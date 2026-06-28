@@ -60,7 +60,7 @@ void main() {
 
       await useCase(DateTime(2026, 2, 14));
 
-      expect(recorder.calls, [(DateTime(2026, 2), DateTime(2026, 2, 28))]);
+      expect(recorder.calls, [(DateTime(2026, 2), DateTime(2026, 3))]);
     },
   );
 

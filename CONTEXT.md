@@ -86,12 +86,12 @@ An allowlisted non-content value attached to a Product Usage Event.
 _Avoid_: Event payload, arbitrary metadata, raw detail
 
 **Schedule**:
-A planned commitment with an appointment time and place that OnTime helps the user prepare for.
-_Avoid_: Calendar event, meeting
+A planned commitment with a place, appointment time, travel time, optional buffer time, and preparation.
+_Avoid_: Event, appointment record
 
 **Preparation**:
-The set of user-planned steps completed before leaving for a Schedule.
-_Avoid_: Prep routine, checklist
+An ordered set of steps and durations used to get ready for a Schedule.
+_Avoid_: Routine, prep checklist
 
 **Preparation Duration**:
 The sum of a Schedule's Preparation step durations, excluding move time and Schedule Spare Time.
@@ -100,6 +100,18 @@ _Avoid_: Total duration, travel time, buffer time
 **Schedule Spare Time**:
 A user buffer before a Schedule's appointment time, separate from travel time and Preparation Duration.
 _Avoid_: Preparation time, move time
+
+**Default Preparation**:
+The user's fallback Preparation for new Schedules.
+_Avoid_: Base preparation, global preparation
+
+**Custom Preparation**:
+A Schedule-specific Preparation that differs from the user's fallback or selected template.
+_Avoid_: Changed preparation, edited default
+
+**Preparation Mode**:
+The category describing whether a Schedule uses Default Preparation, a preparation template, or Custom Preparation.
+_Avoid_: Preparation type, preparation source
 
 **Schedule Notification**:
 A user-facing notification that starts preparation for a scheduled commitment at the intended moment.
@@ -175,6 +187,11 @@ _Avoid_: Loaded range, stream range, cached range
 
 ## Relationships
 
+- A **Product Usage Event** may describe a **Schedule**, **Preparation**, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
+- A **Schedule** has one effective **Preparation** for calculating preparation timing.
+- A **Default Preparation** may seed a new **Schedule** before the user chooses a different preparation.
+- A **Custom Preparation** belongs to one **Schedule**.
+- **Preparation Mode** may appear as an **Analytics Event Parameter** without exposing preparation step names.
 - A **Monthly Calendar** displays **Schedules** grouped by calendar day.
 - A **Calendar Month Range** starts at the first day of its first month and ends before the first day of the month after its last month.
 - A **Monthly Calendar** may extend a **Calendar Month Range** when the user moves to an adjacent month.
@@ -184,7 +201,6 @@ _Avoid_: Loaded range, stream range, cached range
 - A **Preparation** contains zero or more **Preparation Steps** in user-defined order.
 - A **Preparation Step** belongs to exactly one **Preparation**.
 - A **Schedule Notification** uses **Schedule** and **Preparation** timing, but is not itself a **Schedule** or **Preparation**.
-- A **Product Usage Event** may describe a schedule, preparation, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
 - First-release **Product Usage Events** are **Workflow Milestone Events**, not every tap or raw navigation step.
 - First-release **Workflow Milestone Events** cover analytics preference, onboarding, authentication, schedule, notification permission, alarm, and schedule-finish outcomes.
 - **Provider Authentication Completed** precedes **OnTime Session Established** during Apple or Google sign-in.
@@ -260,6 +276,7 @@ _Avoid_: Loaded range, stream range, cached range
 - "Event taxonomy" was broad; resolved: first-release analytics tracks **Workflow Milestone Events** only.
 - "Event payload" was too open-ended; resolved: events use allowlisted **Analytics Event Parameters** only.
 - "Login completed" was ambiguous for Apple and Google sign-in; resolved: external account prompt completion is **Provider Authentication Completed**, while usable OnTime sign-in is **OnTime Session Established**.
+- "Preparation" was ambiguous between the user's fallback steps and a schedule-specific edited set; resolved: use **Default Preparation** for the fallback and **Custom Preparation** for the schedule-specific version.
 - "Alarm permission" was ambiguous between **Exact Timing Permission** and notification permission; resolved: notification permission may enable a **Fallback Notification**, but does not mean **Exact Timing Permission** is granted.
 - "Pending" was ambiguous for notification status; resolved: the canonical state is **No Scheduled Notification** when notifications are enabled but no upcoming Schedule Notification is armed.
 - "Allowed" was ambiguous for permission requests; resolved: a request action is not the same as granted **Exact Timing Permission**.

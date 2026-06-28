@@ -15,7 +15,8 @@ void main() {
     tester,
   ) async {
     DateTime? selected;
-    final targetDate = DateTime.now().add(const Duration(days: 2));
+    final now = DateTime.now();
+    final targetDate = DateTime(now.year, now.month, 15);
 
     await tester.pumpWidget(
       _TestApp(

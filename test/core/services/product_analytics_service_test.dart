@@ -3,28 +3,17 @@ import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/product_analytics_service.dart';
 import 'package:on_time_front/domain/entities/analytics_preference.dart';
 import 'package:on_time_front/domain/entities/product_usage_event.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 
 void main() {
   test('product usage events include the runtime app version', () async {
     final client = _FakeAnalyticsProviderClient();
-    final service = ProductAnalyticsService(
-      client: client,
-      appMetadataProvider: _FakeAppMetadataProvider(
-        const AppMetadata(version: '9.8.7', buildNumber: '654'),
-      ),
-      collectionAllowedInBuild: true,
-    );
+    final service = _buildService(client);
 
     await service.applyPreference(
       const AnalyticsPreference(enabled: true, isConfirmed: true),
     );
-    await service.track(
-      const ProductUsageEvent(
-        name: 'schedule_created',
-        workflow: 'schedule',
-        result: 'success',
-      ),
-    );
+    await service.track(_scheduleCreatedEvent());
 
     expect(client.loggedEvents.single.parameters['app_version'], '9.8.7');
   });
@@ -33,28 +22,50 @@ void main() {
     'unconfirmed analytics preference does not log product usage events',
     () async {
       final client = _FakeAnalyticsProviderClient();
-      final service = ProductAnalyticsService(
-        client: client,
-        appMetadataProvider: _FakeAppMetadataProvider(
-          const AppMetadata(version: '9.8.7', buildNumber: '654'),
-        ),
-        collectionAllowedInBuild: true,
-      );
+      final service = _buildService(client);
 
       await service.applyPreference(
         const AnalyticsPreference(enabled: true, isConfirmed: false),
       );
-      await service.track(
-        const ProductUsageEvent(
-          name: 'schedule_created',
-          workflow: 'schedule',
-          result: 'success',
-        ),
-      );
+      await service.track(_scheduleCreatedEvent());
 
       expect(client.collectionEnabledValues, [false]);
       expect(client.loggedEvents, isEmpty);
     },
+  );
+
+  test(
+    'disabled analytics preference does not log product usage events',
+    () async {
+      final client = _FakeAnalyticsProviderClient();
+      final service = _buildService(client);
+
+      await service.applyPreference(
+        const AnalyticsPreference(enabled: false, isConfirmed: true),
+      );
+      await service.track(_scheduleCreatedEvent());
+
+      expect(client.collectionEnabledValues, [false]);
+      expect(client.loggedEvents, isEmpty);
+    },
+  );
+}
+
+ProductAnalyticsService _buildService(_FakeAnalyticsProviderClient client) {
+  return ProductAnalyticsService(
+    client: client,
+    appMetadataProvider: const _FakeAppMetadataProvider(
+      AppMetadata(version: '9.8.7', buildNumber: '654'),
+    ),
+    collectionAllowedInBuild: true,
+  );
+}
+
+ProductUsageEvent _scheduleCreatedEvent() {
+  return ProductUsageEvent.scheduleCreated(
+    preparationMode: SchedulePreparationMode.defaultPreparation,
+    preparationStepCount: 1,
+    minutesUntilSchedule: 60,
   );
 }
 

@@ -61,6 +61,18 @@ _Avoid_: Tracking vendor, analytics SDK
 A Product Usage Event that marks completion or failure of a meaningful user workflow step.
 _Avoid_: Tap event, raw navigation log, interaction trace
 
+**Schedule**:
+A planned commitment with a target time that OnTime helps the user prepare for.
+_Avoid_: Event, appointment, alarm
+
+**Preparation**:
+The ordered set of steps a user completes before a Schedule.
+_Avoid_: Preparation chain, task list
+
+**Preparation Step**:
+One named action with an expected duration inside a Preparation.
+_Avoid_: Task, checklist item, alarm step
+
 **Provider Authentication Completed**:
 The state where the external Apple or Google account prompt has returned credentials to OnTime.
 _Avoid_: Login completed, signed in, session ready
@@ -182,6 +194,9 @@ _Avoid_: Loaded range, stream range, cached range
 - An **Analytics Event Parameter** must not contain user-authored text, direct identifiers, tokens, raw exception strings, request bodies, or response bodies.
 - A **Product Usage Event** uses a stable snake_case name and includes a schema version.
 - A changed **Product Usage Event** meaning requires a new event name or schema version.
+- A **Schedule** may have one **Preparation** for that specific commitment.
+- A **Preparation** contains zero or more **Preparation Steps** in user-defined order.
+- A user's default **Preparation** may be applied to a **Schedule** and then changed for that Schedule.
 - A **Schedule** has a **Preparation** whose **Preparation Duration** contributes to preparation-start timing.
 - **Preparation Duration**, move time, and **Schedule Spare Time** are distinct schedule timing inputs.
 - User-facing copy should call a scheduled notification a **Schedule Notification**, not an **Alarm**, unless it opens an OnTime screen without the user first tapping a notification.
@@ -261,4 +276,5 @@ _Avoid_: Loaded range, stream range, cached range
 - "Status label" was ambiguous across platforms; resolved: Android uses precise notification or notification status, while iOS uses alarm status only for **iOS AlarmKit Alarm**.
 - "No scheduled alarm" was too capability-specific for an empty state; resolved: use **No Scheduled Notification** across platforms.
 - "Step action events" was ambiguous as either user actions or automatic timer movement; resolved: the canonical term is **Preparation Action Event**, and automatic step transitions are derived rather than recorded as events.
+- "Preparation chain" describes storage reconstruction, not product language; resolved: the domain concept is an ordered **Preparation** made of **Preparation Steps**.
 - "Total duration" was ambiguous between **Preparation Duration** and the broader preparation-start timing calculation; resolved: **Preparation Duration** is steps only, while move time and **Schedule Spare Time** are separate inputs.

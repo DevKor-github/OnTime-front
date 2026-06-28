@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -49,29 +48,17 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
       return PreparationEntity(preparationStepList: []);
     }
 
-    final firstStep = allSteps.firstWhere(
-      (step) => allSteps.every((other) => other.nextPreparationId != step.id),
-      orElse: () => allSteps.first,
-    );
-
-    final List<PreparationStepEntity> orderedSteps = [];
-    PreparationUser? currentStep = firstStep;
-
-    while (currentStep != null) {
-      orderedSteps.add(
-        PreparationStepEntity(
-          id: currentStep.id,
-          preparationName: currentStep.preparationName,
-          preparationTime: Duration(minutes: currentStep.preparationTime),
-          nextPreparationId: currentStep.nextPreparationId,
-        ),
-      );
-      currentStep = allSteps.firstWhereOrNull(
-        (step) => step.id == currentStep!.nextPreparationId,
-      );
-    }
-
-    return PreparationEntity(preparationStepList: orderedSteps);
+    return PreparationEntity(
+      preparationStepList: [
+        for (final step in allSteps)
+          PreparationStepEntity(
+            id: step.id,
+            preparationName: step.preparationName,
+            preparationTime: Duration(minutes: step.preparationTime),
+            nextPreparationId: step.nextPreparationId,
+          ),
+      ],
+    ).ordered;
   }
 
   Future<PreparationStepEntity> getPreparationStepById(

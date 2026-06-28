@@ -4,8 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/input_models/schedule_moving_time_input_model.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/input_models/schedule_place_input_model.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/input_models/schedule_moving_time_input_model.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/input_models/schedule_place_input_model.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 part 'schedule_place_moving_time_state.dart';

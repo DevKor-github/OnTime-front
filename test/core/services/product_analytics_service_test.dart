@@ -2,29 +2,54 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/product_analytics_service.dart';
 import 'package:on_time_front/domain/entities/analytics_preference.dart';
 import 'package:on_time_front/domain/entities/product_usage_event.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 
 void main() {
-  test('unconfirmed analytics preference does not log product usage events', () async {
-    final client = _FakeAnalyticsProviderClient();
-    final service = ProductAnalyticsService(
-      client: client,
-      collectionAllowedInBuild: true,
-    );
+  test(
+    'unconfirmed analytics preference does not log product usage events',
+    () async {
+      final client = _FakeAnalyticsProviderClient();
+      final service = ProductAnalyticsService(
+        client: client,
+        collectionAllowedInBuild: true,
+      );
 
-    await service.applyPreference(
-      const AnalyticsPreference(enabled: true, isConfirmed: false),
-    );
-    await service.track(
-      const ProductUsageEvent(
-        name: 'schedule_created',
-        workflow: 'schedule',
-        result: 'success',
-      ),
-    );
+      await service.applyPreference(
+        const AnalyticsPreference(enabled: true, isConfirmed: false),
+      );
+      await service.track(_scheduleCreatedEvent());
 
-    expect(client.collectionEnabledValues, [false]);
-    expect(client.loggedEvents, isEmpty);
-  });
+      expect(client.collectionEnabledValues, [false]);
+      expect(client.loggedEvents, isEmpty);
+    },
+  );
+
+  test(
+    'disabled analytics preference does not log product usage events',
+    () async {
+      final client = _FakeAnalyticsProviderClient();
+      final service = ProductAnalyticsService(
+        client: client,
+        collectionAllowedInBuild: true,
+      );
+
+      await service.applyPreference(
+        const AnalyticsPreference(enabled: false, isConfirmed: true),
+      );
+      await service.track(_scheduleCreatedEvent());
+
+      expect(client.collectionEnabledValues, [false]);
+      expect(client.loggedEvents, isEmpty);
+    },
+  );
+}
+
+ProductUsageEvent _scheduleCreatedEvent() {
+  return ProductUsageEvent.scheduleCreated(
+    preparationMode: SchedulePreparationMode.defaultPreparation,
+    preparationStepCount: 1,
+    minutesUntilSchedule: 60,
+  );
 }
 
 class _FakeAnalyticsProviderClient implements AnalyticsProviderClient {

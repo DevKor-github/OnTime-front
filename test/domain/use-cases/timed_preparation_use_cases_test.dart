@@ -350,6 +350,23 @@ class _FakeScheduleRepository implements ScheduleRepository {
   Stream<Set<ScheduleEntity>> get scheduleStream => Stream.value(_schedules);
 
   @override
+  Stream<List<ScheduleEntity>> watchSchedulesByDate(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    return Stream.value(
+      _schedules
+          .where(
+            (schedule) =>
+                schedule.scheduleTime.compareTo(startDate) >= 0 &&
+                schedule.scheduleTime.isBefore(endDate),
+          )
+          .toList()
+        ..sort((a, b) => a.scheduleTime.compareTo(b.scheduleTime)),
+    );
+  }
+
+  @override
   Future<void> createSchedule(ScheduleEntity schedule) async {}
 
   @override

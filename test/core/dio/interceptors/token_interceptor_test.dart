@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
 import 'package:on_time_front/core/dio/interceptors/token_interceptor.dart';
@@ -33,6 +34,45 @@ void main() {
         sessionInvalidator: sessionInvalidator,
       ),
     );
+  });
+
+  test('reuses cached access token for repeated protected requests', () async {
+    final storage = _CountingSecureStorage({
+      'accessToken': 'access-token',
+      'refreshToken': 'refresh-token',
+    });
+    final cachedTokenLocalDataSource = TokenLocalDataSourceImpl.withStorage(
+      storage,
+    );
+
+    adapter = _TokenRefreshAdapter(authorizeProtectedRequests: true);
+    dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://example.com',
+        receiveDataWhenStatusError: true,
+      ),
+    )..httpClientAdapter = adapter;
+    dio.interceptors.add(
+      TokenInterceptor(
+        dio,
+        tokenLocalDataSource: cachedTokenLocalDataSource,
+        sessionInvalidator: _FakeTokenSessionInvalidator(
+          cachedTokenLocalDataSource,
+        ),
+      ),
+    );
+
+    final firstResponse = await dio.get<String>('/protected/one');
+    final secondResponse = await dio.get<String>('/protected/two');
+
+    expect(firstResponse.statusCode, 200);
+    expect(secondResponse.statusCode, 200);
+    expect(adapter.refreshRequests, 0);
+    expect(adapter.protectedAuthorizationHeaders, [
+      'Bearer access-token',
+      'Bearer access-token',
+    ]);
+    expect(storage.readsByKey, {'accessToken': 1, 'refreshToken': 1});
   });
 
   test(
@@ -183,12 +223,14 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
     this.retryStatusCode = 200,
     this.refreshCompleter,
     this.omitRefreshHeaders = false,
+    this.authorizeProtectedRequests = false,
   });
 
   final int refreshStatusCode;
   final int retryStatusCode;
   final Completer<void>? refreshCompleter;
   final bool omitRefreshHeaders;
+  final bool authorizeProtectedRequests;
 
   final requestedPaths = <String>[];
   final protectedAuthorizationHeaders = <String?>[];
@@ -230,7 +272,7 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
       final requestCount = (_pathRequestCounts[options.path] ?? 0) + 1;
       _pathRequestCounts[options.path] = requestCount;
 
-      if (requestCount == 1) {
+      if (!authorizeProtectedRequests && requestCount == 1) {
         return _response(401, '{"message":"Unauthorized"}');
       }
 
@@ -252,6 +294,27 @@ class _TokenRefreshAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+class _CountingSecureStorage extends FlutterSecureStorage {
+  _CountingSecureStorage(this.values);
+
+  final Map<String, String?> values;
+  final readsByKey = <String, int>{};
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    readsByKey[key] = (readsByKey[key] ?? 0) + 1;
+    return values[key];
+  }
 }
 
 class _FakeTokenLocalDataSource implements TokenLocalDataSource {

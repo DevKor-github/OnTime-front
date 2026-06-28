@@ -33,7 +33,6 @@ class FakeTimedPreparationRepository implements TimedPreparationRepository {
 }
 
 void main() {
-  late MockScheduleLocalDataSource mockScheduleLocalDataSource;
   late MockScheduleRemoteDataSource mockScheduleRemoteDataSource;
   late FakeTimedPreparationRepository fakeTimedPreparationRepository;
   late ScheduleRepository scheduleRepository;
@@ -59,11 +58,9 @@ void main() {
   final tEndDate = DateTime.now().add(Duration(days: 1));
 
   setUp(() {
-    mockScheduleLocalDataSource = MockScheduleLocalDataSource();
     mockScheduleRemoteDataSource = MockScheduleRemoteDataSource();
     fakeTimedPreparationRepository = FakeTimedPreparationRepository();
     scheduleRepository = ScheduleRepositoryImpl(
-      scheduleLocalDataSource: mockScheduleLocalDataSource,
       scheduleRemoteDataSource: mockScheduleRemoteDataSource,
       timedPreparationRepository: fakeTimedPreparationRepository,
     );

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
 
 void main() {

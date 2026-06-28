@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/cubit/schedule_place_moving_time_cubit.dart';
-import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time.dart/screens/schedule_place_moving_time_form.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_cubit.dart';
+import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/screens/schedule_place_moving_time_form.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() {

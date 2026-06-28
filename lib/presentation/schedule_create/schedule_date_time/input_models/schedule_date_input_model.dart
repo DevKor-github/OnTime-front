@@ -1,17 +1,15 @@
 import 'package:formz/formz.dart';
 
-/// Validation errors for the [ScheduleTimeInputModel] [FormzInput].
-enum ScheduleTimeValidationError {
-  empty,
-}
+/// Validation errors for the [ScheduleDateInputModel] [FormzInput].
+enum ScheduleDateValidationError { empty }
 
-class ScheduleTimeInputModel
-    extends FormzInput<DateTime?, ScheduleTimeValidationError> {
-  const ScheduleTimeInputModel.pure([super.value]) : super.pure();
-  const ScheduleTimeInputModel.dirty([super.value]) : super.dirty();
+class ScheduleDateInputModel
+    extends FormzInput<DateTime?, ScheduleDateValidationError> {
+  const ScheduleDateInputModel.pure([super.value]) : super.pure();
+  const ScheduleDateInputModel.dirty([super.value]) : super.dirty();
 
   @override
-  ScheduleTimeValidationError? validator(DateTime? value) {
-    return value == null ? ScheduleTimeValidationError.empty : null;
+  ScheduleDateValidationError? validator(DateTime? value) {
+    return value == null ? ScheduleDateValidationError.empty : null;
   }
 }

@@ -129,6 +129,99 @@ void main() {
   );
 
   test(
+    'repeated initialize handles each notification entry point once',
+    () async {
+      final messaging =
+          _FakeFirebaseMessaging(AuthorizationStatus.notDetermined)
+            ..requestedAuthorizationStatus = AuthorizationStatus.authorized
+            ..initialMessage = const RemoteMessage(
+              data: {'type': 'preparation_step', 'scheduleId': 'initial'},
+            );
+      final localNotifications = _RecordingLocalNotifications();
+      final tapRouter = _FakeNotificationTapRouter();
+      final foregroundMessages = StreamController<RemoteMessage>.broadcast();
+      final openedAppMessages = StreamController<RemoteMessage>.broadcast();
+      const firebaseMessagingChannel = MethodChannel(
+        'plugins.flutter.io/firebase_messaging',
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            firebaseMessagingChannel,
+            (_) async => null,
+          );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(firebaseMessagingChannel, null);
+        foregroundMessages.close();
+        openedAppMessages.close();
+      });
+      final service = NotificationService.test(
+        messaging: messaging,
+        localNotifications: localNotifications,
+        notificationTapRouter: tapRouter,
+        onMessage: foregroundMessages.stream,
+        onMessageOpenedApp: openedAppMessages.stream,
+      );
+
+      await service.initialize();
+      await service.initialize();
+
+      foregroundMessages.add(
+        const RemoteMessage(data: {'title': 'Title', 'body': 'Body'}),
+      );
+      openedAppMessages.add(
+        const RemoteMessage(
+          data: {'type': 'preparation_step', 'scheduleId': 'opened'},
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(messaging.getInitialMessageCount, 1);
+      expect(localNotifications.shown, hasLength(1));
+      expect(tapRouter.remoteMessageData.map((data) => data['scheduleId']), [
+        'initial',
+        'opened',
+      ]);
+    },
+  );
+
+  test('concurrent initialize shares one in-flight setup', () async {
+    final permissionBlocker = Completer<void>();
+    final messaging = _FakeFirebaseMessaging(AuthorizationStatus.notDetermined)
+      ..requestedAuthorizationStatus = AuthorizationStatus.authorized
+      ..requestPermissionBlocker = permissionBlocker
+      ..token = 'fcm-token';
+    final localNotifications = _RecordingLocalNotifications();
+    final tokenRegistrar = _FakeFcmTokenRegistrar();
+    const firebaseMessagingChannel = MethodChannel(
+      'plugins.flutter.io/firebase_messaging',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(firebaseMessagingChannel, (_) async => null);
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(firebaseMessagingChannel, null);
+    });
+    final service = NotificationService.test(
+      messaging: messaging,
+      localNotifications: localNotifications,
+      fcmTokenRegistrar: tokenRegistrar,
+    );
+
+    final firstInitialize = service.initialize();
+    await pumpEventQueue();
+    final secondInitialize = service.initialize();
+
+    permissionBlocker.complete();
+    await Future.wait([firstInitialize, secondInitialize]);
+
+    expect(messaging.requestPermissionCount, 1);
+    expect(messaging.getInitialMessageCount, 1);
+    expect(localNotifications.initializeCount, 1);
+    expect(tokenRegistrar.registeredTokens, ['fcm-token']);
+  });
+
+  test(
     'openNotificationSettings returns false when platform launch fails',
     () async {
       final service = NotificationService.test(
@@ -189,6 +282,32 @@ void main() {
       await pumpEventQueue();
 
       expect(tokenRegistrar.registeredTokens, [
+        'initial-token',
+        'refreshed-token',
+      ]);
+    },
+  );
+
+  test(
+    'repeated token requests keep one refresh registration callback',
+    () async {
+      final messaging = _FakeFirebaseMessaging(AuthorizationStatus.authorized)
+        ..token = 'initial-token';
+      final tokenRegistrar = _FakeFcmTokenRegistrar();
+      final service = NotificationService.test(
+        messaging: messaging,
+        localNotifications: _RecordingLocalNotifications(),
+        isFlutterLocalNotificationsInitialized: true,
+        fcmTokenRegistrar: tokenRegistrar,
+      );
+
+      await service.requestNotificationToken();
+      await service.requestNotificationToken();
+      messaging.emitTokenRefresh('refreshed-token');
+      await pumpEventQueue();
+
+      expect(tokenRegistrar.registeredTokens, [
+        'initial-token',
         'initial-token',
         'refreshed-token',
       ]);
@@ -508,6 +627,7 @@ class _FakeFirebaseMessaging implements FirebaseMessaging {
   AuthorizationStatus authorizationStatus;
   AuthorizationStatus requestedAuthorizationStatus =
       AuthorizationStatus.authorized;
+  Completer<void>? requestPermissionBlocker;
   int requestPermissionCount = 0;
   int getTokenCount = 0;
   int getInitialMessageCount = 0;
@@ -533,6 +653,7 @@ class _FakeFirebaseMessaging implements FirebaseMessaging {
   }) async {
     requestPermissionCount += 1;
     authorizationStatus = requestedAuthorizationStatus;
+    await requestPermissionBlocker?.future;
     return _settings(authorizationStatus);
   }
 

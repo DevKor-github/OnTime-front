@@ -5,6 +5,7 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/product_usage_event.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/use-cases/track_product_usage_event_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
@@ -475,6 +476,121 @@ void main() {
     await submitDone;
 
     expect(preparationUpdateCount, 0);
+  });
+
+  test(
+    'ScheduleFormUpdated copies default preparation with fresh step IDs',
+    () async {
+      getScheduleByIdUseCase = StubGetScheduleByIdUseCase(
+        (_) async => schedule.copyWith(
+          preparationMode: SchedulePreparationMode.defaultPreparation,
+        ),
+      );
+
+      PreparationEntity? updatedPreparation;
+      updatePreparationByScheduleIdUseCase =
+          StubUpdatePreparationByScheduleIdUseCase((preparation, _) async {
+            updatedPreparation = preparation;
+          });
+
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      final editReady = bloc.stream.firstWhere(
+        (state) => state.status == ScheduleFormStatus.success,
+      );
+      bloc.add(const ScheduleFormEditRequested(scheduleId: 'schedule-1'));
+      await editReady;
+
+      const editedPreparation = PreparationEntity(
+        preparationStepList: [
+          PreparationStepEntity(
+            id: 'default-step-1',
+            preparationName: 'Makeup',
+            preparationTime: Duration(minutes: 20),
+            nextPreparationId: 'default-step-2',
+          ),
+          PreparationStepEntity(
+            id: 'default-step-2',
+            preparationName: 'Bathroom',
+            preparationTime: Duration(minutes: 5),
+          ),
+        ],
+      );
+      bloc.add(
+        const ScheduleFormPreparationChanged(preparation: editedPreparation),
+      );
+
+      final submitDone = bloc.stream.firstWhere(
+        (state) =>
+            state.submissionStatus == ScheduleFormSubmissionStatus.success,
+      );
+      bloc.add(const ScheduleFormUpdated());
+      await submitDone;
+
+      final steps = updatedPreparation!.preparationStepList;
+      expect(steps, hasLength(2));
+      expect(steps[0].preparationName, 'Makeup');
+      expect(steps[0].preparationTime, const Duration(minutes: 20));
+      expect(steps[1].preparationName, 'Bathroom');
+      expect(steps[1].preparationTime, const Duration(minutes: 5));
+      expect(steps[0].id, isNot('default-step-1'));
+      expect(steps[1].id, isNot('default-step-2'));
+      expect(steps[0].nextPreparationId, steps[1].id);
+      expect(steps[1].nextPreparationId, isNull);
+    },
+  );
+
+  test('ScheduleFormUpdated preserves custom preparation step IDs', () async {
+    getScheduleByIdUseCase = StubGetScheduleByIdUseCase(
+      (_) async =>
+          schedule.copyWith(preparationMode: SchedulePreparationMode.custom),
+    );
+
+    PreparationEntity? updatedPreparation;
+    updatePreparationByScheduleIdUseCase =
+        StubUpdatePreparationByScheduleIdUseCase((preparation, _) async {
+          updatedPreparation = preparation;
+        });
+
+    final bloc = buildBloc();
+    addTearDown(bloc.close);
+
+    final editReady = bloc.stream.firstWhere(
+      (state) => state.status == ScheduleFormStatus.success,
+    );
+    bloc.add(const ScheduleFormEditRequested(scheduleId: 'schedule-1'));
+    await editReady;
+
+    const editedPreparation = PreparationEntity(
+      preparationStepList: [
+        PreparationStepEntity(
+          id: 'custom-step-1',
+          preparationName: 'Makeup',
+          preparationTime: Duration(minutes: 20),
+          nextPreparationId: 'custom-step-2',
+        ),
+        PreparationStepEntity(
+          id: 'custom-step-2',
+          preparationName: 'Bathroom',
+          preparationTime: Duration(minutes: 5),
+        ),
+      ],
+    );
+    bloc.add(
+      const ScheduleFormPreparationChanged(preparation: editedPreparation),
+    );
+
+    final submitDone = bloc.stream.firstWhere(
+      (state) => state.submissionStatus == ScheduleFormSubmissionStatus.success,
+    );
+    bloc.add(const ScheduleFormUpdated());
+    await submitDone;
+
+    final steps = updatedPreparation!.preparationStepList;
+    expect(steps.map((step) => step.id), ['custom-step-1', 'custom-step-2']);
+    expect(steps[0].nextPreparationId, 'custom-step-2');
+    expect(steps[1].nextPreparationId, isNull);
   });
 
   test(

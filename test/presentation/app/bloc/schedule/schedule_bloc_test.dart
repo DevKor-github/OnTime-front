@@ -23,6 +23,7 @@ import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart'
 import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_preparation_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
@@ -201,6 +202,310 @@ class SpyClearEarlyStartSessionUseCase
   }
 }
 
+class FakeSchedulePreparationSessionUseCase
+    implements SchedulePreparationSessionUseCase {
+  FakeSchedulePreparationSessionUseCase({
+    required this.saveTimedPreparationUseCase,
+    required this.getTimedPreparationSnapshotUseCase,
+    required this.clearTimedPreparationUseCase,
+    required this.startScheduleUseCase,
+    required this.finishScheduleUseCase,
+    required this.markEarlyStartSessionUseCase,
+    required this.getEarlyStartSessionUseCase,
+    required this.clearEarlyStartSessionUseCase,
+    required this.cancelScheduleAlarmUseCase,
+    required this.getScheduleByIdUseCase,
+    required this.loadPreparationByScheduleIdUseCase,
+    required this.getPreparationByScheduleIdUseCase,
+  });
+
+  final SpySaveTimedPreparationUseCase saveTimedPreparationUseCase;
+  final StubGetTimedPreparationSnapshotUseCase
+  getTimedPreparationSnapshotUseCase;
+  final SpyClearTimedPreparationUseCase clearTimedPreparationUseCase;
+  final SpyStartScheduleUseCase startScheduleUseCase;
+  final SpyFinishScheduleUseCase finishScheduleUseCase;
+  final SpyMarkEarlyStartSessionUseCase markEarlyStartSessionUseCase;
+  final StubGetEarlyStartSessionUseCase getEarlyStartSessionUseCase;
+  final SpyClearEarlyStartSessionUseCase clearEarlyStartSessionUseCase;
+  final SpyCancelScheduleAlarmUseCase cancelScheduleAlarmUseCase;
+  final StubGetScheduleByIdUseCase getScheduleByIdUseCase;
+  final SpyLoadPreparationByScheduleIdUseCase
+  loadPreparationByScheduleIdUseCase;
+  final StubGetPreparationByScheduleIdUseCase getPreparationByScheduleIdUseCase;
+  final unavailablePromptIds = <String>{};
+  final _startedScheduleIds = <String>{};
+
+  @override
+  Future<void> startEarlySession(
+    ScheduleWithPreparationEntity schedule, {
+    required DateTime startedAt,
+  }) async {
+    await markEarlyStartSessionUseCase(
+      scheduleId: schedule.id,
+      startedAt: startedAt,
+    );
+    await startSchedulePreparation(schedule.id);
+    await cancelScheduleAlarmUseCase(schedule.id);
+    await saveTimedPreparationSnapshot(
+      schedule,
+      savedAt: startedAt,
+      startedAt: startedAt,
+      actionEvents: const [],
+    );
+  }
+
+  @override
+  Future<void> startSchedulePreparation(String scheduleId) async {
+    if (!_startedScheduleIds.add(scheduleId)) return;
+    await startScheduleUseCase(scheduleId);
+  }
+
+  @override
+  Future<bool> hasEarlyStartSession(String scheduleId) async {
+    return await getEarlyStartSessionUseCase(scheduleId) != null;
+  }
+
+  @override
+  Future<EarlyStartSessionEntity?> getEarlyStartSession(String scheduleId) {
+    return getEarlyStartSessionUseCase(scheduleId);
+  }
+
+  @override
+  Future<void> saveTimedPreparationSnapshot(
+    ScheduleWithPreparationEntity schedule, {
+    DateTime? savedAt,
+    DateTime? startedAt,
+    List<PreparationActionEventEntity> actionEvents = const [],
+  }) {
+    return saveTimedPreparationUseCase(
+      schedule,
+      schedule.preparation,
+      savedAt: savedAt,
+      startedAt: startedAt,
+      actionEvents: actionEvents,
+    );
+  }
+
+  @override
+  Future<ScheduleWithPreparationEntity> restoreTimedPreparationIfValid(
+    ScheduleWithPreparationEntity schedule, {
+    required DateTime now,
+    RestoredSessionCallback? onRestoredSession,
+  }) async {
+    final snapshot = await getTimedPreparationSnapshotUseCase(schedule.id);
+    if (snapshot == null) return schedule;
+    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint &&
+        !_canRestoreAcrossFingerprintMismatch(snapshot, schedule)) {
+      await clearPersistedState(schedule.id);
+      return schedule;
+    }
+
+    final startedAt = snapshot.startedAt;
+    onRestoredSession?.call(
+      startedAt: startedAt,
+      actionEvents: snapshot.actionEvents,
+    );
+    final restoredPreparation = startedAt == null
+        ? _restoreElapsedSnapshot(snapshot, now)
+        : _derivePreparationRun(
+            schedule.preparation,
+            startedAt: startedAt,
+            actionEvents: snapshot.actionEvents,
+            now: now,
+          );
+    return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+      schedule,
+      restoredPreparation,
+    );
+  }
+
+  @override
+  Future<void> clearPersistedState(String scheduleId) async {
+    await clearTimedPreparationUseCase(scheduleId);
+    await clearEarlyStartSessionUseCase(scheduleId);
+    _startedScheduleIds.remove(scheduleId);
+  }
+
+  @override
+  Future<void> finishSchedulePreparation(
+    String scheduleId, {
+    required int latenessTime,
+  }) async {
+    await finishScheduleUseCase(scheduleId, latenessTime);
+    await clearPersistedState(scheduleId);
+  }
+
+  @override
+  Future<SchedulePreparationPromptResult> resolvePromptedSchedule({
+    required String scheduleId,
+    required bool startPreparation,
+    String? scheduleFingerprint,
+  }) async {
+    if (unavailablePromptIds.contains(scheduleId)) {
+      return const SchedulePreparationPromptResult.unavailable();
+    }
+
+    try {
+      final schedule = await getScheduleByIdUseCase(scheduleId);
+      if (_isEnded(schedule.doneStatus)) {
+        await cancelScheduleAlarmUseCase(scheduleId);
+        return const SchedulePreparationPromptResult.rejected();
+      }
+
+      await loadPreparationByScheduleIdUseCase(scheduleId);
+      final preparation = await getPreparationByScheduleIdUseCase(scheduleId);
+      final scheduleWithPreparation =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            schedule,
+            PreparationWithTimeEntity.fromPreparation(preparation),
+          );
+      if (scheduleFingerprint != null &&
+          scheduleFingerprint != scheduleWithPreparation.cacheFingerprint &&
+          !startPreparation) {
+        await cancelScheduleAlarmUseCase(scheduleId);
+        return const SchedulePreparationPromptResult.rejected();
+      }
+      return SchedulePreparationPromptResult.ready(scheduleWithPreparation);
+    } catch (_) {
+      if (startPreparation) {
+        return const SchedulePreparationPromptResult.unavailable();
+      }
+      await cancelScheduleAlarmUseCase(scheduleId);
+      return const SchedulePreparationPromptResult.rejected();
+    }
+  }
+
+  bool _isEnded(ScheduleDoneStatus doneStatus) {
+    return doneStatus == ScheduleDoneStatus.normalEnd ||
+        doneStatus == ScheduleDoneStatus.lateEnd ||
+        doneStatus == ScheduleDoneStatus.abnormalEnd;
+  }
+
+  PreparationWithTimeEntity _restoreElapsedSnapshot(
+    TimedPreparationSnapshotEntity snapshot,
+    DateTime now,
+  ) {
+    final elapsedSinceSave = now.difference(snapshot.savedAt);
+    return elapsedSinceSave.isNegative
+        ? snapshot.preparation
+        : snapshot.preparation.timeElapsed(elapsedSinceSave);
+  }
+
+  PreparationWithTimeEntity _derivePreparationRun(
+    PreparationWithTimeEntity source, {
+    required DateTime startedAt,
+    required List<PreparationActionEventEntity> actionEvents,
+    required DateTime now,
+  }) {
+    var preparation = _resetPreparationProgress(source);
+    var cursor = startedAt;
+    final orderedEvents =
+        actionEvents.where((event) => !event.occurredAt.isAfter(now)).toList()
+          ..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+
+    for (final event in orderedEvents) {
+      if (event.occurredAt.isAfter(cursor)) {
+        preparation = preparation.timeElapsed(
+          event.occurredAt.difference(cursor),
+        );
+        cursor = event.occurredAt;
+      }
+
+      switch (event.type) {
+        case PreparationActionEventType.start:
+          cursor = event.occurredAt;
+        case PreparationActionEventType.skipStep:
+          preparation = _skipCurrentStepForEvent(preparation, event);
+          cursor = event.occurredAt;
+        case PreparationActionEventType.finish:
+          return preparation.timeElapsed(now.difference(cursor));
+      }
+    }
+
+    if (now.isAfter(cursor)) {
+      preparation = preparation.timeElapsed(now.difference(cursor));
+    }
+    return preparation;
+  }
+
+  PreparationWithTimeEntity _resetPreparationProgress(
+    PreparationWithTimeEntity source,
+  ) {
+    return PreparationWithTimeEntity(
+      preparationStepList: [
+        for (final step in source.preparationStepList)
+          PreparationStepWithTimeEntity(
+            id: step.id,
+            preparationName: step.preparationName,
+            preparationTime: step.preparationTime,
+            nextPreparationId: step.nextPreparationId,
+          ),
+      ],
+    );
+  }
+
+  PreparationWithTimeEntity _skipCurrentStepForEvent(
+    PreparationWithTimeEntity preparation,
+    PreparationActionEventEntity event,
+  ) {
+    final current = preparation.currentStep;
+    if (current == null) {
+      return preparation;
+    }
+    final eventStepId = event.stepId;
+    final eventStepStillExists =
+        eventStepId != null &&
+        preparation.preparationStepList.any((step) => step.id == eventStepId);
+    if (eventStepStillExists && current.id != eventStepId) {
+      return preparation;
+    }
+    return preparation.copyWith(
+      preparationStepList: [
+        for (final step in preparation.preparationStepList)
+          step.id == current.id ? step.copyWith(isDone: true) : step,
+      ],
+    );
+  }
+
+  bool _canRestoreAcrossFingerprintMismatch(
+    TimedPreparationSnapshotEntity snapshot,
+    ScheduleWithPreparationEntity schedule,
+  ) {
+    return _scheduleTimingFingerprintPrefix(snapshot.scheduleFingerprint) ==
+            _scheduleTimingFingerprintPrefix(schedule.cacheFingerprint) &&
+        _hasSamePreparationShape(snapshot.preparation, schedule.preparation);
+  }
+
+  String _scheduleTimingFingerprintPrefix(String fingerprint) {
+    final parts = fingerprint.split('|');
+    if (parts.length < 4) {
+      return fingerprint;
+    }
+    return '${parts[0]}|${parts[1]}|${parts[2]}|';
+  }
+
+  bool _hasSamePreparationShape(
+    PreparationWithTimeEntity left,
+    PreparationWithTimeEntity right,
+  ) {
+    final leftSteps = left.preparationStepList;
+    final rightSteps = right.preparationStepList;
+    if (leftSteps.length != rightSteps.length) {
+      return false;
+    }
+    for (var index = 0; index < leftSteps.length; index++) {
+      final leftStep = leftSteps[index];
+      final rightStep = rightSteps[index];
+      if (leftStep.preparationName != rightStep.preparationName ||
+          leftStep.preparationTime != rightStep.preparationTime) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 ScheduleWithPreparationEntity buildSchedule({
   required String id,
   required DateTime scheduleTime,
@@ -256,6 +561,7 @@ void main() {
     loadPreparationByScheduleIdUseCase;
     late StubGetPreparationByScheduleIdUseCase
     getPreparationByScheduleIdUseCase;
+    late FakeSchedulePreparationSessionUseCase sessionUseCase;
     late DateTime now;
     late List<String> notifiedStepIds;
 
@@ -282,16 +588,12 @@ void main() {
           SpyLoadPreparationByScheduleIdUseCase();
       getPreparationByScheduleIdUseCase =
           StubGetPreparationByScheduleIdUseCase();
-      now = DateTime(2026, 3, 20, 9, 0, 0);
-      notifiedStepIds = [];
-      bloc = ScheduleBloc.test(
-        StubGetNearestUpcomingScheduleUseCase(() => controller.stream),
-        navigationService,
-        saveUseCase,
-        getSnapshotUseCase,
-        clearTimedUseCase,
-        startUseCase,
-        finishUseCase,
+      sessionUseCase = FakeSchedulePreparationSessionUseCase(
+        saveTimedPreparationUseCase: saveUseCase,
+        getTimedPreparationSnapshotUseCase: getSnapshotUseCase,
+        clearTimedPreparationUseCase: clearTimedUseCase,
+        startScheduleUseCase: startUseCase,
+        finishScheduleUseCase: finishUseCase,
         markEarlyStartSessionUseCase: markEarlySessionUseCase,
         getEarlyStartSessionUseCase: getEarlySessionUseCase,
         clearEarlyStartSessionUseCase: clearEarlySessionUseCase,
@@ -299,6 +601,13 @@ void main() {
         getScheduleByIdUseCase: getScheduleByIdUseCase,
         loadPreparationByScheduleIdUseCase: loadPreparationByScheduleIdUseCase,
         getPreparationByScheduleIdUseCase: getPreparationByScheduleIdUseCase,
+      );
+      now = DateTime(2026, 3, 20, 9, 0, 0);
+      notifiedStepIds = [];
+      bloc = ScheduleBloc.test(
+        StubGetNearestUpcomingScheduleUseCase(() => controller.stream),
+        navigationService,
+        sessionUseCase,
         nowProvider: () => now,
         notifyPreparationStep:
             ({
@@ -324,19 +633,27 @@ void main() {
     });
 
     test(
-      'alarm prompt is ignored when validation use cases are unavailable',
+      'alarm prompt is ignored when validation workflow is unavailable',
       () async {
-        final minimalBloc = ScheduleBloc.test(
-          StubGetNearestUpcomingScheduleUseCase(() => const Stream.empty()),
-          navigationService,
-          saveUseCase,
-          getSnapshotUseCase,
-          clearTimedUseCase,
-          startUseCase,
-          finishUseCase,
+        final unavailableSessionUseCase = FakeSchedulePreparationSessionUseCase(
+          saveTimedPreparationUseCase: saveUseCase,
+          getTimedPreparationSnapshotUseCase: getSnapshotUseCase,
+          clearTimedPreparationUseCase: clearTimedUseCase,
+          startScheduleUseCase: startUseCase,
+          finishScheduleUseCase: finishUseCase,
           markEarlyStartSessionUseCase: markEarlySessionUseCase,
           getEarlyStartSessionUseCase: getEarlySessionUseCase,
           clearEarlyStartSessionUseCase: clearEarlySessionUseCase,
+          cancelScheduleAlarmUseCase: cancelScheduleAlarmUseCase,
+          getScheduleByIdUseCase: getScheduleByIdUseCase,
+          loadPreparationByScheduleIdUseCase:
+              loadPreparationByScheduleIdUseCase,
+          getPreparationByScheduleIdUseCase: getPreparationByScheduleIdUseCase,
+        )..unavailablePromptIds.add('missing-validation');
+        final minimalBloc = ScheduleBloc.test(
+          StubGetNearestUpcomingScheduleUseCase(() => const Stream.empty()),
+          navigationService,
+          unavailableSessionUseCase,
           nowProvider: () => now,
         );
         addTearDown(minimalBloc.close);
@@ -357,19 +674,7 @@ void main() {
         final constructedBloc = ScheduleBloc(
           StubGetNearestUpcomingScheduleUseCase(() => const Stream.empty()),
           navigationService,
-          saveUseCase,
-          getSnapshotUseCase,
-          clearTimedUseCase,
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: markEarlySessionUseCase,
-          getEarlyStartSessionUseCase: getEarlySessionUseCase,
-          clearEarlyStartSessionUseCase: clearEarlySessionUseCase,
-          cancelScheduleAlarmUseCase: cancelScheduleAlarmUseCase,
-          getScheduleByIdUseCase: getScheduleByIdUseCase,
-          loadPreparationByScheduleIdUseCase:
-              loadPreparationByScheduleIdUseCase,
-          getPreparationByScheduleIdUseCase: getPreparationByScheduleIdUseCase,
+          sessionUseCase,
         );
         addTearDown(constructedBloc.close);
 

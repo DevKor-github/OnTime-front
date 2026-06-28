@@ -24,17 +24,12 @@ class TrackScheduleAnalyticsUseCase implements ScheduleAnalyticsTracker {
     required PreparationEntity preparation,
   }) async {
     await _productUsageEventTracker.track(
-      ProductUsageEvent(
-        name: 'schedule_created',
-        workflow: 'schedule',
-        result: 'success',
-        parameters: {
-          'preparation_mode': schedule.preparationMode?.name ?? 'default',
-          'preparation_step_count': preparation.preparationStepList.length,
-          'minutes_until_schedule': schedule.scheduleTime
-              .difference(_now())
-              .inMinutes,
-        },
+      ProductUsageEvent.scheduleCreated(
+        preparationMode: schedule.preparationMode,
+        preparationStepCount: preparation.preparationStepList.length,
+        minutesUntilSchedule: schedule.scheduleTime
+            .difference(_now())
+            .inMinutes,
       ),
     );
   }

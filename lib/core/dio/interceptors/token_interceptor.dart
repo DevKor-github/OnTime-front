@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:on_time_front/core/constants/endpoint.dart';
-import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/core/dio/interceptors/token_session_invalidator.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
 import 'package:on_time_front/domain/entities/token_entity.dart';
-import 'package:on_time_front/domain/repositories/user_repository.dart';
 
 class TokenInterceptor implements InterceptorsWrapper {
   static const _refreshTokenPath = '/refresh-token';
@@ -13,9 +12,14 @@ class TokenInterceptor implements InterceptorsWrapper {
       'Authentication token is unavailable for a protected request';
 
   final Dio dio;
-  TokenInterceptor(this.dio);
-  final TokenLocalDataSource tokenLocalDataSource = getIt
-      .get<TokenLocalDataSource>();
+  final TokenLocalDataSource tokenLocalDataSource;
+  final TokenSessionInvalidator _sessionInvalidator;
+
+  TokenInterceptor(
+    this.dio, {
+    required this.tokenLocalDataSource,
+    required TokenSessionInvalidator sessionInvalidator,
+  }) : _sessionInvalidator = sessionInvalidator;
 
   // when accessToken is expired & having multiple requests call
   // this variable to lock others request to make sure only trigger call refresh token 01 times
@@ -186,11 +190,7 @@ class TokenInterceptor implements InterceptorsWrapper {
   }
 
   Future<void> _signOutLocally() async {
-    try {
-      await getIt.get<UserRepository>().signOut();
-    } catch (_) {
-      await tokenLocalDataSource.deleteToken();
-    }
+    await _sessionInvalidator.signOutLocally();
   }
 
   @override

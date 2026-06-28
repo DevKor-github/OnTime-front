@@ -5,6 +5,7 @@ import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_schedule_form_draft_use_case.dart';
 import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
@@ -237,6 +238,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         scheduleSpareTime: draft.scheduleSpareTime,
         scheduleNote: draft.scheduleNote,
         preparation: draft.preparation,
+        originalPreparationMode: draft.originalPreparationMode,
       ),
     );
   }
@@ -246,6 +248,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       schedule: scheduleEntity,
       preparation: state.preparation!,
       preparationChanged: state.isChanged != IsPreparationChanged.unchanged,
+      originalPreparationMode: state.originalPreparationMode,
     );
   }
 }

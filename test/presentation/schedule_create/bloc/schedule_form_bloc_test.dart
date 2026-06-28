@@ -3,6 +3,7 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_schedule_form_draft_use_case.dart';
 import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
@@ -96,6 +97,7 @@ void main() {
     bool preparationChanged = false,
     Duration? spareTime = const Duration(minutes: 10),
     Object? scheduleTime = _unset,
+    SchedulePreparationMode? originalPreparationMode,
   }) {
     return ScheduleFormDraft(
       id: schedule.id,
@@ -110,6 +112,7 @@ void main() {
       scheduleSpareTime: spareTime,
       scheduleNote: schedule.scheduleNote,
       preparation: preparation,
+      originalPreparationMode: originalPreparationMode,
     );
   }
 
@@ -209,6 +212,24 @@ void main() {
   );
 
   test(
+    'ScheduleFormEditRequested keeps original preparation mode in state',
+    () async {
+      loadScheduleFormDraftUseCase.editHandler = (_) async => draftFromSchedule(
+        originalPreparationMode: SchedulePreparationMode.defaultPreparation,
+      );
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+
+      await primeEditState(bloc);
+
+      expect(
+        bloc.state.originalPreparationMode,
+        SchedulePreparationMode.defaultPreparation,
+      );
+    },
+  );
+
+  test(
     'ScheduleFormUpdated sends edited schedule fields to submission use case',
     () async {
       final bloc = buildBloc();
@@ -254,6 +275,7 @@ void main() {
         const Duration(minutes: 25),
       );
       expect(submission.preparationChanged, isFalse);
+      expect(submission.originalPreparationMode, isNull);
     },
   );
 
@@ -287,7 +309,7 @@ void main() {
   });
 
   test(
-    'ScheduleFormCreated sends changed preparation to create submission',
+    'ScheduleFormCreated persists custom preparation when changed',
     () async {
       final bloc = buildBloc();
       addTearDown(bloc.close);

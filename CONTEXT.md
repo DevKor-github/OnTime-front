@@ -5,6 +5,26 @@ release, and feature discussions use the same terms.
 
 ## Language
 
+**OnTime User**:
+A person's OnTime account profile that owns schedules, places, preparation defaults, and notification preferences.
+_Avoid_: User identity, analytics subject, device
+
+**Schedule**:
+A planned commitment with an intended time, destination place, travel time, and optional preparation plan.
+_Avoid_: Alarm, notification, calendar row
+
+**Place**:
+The destination or location label attached to a Schedule.
+_Avoid_: Route, address record, notification location
+
+**Preparation**:
+An ordered plan of steps the user intends to complete before leaving for a Schedule.
+_Avoid_: Reminder, notification, alarm
+
+**Preparation Step**:
+One named action in a Preparation with an expected duration.
+_Avoid_: UI row, checklist widget, notification step
+
 **Product Usage Event**:
 A named record that a user performed a product-relevant action, excluding raw personal content.
 _Avoid_: User activity, tracking event, raw interaction log
@@ -41,6 +61,18 @@ _Avoid_: Tracking vendor, analytics SDK
 A Product Usage Event that marks completion or failure of a meaningful user workflow step.
 _Avoid_: Tap event, raw navigation log, interaction trace
 
+**Schedule**:
+A planned commitment with a target time that OnTime helps the user prepare for.
+_Avoid_: Event, appointment, alarm
+
+**Preparation**:
+The ordered set of steps a user completes before a Schedule.
+_Avoid_: Preparation chain, task list
+
+**Preparation Step**:
+One named action with an expected duration inside a Preparation.
+_Avoid_: Task, checklist item, alarm step
+
 **Provider Authentication Completed**:
 The state where the external Apple or Google account prompt has returned credentials to OnTime.
 _Avoid_: Login completed, signed in, session ready
@@ -60,6 +92,14 @@ _Avoid_: Event, appointment record
 **Preparation**:
 An ordered set of steps and durations used to get ready for a Schedule.
 _Avoid_: Routine, prep checklist
+
+**Preparation Duration**:
+The sum of a Schedule's Preparation step durations, excluding move time and Schedule Spare Time.
+_Avoid_: Total duration, travel time, buffer time
+
+**Schedule Spare Time**:
+A user buffer before a Schedule's appointment time, separate from travel time and Preparation Duration.
+_Avoid_: Preparation time, move time
 
 **Default Preparation**:
 The user's fallback Preparation for new Schedules.
@@ -125,6 +165,18 @@ _Avoid_: Fallback, degraded, time sensitive
 The user-facing status for schedule delivery through an Alarm.
 _Avoid_: Notification, native alarm
 
+**Schedule**:
+A user commitment with a planned time and preparation context in OnTime.
+_Avoid_: Appointment, event, task
+
+**Monthly Calendar**:
+The calendar surface that shows Schedules grouped by day across a calendar month.
+_Avoid_: Month view, calendar grid
+
+**Calendar Month Range**:
+A contiguous span of calendar months whose Schedules are in scope for a Monthly Calendar.
+_Avoid_: Loaded range, stream range, cached range
+
 ## Relationships
 
 - A **Product Usage Event** may describe a **Schedule**, **Preparation**, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
@@ -132,6 +184,15 @@ _Avoid_: Notification, native alarm
 - A **Default Preparation** may seed a new **Schedule** before the user chooses a different preparation.
 - A **Custom Preparation** belongs to one **Schedule**.
 - **Preparation Mode** may appear as an **Analytics Event Parameter** without exposing preparation step names.
+- A **Monthly Calendar** displays **Schedules** grouped by calendar day.
+- A **Calendar Month Range** starts at the first day of its first month and ends before the first day of the month after its last month.
+- A **Monthly Calendar** may extend a **Calendar Month Range** when the user moves to an adjacent month.
+- An **OnTime User** may own zero or more **Schedules**.
+- A **Schedule** has one **Place**.
+- A **Schedule** may use one **Preparation**.
+- A **Preparation** contains zero or more **Preparation Steps** in user-defined order.
+- A **Preparation Step** belongs to exactly one **Preparation**.
+- A **Schedule Notification** uses **Schedule** and **Preparation** timing, but is not itself a **Schedule** or **Preparation**.
 - First-release **Product Usage Events** are **Workflow Milestone Events**, not every tap or raw navigation step.
 - First-release **Workflow Milestone Events** cover analytics preference, onboarding, authentication, schedule, notification permission, alarm, and schedule-finish outcomes.
 - **Provider Authentication Completed** precedes **OnTime Session Established** during Apple or Google sign-in.
@@ -141,6 +202,11 @@ _Avoid_: Notification, native alarm
 - An **Analytics Event Parameter** must not contain user-authored text, direct identifiers, tokens, raw exception strings, request bodies, or response bodies.
 - A **Product Usage Event** uses a stable snake_case name and includes a schema version.
 - A changed **Product Usage Event** meaning requires a new event name or schema version.
+- A **Schedule** may have one **Preparation** for that specific commitment.
+- A **Preparation** contains zero or more **Preparation Steps** in user-defined order.
+- A user's default **Preparation** may be applied to a **Schedule** and then changed for that Schedule.
+- A **Schedule** has a **Preparation** whose **Preparation Duration** contributes to preparation-start timing.
+- **Preparation Duration**, move time, and **Schedule Spare Time** are distinct schedule timing inputs.
 - User-facing copy should call a scheduled notification a **Schedule Notification**, not an **Alarm**, unless it opens an OnTime screen without the user first tapping a notification.
 - The profile setting for upcoming schedule preparation delivery should be called **Schedule Notification Setting**.
 - On iOS, user-facing copy may say **Alarm** only when OnTime can deliver an **iOS AlarmKit Alarm**.
@@ -179,8 +245,14 @@ _Avoid_: Notification, native alarm
 > **Dev:** "Should the analytics event include the schedule note so we can understand why users are late?"
 > **Domain expert:** "No. A **Product Usage Event** can say a schedule was finished late, but it must not include the user's raw note."
 
+> **Dev:** "Can a **Schedule Notification** replace the **Schedule** if the user taps it?"
+> **Domain expert:** "No. The **Schedule Notification** only prompts preparation for the **Schedule**; the **Schedule** remains the planned commitment."
+
 ## Flagged ambiguities
 
+- "User" was overloaded as both the human actor and stored profile; resolved: use **OnTime User** for the account/profile concept and plain user only for the person performing an action.
+- "Schedule" was used near notification and alarm flows; resolved: a **Schedule** is the planned commitment, while notifications and alarms are delivery experiences for preparation timing.
+- "Preparation state" was ambiguous between step progress and display styling; resolved: **Preparation Step** progress belongs to preparation language, while visual labels should not redefine the domain.
 - "User activities" was used broadly; resolved: the canonical term is **Product Usage Event**, and raw personal content is out of scope.
 - "Analytics" was used to include all possible purposes; resolved: marketing and personalization are deferred, not first-release purposes.
 - "User identity" for analytics was ambiguous; resolved: analytics uses a **Pseudonymous Analytics Subject**, not directly identifying user data.
@@ -205,3 +277,5 @@ _Avoid_: Notification, native alarm
 - "Time Sensitive" was too platform-specific for default user-facing status; resolved: fallback iOS delivery should be called notification.
 - "Status label" was ambiguous across platforms; resolved: Android uses precise notification or notification status, while iOS uses alarm status only for **iOS AlarmKit Alarm**.
 - "No scheduled alarm" was too capability-specific for an empty state; resolved: use **No Scheduled Notification** across platforms.
+- "Preparation chain" describes storage reconstruction, not product language; resolved: the domain concept is an ordered **Preparation** made of **Preparation Steps**.
+- "Total duration" was ambiguous between **Preparation Duration** and the broader preparation-start timing calculation; resolved: **Preparation Duration** is steps only, while move time and **Schedule Spare Time** are separate inputs.

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
@@ -18,6 +19,7 @@ class ScheduleFormDraft extends Equatable {
   final Duration? scheduleSpareTime;
   final String? scheduleNote;
   final PreparationEntity preparation;
+  final SchedulePreparationMode? originalPreparationMode;
 
   const ScheduleFormDraft({
     required this.id,
@@ -30,6 +32,7 @@ class ScheduleFormDraft extends Equatable {
     required this.scheduleSpareTime,
     required this.scheduleNote,
     required this.preparation,
+    this.originalPreparationMode,
   });
 
   @override
@@ -44,6 +47,7 @@ class ScheduleFormDraft extends Equatable {
     scheduleSpareTime,
     scheduleNote,
     preparation,
+    originalPreparationMode,
   ];
 }
 
@@ -93,6 +97,7 @@ class LoadScheduleFormDraftUseCase {
       scheduleSpareTime: currentUserSpareTime,
       scheduleNote: null,
       preparation: defaultPreparation,
+      originalPreparationMode: null,
     );
   }
 
@@ -112,6 +117,7 @@ class LoadScheduleFormDraftUseCase {
       scheduleSpareTime: schedule.scheduleSpareTime,
       scheduleNote: schedule.scheduleNote,
       preparation: preparation,
+      originalPreparationMode: schedule.preparationMode,
     );
   }
 

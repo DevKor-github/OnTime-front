@@ -211,6 +211,10 @@ class NativeAlarmReceiver : BroadcastReceiver() {
     }
 
     private fun handleFireAlarm(context: Context, intent: Intent) {
+        if (!NativeAlarmPolicy.isAndroidFullScreenAlarmApproved()) {
+            NativeLog.d(TAG, "Native alarm broadcast ignored: full-screen alarm approval is disabled")
+            return
+        }
         val extras = payloadFromIntent(intent)
         val requestCode = intent.getIntExtra(
             "nativeAlarmId",

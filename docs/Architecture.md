@@ -255,7 +255,7 @@ Navigation ← AppBloc ← UserEntity ← UserRepository ← AuthDataSource ← 
 ```
 Schedule Form → ScheduleBloc → CreateScheduleUseCase → ScheduleRepository
                      ↓
-Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
+ScheduleRemoteDataSource → API
 ```
 
 ## 🎯 Key Features Architecture
@@ -272,7 +272,7 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 - **CRUD operations** for schedules
 - **Calendar integration** with multiple view modes
 - **Preparation time calculation** and management
-- **Real-time synchronization** between local and remote data
+- **In-memory schedule stream updates** after remote reads and writes
 - **Runtime preparation flow** with official timer starts, early-start entry, and finish/lateness handling
 - **Cache-coherent timed-preparation resume** using snapshot metadata and fingerprint invalidation
 - **Automatic timer system** for schedule start notifications
@@ -285,11 +285,11 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 - **Local notifications** for preparation alerts
 - **Permission handling** for notification access
 
-### 4. **Offline Support**
+### 4. **Local Runtime Persistence**
 
-- **Local database** with Drift for offline data access
-- **Synchronization strategy** for online/offline data consistency
-- **Caching mechanisms** for improved performance
+- **Local persistence** for runtime state such as timed-preparation snapshots, early-start sessions, and alarm registry records
+- **Remote-only schedule persistence** for schedule CRUD/read operations
+- **In-memory schedule streams** for loaded schedule ranges; no offline schedule CRUD/cache contract is currently implemented
 
 ### 5. **Error Handling System**
 
@@ -305,7 +305,7 @@ Database ← ScheduleDao ← ScheduleRepository ← ScheduleEntity
 
 - `PreparationWithTimeLocalDataSource` persists `PreparationWithTimeEntity` per schedule using SharedPreferences.
 - Intended for lightweight, per-schedule timer state (elapsed time, completion) that should survive app restarts.
-- Repository reads canonical preparation from remote/DB; BLoC can merge it with locally persisted timing state when needed.
+- Repository reads canonical schedule/preparation data from the remote API; BLoC can merge it with locally persisted timing state when needed.
 
 ## 🧪 Testing Strategy
 

@@ -83,6 +83,43 @@ void main() {
     expect(schedules.single.latenessTime, 2);
   });
 
+  test(
+    'filters schedule date ranges as start-inclusive and end-exclusive',
+    () async {
+      final startBoundary = _schedule(
+        id: 'start-boundary',
+        placeId: 'place-1',
+        placeName: 'Office',
+        time: DateTime(2026, 2, 1),
+      );
+      final lastDay = _schedule(
+        id: 'last-day',
+        placeId: 'place-2',
+        placeName: 'Cafe',
+        time: DateTime(2026, 2, 28, 23, 59),
+      );
+      final nextMonthStart = _schedule(
+        id: 'next-month-start',
+        placeId: 'place-3',
+        placeName: 'Station',
+        time: DateTime(2026, 3, 1),
+      );
+      await dataSource.createSchedule(startBoundary);
+      await dataSource.createSchedule(lastDay);
+      await dataSource.createSchedule(nextMonthStart);
+
+      final schedules = await dataSource.getSchedulesByDate(
+        DateTime(2026, 2, 1),
+        DateTime(2026, 3, 1),
+      );
+
+      expect(
+        schedules.map((schedule) => schedule.id),
+        unorderedEquals(['start-boundary', 'last-day']),
+      );
+    },
+  );
+
   test('deleteSchedule removes only the requested schedule', () async {
     await dataSource.createSchedule(
       _schedule(

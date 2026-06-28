@@ -33,7 +33,7 @@ void main() {
   );
 
   test(
-    'refreshPermission clears dismissal and enables alarms when granted',
+    'refreshPermission clears dismissal and enables alarms when approved native permission is granted',
     () async {
       SharedPreferences.setMockInitialValues({'alarm_prompt_dismissed': true});
       final repository = _FakeAlarmRepository();
@@ -87,7 +87,7 @@ void main() {
   );
 
   test(
-    'refreshPermission prompts and disables alarms when permission is denied',
+    'refreshPermission prompts and disables alarms when approved native permission is denied',
     () async {
       final repository = _FakeAlarmRepository();
       final cancelAll = _FakeCancelAllAlarmsUseCase();
@@ -125,7 +125,7 @@ void main() {
   });
 
   test(
-    'requestPermission grants access, clears dismissal, and enables alarms',
+    'requestPermission grants approved native access, clears dismissal, and enables alarms',
     () async {
       SharedPreferences.setMockInitialValues({'alarm_prompt_dismissed': true});
       final repository = _FakeAlarmRepository();
@@ -185,7 +185,7 @@ void main() {
   );
 
   test(
-    'refreshPermission still prompts for exact timing but keeps fallback delivery',
+    'refreshPermission allows fallback delivery when exact timing is denied',
     () async {
       final repository = _FakeAlarmRepository();
       final cancelAll = _FakeCancelAllAlarmsUseCase();
@@ -208,7 +208,8 @@ void main() {
 
       await cubit.refreshPermission(disableAlarmsWhenPermissionMissing: true);
 
-      expect(cubit.state, const AlarmGateState.required());
+      expect(cubit.state, const AlarmGateState.allowed());
+      expect(cubit.state.shouldPrompt, isFalse);
       expect(repository.updatedAlarmSettings, isEmpty);
       expect(cancelAll.callCount, 0);
     },
@@ -248,7 +249,7 @@ void main() {
   );
 
   test(
-    'requestPermission denial disables alarms and keeps prompt required',
+    'requestPermission denial for approved native delivery disables alarms and keeps prompt required',
     () async {
       final repository = _FakeAlarmRepository();
       final cancelAll = _FakeCancelAllAlarmsUseCase();
@@ -286,7 +287,7 @@ void main() {
   });
 
   test(
-    'best-effort alarm enable still allows permission state to resolve',
+    'best-effort alarm enable still allows approved native permission state to resolve',
     () async {
       final cubit = _buildCubit(
         scheduler: _FakeAlarmSchedulerService(
@@ -342,7 +343,7 @@ class _FakeAlarmSchedulerService extends AlarmSchedulerService {
     this.requestPermissionState = AlarmPermissionState.denied,
     this.capabilities = const AlarmSchedulerCapabilities(
       supportsNativeAlarm: true,
-      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+      nativeAlarmProvider: AlarmProvider.iosAlarmKit,
       fallbackProvider: AlarmProvider.none,
     ),
   });
@@ -455,7 +456,7 @@ class _FakeReconcileAlarmsUseCase implements ReconcileAlarmsUseCase {
     final now = DateTime(2026, 5, 15);
     return AlarmReconciliationResult(
       status: AlarmReconciliationStatus.armed,
-      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+      nativeAlarmProvider: AlarmProvider.none,
       fallbackProvider: AlarmProvider.localNotification,
       armedScheduleIds: const [],
       skippedScheduleCount: 0,

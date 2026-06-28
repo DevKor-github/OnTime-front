@@ -18,13 +18,18 @@ final class ScheduleFormEditRequested extends ScheduleFormEvent {
 
 final class ScheduleFormCreateRequested extends ScheduleFormEvent {
   final DateTime? initialDate;
+  final Duration? currentUserSpareTime;
 
-  const ScheduleFormCreateRequested({this.initialDate});
+  const ScheduleFormCreateRequested({
+    this.initialDate,
+    this.currentUserSpareTime,
+  });
 
   @override
   List<Object> get props => [
-        initialDate ?? DateTime.fromMillisecondsSinceEpoch(0),
-      ];
+    initialDate ?? DateTime.fromMillisecondsSinceEpoch(0),
+    currentUserSpareTime ?? Duration.zero,
+  ];
 }
 
 final class ScheduleFormScheduleNameChanged extends ScheduleFormEvent {
@@ -51,11 +56,11 @@ final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
 
   @override
   List<Object> get props => [
-        scheduleDate,
-        scheduleTime,
-        maxAvailableTime ?? const Duration(days: -999999),
-        previousScheduleName ?? '',
-      ];
+    scheduleDate,
+    scheduleTime,
+    maxAvailableTime ?? const Duration(days: -999999),
+    previousScheduleName ?? '',
+  ];
 }
 
 final class ScheduleFormPlaceNameChanged extends ScheduleFormEvent {

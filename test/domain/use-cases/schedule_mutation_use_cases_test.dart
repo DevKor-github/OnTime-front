@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
@@ -286,20 +286,5 @@ class _FakeUserRepository implements UserRepository {
   }) async {}
 
   @override
-  Future<void> signInWithGoogle(GoogleSignInAccount account) async {}
-
-  @override
-  Future<void> initializeGoogleSignIn() async {}
-
-  @override
-  bool get supportsGoogleAuthenticate => false;
-
-  @override
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents =>
-      const Stream.empty();
-
-  @override
-  Future<GoogleSignInAccount> authenticateWithGoogle() async {
-    throw UnimplementedError();
-  }
+  Future<void> signInWithGoogle(GoogleAuthCredential credential) async {}
 }

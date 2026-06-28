@@ -1,16 +1,8 @@
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:on_time_front/domain/entities/google_auth_credential.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
 abstract interface class UserRepository {
   Stream<UserEntity> get userStream;
-
-  Stream<GoogleSignInAuthenticationEvent> get googleAuthenticationEvents;
-
-  Future<void> initializeGoogleSignIn();
-
-  bool get supportsGoogleAuthenticate;
-
-  Future<GoogleSignInAccount> authenticateWithGoogle();
 
   Future<void> signUp({
     required String email,
@@ -22,7 +14,7 @@ abstract interface class UserRepository {
 
   Future<void> signOut();
 
-  Future<void> signInWithGoogle(GoogleSignInAccount account);
+  Future<void> signInWithGoogle(GoogleAuthCredential credential);
 
   Future<void> signInWithApple({
     required String idToken,

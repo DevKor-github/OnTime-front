@@ -4,7 +4,9 @@ import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
@@ -97,6 +99,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         scheduleSpareTime: scheduleEntity.scheduleSpareTime,
         scheduleNote: scheduleEntity.scheduleNote,
         preparation: preparationEntity,
+        originalPreparationMode: scheduleEntity.preparationMode,
       ),
     );
   }
@@ -224,7 +227,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       await _updateScheduleUseCase(scheduleEntity);
       if (state.isChanged != IsPreparationChanged.unchanged) {
         await _updatePreparationByScheduleIdUseCase(
-          state.preparation!,
+          _preparationForScheduleUpdate(),
           scheduleEntity.id,
         );
       }
@@ -311,20 +314,37 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     );
   }
 
+  PreparationEntity _preparationForScheduleUpdate() {
+    final preparation = state.preparation!;
+    if (state.originalPreparationMode !=
+        SchedulePreparationMode.defaultPreparation) {
+      return preparation;
+    }
+
+    final orderedSteps = preparation.ordered.preparationStepList;
+    final newIds = List.generate(orderedSteps.length, (_) => Uuid().v7());
+    final copiedSteps = <PreparationStepEntity>[
+      for (var i = 0; i < orderedSteps.length; i++)
+        PreparationStepEntity(
+          id: newIds[i],
+          preparationName: orderedSteps[i].preparationName,
+          preparationTime: orderedSteps[i].preparationTime,
+          nextPreparationId: i + 1 < newIds.length ? newIds[i + 1] : null,
+        ),
+    ];
+
+    return PreparationEntity(preparationStepList: copiedSteps);
+  }
+
   Future<void> _trackScheduleCreated(ScheduleEntity scheduleEntity) async {
     await _productUsageEventTracker.track(
-      ProductUsageEvent(
-        name: 'schedule_created',
-        workflow: 'schedule',
-        result: 'success',
-        parameters: {
-          'preparation_mode': scheduleEntity.preparationMode?.name ?? 'default',
-          'preparation_step_count':
-              state.preparation?.preparationStepList.length ?? 0,
-          'minutes_until_schedule': scheduleEntity.scheduleTime
-              .difference(DateTime.now())
-              .inMinutes,
-        },
+      ProductUsageEvent.scheduleCreated(
+        preparationMode: scheduleEntity.preparationMode,
+        preparationStepCount:
+            state.preparation?.preparationStepList.length ?? 0,
+        minutesUntilSchedule: scheduleEntity.scheduleTime
+            .difference(DateTime.now())
+            .inMinutes,
       ),
     );
   }

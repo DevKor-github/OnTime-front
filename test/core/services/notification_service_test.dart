@@ -5,26 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
-import 'package:on_time_front/data/data_sources/notification_remote_data_source.dart';
-import 'package:on_time_front/data/models/fcm_token_register_request_model.dart';
+import 'package:on_time_front/core/services/notification_tap_router.dart';
+import 'package:on_time_front/core/services/notification_token_registrar.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
-import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
-import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUp(() async {
-    await getIt.reset();
-  });
-
-  tearDown(() async {
-    await getIt.reset();
-  });
 
   test(
     'hasNotificationPermission accepts authorized and provisional states',
@@ -111,7 +99,7 @@ void main() {
               data: {'type': 'preparation_step', 'scheduleId': 'schedule-1'},
             );
       final localNotifications = _RecordingLocalNotifications();
-      final navigationService = _FakeNavigationService();
+      final tapRouter = _FakeNotificationTapRouter();
       const firebaseMessagingChannel = MethodChannel(
         'plugins.flutter.io/firebase_messaging',
       );
@@ -124,10 +112,10 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(firebaseMessagingChannel, null);
       });
-      getIt.registerSingleton<NavigationService>(navigationService);
       final service = NotificationService.test(
         messaging: messaging,
         localNotifications: localNotifications,
+        notificationTapRouter: tapRouter,
       );
 
       await service.initialize();
@@ -136,9 +124,102 @@ void main() {
       expect(messaging.getTokenCount, 1);
       expect(messaging.getInitialMessageCount, 1);
       expect(localNotifications.initializeCount, 1);
-      expect(navigationService.pushedRoutes, ['/alarmScreen']);
+      expect(tapRouter.remoteMessageData.single['scheduleId'], 'schedule-1');
     },
   );
+
+  test(
+    'repeated initialize handles each notification entry point once',
+    () async {
+      final messaging =
+          _FakeFirebaseMessaging(AuthorizationStatus.notDetermined)
+            ..requestedAuthorizationStatus = AuthorizationStatus.authorized
+            ..initialMessage = const RemoteMessage(
+              data: {'type': 'preparation_step', 'scheduleId': 'initial'},
+            );
+      final localNotifications = _RecordingLocalNotifications();
+      final tapRouter = _FakeNotificationTapRouter();
+      final foregroundMessages = StreamController<RemoteMessage>.broadcast();
+      final openedAppMessages = StreamController<RemoteMessage>.broadcast();
+      const firebaseMessagingChannel = MethodChannel(
+        'plugins.flutter.io/firebase_messaging',
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            firebaseMessagingChannel,
+            (_) async => null,
+          );
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(firebaseMessagingChannel, null);
+        foregroundMessages.close();
+        openedAppMessages.close();
+      });
+      final service = NotificationService.test(
+        messaging: messaging,
+        localNotifications: localNotifications,
+        notificationTapRouter: tapRouter,
+        onMessage: foregroundMessages.stream,
+        onMessageOpenedApp: openedAppMessages.stream,
+      );
+
+      await service.initialize();
+      await service.initialize();
+
+      foregroundMessages.add(
+        const RemoteMessage(data: {'title': 'Title', 'body': 'Body'}),
+      );
+      openedAppMessages.add(
+        const RemoteMessage(
+          data: {'type': 'preparation_step', 'scheduleId': 'opened'},
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(messaging.getInitialMessageCount, 1);
+      expect(localNotifications.shown, hasLength(1));
+      expect(tapRouter.remoteMessageData.map((data) => data['scheduleId']), [
+        'initial',
+        'opened',
+      ]);
+    },
+  );
+
+  test('concurrent initialize shares one in-flight setup', () async {
+    final permissionBlocker = Completer<void>();
+    final messaging = _FakeFirebaseMessaging(AuthorizationStatus.notDetermined)
+      ..requestedAuthorizationStatus = AuthorizationStatus.authorized
+      ..requestPermissionBlocker = permissionBlocker
+      ..token = 'fcm-token';
+    final localNotifications = _RecordingLocalNotifications();
+    final tokenRegistrar = _FakeFcmTokenRegistrar();
+    const firebaseMessagingChannel = MethodChannel(
+      'plugins.flutter.io/firebase_messaging',
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(firebaseMessagingChannel, (_) async => null);
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(firebaseMessagingChannel, null);
+    });
+    final service = NotificationService.test(
+      messaging: messaging,
+      localNotifications: localNotifications,
+      fcmTokenRegistrar: tokenRegistrar,
+    );
+
+    final firstInitialize = service.initialize();
+    await pumpEventQueue();
+    final secondInitialize = service.initialize();
+
+    permissionBlocker.complete();
+    await Future.wait([firstInitialize, secondInitialize]);
+
+    expect(messaging.requestPermissionCount, 1);
+    expect(messaging.getInitialMessageCount, 1);
+    expect(localNotifications.initializeCount, 1);
+    expect(tokenRegistrar.registeredTokens, ['fcm-token']);
+  });
 
   test(
     'openNotificationSettings returns false when platform launch fails',
@@ -167,23 +248,20 @@ void main() {
     expect(messaging.tokenRefreshListened, isTrue);
   });
 
-  test('requestNotificationToken registers FCM token with device id', () async {
+  test('requestNotificationToken delegates FCM token registration', () async {
     final messaging = _FakeFirebaseMessaging(AuthorizationStatus.authorized)
       ..token = 'fcm-token';
-    final remoteDataSource = _FakeNotificationRemoteDataSource();
-    getIt
-      ..registerSingleton<AlarmRepository>(_FakeAlarmRepository())
-      ..registerSingleton<NotificationRemoteDataSource>(remoteDataSource);
+    final tokenRegistrar = _FakeFcmTokenRegistrar();
     final service = NotificationService.test(
       messaging: messaging,
       localNotifications: _RecordingLocalNotifications(),
       isFlutterLocalNotificationsInitialized: true,
+      fcmTokenRegistrar: tokenRegistrar,
     );
 
     await service.requestNotificationToken();
 
-    expect(remoteDataSource.registeredTokens.single.firebaseToken, 'fcm-token');
-    expect(remoteDataSource.registeredTokens.single.deviceId, 'device-1');
+    expect(tokenRegistrar.registeredTokens, ['fcm-token']);
   });
 
   test(
@@ -191,24 +269,48 @@ void main() {
     () async {
       final messaging = _FakeFirebaseMessaging(AuthorizationStatus.authorized)
         ..token = 'initial-token';
-      final remoteDataSource = _FakeNotificationRemoteDataSource();
-      getIt
-        ..registerSingleton<AlarmRepository>(_FakeAlarmRepository())
-        ..registerSingleton<NotificationRemoteDataSource>(remoteDataSource);
+      final tokenRegistrar = _FakeFcmTokenRegistrar();
       final service = NotificationService.test(
         messaging: messaging,
         localNotifications: _RecordingLocalNotifications(),
         isFlutterLocalNotificationsInitialized: true,
+        fcmTokenRegistrar: tokenRegistrar,
       );
 
       await service.requestNotificationToken();
       messaging.emitTokenRefresh('refreshed-token');
       await pumpEventQueue();
 
-      expect(
-        remoteDataSource.registeredTokens.map((token) => token.firebaseToken),
-        ['initial-token', 'refreshed-token'],
+      expect(tokenRegistrar.registeredTokens, [
+        'initial-token',
+        'refreshed-token',
+      ]);
+    },
+  );
+
+  test(
+    'repeated token requests keep one refresh registration callback',
+    () async {
+      final messaging = _FakeFirebaseMessaging(AuthorizationStatus.authorized)
+        ..token = 'initial-token';
+      final tokenRegistrar = _FakeFcmTokenRegistrar();
+      final service = NotificationService.test(
+        messaging: messaging,
+        localNotifications: _RecordingLocalNotifications(),
+        isFlutterLocalNotificationsInitialized: true,
+        fcmTokenRegistrar: tokenRegistrar,
       );
+
+      await service.requestNotificationToken();
+      await service.requestNotificationToken();
+      messaging.emitTokenRefresh('refreshed-token');
+      await pumpEventQueue();
+
+      expect(tokenRegistrar.registeredTokens, [
+        'initial-token',
+        'initial-token',
+        'refreshed-token',
+      ]);
     },
   );
 
@@ -229,14 +331,14 @@ void main() {
   );
 
   test(
-    'local notification taps route decoded payloads through navigation service',
+    'local notification taps are delegated to the notification tap router',
     () async {
       final localNotifications = _RecordingLocalNotifications();
-      final navigationService = _FakeNavigationService();
-      getIt.registerSingleton<NavigationService>(navigationService);
+      final tapRouter = _FakeNotificationTapRouter();
       final service = NotificationService.test(
         messaging: _FakeFirebaseMessaging(AuthorizationStatus.authorized),
         localNotifications: localNotifications,
+        notificationTapRouter: tapRouter,
       );
 
       await service.setupFlutterNotifications();
@@ -245,7 +347,10 @@ void main() {
       );
       localNotifications.tapPayload('not-json');
 
-      expect(navigationService.pushedRoutes, ['/alarmScreen']);
+      expect(tapRouter.localPayloads, [
+        '{"type":"preparation_step","scheduleId":"schedule-1"}',
+        'not-json',
+      ]);
     },
   );
 
@@ -522,6 +627,7 @@ class _FakeFirebaseMessaging implements FirebaseMessaging {
   AuthorizationStatus authorizationStatus;
   AuthorizationStatus requestedAuthorizationStatus =
       AuthorizationStatus.authorized;
+  Completer<void>? requestPermissionBlocker;
   int requestPermissionCount = 0;
   int getTokenCount = 0;
   int getInitialMessageCount = 0;
@@ -547,6 +653,7 @@ class _FakeFirebaseMessaging implements FirebaseMessaging {
   }) async {
     requestPermissionCount += 1;
     authorizationStatus = requestedAuthorizationStatus;
+    await requestPermissionBlocker?.future;
     return _settings(authorizationStatus);
   }
 
@@ -758,69 +865,26 @@ class _FakeIOSLocalNotificationsPlugin
   }
 }
 
-class _FakeNavigationService implements NavigationService {
-  final pushedRoutes = <String>[];
-  final pushedExtras = <Object?>[];
+class _FakeFcmTokenRegistrar implements FcmTokenRegistrar {
+  final registeredTokens = <String>[];
 
   @override
-  void push(String routeName, {Object? extra}) {
-    pushedRoutes.add(routeName);
-    pushedExtras.add(extra);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FakeAlarmRepository implements AlarmRepository {
-  @override
-  Future<String> getDeviceId() async => 'device-1';
-
-  @override
-  Future<AlarmDeviceInfo> buildCurrentDeviceInfo() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<AlarmSettings> getAlarmSettings() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<AlarmSettings> updateAlarmSettings({required bool alarmsEnabled}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> registerCurrentDevice(AlarmDeviceInfo deviceInfo) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> unregisterCurrentDevice(String deviceId) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ScheduleWithPreparationEntity>> getAlarmWindow(
-    DateTime startDate,
-    DateTime endDate,
-  ) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> postAlarmStatus(AlarmStatusReport report) {
-    throw UnimplementedError();
+  Future<void> registerToken(String firebaseToken) async {
+    registeredTokens.add(firebaseToken);
   }
 }
 
-class _FakeNotificationRemoteDataSource
-    implements NotificationRemoteDataSource {
-  final registeredTokens = <FcmTokenRegisterRequestModel>[];
+class _FakeNotificationTapRouter implements NotificationTapRouter {
+  final localPayloads = <String?>[];
+  final remoteMessageData = <Map<dynamic, dynamic>>[];
 
   @override
-  Future<void> fcmTokenRegister(FcmTokenRegisterRequestModel model) async {
-    registeredTokens.add(model);
+  void routeLocalNotificationTap(String? payload) {
+    localPayloads.add(payload);
+  }
+
+  @override
+  void routeRemoteNotificationData(Map<dynamic, dynamic> data) {
+    remoteMessageData.add(data);
   }
 }

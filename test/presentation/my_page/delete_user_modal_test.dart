@@ -8,6 +8,7 @@ import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/domain/use-cases/delete_user_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/my_page/my_page_modal/delete_user_modal.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() {
@@ -144,9 +145,17 @@ void main() {
       await _openFeedbackDialog(tester);
 
       await tester.tap(find.text('의견 보내고 탈퇴하기'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.byType(TwoActionDialog), findsOneWidget);
+      expect(find.text('오류'), findsOneWidget);
+      expect(find.text('더 좋은 서비스로 다시 만나요'), findsOneWidget);
+
+      await tester.tap(find.text('확인'));
       await tester.pumpAndSettle();
 
-      expect(find.text('오류'), findsOneWidget);
+      expect(find.byType(TwoActionDialog), findsNothing);
       expect(find.text('더 좋은 서비스로 다시 만나요'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(repository.didSignOut, isFalse);

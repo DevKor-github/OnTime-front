@@ -17,6 +17,7 @@ import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_bloc.dart';
 import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() {
@@ -85,7 +86,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PreparationSpareTimeEditScreen), findsOneWidget);
-    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.byType(TwoActionDialog), findsOneWidget);
     expect(find.textContaining('save failed'), findsOneWidget);
   });
 

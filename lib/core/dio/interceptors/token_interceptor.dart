@@ -11,6 +11,9 @@ class TokenInterceptor implements InterceptorsWrapper {
   static const _tokenUnavailableMessage =
       'Authentication token is unavailable for a protected request';
 
+  static bool _isRefreshing = false;
+  static final _requestsNeedRetry = <_RequestNeedingRetry>[];
+
   final Dio dio;
   final TokenLocalDataSource tokenLocalDataSource;
   final TokenSessionInvalidator _sessionInvalidator;
@@ -20,16 +23,6 @@ class TokenInterceptor implements InterceptorsWrapper {
     required this.tokenLocalDataSource,
     required TokenSessionInvalidator sessionInvalidator,
   }) : _sessionInvalidator = sessionInvalidator;
-
-  // when accessToken is expired & having multiple requests call
-  // this variable to lock others request to make sure only trigger call refresh token 01 times
-  // to prevent duplicate refresh call
-  bool _isRefreshing = false;
-
-  // when having multiple requests call at the same time, you need to store them in a list
-  // then loop this list to retry every request later, after call refresh token success
-  final _requestsNeedRetry =
-      <({RequestOptions options, ErrorInterceptorHandler handler})>[];
 
   @override
   void onRequest(
@@ -62,7 +55,13 @@ class TokenInterceptor implements InterceptorsWrapper {
     if (_shouldRefreshToken(err)) {
       final response = err.response;
       // if hasn't not refreshing yet, let's start it
-      _requestsNeedRetry.add((options: err.requestOptions, handler: handler));
+      _requestsNeedRetry.add(
+        _RequestNeedingRetry(
+          dio: dio,
+          options: err.requestOptions,
+          handler: handler,
+        ),
+      );
 
       if (!_isRefreshing) {
         _isRefreshing = true;
@@ -167,16 +166,14 @@ class TokenInterceptor implements InterceptorsWrapper {
     }
   }
 
-  Future<void> _retryRequests(
-    List<({RequestOptions options, ErrorInterceptorHandler handler})> requests,
-  ) async {
+  Future<void> _retryRequests(List<_RequestNeedingRetry> requests) async {
     await Future.wait(
       requests.map((requestNeedRetry) async {
         final options = requestNeedRetry.options;
         options.extra[_retryAfterRefreshKey] = true;
 
         try {
-          final response = await dio.fetch(options);
+          final response = await requestNeedRetry.dio.fetch(options);
           requestNeedRetry.handler.resolve(response);
         } on DioException catch (error) {
           requestNeedRetry.handler.reject(error);
@@ -197,4 +194,16 @@ class TokenInterceptor implements InterceptorsWrapper {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     handler.next(response);
   }
+}
+
+class _RequestNeedingRetry {
+  const _RequestNeedingRetry({
+    required this.dio,
+    required this.options,
+    required this.handler,
+  });
+
+  final Dio dio;
+  final RequestOptions options;
+  final ErrorInterceptorHandler handler;
 }

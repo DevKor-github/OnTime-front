@@ -6,6 +6,7 @@ This document describes the current notification behavior in OnTime across push 
 
 - App startup checks current notification permission first.
 - `NotificationService.initialize()` runs at startup only when permission is already `AuthorizationStatus.authorized`.
+- `NotificationService.initialize()` is service-level idempotent: repeated sequential or concurrent calls share the same completed or in-flight setup and do not register duplicate FCM listeners.
 - If startup permission is not authorized, the app does not initialize notification handlers/tokens from `main.dart`.
 - During authenticated redirects from sign-in/onboarding entry routes, router logic checks permission and redirects to `/allowNotification` when permission is not authorized.
 - Permission can later be requested from:
@@ -21,20 +22,20 @@ Implementation notes:
 
 ### Foreground
 
-- `FirebaseMessaging.onMessage` listener is registered in `NotificationService._setupMessageHandlers()`.
+- `FirebaseMessaging.onMessage` listener is registered once per `NotificationService` lifecycle.
 - Incoming push messages are converted into in-app local notifications through `showNotification(message)`.
 - Title/body resolution supports both `message.notification` and `message.data` keys (e.g., `title`, `content`, `body`, plus case variants).
 
 ### Background (App in background, opened from notification)
 
-- `FirebaseMessaging.onMessageOpenedApp` triggers `_handleBackgroundMessage(message)`.
+- `FirebaseMessaging.onMessageOpenedApp` listener is registered once per `NotificationService` lifecycle and triggers `_handleBackgroundMessage(message)`.
 - Navigation is decided from payload fields:
   - `type` contains `5min` -> push `/scheduleStart` with `extra: {'isFiveMinutesBefore': true}`
   - `type` starts with `schedule_` or `preparation_`, or `scheduleId` exists -> push `/alarmScreen`
 
 ### Terminated (Cold start from notification tap)
 
-- `FirebaseMessaging.getInitialMessage()` is read on initialization.
+- `FirebaseMessaging.getInitialMessage()` is read once during notification service initialization.
 - If present, it is passed through the same `_handleBackgroundMessage(message)` routing logic as background open.
 
 ### Background isolate handler
@@ -78,7 +79,7 @@ Implementation notes:
   - `FirebaseMessaging.getToken()` is called.
   - If token exists, app posts to backend endpoint `/firebase-token` with payload `{ "firebaseToken": "<token>" }`.
 - On token refresh:
-  - `FirebaseMessaging.onTokenRefresh.listen(...)` posts refreshed token to the same endpoint.
+  - A single `FirebaseMessaging.onTokenRefresh` subscription posts refreshed token to the same endpoint.
 - Failures are logged and do not crash app flow.
 
 ## 6. Platform-Specific Notes (Android/iOS/Web)

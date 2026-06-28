@@ -34,17 +34,15 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
 GoRouter goRouterConfig(
   AuthBloc authBloc,
-  ScheduleBloc scheduleBloc,
   NotificationGateCubit notificationGateCubit,
   AlarmGateCubit alarmGateCubit,
 ) {
   return GoRouter(
-    refreshListenable: StreamToListenable([
-      scheduleBloc.stream,
-      authBloc.stream,
-      notificationGateCubit.stream,
-      alarmGateCubit.stream,
-    ]),
+    refreshListenable: appRouterRefreshListenable(
+      authStream: authBloc.stream,
+      notificationGateStream: notificationGateCubit.stream,
+      alarmGateStream: alarmGateCubit.stream,
+    ),
     navigatorKey: getIt.get<NavigationService>().navigatorKey,
     redirect: (BuildContext context, GoRouterState state) {
       return appRedirectLocation(
@@ -218,6 +216,19 @@ GoRouter goRouterConfig(
       ),
     ],
   );
+}
+
+@visibleForTesting
+StreamToListenable appRouterRefreshListenable({
+  required Stream<AuthState> authStream,
+  required Stream<NotificationGateState> notificationGateStream,
+  required Stream<AlarmGateState> alarmGateStream,
+}) {
+  return StreamToListenable([
+    authStream,
+    notificationGateStream,
+    alarmGateStream,
+  ]);
 }
 
 @visibleForTesting

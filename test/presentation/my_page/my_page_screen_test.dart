@@ -275,44 +275,8 @@ void main() {
     expect(notificationService.openSettingsCount, 1);
   });
 
-  testWidgets('enables alarms through fallback when exact timing is denied', (
-    tester,
-  ) async {
-    final alarmRepository =
-        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-    final alarmScheduler =
-        getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
-    final fallbackService =
-        getIt.get<FallbackAlarmNotificationService>()
-            as _FakeFallbackAlarmNotificationService;
-    final reconcileUseCase =
-        getIt.get<ReconcileAlarmsUseCase>() as _FakeReconcileAlarmsUseCase;
-    alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
-    alarmScheduler
-      ..capabilities = const AlarmSchedulerCapabilities(
-        supportsNativeAlarm: true,
-        nativeAlarmProvider: AlarmProvider.androidAlarmManager,
-      )
-      ..permission = AlarmPermissionState.denied;
-    fallbackService.permission = AlarmPermissionState.granted;
-
-    await _pumpMyPage(tester, locale: const Locale('en'));
-
-    await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Precise notification permission needed'), findsNothing);
-    expect(alarmRepository.updatedSettings, [true]);
-    expect(fallbackService.requestCount, 1);
-    expect(reconcileUseCase.callCount, 1);
-    expect(
-      tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
-      isTrue,
-    );
-  });
-
   testWidgets(
-    'enabling alarms can recover exact alarm permission through settings',
+    'enables schedule notifications when Android exact timing is denied',
     (tester) async {
       final alarmRepository =
           getIt.get<AlarmRepository>() as _FakeAlarmRepository;
@@ -328,6 +292,46 @@ void main() {
         ..capabilities = const AlarmSchedulerCapabilities(
           supportsNativeAlarm: true,
           nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+        )
+        ..permission = AlarmPermissionState.denied;
+      fallbackService.permission = AlarmPermissionState.granted;
+
+      await _pumpMyPage(tester, locale: const Locale('en'));
+
+      await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Precise notification permission needed'), findsNothing);
+      expect(alarmScheduler.requestCount, 0);
+      expect(alarmRepository.updatedSettings, [true]);
+      expect(fallbackService.requestCount, 1);
+      expect(reconcileUseCase.callCount, 1);
+      expect(
+        tester
+            .widget<Switch>(find.byKey(const Key('alarmSettingsSwitch')))
+            .value,
+        isTrue,
+      );
+    },
+  );
+
+  testWidgets(
+    'enabling alarms can recover approved native alarm permission through settings',
+    (tester) async {
+      final alarmRepository =
+          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
+      final alarmScheduler =
+          getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
+      final fallbackService =
+          getIt.get<FallbackAlarmNotificationService>()
+              as _FakeFallbackAlarmNotificationService;
+      final reconcileUseCase =
+          getIt.get<ReconcileAlarmsUseCase>() as _FakeReconcileAlarmsUseCase;
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+      alarmScheduler
+        ..capabilities = const AlarmSchedulerCapabilities(
+          supportsNativeAlarm: true,
+          nativeAlarmProvider: AlarmProvider.iosAlarmKit,
         )
         ..permission = AlarmPermissionState.denied
         ..permissionAfterRequest = AlarmPermissionState.granted;

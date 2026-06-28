@@ -65,6 +65,11 @@ class AlarmRingingActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NativeLog.d(TAG, "AlarmRingingActivity onCreate ${NativeLog.summarizeIntent(intent)}")
+        if (!NativeAlarmPolicy.isAndroidFullScreenAlarmApproved()) {
+            NativeLog.d(TAG, "AlarmRingingActivity finishing: full-screen alarm approval is disabled")
+            finish()
+            return
+        }
         configureWindow()
         capturePayload(intent)
         buildContent()

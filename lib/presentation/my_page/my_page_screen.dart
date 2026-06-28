@@ -448,8 +448,7 @@ Future<AlarmPermissionState> _checkNativePermission(
   AlarmSchedulerService schedulerService,
   AlarmSchedulerCapabilities capabilities,
 ) async {
-  if (!capabilities.supportsNativeAlarm ||
-      capabilities.nativeAlarmProvider == AlarmProvider.none) {
+  if (!_shouldRecoverNativeAlarmPermission(capabilities)) {
     return AlarmPermissionState.unsupported;
   }
   return schedulerService.checkPermission();
@@ -463,6 +462,16 @@ Future<AlarmPermissionState> _checkFallbackPermission(
     return AlarmPermissionState.unsupported;
   }
   return fallbackService.checkPermission();
+}
+
+bool _shouldRecoverNativeAlarmPermission(
+  AlarmSchedulerCapabilities capabilities,
+) {
+  return capabilities.supportsNativeAlarm &&
+      capabilities.nativeAlarmProvider != AlarmProvider.none &&
+      nativeAlarmProviderAllowedByReleasePolicy(
+        capabilities.nativeAlarmProvider,
+      );
 }
 
 class _MyAccountView extends StatelessWidget {

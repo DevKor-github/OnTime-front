@@ -528,28 +528,31 @@ void main() {
     expect(displayFailureNotifications.shown, isEmpty);
   });
 
-  test('fallback alarm scheduling requires notification permission', () async {
-    final messaging = _FakeFirebaseMessaging(AuthorizationStatus.denied);
-    final service = NotificationService.test(
-      messaging: messaging,
-      localNotifications: _RecordingLocalNotifications(),
-      isFlutterLocalNotificationsInitialized: true,
-    );
+  test(
+    'schedule notification scheduling requires notification permission',
+    () async {
+      final messaging = _FakeFirebaseMessaging(AuthorizationStatus.denied);
+      final service = NotificationService.test(
+        messaging: messaging,
+        localNotifications: _RecordingLocalNotifications(),
+        isFlutterLocalNotificationsInitialized: true,
+      );
 
-    await expectLater(
-      service.scheduleFallbackAlarm(_record()),
-      throwsA(
-        isA<AlarmSchedulingException>().having(
-          (error) => error.permissionIssue,
-          'permissionIssue',
-          AlarmPermissionIssue.notificationPermissionDenied,
+      await expectLater(
+        service.scheduleFallbackAlarm(_record()),
+        throwsA(
+          isA<AlarmSchedulingException>().having(
+            (error) => error.permissionIssue,
+            'permissionIssue',
+            AlarmPermissionIssue.notificationPermissionDenied,
+          ),
         ),
-      ),
-    );
-  });
+      );
+    },
+  );
 
   test(
-    'fallback alarms schedule and cancel by stable notification id',
+    'schedule notifications schedule and cancel by stable notification id',
     () async {
       final messaging = _FakeFirebaseMessaging(AuthorizationStatus.authorized);
       final localNotifications = _RecordingLocalNotifications();
@@ -575,6 +578,24 @@ void main() {
       expect(
         localNotifications.scheduled.single.body,
         contains('time to get ready'),
+      );
+      expect(
+        localNotifications
+            .scheduled
+            .single
+            .notificationDetails
+            .android
+            ?.channelName,
+        'Schedule notifications',
+      );
+      expect(
+        localNotifications
+            .scheduled
+            .single
+            .notificationDetails
+            .android
+            ?.category,
+        AndroidNotificationCategory.reminder,
       );
       expect(
         localNotifications
@@ -615,7 +636,11 @@ ScheduledAlarmRecord _record({int? fallbackNotificationId = 42}) {
     scheduleFingerprint: 'fingerprint',
     provider: AlarmProvider.localNotification,
     scheduleTitle: 'Morning meeting',
-    payload: const {'type': 'schedule_alarm', 'scheduleId': 'schedule-1'},
+    payload: const {
+      'type': 'schedule_notification',
+      'scheduleId': 'schedule-1',
+      'promptVariant': 'notification',
+    },
     fallbackNotificationId: fallbackNotificationId,
   );
 }

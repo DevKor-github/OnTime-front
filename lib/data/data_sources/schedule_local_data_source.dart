@@ -1,20 +1,19 @@
 import 'package:on_time_front/core/database/database.dart';
-import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 
 abstract interface class ScheduleLocalDataSource {
-  Future<void> createSchedule(ScheduleEntity scheduleEntity);
+  Future<void> createSchedule(ScheduleWithPlace schedule);
 
-  Future<List<ScheduleEntity>> getSchedulesByDate(
+  Future<List<ScheduleWithPlace>> getSchedulesByDate(
     DateTime startDate,
     DateTime? endDate,
   );
 
-  Future<ScheduleEntity> getScheduleById(String id);
+  Future<ScheduleWithPlace> getScheduleById(String id);
 
-  Future<void> updateSchedule(ScheduleEntity scheduleEntity);
+  Future<void> updateSchedule(Schedule schedule);
 
-  Future<void> deleteSchedule(ScheduleEntity scheduleEntity);
+  Future<void> deleteSchedule(Schedule schedule);
 }
 
 // Not registered with DI; schedule repository persistence is remote-only.
@@ -24,38 +23,30 @@ class ScheduleLocalDataSourceImpl implements ScheduleLocalDataSource {
   ScheduleLocalDataSourceImpl({required this.appDatabase});
 
   @override
-  Future<void> createSchedule(ScheduleEntity scheduleEntity) async {
-    await appDatabase.scheduleDao.createSchedule(
-      scheduleEntity.toScheduleWithPlaceRow(),
-    );
+  Future<void> createSchedule(ScheduleWithPlace schedule) async {
+    await appDatabase.scheduleDao.createSchedule(schedule);
   }
 
   @override
-  Future<void> deleteSchedule(ScheduleEntity schedulEntity) async {
-    await appDatabase.scheduleDao.deleteSchedule(schedulEntity.toScheduleRow());
+  Future<void> deleteSchedule(Schedule schedule) async {
+    await appDatabase.scheduleDao.deleteSchedule(schedule);
   }
 
   @override
-  Future<ScheduleEntity> getScheduleById(String id) async {
-    final scheduleWithPlaceModel = await appDatabase.scheduleDao
-        .getScheduleById(id);
-    return scheduleWithPlaceModel.toScheduleEntity();
+  Future<ScheduleWithPlace> getScheduleById(String id) async {
+    return appDatabase.scheduleDao.getScheduleById(id);
   }
 
   @override
-  Future<List<ScheduleEntity>> getSchedulesByDate(
+  Future<List<ScheduleWithPlace>> getSchedulesByDate(
     DateTime startDate,
     DateTime? endDate,
   ) async {
-    final scheduleWithPlaceModel = await appDatabase.scheduleDao
-        .getSchedulesByDate(startDate, endDate);
-    return scheduleWithPlaceModel.map((e) => e.toScheduleEntity()).toList();
+    return appDatabase.scheduleDao.getSchedulesByDate(startDate, endDate);
   }
 
   @override
-  Future<void> updateSchedule(ScheduleEntity scheduleEntity) async {
-    await appDatabase.scheduleDao.updateSchedule(
-      scheduleEntity.toScheduleRow(),
-    );
+  Future<void> updateSchedule(Schedule schedule) async {
+    await appDatabase.scheduleDao.updateSchedule(schedule);
   }
 }

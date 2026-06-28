@@ -338,18 +338,13 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
 
   Future<void> _trackScheduleCreated(ScheduleEntity scheduleEntity) async {
     await _productUsageEventTracker.track(
-      ProductUsageEvent(
-        name: 'schedule_created',
-        workflow: 'schedule',
-        result: 'success',
-        parameters: {
-          'preparation_mode': scheduleEntity.preparationMode?.name ?? 'default',
-          'preparation_step_count':
-              state.preparation?.preparationStepList.length ?? 0,
-          'minutes_until_schedule': scheduleEntity.scheduleTime
-              .difference(DateTime.now())
-              .inMinutes,
-        },
+      ProductUsageEvent.scheduleCreated(
+        preparationMode: scheduleEntity.preparationMode,
+        preparationStepCount:
+            state.preparation?.preparationStepList.length ?? 0,
+        minutesUntilSchedule: scheduleEntity.scheduleTime
+            .difference(DateTime.now())
+            .inMinutes,
       ),
     );
   }

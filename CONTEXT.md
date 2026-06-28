@@ -105,6 +105,14 @@ _Avoid_: Fallback, degraded, time sensitive
 The user-facing status for schedule delivery through an Alarm.
 _Avoid_: Notification, native alarm
 
+**Preparation Run**:
+One user attempt to prepare for a scheduled commitment.
+_Avoid_: Timer session, countdown session
+
+**Preparation Action Event**:
+A user-performed action that changes a Preparation Run.
+_Avoid_: Timer tick, automatic step transition, elapsed-time snapshot
+
 ## Relationships
 
 - A **Product Usage Event** may describe a schedule, preparation, notification, alarm, onboarding, or account action without storing the user's raw schedule names, notes, place names, credentials, tokens, or free text.
@@ -135,6 +143,13 @@ _Avoid_: Notification, native alarm
 - iOS with an **iOS AlarmKit Alarm** should show **Alarm Status**.
 - iOS without an available **iOS AlarmKit Alarm** but with notification permission should show **Notification Status**.
 - **No Scheduled Notification** should be the user-facing empty state across platforms, even when future delivery may use an **Alarm**.
+- A **Preparation Run** records **Preparation Action Events**, not timer ticks or automatic step transitions.
+- A **Preparation Action Event** may represent starting preparation, skipping a preparation step, or finishing preparation.
+- A **Preparation Run** begins when the user performs the starting **Preparation Action Event**.
+- A skipped preparation step ends at the skip **Preparation Action Event** time; its unused planned duration is not treated as elapsed preparation time.
+- The current step and completion state of a **Preparation Run** are derived from its starting action, user-performed **Preparation Action Events**, and the current time.
+- Automatic step transitions are derived states, not **Preparation Action Events**.
+- A **Preparation Run** must not outlive the scheduled commitment it belongs to.
 - Active first-release **Analytics Purposes** are product improvement, debugging and operations, and experimentation.
 - A first-release **Experiment** must not be used for marketing targeting, sensitive segmentation, or personalized treatment.
 - Marketing and personalization are **Deferred Analytics Purposes**.
@@ -180,3 +195,4 @@ _Avoid_: Notification, native alarm
 - "Time Sensitive" was too platform-specific for default user-facing status; resolved: fallback iOS delivery should be called notification.
 - "Status label" was ambiguous across platforms; resolved: Android uses precise notification or notification status, while iOS uses alarm status only for **iOS AlarmKit Alarm**.
 - "No scheduled alarm" was too capability-specific for an empty state; resolved: use **No Scheduled Notification** across platforms.
+- "Step action events" was ambiguous as either user actions or automatic timer movement; resolved: the canonical term is **Preparation Action Event**, and automatic step transitions are derived rather than recorded as events.

@@ -95,6 +95,9 @@ class _AppRouterViewState extends State<_AppRouterView>
     AppLogger.debug('$_logTag lifecycle state=$state');
     if (state != AppLifecycleState.resumed) return;
     unawaited(HardwareKeyboard.instance.syncKeyboardState().catchError((_) {}));
+    context.read<ScheduleBloc>().add(
+      const SchedulePreparationTimeRefreshRequested(),
+    );
     unawaited(
       getIt.get<AlarmSchedulerService>().dispatchPendingLaunchPayload(),
     );

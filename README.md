@@ -49,7 +49,7 @@ assets/           shared assets and fonts
 widgetbook/       component catalog app
 ```
 
-Generated Dart files such as `*.g.dart`, `*.freezed.dart`, `*.config.dart`, and `*.mocks.dart` are not committed. Regenerate them locally after dependency changes or code-generator changes.
+Generated Dart files such as `*.g.dart`, `*.freezed.dart`, `*.config.dart`, `*.mocks.dart`, and Widgetbook `*.directories.g.dart` outputs are ignored local/CI build artifacts and are not committed. Regenerate them locally after dependency changes or code-generator changes.
 
 ## First-Time Setup
 
@@ -288,6 +288,9 @@ Run:
 ```sh
 dart run build_runner build --delete-conflicting-outputs
 ```
+
+This recreates ignored local generated Dart artifacts. Do not stage generated
+Dart outputs after running the generator.
 
 If generation still fails, clean generated state and fetch dependencies again:
 

@@ -35,6 +35,9 @@ jobs:
 
       - run: dart run build_runner build -d
 
+      - name: Check generated Dart policy
+        run: dart run tool/check_generated_dart_policy.dart
+
       - name: Build Web
         env:
           REST_API_URL: ${{ vars.REST_API_URL }}

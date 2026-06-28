@@ -18,42 +18,51 @@ import 'package:uuid/uuid.dart';
 part 'database.g.dart';
 
 @Singleton()
-@DriftDatabase(tables: [
-  Places,
-  Schedules,
-  Users,
-  PreparationSchedules,
-  PreparationUsers,
-], daos: [
-  ScheduleDao,
-  PlaceDao,
-  UserDao,
-  PreparationScheduleDao,
-  PreparationUserDao
-])
+@DriftDatabase(
+  tables: [Places, Schedules, Users, PreparationSchedules, PreparationUsers],
+  daos: [
+    ScheduleDao,
+    PlaceDao,
+    UserDao,
+    PreparationScheduleDao,
+    PreparationUserDao,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (Migrator m) async {
-          await m.createAll();
-        },
-        onUpgrade: (Migrator m, int from, int to) async {
-          if (from == 1) {
-            await m.createTable(preparationSchedules);
-            await m.createTable(preparationUsers);
-          }
-        },
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (Migrator m) async {
+      await m.createAll();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 3) {
+        await m.createTable(preparationSchedules);
+        await m.createTable(preparationUsers);
+      }
+      if (from < 4) {
+        await _createLookupIndexes(m);
+      }
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
+
+  Future<void> _createLookupIndexes(Migrator m) async {
+    await m.createIndex(schedulesScheduleTimeIdx);
+    await m.createIndex(schedulesPlaceIdIdx);
+    await m.createIndex(preparationSchedulesScheduleIdIdx);
+    await m.createIndex(preparationSchedulesNextPreparationIdIdx);
+    await m.createIndex(preparationUsersUserIdIdx);
+    await m.createIndex(preparationUsersNextPreparationIdIdx);
+  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

@@ -2,6 +2,14 @@ import 'package:drift/drift.dart';
 import 'package:on_time_front/data/tables/schedules_table.dart';
 import 'package:uuid/uuid.dart';
 
+@TableIndex(
+  name: 'preparation_schedules_schedule_id_idx',
+  columns: {#scheduleId},
+)
+@TableIndex(
+  name: 'preparation_schedules_next_preparation_id_idx',
+  columns: {#nextPreparationId},
+)
 class PreparationSchedules extends Table {
   TextColumn get id => text().clientDefault(() => Uuid().v7())();
   TextColumn get scheduleId => text().references(Schedules, #id)();

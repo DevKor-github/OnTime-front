@@ -53,6 +53,30 @@ _Avoid_: Provider login completed, credential received
 An allowlisted non-content value attached to a Product Usage Event.
 _Avoid_: Event payload, arbitrary metadata, raw detail
 
+**Schedule**:
+A planned commitment the user wants to arrive at or complete on time.
+_Avoid_: Event, appointment, alarm target
+
+**Preparation**:
+The ordered set of steps a user intends to complete before a Schedule.
+_Avoid_: Routine, checklist, template instance
+
+**Preparation Step**:
+One named action in a Preparation with its own expected duration.
+_Avoid_: Task, todo, subroutine
+
+**Preparation Start Moment**:
+The intended time for the user to begin Preparation so the Schedule can still be met on time.
+_Avoid_: Alarm time, notification time, wake-up time
+
+**Schedule Preparation Session**:
+The active period when a user is working through Preparation for one Schedule.
+_Avoid_: Schedule run, preparation runtime, alarm session
+
+**Early Start Session**:
+A Schedule Preparation Session that the user starts before the Preparation Start Moment.
+_Avoid_: Manual start, premature alarm, early alarm
+
 **Schedule Notification**:
 A user-facing notification that starts preparation for a scheduled commitment at the intended moment.
 _Avoid_: Schedule alarm, alarm, push
@@ -118,6 +142,12 @@ _Avoid_: Notification, native alarm
 - A **Product Usage Event** uses a stable snake_case name and includes a schema version.
 - A changed **Product Usage Event** meaning requires a new event name or schema version.
 - User-facing copy should call a scheduled notification a **Schedule Notification**, not an **Alarm**, unless it opens an OnTime screen without the user first tapping a notification.
+- A **Schedule** has one active **Preparation** selection.
+- A **Preparation** contains one or more ordered **Preparation Steps**.
+- A **Preparation Start Moment** is derived from the **Schedule**, **Preparation**, movement time, and spare time.
+- A **Schedule Preparation Session** belongs to exactly one **Schedule**.
+- An **Early Start Session** is a **Schedule Preparation Session** started before the **Preparation Start Moment**.
+- A **Schedule Notification** may prompt the user to begin a **Schedule Preparation Session** at the **Preparation Start Moment**.
 - The profile setting for upcoming schedule preparation delivery should be called **Schedule Notification Setting**.
 - On iOS, user-facing copy may say **Alarm** only when OnTime can deliver an **iOS AlarmKit Alarm**.
 - iOS permission prompts should use alarm language only when requesting an **iOS AlarmKit Alarm**; otherwise they should use notification language.
@@ -154,6 +184,9 @@ _Avoid_: Notification, native alarm
 
 > **Dev:** "Should the analytics event include the schedule note so we can understand why users are late?"
 > **Domain expert:** "No. A **Product Usage Event** can say a schedule was finished late, but it must not include the user's raw note."
+>
+> **Dev:** "If the user taps Start before the scheduled notification, is that a separate schedule run?"
+> **Domain expert:** "No - it is an **Early Start Session**, which is still the **Schedule Preparation Session** for that **Schedule**."
 
 ## Flagged ambiguities
 
@@ -164,6 +197,7 @@ _Avoid_: Notification, native alarm
 - "Third party" was ambiguous for analytics; resolved: the canonical term is **Analytics Provider**.
 - "Event taxonomy" was broad; resolved: first-release analytics tracks **Workflow Milestone Events** only.
 - "Event payload" was too open-ended; resolved: events use allowlisted **Analytics Event Parameters** only.
+- "Schedule preparation session" was implicit in code but not in the glossary; resolved: the canonical term is **Schedule Preparation Session**, with **Early Start Session** for sessions started before the **Preparation Start Moment**.
 - "Login completed" was ambiguous for Apple and Google sign-in; resolved: external account prompt completion is **Provider Authentication Completed**, while usable OnTime sign-in is **OnTime Session Established**.
 - "Alarm permission" was ambiguous between **Exact Timing Permission** and notification permission; resolved: notification permission may enable a **Fallback Notification**, but does not mean **Exact Timing Permission** is granted.
 - "Pending" was ambiguous for notification status; resolved: the canonical state is **No Scheduled Notification** when notifications are enabled but no upcoming Schedule Notification is armed.

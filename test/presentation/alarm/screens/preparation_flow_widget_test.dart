@@ -20,6 +20,7 @@ import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use
 import 'package:on_time_front/domain/use-cases/get_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_timed_preparation_snapshot_use_case.dart';
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_preparation_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -161,6 +162,132 @@ EarlyStartUseCaseBundle createEarlyStartUseCaseBundle() {
     InMemoryMarkEarlyStartSessionUseCase(store),
     InMemoryGetEarlyStartSessionUseCase(store),
     InMemoryClearEarlyStartSessionUseCase(store),
+  );
+}
+
+class TestSchedulePreparationSessionUseCase
+    implements SchedulePreparationSessionUseCase {
+  TestSchedulePreparationSessionUseCase({
+    required this.saveTimedPreparationUseCase,
+    required this.getTimedPreparationSnapshotUseCase,
+    required this.clearTimedPreparationUseCase,
+    required this.startScheduleUseCase,
+    required this.finishScheduleUseCase,
+    required this.markEarlyStartSessionUseCase,
+    required this.getEarlyStartSessionUseCase,
+    required this.clearEarlyStartSessionUseCase,
+  });
+
+  final SaveTimedPreparationUseCase saveTimedPreparationUseCase;
+  final GetTimedPreparationSnapshotUseCase getTimedPreparationSnapshotUseCase;
+  final ClearTimedPreparationUseCase clearTimedPreparationUseCase;
+  final StartScheduleUseCase startScheduleUseCase;
+  final FinishScheduleUseCase finishScheduleUseCase;
+  final MarkEarlyStartSessionUseCase markEarlyStartSessionUseCase;
+  final GetEarlyStartSessionUseCase getEarlyStartSessionUseCase;
+  final ClearEarlyStartSessionUseCase clearEarlyStartSessionUseCase;
+  final _startedScheduleIds = <String>{};
+
+  @override
+  Future<void> startEarlySession(
+    ScheduleWithPreparationEntity schedule, {
+    required DateTime startedAt,
+  }) async {
+    await markEarlyStartSessionUseCase(
+      scheduleId: schedule.id,
+      startedAt: startedAt,
+    );
+    await startSchedulePreparation(schedule.id);
+    await saveTimedPreparationSnapshot(schedule, savedAt: startedAt);
+  }
+
+  @override
+  Future<void> startSchedulePreparation(String scheduleId) async {
+    if (!_startedScheduleIds.add(scheduleId)) return;
+    await startScheduleUseCase(scheduleId);
+  }
+
+  @override
+  Future<bool> hasEarlyStartSession(String scheduleId) async {
+    return await getEarlyStartSessionUseCase(scheduleId) != null;
+  }
+
+  @override
+  Future<void> saveTimedPreparationSnapshot(
+    ScheduleWithPreparationEntity schedule, {
+    DateTime? savedAt,
+  }) {
+    return saveTimedPreparationUseCase(
+      schedule,
+      schedule.preparation,
+      savedAt: savedAt,
+    );
+  }
+
+  @override
+  Future<ScheduleWithPreparationEntity> restoreTimedPreparationIfValid(
+    ScheduleWithPreparationEntity schedule, {
+    required DateTime now,
+  }) async {
+    final snapshot = await getTimedPreparationSnapshotUseCase(schedule.id);
+    if (snapshot == null) return schedule;
+    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint) {
+      await clearPersistedState(schedule.id);
+      return schedule;
+    }
+    final elapsedSinceSave = now.difference(snapshot.savedAt);
+    final restoredPreparation = elapsedSinceSave.isNegative
+        ? snapshot.preparation
+        : snapshot.preparation.timeElapsed(elapsedSinceSave);
+    return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+      schedule,
+      restoredPreparation,
+    );
+  }
+
+  @override
+  Future<void> clearPersistedState(String scheduleId) async {
+    await clearTimedPreparationUseCase(scheduleId);
+    await clearEarlyStartSessionUseCase(scheduleId);
+    _startedScheduleIds.remove(scheduleId);
+  }
+
+  @override
+  Future<void> finishSchedulePreparation(
+    String scheduleId, {
+    required int latenessTime,
+  }) async {
+    await finishScheduleUseCase(scheduleId, latenessTime);
+    await clearPersistedState(scheduleId);
+  }
+
+  @override
+  Future<SchedulePreparationPromptResult> resolvePromptedSchedule({
+    required String scheduleId,
+    required bool startPreparation,
+    String? scheduleFingerprint,
+  }) async {
+    return const SchedulePreparationPromptResult.unavailable();
+  }
+}
+
+TestSchedulePreparationSessionUseCase createSessionUseCase({
+  required SaveTimedPreparationUseCase saveUseCase,
+  required GetTimedPreparationSnapshotUseCase getSnapshotUseCase,
+  required ClearTimedPreparationUseCase clearTimedUseCase,
+  required StartScheduleUseCase startUseCase,
+  required FinishScheduleUseCase finishUseCase,
+  required EarlyStartUseCaseBundle earlyBundle,
+}) {
+  return TestSchedulePreparationSessionUseCase(
+    saveTimedPreparationUseCase: saveUseCase,
+    getTimedPreparationSnapshotUseCase: getSnapshotUseCase,
+    clearTimedPreparationUseCase: clearTimedUseCase,
+    startScheduleUseCase: startUseCase,
+    finishScheduleUseCase: finishUseCase,
+    markEarlyStartSessionUseCase: earlyBundle.markUseCase,
+    getEarlyStartSessionUseCase: earlyBundle.getUseCase,
+    clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
   );
 }
 
@@ -359,14 +486,16 @@ void main() {
       bloc = ScheduleBloc.test(
         StubGetNearestUpcomingScheduleUseCase(() => controller.stream),
         navigationService,
-        NoopSaveTimedPreparationUseCase(),
-        getSnapshotUseCase,
-        clearTimedUseCase,
-        startUseCase,
-        finishUseCase,
-        markEarlyStartSessionUseCase: markEarlyStartUseCase,
-        getEarlyStartSessionUseCase: getEarlyStartUseCase,
-        clearEarlyStartSessionUseCase: clearEarlyStartUseCase,
+        TestSchedulePreparationSessionUseCase(
+          saveTimedPreparationUseCase: NoopSaveTimedPreparationUseCase(),
+          getTimedPreparationSnapshotUseCase: getSnapshotUseCase,
+          clearTimedPreparationUseCase: clearTimedUseCase,
+          startScheduleUseCase: startUseCase,
+          finishScheduleUseCase: finishUseCase,
+          markEarlyStartSessionUseCase: markEarlyStartUseCase,
+          getEarlyStartSessionUseCase: getEarlyStartUseCase,
+          clearEarlyStartSessionUseCase: clearEarlyStartUseCase,
+        ),
         nowProvider: () => now,
       );
     });
@@ -925,14 +1054,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1081,14 +1210,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1149,14 +1278,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1218,14 +1347,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1282,14 +1411,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1389,14 +1518,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1461,14 +1590,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1582,14 +1711,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);
@@ -1630,14 +1759,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => const Stream.empty()),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         )..emit(const ScheduleState.notExists());
         addTearDown(alarmBloc.close);
@@ -1676,14 +1805,14 @@ void main() {
         final alarmBloc = ScheduleBloc.test(
           StubGetNearestUpcomingScheduleUseCase(() => Stream.value(null)),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         )..emit(const ScheduleState.notExists());
         addTearDown(alarmBloc.close);
@@ -1737,14 +1866,14 @@ void main() {
             () => Stream.value(staleEndedSchedule),
           ),
           navigationService,
-          NoopSaveTimedPreparationUseCase(),
-          StubGetTimedPreparationSnapshotUseCase({}),
-          NoopClearTimedPreparationUseCase(),
-          startUseCase,
-          finishUseCase,
-          markEarlyStartSessionUseCase: earlyBundle.markUseCase,
-          getEarlyStartSessionUseCase: earlyBundle.getUseCase,
-          clearEarlyStartSessionUseCase: earlyBundle.clearUseCase,
+          createSessionUseCase(
+            saveUseCase: NoopSaveTimedPreparationUseCase(),
+            getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+            clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+            startUseCase: startUseCase,
+            finishUseCase: finishUseCase,
+            earlyBundle: earlyBundle,
+          ),
           nowProvider: () => now,
         );
         addTearDown(alarmBloc.close);

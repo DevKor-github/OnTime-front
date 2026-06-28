@@ -1,5 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/device_info_service/shared.dart';
 import 'package:on_time_front/domain/entities/analytics_preference.dart';
 import 'package:on_time_front/domain/entities/product_usage_event.dart';
@@ -45,14 +46,17 @@ class FirebaseAnalyticsProviderClient implements AnalyticsProviderClient {
 class ProductAnalyticsService {
   ProductAnalyticsService({
     required AnalyticsProviderClient client,
+    required AppMetadataProvider appMetadataProvider,
     @ignoreParam
     bool collectionAllowedInBuild = const bool.fromEnvironment(
       'ONTIME_ANALYTICS_ENABLED',
     ),
   }) : _client = client,
+       _appMetadataProvider = appMetadataProvider,
        _collectionAllowedInBuild = collectionAllowedInBuild;
 
   final AnalyticsProviderClient _client;
+  final AppMetadataProvider _appMetadataProvider;
   final bool _collectionAllowedInBuild;
   bool _collectionEnabled = false;
 
@@ -66,11 +70,12 @@ class ProductAnalyticsService {
 
   Future<void> track(ProductUsageEvent event) async {
     if (!_collectionEnabled) return;
+    final metadata = await _appMetadataProvider.getMetadata();
     await _client.logEvent(
       name: event.name,
       parameters: event.toAnalyticsParameters(
         platform: _platformWireValue(),
-        appVersion: '1.0.0',
+        appVersion: metadata.version,
       ),
     );
   }

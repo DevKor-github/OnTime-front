@@ -2,7 +2,7 @@ part of 'schedule_spare_time_cubit.dart';
 
 class ScheduleSpareTimeState extends Equatable {
   ScheduleSpareTimeState({Duration? spareTime})
-    : spareTime = spareTime ?? Duration(minutes: 10);
+    : spareTime = spareTime ?? Duration(minutes: 30);
 
   final Duration spareTime;
 

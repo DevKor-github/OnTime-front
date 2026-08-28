@@ -10,7 +10,7 @@ class ScheduleSpareTimeCubit extends Cubit<ScheduleSpareTimeState> {
 
   final OnboardingCubit onboardingCubit;
   final Duration lowerBound = Duration(minutes: 10);
-  final Duration stepSize = Duration(minutes: 5);
+  final Duration stepSize = Duration(minutes: 10);
 
   void initialize() {
     emit(ScheduleSpareTimeState.fromOnboardingState(onboardingCubit.state));

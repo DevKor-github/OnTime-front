@@ -113,7 +113,7 @@ void main() {
         0,
         const Duration(minutes: 10),
       );
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(_nextButton(tester).onPressed, isNotNull);
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
@@ -122,13 +122,18 @@ void main() {
         find.textContaining('Set your spare time', findRichText: true),
         findsOneWidget,
       );
+      expect(find.text('30분'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+      expect(find.text('40분'), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
       await tester.pumpAndSettle();
 
       expect(useCase.submissions, hasLength(1));
       final submission = useCase.submissions.single;
-      expect(submission.spareTime, const Duration(minutes: 30));
+      expect(submission.spareTime, const Duration(minutes: 40));
       expect(submission.preparation.preparationStepList, hasLength(1));
       expect(
         submission.preparation.preparationStepList.single.preparationTime,

@@ -97,8 +97,7 @@ class _DetailedNotificationTile extends StatefulWidget {
       _DetailedNotificationTileState();
 }
 
-class _DetailedNotificationTileState
-    extends State<_DetailedNotificationTile> {
+class _DetailedNotificationTileState extends State<_DetailedNotificationTile> {
   bool _enabled = false;
   bool _loading = true;
 
@@ -402,8 +401,8 @@ class _FrameView extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 19),
         child: Column(

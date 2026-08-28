@@ -81,7 +81,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Please select your usual preparation process.'),
+        find.text(
+          'Please select your usual preparation process.',
+          findRichText: true,
+        ),
         findsOneWidget,
       );
       expect(_nextButton(tester).onPressed, isNull);
@@ -92,12 +95,15 @@ void main() {
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('order'), findsOneWidget);
+      expect(find.textContaining('order', findRichText: true), findsOneWidget);
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Please tell us the time required for each step.'),
+        find.text(
+          'Please tell us the time required for each step.',
+          findRichText: true,
+        ),
         findsOneWidget,
       );
       expect(_nextButton(tester).onPressed, isNull);
@@ -112,7 +118,10 @@ void main() {
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
       await tester.pumpAndSettle();
-      expect(find.text('Set your spare time'), findsOneWidget);
+      expect(
+        find.text('Set your spare time', findRichText: true),
+        findsOneWidget,
+      );
 
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
       await tester.pumpAndSettle();

@@ -4,6 +4,7 @@ import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/domain/use-cases/onboard_use_case.dart';
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
+import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 
 void main() {
   test(
@@ -83,6 +84,57 @@ void main() {
             .single
             .id,
         'step-1',
+      );
+    },
+  );
+
+  test(
+    'PreparationOrderCubit reorders immutable steps without losing durations',
+    () {
+      final onboardingCubit = OnboardingCubit(_FakeOnboardUseCase());
+      addTearDown(onboardingCubit.close);
+      onboardingCubit.onboardingFormChanged(
+        preparationStepList: const [
+          OnboardingPreparationStepState(
+            id: 'step-1',
+            preparationName: 'Shower',
+            preparationTime: Duration(minutes: 10),
+            nextPreparationId: 'step-2',
+          ),
+          OnboardingPreparationStepState(
+            id: 'step-2',
+            preparationName: 'Pack',
+            preparationTime: Duration(minutes: 5),
+          ),
+        ],
+      );
+      final orderCubit = PreparationOrderCubit(
+        onboardingCubit: onboardingCubit,
+      );
+      addTearDown(orderCubit.close);
+
+      orderCubit.preparationOrderChanged(0, 2);
+      orderCubit.preparationOrderSaved();
+
+      expect(
+        onboardingCubit.state.preparationStepList
+            .map((step) => step.id)
+            .toList(),
+        ['step-2', 'step-1'],
+      );
+      expect(
+        onboardingCubit.state.preparationStepList
+            .map((step) => step.preparationTime)
+            .toList(),
+        const [Duration(minutes: 5), Duration(minutes: 10)],
+      );
+      expect(
+        onboardingCubit.state.preparationStepList.first.nextPreparationId,
+        'step-1',
+      );
+      expect(
+        onboardingCubit.state.preparationStepList.last.nextPreparationId,
+        isNull,
       );
     },
   );

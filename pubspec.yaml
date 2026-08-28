@@ -38,7 +38,6 @@ dependencies:
 
   
   drift: ^2.31.0
-  drift_flutter: ^0.2.8
   json_annotation: ^4.9.0
 
 

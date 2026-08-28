@@ -6,7 +6,6 @@ import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/use-cases/load_user_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
-import 'package:on_time_front/domain/use-cases/sign_out_use_case.dart';
 import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
 import 'package:on_time_front/presentation/app/bloc/schedule/schedule_bloc.dart';
 
@@ -15,16 +14,17 @@ part 'auth_state.dart';
 
 @Injectable()
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(this._streamUserUseCase, this._signOutUseCase, this._loadUserUseCase,
-      this._scheduleBloc, this._reconcileAlarmsUseCase)
-      : super(const AuthState.loading()) {
+  AuthBloc(
+    this._streamUserUseCase,
+    this._loadUserUseCase,
+    this._scheduleBloc,
+    this._reconcileAlarmsUseCase,
+  ) : super(const AuthState.loading()) {
     on<AuthUserSubscriptionRequested>(_appUserSubscriptionRequested);
-    on<AuthSignOutPressed>(_appLogoutPressed);
   }
 
   final StreamUserUseCase _streamUserUseCase;
   final LoadUserUseCase _loadUserUseCase;
-  final SignOutUseCase _signOutUseCase;
   final ScheduleBloc _scheduleBloc;
   final ReconcileAlarmsUseCase _reconcileAlarmsUseCase;
   Timer? _timer;
@@ -37,7 +37,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _loadUserUseCase();
     } catch (error, stackTrace) {
       addError(error, stackTrace);
-      emit(AuthState(user: const UserEntity.empty()));
+      emit(const AuthState.recovery());
+      return;
     }
 
     return emit.onEach(
@@ -50,7 +51,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               (entity) => entity.isOnboardingCompleted
                   ? AuthStatus.authenticated
                   : AuthStatus.onboardingNotCompleted,
-              empty: (_) => AuthStatus.unauthenticated,
+              empty: (_) => AuthStatus.onboardingNotCompleted,
             ),
           ),
         );
@@ -62,13 +63,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       },
       onError: addError,
     );
-  }
-
-  void _appLogoutPressed(
-    AuthSignOutPressed event,
-    Emitter<AuthState> emit,
-  ) {
-    _signOutUseCase();
   }
 
   @override

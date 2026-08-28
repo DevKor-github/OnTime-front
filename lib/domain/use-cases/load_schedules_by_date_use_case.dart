@@ -8,8 +8,7 @@ class LoadSchedulesByDateUseCase {
   LoadSchedulesByDateUseCase(this._scheduleRepository);
 
   /// Loads schedules for the given date range.
-  /// This triggers fetching schedules from the remote data source
-  /// and updating the in-memory schedule stream.
+  /// This refreshes the in-memory stream from the encrypted local database.
   ///
   /// [startDate] - Start date of the range (inclusive)
   /// [endDate] - End date of the range (exclusive), or null for all schedules after startDate

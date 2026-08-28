@@ -68,10 +68,7 @@ Map<String, dynamic>? scheduleStartRouteExtraFromState(GoRouterState state) {
   final extra = routeExtraMap(state.extra);
   final queryExtra = _scheduleStartExtraFromQuery(state.uri.queryParameters);
   if (queryExtra == null) return extra;
-  return {
-    ...queryExtra,
-    ...?extra,
-  };
+  return {...queryExtra, ...?extra};
 }
 
 class EarlyLateRouteArguments {
@@ -84,9 +81,7 @@ class EarlyLateRouteArguments {
   final bool isLate;
 }
 
-EarlyLateRouteArguments? earlyLateRouteArgumentsFromState(
-  GoRouterState state,
-) {
+EarlyLateRouteArguments? earlyLateRouteArgumentsFromState(GoRouterState state) {
   return parseEarlyLateRouteArguments(
     extra: state.extra,
     queryParameters: state.uri.queryParameters,
@@ -98,16 +93,15 @@ EarlyLateRouteArguments? parseEarlyLateRouteArguments({
   Map<String, String> queryParameters = const {},
 }) {
   final extraMap = routeExtraMap(extra);
-  final earlyLateTime = _intValue(extraMap?['earlyLateTime']) ??
+  final earlyLateTime =
+      _intValue(extraMap?['earlyLateTime']) ??
       _intValue(queryParameters['earlyLateTime']);
-  final isLate = routeBoolValue(extraMap?['isLate']) ??
+  final isLate =
+      routeBoolValue(extraMap?['isLate']) ??
       routeBoolValue(queryParameters['isLate']);
 
   if (earlyLateTime == null || isLate == null) return null;
-  return EarlyLateRouteArguments(
-    earlyLateTime: earlyLateTime,
-    isLate: isLate,
-  );
+  return EarlyLateRouteArguments(earlyLateTime: earlyLateTime, isLate: isLate);
 }
 
 String earlyLateRouteLocation({

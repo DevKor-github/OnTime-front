@@ -1,33 +1,33 @@
-import 'dart:async';
-
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/constants/local_profile.dart';
+import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/data/daos/user_dao.dart';
 import 'package:on_time_front/data/data_sources/preparation_local_data_source.dart';
-import 'package:on_time_front/data/data_sources/preparation_remote_data_source.dart';
-import 'package:on_time_front/data/models/create_defualt_preparation_request_model.dart';
-
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-
+import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
 
 @Singleton(as: PreparationRepository)
 class PreparationRepositoryImpl implements PreparationRepository {
-  final PreparationRemoteDataSource preparationRemoteDataSource;
-  final PreparationLocalDataSource preparationLocalDataSource;
-
-  late final _preparationStreamController =
-      BehaviorSubject<Map<String, PreparationEntity>>.seeded(
-        const <String, PreparationEntity>{},
-      );
-
   PreparationRepositoryImpl({
-    required this.preparationRemoteDataSource,
-    required this.preparationLocalDataSource,
-  });
+    required PreparationLocalDataSource preparationLocalDataSource,
+    required UserRepository userRepository,
+    required AppDatabase database,
+  }) : _localDataSource = preparationLocalDataSource,
+       _userRepository = userRepository,
+       _userDao = database.userDao;
+
+  final PreparationLocalDataSource _localDataSource;
+  final UserRepository _userRepository;
+  final UserDao _userDao;
+  final _preparationStreamController =
+      BehaviorSubject<Map<String, PreparationEntity>>.seeded(const {});
 
   @override
   Stream<Map<String, PreparationEntity>> get preparationStream =>
-      _preparationStreamController.asBroadcastStream();
+      _preparationStreamController.stream;
 
   @override
   Future<void> createDefaultPreparation({
@@ -35,17 +35,21 @@ class PreparationRepositoryImpl implements PreparationRepository {
     required Duration spareTime,
     required String note,
   }) async {
-    try {
-      await preparationRemoteDataSource.createDefaultPreparation(
-        CreateDefaultPreparationRequestModel.fromEntity(
-          preparationEntity: preparationEntity,
-          spareTime: spareTime,
-          note: note,
-        ),
-      );
-    } catch (e) {
-      rethrow;
-    }
+    await _localDataSource.createDefaultPreparation(
+      preparationEntity,
+      userId: localProfileId,
+    );
+    final profile = (await _userRepository.getUser()).valueOrNull!;
+    await _userRepository.saveUser(
+      UserEntity(
+        id: profile.id,
+        spareTime: spareTime,
+        note: note,
+        isOnboardingCompleted: true,
+        eligibleOutcomeCount: profile.eligibleOutcomeCount,
+        onTimeOutcomeCount: profile.onTimeOutcomeCount,
+      ),
+    );
   }
 
   @override
@@ -53,62 +57,36 @@ class PreparationRepositoryImpl implements PreparationRepository {
     PreparationEntity preparationEntity,
     String scheduleId,
   ) async {
-    try {
-      await preparationRemoteDataSource.createCustomPreparation(
-        preparationEntity,
-        scheduleId,
-      );
-      _preparationStreamController.add(
-        Map.from(_preparationStreamController.value)
-          ..[scheduleId] = preparationEntity,
-      );
-    } catch (e) {
-      rethrow;
-    }
+    await _localDataSource.createCustomPreparation(
+      preparationEntity,
+      scheduleId,
+    );
+    _emitSchedulePreparation(scheduleId, preparationEntity);
+    await _userDao.markDurableDataChanged(localProfileId);
   }
 
   @override
   Future<void> getPreparationByScheduleId(String scheduleId) async {
-    try {
-      final remotePreparation = await preparationRemoteDataSource
-          .getPreparationByScheduleId(scheduleId);
-      _preparationStreamController.add(
-        Map.from(_preparationStreamController.value)
-          ..[scheduleId] = remotePreparation,
-      );
-    } catch (e) {
-      rethrow;
-    }
+    final preparation = await _localDataSource.getPreparationByScheduleId(
+      scheduleId,
+    );
+    _emitSchedulePreparation(scheduleId, preparation);
   }
 
   @override
-  Future<PreparationEntity> getDefualtPreparation() async {
-    try {
-      final remotePreparation = await preparationRemoteDataSource
-          .getDefualtPreparation();
-      return remotePreparation;
-    } catch (e) {
-      rethrow;
-    }
+  Future<PreparationEntity> getDefualtPreparation() {
+    return _localDataSource.getDefaultPreparation(localProfileId);
   }
 
   @override
   Future<void> updateDefaultPreparation(
     PreparationEntity preparationEntity,
   ) async {
-    try {
-      await preparationRemoteDataSource.updateDefaultPreparation(
-        preparationEntity,
-      );
-      final persistedPreparation = await preparationRemoteDataSource
-          .getDefualtPreparation();
-      if (!_samePreparation(preparationEntity, persistedPreparation)) {
-        throw StateError('Default preparation update was not persisted.');
-      }
-      // await preparationLocalDataSource.updatePreparation(preparationEntity);
-    } catch (e) {
-      rethrow;
-    }
+    await _localDataSource.replaceDefaultPreparation(
+      preparationEntity,
+      userId: localProfileId,
+    );
+    await _userDao.markDurableDataChanged(localProfileId);
   }
 
   @override
@@ -116,45 +94,38 @@ class PreparationRepositoryImpl implements PreparationRepository {
     PreparationEntity preparationEntity,
     String scheduleId,
   ) async {
-    try {
-      await preparationRemoteDataSource.updatePreparationByScheduleId(
-        preparationEntity,
-        scheduleId,
-      );
-      _preparationStreamController.add(
-        Map.from(_preparationStreamController.value)
-          ..[scheduleId] = preparationEntity,
-      );
-    } catch (e) {
-      rethrow;
-    }
+    await _localDataSource.replaceSchedulePreparation(
+      preparationEntity,
+      scheduleId: scheduleId,
+    );
+    _emitSchedulePreparation(scheduleId, preparationEntity);
+    await _userDao.markDurableDataChanged(localProfileId);
   }
 
   @override
   Future<void> updateSpareTime(Duration newSpareTime) async {
-    try {
-      await preparationRemoteDataSource.updateSpareTime(newSpareTime);
-    } catch (e) {
-      rethrow;
-    }
+    final profile = (await _userRepository.getUser()).valueOrNull!;
+    await _userRepository.saveUser(
+      UserEntity(
+        id: profile.id,
+        spareTime: newSpareTime,
+        note: profile.note,
+        isOnboardingCompleted: profile.isOnboardingCompleted,
+        eligibleOutcomeCount: profile.eligibleOutcomeCount,
+        onTimeOutcomeCount: profile.onTimeOutcomeCount,
+      ),
+    );
   }
 
-  bool _samePreparation(PreparationEntity expected, PreparationEntity actual) {
-    final expectedSteps = expected.ordered.preparationStepList;
-    final actualSteps = actual.ordered.preparationStepList;
-    if (expectedSteps.length != actualSteps.length) {
-      return false;
-    }
-    for (var index = 0; index < expectedSteps.length; index++) {
-      final expectedStep = expectedSteps[index];
-      final actualStep = actualSteps[index];
-      if (expectedStep.id != actualStep.id ||
-          expectedStep.preparationName.trim() !=
-              actualStep.preparationName.trim() ||
-          expectedStep.preparationTime != actualStep.preparationTime) {
-        return false;
-      }
-    }
-    return true;
+  void _emitSchedulePreparation(
+    String scheduleId,
+    PreparationEntity preparation,
+  ) {
+    _preparationStreamController.add({
+      ..._preparationStreamController.value,
+      scheduleId: preparation,
+    });
   }
+
+  Future<void> dispose() => _preparationStreamController.close();
 }

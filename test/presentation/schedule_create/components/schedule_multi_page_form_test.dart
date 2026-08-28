@@ -326,11 +326,10 @@ void main() {
       AuthState(
         user: UserEntity(
           id: 'user-1',
-          email: 'user@test.com',
-          name: 'tester',
           spareTime: const Duration(minutes: 5),
           note: '',
-          score: 1,
+          eligibleOutcomeCount: 1,
+          onTimeOutcomeCount: 1,
           isOnboardingCompleted: true,
         ),
       ),

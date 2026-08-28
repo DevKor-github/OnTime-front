@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_default_preparation_use_case.dart';
@@ -119,7 +118,7 @@ class DefaultPreparationSpareTimeFormBloc
       emit(
         state.copyWith(
           status: DefaultPreparationSpareTimeStatus.error,
-          errorMessage: ApiErrorMessage.fromException(e) ?? e.toString(),
+          errorMessage: e.toString(),
         ),
       );
     }

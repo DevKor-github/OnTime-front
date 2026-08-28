@@ -5,9 +5,8 @@ import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dar
 part 'preparation_order_state.dart';
 
 class PreparationOrderCubit extends Cubit<PreparationOrderState> {
-  PreparationOrderCubit({
-    required this.onboardingCubit,
-  }) : super(PreparationOrderState()) {
+  PreparationOrderCubit({required this.onboardingCubit})
+    : super(PreparationOrderState()) {
     initialize();
   }
 
@@ -24,8 +23,9 @@ class PreparationOrderCubit extends Cubit<PreparationOrderState> {
     }
     final List<PreparationStepOrderState> preparationStepList =
         List<PreparationStepOrderState>.from(state.preparationStepList);
-    final PreparationStepOrderState item =
-        preparationStepList.removeAt(oldIndex);
+    final PreparationStepOrderState item = preparationStepList.removeAt(
+      oldIndex,
+    );
     preparationStepList.insert(newIndex, item);
     emit(state.copyWith(preparationStepList: preparationStepList));
   }

@@ -6,20 +6,23 @@ class ScheduledAlarmRecordModel {
   const ScheduledAlarmRecordModel(this.record);
 
   factory ScheduledAlarmRecordModel.fromJson(Map<String, dynamic> json) {
-    final payload = (json['payload'] as Map<String, dynamic>? ?? const {})
-        .map((key, value) => MapEntry(key, value.toString()));
+    final payload = (json['payload'] as Map<String, dynamic>? ?? const {}).map(
+      (key, value) => MapEntry(key, value.toString()),
+    );
     return ScheduledAlarmRecordModel(
       ScheduledAlarmRecord(
         scheduleId: json['scheduleId'] as String,
         alarmTime: DateTime.parse(json['alarmTime'] as String),
-        preparationStartTime:
-            DateTime.parse(json['preparationStartTime'] as String),
+        preparationStartTime: DateTime.parse(
+          json['preparationStartTime'] as String,
+        ),
         scheduleFingerprint: json['scheduleFingerprint'] as String? ?? '',
         nativeAlarmId: (json['nativeAlarmId'] as num?)?.toInt(),
-        fallbackNotificationId:
-            (json['fallbackNotificationId'] as num?)?.toInt(),
-        provider:
-            AlarmProviderWireValue.fromWireValue(json['provider'] as String?),
+        fallbackNotificationId: (json['fallbackNotificationId'] as num?)
+            ?.toInt(),
+        provider: AlarmProviderWireValue.fromWireValue(
+          json['provider'] as String?,
+        ),
         scheduleTitle: json['scheduleTitle'] as String? ?? '',
         payload: payload,
       ),

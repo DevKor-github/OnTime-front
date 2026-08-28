@@ -411,14 +411,6 @@ class _FakeAlarmRepository implements AlarmRepository {
   }
 
   @override
-  Future<String> getDeviceId() async => 'device-1';
-
-  @override
-  Future<AlarmDeviceInfo> buildCurrentDeviceInfo() {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<AlarmSettings> getAlarmSettings() {
     throw UnimplementedError();
   }
@@ -428,21 +420,6 @@ class _FakeAlarmRepository implements AlarmRepository {
     DateTime startDate,
     DateTime endDate,
   ) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> postAlarmStatus(AlarmStatusReport report) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> registerCurrentDevice(AlarmDeviceInfo deviceInfo) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> unregisterCurrentDevice(String deviceId) {
     throw UnimplementedError();
   }
 }
@@ -476,7 +453,7 @@ class _FakeCancelAllAlarmsUseCase implements CancelAllAlarmsUseCase {
   int callCount = 0;
 
   @override
-  Future<void> call({bool unregisterDevice = false}) async {
+  Future<void> call() async {
     callCount += 1;
   }
 

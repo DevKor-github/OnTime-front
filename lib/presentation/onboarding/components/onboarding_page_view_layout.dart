@@ -28,8 +28,10 @@ class _OnboardingPageViewLayoutState extends State<OnboardingPageViewLayout> {
         SizedBox(
           width: double.infinity,
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 27.0, horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 27.0,
+              horizontal: 8.0,
+            ),
             child: OnboardingTitle(
               title: widget.title,
               subTitle: widget.subTitle,
@@ -37,9 +39,7 @@ class _OnboardingPageViewLayoutState extends State<OnboardingPageViewLayout> {
             ),
           ),
         ),
-        Expanded(
-          child: widget.child,
-        ),
+        Expanded(child: widget.child),
       ],
     );
   }

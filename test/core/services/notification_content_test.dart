@@ -5,51 +5,6 @@ import 'package:on_time_front/core/services/notification_content.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 
 void main() {
-  test('remote notification content prefers FCM notification text', () {
-    final content = remoteNotificationDisplayContent(
-      notificationTitle: 'Server title',
-      notificationBody: 'Server body',
-      data: const {
-        'title': 'Data title',
-        'body': 'Data body',
-        'scheduleId': 'schedule-1',
-      },
-    );
-
-    expect(content?.title, 'Server title');
-    expect(content?.body, 'Server body');
-    expect(jsonDecode(content!.payload), {
-      'title': 'Data title',
-      'body': 'Data body',
-      'scheduleId': 'schedule-1',
-    });
-  });
-
-  test(
-    'remote notification content accepts backend title and body variants',
-    () {
-      expect(
-        remoteNotificationDisplayContent(
-          data: const {'Title': 'Upper title', 'Content': 'Upper content'},
-        )?.title,
-        'Upper title',
-      );
-      expect(
-        remoteNotificationDisplayContent(
-          data: const {'title': 'Lower title', 'content': 'Lower content'},
-        )?.body,
-        'Lower content',
-      );
-      expect(
-        remoteNotificationDisplayContent(
-          data: const {'Body': 'Body only'},
-        )?.title,
-        '알림',
-      );
-      expect(remoteNotificationDisplayContent(data: const {}), isNull);
-    },
-  );
-
   test('local notification payloads are encoded only when present', () {
     expect(encodeLocalNotificationPayload(null), isNull);
     expect(

@@ -10,12 +10,17 @@ class OnboardUseCase {
 
   OnboardUseCase(this._preparationRepository, this._userRepository);
 
-  Future<void> call(
-      {required PreparationEntity preparationEntity,
-      required Duration spareTime,
-      required String note}) async {
+  Future<void> call({
+    required PreparationEntity preparationEntity,
+    required Duration spareTime,
+    required String note,
+  }) async {
+    await _userRepository.getUser();
     await _preparationRepository.createDefaultPreparation(
-        preparationEntity: preparationEntity, spareTime: spareTime, note: note);
+      preparationEntity: preparationEntity,
+      spareTime: spareTime,
+      note: note,
+    );
     await _userRepository.getUser();
   }
 }

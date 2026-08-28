@@ -3,42 +3,6 @@ import 'dart:convert';
 import 'package:on_time_front/core/services/notification_routing.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 
-class NotificationDisplayContent {
-  const NotificationDisplayContent({
-    required this.title,
-    required this.body,
-    required this.payload,
-  });
-
-  final String title;
-  final String body;
-  final String payload;
-}
-
-NotificationDisplayContent? remoteNotificationDisplayContent({
-  required Map<String, dynamic> data,
-  String? notificationTitle,
-  String? notificationBody,
-}) {
-  final title = notificationTitle ?? data['title'] ?? data['Title'];
-  final body =
-      notificationBody ??
-      data['content'] ??
-      data['body'] ??
-      data['Content'] ??
-      data['Body'];
-
-  if (title == null && body == null) {
-    return null;
-  }
-
-  return NotificationDisplayContent(
-    title: title?.toString() ?? '알림',
-    body: body?.toString() ?? '',
-    payload: jsonEncode(data),
-  );
-}
-
 String? encodeLocalNotificationPayload(Map<String, dynamic>? payload) {
   return payload == null ? null : jsonEncode(payload);
 }

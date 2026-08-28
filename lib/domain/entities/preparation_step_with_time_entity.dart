@@ -35,10 +35,7 @@ class PreparationStepWithTimeEntity extends PreparationStepEntity {
   PreparationStepWithTimeEntity timeElapsed(Duration elapsed) {
     final updatedElapsed = elapsedTime + elapsed;
     final updatedIsDone = updatedElapsed >= preparationTime;
-    return copyWith(
-      elapsedTime: updatedElapsed,
-      isDone: updatedIsDone,
-    );
+    return copyWith(elapsedTime: updatedElapsed, isDone: updatedIsDone);
   }
 
   @override
@@ -48,11 +45,11 @@ class PreparationStepWithTimeEntity extends PreparationStepEntity {
 
   @override
   List<Object?> get props => [
-        id,
-        preparationName,
-        preparationTime,
-        nextPreparationId,
-        elapsedTime,
-        isDone
-      ];
+    id,
+    preparationName,
+    preparationTime,
+    nextPreparationId,
+    elapsedTime,
+    isDone,
+  ];
 }

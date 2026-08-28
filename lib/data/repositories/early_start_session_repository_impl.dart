@@ -25,7 +25,9 @@ class EarlyStartSessionRepositoryImpl implements EarlyStartSessionRepository {
     final startedAt = await localDataSource.loadSessionStartedAt(scheduleId);
     if (startedAt == null) return null;
     return EarlyStartSessionEntity(
-        scheduleId: scheduleId, startedAt: startedAt);
+      scheduleId: scheduleId,
+      startedAt: startedAt,
+    );
   }
 
   @override

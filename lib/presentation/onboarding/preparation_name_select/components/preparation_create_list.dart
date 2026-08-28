@@ -7,16 +7,17 @@ import 'package:on_time_front/presentation/onboarding/preparation_name_select/cu
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart';
 
 class PreparationCreateList extends StatelessWidget {
-  const PreparationCreateList(
-      {super.key,
-      required this.preparationNameState,
-      required this.onNameChanged,
-      required this.onSelectionChanged,
-      required this.onCreationRequested});
+  const PreparationCreateList({
+    super.key,
+    required this.preparationNameState,
+    required this.onNameChanged,
+    required this.onSelectionChanged,
+    required this.onCreationRequested,
+  });
 
   final PreparationNameState preparationNameState;
   final void Function({required int index, required String value})
-      onNameChanged;
+  onNameChanged;
   final void Function({required int index}) onSelectionChanged;
   final VoidCallback onCreationRequested;
 
@@ -37,36 +38,39 @@ class PreparationCreateList extends StatelessWidget {
           preparationNameState.status == PreparationNameStatus.adding
               ? BlocProvider<PreparationStepNameCubit>(
                   create: (context) => PreparationStepNameCubit(
-                      PreparationStepNameState(),
-                      preparationNameCubit:
-                          context.read<PreparationNameCubit>()),
-                  child: BlocBuilder<PreparationStepNameCubit,
-                      PreparationStepNameState>(builder: (context, state) {
-                    return PreparationNameSelectField(
-                      isAdding: true,
-                      preparationStep: state,
-                      onNameChanged: (value) {
-                        context
-                            .read<PreparationStepNameCubit>()
-                            .nameChanged(value);
-                      },
-                      onSelectionChanged: () {
-                        context
-                            .read<PreparationStepNameCubit>()
-                            .selectionToggled();
-                      },
-                      onNameSaved: () {
-                        context
-                            .read<PreparationStepNameCubit>()
-                            .preparationStepSaved();
-                      },
-                    );
-                  }),
+                    PreparationStepNameState(),
+                    preparationNameCubit: context.read<PreparationNameCubit>(),
+                  ),
+                  child:
+                      BlocBuilder<
+                        PreparationStepNameCubit,
+                        PreparationStepNameState
+                      >(
+                        builder: (context, state) {
+                          return PreparationNameSelectField(
+                            isAdding: true,
+                            preparationStep: state,
+                            onNameChanged: (value) {
+                              context
+                                  .read<PreparationStepNameCubit>()
+                                  .nameChanged(value);
+                            },
+                            onSelectionChanged: () {
+                              context
+                                  .read<PreparationStepNameCubit>()
+                                  .selectionToggled();
+                            },
+                            onNameSaved: () {
+                              context
+                                  .read<PreparationStepNameCubit>()
+                                  .preparationStepSaved();
+                            },
+                          );
+                        },
+                      ),
                 )
               : SizedBox.shrink(),
-          SizedBox(
-            height: 28.0,
-          ),
+          SizedBox(height: 28.0),
           Center(
             child: SizedBox(
               height: 30,

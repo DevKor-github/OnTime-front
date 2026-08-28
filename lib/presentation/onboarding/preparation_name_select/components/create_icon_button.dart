@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CreateIconButton extends StatelessWidget {
-  const CreateIconButton({
-    super.key,
-    required this.onCreationRequested,
-  });
+  const CreateIconButton({super.key, required this.onCreationRequested});
 
   final VoidCallback onCreationRequested;
 
@@ -13,8 +10,9 @@ class CreateIconButton extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return IconButton(
       style: ButtonStyle(
-        backgroundColor:
-            WidgetStateProperty.all<Color>(colorScheme.surfaceContainerHigh),
+        backgroundColor: WidgetStateProperty.all<Color>(
+          colorScheme.surfaceContainerHigh,
+        ),
       ),
       onPressed: () {
         onCreationRequested();

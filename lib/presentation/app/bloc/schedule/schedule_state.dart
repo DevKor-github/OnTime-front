@@ -1,12 +1,6 @@
 part of 'schedule_bloc.dart';
 
-enum ScheduleStatus {
-  initial,
-  notExists,
-  upcoming,
-  ongoing,
-  started,
-}
+enum ScheduleStatus { initial, notExists, upcoming, ongoing, started }
 
 class ScheduleState extends Equatable {
   const ScheduleState._({
@@ -20,19 +14,19 @@ class ScheduleState extends Equatable {
   const ScheduleState.notExists() : this._(status: ScheduleStatus.notExists);
 
   const ScheduleState.upcoming(ScheduleWithPreparationEntity schedule)
-      : this._(status: ScheduleStatus.upcoming, schedule: schedule);
+    : this._(status: ScheduleStatus.upcoming, schedule: schedule);
 
   const ScheduleState.ongoing(ScheduleWithPreparationEntity schedule)
-      : this._(status: ScheduleStatus.ongoing, schedule: schedule);
+    : this._(status: ScheduleStatus.ongoing, schedule: schedule);
 
   const ScheduleState.started(
     ScheduleWithPreparationEntity schedule, {
     bool isEarlyStarted = false,
   }) : this._(
-          status: ScheduleStatus.started,
-          schedule: schedule,
-          isEarlyStarted: isEarlyStarted,
-        );
+         status: ScheduleStatus.started,
+         schedule: schedule,
+         isEarlyStarted: isEarlyStarted,
+       );
 
   final ScheduleStatus status;
   final ScheduleWithPreparationEntity? schedule;
@@ -63,9 +57,9 @@ class ScheduleState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        schedule,
-        schedule?.preparation,
-        isEarlyStarted,
-      ];
+    status,
+    schedule,
+    schedule?.preparation,
+    isEarlyStarted,
+  ];
 }

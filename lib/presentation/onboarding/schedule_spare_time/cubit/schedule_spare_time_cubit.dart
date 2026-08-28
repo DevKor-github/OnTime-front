@@ -5,9 +5,8 @@ import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dar
 part 'schedule_spare_time_state.dart';
 
 class ScheduleSpareTimeCubit extends Cubit<ScheduleSpareTimeState> {
-  ScheduleSpareTimeCubit({
-    required this.onboardingCubit,
-  }) : super(ScheduleSpareTimeState());
+  ScheduleSpareTimeCubit({required this.onboardingCubit})
+    : super(ScheduleSpareTimeState());
 
   final OnboardingCubit onboardingCubit;
   final Duration lowerBound = Duration(minutes: 10);

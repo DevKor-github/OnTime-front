@@ -180,7 +180,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
               ),
             );
       }
-      await _startScheduleOnServer(resolvedSchedule.id);
+      await _startScheduleLocally(resolvedSchedule.id);
       if (isClosed) return;
       emit(ScheduleState.started(resolvedSchedule, isEarlyStarted: true));
       await _saveTimedPreparationSnapshot(resolvedSchedule, force: true);
@@ -199,7 +199,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     }
 
     if (_isPreparationOnGoing(resolvedSchedule, now)) {
-      await _startScheduleOnServer(resolvedSchedule.id);
+      await _startScheduleLocally(resolvedSchedule.id);
       if (isClosed) return;
       emit(ScheduleState.ongoing(resolvedSchedule));
       AppLogger.debug(
@@ -223,7 +223,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       if (_activeEarlyStartScheduleId == _currentScheduleId) return;
       AppLogger.debug('schedule started scheduleId=${state.schedule!.id}');
-      await _startScheduleOnServer(state.schedule!.id);
+      await _startScheduleLocally(state.schedule!.id);
       if (isClosed) return;
       emit(ScheduleState.started(state.schedule!));
       _initializeNotificationTracking(state.schedule!);
@@ -468,7 +468,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     }
   }
 
-  Future<void> _startScheduleOnServer(String scheduleId) async {
+  Future<void> _startScheduleLocally(String scheduleId) async {
     await _schedulePreparationSessionUseCase.startSchedulePreparation(
       scheduleId,
     );

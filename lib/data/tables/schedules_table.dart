@@ -9,7 +9,10 @@ class Schedules extends Table {
   TextColumn get id => text().clientDefault(() => Uuid().v7())();
   TextColumn get placeId => text().references(Places, #id)();
   TextColumn get scheduleName => text()();
-  DateTimeColumn get scheduleTime => dateTime()();
+  TextColumn get timeZoneId => text().withDefault(const Constant('UTC'))();
+  IntColumn get occurrenceOffsetSeconds => integer().nullable()();
+  TextColumn get scheduleTime =>
+      text().map(const CivilDateTimeSqlConverter())();
   IntColumn get moveTime => integer().map(DurationSqlConverter())();
   BoolColumn get isChanged => boolean().withDefault(const Constant(false))();
   BoolColumn get isStarted => boolean().withDefault(const Constant(false))();
@@ -17,6 +20,18 @@ class Schedules extends Table {
       integer().nullable().map(DurationSqlConverter())();
   TextColumn get scheduleNote => text().nullable()();
   IntColumn get latenessTime => integer().withDefault(const Constant(-1))();
+  TextColumn get doneStatus => text().withDefault(const Constant('notEnded'))();
+  DateTimeColumn get startedAt => dateTime().nullable()();
+  DateTimeColumn get finishedAt => dateTime().nullable()();
+  TextColumn get preparationMode => text().nullable()();
+  TextColumn get preparationTemplateId => text().nullable()();
+  TextColumn get preparationTemplateName => text().nullable()();
+  BoolColumn get preparationTemplateDeleted =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get preparationFrozen =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get scoreContributionRecorded =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

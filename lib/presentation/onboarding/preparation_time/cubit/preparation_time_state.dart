@@ -1,13 +1,12 @@
 part of 'preparation_time_cubit.dart';
 
 class PreparationTimeState extends Equatable {
-  const PreparationTimeState({
-    this.preparationTimeList = const [],
-  });
+  const PreparationTimeState({this.preparationTimeList = const []});
 
   final List<PreparationStepTimeState> preparationTimeList;
   bool get isValid => Formz.validate(
-      preparationTimeList.map((e) => e.preparationTime).toList());
+    preparationTimeList.map((e) => e.preparationTime).toList(),
+  );
 
   PreparationTimeState copyWith({
     List<PreparationStepTimeState>? preparationTimeList,
@@ -20,15 +19,16 @@ class PreparationTimeState extends Equatable {
 
   static PreparationTimeState fromOnboardingState(OnboardingState state) {
     final preparationTimeList = state.preparationStepList
-        .map((e) =>
-            PreparationStepTimeState.fromOnboardingPreparationStepState(e))
+        .map(
+          (e) => PreparationStepTimeState.fromOnboardingPreparationStepState(e),
+        )
         .toList();
     return PreparationTimeState(preparationTimeList: preparationTimeList);
   }
 
   OnboardingState toOnboardingState(OnboardingState oldState) {
     final List<OnboardingPreparationStepState>
-        onboardingPreparationStepStateList = [];
+    onboardingPreparationStepStateList = [];
     int j = 0;
     for (int i = 0; i < preparationTimeList.length; i++) {
       while (j < oldState.preparationStepList.length &&
@@ -39,10 +39,11 @@ class PreparationTimeState extends Equatable {
       if (j == oldState.preparationStepList.length) {
         continue;
       }
-      onboardingPreparationStepStateList
-          .add(oldState.preparationStepList[j].copyWith(
-        preparationTime: preparationTimeList[i].preparationTime.value,
-      ));
+      onboardingPreparationStepStateList.add(
+        oldState.preparationStepList[j].copyWith(
+          preparationTime: preparationTimeList[i].preparationTime.value,
+        ),
+      );
     }
     return oldState.copyWith(
       preparationStepList: onboardingPreparationStepStateList,
@@ -75,7 +76,8 @@ class PreparationStepTimeState extends Equatable {
   }
 
   static PreparationStepTimeState fromOnboardingPreparationStepState(
-      OnboardingPreparationStepState state) {
+    OnboardingPreparationStepState state,
+  ) {
     return PreparationStepTimeState(
       preparationId: state.id,
       preparationName: state.preparationName,

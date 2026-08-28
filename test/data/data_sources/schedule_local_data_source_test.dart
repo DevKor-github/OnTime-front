@@ -201,6 +201,7 @@ Schedule _scheduleRow({
     id: id,
     placeId: placeId,
     scheduleName: scheduleName,
+    timeZoneId: 'Asia/Seoul',
     scheduleTime: scheduleTime,
     moveTime: moveTime,
     isChanged: isChanged,
@@ -208,5 +209,9 @@ Schedule _scheduleRow({
     scheduleSpareTime: scheduleSpareTime,
     scheduleNote: scheduleNote,
     latenessTime: latenessTime,
+    doneStatus: 'notEnded',
+    preparationTemplateDeleted: false,
+    preparationFrozen: false,
+    scoreContributionRecorded: false,
   );
 }

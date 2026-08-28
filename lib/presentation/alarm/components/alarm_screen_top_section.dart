@@ -26,10 +26,7 @@ class AlarmScreenTopSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        _BeforeOutTimeText(
-          isLate: isLate,
-          beforeOutTime: beforeOutTime,
-        ),
+        _BeforeOutTimeText(isLate: isLate, beforeOutTime: beforeOutTime),
         _AlarmGraphSection(
           preparationName: preparationName,
           showPreparationName: showPreparationName,
@@ -50,10 +47,7 @@ class _BeforeOutTimeText extends StatelessWidget {
   final bool isLate;
   final int beforeOutTime;
 
-  const _BeforeOutTimeText({
-    required this.isLate,
-    required this.beforeOutTime,
-  });
+  const _BeforeOutTimeText({required this.isLate, required this.beforeOutTime});
 
   @override
   Widget build(BuildContext context) {

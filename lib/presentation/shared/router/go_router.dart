@@ -13,9 +13,10 @@ import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dar
 import 'package:on_time_front/presentation/early_late/screens/early_late_screen.dart';
 import 'package:on_time_front/presentation/calendar/screens/calendar_screen.dart';
 import 'package:on_time_front/presentation/home/screens/home_screen_tmp.dart';
-import 'package:on_time_front/presentation/login/screens/sign_in_main_screen.dart';
 import 'package:on_time_front/presentation/moving/screens/moving_screen.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
+import 'package:on_time_front/presentation/my_page/my_data_screen.dart';
+import 'package:on_time_front/presentation/my_page/privacy_policy_screen.dart';
 import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen.dart';
 import 'package:on_time_front/presentation/notification_allow/screens/notification_allow_screen.dart';
 import 'package:on_time_front/presentation/onboarding/screens/onboarding_screen.dart';
@@ -29,6 +30,7 @@ import 'package:on_time_front/presentation/shared/router/app_route_transition.da
 import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/stream_to_listenable.dart';
 import 'package:on_time_front/presentation/startup/screens/startup_screen.dart';
+import 'package:on_time_front/presentation/startup/screens/local_data_recovery_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey();
 
@@ -54,6 +56,13 @@ GoRouter goRouterConfig(
     },
     initialLocation: '/startup',
     routes: [
+      GoRoute(
+        path: '/recovery',
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: const LocalDataRecoveryScreen(),
+        ),
+      ),
       GoRoute(
         path: '/startup',
         pageBuilder: (context, state) => _buildAppRoutePage(
@@ -118,18 +127,29 @@ GoRouter goRouterConfig(
         ],
       ),
       GoRoute(
+        path: '/myData',
+        pageBuilder: (context, state) =>
+            _buildAppRoutePage(state: state, child: const MyDataScreen()),
+      ),
+      GoRoute(
+        path: '/privacyPolicy',
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: const PrivacyPolicyScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/resetComplete',
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: const LocalDataResetCompleteScreen(),
+        ),
+      ),
+      GoRoute(
         path: '/defaultPreparationSpareTimeEdit',
         pageBuilder: (context, state) => _buildAppRoutePage(
           state: state,
           child: PreparationSpareTimeEditScreen(),
-        ),
-      ),
-      GoRoute(
-        path: '/signIn',
-        pageBuilder: (context, state) => _buildAppRoutePage(
-          state: state,
-          transition: AppRouteTransition.fade,
-          child: SignInMainScreen(),
         ),
       ),
       GoRoute(
@@ -238,8 +258,10 @@ String? appRedirectLocation({
   required AlarmGateState alarmGateState,
   required String path,
 }) {
+  if (path == '/resetComplete') return null;
   final isStartupRoute = path == '/startup';
-  final isPublicRoute = isStartupRoute || path == '/signIn';
+  final isRecoveryRoute = path == '/recovery';
+  final isPublicRoute = isStartupRoute || isRecoveryRoute;
   final isOnboardingRoute =
       path == '/onboarding' || path == '/onboarding/start';
   final isNotificationRoute = path == '/allowNotification';
@@ -248,10 +270,10 @@ String? appRedirectLocation({
       isPublicRoute || isOnboardingRoute || isNotificationRoute || isAlarmRoute;
 
   switch (authStatus) {
+    case AuthStatus.recovery:
+      return isRecoveryRoute ? null : '/recovery';
     case AuthStatus.loading:
       return isStartupRoute ? null : '/startup';
-    case AuthStatus.unauthenticated:
-      return path == '/signIn' ? null : '/signIn';
     case AuthStatus.authenticated:
       if (notificationGateState.status == NotificationGateStatus.required) {
         return isNotificationRoute ? null : '/allowNotification';

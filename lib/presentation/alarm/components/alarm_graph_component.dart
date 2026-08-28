@@ -38,24 +38,12 @@ class AlarmGraphComponent extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     // 그래프 배경 호
-    canvas.drawArc(
-      rect,
-      startAngle,
-      sweepAngle,
-      false,
-      backgroundPaint,
-    );
+    canvas.drawArc(rect, startAngle, sweepAngle, false, backgroundPaint);
 
     final double currentSweep = sweepAngle * (1.0 - progress);
 
     // 그래프 채워진 호
-    canvas.drawArc(
-      rect,
-      startAngle,
-      currentSweep,
-      false,
-      progressPaint,
-    );
+    canvas.drawArc(rect, startAngle, currentSweep, false, progressPaint);
   }
 
   @override

@@ -10,7 +10,8 @@ class DeviceInfoService {
       return PlatformType.ios;
     } else {
       throw UnimplementedError(
-          'DeviceInfoService is not supported on this platform.');
+        'DeviceInfoService is not supported on this platform.',
+      );
     }
   }
 

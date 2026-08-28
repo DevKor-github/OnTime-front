@@ -6,9 +6,7 @@ import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/pr
 import 'package:on_time_front/l10n/app_localizations.dart';
 
 class PreparationOrderForm extends StatefulWidget {
-  const PreparationOrderForm({
-    super.key,
-  });
+  const PreparationOrderForm({super.key});
 
   @override
   State<PreparationOrderForm> createState() => _PreparationOrderFormState();
@@ -30,9 +28,10 @@ class _PreparationOrderFormState extends State<PreparationOrderForm> {
           return PreparationReorderableList(
             preparationOrderingList: state.preparationStepList,
             onReorder: (oldIndex, newIndex) {
-              context
-                  .read<PreparationOrderCubit>()
-                  .preparationOrderChanged(oldIndex, newIndex);
+              context.read<PreparationOrderCubit>().preparationOrderChanged(
+                oldIndex,
+                newIndex,
+              );
             },
           );
         },

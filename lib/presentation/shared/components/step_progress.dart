@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 class StepProgress extends StatelessWidget {
-  const StepProgress(
-      {super.key,
-      required this.currentStep,
-      required this.totalSteps,
-      this.singleLine = false});
+  const StepProgress({
+    super.key,
+    required this.currentStep,
+    required this.totalSteps,
+    this.singleLine = false,
+  });
 
   final int currentStep;
   final int totalSteps;
@@ -67,12 +68,13 @@ class StepProgress extends StatelessWidget {
 
             return Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: textWidth / 2 - circleRadius / 2 - 6),
+                horizontal: textWidth / 2 - circleRadius / 2 - 6,
+              ),
               child: Row(
                 children: [
                   for (int i = 0; i < totalSteps - 1; i++)
                     Expanded(child: _buildIndicator(context, i)),
-                  _buildIndicator(context, totalSteps - 1)
+                  _buildIndicator(context, totalSteps - 1),
                 ],
               ),
             );
@@ -89,20 +91,16 @@ class StepProgress extends StatelessWidget {
                 style: textTheme.bodyExtraSmall.copyWith(
                   color: _getIndicatorColor(context, i),
                 ),
-              )
+              ),
           ],
-        )
+        ),
       ],
     );
   }
 }
 
 class _StepText extends StatelessWidget {
-  const _StepText({
-    required this.step,
-    required this.singleLine,
-    this.style,
-  });
+  const _StepText({required this.step, required this.singleLine, this.style});
 
   final int step;
   final bool singleLine;
@@ -125,10 +123,7 @@ class _IndicatorLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 2,
-      color: color,
-    );
+    return Container(height: 2, color: color);
   }
 }
 
@@ -150,10 +145,7 @@ class _IndicatorCircle extends StatelessWidget {
       height: radius,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(
-          color: color,
-          width: 1.5,
-        ),
+        border: Border.all(color: color, width: 1.5),
         color: filled ? color : Colors.transparent,
       ),
     );

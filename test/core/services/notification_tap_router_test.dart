@@ -14,22 +14,6 @@ void main() {
 
     expect(navigationService.pushedRoutes, ['/alarmScreen']);
   });
-
-  test('routes remote schedule alarm data with launch payload', () {
-    final navigationService = _FakeNavigationService();
-    final router = NavigationNotificationTapRouter(navigationService);
-
-    router.routeRemoteNotificationData({
-      'type': 'schedule_alarm',
-      'scheduleId': 'schedule-1',
-    });
-
-    expect(navigationService.pushedRoutes, ['/scheduleStart']);
-    expect(navigationService.pushedExtras.single, {
-      'type': 'schedule_alarm',
-      'scheduleId': 'schedule-1',
-    });
-  });
 }
 
 class _FakeNavigationService implements NavigationService {

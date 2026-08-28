@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class Tile extends StatelessWidget {
-  const Tile(
-      {super.key,
-      this.statesController,
-      this.style,
-      this.leading,
-      this.trailing,
-      required this.child});
+  const Tile({
+    super.key,
+    this.statesController,
+    this.style,
+    this.leading,
+    this.trailing,
+    required this.child,
+  });
 
   final WidgetStatesController? statesController;
 
@@ -57,10 +58,7 @@ class Tile extends StatelessWidget {
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        leading ?? SizedBox.shrink(),
-                        child,
-                      ],
+                      children: [leading ?? SizedBox.shrink(), child],
                     ),
                   ),
                   trailing ?? SizedBox.shrink(),

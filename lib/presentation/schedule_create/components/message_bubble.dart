@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 
-enum MessageBubbleType {
-  warning,
-  error,
-}
+enum MessageBubbleType { warning, error }
 
 class MessageBubble extends StatelessWidget {
-  const MessageBubble({
-    super.key,
-    required this.message,
-    required this.type,
-  });
+  const MessageBubble({super.key, required this.message, required this.type});
 
   final String message;
   final MessageBubbleType type;
@@ -24,8 +17,9 @@ class MessageBubble extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color:
-            isError ? colorScheme.errorContainer : colorScheme.primaryContainer,
+        color: isError
+            ? colorScheme.errorContainer
+            : colorScheme.primaryContainer,
       ),
       child: Row(
         children: [
@@ -41,11 +35,11 @@ class MessageBubble extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isError
-                        ? colorScheme.onErrorContainer
-                        : colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w500,
-                  ),
+                color: isError
+                    ? colorScheme.onErrorContainer
+                    : colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

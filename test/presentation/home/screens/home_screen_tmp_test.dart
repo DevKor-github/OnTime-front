@@ -105,11 +105,10 @@ void main() {
       AuthState(
         user: UserEntity(
           id: 'user-1',
-          name: 'Test User',
-          email: 'test@example.com',
           spareTime: Duration.zero,
           note: '',
-          score: 80,
+          eligibleOutcomeCount: 5,
+          onTimeOutcomeCount: 4,
           isOnboardingCompleted: true,
         ),
       ),
@@ -203,11 +202,10 @@ void main() {
       AuthState(
         user: UserEntity(
           id: 'user-1',
-          name: 'Test User',
-          email: 'test@example.com',
           spareTime: Duration.zero,
           note: '',
-          score: 80,
+          eligibleOutcomeCount: 5,
+          onTimeOutcomeCount: 4,
           isOnboardingCompleted: true,
         ),
       ),
@@ -538,11 +536,10 @@ Widget _buildRoutedSubject({
     AuthState(
       user: UserEntity(
         id: 'user-1',
-        name: 'Test User',
-        email: 'test@example.com',
         spareTime: Duration.zero,
         note: '',
-        score: 80,
+        eligibleOutcomeCount: 5,
+        onTimeOutcomeCount: 4,
         isOnboardingCompleted: true,
       ),
     ),

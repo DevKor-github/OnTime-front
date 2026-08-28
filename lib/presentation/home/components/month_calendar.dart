@@ -63,11 +63,10 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
     if (widget.dispatchBlocEvents) {
       context.read<MonthlySchedulesBloc>().add(
-            MonthlySchedulesMonthAdded(
-              date:
-                  DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
-            ),
-          );
+        MonthlySchedulesMonthAdded(
+          date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+        ),
+      );
     }
   }
 
@@ -81,11 +80,10 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
     if (widget.dispatchBlocEvents) {
       context.read<MonthlySchedulesBloc>().add(
-            MonthlySchedulesMonthAdded(
-              date:
-                  DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
-            ),
-          );
+        MonthlySchedulesMonthAdded(
+          date: DateTime(clampedFocusedDay.year, clampedFocusedDay.month, 1),
+        ),
+      );
     }
   }
 
@@ -96,8 +94,9 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final resolvedPadding =
-            widget.contentPadding.resolve(Directionality.of(context));
+        final resolvedPadding = widget.contentPadding.resolve(
+          Directionality.of(context),
+        );
         final constrainedRowHeight = _constrainedRowHeight(
           maxHeight: constraints.maxHeight,
           verticalPadding: resolvedPadding.vertical,
@@ -105,9 +104,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
         return Container(
           padding: widget.contentPadding,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(11),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(11)),
           child: TableCalendar(
             locale: Localizations.localeOf(context).toString(),
             eventLoader: (day) {
@@ -127,10 +124,16 @@ class _MonthCalendarState extends State<MonthCalendar> {
             daysOfWeekHeight: widget.daysOfWeekHeight,
             calendarStyle: calendarTheme.calendarStyle,
             onDaySelected: (selectedDay, focusedDay) {
-              final clampedSelectedDay =
-                  _clampDay(selectedDay, _firstDay, _lastDay);
-              final clampedFocusedDay =
-                  _clampDay(focusedDay, _firstDay, _lastDay);
+              final clampedSelectedDay = _clampDay(
+                selectedDay,
+                _firstDay,
+                _lastDay,
+              );
+              final clampedFocusedDay = _clampDay(
+                focusedDay,
+                _firstDay,
+                _lastDay,
+              );
 
               setState(() {
                 _selectedDay = clampedSelectedDay;
@@ -140,8 +143,11 @@ class _MonthCalendarState extends State<MonthCalendar> {
               widget.onDateSelected?.call(clampedSelectedDay);
             },
             onPageChanged: (focusedDay) {
-              final clampedFocusedDay =
-                  _clampDay(focusedDay, _firstDay, _lastDay);
+              final clampedFocusedDay = _clampDay(
+                focusedDay,
+                _firstDay,
+                _lastDay,
+              );
 
               setState(() {
                 _focusedDay = clampedFocusedDay;
@@ -149,14 +155,14 @@ class _MonthCalendarState extends State<MonthCalendar> {
 
               if (widget.dispatchBlocEvents) {
                 context.read<MonthlySchedulesBloc>().add(
-                      MonthlySchedulesMonthAdded(
-                        date: DateTime(
-                          clampedFocusedDay.year,
-                          clampedFocusedDay.month,
-                          1,
-                        ),
-                      ),
-                    );
+                  MonthlySchedulesMonthAdded(
+                    date: DateTime(
+                      clampedFocusedDay.year,
+                      clampedFocusedDay.month,
+                      1,
+                    ),
+                  ),
+                );
               }
             },
             calendarBuilders: CalendarBuilders(

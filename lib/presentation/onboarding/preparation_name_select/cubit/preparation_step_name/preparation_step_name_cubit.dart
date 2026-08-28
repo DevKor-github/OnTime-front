@@ -16,14 +16,16 @@ class PreparationStepNameCubit extends Cubit<PreparationStepNameState> {
 
   void nameChanged(String value) {
     final preparationName = PreparationNameInputModel.dirty(value);
-    emit(state.copyWith(
-        preparationName: preparationName, isValid: preparationName.isValid));
+    emit(
+      state.copyWith(
+        preparationName: preparationName,
+        isValid: preparationName.isValid,
+      ),
+    );
   }
 
   void selectionToggled() {
-    emit(state.copyWith(
-      isSelected: !state.isSelected,
-    ));
+    emit(state.copyWith(isSelected: !state.isSelected));
   }
 
   void preparationStepSaved() {

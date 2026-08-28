@@ -8,6 +8,8 @@ class ScheduleEntity extends Equatable {
   final String id;
   final PlaceEntity place;
   final String scheduleName;
+  final String timeZoneId;
+  final int? occurrenceOffsetSeconds;
   final DateTime scheduleTime;
   final Duration moveTime;
   final bool isChanged;
@@ -23,12 +25,15 @@ class ScheduleEntity extends Equatable {
   final String? preparationTemplateName;
   final bool preparationTemplateDeleted;
   final bool preparationFrozen;
+  final bool scoreContributionRecorded;
   final PreparationEntity? customPreparations;
 
   const ScheduleEntity({
     required this.id,
     required this.place,
     required this.scheduleName,
+    this.timeZoneId = 'UTC',
+    this.occurrenceOffsetSeconds,
     required this.scheduleTime,
     required this.moveTime,
     required this.isChanged,
@@ -44,11 +49,35 @@ class ScheduleEntity extends Equatable {
     this.preparationTemplateName,
     this.preparationTemplateDeleted = false,
     this.preparationFrozen = false,
+    this.scoreContributionRecorded = false,
     this.customPreparations,
   });
 
+  /// The absolute instant selected for this civil schedule occurrence.
+  ///
+  /// [scheduleTime] intentionally keeps the wall-clock fields for display.
+  /// The stored UTC offset disambiguates repeated local times without needing
+  /// to reinterpret the occurrence in the device's current time zone.
+  DateTime get occurrenceInstantUtc {
+    final offset = occurrenceOffsetSeconds;
+    if (offset == null) return scheduleTime.toUtc();
+    final civilAsUtc = DateTime.utc(
+      scheduleTime.year,
+      scheduleTime.month,
+      scheduleTime.day,
+      scheduleTime.hour,
+      scheduleTime.minute,
+      scheduleTime.second,
+      scheduleTime.millisecond,
+      scheduleTime.microsecond,
+    );
+    return civilAsUtc.subtract(Duration(seconds: offset));
+  }
+
   ScheduleEntity copyWith({
     ScheduleDoneStatus? doneStatus,
+    String? timeZoneId,
+    int? occurrenceOffsetSeconds,
     DateTime? startedAt,
     DateTime? finishedAt,
     SchedulePreparationMode? preparationMode,
@@ -56,12 +85,16 @@ class ScheduleEntity extends Equatable {
     String? preparationTemplateName,
     bool? preparationTemplateDeleted,
     bool? preparationFrozen,
+    bool? scoreContributionRecorded,
     PreparationEntity? customPreparations,
   }) {
     return ScheduleEntity(
       id: id,
       place: place,
       scheduleName: scheduleName,
+      timeZoneId: timeZoneId ?? this.timeZoneId,
+      occurrenceOffsetSeconds:
+          occurrenceOffsetSeconds ?? this.occurrenceOffsetSeconds,
       scheduleTime: scheduleTime,
       moveTime: moveTime,
       isChanged: isChanged,
@@ -80,6 +113,8 @@ class ScheduleEntity extends Equatable {
       preparationTemplateDeleted:
           preparationTemplateDeleted ?? this.preparationTemplateDeleted,
       preparationFrozen: preparationFrozen ?? this.preparationFrozen,
+      scoreContributionRecorded:
+          scoreContributionRecorded ?? this.scoreContributionRecorded,
       customPreparations: customPreparations ?? this.customPreparations,
     );
   }
@@ -94,6 +129,8 @@ class ScheduleEntity extends Equatable {
     id,
     place,
     scheduleName,
+    timeZoneId,
+    occurrenceOffsetSeconds,
     scheduleTime,
     moveTime,
     isChanged,
@@ -109,6 +146,7 @@ class ScheduleEntity extends Equatable {
     preparationTemplateName,
     preparationTemplateDeleted,
     preparationFrozen,
+    scoreContributionRecorded,
     customPreparations,
   ];
 }

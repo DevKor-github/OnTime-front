@@ -4,20 +4,37 @@ import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 
 abstract interface class PreparationLocalDataSource {
-  Future<void> createDefaultPreparation(PreparationEntity preparationEntity);
+  Future<void> createDefaultPreparation(
+    PreparationEntity preparationEntity, {
+    required String userId,
+  });
+
+  Future<PreparationEntity> getDefaultPreparation(String userId);
 
   Future<void> createCustomPreparation(
-      PreparationEntity preparationEntity, String scheduleId);
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  );
 
-  Future<void> updatePreparation(PreparationStepEntity preparationStepEntity);
+  Future<void> replaceDefaultPreparation(
+    PreparationEntity preparationEntity, {
+    required String userId,
+  });
+
+  Future<void> replaceSchedulePreparation(
+    PreparationEntity preparationEntity, {
+    required String scheduleId,
+  });
 
   Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity);
+    PreparationEntity preparationEntity,
+  );
 
   Future<PreparationEntity> getPreparationByScheduleId(String scheduleId);
 
   Future<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId);
+    String preparationStepId,
+  );
 }
 
 @Injectable(as: PreparationLocalDataSource)
@@ -28,35 +45,52 @@ class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
 
   @override
   Future<void> createDefaultPreparation(
-      PreparationEntity preparationEntity) async {
-    await appDatabase.preparationUserDao
-        .createPreparationUser(preparationEntity, 'userId');
+    PreparationEntity preparationEntity, {
+    required String userId,
+  }) async {
+    await appDatabase.preparationUserDao.createPreparationUser(
+      preparationEntity,
+      userId,
+    );
+  }
+
+  @override
+  Future<PreparationEntity> getDefaultPreparation(String userId) {
+    return appDatabase.preparationUserDao.getPreparationUsersByUserId(userId);
   }
 
   @override
   Future<void> createCustomPreparation(
-      PreparationEntity preparationEntity, String scheduleId) async {
-    await appDatabase.preparationScheduleDao
-        .createPreparationSchedule(preparationEntity, scheduleId);
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
+    await appDatabase.preparationScheduleDao.createPreparationSchedule(
+      preparationEntity,
+      scheduleId,
+    );
   }
 
   @override
   Future<PreparationEntity> getPreparationByScheduleId(
-      String scheduleId) async {
+    String scheduleId,
+  ) async {
     return await appDatabase.preparationScheduleDao
         .getPreparationSchedulesByScheduleId(scheduleId);
   }
 
   @override
   Future<PreparationStepEntity> getPreparationStepById(
-      String preparationStepId) async {
-    return await appDatabase.preparationScheduleDao
-        .getPreparationStepById(preparationStepId);
+    String preparationStepId,
+  ) async {
+    return await appDatabase.preparationScheduleDao.getPreparationStepById(
+      preparationStepId,
+    );
   }
 
   @override
   Future<PreparationEntity> deletePreparation(
-      PreparationEntity preparationEntity) async {
+    PreparationEntity preparationEntity,
+  ) async {
     if (preparationEntity.preparationStepList.isEmpty) {
       throw Exception("No preparation steps to delete.");
     }
@@ -65,26 +99,36 @@ class PreparationLocalDataSourceImpl implements PreparationLocalDataSource {
 
     if (firstStep.nextPreparationId != null) {
       // 스케줄 기반 삭제
-      return await appDatabase.preparationScheduleDao
-          .deletePreparationSchedule(firstStep.id);
+      return await appDatabase.preparationScheduleDao.deletePreparationSchedule(
+        firstStep.id,
+      );
     } else {
       // 사용자 기반 삭제
-      return await appDatabase.preparationUserDao
-          .deletePreparationUser(firstStep.id);
+      return await appDatabase.preparationUserDao.deletePreparationUser(
+        firstStep.id,
+      );
     }
   }
 
   @override
-  Future<void> updatePreparation(
-      PreparationStepEntity preparationStepEntity) async {
-    if (preparationStepEntity.nextPreparationId != null) {
-      // 스케줄 기반 업데이트
-      await appDatabase.preparationScheduleDao
-          .updatePreparationSchedule(preparationStepEntity, 'scheduleId');
-    } else {
-      // 사용자 기반 업데이트
-      await appDatabase.preparationUserDao
-          .updatePreparationUser(preparationStepEntity, 'userId');
-    }
+  Future<void> replaceDefaultPreparation(
+    PreparationEntity preparationEntity, {
+    required String userId,
+  }) {
+    return appDatabase.preparationUserDao.createPreparationUser(
+      preparationEntity,
+      userId,
+    );
+  }
+
+  @override
+  Future<void> replaceSchedulePreparation(
+    PreparationEntity preparationEntity, {
+    required String scheduleId,
+  }) {
+    return appDatabase.preparationScheduleDao.createPreparationSchedule(
+      preparationEntity,
+      scheduleId,
+    );
   }
 }

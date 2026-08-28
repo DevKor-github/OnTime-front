@@ -30,9 +30,10 @@ class _PreparationTimeInputFieldListState
         itemBuilder: (context, index) {
           final value = widget.preparationTimeList[index];
           return PreparationTimeTile(
-              value: value,
-              index: index,
-              onPreparationTimeChanged: widget.onPreparationTimeChanged);
+            value: value,
+            index: index,
+            onPreparationTimeChanged: widget.onPreparationTimeChanged,
+          );
         },
       ),
     );

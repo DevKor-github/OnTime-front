@@ -16,29 +16,26 @@ class WeeklySchedulesBloc
     this._loadSchedulesForWeekUseCase,
     this._getSchedulesByDateUseCase,
   ) : super(WeeklySchedulesState()) {
-    on<WeeklySchedulesSubscriptionRequested>(
-      (event, emit) async {
-        emit(state.copyWith(status: () => WeeklySchedulesStatus.loading));
+    on<WeeklySchedulesSubscriptionRequested>((event, emit) async {
+      emit(state.copyWith(status: () => WeeklySchedulesStatus.loading));
 
-        try {
-          await _loadSchedulesForWeekUseCase(event.date);
-        } catch (_) {
-          emit(state.copyWith(status: () => WeeklySchedulesStatus.error));
-          return;
-        }
+      try {
+        await _loadSchedulesForWeekUseCase(event.date);
+      } catch (_) {
+        emit(state.copyWith(status: () => WeeklySchedulesStatus.error));
+        return;
+      }
 
-        await emit.forEach(
-          _getSchedulesByDateUseCase(event.startDate, event.endDate),
-          onData: (schedules) => state.copyWith(
-            status: () => WeeklySchedulesStatus.success,
-            schedules: () => schedules,
-          ),
-          onError: (error, stackTrace) => state.copyWith(
-            status: () => WeeklySchedulesStatus.error,
-          ),
-        );
-      },
-    );
+      await emit.forEach(
+        _getSchedulesByDateUseCase(event.startDate, event.endDate),
+        onData: (schedules) => state.copyWith(
+          status: () => WeeklySchedulesStatus.success,
+          schedules: () => schedules,
+        ),
+        onError: (error, stackTrace) =>
+            state.copyWith(status: () => WeeklySchedulesStatus.error),
+      );
+    });
   }
 
   final LoadSchedulesForWeekUseCase _loadSchedulesForWeekUseCase;

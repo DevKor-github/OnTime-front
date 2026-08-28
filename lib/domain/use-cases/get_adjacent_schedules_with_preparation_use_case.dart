@@ -34,8 +34,10 @@ class GetAdjacentSchedulesWithPreparationUseCase {
   }) async {
     try {
       // Get schedules from the stream
-      final schedules =
-          await _getSchedulesByDateUseCase(startDate, endDate).first;
+      final schedules = await _getSchedulesByDateUseCase(
+        startDate,
+        endDate,
+      ).first;
 
       AppLogger.debug(
         'Schedule filtering selectedDateTime=$selectedDateTime '
@@ -50,8 +52,9 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       final filteredSchedules = schedules.where((schedule) {
         final isNotCurrent = schedule.id != currentScheduleId;
         final isAfterSelected = schedule.scheduleTime.isAfter(selectedDateTime);
-        final timeComparison =
-            schedule.scheduleTime.compareTo(selectedDateTime);
+        final timeComparison = schedule.scheduleTime.compareTo(
+          selectedDateTime,
+        );
 
         AppLogger.debug(
           'Next schedule filter scheduleId=${schedule.id} '
@@ -67,8 +70,9 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       // Filter schedules before selectedDateTime for previous schedule
       final previousSchedules = schedules.where((schedule) {
         final isNotCurrent = schedule.id != currentScheduleId;
-        final isBeforeSelected =
-            schedule.scheduleTime.isBefore(selectedDateTime);
+        final isBeforeSelected = schedule.scheduleTime.isBefore(
+          selectedDateTime,
+        );
 
         AppLogger.debug(
           'Previous schedule filter scheduleId=${schedule.id} '
@@ -89,22 +93,24 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       // For overlap checking, we use the canonical preparation from the stream
       // (not locally stored timed preparations which are for tracking progress)
       Future<ScheduleWithPreparationEntity?> getScheduleWithPreparation(
-          schedule) async {
+        schedule,
+      ) async {
         try {
           // Try to get preparation from stream with a longer timeout
           // Preparations should have been loaded by LoadAdjacentScheduleWithPreparationUseCase
           final preparationEntity =
               await _getPreparationByScheduleIdUseCase(schedule.id).timeout(
-            const Duration(seconds: 10),
-            onTimeout: () {
-              throw TimeoutException(
-                'Preparation not found in stream for schedule ${schedule.id} after 10 seconds. '
-                'It may not have been loaded yet.',
+                const Duration(seconds: 10),
+                onTimeout: () {
+                  throw TimeoutException(
+                    'Preparation not found in stream for schedule ${schedule.id} after 10 seconds. '
+                    'It may not have been loaded yet.',
+                  );
+                },
               );
-            },
+          final preparation = PreparationWithTimeEntity.fromPreparation(
+            preparationEntity,
           );
-          final preparation =
-              PreparationWithTimeEntity.fromPreparation(preparationEntity);
 
           // Create ScheduleWithPreparationEntity
           return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
@@ -115,7 +121,8 @@ class GetAdjacentSchedulesWithPreparationUseCase {
           // If preparation is not in stream, return null
           // This can happen if the preparation hasn't been loaded yet or doesn't exist
           AppLogger.debug(
-              'Preparation not found in stream for schedule ${schedule.id}: $e');
+            'Preparation not found in stream for schedule ${schedule.id}: $e',
+          );
           return null;
         }
       }
@@ -124,20 +131,24 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       ScheduleWithPreparationEntity? nextSchedule;
       if (filteredSchedules.isNotEmpty) {
         // Sort by scheduleTime and get the first one (closest)
-        filteredSchedules
-            .sort((a, b) => a.scheduleTime.compareTo(b.scheduleTime));
-        nextSchedule =
-            await getScheduleWithPreparation(filteredSchedules.first);
+        filteredSchedules.sort(
+          (a, b) => a.scheduleTime.compareTo(b.scheduleTime),
+        );
+        nextSchedule = await getScheduleWithPreparation(
+          filteredSchedules.first,
+        );
       }
 
       // Get previous schedule
       ScheduleWithPreparationEntity? previousSchedule;
       if (previousSchedules.isNotEmpty) {
         // Sort by scheduleTime descending and get the first one (closest before)
-        previousSchedules
-            .sort((a, b) => b.scheduleTime.compareTo(a.scheduleTime));
-        previousSchedule =
-            await getScheduleWithPreparation(previousSchedules.first);
+        previousSchedules.sort(
+          (a, b) => b.scheduleTime.compareTo(a.scheduleTime),
+        );
+        previousSchedule = await getScheduleWithPreparation(
+          previousSchedules.first,
+        );
       }
 
       return AdjacentSchedulesWithPreparationEntity(

@@ -1,11 +1,8 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:on_time_front/core/constants/external_links.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/detailed_notification_preference_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
@@ -16,34 +13,18 @@ import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
-import 'package:on_time_front/presentation/app/cubit/analytics_preference_cubit.dart';
-import 'package:on_time_front/presentation/my_page/my_page_modal/delete_user_modal.dart';
-import 'package:on_time_front/presentation/my_page/my_page_modal/logout_modal.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
-typedef PrivacyPolicyLauncher = Future<bool> Function(Uri uri);
-
 class MyPageScreen extends StatelessWidget {
-  const MyPageScreen({
-    super.key,
-    PrivacyPolicyLauncher? openPrivacyPolicy,
-    NotificationService? notificationService,
-    AnalyticsPreferenceCubit? analyticsPreferenceCubit,
-  }) : _openPrivacyPolicy = openPrivacyPolicy,
-       _notificationService = notificationService,
-       _analyticsPreferenceCubit = analyticsPreferenceCubit;
+  const MyPageScreen({super.key, NotificationService? notificationService})
+    : _notificationService = notificationService;
 
-  final PrivacyPolicyLauncher? _openPrivacyPolicy;
   final NotificationService? _notificationService;
-  final AnalyticsPreferenceCubit? _analyticsPreferenceCubit;
 
   @override
   Widget build(BuildContext context) {
-    final signedIn =
-        context.read<AuthBloc>().state.status == AuthStatus.authenticated;
-    final content = Scaffold(
+    return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
       appBar: AppBar(
         title: Text(
@@ -56,35 +37,15 @@ class MyPageScreen extends StatelessWidget {
         child: Column(
           spacing: 12,
           children: [
-            _FrameView(
-              title: AppLocalizations.of(context)!.myAccount,
-              child: _MyAccountView(),
-            ),
             const _FrameView(title: '알람 설정', child: _AlarmStatusView()),
             _FrameView(
-              title: AppLocalizations.of(context)!.accountSettings,
+              title: '내 데이터',
               child: Column(
                 spacing: 25,
                 children: [
                   _SettingTile(
-                    title: AppLocalizations.of(context)!.logOut,
-                    onTap: () async {
-                      await showLogoutModal(context);
-                    },
-                  ),
-                  _SettingTile(
-                    title: AppLocalizations.of(context)!.deleteAccount,
-                    onTap: () async {
-                      final deleteUserModal = DeleteUserModal();
-                      await deleteUserModal.showDeleteUserModal(
-                        context,
-                        onConfirm: () {
-                          if (context.mounted) {
-                            context.go('/signIn');
-                          }
-                        },
-                      );
-                    },
+                    title: '백업, 복원 및 로컬 데이터 초기화',
+                    onTap: () => context.push('/myData'),
                   ),
                 ],
               ),
@@ -104,6 +65,7 @@ class MyPageScreen extends StatelessWidget {
                       if (updatedPreparation != null) {}
                     },
                   ),
+                  const _DetailedNotificationTile(),
                   _SettingTile(
                     title: AppLocalizations.of(context)!.allowAppNotifications,
                     onTap: () async {
@@ -113,15 +75,9 @@ class MyPageScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const _AnalyticsPreferenceTile(),
                   _SettingTile(
                     title: AppLocalizations.of(context)!.privacyPolicy,
-                    onTap: () async {
-                      await _handlePrivacyPolicyTap(
-                        context,
-                        _openPrivacyPolicy ?? _openPrivacyPolicyExternally,
-                      );
-                    },
+                    onTap: () => context.push('/privacyPolicy'),
                   ),
                 ],
               ),
@@ -130,93 +86,55 @@ class MyPageScreen extends StatelessWidget {
         ),
       ),
     );
-    if (_analyticsPreferenceCubit != null) {
-      final analyticsPreferenceCubit = _analyticsPreferenceCubit;
-      return BlocProvider<AnalyticsPreferenceCubit>.value(
-        value: analyticsPreferenceCubit..load(signedIn: signedIn),
-        child: content,
-      );
-    }
-    return BlocProvider<AnalyticsPreferenceCubit>(
-      create: (_) =>
-          getIt.get<AnalyticsPreferenceCubit>()..load(signedIn: signedIn),
-      child: content,
-    );
   }
 }
 
-class _AnalyticsPreferenceTile extends StatelessWidget {
-  const _AnalyticsPreferenceTile();
+class _DetailedNotificationTile extends StatefulWidget {
+  const _DetailedNotificationTile();
+
+  @override
+  State<_DetailedNotificationTile> createState() =>
+      _DetailedNotificationTileState();
+}
+
+class _DetailedNotificationTileState
+    extends State<_DetailedNotificationTile> {
+  bool _enabled = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final enabled = await getIt<DetailedNotificationPreferenceService>()
+        .getEnabled();
+    if (mounted) {
+      setState(() {
+        _enabled = enabled;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _change(bool enabled) async {
+    setState(() => _enabled = enabled);
+    await getIt<DetailedNotificationPreferenceService>().setEnabled(enabled);
+    await getIt<ReconcileAlarmsUseCase>()();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    final signedIn =
-        context.read<AuthBloc>().state.status == AuthStatus.authenticated;
-    return BlocBuilder<AnalyticsPreferenceCubit, AnalyticsPreferenceState>(
-      builder: (context, state) {
-        final isUpdating =
-            state.status == AnalyticsPreferenceStatus.loading ||
-            state.status == AnalyticsPreferenceStatus.updating;
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context)!.helpImproveOnTime,
-                style: textTheme.bodyLarge,
-              ),
-            ),
-            Switch(
-              key: const Key('analyticsPreferenceSwitch'),
-              value: state.enabled,
-              activeThumbColor: colorScheme.primary,
-              onChanged: isUpdating
-                  ? null
-                  : (value) {
-                      context.read<AnalyticsPreferenceCubit>().update(
-                        enabled: value,
-                        signedIn: signedIn,
-                      );
-                    },
-            ),
-          ],
-        );
-      },
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: const Text('알림에 일정 이름 표시'),
+      subtitle: const Text('기본값은 잠금 화면에 상세 내용을 표시하지 않습니다.'),
+      value: _enabled,
+      onChanged: _loading ? null : _change,
     );
   }
-}
-
-Future<bool> _openPrivacyPolicyExternally(Uri uri) {
-  return launchUrl(uri, mode: LaunchMode.externalApplication);
-}
-
-Future<void> _handlePrivacyPolicyTap(
-  BuildContext context,
-  PrivacyPolicyLauncher openPrivacyPolicy,
-) async {
-  var opened = false;
-  try {
-    opened = await openPrivacyPolicy(ExternalLinks.privacyPolicyUri);
-  } catch (_) {
-    opened = false;
-  }
-
-  if (opened || !context.mounted) return;
-
-  final l10n = AppLocalizations.of(context)!;
-  await showTwoActionDialog(
-    context,
-    config: TwoActionDialogConfig(
-      title: l10n.error,
-      description: l10n.privacyPolicyOpenError,
-      primaryAction: DialogActionConfig(
-        label: l10n.ok,
-        variant: ModalWideButtonVariant.primary,
-      ),
-    ),
-  );
 }
 
 class _AlarmStatusView extends StatefulWidget {
@@ -472,54 +390,6 @@ bool _shouldRecoverNativeAlarmPermission(
       nativeAlarmProviderAllowedByReleasePolicy(
         capabilities.nativeAlarmProvider,
       );
-}
-
-class _MyAccountView extends StatelessWidget {
-  const _MyAccountView();
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state.status == AuthStatus.authenticated) {
-          final userName = state.user.nameOrNull;
-          final userEmail = state.user.emailOrNull;
-          return Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10.0) +
-                EdgeInsets.only(bottom: 9),
-            child: Row(
-              spacing: 20,
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundImage: Image.asset(
-                    'profile.png',
-                    package: 'assets',
-                  ).image,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(userName ?? '', style: textTheme.titleMedium),
-                    Text(
-                      userEmail ?? '',
-                      style: textTheme.bodyMedium!.copyWith(
-                        color: colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        }
-        return const SizedBox.shrink();
-      },
-    );
-  }
 }
 
 class _FrameView extends StatelessWidget {

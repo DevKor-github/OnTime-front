@@ -150,18 +150,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _refreshSchedulesIfSaved(saved);
   }
 
-  Future<void> _showScheduleDeleteFailureDialog(
-    BuildContext context,
-    String? serverMessage,
-  ) {
+  Future<void> _showScheduleDeleteFailureDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return showTwoActionDialog(
       context,
       config: TwoActionDialogConfig(
         title: l10n.scheduleDeleteFailedTitle,
-        description: serverMessage?.trim().isNotEmpty == true
-            ? serverMessage!.trim()
-            : l10n.scheduleDeleteFailedDescription,
+        // Do not expose exception implementation details to the user. Local
+        // failures share one actionable, translated recovery message.
+        description: l10n.scheduleDeleteFailedDescription,
         primaryAction: DialogActionConfig(label: l10n.ok),
       ),
     );
@@ -225,12 +222,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               listenWhen: (previous, current) =>
                   previous.deleteFailureCount != current.deleteFailureCount,
               listener: (context, state) {
-                unawaited(
-                  _showScheduleDeleteFailureDialog(
-                    context,
-                    state.deleteFailureMessage,
-                  ),
-                );
+                unawaited(_showScheduleDeleteFailureDialog(context));
               },
               child: LayoutBuilder(
                 builder: (context, constraints) {

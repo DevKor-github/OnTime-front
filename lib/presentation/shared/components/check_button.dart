@@ -17,19 +17,23 @@ class CheckButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FilledButton(
-        onPressed: onPressed,
-        style: ButtonStyle(
-          padding: WidgetStatePropertyAll(EdgeInsets.zero),
-          shape: WidgetStatePropertyAll(CircleBorder()),
-          backgroundColor: WidgetStatePropertyAll(isChecked
+      onPressed: onPressed,
+      style: ButtonStyle(
+        padding: WidgetStatePropertyAll(EdgeInsets.zero),
+        shape: WidgetStatePropertyAll(CircleBorder()),
+        backgroundColor: WidgetStatePropertyAll(
+          isChecked
               ? const Color.fromARGB(255, 0, 202, 120)
-              : const Color.fromARGB(255, 232, 232, 232)),
-          elevation: WidgetStateProperty.all(0), // Remove elevation changes
-          shadowColor:
-              WidgetStateProperty.all(Colors.transparent), // No shadow on press
-          surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
-          overlayColor: WidgetStateProperty.all(Colors.transparent),
+              : const Color.fromARGB(255, 232, 232, 232),
         ),
-        child: svg);
+        elevation: WidgetStateProperty.all(0), // Remove elevation changes
+        shadowColor: WidgetStateProperty.all(
+          Colors.transparent,
+        ), // No shadow on press
+        surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
+        overlayColor: WidgetStateProperty.all(Colors.transparent),
+      ),
+      child: svg,
+    );
   }
 }

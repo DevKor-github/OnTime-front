@@ -1,5 +1,5 @@
 import 'package:formz/formz.dart';
-import 'package:on_time_front/core/validation/backend_constraints.dart';
+import 'package:on_time_front/core/validation/local_input_limits.dart';
 
 /// Validation errors for the [ScheduleMovingTimeInputModel] [FormzInput].
 enum ScheduleSpareTimeValidationError { zero, empty, negative, tooLarge }
@@ -19,7 +19,7 @@ class ScheduleSpareTimeInputModel
       return ScheduleSpareTimeValidationError.negative;
     } else if (minutes == 0) {
       return ScheduleSpareTimeValidationError.zero;
-    } else if (minutes > BackendConstraints.maxMinuteValue) {
+    } else if (minutes > LocalInputLimits.maxMinuteValue) {
       return ScheduleSpareTimeValidationError.tooLarge;
     }
     return null;

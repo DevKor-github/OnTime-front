@@ -47,13 +47,18 @@ class _Title extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(AppLocalizations.of(context)!.welcome,
-            key: Key('onboarding_start_title'), style: textTheme.headlineSmall),
+        Text(
+          AppLocalizations.of(context)!.welcome,
+          key: Key('onboarding_start_title'),
+          style: textTheme.headlineSmall,
+        ),
         SizedBox(height: 9),
-        Text(AppLocalizations.of(context)!.onboardingStartSubtitle,
-            textAlign: TextAlign.center,
-            key: Key('onboarding_start_subtitle'),
-            style: textTheme.titleExtraSmall),
+        Text(
+          AppLocalizations.of(context)!.onboardingStartSubtitle,
+          textAlign: TextAlign.center,
+          key: Key('onboarding_start_subtitle'),
+          style: textTheme.titleExtraSmall,
+        ),
       ],
     );
   }

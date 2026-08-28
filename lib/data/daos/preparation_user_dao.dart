@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
@@ -20,23 +19,35 @@ class PreparationUserDao extends DatabaseAccessor<AppDatabase>
     PreparationEntity preparationEntity,
     String userId,
   ) async {
-    String? previousStepId;
-
-    for (var step in preparationEntity.preparationStepList) {
-      final insertedStep = await into(
+    await transaction(() async {
+      await (delete(
         db.preparationUsers,
-      ).insertReturning(step.toPreparationUserRow(userId).toCompanion(false));
-
-      if (previousStepId != null) {
-        await (update(
-          db.preparationUsers,
-        )..where((tbl) => tbl.id.equals(previousStepId!))).write(
-          PreparationUsersCompanion(nextPreparationId: Value(insertedStep.id)),
+      )..where((table) => table.userId.equals(userId))).go();
+      String? previousStepId;
+      for (final step in preparationEntity.preparationStepList) {
+        final insertedStep = await into(db.preparationUsers).insertReturning(
+          PreparationUsersCompanion.insert(
+            id: Value(step.id),
+            userId: userId,
+            preparationName: step.preparationName,
+            preparationTime: step.preparationTime.inMinutes,
+            nextPreparationId: const Value(null),
+          ),
         );
-      }
 
-      previousStepId = insertedStep.id;
-    }
+        if (previousStepId != null) {
+          await (update(
+            db.preparationUsers,
+          )..where((tbl) => tbl.id.equals(previousStepId!))).write(
+            PreparationUsersCompanion(
+              nextPreparationId: Value(insertedStep.id),
+            ),
+          );
+        }
+
+        previousStepId = insertedStep.id;
+      }
+    });
   }
 
   Future<PreparationEntity> getPreparationUsersByUserId(String userId) async {

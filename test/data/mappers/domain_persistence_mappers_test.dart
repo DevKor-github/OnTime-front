@@ -17,6 +17,7 @@ void main() {
             id: 'schedule-model',
             placeId: 'place-model',
             scheduleName: 'Doctor',
+            timeZoneId: 'Asia/Seoul',
             scheduleTime: DateTime(2026, 4, 1, 15),
             moveTime: const Duration(minutes: 30),
             isChanged: true,
@@ -24,6 +25,10 @@ void main() {
             scheduleSpareTime: const Duration(minutes: 5),
             scheduleNote: null,
             latenessTime: 7,
+            doneStatus: 'notEnded',
+            preparationTemplateDeleted: false,
+            preparationFrozen: false,
+            scoreContributionRecorded: false,
           ),
           place: const Place(id: 'place-model', placeName: 'Clinic'),
         ).toScheduleEntity();
@@ -50,11 +55,15 @@ void main() {
     test('maps users to and from database rows preserving profile values', () {
       const row = User(
         id: 'user-1',
-        email: 'user@example.com',
-        name: 'User',
         spareTime: 12,
         note: 'note',
-        score: 4.5,
+        isOnboardingCompleted: true,
+        eligibleOutcomeCount: 4,
+        onTimeOutcomeCount: 3,
+        alarmsEnabled: true,
+        alarmOffsetMinutes: 5,
+        detailedNotificationContent: false,
+        dataRevision: 7,
       );
 
       final entity = row.toUserEntity();
@@ -62,15 +71,12 @@ void main() {
 
       expect(entity.valueOrNull, entity);
       expect(entity.spareTimeOrNull, const Duration(minutes: 12));
-      expect(entity.scoreOrNull, 4.5);
-      expect(entity.nameOrNull, 'User');
-      expect(entity.emailOrNull, 'user@example.com');
+      expect(entity.scoreOrNull, 75);
       expect(roundTrip.id, row.id);
-      expect(roundTrip.email, row.email);
-      expect(roundTrip.name, row.name);
       expect(roundTrip.spareTime, row.spareTime);
       expect(roundTrip.note, row.note);
-      expect(roundTrip.score, row.score);
+      expect(roundTrip.eligibleOutcomeCount, row.eligibleOutcomeCount);
+      expect(roundTrip.onTimeOutcomeCount, row.onTimeOutcomeCount);
     });
 
     test('empty users cannot be converted to database rows', () {

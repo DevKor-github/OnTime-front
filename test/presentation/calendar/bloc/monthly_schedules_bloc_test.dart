@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
@@ -777,19 +776,7 @@ void main() {
     'delete failure keeps calendar state and emits a delete failure signal',
     () async {
       deleteScheduleUseCase = StubDeleteScheduleUseCase(
-        (_) async => throw DioException(
-          requestOptions: RequestOptions(path: '/schedules/schedule-a'),
-          response: Response(
-            requestOptions: RequestOptions(path: '/schedules/schedule-a'),
-            statusCode: 409,
-            data: {
-              'status': 'error',
-              'code': 'SCHEDULE_ALREADY_FINISHED',
-              'message': 'Finished schedules cannot be deleted.',
-              'data': null,
-            },
-          ),
-        ),
+        (_) async => throw StateError('Finished schedules cannot be deleted.'),
       );
 
       final bloc = buildBloc();

@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import '/core/database/database.dart';
 
@@ -23,28 +22,41 @@ class PreparationScheduleDao extends DatabaseAccessor<AppDatabase>
     PreparationEntity preparationEntity,
     String scheduleId,
   ) async {
-    String? previousStepId;
+    await transaction(() async {
+      await (delete(
+        db.preparationSchedules,
+      )..where((table) => table.scheduleId.equals(scheduleId))).go();
+      String? previousStepId;
+      for (final step in preparationEntity.preparationStepList) {
+        // Step 1: Insert the current preparation step
+        // Ignore incoming links while inserting. Otherwise an already-linked
+        // replacement can reference a row that has not been inserted yet.
+        final insertedStep = await into(db.preparationSchedules)
+            .insertReturning(
+              PreparationSchedulesCompanion.insert(
+                id: Value(step.id),
+                scheduleId: scheduleId,
+                preparationName: step.preparationName,
+                preparationTime: step.preparationTime.inMinutes,
+                nextPreparationId: const Value(null),
+              ),
+            );
 
-    for (var step in preparationEntity.preparationStepList) {
-      // Step 1: Insert the current preparation step
-      final insertedStep = await into(db.preparationSchedules).insertReturning(
-        step.toPreparationScheduleRow(scheduleId).toCompanion(false),
-      );
+        // Step 2: Update the `nextPreparationId` of the previous step
+        if (previousStepId != null) {
+          await (update(
+            db.preparationSchedules,
+          )..where((tbl) => tbl.id.equals(previousStepId!))).write(
+            PreparationSchedulesCompanion(
+              nextPreparationId: Value(insertedStep.id),
+            ),
+          );
+        }
 
-      // Step 2: Update the `nextPreparationId` of the previous step
-      if (previousStepId != null) {
-        await (update(
-          db.preparationSchedules,
-        )..where((tbl) => tbl.id.equals(previousStepId!))).write(
-          PreparationSchedulesCompanion(
-            nextPreparationId: Value(insertedStep.id),
-          ),
-        );
+        // Step 3: Set the current step's ID as the previous step ID for the next iteration
+        previousStepId = insertedStep.id;
       }
-
-      // Step 3: Set the current step's ID as the previous step ID for the next iteration
-      previousStepId = insertedStep.id;
-    }
+    });
   }
 
   Future<PreparationEntity> getPreparationSchedulesByScheduleId(

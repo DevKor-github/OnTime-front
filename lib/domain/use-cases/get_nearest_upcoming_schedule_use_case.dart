@@ -17,32 +17,38 @@ class GetNearestUpcomingScheduleUseCase {
   final LoadSchedulesForWeekUseCase _loadSchedulesForWeekUseCase;
 
   GetNearestUpcomingScheduleUseCase(
-      this._getScheduleByDateUseCase,
-      this._loadPreparationByScheduleIdUseCase,
-      this._getPreparationByScheduleIdUseCase,
-      this._loadSchedulesForWeekUseCase);
+    this._getScheduleByDateUseCase,
+    this._loadPreparationByScheduleIdUseCase,
+    this._getPreparationByScheduleIdUseCase,
+    this._loadSchedulesForWeekUseCase,
+  );
 
   Stream<ScheduleWithPreparationEntity?> call() async* {
     final DateTime now = DateTime.now();
 
     unawaited(_loadSchedulesForWeekUseCase(now).catchError((_) {}));
 
-    final upcomingScheduleStream =
-        _getScheduleByDateUseCase(now, now.add(const Duration(days: 2)));
+    final upcomingScheduleStream = _getScheduleByDateUseCase(
+      now,
+      now.add(const Duration(days: 2)),
+    );
     await for (final upcomingSchedule in upcomingScheduleStream) {
       if (upcomingSchedule.isNotEmpty) {
         try {
           final schedule = upcomingSchedule.firstWhere(
-              (s) => s.doneStatus == ScheduleDoneStatus.notEnded,
-              orElse: () => throw Exception('No upcoming schedule found'));
+            (s) => s.doneStatus == ScheduleDoneStatus.notEnded,
+            orElse: () => throw Exception('No upcoming schedule found'),
+          );
 
           await _loadPreparationByScheduleIdUseCase(schedule.id);
-          final preparation =
-              await _getPreparationByScheduleIdUseCase(schedule.id);
+          final preparation = await _getPreparationByScheduleIdUseCase(
+            schedule.id,
+          );
           final scheduleWithPreparation =
               ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-                  schedule,
-                  PreparationWithTimeEntity.fromPreparation(preparation));
+                schedule,
+                PreparationWithTimeEntity.fromPreparation(preparation),
+              );
           yield scheduleWithPreparation;
         } catch (e) {
           yield null;

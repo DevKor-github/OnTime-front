@@ -1,9 +1,7 @@
 import 'package:formz/formz.dart';
 
 /// Validation errors for the [SchedulePlaceInputModel] [FormzInput].
-enum SchedulePlaceValidationError {
-  empty,
-}
+enum SchedulePlaceValidationError { empty }
 
 class SchedulePlaceInputModel
     extends FormzInput<String, SchedulePlaceValidationError> {

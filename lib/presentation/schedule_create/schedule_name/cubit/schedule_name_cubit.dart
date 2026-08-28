@@ -7,37 +7,33 @@ import 'package:on_time_front/presentation/schedule_create/schedule_name/input_m
 part 'schedule_name_state.dart';
 
 class ScheduleNameCubit extends Cubit<ScheduleNameState> {
-  ScheduleNameCubit({
-    required this.scheduleFormBloc,
-  }) : super(ScheduleNameState()) {
+  ScheduleNameCubit({required this.scheduleFormBloc})
+    : super(ScheduleNameState()) {
     initialize();
   }
 
   final ScheduleFormBloc scheduleFormBloc;
 
   void initialize() {
-    final scheduleNameState =
-        ScheduleNameState.fromScheduleFormState(scheduleFormBloc.state);
-    emit(state.copyWith(
-      scheduleName: scheduleNameState.scheduleName,
-    ));
+    final scheduleNameState = ScheduleNameState.fromScheduleFormState(
+      scheduleFormBloc.state,
+    );
+    emit(state.copyWith(scheduleName: scheduleNameState.scheduleName));
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   void scheduleNameChanged(String scheduleName) {
     final ScheduleNameInputModel scheduleNameInputModel =
         ScheduleNameInputModel.dirty(scheduleName);
-    emit(state.copyWith(
-      scheduleName: scheduleNameInputModel,
-    ));
+    emit(state.copyWith(scheduleName: scheduleNameInputModel));
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   void scheduleNameSubmitted() {
     if (state.scheduleName.isValid) {
-      scheduleFormBloc.add(ScheduleFormScheduleNameChanged(
-        scheduleName: state.scheduleName.value,
-      ));
+      scheduleFormBloc.add(
+        ScheduleFormScheduleNameChanged(scheduleName: state.scheduleName.value),
+      );
     }
   }
 }

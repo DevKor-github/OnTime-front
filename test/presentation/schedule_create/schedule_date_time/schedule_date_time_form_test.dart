@@ -57,6 +57,32 @@ void main() {
 
     expect(find.text('2026년 05월 15일'), findsWidgets);
   });
+
+  testWidgets('shows explicit choices for a repeated DST time', (tester) async {
+    final formBloc = _FakeScheduleFormBloc(
+      ScheduleFormState(id: 'schedule-1', timeZoneId: 'America/New_York'),
+    );
+    final cubit = ScheduleDateTimeCubit(
+      formBloc,
+      _FakeLoadAdjacentSchedulesWithPreparationUseCase(),
+      _FakeGetAdjacentSchedulesWithPreparationUseCase(),
+    );
+    addTearDown(cubit.close);
+    cubit.initialize();
+
+    await cubit.scheduleDateChanged(DateTime(2027, 11, 7));
+    await cubit.scheduleTimeChanged(DateTime(2027, 11, 7, 1, 30));
+    await _pumpForm(tester, cubit: cubit);
+
+    expect(find.textContaining('occurs twice'), findsOneWidget);
+    expect(find.text('First (UTC-04:00)'), findsOneWidget);
+    expect(find.text('Second (UTC-05:00)'), findsOneWidget);
+
+    await tester.tap(find.text('Second (UTC-05:00)'));
+    await tester.pump();
+
+    expect(cubit.state.selectedOccurrenceOffsetSeconds, -5 * 60 * 60);
+  });
 }
 
 Future<void> _pumpForm(

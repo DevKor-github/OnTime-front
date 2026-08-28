@@ -17,10 +17,11 @@ class AlarmRegistryRepositoryImpl implements AlarmRegistryRepository {
   @override
   Future<void> upsert(ScheduledAlarmRecord record) async {
     final records = await loadAll();
-    final nextRecords = records
-        .where((existing) => existing.scheduleId != record.scheduleId)
-        .toList()
-      ..add(record);
+    final nextRecords =
+        records
+            .where((existing) => existing.scheduleId != record.scheduleId)
+            .toList()
+          ..add(record);
     await replaceAll(nextRecords);
   }
 

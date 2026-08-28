@@ -14,4 +14,3 @@ class AdjacentSchedulesWithPreparationEntity {
   bool get hasNext => nextSchedule != null;
   bool get isEmpty => !hasPrevious && !hasNext;
 }
-

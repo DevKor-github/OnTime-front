@@ -237,7 +237,10 @@ void main() {
 
     test('schedule with preparation derives start time and total duration', () {
       expect(schedule.totalDuration, const Duration(minutes: 50));
-      expect(schedule.preparationStartTime, DateTime(2026, 3, 20, 9, 10));
+      expect(
+        schedule.preparationStartTime,
+        DateTime(2026, 3, 20, 9, 10).toUtc(),
+      );
       expect(schedule.timeRemainingBeforeLeaving.inMinutes, isA<int>());
       expect(schedule.isLate, isA<bool>());
       expect(schedule.cacheFingerprint, contains('s1:wash:600000:s2|'));

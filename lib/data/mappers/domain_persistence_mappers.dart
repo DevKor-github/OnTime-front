@@ -3,6 +3,7 @@ import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
 extension PlacePersistenceMapper on PlaceEntity {
@@ -45,6 +46,8 @@ extension SchedulePersistenceMapper on ScheduleEntity {
       id: id,
       placeId: place.id,
       scheduleName: scheduleName,
+      timeZoneId: timeZoneId,
+      occurrenceOffsetSeconds: occurrenceOffsetSeconds,
       scheduleTime: scheduleTime,
       moveTime: moveTime,
       isChanged: isChanged,
@@ -52,6 +55,15 @@ extension SchedulePersistenceMapper on ScheduleEntity {
       scheduleSpareTime: scheduleSpareTime,
       scheduleNote: scheduleNote,
       latenessTime: latenessTime,
+      doneStatus: doneStatus.name,
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      preparationMode: preparationMode?.name,
+      preparationTemplateId: preparationTemplateId,
+      preparationTemplateName: preparationTemplateName,
+      preparationTemplateDeleted: preparationTemplateDeleted,
+      preparationFrozen: preparationFrozen,
+      scoreContributionRecorded: scoreContributionRecorded,
     );
   }
 
@@ -69,6 +81,8 @@ extension ScheduleWithPlacePersistenceMapper on ScheduleWithPlace {
       id: schedule.id,
       place: place.toPlaceEntity(),
       scheduleName: schedule.scheduleName,
+      timeZoneId: schedule.timeZoneId,
+      occurrenceOffsetSeconds: schedule.occurrenceOffsetSeconds,
       scheduleTime: schedule.scheduleTime,
       moveTime: schedule.moveTime,
       isChanged: schedule.isChanged,
@@ -76,8 +90,17 @@ extension ScheduleWithPlacePersistenceMapper on ScheduleWithPlace {
       scheduleSpareTime: schedule.scheduleSpareTime,
       scheduleNote: schedule.scheduleNote ?? '',
       latenessTime: schedule.latenessTime,
-      doneStatus: ScheduleDoneStatus.notEnded,
-      preparationFrozen: schedule.isStarted,
+      doneStatus: ScheduleDoneStatus.values.byName(schedule.doneStatus),
+      startedAt: schedule.startedAt,
+      finishedAt: schedule.finishedAt,
+      preparationMode: schedule.preparationMode == null
+          ? null
+          : SchedulePreparationMode.values.byName(schedule.preparationMode!),
+      preparationTemplateId: schedule.preparationTemplateId,
+      preparationTemplateName: schedule.preparationTemplateName,
+      preparationTemplateDeleted: schedule.preparationTemplateDeleted,
+      preparationFrozen: schedule.preparationFrozen,
+      scoreContributionRecorded: schedule.scoreContributionRecorded,
     );
   }
 }
@@ -87,11 +110,16 @@ extension UserPersistenceMapper on UserEntity {
     return map(
       (userEntity) => User(
         id: userEntity.id,
-        email: userEntity.email,
-        name: userEntity.name,
         spareTime: userEntity.spareTime.inMinutes,
         note: userEntity.note,
-        score: userEntity.score,
+        eligibleOutcomeCount: userEntity.eligibleOutcomeCount,
+        onTimeOutcomeCount: userEntity.onTimeOutcomeCount,
+        isOnboardingCompleted: userEntity.isOnboardingCompleted,
+        alarmsEnabled: true,
+        alarmOffsetMinutes: 0,
+        detailedNotificationContent: false,
+        dataRevision: 0,
+        lastDurableDataAt: null,
       ),
       empty: (_) => throw Exception('Cannot convert empty UserEntity to User'),
     );
@@ -102,11 +130,11 @@ extension UserRowPersistenceMapper on User {
   UserEntity toUserEntity() {
     return UserEntity(
       id: id,
-      email: email,
-      name: name,
       spareTime: Duration(minutes: spareTime),
       note: note,
-      score: score,
+      eligibleOutcomeCount: eligibleOutcomeCount,
+      onTimeOutcomeCount: onTimeOutcomeCount,
+      isOnboardingCompleted: isOnboardingCompleted,
     );
   }
 }

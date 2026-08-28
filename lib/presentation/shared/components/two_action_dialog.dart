@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/presentation/shared/components/custom_alert_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 
-enum DialogActionResult {
-  primary,
-  secondary,
-  dismissed,
-}
+enum DialogActionResult { primary, secondary, dismissed }
 
 class DialogActionConfig {
   const DialogActionConfig({
@@ -72,7 +68,7 @@ Future<DialogActionResult> showTwoActionDialog(
         onSecondaryPressed: config.secondaryAction == null
             ? null
             : () =>
-                Navigator.of(dialogContext).pop(DialogActionResult.secondary),
+                  Navigator.of(dialogContext).pop(DialogActionResult.secondary),
       );
     },
   );
@@ -114,7 +110,8 @@ class TwoActionDialog extends StatelessWidget {
       ),
     );
 
-    final bodyContent = customContent ??
+    final bodyContent =
+        customContent ??
         (config.description == null
             ? null
             : Text(

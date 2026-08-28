@@ -24,13 +24,11 @@ jobs:
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      REST_API_URL: ${{ vars.REST_API_URL }}
 
     steps:
       - name: Validate workflow inputs
         env:
           ANDROID_VERSION_CODE: ${{ inputs.android_version_code }}
-          ANDROID_GOOGLE_SERVICES_JSON_B64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_B64 }}
           ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
@@ -50,13 +48,11 @@ jobs:
 
           missing=0
           for name in \
-            ANDROID_GOOGLE_SERVICES_JSON_B64 \
             ANDROID_UPLOAD_KEYSTORE_B64 \
             ANDROID_KEYSTORE_PASSWORD \
             ANDROID_KEY_ALIAS \
             ANDROID_KEY_PASSWORD \
-            GOOGLE_PLAY_SERVICE_ACCOUNT_JSON \
-            REST_API_URL
+            GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
           do
             if [ -z "${!name}" ]; then
               echo "$name is required for Android Play closed testing deploy." >&2
@@ -82,15 +78,7 @@ jobs:
         run: echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/ontime-upload.jks" >> "$GITHUB_ENV"
 
       - name: Install native test dependencies
-        run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev
-
-      - name: Decode Android Firebase config
-        env:
-          ANDROID_GOOGLE_SERVICES_JSON_B64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_B64 }}
-        run: |
-          mkdir -p android/app/src/release
-          printf '%s' "$ANDROID_GOOGLE_SERVICES_JSON_B64" | base64 --decode > android/app/src/release/google-services.json
-          test -s android/app/src/release/google-services.json
+        run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev libsodium-dev
 
       - name: Decode Android upload keystore
         env:
@@ -108,6 +96,9 @@ jobs:
 
       - name: Check generated Dart policy
         run: dart run tool/check_generated_dart_policy.dart
+
+      - name: Check local-only product boundary
+        run: dart run tool/check_local_only_boundary.dart
 
       - name: Verify generation left tracked files unchanged
         run: git diff --exit-code
@@ -132,9 +123,7 @@ jobs:
         run: |
           flutter build appbundle --release \
             --build-name="$ANDROID_BUILD_NAME" \
-            --build-number="${{ inputs.android_version_code }}" \
-            --dart-define=ENV=staging \
-            --dart-define=REST_API_URL="$REST_API_URL"
+            --build-number="${{ inputs.android_version_code }}"
 
       - name: Prepare Play release notes
         if: ${{ inputs.release_notes != '' }}

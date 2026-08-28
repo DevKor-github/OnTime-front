@@ -7,18 +7,23 @@ abstract interface class PreparationRepository {
 
   Future<PreparationEntity> getDefualtPreparation();
 
-  Future<void> createDefaultPreparation(
-      {required PreparationEntity preparationEntity,
-      required Duration spareTime,
-      required String note});
+  Future<void> createDefaultPreparation({
+    required PreparationEntity preparationEntity,
+    required Duration spareTime,
+    required String note,
+  });
 
   Future<void> createCustomPreparation(
-      PreparationEntity preparationEntity, String scheduleId);
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  );
 
   Future<void> updateDefaultPreparation(PreparationEntity preparationEntity);
 
   Future<void> updatePreparationByScheduleId(
-      PreparationEntity preparationEntity, String scheduleId);
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  );
 
   Future<void> updateSpareTime(Duration newSpareTime);
 }

@@ -32,11 +32,10 @@ void main() {
   test('getAllUsers returns all persisted users as domain entities', () async {
     const secondUser = UserEntity(
       id: 'user-2',
-      email: 'second@example.com',
-      name: 'Second User',
       spareTime: Duration(minutes: 20),
       note: 'second note',
-      score: 3.5,
+      eligibleOutcomeCount: 2,
+      onTimeOutcomeCount: 1,
     );
 
     await dao.createUser(_user);
@@ -51,9 +50,8 @@ void main() {
 
 const _user = UserEntity(
   id: 'user-1',
-  email: 'user@example.com',
-  name: 'Test User',
   spareTime: Duration(minutes: 15),
   note: 'note',
-  score: 4.5,
+  eligibleOutcomeCount: 4,
+  onTimeOutcomeCount: 3,
 );

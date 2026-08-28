@@ -48,27 +48,31 @@ class SchedulePlaceMovingTimeState extends Equatable {
     return SchedulePlaceMovingTimeState(
       placeName: placeName ?? this.placeName,
       moveTime: moveTime ?? this.moveTime,
-      overlapDuration:
-          clearOverlap ? null : (overlapDuration ?? this.overlapDuration),
-      isOverlapping:
-          clearOverlap ? false : (isOverlapping ?? this.isOverlapping),
+      overlapDuration: clearOverlap
+          ? null
+          : (overlapDuration ?? this.overlapDuration),
+      isOverlapping: clearOverlap
+          ? false
+          : (isOverlapping ?? this.isOverlapping),
     );
   }
 
   static SchedulePlaceMovingTimeState fromScheduleFormState(
-      ScheduleFormState state) {
+    ScheduleFormState state,
+  ) {
     return SchedulePlaceMovingTimeState(
       placeName: SchedulePlaceInputModel.pure(state.placeName ?? ''),
-      moveTime:
-          ScheduleMovingTimeInputModel.pure(state.moveTime ?? Duration.zero),
+      moveTime: ScheduleMovingTimeInputModel.pure(
+        state.moveTime ?? Duration.zero,
+      ),
     );
   }
 
   @override
   List<Object> get props => [
-        placeName,
-        moveTime,
-        overlapDuration ?? const Duration(),
-        isOverlapping,
-      ];
+    placeName,
+    moveTime,
+    overlapDuration ?? const Duration(),
+    isOverlapping,
+  ];
 }

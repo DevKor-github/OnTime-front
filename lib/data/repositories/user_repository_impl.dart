@@ -1,206 +1,81 @@
 import 'dart:async';
 
-import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/core/logging/app_logger.dart';
-import 'package:on_time_front/core/services/google_authentication_service.dart';
-import 'package:on_time_front/core/validation/backend_constraints.dart';
-import 'package:on_time_front/data/data_sources/authentication_remote_data_source.dart';
-import 'package:on_time_front/data/data_sources/token_local_data_source.dart';
-import 'package:on_time_front/data/models/sign_in_with_google_request_model.dart';
-import 'package:on_time_front/data/models/sign_in_with_apple_request_model.dart';
-import 'package:on_time_front/domain/entities/google_auth_credential.dart';
+import 'package:on_time_front/core/constants/local_profile.dart';
+import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/data/daos/user_dao.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
 
 @Singleton(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
-  final AuthenticationRemoteDataSource _authenticationRemoteDataSource;
-  final TokenLocalDataSource _tokenLocalDataSource;
-  final GoogleAuthenticationService _googleAuthenticationService;
-  late final _userStreamController = BehaviorSubject<UserEntity>.seeded(
+  UserRepositoryImpl(this._database) : _userDao = _database.userDao {
+    _subscription = _userDao.watchUserById(localProfileId).listen((user) {
+      if (user != null) _userStreamController.add(user);
+    });
+  }
+
+  final AppDatabase _database;
+  final UserDao _userDao;
+  final _userStreamController = BehaviorSubject<UserEntity>.seeded(
     const UserEntity.empty(),
   );
+  late final StreamSubscription<UserEntity?> _subscription;
 
-  UserRepositoryImpl(
-    this._authenticationRemoteDataSource,
-    this._tokenLocalDataSource,
-    this._googleAuthenticationService,
-  );
+  @override
+  Stream<UserEntity> get userStream => _userStreamController.stream;
 
   @override
   Future<UserEntity> getUser() async {
-    try {
-      final user = await _authenticationRemoteDataSource.getUser();
-      _userStreamController.add(user);
-      return user;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        await _tokenLocalDataSource.deleteToken();
-        _userStreamController.add(const UserEntity.empty());
-        return const UserEntity.empty();
-      }
-      rethrow;
-    } catch (e) {
-      rethrow;
+    final existing = await _userDao.getUserById(localProfileId);
+    if (existing != null) {
+      _userStreamController.add(existing);
+      return existing;
     }
+
+    const profile = UserEntity(
+      id: localProfileId,
+      spareTime: Duration.zero,
+      note: '',
+    );
+    await _userDao.putUser(profile);
+    _userStreamController.add(profile);
+    return profile;
   }
 
   @override
-  Future<void> signIn({required String email, required String password}) async {
-    try {
-      final result = await _authenticationRemoteDataSource.signIn(
-        email,
-        password,
+  Future<void> saveUser(UserEntity user) async {
+    final value = user.valueOrNull;
+    if (value == null) {
+      throw ArgumentError.value(
+        user,
+        'user',
+        'An empty profile cannot be saved.',
       );
-      await _tokenLocalDataSource.storeTokens(result.$2);
-      _userStreamController.add(result.$1);
-    } catch (e) {
-      rethrow;
     }
-  }
-
-  @override
-  Future<void> signUp({
-    required String email,
-    required String password,
-    required String name,
-  }) async {
-    final passwordError = PasswordPolicy.validate(password);
-    if (passwordError != null) {
-      throw ArgumentError.value(password, 'password', passwordError.name);
-    }
-    try {
-      final result = await _authenticationRemoteDataSource.signUp(
-        email,
-        password,
-        name,
+    if (value.id != localProfileId) {
+      throw ArgumentError.value(
+        value.id,
+        'user.id',
+        'Only one local profile exists.',
       );
-      await _tokenLocalDataSource.storeTokens(result.$2);
-      _userStreamController.add(result.$1);
-    } catch (e) {
-      rethrow;
     }
+    await _userDao.putUser(user);
+    await _userDao.markDurableDataChanged(localProfileId);
+    final saved = await _userDao.getUserById(localProfileId);
+    if (saved != null) _userStreamController.add(saved);
   }
 
   @override
-  Future<void> signOut() async {
-    await _tokenLocalDataSource.deleteToken();
+  Future<void> resetLocalData() async {
+    await _database.deleteAllDurableData();
     _userStreamController.add(const UserEntity.empty());
+    await getUser();
   }
 
-  @override
-  Future<void> signInWithGoogle(GoogleAuthCredential credential) async {
-    try {
-      if (credential.idToken.isEmpty) {
-        throw Exception('Google ID Token is null');
-      }
-      final signInWithGoogleRequestModel = SignInWithGoogleRequestModel(
-        idToken: credential.idToken,
-        refreshToken: credential.refreshToken,
-      );
-      await _tokenLocalDataSource.deleteToken();
-      final result = await _authenticationRemoteDataSource.signInWithGoogle(
-        signInWithGoogleRequestModel,
-      );
-      await _tokenLocalDataSource.storeTokens(result.$2);
-      _userStreamController.add(result.$1);
-    } catch (error) {
-      AppLogger.debug('Google Sign-In failed errorType=${error.runtimeType}');
-      rethrow;
-    }
+  Future<void> dispose() async {
+    await _subscription.cancel();
+    await _userStreamController.close();
   }
-
-  @override
-  Future<void> signInWithApple({
-    required String idToken,
-    required String authCode,
-    required String fullName,
-    String? email,
-  }) async {
-    try {
-      final signInWithAppleRequestModel = SignInWithAppleRequestModel(
-        idToken: idToken,
-        authCode: authCode,
-        fullName: fullName,
-        email: email,
-      );
-      await _tokenLocalDataSource.deleteToken();
-      final result = await _authenticationRemoteDataSource.signInWithApple(
-        signInWithAppleRequestModel,
-      );
-      await _tokenLocalDataSource.storeTokens(result.$2);
-      _userStreamController.add(result.$1);
-    } catch (error) {
-      AppLogger.debug('Apple Sign-In failed errorType=${error.runtimeType}');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> deleteUser({String? feedbackMessage}) async {
-    try {
-      await _authenticationRemoteDataSource.deleteUser(
-        feedbackMessage: feedbackMessage,
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> deleteGoogleUser({String? feedbackMessage}) async {
-    try {
-      await _authenticationRemoteDataSource.deleteGoogleMe(
-        feedbackMessage: feedbackMessage,
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> deleteAppleUser({String? feedbackMessage}) async {
-    try {
-      await _authenticationRemoteDataSource.deleteAppleMe(
-        feedbackMessage: feedbackMessage,
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<void> postFeedback(String message) async {
-    try {
-      await _authenticationRemoteDataSource.postFeedback(message);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<String?> getUserSocialType() async {
-    try {
-      return await _authenticationRemoteDataSource.getUserSocialType();
-    } catch (e) {
-      return null;
-    }
-  }
-
-  @override
-  Future<void> disconnectGoogleSignIn() async {
-    try {
-      await _googleAuthenticationService.disconnect();
-    } catch (error) {
-      AppLogger.debug(
-        'Google Sign-In disconnect failed errorType=${error.runtimeType}',
-      );
-    }
-  }
-
-  @override
-  Stream<UserEntity> get userStream =>
-      _userStreamController.asBroadcastStream();
 }

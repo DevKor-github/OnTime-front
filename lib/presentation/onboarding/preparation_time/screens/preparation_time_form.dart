@@ -28,9 +28,10 @@ class _PreparationTimeFormState extends State<PreparationTimeForm> {
           return PreparationTimeInputFieldList(
             preparationTimeList: state.preparationTimeList,
             onPreparationTimeChanged: (index, value) {
-              context
-                  .read<PreparationTimeCubit>()
-                  .preparationTimeChanged(index, value);
+              context.read<PreparationTimeCubit>().preparationTimeChanged(
+                index,
+                value,
+              );
             },
           );
         },

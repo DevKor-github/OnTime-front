@@ -791,7 +791,7 @@ void main() {
             ),
           ],
         );
-        expect(schedule.preparationStartTime, now);
+        expect(schedule.preparationStartTime, now.toUtc());
 
         bloc.add(ScheduleUpcomingReceived(schedule));
         await Future<void>.delayed(Duration.zero);
@@ -819,7 +819,7 @@ void main() {
             ),
           ],
         );
-        expect(schedule.preparationStartTime, now);
+        expect(schedule.preparationStartTime, now.toUtc());
         markEarlySessionUseCase.sessions['early-boundary'] = now.subtract(
           const Duration(minutes: 1),
         );
@@ -1129,7 +1129,7 @@ void main() {
       bloc.add(const ScheduleStepSkipped());
       await Future<void>.delayed(Duration.zero);
 
-      expect(saveUseCase.calls.last.$4, startedAt);
+      expect(saveUseCase.calls.last.$4, startedAt.toUtc());
       expect(saveUseCase.calls.last.$5, [
         PreparationActionEventEntity.skipStep(stepId: 's1', occurredAt: now),
       ]);

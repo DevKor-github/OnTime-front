@@ -4,9 +4,7 @@ import 'package:on_time_front/presentation/onboarding/components/onboarding_page
 import 'package:on_time_front/presentation/onboarding/schedule_spare_time/components/shcedule_spare_time_field.dart';
 
 class ScheduleSpareTimeForm extends StatefulWidget {
-  const ScheduleSpareTimeForm({
-    super.key,
-  });
+  const ScheduleSpareTimeForm({super.key});
 
   @override
   State<ScheduleSpareTimeForm> createState() => _ScheduleSpareTimeFormState();
@@ -25,9 +23,7 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
       subTitle: RichText(
         text: TextSpan(
           text: '${AppLocalizations.of(context)!.setSpareTimeDescription}\n',
-          style: textTheme.titleSmall?.copyWith(
-            color: colorScheme.outline,
-          ),
+          style: textTheme.titleSmall?.copyWith(color: colorScheme.outline),
           children: [
             TextSpan(
               text: AppLocalizations.of(context)!.setSpareTimeWarning,
@@ -42,8 +38,9 @@ class _ScheduleSpareTimeFormState extends State<ScheduleSpareTimeForm> {
       child: ScheduleSpareTimeField(
         lowerBound: lowerBound,
         spareTime: spareTime,
-        minimumWarningMessage:
-            AppLocalizations.of(context)!.spareTimeMinimumWarning,
+        minimumWarningMessage: AppLocalizations.of(
+          context,
+        )!.spareTimeMinimumWarning,
         onSpareTimeDecreased: () {
           setState(() {
             final updatedSpareTime = spareTime - Duration(minutes: 10);

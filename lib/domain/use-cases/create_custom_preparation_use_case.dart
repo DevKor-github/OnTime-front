@@ -9,8 +9,12 @@ class CreateCustomPreparationUseCase {
   CreateCustomPreparationUseCase(this._preparationRepository);
 
   Future<void> call(
-      PreparationEntity preparationEntity, String scheduleId) async {
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
     await _preparationRepository.createCustomPreparation(
-        preparationEntity, scheduleId);
+      preparationEntity,
+      scheduleId,
+    );
   }
 }

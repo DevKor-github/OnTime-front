@@ -57,10 +57,7 @@ class _TextSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Text(
       '나가기 전에 확인하세요',
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
 }

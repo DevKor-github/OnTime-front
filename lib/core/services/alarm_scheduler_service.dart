@@ -226,7 +226,9 @@ class AlarmSchedulerService {
       'nativeAlarmId': record.nativeAlarmId ?? stableAlarmId(record.scheduleId),
       'provider': record.provider.wireValue,
       'title': record.scheduleTitle,
-      'body': 'It is time to get ready.',
+      'body': record.payload['notificationTimeZone'] == null
+          ? 'It is time to get ready.'
+          : 'Schedule time zone: ${record.payload['notificationTimeZone']}',
       'payload': record.payload,
     };
   }

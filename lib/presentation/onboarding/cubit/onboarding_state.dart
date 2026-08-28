@@ -1,11 +1,12 @@
 part of 'onboarding_cubit.dart';
 
 class OnboardingState extends Equatable {
-  const OnboardingState(
-      {this.preparationStepList = const [],
-      this.spareTime,
-      this.note,
-      this.isValid = false});
+  const OnboardingState({
+    this.preparationStepList = const [],
+    this.spareTime,
+    this.note,
+    this.isValid = false,
+  });
   final List<OnboardingPreparationStepState> preparationStepList;
   final Duration? spareTime;
   final String? note;
@@ -28,12 +29,14 @@ class OnboardingState extends Equatable {
   PreparationEntity toEntity() {
     return PreparationEntity(
       preparationStepList: preparationStepList
-          .map((step) => PreparationStepEntity(
-                id: step.id,
-                preparationName: step.preparationName,
-                preparationTime: step.preparationTime,
-                nextPreparationId: step.nextPreparationId,
-              ))
+          .map(
+            (step) => PreparationStepEntity(
+              id: step.id,
+              preparationName: step.preparationName,
+              preparationTime: step.preparationTime,
+              nextPreparationId: step.nextPreparationId,
+            ),
+          )
           .toList(),
     );
   }
@@ -72,6 +75,10 @@ class OnboardingPreparationStepState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, preparationName, preparationTime, nextPreparationId];
+  List<Object?> get props => [
+    id,
+    preparationName,
+    preparationTime,
+    nextPreparationId,
+  ];
 }

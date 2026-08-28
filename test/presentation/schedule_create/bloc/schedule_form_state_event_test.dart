@@ -27,10 +27,11 @@ void main() {
       ScheduleFormScheduleDateTimeChanged(
         scheduleDate: date,
         scheduleTime: time,
+        occurrenceOffsetSeconds: 9 * 60 * 60,
         maxAvailableTime: const Duration(minutes: 20),
         previousScheduleName: 'Previous',
       ).props,
-      [date, time, const Duration(minutes: 20), 'Previous'],
+      [date, time, 9 * 60 * 60, const Duration(minutes: 20), 'Previous'],
     );
     expect(const ScheduleFormPlaceNameChanged(placeName: 'Office').props, [
       'Office',

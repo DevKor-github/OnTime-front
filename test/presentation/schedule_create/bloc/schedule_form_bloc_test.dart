@@ -244,6 +244,7 @@ void main() {
         ScheduleFormScheduleDateTimeChanged(
           scheduleDate: DateTime(2027, 3, 21),
           scheduleTime: DateTime(2027, 3, 21, 10, 30),
+          occurrenceOffsetSeconds: 9 * 60 * 60,
         ),
       );
       bloc.add(const ScheduleFormPlaceNameChanged(placeName: 'New Office'));
@@ -331,6 +332,7 @@ void main() {
           ScheduleFormScheduleDateTimeChanged(
             scheduleDate: DateTime(2027, 3, 20),
             scheduleTime: DateTime(2027, 3, 20, 9),
+            occurrenceOffsetSeconds: 9 * 60 * 60,
           ),
         )
         ..add(const ScheduleFormPlaceNameChanged(placeName: 'Office'))

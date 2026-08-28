@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/core/services/local_time_zone_service.dart';
 import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
@@ -14,6 +15,8 @@ class ScheduleFormDraft extends Equatable {
   final String? placeName;
   final String? scheduleName;
   final DateTime? scheduleTime;
+  final String timeZoneId;
+  final int? occurrenceOffsetSeconds;
   final Duration? moveTime;
   final bool preparationChanged;
   final Duration? scheduleSpareTime;
@@ -27,6 +30,8 @@ class ScheduleFormDraft extends Equatable {
     required this.placeName,
     required this.scheduleName,
     required this.scheduleTime,
+    this.timeZoneId = 'UTC',
+    this.occurrenceOffsetSeconds,
     required this.moveTime,
     required this.preparationChanged,
     required this.scheduleSpareTime,
@@ -42,6 +47,8 @@ class ScheduleFormDraft extends Equatable {
     placeName,
     scheduleName,
     scheduleTime,
+    timeZoneId,
+    occurrenceOffsetSeconds,
     moveTime,
     preparationChanged,
     scheduleSpareTime,
@@ -59,6 +66,7 @@ class LoadScheduleFormDraftUseCase {
   final GetScheduleByIdUseCase _getScheduleByIdUseCase;
   final DateTime Function() _now;
   final String Function() _newId;
+  final Future<String> Function() _timeZoneId;
 
   LoadScheduleFormDraftUseCase(
     this._loadPreparationByScheduleIdUseCase,
@@ -66,7 +74,8 @@ class LoadScheduleFormDraftUseCase {
     this._getDefaultPreparationUseCase,
     this._getScheduleByIdUseCase,
   ) : _now = DateTime.now,
-      _newId = const Uuid().v7;
+      _newId = const Uuid().v7,
+      _timeZoneId = LocalTimeZoneService.current;
 
   LoadScheduleFormDraftUseCase.withOverrides(
     this._loadPreparationByScheduleIdUseCase,
@@ -75,8 +84,10 @@ class LoadScheduleFormDraftUseCase {
     this._getScheduleByIdUseCase, {
     required DateTime Function() now,
     required String Function() newId,
+    Future<String> Function()? timeZoneId,
   }) : _now = now,
-       _newId = newId;
+       _newId = newId,
+       _timeZoneId = timeZoneId ?? LocalTimeZoneService.current;
 
   Future<ScheduleFormDraft> create({
     DateTime? initialDate,
@@ -92,6 +103,8 @@ class LoadScheduleFormDraftUseCase {
       scheduleTime: initialDate == null
           ? null
           : _initialScheduleTime(initialDate, _now()),
+      timeZoneId: await _timeZoneId(),
+      occurrenceOffsetSeconds: null,
       moveTime: null,
       preparationChanged: false,
       scheduleSpareTime: currentUserSpareTime,
@@ -112,6 +125,8 @@ class LoadScheduleFormDraftUseCase {
       placeName: schedule.place.placeName,
       scheduleName: schedule.scheduleName,
       scheduleTime: schedule.scheduleTime,
+      timeZoneId: schedule.timeZoneId,
+      occurrenceOffsetSeconds: schedule.occurrenceOffsetSeconds,
       moveTime: schedule.moveTime,
       preparationChanged: schedule.isChanged,
       scheduleSpareTime: schedule.scheduleSpareTime,

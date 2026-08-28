@@ -7,11 +7,7 @@ enum PreparationStateEnum {
   done, // 완료됨
 }
 
-enum SocialType {
-  normal,
-  google,
-  apple,
-}
+enum SocialType { normal, google, apple }
 
 SocialType socialTypeFromString(String? value) {
   if (value == null) return SocialType.normal;

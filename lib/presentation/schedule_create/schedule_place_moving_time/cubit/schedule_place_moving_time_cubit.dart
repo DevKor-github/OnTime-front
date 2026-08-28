@@ -12,14 +12,15 @@ part 'schedule_place_moving_time_state.dart';
 
 class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
   SchedulePlaceMovingTimeCubit({required this.scheduleFormBloc})
-      : super(SchedulePlaceMovingTimeState());
+    : super(SchedulePlaceMovingTimeState());
 
   final ScheduleFormBloc scheduleFormBloc;
 
   void initialize() {
     final schedulePlaceMovingTimeState =
         SchedulePlaceMovingTimeState.fromScheduleFormState(
-            scheduleFormBloc.state);
+          scheduleFormBloc.state,
+        );
 
     // Check for overlap using current form state values
     final formState = scheduleFormBloc.state;
@@ -45,13 +46,15 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
       }
     }
 
-    emit(state.copyWith(
-      placeName: schedulePlaceMovingTimeState.placeName,
-      moveTime: schedulePlaceMovingTimeState.moveTime,
-      overlapDuration: overlapDuration,
-      isOverlapping: isOverlapping,
-      clearOverlap: overlapDuration == null,
-    ));
+    emit(
+      state.copyWith(
+        placeName: schedulePlaceMovingTimeState.placeName,
+        moveTime: schedulePlaceMovingTimeState.moveTime,
+        overlapDuration: overlapDuration,
+        isOverlapping: isOverlapping,
+        clearOverlap: overlapDuration == null,
+      ),
+    );
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
@@ -96,22 +99,26 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
       }
     }
 
-    emit(state.copyWith(
-      moveTime: moveTimeInputModel,
-      overlapDuration: overlapDuration,
-      isOverlapping: isOverlapping,
-      clearOverlap: overlapDuration == null,
-    ));
+    emit(
+      state.copyWith(
+        moveTime: moveTimeInputModel,
+        overlapDuration: overlapDuration,
+        isOverlapping: isOverlapping,
+        clearOverlap: overlapDuration == null,
+      ),
+    );
 
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   void schedulePlaceMovingTimeSubmitted() {
     if (state.placeName.isValid && state.moveTime.isValid) {
-      scheduleFormBloc
-          .add(ScheduleFormMoveTimeChanged(moveTime: state.moveTime.value));
-      scheduleFormBloc
-          .add(ScheduleFormPlaceNameChanged(placeName: state.placeName.value));
+      scheduleFormBloc.add(
+        ScheduleFormMoveTimeChanged(moveTime: state.moveTime.value),
+      );
+      scheduleFormBloc.add(
+        ScheduleFormPlaceNameChanged(placeName: state.placeName.value),
+      );
     }
   }
 }

@@ -11,9 +11,8 @@ import 'package:on_time_front/presentation/shared/constants/constants.dart';
 part 'schedule_form_spare_time_state.dart';
 
 class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
-  ScheduleFormSpareTimeCubit({
-    required this.scheduleFormBloc,
-  }) : super(ScheduleFormSpareTimeState());
+  ScheduleFormSpareTimeCubit({required this.scheduleFormBloc})
+    : super(ScheduleFormSpareTimeState());
 
   final ScheduleFormBloc scheduleFormBloc;
 
@@ -41,28 +40,20 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
 
     if (minutesDifference <= 0) {
       // Already overlapping - show as error
-      return (
-        overlapDuration: newTimeLeft.abs(),
-        isOverlapping: true,
-      );
+      return (overlapDuration: newTimeLeft.abs(), isOverlapping: true);
     } else if (minutesDifference < scheduleOverlapWarningThresholdMinutes) {
       // Show warning if there's still time left
-      return (
-        overlapDuration: newTimeLeft,
-        isOverlapping: false,
-      );
+      return (overlapDuration: newTimeLeft, isOverlapping: false);
     } else {
-      return (
-        overlapDuration: null,
-        isOverlapping: false,
-      );
+      return (overlapDuration: null, isOverlapping: false);
     }
   }
 
   void initialize() {
     final schedulePlaceMovingTimeState =
         ScheduleFormSpareTimeState.fromScheduleFormState(
-            scheduleFormBloc.state);
+          scheduleFormBloc.state,
+        );
 
     final formState = scheduleFormBloc.state;
     final overlapCheck = _checkOverlap(
@@ -71,14 +62,16 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
       spareTime: schedulePlaceMovingTimeState.spareTime.value,
     );
 
-    emit(state.copyWith(
-      spareTime: schedulePlaceMovingTimeState.spareTime,
-      preparation: schedulePlaceMovingTimeState.preparation,
-      totalPreparationTime: schedulePlaceMovingTimeState.totalPreparationTime,
-      overlapDuration: overlapCheck.overlapDuration,
-      isOverlapping: overlapCheck.isOverlapping,
-      clearOverlap: overlapCheck.overlapDuration == null,
-    ));
+    emit(
+      state.copyWith(
+        spareTime: schedulePlaceMovingTimeState.spareTime,
+        preparation: schedulePlaceMovingTimeState.preparation,
+        totalPreparationTime: schedulePlaceMovingTimeState.totalPreparationTime,
+        overlapDuration: overlapCheck.overlapDuration,
+        isOverlapping: overlapCheck.isOverlapping,
+        clearOverlap: overlapCheck.overlapDuration == null,
+      ),
+    );
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
@@ -93,21 +86,25 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
       spareTime: value,
     );
 
-    emit(state.copyWith(
-      spareTime: spareTime,
-      overlapDuration: overlapCheck.overlapDuration,
-      isOverlapping: overlapCheck.isOverlapping,
-      clearOverlap: overlapCheck.overlapDuration == null,
-    ));
+    emit(
+      state.copyWith(
+        spareTime: spareTime,
+        overlapDuration: overlapCheck.overlapDuration,
+        isOverlapping: overlapCheck.isOverlapping,
+        clearOverlap: overlapCheck.overlapDuration == null,
+      ),
+    );
 
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   void scheduleSpareTimeSubmitted() {
     if (state.spareTime.isValid && state.spareTime.value != null) {
-      scheduleFormBloc.add(ScheduleFormScheduleSpareTimeChanged(
-        scheduleSpareTime: state.spareTime.value!,
-      ));
+      scheduleFormBloc.add(
+        ScheduleFormScheduleSpareTimeChanged(
+          scheduleSpareTime: state.spareTime.value!,
+        ),
+      );
     }
     // preparation은 preparationChanged에서 이미 ScheduleFormPreparationChanged를 호출했으므로 여기서는 호출하지 않음
   }
@@ -124,17 +121,19 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
       spareTime: spareTime,
     );
 
-    emit(state.copyWith(
-      preparation: preparation,
-      totalPreparationTime: totalPreparationTime,
-      overlapDuration: overlapCheck.overlapDuration,
-      isOverlapping: overlapCheck.isOverlapping,
-      clearOverlap: overlapCheck.overlapDuration == null,
-    ));
+    emit(
+      state.copyWith(
+        preparation: preparation,
+        totalPreparationTime: totalPreparationTime,
+        overlapDuration: overlapCheck.overlapDuration,
+        isOverlapping: overlapCheck.isOverlapping,
+        clearOverlap: overlapCheck.overlapDuration == null,
+      ),
+    );
 
-    scheduleFormBloc.add(ScheduleFormPreparationChanged(
-      preparation: preparation,
-    ));
+    scheduleFormBloc.add(
+      ScheduleFormPreparationChanged(preparation: preparation),
+    );
 
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }

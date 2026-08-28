@@ -3,8 +3,10 @@ part of 'weekly_schedules_bloc.dart';
 enum WeeklySchedulesStatus { initial, loading, success, error }
 
 final class WeeklySchedulesState extends Equatable {
-  const WeeklySchedulesState(
-      {this.status = WeeklySchedulesStatus.initial, this.schedules = const []});
+  const WeeklySchedulesState({
+    this.status = WeeklySchedulesStatus.initial,
+    this.schedules = const [],
+  });
 
   final WeeklySchedulesStatus status;
   final List<ScheduleEntity> schedules;
@@ -14,7 +16,7 @@ final class WeeklySchedulesState extends Equatable {
   ScheduleEntity? get todaySchedule => schedules
       .where((schedule) {
         if (schedule.doneStatus != ScheduleDoneStatus.notEnded) return false;
-        
+
         final now = DateTime.now();
         return schedule.scheduleTime.year == now.year &&
             schedule.scheduleTime.month == now.month &&
@@ -34,8 +36,5 @@ final class WeeklySchedulesState extends Equatable {
   }
 
   @override
-  List<Object> get props => [
-        status,
-        ...schedules,
-      ];
+  List<Object> get props => [status, ...schedules];
 }

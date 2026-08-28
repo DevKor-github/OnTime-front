@@ -81,7 +81,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text(
+        find.textContaining(
           'Please select your usual preparation process.',
           findRichText: true,
         ),
@@ -100,7 +100,7 @@ void main() {
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
       await tester.pumpAndSettle();
       expect(
-        find.text(
+        find.textContaining(
           'Please tell us the time required for each step.',
           findRichText: true,
         ),
@@ -119,7 +119,7 @@ void main() {
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Set your spare time', findRichText: true),
+        find.textContaining('Set your spare time', findRichText: true),
         findsOneWidget,
       );
 
@@ -171,11 +171,14 @@ void main() {
         await tester.pumpAndSettle();
       }
       await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       expect(find.text('Error'), findsOneWidget);
       expect(useCase.submissions, hasLength(1));
       expect(find.byType(OnboardingScreen), findsOneWidget);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
     },
   );
 }

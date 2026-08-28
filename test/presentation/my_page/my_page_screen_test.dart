@@ -310,8 +310,10 @@ class _FakeAlarmRegistry implements AlarmRegistryRepository {
 }
 
 class _FakeAlarmSchedulerService extends AlarmSchedulerService {
-  AlarmSchedulerCapabilities capabilities =
-      AlarmSchedulerCapabilities.unsupported;
+  AlarmSchedulerCapabilities capabilities = const AlarmSchedulerCapabilities(
+    supportsNativeAlarm: false,
+    nativeAlarmProvider: AlarmProvider.none,
+  );
   AlarmPermissionState permission = AlarmPermissionState.unsupported;
   int requestCount = 0;
 

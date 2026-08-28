@@ -225,35 +225,28 @@ Firebase Hosting deploys `build/web` to project `ontime-c63f1`.
 Build a release APK:
 
 ```sh
-flutter build apk --release \
-  --dart-define=ENV=staging \
-  --dart-define=REST_API_URL=<api-base-url>
+flutter build apk --release
 ```
 
 Build an app bundle for Play Console upload:
 
 ```sh
-flutter build appbundle --release \
-  --dart-define=ENV=prod \
-  --dart-define=REST_API_URL=<api-base-url>
+flutter build appbundle --release
 ```
 
-Before production upload, confirm the release `google-services.json`, signing configuration, version name, and version code. The current Gradle release block uses the debug signing config as a local-build fallback, so production signing must be configured before store release.
+Before production upload, confirm signing configuration, version name, version code, and that `dart run tool/check_local_only_boundary.dart` passes. Product builds do not use Firebase configuration or API endpoint defines.
 
 ### iOS
 
 Build locally:
 
 ```sh
-flutter build ios --release \
-  --dart-define=ENV=prod \
-  --dart-define=REST_API_URL=<api-base-url> \
-  --dart-define=GOOGLE_RESERVED_CLIENT_ID_IOS=<reversed-ios-client-id>
+flutter build ipa --release --export-method app-store
 ```
 
-Create an App Store archive from Xcode or CI with the same Dart defines. See [docs/iOS-Release-Configuration.md](docs/iOS-Release-Configuration.md) for the release-only validation flow.
+See [docs/iOS-Release-Configuration.md](docs/iOS-Release-Configuration.md) for the local-only release validation flow.
 
-Before production upload, confirm `ios/Runner/GoogleService-Info.plist`, Apple signing, bundle id, app capabilities, push notification entitlement, build number, and App Store Connect metadata.
+Before production upload, confirm Apple signing, bundle ID, local-notification and AlarmKit capabilities, build number, encryption disclosure, and App Store Connect metadata. The release must not contain Firebase, push-notification, remote-authentication, or server configuration.
 
 ## Widgetbook
 

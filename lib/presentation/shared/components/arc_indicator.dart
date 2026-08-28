@@ -6,10 +6,7 @@ class ArcIndicator extends CustomPainter {
   final double progress; // 전체 진행률
   final double strokeWidth; // 호의 두께
 
-  ArcIndicator({
-    required this.progress,
-    required this.strokeWidth,
-  });
+  ArcIndicator({required this.progress, required this.strokeWidth});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -39,13 +36,7 @@ class ArcIndicator extends CustomPainter {
     );
 
     // 그래프 배경 호
-    canvas.drawArc(
-      rect,
-      startAngle,
-      sweepAngle,
-      false,
-      backgroundPaint,
-    );
+    canvas.drawArc(rect, startAngle, sweepAngle, false, backgroundPaint);
 
     // 그래프 채워진 호
     canvas.drawArc(

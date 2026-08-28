@@ -52,18 +52,22 @@ class ScheduleFormSpareTimeState extends Equatable {
       spareTime: spareTime ?? this.spareTime,
       preparation: preparation ?? this.preparation,
       totalPreparationTime: totalPreparationTime ?? this.totalPreparationTime,
-      overlapDuration:
-          clearOverlap ? null : (overlapDuration ?? this.overlapDuration),
-      isOverlapping:
-          clearOverlap ? false : (isOverlapping ?? this.isOverlapping),
+      overlapDuration: clearOverlap
+          ? null
+          : (overlapDuration ?? this.overlapDuration),
+      isOverlapping: clearOverlap
+          ? false
+          : (isOverlapping ?? this.isOverlapping),
     );
   }
 
   static ScheduleFormSpareTimeState fromScheduleFormState(
-      ScheduleFormState state) {
+    ScheduleFormState state,
+  ) {
     return ScheduleFormSpareTimeState(
       spareTime: ScheduleSpareTimeInputModel.pure(
-          state.scheduleSpareTime ?? Duration.zero),
+        state.scheduleSpareTime ?? Duration.zero,
+      ),
       preparation: state.preparation,
       totalPreparationTime: state.totalPreparationTime,
     );
@@ -71,10 +75,10 @@ class ScheduleFormSpareTimeState extends Equatable {
 
   @override
   List<Object?> get props => [
-        spareTime,
-        preparation,
-        totalPreparationTime,
-        overlapDuration ?? const Duration(),
-        isOverlapping,
-      ];
+    spareTime,
+    preparation,
+    totalPreparationTime,
+    overlapDuration ?? const Duration(),
+    isOverlapping,
+  ];
 }

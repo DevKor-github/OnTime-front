@@ -8,8 +8,7 @@ class LoadPreparationByScheduleIdUseCase {
   LoadPreparationByScheduleIdUseCase(this._preparationRepository);
 
   /// Loads preparation for the given schedule ID.
-  /// This triggers fetching preparation from the remote data source
-  /// and updating the preparation repository stream/cache.
+  /// This refreshes the repository stream from encrypted local storage.
   ///
   /// [scheduleId] - The ID of the schedule to load preparation for
   Future<void> call(String scheduleId) async {

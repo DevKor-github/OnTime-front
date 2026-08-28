@@ -8,10 +8,7 @@ class LoadingScreen extends StatelessWidget {
     return const Scaffold(
       backgroundColor: Color(0xff5C79FB),
       body: Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 4.0,
-        ),
+        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 4.0),
       ),
     );
   }

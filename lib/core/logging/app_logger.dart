@@ -93,23 +93,17 @@ final class AppLogger {
       if (value == null) continue;
       visibleEntries.add('$key=${redactValueForKey(key, value)}');
     }
-    return [
-      'keys=${values.length}',
-      ...visibleEntries,
-    ].join(' ');
+    return ['keys=${values.length}', ...visibleEntries].join(' ');
   }
 
   static String redactText(String message) {
     var result = message.replaceAllMapped(
-      RegExp(
-        r'\bBearer\s+[A-Za-z0-9._~+/=-]+',
-        caseSensitive: false,
-      ),
+      RegExp(r'\bBearer\s+[A-Za-z0-9._~+/=-]+', caseSensitive: false),
       (_) => 'Bearer $redacted',
     );
     result = result.replaceAllMapped(
       RegExp(
-        r'\b(authorization(?:-refresh)?|access[_-]?token|refresh[_-]?token|firebase[_-]?token|fcm[_-]?token|id[_-]?token|oauth[_-]?token|token)\b\s*[:=]\s*([^,\s}\]]+)',
+        r'\b(authorization(?:-refresh)?|access[_-]?token|refresh[_-]?token|id[_-]?token|oauth[_-]?token|token)\b\s*[:=]\s*([^,\s}\]]+)',
         caseSensitive: false,
       ),
       (match) => '${match.group(1)}=$redacted',
@@ -123,8 +117,6 @@ final class AppLogger {
         normalized == 'authorizationrefresh' ||
         normalized == 'accessToken'.toLowerCase() ||
         normalized == 'refreshtoken' ||
-        normalized == 'firebasetoken' ||
-        normalized == 'fcmtoken' ||
         normalized == 'idtoken' ||
         normalized == 'oauthtoken' ||
         normalized.endsWith('secret') ||

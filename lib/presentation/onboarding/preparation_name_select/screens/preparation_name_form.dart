@@ -6,9 +6,7 @@ import 'package:on_time_front/presentation/onboarding/preparation_name_select/co
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
 
 class PreparationNameForm extends StatefulWidget {
-  const PreparationNameForm({
-    super.key,
-  });
+  const PreparationNameForm({super.key});
 
   @override
   State<PreparationNameForm> createState() => _PreparationNameFormState();
@@ -32,8 +30,9 @@ class _PreparationNameFormState extends State<PreparationNameForm> {
           onCreationRequested: context
               .read<PreparationNameCubit>()
               .preparationStepCreationRequested,
-          onNameChanged:
-              context.read<PreparationNameCubit>().preparationStepNameChanged,
+          onNameChanged: context
+              .read<PreparationNameCubit>()
+              .preparationStepNameChanged,
           onSelectionChanged: context
               .read<PreparationNameCubit>()
               .preparationStepSelectionChanged,

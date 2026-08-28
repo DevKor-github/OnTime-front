@@ -29,29 +29,13 @@ void main() {
     },
   );
 
-  test('adds lookup indexes when upgrading a schema 3 database', () async {
-    expect(database.schemaVersion, 4);
+  test('rejects in-place upgrades across the one-way local cutover', () async {
+    expect(database.schemaVersion, 1);
 
-    await _dropExpectedLookupIndexes(database);
-
-    for (final entry in _expectedLookupIndexesByTable.entries) {
-      expect(
-        await _indexNames(database, entry.key),
-        isNot(containsAll(entry.value)),
-      );
-    }
-
-    await database.migration.onUpgrade(database.createMigrator(), 3, 4);
-
-    for (final entry in _expectedLookupIndexesByTable.entries) {
-      final indexNames = await _indexNames(database, entry.key);
-
-      expect(
-        indexNames,
-        containsAll(entry.value),
-        reason: '${entry.key} indexes should be added by the 3 -> 4 migration',
-      );
-    }
+    await expectLater(
+      database.migration.onUpgrade(database.createMigrator(), 0, 1),
+      throwsStateError,
+    );
   });
 }
 
@@ -80,12 +64,4 @@ Future<Set<String>> _indexNames(AppDatabase database, String tableName) async {
       .get();
 
   return {for (final row in rows) row.read<String>('name')};
-}
-
-Future<void> _dropExpectedLookupIndexes(AppDatabase database) async {
-  for (final indexNames in _expectedLookupIndexesByTable.values) {
-    for (final indexName in indexNames) {
-      await database.customStatement('DROP INDEX IF EXISTS $indexName');
-    }
-  }
 }

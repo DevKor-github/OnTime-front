@@ -17,6 +17,8 @@ final class ScheduleFormState extends Equatable {
   final String? placeName;
   final String? scheduleName;
   final DateTime? scheduleTime;
+  final String timeZoneId;
+  final int? occurrenceOffsetSeconds;
   final Duration? moveTime;
   final IsPreparationChanged isChanged;
   final Duration? scheduleSpareTime;
@@ -36,6 +38,8 @@ final class ScheduleFormState extends Equatable {
     this.placeName,
     this.scheduleName,
     this.scheduleTime,
+    this.timeZoneId = 'UTC',
+    this.occurrenceOffsetSeconds,
     this.moveTime,
     this.isChanged = IsPreparationChanged.unchanged,
     this.scheduleSpareTime,
@@ -56,6 +60,8 @@ final class ScheduleFormState extends Equatable {
     String? placeName,
     String? scheduleName,
     DateTime? scheduleTime,
+    String? timeZoneId,
+    int? occurrenceOffsetSeconds,
     Duration? moveTime,
     IsPreparationChanged? isChanged,
     Duration? scheduleSpareTime,
@@ -77,6 +83,9 @@ final class ScheduleFormState extends Equatable {
       placeName: placeName ?? this.placeName,
       scheduleName: scheduleName ?? this.scheduleName,
       scheduleTime: scheduleTime ?? this.scheduleTime,
+      timeZoneId: timeZoneId ?? this.timeZoneId,
+      occurrenceOffsetSeconds:
+          occurrenceOffsetSeconds ?? this.occurrenceOffsetSeconds,
       moveTime: moveTime ?? this.moveTime,
       isChanged: isChanged ?? this.isChanged,
       scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
@@ -106,6 +115,10 @@ final class ScheduleFormState extends Equatable {
       ),
       scheduleName: state.scheduleName!,
       scheduleTime: state.scheduleTime!,
+      timeZoneId: state.timeZoneId,
+      occurrenceOffsetSeconds:
+          state.occurrenceOffsetSeconds ??
+          state.scheduleTime!.timeZoneOffset.inSeconds,
       moveTime: state.moveTime!,
       isChanged: !(state.isChanged == IsPreparationChanged.unchanged),
       scheduleSpareTime: state.scheduleSpareTime,
@@ -124,6 +137,8 @@ final class ScheduleFormState extends Equatable {
     placeName,
     scheduleName,
     scheduleTime,
+    timeZoneId,
+    occurrenceOffsetSeconds,
     moveTime,
     isChanged,
     scheduleSpareTime,

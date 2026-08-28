@@ -7,23 +7,26 @@ import 'package:on_time_front/presentation/onboarding/preparation_time/input_mod
 part 'preparation_time_state.dart';
 
 class PreparationTimeCubit extends Cubit<PreparationTimeState> {
-  PreparationTimeCubit({
-    required this.onboardingCubit,
-  }) : super(PreparationTimeState()) {
+  PreparationTimeCubit({required this.onboardingCubit})
+    : super(PreparationTimeState()) {
     initialize();
   }
 
   final OnboardingCubit onboardingCubit;
 
   void initialize() {
-    final preparationTimeState =
-        PreparationTimeState.fromOnboardingState(onboardingCubit.state);
+    final preparationTimeState = PreparationTimeState.fromOnboardingState(
+      onboardingCubit.state,
+    );
 
-    emit(state.copyWith(
-      preparationTimeList: preparationTimeState.preparationTimeList,
-    ));
+    emit(
+      state.copyWith(
+        preparationTimeList: preparationTimeState.preparationTimeList,
+      ),
+    );
     onboardingCubit.onboardingFormValidated(
-        isValid: preparationTimeState.isValid);
+      isValid: preparationTimeState.isValid,
+    );
   }
 
   void preparationTimeChanged(int index, Duration preparationTime) {
@@ -32,15 +35,14 @@ class PreparationTimeCubit extends Cubit<PreparationTimeState> {
     preparationTimeList[index] = preparationTimeList[index].copyWith(
       preparationTime: PreparationTimeInputModel.dirty(preparationTime),
     );
-    emit(state.copyWith(
-      preparationTimeList: preparationTimeList,
-    ));
+    emit(state.copyWith(preparationTimeList: preparationTimeList));
     onboardingCubit.onboardingFormValidated(isValid: state.isValid);
   }
 
   void preparationTimeSaved() {
-    final newList =
-        state.toOnboardingState(onboardingCubit.state).preparationStepList;
+    final newList = state
+        .toOnboardingState(onboardingCubit.state)
+        .preparationStepList;
     onboardingCubit.onboardingFormChanged(preparationStepList: newList);
   }
 }

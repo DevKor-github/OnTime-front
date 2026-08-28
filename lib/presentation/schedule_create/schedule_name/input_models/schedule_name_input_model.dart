@@ -1,5 +1,5 @@
 import 'package:formz/formz.dart';
-import 'package:on_time_front/core/validation/backend_constraints.dart';
+import 'package:on_time_front/core/validation/local_input_limits.dart';
 
 /// Validation errors for the [ScheduleNameInputModel] [FormzInput].
 enum ScheduleNameValidationError { empty, tooLong }
@@ -15,7 +15,7 @@ class ScheduleNameInputModel
     if (trimmedValue.isEmpty) {
       return ScheduleNameValidationError.empty;
     }
-    if (trimmedValue.length > BackendConstraints.maxScheduleNameLength) {
+    if (trimmedValue.length > LocalInputLimits.maxScheduleNameLength) {
       return ScheduleNameValidationError.tooLong;
     }
     return null;

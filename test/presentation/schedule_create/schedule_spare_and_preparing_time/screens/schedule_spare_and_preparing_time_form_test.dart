@@ -186,11 +186,10 @@ Future<void> _pumpForm(
                 AuthState(
                   user: const UserEntity(
                     id: 'user-1',
-                    email: 'user@example.com',
-                    name: 'User',
                     spareTime: Duration(minutes: 8),
                     note: '',
-                    score: 4.0,
+                    eligibleOutcomeCount: 1,
+                    onTimeOutcomeCount: 1,
                     isOnboardingCompleted: true,
                   ),
                 ),

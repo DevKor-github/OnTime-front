@@ -11,9 +11,7 @@ class PlaceDao extends DatabaseAccessor<AppDatabase> with _$PlaceDaoMixin {
   PlaceDao(this.db) : super(db);
 
   Future<Place> createPlace(Place placeModel) async {
-    return await into(db.places).insertReturning(
-      placeModel.toCompanion(false),
-    );
+    return await into(db.places).insertReturning(placeModel.toCompanion(false));
   }
 
   Future<List<Place>> getAllPlaces() async {

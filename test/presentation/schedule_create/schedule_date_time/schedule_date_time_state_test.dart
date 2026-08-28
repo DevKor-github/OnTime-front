@@ -9,6 +9,9 @@ void main() {
     final state = ScheduleDateTimeState(
       scheduleDate: ScheduleDateInputModel.dirty(past),
       scheduleTime: ScheduleTimeInputModel.dirty(past),
+      civilTimeResolved: true,
+      occurrenceOffsetOptions: const [0],
+      selectedOccurrenceOffsetSeconds: 0,
     );
 
     expect(state.isPastScheduleTime, isTrue);
@@ -20,6 +23,9 @@ void main() {
     final state = ScheduleDateTimeState(
       scheduleDate: ScheduleDateInputModel.dirty(future),
       scheduleTime: ScheduleTimeInputModel.dirty(future),
+      civilTimeResolved: true,
+      occurrenceOffsetOptions: const [0],
+      selectedOccurrenceOffsetSeconds: 0,
     );
 
     expect(state.isPastScheduleTime, isFalse);

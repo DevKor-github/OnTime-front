@@ -58,17 +58,15 @@ class ErrorMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final tail = Padding(
       padding: padding,
-      child: _MessageBubbleTail(
-        isTop: tailPosition == TailPosition.top,
-      ),
+      child: _MessageBubbleTail(isTop: tailPosition == TailPosition.top),
     );
 
     final body = DefaultTextStyle(
       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-            color: Theme.of(context).colorScheme.error,
-            decorationColor: Theme.of(context).colorScheme.error,
-            letterSpacing: 0,
-          ),
+        color: Theme.of(context).colorScheme.error,
+        decorationColor: Theme.of(context).colorScheme.error,
+        letterSpacing: 0,
+      ),
       child: _MessageBubbleBody(
         errorMessage: errorMessage,
         action: action,
@@ -102,10 +100,7 @@ class _MessageBubbleTail extends StatelessWidget {
         color: colorScheme.errorContainer,
         isTop: isTop,
       ),
-      child: const SizedBox(
-        height: 15,
-        width: 15,
-      ),
+      child: const SizedBox(height: 15, width: 15),
     );
   }
 }
@@ -177,9 +172,7 @@ class _MessageBubbleBody extends StatelessWidget {
                       backgroundColor: WidgetStateProperty.all(
                         Colors.transparent,
                       ),
-                      overlayColor: WidgetStateProperty.all(
-                        Colors.transparent,
-                      ),
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
                       elevation: WidgetStateProperty.all(0),
                       foregroundColor: WidgetStateProperty.all(
                         Theme.of(context).colorScheme.error,
@@ -194,7 +187,7 @@ class _MessageBubbleBody extends StatelessWidget {
                     ),
                   ),
                   child: action!,
-                )
+                ),
               ],
             ),
     );

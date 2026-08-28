@@ -9,12 +9,8 @@ class ScheduleNameState extends Equatable {
 
   bool get isValid => Formz.validate([scheduleName]);
 
-  ScheduleNameState copyWith({
-    ScheduleNameInputModel? scheduleName,
-  }) {
-    return ScheduleNameState(
-      scheduleName: scheduleName ?? this.scheduleName,
-    );
+  ScheduleNameState copyWith({ScheduleNameInputModel? scheduleName}) {
+    return ScheduleNameState(scheduleName: scheduleName ?? this.scheduleName);
   }
 
   static ScheduleNameState fromScheduleFormState(ScheduleFormState state) {
@@ -24,9 +20,7 @@ class ScheduleNameState extends Equatable {
   }
 
   ScheduleFormState toScheduleFormState(ScheduleFormState oldState) {
-    return oldState.copyWith(
-      scheduleName: scheduleName.value,
-    );
+    return oldState.copyWith(scheduleName: scheduleName.value);
   }
 
   @override

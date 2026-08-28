@@ -24,15 +24,16 @@ ThemeData themeData = ThemeData(
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: AppButtonStyles.elevatedPrimary(_colorScheme, _textTheme),
   ),
-  inputDecorationTheme:
-      AppInputDecorationTheme.create(_colorScheme, _textTheme),
+  inputDecorationTheme: AppInputDecorationTheme.create(
+    _colorScheme,
+    _textTheme,
+  ),
   dialogTheme: DialogThemeData(
     backgroundColor: _colorScheme.surface,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    titleTextStyle: _textTheme.titleMedium!.copyWith(
+      fontWeight: FontWeight.w600,
     ),
-    titleTextStyle:
-        _textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600),
     contentTextStyle: _textTheme.bodyMedium,
   ),
   extensions: <ThemeExtension<dynamic>>[
@@ -46,9 +47,7 @@ ThemeData themeData = ThemeData(
     DateTileThemeData(
       style: DateTileStyle(
         shape: WidgetStatePropertyAll(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
         textStyle: WidgetStatePropertyAll(_textTheme.bodyLarge),
       ),

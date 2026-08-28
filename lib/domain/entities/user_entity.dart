@@ -8,11 +8,10 @@ class UserEntity with _$UserEntity {
 
   const factory UserEntity({
     required String id,
-    required String email,
-    required String name,
     required Duration spareTime,
     required String note,
-    required double score,
+    @Default(0) int eligibleOutcomeCount,
+    @Default(0) int onTimeOutcomeCount,
     @Default(false) bool isOnboardingCompleted,
   }) = _UserEntity;
 
@@ -24,6 +23,42 @@ class UserEntity with _$UserEntity {
     _ => null,
   };
 
+  String get id => switch (this) {
+    _UserEntity(:final id) => id,
+    _UserEntityEmpty() => throw StateError('The local profile is empty.'),
+    _ => throw StateError('Unknown local profile state.'),
+  };
+
+  Duration get spareTime => switch (this) {
+    _UserEntity(:final spareTime) => spareTime,
+    _UserEntityEmpty() => throw StateError('The local profile is empty.'),
+    _ => throw StateError('Unknown local profile state.'),
+  };
+
+  String get note => switch (this) {
+    _UserEntity(:final note) => note,
+    _UserEntityEmpty() => throw StateError('The local profile is empty.'),
+    _ => throw StateError('Unknown local profile state.'),
+  };
+
+  int get eligibleOutcomeCount => switch (this) {
+    _UserEntity(:final eligibleOutcomeCount) => eligibleOutcomeCount,
+    _UserEntityEmpty() => throw StateError('The local profile is empty.'),
+    _ => throw StateError('Unknown local profile state.'),
+  };
+
+  int get onTimeOutcomeCount => switch (this) {
+    _UserEntity(:final onTimeOutcomeCount) => onTimeOutcomeCount,
+    _UserEntityEmpty() => throw StateError('The local profile is empty.'),
+    _ => throw StateError('Unknown local profile state.'),
+  };
+
+  bool get isOnboardingCompleted => switch (this) {
+    _UserEntity(:final isOnboardingCompleted) => isOnboardingCompleted,
+    _UserEntityEmpty() => false,
+    _ => false,
+  };
+
   Duration? get spareTimeOrNull => switch (this) {
     _UserEntity(:final spareTime) => spareTime,
     _UserEntityEmpty() => null,
@@ -31,19 +66,10 @@ class UserEntity with _$UserEntity {
   };
 
   double? get scoreOrNull => switch (this) {
-    _UserEntity(:final score) => score,
-    _UserEntityEmpty() => null,
-    _ => null,
-  };
-
-  String? get nameOrNull => switch (this) {
-    _UserEntity(:final name) => name,
-    _UserEntityEmpty() => null,
-    _ => null,
-  };
-
-  String? get emailOrNull => switch (this) {
-    _UserEntity(:final email) => email,
+    _UserEntity(:final eligibleOutcomeCount, :final onTimeOutcomeCount) =>
+      eligibleOutcomeCount == 0
+          ? null
+          : onTimeOutcomeCount * 100 / eligibleOutcomeCount,
     _UserEntityEmpty() => null,
     _ => null,
   };

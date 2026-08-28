@@ -3,10 +3,11 @@ import 'package:on_time_front/presentation/onboarding/preparation_order/componen
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 
 class PreparationReorderableList extends StatelessWidget {
-  const PreparationReorderableList(
-      {super.key,
-      required this.preparationOrderingList,
-      required this.onReorder});
+  const PreparationReorderableList({
+    super.key,
+    required this.preparationOrderingList,
+    required this.onReorder,
+  });
 
   final List<PreparationStepOrderState> preparationOrderingList;
   final Function(int oldIndex, int newIndex) onReorder;
@@ -14,13 +15,14 @@ class PreparationReorderableList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget proxyDecorator(
-        Widget child, int index, Animation<double> animation) {
+      Widget child,
+      int index,
+      Animation<double> animation,
+    ) {
       return AnimatedBuilder(
         animation: animation,
         builder: (BuildContext context, Widget? child) {
-          return SizedBox(
-            child: child,
-          );
+          return SizedBox(child: child);
         },
         child: child,
       );
@@ -37,8 +39,9 @@ class PreparationReorderableList extends StatelessWidget {
           key: ValueKey<String>(preparationOrderingList[index].preparationId),
           padding: const EdgeInsets.only(bottom: 8.0),
           child: ReorderableTile(
-              preparationStepOrderState: preparationOrderingList[index],
-              index: index),
+            preparationStepOrderState: preparationOrderingList[index],
+            index: index,
+          ),
         ),
         onReorderItem: (oldIndex, newIndex) {
           final legacyNewIndex = oldIndex < newIndex ? newIndex + 1 : newIndex;

@@ -26,9 +26,7 @@ class EarlyStartSessionLocalDataSourceImpl
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '$_prefsKeyPrefix$scheduleId';
-    final payload = jsonEncode({
-      'startedAt': startedAt.millisecondsSinceEpoch,
-    });
+    final payload = jsonEncode({'startedAt': startedAt.millisecondsSinceEpoch});
     await prefs.setString(key, payload);
   }
 

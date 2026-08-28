@@ -44,12 +44,14 @@ final class ScheduleFormScheduleNameChanged extends ScheduleFormEvent {
 final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
   final DateTime scheduleDate;
   final DateTime scheduleTime;
+  final int occurrenceOffsetSeconds;
   final Duration? maxAvailableTime;
   final String? previousScheduleName;
 
   const ScheduleFormScheduleDateTimeChanged({
     required this.scheduleDate,
     required this.scheduleTime,
+    required this.occurrenceOffsetSeconds,
     this.maxAvailableTime,
     this.previousScheduleName,
   });
@@ -58,6 +60,7 @@ final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
   List<Object> get props => [
     scheduleDate,
     scheduleTime,
+    occurrenceOffsetSeconds,
     maxAvailableTime ?? const Duration(days: -999999),
     previousScheduleName ?? '',
   ];

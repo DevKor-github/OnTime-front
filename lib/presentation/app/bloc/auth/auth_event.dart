@@ -7,7 +7,3 @@ abstract class AuthEvent {
 final class AuthUserSubscriptionRequested extends AuthEvent {
   const AuthUserSubscriptionRequested();
 }
-
-final class AuthSignOutPressed extends AuthEvent {
-  const AuthSignOutPressed();
-}

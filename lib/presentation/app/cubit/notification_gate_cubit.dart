@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
@@ -8,11 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'notification_gate_state.dart';
 
 class NotificationGateCubit extends Cubit<NotificationGateState> {
-  NotificationGateCubit({
-    NotificationService? notificationService,
-  })  : _notificationService =
-            notificationService ?? NotificationService.instance,
-        super(const NotificationGateState.initial()) {
+  NotificationGateCubit({NotificationService? notificationService})
+    : _notificationService =
+          notificationService ?? NotificationService.instance,
+      super(const NotificationGateState.initial()) {
     refreshPermission();
   }
 

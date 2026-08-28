@@ -81,7 +81,8 @@ class PreparationStepTile extends StatelessWidget {
           curve: Curves.ease,
           child: Container(
             width: 358,
-            height: (preparationStepState == PreparationStateEnum.now &&
+            height:
+                (preparationStepState == PreparationStateEnum.now &&
                     skipButton != null)
                 ? 135
                 : 62,
@@ -136,7 +137,7 @@ class PreparationStepTile extends StatelessWidget {
                   if (skipButton != null) ...[
                     const SizedBox(height: 20),
                     skipButton,
-                  ]
+                  ],
                 ],
               ),
             ),

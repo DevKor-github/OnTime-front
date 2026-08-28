@@ -99,8 +99,9 @@ class CustomAlertDialog extends StatelessWidget {
         label ??= MaterialLocalizations.of(context).alertDialogLabel;
     }
 
-    final double paddingScaleFactor =
-        _scalePadding(MediaQuery.textScalerOf(context).scale(14.0) / 14.0);
+    final double paddingScaleFactor = _scalePadding(
+      MediaQuery.textScalerOf(context).scale(14.0) / 14.0,
+    );
 
     Widget? titleWidget;
     Widget? contentWidget;
@@ -108,7 +109,8 @@ class CustomAlertDialog extends StatelessWidget {
 
     if (title != null) {
       titleWidget = DefaultTextStyle(
-        style: titleTextStyle ??
+        style:
+            titleTextStyle ??
             dialogTheme.titleTextStyle ??
             defaults.titleTextStyle!,
         textAlign: titleTextAlign,
@@ -122,7 +124,8 @@ class CustomAlertDialog extends StatelessWidget {
 
     if (content != null) {
       contentWidget = DefaultTextStyle(
-        style: contentTextStyle ??
+        style:
+            contentTextStyle ??
             dialogTheme.contentTextStyle ??
             defaults.contentTextStyle!,
         textAlign: contentTextAlign,
@@ -151,24 +154,18 @@ class CustomAlertDialog extends StatelessWidget {
     final SizedBox defaultContentActionsSpacing = const SizedBox(height: 18.0);
     final SizedBox effectiveTitleContentSpacing = titleContentSpacing == null
         ? defaultTitleContentSpacing
-        : SizedBox(
-            height: titleContentSpacing,
-          );
+        : SizedBox(height: titleContentSpacing);
     final SizedBox effectiveContentActionsSpacing =
         contentActionsSpacing == null
-            ? defaultContentActionsSpacing
-            : SizedBox(
-                height: contentActionsSpacing,
-              );
+        ? defaultContentActionsSpacing
+        : SizedBox(height: contentActionsSpacing);
     if (title != null) columnChildren.add(titleWidget!);
     if (title != null && content != null) {
       columnChildren.add(effectiveTitleContentSpacing);
     }
     if (content != null) columnChildren.add(contentWidget!);
     if ((title != null || content != null) && actions != null) {
-      columnChildren.add(
-        effectiveContentActionsSpacing,
-      );
+      columnChildren.add(effectiveContentActionsSpacing);
     }
     if (actions != null) columnChildren.add(actionsWidget!);
 
@@ -208,9 +205,7 @@ class CustomAlertDialog extends StatelessWidget {
       surfaceTintColor: surfaceTintColor,
       insetPadding: insetPadding,
       clipBehavior: clipBehavior,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       alignment: alignment,
       child: dialogChild,
     );
@@ -224,13 +219,14 @@ double _scalePadding(double textScaleFactor) {
 
 class _DialogDefaults extends DialogThemeData {
   _DialogDefaults(this.context)
-      : super(
-          alignment: Alignment.center,
-          elevation: 6.0,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(28.0))),
-          clipBehavior: Clip.none,
-        );
+    : super(
+        alignment: Alignment.center,
+        elevation: 6.0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(28.0)),
+        ),
+        clipBehavior: Clip.none,
+      );
 
   final BuildContext context;
   late final ColorScheme _colors = Theme.of(context).colorScheme;
@@ -249,9 +245,8 @@ class _DialogDefaults extends DialogThemeData {
   Color? get surfaceTintColor => Colors.transparent;
 
   @override
-  TextStyle? get titleTextStyle => _textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-      );
+  TextStyle? get titleTextStyle =>
+      _textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold);
 
   @override
   TextStyle? get contentTextStyle => _textTheme.bodyMedium;

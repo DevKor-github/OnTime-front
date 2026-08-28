@@ -25,6 +25,7 @@ void main() async {
     id: scheduleEntityId,
     placeId: placeModel.id,
     scheduleName: 'Test Schedule',
+    timeZoneId: 'Asia/Seoul',
     scheduleTime: scheduleTime,
     moveTime: Duration(minutes: 10),
     isChanged: false,
@@ -32,6 +33,10 @@ void main() async {
     scheduleSpareTime: Duration(minutes: 5),
     scheduleNote: 'Test Note',
     latenessTime: 0,
+    doneStatus: 'notEnded',
+    preparationTemplateDeleted: false,
+    preparationFrozen: false,
+    scoreContributionRecorded: false,
   );
 
   final scheduleWithPlaceModel = ScheduleWithPlace(

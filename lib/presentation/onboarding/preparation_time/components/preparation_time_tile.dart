@@ -37,8 +37,10 @@ class PreparationTimeTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 1.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 1.0,
+                ),
                 child: Text(
                   (value.preparationTime.value.inMinutes < 10 ? '0' : '') +
                       (value.preparationTime.value.inMinutes < 0

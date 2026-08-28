@@ -17,19 +17,27 @@ class PreparationStepFormCubit extends Cubit<PreparationStepFormState> {
 
   void nameChanged(String value) {
     final preparationName = PreparationNameInputModel.dirty(value);
-    emit(state.copyWith(
-        preparationName: preparationName, isValid: preparationName.isValid));
+    emit(
+      state.copyWith(
+        preparationName: preparationName,
+        isValid: preparationName.isValid,
+      ),
+    );
   }
 
   void timeChanged(Duration value) {
     final preparationTime = PreparationTimeInputModel.dirty(value);
-    emit(state.copyWith(
-        preparationTime: preparationTime, isValid: preparationTime.isValid));
+    emit(
+      state.copyWith(
+        preparationTime: preparationTime,
+        isValid: preparationTime.isValid,
+      ),
+    );
   }
 
   void preparationStepSaved() {
-    preparationFormBloc.add(PreparationFormPreparationStepCreated(
-      preparationStep: state,
-    ));
+    preparationFormBloc.add(
+      PreparationFormPreparationStepCreated(preparationStep: state),
+    );
   }
 }

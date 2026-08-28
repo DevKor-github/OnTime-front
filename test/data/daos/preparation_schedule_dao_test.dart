@@ -49,11 +49,8 @@ void main() {
         .insert(
           UsersCompanion(
             id: drift.Value(userId),
-            email: drift.Value('testuser@example.com'),
-            name: drift.Value('Test User'),
-            spareTime: drift.Value(Duration(minutes: 30).inSeconds),
+            spareTime: const drift.Value(30),
             note: drift.Value('Test Note'),
-            score: drift.Value(100),
           ),
         );
 

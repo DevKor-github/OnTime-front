@@ -12,16 +12,9 @@ import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
 import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
 
-enum ScheduleStartPromptVariant {
-  officialStart,
-  earlyStart,
-  alarm,
-}
+enum ScheduleStartPromptVariant { officialStart, earlyStart, alarm }
 
-enum ScheduleStartLaunchAction {
-  prompt,
-  startPreparation,
-}
+enum ScheduleStartLaunchAction { prompt, startPreparation }
 
 ScheduleStartPromptVariant scheduleStartPromptVariantFromRouteValue(
   String? value,
@@ -140,8 +133,9 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
       return l10n.preparationStartsLaterStartEarly;
     }
 
-    final remainingLeadTime =
-        schedule.preparationStartTime.difference(DateTime.now());
+    final remainingLeadTime = schedule.preparationStartTime.difference(
+      DateTime.now(),
+    );
     if (remainingLeadTime.inMinutes <= 0) {
       return l10n.preparationStartsLaterStartEarly;
     }
@@ -323,8 +317,9 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                   context.go('/home');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   foregroundColor: Theme.of(context).colorScheme.primary,
                 ),
                 child: Text(AppLocalizations.of(context)!.notNow),

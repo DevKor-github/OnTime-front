@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
+import 'package:on_time_front/core/services/local_time_zone_service.dart';
 import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
-import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 
 typedef AlarmNowProvider = DateTime Function();
@@ -15,12 +15,12 @@ typedef AlarmNowProvider = DateTime Function();
 @Singleton()
 class ReconcileAlarmsUseCase {
   static const _logTag = '[ReconcileAlarms]';
+  static const _platformAlarmCapacity = 60;
 
   final AlarmRepository _alarmRepository;
   final AlarmRegistryRepository _registryRepository;
   final AlarmSchedulerService _schedulerService;
   final FallbackAlarmNotificationService _fallbackNotificationService;
-  final UserRepository? _userRepository;
   final AlarmNowProvider _nowProvider;
   Future<AlarmReconciliationResult>? _inFlight;
 
@@ -29,9 +29,7 @@ class ReconcileAlarmsUseCase {
     this._registryRepository,
     this._schedulerService,
     this._fallbackNotificationService,
-    UserRepository userRepository,
-  ) : _userRepository = userRepository,
-      _nowProvider = DateTime.now;
+  ) : _nowProvider = DateTime.now;
 
   @visibleForTesting
   ReconcileAlarmsUseCase.test(
@@ -40,9 +38,7 @@ class ReconcileAlarmsUseCase {
     this._schedulerService,
     this._fallbackNotificationService, {
     required AlarmNowProvider nowProvider,
-    UserRepository? userRepository,
-  }) : _userRepository = userRepository,
-       _nowProvider = nowProvider;
+  }) : _nowProvider = nowProvider;
 
   Future<AlarmReconciliationResult> call() {
     final running = _inFlight;
@@ -64,11 +60,10 @@ class ReconcileAlarmsUseCase {
   Future<AlarmReconciliationResult> _run() async {
     final now = _nowProvider();
     final scheduleWindowStart = now;
-    final scheduleWindowEnd = now.add(const Duration(days: 8));
+    final scheduleWindowEnd = DateTime(now.year + 50, 1, 1);
     final alarmCoverageStart = now;
-    final deviceId = await _alarmRepository.getDeviceId();
     final capabilities = await _schedulerService.getCapabilities();
-    final alarmCoverageEnd = now.add(const Duration(days: 7));
+    final alarmCoverageEnd = scheduleWindowEnd;
     AppLogger.debug(
       '$_logTag start now=${now.toIso8601String()} '
       'scheduleWindow=${scheduleWindowStart.toIso8601String()}..'
@@ -77,7 +72,7 @@ class ReconcileAlarmsUseCase {
       '${alarmCoverageEnd.toIso8601String()}',
     );
     AppLogger.debug(
-      '$_logTag deviceId=$deviceId capabilities='
+      '$_logTag capabilities='
       'nativeSupported=${capabilities.supportsNativeAlarm} '
       'nativeProvider=${capabilities.nativeAlarmProvider} '
       'fallbackProvider=${capabilities.fallbackProvider}',
@@ -100,7 +95,6 @@ class ReconcileAlarmsUseCase {
         alarmCoverageStart: alarmCoverageStart,
         alarmCoverageEnd: alarmCoverageEnd,
       );
-      await _postStatusBestEffort(deviceId, result);
       return result;
     }
 
@@ -119,18 +113,7 @@ class ReconcileAlarmsUseCase {
         alarmCoverageStart: alarmCoverageStart,
         alarmCoverageEnd: alarmCoverageEnd,
       );
-      await _postStatusBestEffort(deviceId, result);
       return result;
-    }
-
-    try {
-      await _alarmRepository.registerCurrentDevice(
-        await _alarmRepository.buildCurrentDeviceInfo(),
-      );
-      AppLogger.debug('$_logTag registerCurrentDevice success');
-    } catch (_) {
-      // Device registration is diagnostic. Local scheduling can still proceed.
-      AppLogger.debug('$_logTag registerCurrentDevice failed; continuing');
     }
 
     late final List<ScheduleWithPreparationEntity> schedules;
@@ -163,25 +146,31 @@ class ReconcileAlarmsUseCase {
         alarmCoverageStart: alarmCoverageStart,
         alarmCoverageEnd: alarmCoverageEnd,
       );
-      await _postStatusBestEffort(deviceId, result);
       return result;
     }
-    final desiredRecords = _desiredRecords(
+    final allDesiredRecords = _desiredRecords(
       schedules: schedules,
       now: now,
       alarmCoverageEnd: alarmCoverageEnd,
       alarmOffset: settings.alarmOffset,
+      detailedNotificationContent: settings.detailedNotificationContent,
+      currentTimeZoneId: await LocalTimeZoneService.current(),
     );
-    final skippedScheduleCount = schedules
-        .where(
-          (schedule) => !_isDesired(
-            schedule,
-            now,
-            alarmCoverageEnd,
-            settings.alarmOffset,
-          ),
-        )
-        .length;
+    final desiredRecords = allDesiredRecords
+        .take(_platformAlarmCapacity)
+        .toList();
+    final skippedScheduleCount =
+        schedules
+            .where(
+              (schedule) => !_isDesired(
+                schedule,
+                now,
+                alarmCoverageEnd,
+                settings.alarmOffset,
+              ),
+            )
+            .length +
+        (allDesiredRecords.length - desiredRecords.length);
     AppLogger.debug(
       '$_logTag desiredRecords=${desiredRecords.length} '
       'skippedSchedules=$skippedScheduleCount '
@@ -306,7 +295,6 @@ class ReconcileAlarmsUseCase {
       alarmCoverageEnd: alarmCoverageEnd,
     );
 
-    await _postStatusBestEffort(deviceId, result);
     AppLogger.debug(
       '$_logTag complete status=${result.status} '
       'armed=${result.armedScheduleCount} skipped=${result.skippedScheduleCount} '
@@ -320,8 +308,10 @@ class ReconcileAlarmsUseCase {
     required DateTime now,
     required DateTime alarmCoverageEnd,
     required Duration alarmOffset,
+    required bool detailedNotificationContent,
+    required String currentTimeZoneId,
   }) {
-    return schedules
+    final records = schedules
         .where(
           (schedule) =>
               _isDesired(schedule, now, alarmCoverageEnd, alarmOffset),
@@ -331,9 +321,13 @@ class ReconcileAlarmsUseCase {
             schedule,
             alarmOffset: alarmOffset,
             provider: AlarmProvider.none,
+            detailedNotificationContent: detailedNotificationContent,
+            currentTimeZoneId: currentTimeZoneId,
           ),
         )
         .toList();
+    records.sort((a, b) => a.alarmTime.compareTo(b.alarmTime));
+    return records;
   }
 
   bool _isDesired(
@@ -603,48 +597,6 @@ class ReconcileAlarmsUseCase {
       alarmCoverageStart: alarmCoverageStart,
       alarmCoverageEnd: alarmCoverageEnd,
     );
-  }
-
-  Future<void> _postStatusBestEffort(
-    String deviceId,
-    AlarmReconciliationResult result,
-  ) async {
-    try {
-      AppLogger.debug(
-        '$_logTag postAlarmStatus start deviceId=$deviceId '
-        'status=${result.status} armed=${result.armedScheduleCount}',
-      );
-      await _alarmRepository.postAlarmStatus(
-        AlarmStatusReport(
-          deviceId: deviceId,
-          reconciledAt: _nowProvider(),
-          scheduleWindowStart: result.scheduleWindowStart,
-          scheduleWindowEnd: result.scheduleWindowEnd,
-          alarmCoverageStart: result.alarmCoverageStart,
-          alarmCoverageEnd: result.alarmCoverageEnd,
-          status: result.status,
-          permissionIssue: result.permissionIssue,
-          nativeAlarmProvider: result.nativeAlarmProvider,
-          fallbackProvider: result.fallbackProvider,
-          armedScheduleCount: result.armedScheduleCount,
-          armedScheduleIds: result.armedScheduleIds,
-          skippedScheduleCount: result.skippedScheduleCount,
-          failures: result.failures,
-        ),
-      );
-      AppLogger.debug('$_logTag postAlarmStatus success');
-    } on DeviceSessionNotActiveException {
-      AppLogger.debug(
-        '$_logTag postAlarmStatus device session inactive; signing out',
-      );
-      final records = await _registryRepository.loadAll();
-      await _cancelRecords(records);
-      await _registryRepository.deleteAll();
-      await _userRepository?.signOut();
-    } catch (_) {
-      // Status reports are diagnostic; scheduling result should still return.
-      AppLogger.debug('$_logTag postAlarmStatus failed; continuing');
-    }
   }
 
   String _recordSummary(List<ScheduledAlarmRecord> records) {

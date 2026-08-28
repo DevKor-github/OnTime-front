@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
@@ -6,7 +5,7 @@ import 'package:on_time_front/domain/entities/alarm_entities.dart';
 
 void main() {
   test(
-    'permission checks map Firebase authorization to alarm permission',
+    'permission checks map local notification authorization to alarm permission',
     () async {
       final notificationService = _FakeNotificationService(
         checkStatus: AuthorizationStatus.provisional,

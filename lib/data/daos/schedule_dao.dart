@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:on_time_front/data/tables/places_table.dart';
 import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 import '/core/database/database.dart';
+import 'package:on_time_front/core/utils/json_converters/duration_json_converters.dart';
 import 'package:on_time_front/data/tables/schedules_table.dart';
 
 part 'schedule_dao.g.dart';
@@ -16,12 +17,18 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   Future<ScheduleWithPlace> createSchedule(
     ScheduleWithPlace scheduleWithPlace,
   ) async {
-    final placeModel = await db.placeDao.createPlace(scheduleWithPlace.place);
-    final scheduleModel = await into(
-      db.schedules,
-    ).insertReturning(scheduleWithPlace.schedule.toCompanion(false));
-
-    return ScheduleWithPlace(schedule: scheduleModel, place: placeModel);
+    return transaction(() async {
+      await into(
+        db.places,
+      ).insertOnConflictUpdate(scheduleWithPlace.place.toCompanion(false));
+      final scheduleModel = await into(
+        db.schedules,
+      ).insertReturning(scheduleWithPlace.schedule.toCompanion(false));
+      return ScheduleWithPlace(
+        schedule: scheduleModel,
+        place: scheduleWithPlace.place,
+      );
+    });
   }
 
   Future<void> deleteSchedule(Schedule scheduleModel) async {
@@ -53,6 +60,20 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
     return scheduleList.first;
   }
 
+  Future<ScheduleWithPlace> updateScheduleWithPlace(
+    ScheduleWithPlace value,
+  ) async {
+    return transaction(() async {
+      await into(
+        db.places,
+      ).insertOnConflictUpdate(value.place.toCompanion(false));
+      await (update(db.schedules)
+            ..where((table) => table.id.equals(value.schedule.id)))
+          .write(value.schedule.toCompanion(true));
+      return getScheduleById(value.schedule.id);
+    });
+  }
+
   Future<List<ScheduleWithPlace>> getSchedulesByDate(
     DateTime startDate,
     DateTime? endDate,
@@ -64,10 +85,14 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
             db.places.id.equalsExp(db.schedules.placeId),
           ),
         ])..where(
-          db.schedules.scheduleTime.isBiggerOrEqualValue(startDate) &
+          db.schedules.scheduleTime.isBiggerOrEqualValue(
+                const CivilDateTimeSqlConverter().toSql(startDate),
+              ) &
               (endDate == null
                   ? Constant<bool>(true)
-                  : db.schedules.scheduleTime.isSmallerThanValue(endDate)),
+                  : db.schedules.scheduleTime.isSmallerThanValue(
+                      const CivilDateTimeSqlConverter().toSql(endDate),
+                    )),
         );
     final result = await query.get();
     final List<ScheduleWithPlace> scheduleList = [];
@@ -99,5 +124,20 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
       );
     });
     return scheduleList;
+  }
+
+  Stream<List<ScheduleWithPlace>> watchScheduleList() {
+    final query = select(db.schedules).join([
+      leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),
+    ])..orderBy([OrderingTerm.asc(db.schedules.scheduleTime)]);
+    return query.watch().map(
+      (rows) => [
+        for (final row in rows)
+          ScheduleWithPlace(
+            schedule: row.readTable(db.schedules),
+            place: row.readTable(db.places),
+          ),
+      ],
+    );
   }
 }

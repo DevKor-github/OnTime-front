@@ -6,7 +6,6 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
-import 'package:on_time_front/domain/use-cases/schedule_analytics_tracker.dart';
 import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
 
 class SpyCreateScheduleWithPlaceUseCase
@@ -32,31 +31,16 @@ class SpyCreateCustomPreparationUseCase
   }
 }
 
-class SpyScheduleAnalyticsTracker implements ScheduleAnalyticsTracker {
-  final createdSchedules =
-      <({ScheduleEntity schedule, PreparationEntity preparation})>[];
-
-  @override
-  Future<void> trackScheduleCreated({
-    required ScheduleEntity schedule,
-    required PreparationEntity preparation,
-  }) async {
-    createdSchedules.add((schedule: schedule, preparation: preparation));
-  }
-}
-
 void main() {
   test(
-    'changed preparation creates schedule, saves custom preparation, and tracks create analytics',
+    'changed preparation creates schedule and saves custom preparation locally',
     () async {
       final createScheduleUseCase = SpyCreateScheduleWithPlaceUseCase();
       final createCustomPreparationUseCase =
           SpyCreateCustomPreparationUseCase();
-      final analyticsTracker = SpyScheduleAnalyticsTracker();
       final useCase = CreateScheduleFormSubmissionUseCase(
         createScheduleUseCase,
         createCustomPreparationUseCase,
-        analyticsTracker,
       );
       final schedule = ScheduleEntity(
         id: 'schedule-1',
@@ -90,9 +74,6 @@ void main() {
       expect(createScheduleUseCase.createdSchedules, [schedule]);
       expect(createCustomPreparationUseCase.createdPreparations, [
         (preparation: preparation, id: 'schedule-1'),
-      ]);
-      expect(analyticsTracker.createdSchedules, [
-        (schedule: schedule, preparation: preparation),
       ]);
     },
   );

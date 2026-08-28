@@ -15,9 +15,8 @@ class LoadAdjacentScheduleWithPreparationUseCase {
     this._loadPreparationByScheduleIdUseCase,
   );
 
-  /// Loads schedules and preparation data from the server for the given date range.
-  /// This triggers fetching schedules and preparation from the remote data source
-  /// and updating repository streams.
+  /// Loads schedules and preparation from the local database for this range.
+  /// Repository streams are updated for presentation consumers.
   ///
   /// [startDate] - Start date for the search range
   /// [endDate] - End date for the search range

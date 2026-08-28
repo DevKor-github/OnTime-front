@@ -5,9 +5,8 @@ import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dar
 part 'preparation_order_state.dart';
 
 class PreparationOrderCubit extends Cubit<PreparationOrderState> {
-  PreparationOrderCubit({
-    required this.onboardingCubit,
-  }) : super(PreparationOrderState()) {
+  PreparationOrderCubit({required this.onboardingCubit})
+    : super(PreparationOrderState()) {
     initialize();
   }
 
@@ -24,28 +23,35 @@ class PreparationOrderCubit extends Cubit<PreparationOrderState> {
     }
     final List<PreparationStepOrderState> preparationStepList =
         List<PreparationStepOrderState>.from(state.preparationStepList);
-    final PreparationStepOrderState item =
-        preparationStepList.removeAt(oldIndex);
+    final PreparationStepOrderState item = preparationStepList.removeAt(
+      oldIndex,
+    );
     preparationStepList.insert(newIndex, item);
     emit(state.copyWith(preparationStepList: preparationStepList));
   }
 
   void preparationOrderSaved() {
-    final newList = state.toOnboardingState().preparationStepList;
-    final oldList = onboardingCubit.state.preparationStepList;
+    final orderedList = state.toOnboardingState().preparationStepList;
+    final existingSteps = {
+      for (final step in onboardingCubit.state.preparationStepList)
+        step.id: step,
+    };
 
-    assert(newList.length == oldList.length);
+    assert(orderedList.length == existingSteps.length);
 
-    for (int i = 0; i < oldList.length; i++) {
-      for (int j = 0; i < oldList.length; j++) {
-        if (oldList[j].id == newList[i].id) {
-          oldList[j] = oldList[j].copyWith(
-            nextPreparationId: newList[i].nextPreparationId,
+    final reorderedSteps = orderedList
+        .map((step) {
+          final existingStep = existingSteps[step.id];
+          return OnboardingPreparationStepState(
+            id: step.id,
+            preparationName: step.preparationName,
+            preparationTime:
+                existingStep?.preparationTime ?? step.preparationTime,
+            nextPreparationId: step.nextPreparationId,
           );
-          break;
-        }
-      }
-    }
-    onboardingCubit.onboardingFormChanged(preparationStepList: newList);
+        })
+        .toList(growable: false);
+
+    onboardingCubit.onboardingFormChanged(preparationStepList: reorderedSteps);
   }
 }

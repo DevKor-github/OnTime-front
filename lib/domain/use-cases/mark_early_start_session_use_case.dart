@@ -7,10 +7,7 @@ class MarkEarlyStartSessionUseCase {
 
   final EarlyStartSessionRepository _earlyStartSessionRepository;
 
-  Future<void> call({
-    required String scheduleId,
-    required DateTime startedAt,
-  }) {
+  Future<void> call({required String scheduleId, required DateTime startedAt}) {
     return _earlyStartSessionRepository.markStarted(
       scheduleId: scheduleId,
       startedAt: startedAt,

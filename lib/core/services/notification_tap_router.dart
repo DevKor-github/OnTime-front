@@ -4,8 +4,6 @@ import 'package:on_time_front/core/services/notification_routing.dart';
 
 abstract interface class NotificationTapRouter {
   void routeLocalNotificationTap(String? payload);
-
-  void routeRemoteNotificationData(Map<dynamic, dynamic> data);
 }
 
 class NoopNotificationTapRouter implements NotificationTapRouter {
@@ -13,9 +11,6 @@ class NoopNotificationTapRouter implements NotificationTapRouter {
 
   @override
   void routeLocalNotificationTap(String? payload) {}
-
-  @override
-  void routeRemoteNotificationData(Map<dynamic, dynamic> data) {}
 }
 
 @Singleton(as: NotificationTapRouter)
@@ -27,12 +22,6 @@ class NavigationNotificationTapRouter implements NotificationTapRouter {
   @override
   void routeLocalNotificationTap(String? payload) {
     final target = notificationRouteForPayloadString(payload);
-    _pushTarget(target);
-  }
-
-  @override
-  void routeRemoteNotificationData(Map<dynamic, dynamic> data) {
-    final target = notificationRouteForData(data);
     _pushTarget(target);
   }
 

@@ -8,6 +8,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     required super.id,
     required super.place,
     required super.scheduleName,
+    super.timeZoneId,
+    super.occurrenceOffsetSeconds,
     required super.scheduleTime,
     required super.moveTime,
     required super.isChanged,
@@ -23,6 +25,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     super.preparationTemplateName,
     super.preparationTemplateDeleted,
     super.preparationFrozen,
+    super.scoreContributionRecorded,
     super.customPreparations,
     required this.preparation,
   });
@@ -34,13 +37,18 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       (scheduleSpareTime ?? Duration.zero);
 
   ///Returns the time when the preparation starts.
-  DateTime get preparationStartTime => scheduleTime.subtract(totalDuration);
+  DateTime get preparationStartTime =>
+      occurrenceInstantUtc.subtract(totalDuration);
 
   /// Fingerprint for validating whether cached timed-preparation is still valid.
   String get cacheFingerprint {
     final spare = scheduleSpareTime ?? Duration.zero;
     final buffer = StringBuffer()
-      ..write(scheduleTime.millisecondsSinceEpoch)
+      ..write(scheduleTime.toIso8601String())
+      ..write('|')
+      ..write(timeZoneId)
+      ..write('|')
+      ..write(occurrenceOffsetSeconds)
       ..write('|')
       ..write(moveTime.inMilliseconds)
       ..write('|')
@@ -65,7 +73,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   /// Returns the time remaining before needing to leave at [now].
   Duration timeRemainingBeforeLeavingAt(DateTime now) {
     final spareTime = scheduleSpareTime ?? Duration.zero;
-    final remaining = scheduleTime.difference(now) - moveTime - spareTime;
+    final remaining =
+        occurrenceInstantUtc.difference(now.toUtc()) - moveTime - spareTime;
     return remaining;
   }
 
@@ -92,6 +101,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       id: schedule.id,
       place: schedule.place,
       scheduleName: schedule.scheduleName,
+      timeZoneId: schedule.timeZoneId,
+      occurrenceOffsetSeconds: schedule.occurrenceOffsetSeconds,
       scheduleTime: schedule.scheduleTime,
       moveTime: schedule.moveTime,
       isChanged: schedule.isChanged,
@@ -107,6 +118,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       preparationTemplateName: schedule.preparationTemplateName,
       preparationTemplateDeleted: schedule.preparationTemplateDeleted,
       preparationFrozen: schedule.preparationFrozen,
+      scoreContributionRecorded: schedule.scoreContributionRecorded,
       customPreparations: schedule.customPreparations,
       preparation: preparation,
     );
@@ -117,6 +129,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     id,
     place,
     scheduleName,
+    timeZoneId,
+    occurrenceOffsetSeconds,
     scheduleTime,
     moveTime,
     isChanged,
@@ -131,6 +145,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     preparationTemplateName,
     preparationTemplateDeleted,
     preparationFrozen,
+    scoreContributionRecorded,
     preparation,
   ];
 }

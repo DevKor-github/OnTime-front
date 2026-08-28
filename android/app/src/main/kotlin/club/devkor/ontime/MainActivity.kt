@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.WindowManager
+import java.util.TimeZone
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -67,6 +68,8 @@ open class MainActivity : FlutterActivity() {
                 "requestPermission" -> requestExactAlarmPermission(result)
                 "scheduleNativeAlarm" -> scheduleNativeAlarm(call, result)
                 "cancelNativeAlarm" -> cancelNativeAlarm(call, result)
+                "getLocalTimeZone" -> result.success(TimeZone.getDefault().id)
+                "excludeFromBackup" -> result.success(null)
                 "getLaunchPayload" -> {
                     NativeLog.d(TAG, "getLaunchPayload -> ${NativeLog.summarizeMap(launchPayload)}")
                     result.success(launchPayload)

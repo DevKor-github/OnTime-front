@@ -9,8 +9,12 @@ class UpdatePreparationByScheduleIdUseCase {
   UpdatePreparationByScheduleIdUseCase(this._preparationRepository);
 
   Future<void> call(
-      PreparationEntity preparationEntity, String scheduleId) async {
+    PreparationEntity preparationEntity,
+    String scheduleId,
+  ) async {
     await _preparationRepository.updatePreparationByScheduleId(
-        preparationEntity, scheduleId);
+      preparationEntity,
+      scheduleId,
+    );
   }
 }

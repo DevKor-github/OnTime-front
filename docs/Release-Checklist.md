@@ -30,16 +30,18 @@ release candidate:
 ```sh
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
+dart run tool/check_local_only_boundary.dart
 flutter analyze
 flutter test
 flutter build appbundle --release
+flutter build ipa --release --export-method app-store
 ```
 
 - After code generation, run `git diff --exit-code` or review the diff to
   confirm generated files are intentionally updated.
-- For local Android release builds, provide the signing, Firebase, `ENV`, and
-  `REST_API_URL` inputs documented in `docs/Android-Release-Configuration.md`
-  and `docs/Android-Release-Signing.md`.
+- For local Android release builds, provide only the signing inputs documented
+  in `docs/Android-Release-Signing.md`; product builds must not require Firebase
+  or API environment configuration.
 - For CI Play uploads, dispatch the `Android Play Internal Deploy` workflow
   from `main` with an explicit `android_version_code`; it runs package install,
   code generation, generated-file drift checking, analysis, tests, AAB build,
@@ -74,9 +76,9 @@ flutter build appbundle --release
   output.
 - Keep generated Dart outputs in the same PR as the source change that requires
   them.
-- Do not commit local release secrets, generated Firebase config files,
-  keystores, `android/key.properties`, Play service-account JSON, coverage
-  output, or build artifacts.
+- Do not commit local release secrets, keystores, provisioning profiles,
+  `android/key.properties`, Play or App Store credentials, coverage output, or
+  build artifacts.
 - Review `pubspec.lock`, native lockfiles, and generated platform files when
   dependencies or plugins change.
 
@@ -86,10 +88,8 @@ flutter build appbundle --release
   `hotfix/x.y.z` for urgent production repairs.
 - Confirm final production deployments are triggered from a `vX.Y.Z` tag, not
   directly from `main` or a release branch.
-- Use `ENV=staging` for release-candidate QA builds.
-- Use `ENV=prod` for tagged production builds.
-- Confirm `REST_API_URL` points at the approved release or production API
-  environment.
+- Confirm the release candidate does not accept API endpoint, remote-auth,
+  Firebase, or environment-specific product configuration.
 - Require manual approval before promoting tagged builds to Play Store or App
   Store production.
 
@@ -144,8 +144,8 @@ flutter build appbundle --release
 - Review the app icon set in `ios/Runner/Assets.xcassets/AppIcon.appiconset`.
 - Confirm the launch screen, supported orientations, background modes,
   entitlements, and AlarmKit capability declarations match the release target.
-- Pass `GOOGLE_RESERVED_CLIENT_ID_IOS` for release/archive builds as documented
-  in `docs/iOS-Release-Configuration.md`.
+- Run the local-only boundary check and build the signed IPA as documented in
+  `docs/iOS-Release-Configuration.md`.
 
 ## Web
 

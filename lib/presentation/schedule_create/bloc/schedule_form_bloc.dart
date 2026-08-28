@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
@@ -96,6 +95,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
           event.scheduleTime.hour,
           event.scheduleTime.minute,
         ),
+        occurrenceOffsetSeconds: event.occurrenceOffsetSeconds,
         maxAvailableTime: event.maxAvailableTime,
         previousScheduleName: event.previousScheduleName,
       ),
@@ -168,7 +168,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.failure,
-          submissionError: ApiErrorMessage.fromException(e) ?? e.toString(),
+          submissionError: e.toString(),
         ),
       );
     }
@@ -204,7 +204,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.failure,
-          submissionError: ApiErrorMessage.fromException(e) ?? e.toString(),
+          submissionError: e.toString(),
         ),
       );
     }
@@ -231,6 +231,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         placeName: draft.placeName,
         scheduleName: draft.scheduleName,
         scheduleTime: draft.scheduleTime,
+        timeZoneId: draft.timeZoneId,
+        occurrenceOffsetSeconds: draft.occurrenceOffsetSeconds,
         moveTime: draft.moveTime,
         isChanged: draft.preparationChanged
             ? IsPreparationChanged.changed

@@ -46,7 +46,9 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
 
   @override
   ThemeExtension<CalendarTheme> lerp(
-      covariant ThemeExtension<CalendarTheme>? other, double t) {
+    covariant ThemeExtension<CalendarTheme>? other,
+    double t,
+  ) {
     if (other is! CalendarTheme) {
       return this;
     }

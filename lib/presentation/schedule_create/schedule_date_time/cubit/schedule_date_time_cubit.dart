@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
+import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'package:on_time_front/domain/use-cases/get_adjacent_schedules_with_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_adjacent_schedule_with_preparation_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -25,25 +26,33 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
   final ScheduleFormBloc scheduleFormBloc;
   final LoadAdjacentScheduleWithPreparationUseCase
-      _loadAdjacentSchedulesWithPreparationUseCase;
+  _loadAdjacentSchedulesWithPreparationUseCase;
   final GetAdjacentSchedulesWithPreparationUseCase
-      _getNextScheduleWithPreparationUseCase;
+  _getNextScheduleWithPreparationUseCase;
 
   void initialize() {
-    final scheduleDateTimeState =
-        ScheduleDateTimeState.fromScheduleFormState(scheduleFormBloc.state);
-    emit(state.copyWith(
-      scheduleDate: scheduleDateTimeState.scheduleDate,
-      scheduleTime: scheduleDateTimeState.scheduleTime,
-    ));
+    final scheduleDateTimeState = ScheduleDateTimeState.fromScheduleFormState(
+      scheduleFormBloc.state,
+    );
+    emit(
+      state.copyWith(
+        scheduleDate: scheduleDateTimeState.scheduleDate,
+        scheduleTime: scheduleDateTimeState.scheduleTime,
+        timeZoneId: scheduleDateTimeState.timeZoneId,
+        selectedOccurrenceOffsetSeconds:
+            scheduleDateTimeState.selectedOccurrenceOffsetSeconds,
+      ),
+    );
+    _resolveCivilTime();
 
     // Check for schedule overlap if both date and time are valid
     if (scheduleDateTimeState.scheduleDate.isValid &&
         scheduleDateTimeState.scheduleTime.isValid) {
       scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
       // Load adjacent schedules first, then check overlap
-      _loadAdjacentSchedules(scheduleDateTimeState.scheduleDate.value!)
-          .then((_) => checkScheduleOverlap());
+      _loadAdjacentSchedules(
+        scheduleDateTimeState.scheduleDate.value!,
+      ).then((_) => checkScheduleOverlap());
     } else {
       scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
     }
@@ -52,7 +61,15 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   Future<void> scheduleDateChanged(DateTime scheduleDate) async {
     final ScheduleDateInputModel scheduleDateInputModel =
         ScheduleDateInputModel.dirty(scheduleDate);
-    emit(state.copyWith(scheduleDate: scheduleDateInputModel));
+    emit(
+      state.copyWith(
+        scheduleDate: scheduleDateInputModel,
+        civilTimeResolved: false,
+        occurrenceOffsetOptions: const [],
+        selectedOccurrenceOffsetSeconds: null,
+      ),
+    );
+    _resolveCivilTime();
 
     // Always load nextSchedule when date changes
     if (scheduleDateInputModel.isValid) {
@@ -70,7 +87,15 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   Future<void> scheduleTimeChanged(DateTime scheduleTime) async {
     final ScheduleTimeInputModel scheduleTimeInputModel =
         ScheduleTimeInputModel.dirty(scheduleTime);
-    emit(state.copyWith(scheduleTime: scheduleTimeInputModel));
+    emit(
+      state.copyWith(
+        scheduleTime: scheduleTimeInputModel,
+        civilTimeResolved: false,
+        occurrenceOffsetOptions: const [],
+        selectedOccurrenceOffsetSeconds: null,
+      ),
+    );
+    _resolveCivilTime();
 
     // Never load nextSchedule, only check overlap
     if (state.scheduleDate.isValid && scheduleTimeInputModel.isValid) {
@@ -84,6 +109,42 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
+  void occurrenceOffsetSelected(int offsetSeconds) {
+    if (!state.occurrenceOffsetOptions.contains(offsetSeconds)) return;
+    emit(state.copyWith(selectedOccurrenceOffsetSeconds: offsetSeconds));
+    scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
+  }
+
+  void _resolveCivilTime() {
+    final selected = state.selectedScheduleDateTime;
+    if (selected == null) {
+      emit(
+        state.copyWith(
+          civilTimeResolved: false,
+          occurrenceOffsetOptions: const [],
+          selectedOccurrenceOffsetSeconds: null,
+        ),
+      );
+      return;
+    }
+
+    final options = CivilTimeResolver.resolve(
+      selected,
+      state.timeZoneId,
+    ).map((occurrence) => occurrence.offsetSeconds).toList();
+    final existing = state.selectedOccurrenceOffsetSeconds;
+    final selectedOffset = options.length == 1
+        ? options.single
+        : (options.contains(existing) ? existing : null);
+    emit(
+      state.copyWith(
+        civilTimeResolved: true,
+        occurrenceOffsetOptions: options,
+        selectedOccurrenceOffsetSeconds: selectedOffset,
+      ),
+    );
+  }
+
   Future<void> _loadAdjacentSchedules(DateTime scheduleDate) async {
     try {
       // Calculate date range: previous day, selected day, and next day
@@ -92,7 +153,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       final startDate = dateRange.startDate;
       final endDate = dateRange.endDate;
 
-      // Load schedules from server
+      // Load adjacent schedules from the encrypted local database.
       await _loadAdjacentSchedulesWithPreparationUseCase(
         startDate: startDate,
         endDate: endDate,
@@ -134,17 +195,19 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
       // Find adjacent schedules (previous and next) with preparation from stream
       AppLogger.debug(
-          'Checking overlap for: $selectedDateTime, currentScheduleId: $currentScheduleId');
+        'Checking overlap for: $selectedDateTime, currentScheduleId: $currentScheduleId',
+      );
       final AdjacentSchedulesWithPreparationEntity adjacentSchedules =
           await _getNextScheduleWithPreparationUseCase(
-        selectedDateTime: selectedDateTime,
-        currentScheduleId: currentScheduleId,
-        startDate: startDate,
-        endDate: endDate,
-      );
+            selectedDateTime: selectedDateTime,
+            currentScheduleId: currentScheduleId,
+            startDate: startDate,
+            endDate: endDate,
+          );
 
       AppLogger.debug(
-          'Previous schedule found: ${adjacentSchedules.hasPrevious}, Next schedule found: ${adjacentSchedules.hasNext}');
+        'Previous schedule found: ${adjacentSchedules.hasPrevious}, Next schedule found: ${adjacentSchedules.hasNext}',
+      );
 
       // Check overlap with next schedule
       if (adjacentSchedules.hasNext && adjacentSchedules.nextSchedule != null) {
@@ -155,8 +218,9 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         final nextPreparationStartTime = nextSchedule.preparationStartTime;
 
         // Calculate time difference
-        final timeDifference =
-            nextPreparationStartTime.difference(selectedDateTime);
+        final timeDifference = nextPreparationStartTime.difference(
+          selectedDateTime,
+        );
         final minutesDifference = timeDifference.inMinutes;
 
         AppLogger.debug(
@@ -175,18 +239,19 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         if (minutesDifference > 0) {
           AppLogger.debug('Showing warning with $minutesDifference minutes');
           // User requested to show only error when overlap, no warning for next schedule
-          emit(state.copyWith(
-            clearOverlap: true,
-          ));
+          emit(state.copyWith(clearOverlap: true));
         } else {
           // Already overlapping - show as error
           AppLogger.debug(
-              'Showing error - already overlapping (minutesDifference: $minutesDifference)');
-          emit(state.copyWith(
-            isOverlapping: true,
-            nextScheduleName: nextSchedule.scheduleName,
-            nextPreparationStartTime: nextPreparationStartTime,
-          ));
+            'Showing error - already overlapping (minutesDifference: $minutesDifference)',
+          );
+          emit(
+            state.copyWith(
+              isOverlapping: true,
+              nextScheduleName: nextSchedule.scheduleName,
+              nextPreparationStartTime: nextPreparationStartTime,
+            ),
+          );
         }
       } else {
         // No next schedule found, clear next overlap
@@ -205,8 +270,9 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         // Calculate time difference
         // If negative, selected time is before previous schedule ends (overlapping)
         // If positive, selected time is after previous schedule ends (no overlap)
-        final timeDifference =
-            selectedDateTime.difference(previousScheduleEndTime);
+        final timeDifference = selectedDateTime.difference(
+          previousScheduleEndTime,
+        );
         final minutesDifference = timeDifference.inMinutes;
 
         AppLogger.debug(
@@ -226,21 +292,24 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
           // But if it does, we treat it as available time being negative?
           // Or just show it as available time (which will be negative)
           AppLogger.debug(
-              'Showing error - overlapping with previous schedule (minutesDifference: $minutesDifference)');
-          emit(state.copyWith(
-            previousOverlapDuration:
-                timeDifference, // Keep negative duration? Or abs?
-            // If we remove isPreviousOverlapping, we just store the duration.
-            // The state will decide if it's a warning based on duration value.
-            // But wait, hasPreviousOverlapMessage logic:
-            // return previousOverlapDuration!.inMinutes < 180;
-            // If negative, it is < 180, so it returns true (warning).
-            // But negative means overlap, which should be error?
-            // The user said "impossible to overlap with previous schedule".
-            // So we assume minutesDifference >= 0 always?
-            // If so, we just handle the >= 0 case.
-            previousScheduleName: previousSchedule.scheduleName,
-          ));
+            'Showing error - overlapping with previous schedule (minutesDifference: $minutesDifference)',
+          );
+          emit(
+            state.copyWith(
+              previousOverlapDuration:
+                  timeDifference, // Keep negative duration? Or abs?
+              // If we remove isPreviousOverlapping, we just store the duration.
+              // The state will decide if it's a warning based on duration value.
+              // But wait, hasPreviousOverlapMessage logic:
+              // return previousOverlapDuration!.inMinutes < 180;
+              // If negative, it is < 180, so it returns true (warning).
+              // But negative means overlap, which should be error?
+              // The user said "impossible to overlap with previous schedule".
+              // So we assume minutesDifference >= 0 always?
+              // If so, we just handle the >= 0 case.
+              previousScheduleName: previousSchedule.scheduleName,
+            ),
+          );
         } else {
           // No overlap with previous schedule
           // Show warning only if available time is small (e.g., less than 3 hours)
@@ -249,26 +318,30 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
           if (isSmallTime) {
             AppLogger.debug(
-                'Showing warning - small available time from previous schedule (minutesDifference: $minutesDifference)');
-            emit(state.copyWith(
-              previousOverlapDuration: timeDifference,
-              previousScheduleName: previousSchedule.scheduleName,
-            ));
+              'Showing warning - small available time from previous schedule (minutesDifference: $minutesDifference)',
+            );
+            emit(
+              state.copyWith(
+                previousOverlapDuration: timeDifference,
+                previousScheduleName: previousSchedule.scheduleName,
+              ),
+            );
           } else {
             AppLogger.debug(
-                'Not showing warning - available time is large (minutesDifference: $minutesDifference)');
-            emit(state.copyWith(
-              previousOverlapDuration: timeDifference,
-              previousScheduleName: previousSchedule.scheduleName,
-              // clearPreviousOverlap: true, // Do not clear if we want to keep the value
-            ));
+              'Not showing warning - available time is large (minutesDifference: $minutesDifference)',
+            );
+            emit(
+              state.copyWith(
+                previousOverlapDuration: timeDifference,
+                previousScheduleName: previousSchedule.scheduleName,
+                // clearPreviousOverlap: true, // Do not clear if we want to keep the value
+              ),
+            );
           }
         }
       } else {
         // No previous schedule found, clear previous overlap
-        emit(state.copyWith(
-          clearPreviousOverlap: true,
-        ));
+        emit(state.copyWith(clearPreviousOverlap: true));
       }
     } catch (e) {
       // On error, clear both overlaps
@@ -280,9 +353,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   }
 
   bool scheduleDateTimeSubmitted() {
-    if (state.scheduleDate.isValid &&
-        state.scheduleTime.isValid &&
-        state.isOverlapping == false) {
+    if (state.isValid) {
       // If not overlapping, previousOverlapDuration holds the available time (if any)
       // If it is null, it means no previous schedule or cleared.
       // But wait, if we cleared it because it was large, we lost it?
@@ -290,12 +361,15 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       // But then the warning would show.
       // I need to update ScheduleDateTimeState.hasPreviousOverlapMessage to only show if small.
 
-      scheduleFormBloc.add(ScheduleFormScheduleDateTimeChanged(
-        scheduleDate: state.scheduleDate.value!,
-        scheduleTime: state.scheduleTime.value!,
-        maxAvailableTime: state.previousOverlapDuration,
-        previousScheduleName: state.previousScheduleName,
-      ));
+      scheduleFormBloc.add(
+        ScheduleFormScheduleDateTimeChanged(
+          scheduleDate: state.scheduleDate.value!,
+          scheduleTime: state.scheduleTime.value!,
+          occurrenceOffsetSeconds: state.selectedOccurrenceOffsetSeconds!,
+          maxAvailableTime: state.previousOverlapDuration,
+          previousScheduleName: state.previousScheduleName,
+        ),
+      );
       return true;
     }
 

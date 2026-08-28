@@ -1,40 +1,53 @@
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/core/utils/json_converters/duration_json_converters.dart';
+import 'package:on_time_front/core/database/installation_key_store.dart';
+import 'package:on_time_front/core/database/open_database.dart';
 import 'package:on_time_front/data/daos/place_dao.dart';
 import 'package:on_time_front/data/daos/preparation_schedule_dao.dart';
+import 'package:on_time_front/data/daos/preparation_template_dao.dart';
 import 'package:on_time_front/data/daos/preparation_user_dao.dart';
 
 import 'package:on_time_front/data/daos/schedule_dao.dart';
 import 'package:on_time_front/data/daos/user_dao.dart';
 import 'package:on_time_front/data/tables/places_table.dart';
 import 'package:on_time_front/data/tables/preparation_schedule_table.dart';
+import 'package:on_time_front/data/tables/preparation_template_step_table.dart';
+import 'package:on_time_front/data/tables/preparation_template_table.dart';
 import 'package:on_time_front/data/tables/preparation_user_table.dart';
 import 'package:on_time_front/data/tables/schedules_table.dart';
 import 'package:on_time_front/data/tables/user_table.dart';
+import 'package:on_time_front/core/utils/json_converters/duration_json_converters.dart';
 import 'package:uuid/uuid.dart';
-
 part 'database.g.dart';
 
 @Singleton()
 @DriftDatabase(
-  tables: [Places, Schedules, Users, PreparationSchedules, PreparationUsers],
+  tables: [
+    Places,
+    Schedules,
+    Users,
+    PreparationSchedules,
+    PreparationUsers,
+    PreparationTemplates,
+    PreparationTemplateSteps,
+  ],
   daos: [
     ScheduleDao,
     PlaceDao,
     UserDao,
     PreparationScheduleDao,
     PreparationUserDao,
+    PreparationTemplateDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase(InstallationKeyStore keyStore)
+    : super(openOnTimeDatabase(keyStore));
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -42,35 +55,24 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      if (from < 3) {
-        await m.createTable(preparationSchedules);
-        await m.createTable(preparationUsers);
-      }
-      if (from < 4) {
-        await _createLookupIndexes(m);
-      }
+      throw StateError(
+        'Encrypted local database migrations must be explicitly implemented.',
+      );
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
 
-  Future<void> _createLookupIndexes(Migrator m) async {
-    await m.createIndex(schedulesScheduleTimeIdx);
-    await m.createIndex(schedulesPlaceIdIdx);
-    await m.createIndex(preparationSchedulesScheduleIdIdx);
-    await m.createIndex(preparationSchedulesNextPreparationIdIdx);
-    await m.createIndex(preparationUsersUserIdIdx);
-    await m.createIndex(preparationUsersNextPreparationIdIdx);
-  }
-
-  static QueryExecutor _openConnection() {
-    return driftDatabase(
-      name: 'my_database',
-      web: DriftWebOptions(
-        sqlite3Wasm: Uri.parse('sqlite3.wasm'),
-        driftWorker: Uri.parse('drift_worker.dart.js'),
-      ),
-    );
+  Future<void> deleteAllDurableData() async {
+    await transaction(() async {
+      await delete(preparationTemplateSteps).go();
+      await delete(preparationTemplates).go();
+      await delete(preparationSchedules).go();
+      await delete(preparationUsers).go();
+      await delete(schedules).go();
+      await delete(places).go();
+      await delete(users).go();
+    });
   }
 }

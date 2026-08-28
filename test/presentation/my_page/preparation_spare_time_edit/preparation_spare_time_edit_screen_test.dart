@@ -382,11 +382,10 @@ class _StubAuthBloc extends Mock implements AuthBloc {
   AuthState get state => AuthState(
     user: const UserEntity(
       id: 'user-1',
-      email: 'user@example.com',
-      name: 'User',
       spareTime: Duration(minutes: 10),
       note: '',
-      score: 0,
+      eligibleOutcomeCount: 0,
+      onTimeOutcomeCount: 0,
       isOnboardingCompleted: true,
     ),
   );

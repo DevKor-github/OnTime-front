@@ -1,0 +1,7 @@
+---
+status: accepted
+---
+
+# Use Argon2id and authenticated stream encryption
+
+OnTime Backup Format v1 will derive a 256-bit file key from the normalized Backup Password UTF-8 bytes defined by ADR-0032 using Argon2id 1.3 with a fresh 128-bit random salt, a 64 MiB memory limit, and three operations, following the memory-constrained recommendation in [RFC 9106](https://www.rfc-editor.org/rfc/rfc9106.html). It will encrypt the platform-neutral payload in bounded chunks using libsodium's [XChaCha20-Poly1305 secretstream](https://libsodium.gitbook.io/doc/secret-key_cryptography/secretstream), require an authenticated final tag, and reject missing, reordered, altered, or trailing chunks. The plaintext envelope will contain only a magic value, Backup Format Version, cryptographic-suite identifier, bounded KDF parameters, salt, and secretstream header, and those values will be bound to the ciphertext as authenticated data. Restore will validate algorithm identifiers and safe parameter limits before attacker-controlled allocation, will never downgrade to an unrecognized or weaker suite, and will use published test vectors across Android and iOS. Suite identifiers and stored parameters permit a future Backup Format Version to introduce stronger algorithms while retaining explicit readers for released formats. Custom cryptographic primitives, unauthenticated encryption, and whole-file buffering were rejected in favor of a reviewed library, authenticated truncation detection, and bounded memory use.

@@ -1,6 +1,5 @@
 import Flutter
 import UIKit
-import FirebaseMessaging
 #if canImport(AlarmKit)
 import AlarmKit
 import AppIntents
@@ -55,8 +54,32 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       result(takeStoredAlarmLaunchPayload())
     case "getLocalTimeZone":
       result(TimeZone.current.identifier)
+    case "excludeFromBackup":
+      excludeFromBackup(call, result: result)
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func excludeFromBackup(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard let args = call.arguments as? [String: Any],
+          let path = args["path"] as? String,
+          !path.isEmpty else {
+      result(FlutterError(code: "invalidArguments", message: "Missing path", details: nil))
+      return
+    }
+    var url = URL(fileURLWithPath: path)
+    do {
+      var values = URLResourceValues()
+      values.isExcludedFromBackup = true
+      try url.setResourceValues(values)
+      result(nil)
+    } catch {
+      result(FlutterError(
+        code: "platformError",
+        message: "Could not exclude local data from backup: \(error.localizedDescription)",
+        details: nil
+      ))
     }
   }
 

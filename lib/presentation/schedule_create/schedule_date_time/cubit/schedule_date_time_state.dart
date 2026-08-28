@@ -1,6 +1,8 @@
 part of 'schedule_date_time_cubit.dart';
 
 class ScheduleDateTimeState extends Equatable {
+  static const _unset = Object();
+
   const ScheduleDateTimeState({
     this.scheduleDate = const ScheduleDateInputModel.pure(),
     this.scheduleTime = const ScheduleTimeInputModel.pure(),
@@ -9,6 +11,10 @@ class ScheduleDateTimeState extends Equatable {
     this.nextPreparationStartTime,
     this.previousOverlapDuration,
     this.previousScheduleName,
+    this.timeZoneId = 'UTC',
+    this.civilTimeResolved = false,
+    this.occurrenceOffsetOptions = const [],
+    this.selectedOccurrenceOffsetSeconds,
   });
 
   final ScheduleDateInputModel scheduleDate;
@@ -18,11 +24,29 @@ class ScheduleDateTimeState extends Equatable {
   final DateTime? nextPreparationStartTime;
   final Duration? previousOverlapDuration;
   final String? previousScheduleName;
+  final String timeZoneId;
+  final bool civilTimeResolved;
+  final List<int> occurrenceOffsetOptions;
+  final int? selectedOccurrenceOffsetSeconds;
+
+  bool get isNonexistentCivilTime =>
+      civilTimeResolved && occurrenceOffsetOptions.isEmpty;
+
+  bool get requiresOccurrenceChoice =>
+      civilTimeResolved &&
+      occurrenceOffsetOptions.length > 1 &&
+      selectedOccurrenceOffsetSeconds == null;
+
+  bool get hasAmbiguousCivilTime =>
+      civilTimeResolved && occurrenceOffsetOptions.length > 1;
 
   bool get isValid =>
       Formz.validate([scheduleDate, scheduleTime]) &&
       !isOverlapping &&
-      !isPastScheduleTime;
+      !isPastScheduleTime &&
+      !isNonexistentCivilTime &&
+      !requiresOccurrenceChoice &&
+      selectedOccurrenceOffsetSeconds != null;
 
   DateTime? get selectedScheduleDateTime {
     if (scheduleDate.value == null || scheduleTime.value == null) {
@@ -107,6 +131,10 @@ class ScheduleDateTimeState extends Equatable {
     String? previousScheduleName,
     bool clearOverlap = false,
     bool clearPreviousOverlap = false,
+    String? timeZoneId,
+    bool? civilTimeResolved,
+    List<int>? occurrenceOffsetOptions,
+    Object? selectedOccurrenceOffsetSeconds = _unset,
   }) {
     return ScheduleDateTimeState(
       scheduleDate: scheduleDate ?? this.scheduleDate,
@@ -126,6 +154,14 @@ class ScheduleDateTimeState extends Equatable {
       previousScheduleName: clearPreviousOverlap
           ? null
           : (previousScheduleName ?? this.previousScheduleName),
+      timeZoneId: timeZoneId ?? this.timeZoneId,
+      civilTimeResolved: civilTimeResolved ?? this.civilTimeResolved,
+      occurrenceOffsetOptions:
+          occurrenceOffsetOptions ?? this.occurrenceOffsetOptions,
+      selectedOccurrenceOffsetSeconds:
+          identical(selectedOccurrenceOffsetSeconds, _unset)
+          ? this.selectedOccurrenceOffsetSeconds
+          : selectedOccurrenceOffsetSeconds as int?,
     );
   }
 
@@ -133,6 +169,8 @@ class ScheduleDateTimeState extends Equatable {
     return ScheduleDateTimeState(
       scheduleDate: ScheduleDateInputModel.pure(state.scheduleTime),
       scheduleTime: ScheduleTimeInputModel.pure(state.scheduleTime),
+      timeZoneId: state.timeZoneId,
+      selectedOccurrenceOffsetSeconds: state.occurrenceOffsetSeconds,
     );
   }
 
@@ -145,5 +183,9 @@ class ScheduleDateTimeState extends Equatable {
     nextPreparationStartTime ?? DateTime(0),
     previousOverlapDuration ?? const Duration(),
     previousScheduleName ?? '',
+    timeZoneId,
+    civilTimeResolved,
+    occurrenceOffsetOptions,
+    selectedOccurrenceOffsetSeconds ?? 0,
   ];
 }

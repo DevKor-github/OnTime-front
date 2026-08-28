@@ -1,0 +1,7 @@
+---
+status: accepted
+---
+
+# Anchor schedules to a named time zone
+
+Every Schedule will preserve its intended civil date and time together with a named Schedule Time Zone captured at creation or explicit edit. New schedules default to the current named device zone, while creation and edit flows allow an explicit alternative for future travel. A civil time skipped by an offset transition cannot be saved, while a repeated civil time requires the user to choose one of its represented offsets; that occurrence choice is preserved in the Schedule and backup. Device time-zone changes will trigger notification recalculation but will not move the commitment, and OnTime Backups will preserve the same zoned meaning across devices. Time-zone rules arrive only in app releases; after a rule update, future schedules retain their intended civil time while absolute instants and notifications are recalculated locally, with affected schedules disclosed to the user and past schedules left unchanged. The intended zoned time is the primary display; when the device is in another time zone, OnTime also shows the current-device equivalent and identifies the original zone in notification content. Treating schedules as floating device-local times was rejected because travel, daylight-saving changes, and cross-zone restore could silently change when a real commitment occurs. This adds a time-zone field and migration obligation but makes schedule and notification behavior deterministic and explainable offline.

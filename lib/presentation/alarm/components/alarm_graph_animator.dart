@@ -34,10 +34,7 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
     _progressAnimation = Tween<double>(
       begin: 0.0,
       end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -58,10 +55,7 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
     _progressAnimation = Tween<double>(
       begin: previousProgress,
       end: newProgress,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward(from: 0);
     previousProgress = newProgress;

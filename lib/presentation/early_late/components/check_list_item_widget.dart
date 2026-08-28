@@ -25,10 +25,7 @@ class ChecklistItemWidget extends StatelessWidget {
             height: 24,
             decoration: BoxDecoration(
               shape: BoxShape.rectangle,
-              border: Border.all(
-                color: const Color(0xff5C79FB),
-                width: 2,
-              ),
+              border: Border.all(color: const Color(0xff5C79FB), width: 2),
               borderRadius: const BorderRadius.all(Radius.circular(5)),
               color: isChecked ? const Color(0xff5C79FB) : Colors.transparent,
             ),
@@ -43,8 +40,9 @@ class ChecklistItemWidget extends StatelessWidget {
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: isChecked ? const Color(0xff5C79FB) : Colors.black,
-              decoration:
-                  isChecked ? TextDecoration.lineThrough : TextDecoration.none,
+              decoration: isChecked
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
             ),
           ),
         ],

@@ -28,15 +28,6 @@ bool isScheduleAlarmPayload(Map<dynamic, dynamic>? payload) {
       (promptVariant == 'alarm' && payload['scheduleId'] != null);
 }
 
-bool isScheduleAlarmMessagePayload({
-  required Map<dynamic, dynamic> data,
-  String? title,
-}) {
-  return isScheduleAlarmPayload(data) ||
-      title == '약속 알림' ||
-      title == 'Schedule alarm';
-}
-
 NotificationRouteTarget? notificationRouteForPayloadString(String? payload) {
   if (payload == null) return null;
 

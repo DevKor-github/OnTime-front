@@ -1,269 +1,199 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:mockito/mockito.dart';
-import 'package:on_time_front/core/constants/external_links.dart';
+import 'package:go_router/go_router.dart';
+import 'package:on_time_front/core/constants/local_profile.dart';
+import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
-import 'package:on_time_front/core/services/app_metadata_service.dart';
+import 'package:on_time_front/core/services/detailed_notification_preference_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
-import 'package:on_time_front/core/services/product_analytics_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
-import 'package:on_time_front/domain/entities/analytics_preference.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
-import 'package:on_time_front/domain/repositories/analytics_preference_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
-import 'package:on_time_front/domain/use-cases/load_analytics_preference_use_case.dart';
-import 'package:on_time_front/domain/use-cases/update_analytics_preference_use_case.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
-import 'package:on_time_front/presentation/app/cubit/analytics_preference_cubit.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late AppDatabase database;
+  late _FakeAlarmRepository alarmRepository;
+  late _FakeAlarmRegistry alarmRegistry;
+  late _FakeAlarmSchedulerService scheduler;
+  late _FakeFallbackAlarmNotificationService fallback;
+  late _FakeReconcileAlarmsUseCase reconcile;
+  late _FakeCancelAllAlarmsUseCase cancelAll;
+
   setUp(() async {
     await getIt.reset();
-    final alarmRepository = _FakeAlarmRepository();
-    final alarmRegistry = _FakeAlarmRegistry();
-    final alarmScheduler = _FakeAlarmSchedulerService();
-    final fallbackAlarmNotificationService =
-        _FakeFallbackAlarmNotificationService();
+    database = AppDatabase.forTesting(NativeDatabase.memory());
+    await database.userDao.putUser(
+      const UserEntity(
+        id: localProfileId,
+        spareTime: Duration(minutes: 10),
+        note: '',
+      ),
+    );
+    alarmRepository = _FakeAlarmRepository();
+    alarmRegistry = _FakeAlarmRegistry();
+    scheduler = _FakeAlarmSchedulerService();
+    fallback = _FakeFallbackAlarmNotificationService();
+    reconcile = _FakeReconcileAlarmsUseCase(
+      alarmRepository,
+      alarmRegistry,
+      scheduler,
+      fallback,
+    );
+    cancelAll = _FakeCancelAllAlarmsUseCase(alarmRegistry, scheduler, fallback);
     getIt
+      ..registerSingleton<DetailedNotificationPreferenceService>(
+        DetailedNotificationPreferenceService(database),
+      )
       ..registerSingleton<AlarmRepository>(alarmRepository)
       ..registerSingleton<AlarmRegistryRepository>(alarmRegistry)
-      ..registerSingleton<AlarmSchedulerService>(alarmScheduler)
-      ..registerSingleton<FallbackAlarmNotificationService>(
-        fallbackAlarmNotificationService,
-      )
-      ..registerSingleton<CancelAllAlarmsUseCase>(
-        _FakeCancelAllAlarmsUseCase(
-          alarmRepository,
-          alarmRegistry,
-          alarmScheduler,
-          fallbackAlarmNotificationService,
-        ),
-      )
-      ..registerSingleton<ReconcileAlarmsUseCase>(
-        _FakeReconcileAlarmsUseCase(
-          alarmRepository,
-          alarmRegistry,
-          alarmScheduler,
-          fallbackAlarmNotificationService,
-        ),
-      );
+      ..registerSingleton<AlarmSchedulerService>(scheduler)
+      ..registerSingleton<FallbackAlarmNotificationService>(fallback)
+      ..registerSingleton<ReconcileAlarmsUseCase>(reconcile)
+      ..registerSingleton<CancelAllAlarmsUseCase>(cancelAll);
   });
 
   tearDown(() async {
+    await database.close();
     await getIt.reset();
   });
 
-  testWidgets('shows English privacy policy setting', (tester) async {
-    await _pumpMyPage(tester, locale: const Locale('en'));
+  testWidgets('shows only local data and device settings', (tester) async {
+    await _pumpMyPage(tester);
 
-    expect(find.text('Privacy Policy'), findsOneWidget);
+    expect(find.text('My Page'), findsOneWidget);
+    expect(find.text('백업, 복원 및 로컬 데이터 초기화'), findsOneWidget);
+    expect(find.text('알림에 일정 이름 표시'), findsOneWidget);
+    expect(find.text('Sign in'), findsNothing);
+    expect(find.textContaining('email'), findsNothing);
+    expect(find.text('No scheduled notifications'), findsOneWidget);
   });
 
-  testWidgets('shows Korean privacy policy setting', (tester) async {
-    await _pumpMyPage(tester, locale: const Locale('ko'));
-
-    expect(find.text('개인정보 처리방침'), findsOneWidget);
-  });
-
-  testWidgets('shows loaded Help improve OnTime preference switch', (
+  testWidgets('detailed notification opt-in persists locally and reconciles', (
     tester,
   ) async {
-    final analyticsRepository = _FakeAnalyticsPreferenceRepository()
-      ..localPreference = const AnalyticsPreference(enabled: true)
-      ..accountPreference = const AnalyticsPreference(enabled: true);
-    final analyticsCubit = AnalyticsPreferenceCubit(
-      loadPreferenceUseCase: LoadAnalyticsPreferenceUseCase(
-        analyticsRepository,
-      ),
-      updatePreferenceUseCase: UpdateAnalyticsPreferenceUseCase(
-        analyticsRepository,
-      ),
-      analyticsService: ProductAnalyticsService(
-        client: _FakeAnalyticsProviderClient(),
-        appMetadataProvider: _FakeAppMetadataProvider(),
-        collectionAllowedInBuild: true,
-      ),
-    );
+    await _pumpMyPage(tester);
 
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      authState: AuthState(user: _authenticatedUser),
-      analyticsPreferenceCubit: analyticsCubit,
-    );
+    final detailSwitch = find.widgetWithText(SwitchListTile, '알림에 일정 이름 표시');
+    expect(tester.widget<SwitchListTile>(detailSwitch).value, isFalse);
 
-    expect(find.text('Help improve OnTime'), findsOneWidget);
+    await tester.tap(detailSwitch);
+    await tester.pumpAndSettle();
+
     expect(
-      tester.widget<Switch>(find.byKey(const Key('analyticsPreferenceSwitch'))),
-      isA<Switch>().having((switchWidget) => switchWidget.value, 'value', true),
+      (await database.userDao.getAlarmSettings(
+        localProfileId,
+      )).detailedNotificationContent,
+      isTrue,
     );
+    expect(reconcile.callCount, 1);
   });
 
-  testWidgets('opens hosted privacy policy URL from setting', (tester) async {
-    final openedUris = <Uri>[];
-
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      openPrivacyPolicy: (uri) async {
-        openedUris.add(uri);
-        return true;
-      },
-    );
-
-    await tester.ensureVisible(find.text('Privacy Policy'));
-    await tester.tap(find.text('Privacy Policy'));
-    await tester.pumpAndSettle();
-
-    expect(openedUris, [ExternalLinks.privacyPolicyUri]);
-  });
-
-  testWidgets('shows an error dialog when privacy policy cannot open', (
+  testWidgets('disabling schedule delivery cancels every local registration', (
     tester,
   ) async {
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      openPrivacyPolicy: (_) async => false,
-    );
+    await _pumpMyPage(tester);
 
-    await tester.ensureVisible(find.text('Privacy Policy'));
-    await tester.tap(find.text('Privacy Policy'));
+    await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Error'), findsOneWidget);
-    expect(find.textContaining('privacy policy'), findsOneWidget);
+    expect(alarmRepository.updatedSettings, [false]);
+    expect(cancelAll.callCount, 1);
+    expect(reconcile.callCount, 0);
+    expect(find.text('꺼짐'), findsOneWidget);
   });
 
-  testWidgets('shows already-enabled dialog when notifications are allowed', (
+  testWidgets('fallback permission enables local schedule notifications', (
     tester,
   ) async {
-    final notificationService = _FakeNotificationService(
+    alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+    scheduler.capabilities = AlarmSchedulerCapabilities.unsupported;
+    fallback.permission = AlarmPermissionState.granted;
+
+    await _pumpMyPage(tester);
+    await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
+    await tester.pumpAndSettle();
+
+    expect(fallback.requestCount, 1);
+    expect(alarmRepository.updatedSettings, [true]);
+    expect(reconcile.callCount, 1);
+  });
+
+  testWidgets('armed local notification is reported without server status', (
+    tester,
+  ) async {
+    alarmRegistry.records = [
+      ScheduledAlarmRecord(
+        scheduleId: 'schedule-1',
+        alarmTime: DateTime(2026, 9, 1, 9),
+        preparationStartTime: DateTime(2026, 9, 1, 9),
+        scheduleFingerprint: 'fingerprint-1',
+        fallbackNotificationId: 1,
+        provider: AlarmProvider.localNotification,
+        scheduleTitle: 'OnTime',
+        payload: const {'scheduleId': 'schedule-1'},
+      ),
+    ];
+
+    await _pumpMyPage(tester);
+
+    expect(find.text('Notification'), findsOneWidget);
+  });
+
+  testWidgets('authorized notification permission reports it is already on', (
+    tester,
+  ) async {
+    final notifications = _FakeNotificationService(
       currentStatus: AuthorizationStatus.authorized,
     );
-
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      notificationService: notificationService,
-    );
+    await _pumpMyPage(tester, notificationService: notifications);
 
     await tester.ensureVisible(find.text('Allow App Notifications'));
     await tester.tap(find.text('Allow App Notifications'));
     await tester.pumpAndSettle();
 
     expect(find.text('Notification Already Enabled'), findsOneWidget);
-    expect(notificationService.requestCount, 0);
-    expect(notificationService.initializeCount, 0);
-
-    await tester.tap(find.text('OK'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Notification Already Enabled'), findsNothing);
+    expect(notifications.requestCount, 0);
   });
 
-  testWidgets('cancels notification permission request from rationale dialog', (
+  testWidgets('new notification grant initializes local notifications', (
     tester,
   ) async {
-    final notificationService = _FakeNotificationService(
-      currentStatus: AuthorizationStatus.denied,
+    final notifications = _FakeNotificationService(
+      currentStatus: AuthorizationStatus.notDetermined,
+      requestedStatus: AuthorizationStatus.authorized,
     );
-
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      notificationService: notificationService,
-    );
-
-    await tester.ensureVisible(find.text('Allow App Notifications'));
-    await tester.tap(find.text('Allow App Notifications'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-
-    expect(notificationService.requestCount, 0);
-    expect(notificationService.initializeCount, 0);
-    expect(notificationService.openSettingsCount, 0);
-  });
-
-  testWidgets(
-    'granting notification permission initializes notifications and confirms',
-    (tester) async {
-      final notificationService = _FakeNotificationService(
-        currentStatus: AuthorizationStatus.notDetermined,
-        requestedStatus: AuthorizationStatus.authorized,
-      );
-
-      await _pumpMyPage(
-        tester,
-        locale: const Locale('en'),
-        notificationService: notificationService,
-      );
-
-      await tester.ensureVisible(find.text('Allow App Notifications'));
-      await tester.tap(find.text('Allow App Notifications'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Allow'));
-      await tester.pumpAndSettle();
-
-      expect(notificationService.requestCount, 1);
-      expect(notificationService.initializeCount, 1);
-      expect(find.text('Notification Permission Granted'), findsOneWidget);
-    },
-  );
-
-  testWidgets('denied notification permission can open app settings', (
-    tester,
-  ) async {
-    final notificationService = _FakeNotificationService(
-      currentStatus: AuthorizationStatus.denied,
-      requestedStatus: AuthorizationStatus.denied,
-    );
-
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      notificationService: notificationService,
-    );
+    await _pumpMyPage(tester, notificationService: notifications);
 
     await tester.ensureVisible(find.text('Allow App Notifications'));
     await tester.tap(find.text('Allow App Notifications'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Allow'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Open Settings'));
-    await tester.pumpAndSettle();
 
-    expect(notificationService.requestCount, 1);
-    expect(notificationService.initializeCount, 0);
-    expect(notificationService.openSettingsCount, 1);
+    expect(notifications.requestCount, 1);
+    expect(notifications.initializeCount, 1);
+    expect(find.text('Notification Permission Granted'), findsOneWidget);
   });
 
-  testWidgets('provisional notification permission opens settings dialog', (
+  testWidgets('restricted notification state can open system settings', (
     tester,
   ) async {
-    final notificationService = _FakeNotificationService(
+    final notifications = _FakeNotificationService(
       currentStatus: AuthorizationStatus.provisional,
     );
-
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      notificationService: notificationService,
-    );
+    await _pumpMyPage(tester, notificationService: notifications);
 
     await tester.ensureVisible(find.text('Allow App Notifications'));
     await tester.tap(find.text('Allow App Notifications'));
@@ -271,487 +201,76 @@ void main() {
     await tester.tap(find.text('Open Settings'));
     await tester.pumpAndSettle();
 
-    expect(notificationService.requestCount, 0);
-    expect(notificationService.openSettingsCount, 1);
+    expect(notifications.openSettingsCount, 1);
   });
 
-  testWidgets(
-    'enables schedule notifications when Android exact timing is denied',
-    (tester) async {
-      final alarmRepository =
-          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-      final alarmScheduler =
-          getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
-      final fallbackService =
-          getIt.get<FallbackAlarmNotificationService>()
-              as _FakeFallbackAlarmNotificationService;
-      final reconcileUseCase =
-          getIt.get<ReconcileAlarmsUseCase>() as _FakeReconcileAlarmsUseCase;
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
-      alarmScheduler
-        ..capabilities = const AlarmSchedulerCapabilities(
-          supportsNativeAlarm: true,
-          nativeAlarmProvider: AlarmProvider.androidAlarmManager,
-        )
-        ..permission = AlarmPermissionState.denied;
-      fallbackService.permission = AlarmPermissionState.granted;
-
-      await _pumpMyPage(tester, locale: const Locale('en'));
-
-      await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Precise notification permission needed'), findsNothing);
-      expect(alarmScheduler.requestCount, 0);
-      expect(alarmRepository.updatedSettings, [true]);
-      expect(fallbackService.requestCount, 1);
-      expect(reconcileUseCase.callCount, 1);
-      expect(
-        tester
-            .widget<Switch>(find.byKey(const Key('alarmSettingsSwitch')))
-            .value,
-        isTrue,
-      );
-    },
-  );
-
-  testWidgets(
-    'enabling alarms can recover approved native alarm permission through settings',
-    (tester) async {
-      final alarmRepository =
-          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-      final alarmScheduler =
-          getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
-      final fallbackService =
-          getIt.get<FallbackAlarmNotificationService>()
-              as _FakeFallbackAlarmNotificationService;
-      final reconcileUseCase =
-          getIt.get<ReconcileAlarmsUseCase>() as _FakeReconcileAlarmsUseCase;
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
-      alarmScheduler
-        ..capabilities = const AlarmSchedulerCapabilities(
-          supportsNativeAlarm: true,
-          nativeAlarmProvider: AlarmProvider.iosAlarmKit,
-        )
-        ..permission = AlarmPermissionState.denied
-        ..permissionAfterRequest = AlarmPermissionState.granted;
-      fallbackService.permission = AlarmPermissionState.denied;
-
-      await _pumpMyPage(tester, locale: const Locale('en'));
-
-      await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Open Settings'));
-      await tester.pumpAndSettle();
-
-      expect(alarmScheduler.requestCount, 1);
-      expect(alarmRepository.updatedSettings, [true]);
-      expect(fallbackService.requestCount, 1);
-      expect(reconcileUseCase.callCount, 1);
-      expect(
-        tester
-            .widget<Switch>(find.byKey(const Key('alarmSettingsSwitch')))
-            .value,
-        isTrue,
-      );
-    },
-  );
-
-  testWidgets('shows authenticated user account information', (tester) async {
-    await _pumpMyPage(
-      tester,
-      locale: const Locale('en'),
-      authState: AuthState(
-        user: const UserEntity(
-          id: 'user-1',
-          email: 'user@example.com',
-          name: 'User Name',
-          spareTime: Duration(minutes: 10),
-          note: '',
-          score: 4.5,
-          isOnboardingCompleted: true,
-        ),
-      ),
-    );
-
-    expect(find.text('User Name'), findsOneWidget);
-    expect(find.text('user@example.com'), findsOneWidget);
-  });
-
-  testWidgets('logout setting shows confirmation and dispatches sign out', (
+  testWidgets('local data and bundled privacy destinations remain in-app', (
     tester,
   ) async {
-    final authBloc = _StubAuthBloc(AuthState());
+    await _pumpMyPage(tester);
 
-    await _pumpMyPage(tester, locale: const Locale('en'), authBloc: authBloc);
-
-    await tester.ensureVisible(find.text('Log out'));
-    await tester.tap(find.text('Log out'));
+    await tester.tap(find.text('백업, 복원 및 로컬 데이터 초기화'));
     await tester.pumpAndSettle();
+    expect(find.text('my data destination'), findsOneWidget);
 
-    expect(find.text('Do you want to log out?'), findsOneWidget);
-
-    await tester.tap(find.text('Log out').last);
-    await tester.pumpAndSettle();
-
-    expect(authBloc.addedEvents.single, isA<AuthSignOutPressed>());
-  });
-
-  testWidgets('shows precise notification status for Android alarm manager', (
-    tester,
-  ) async {
-    final alarmRepository =
-        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-    final alarmRegistry =
-        getIt.get<AlarmRegistryRepository>() as _FakeAlarmRegistry;
-    alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
-    alarmRegistry.records = [
-      _alarmRecord(provider: AlarmProvider.androidAlarmManager),
-    ];
-
-    await _pumpMyPage(tester, locale: const Locale('ko'));
-
-    expect(find.text('정확한 알림'), findsOneWidget);
-    expect(
-      tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
-      isTrue,
+    final BuildContext context = tester.element(
+      find.text('my data destination'),
     );
-  });
-
-  testWidgets('shows alarm status for iOS AlarmKit records', (tester) async {
-    final alarmRepository =
-        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-    final alarmRegistry =
-        getIt.get<AlarmRegistryRepository>() as _FakeAlarmRegistry;
-    alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
-    alarmRegistry.records = [_alarmRecord(provider: AlarmProvider.iosAlarmKit)];
-
-    await _pumpMyPage(tester, locale: const Locale('ko'));
-
-    expect(find.text('알람'), findsOneWidget);
-  });
-
-  testWidgets(
-    'shows fallback notification status when fallback records exist',
-    (tester) async {
-      final alarmRepository =
-          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-      final alarmRegistry =
-          getIt.get<AlarmRegistryRepository>() as _FakeAlarmRegistry;
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
-      alarmRegistry.records = [
-        _alarmRecord(provider: AlarmProvider.localNotification),
-      ];
-
-      await _pumpMyPage(tester, locale: const Locale('ko'));
-
-      expect(find.text('알림'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'shows notification permission needed when no delivery can be used',
-    (tester) async {
-      final alarmRepository =
-          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-      final fallbackService =
-          getIt.get<FallbackAlarmNotificationService>()
-              as _FakeFallbackAlarmNotificationService;
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
-      fallbackService.permission = AlarmPermissionState.denied;
-
-      await _pumpMyPage(tester, locale: const Locale('ko'));
-
-      expect(find.text('알림 권한 필요'), findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'shows permission-needed status when all alarm permissions fail',
-    (tester) async {
-      final alarmRepository =
-          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-      final alarmScheduler =
-          getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
-      final fallbackService =
-          getIt.get<FallbackAlarmNotificationService>()
-              as _FakeFallbackAlarmNotificationService;
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
-      alarmScheduler
-        ..capabilities = const AlarmSchedulerCapabilities(
-          supportsNativeAlarm: true,
-          nativeAlarmProvider: AlarmProvider.androidAlarmManager,
-        )
-        ..permission = AlarmPermissionState.denied;
-      fallbackService.permission = AlarmPermissionState.denied;
-
-      await _pumpMyPage(tester, locale: const Locale('ko'));
-
-      expect(find.text('알림 권한 필요'), findsOneWidget);
-    },
-  );
-
-  testWidgets('unauthenticated users do not render account identity', (
-    tester,
-  ) async {
-    await _pumpMyPage(tester, locale: const Locale('en'));
-
-    expect(find.text('User Name'), findsNothing);
-    expect(find.text('user@example.com'), findsNothing);
-  });
-
-  testWidgets('shows load error when alarm settings cannot be read', (
-    tester,
-  ) async {
-    final alarmRepository =
-        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-    alarmRepository.throwSettings = true;
-
-    await _pumpMyPage(tester, locale: const Locale('ko'));
-
-    expect(find.text('상태를 불러올 수 없음'), findsOneWidget);
-  });
-
-  testWidgets('enabling alarms with permission reconciles alarm schedule', (
-    tester,
-  ) async {
-    final alarmRepository =
-        getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-    final alarmScheduler =
-        getIt.get<AlarmSchedulerService>() as _FakeAlarmSchedulerService;
-    final fallbackService =
-        getIt.get<FallbackAlarmNotificationService>()
-            as _FakeFallbackAlarmNotificationService;
-    final reconcileUseCase =
-        getIt.get<ReconcileAlarmsUseCase>() as _FakeReconcileAlarmsUseCase;
-    alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
-    alarmScheduler
-      ..capabilities = const AlarmSchedulerCapabilities(
-        supportsNativeAlarm: true,
-        nativeAlarmProvider: AlarmProvider.androidAlarmManager,
-      )
-      ..permission = AlarmPermissionState.granted;
-    fallbackService.permission = AlarmPermissionState.granted;
-
-    await _pumpMyPage(tester, locale: const Locale('ko'));
-    await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
+    GoRouter.of(context).go('/myPage');
     await tester.pumpAndSettle();
-
-    expect(alarmRepository.updatedSettings, [true]);
-    expect(fallbackService.requestCount, 1);
-    expect(reconcileUseCase.callCount, 1);
-    expect(
-      tester.widget<Switch>(find.byKey(const Key('alarmSettingsSwitch'))).value,
-      isTrue,
-    );
+    await tester.ensureVisible(find.text('Privacy Policy'));
+    await tester.tap(find.text('Privacy Policy'));
+    await tester.pumpAndSettle();
+    expect(find.text('bundled privacy destination'), findsOneWidget);
   });
-
-  testWidgets(
-    'disabling alarms updates settings and cancels registered alarms',
-    (tester) async {
-      final alarmRepository =
-          getIt.get<AlarmRepository>() as _FakeAlarmRepository;
-      final cancelAllUseCase =
-          getIt.get<CancelAllAlarmsUseCase>() as _FakeCancelAllAlarmsUseCase;
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
-
-      await _pumpMyPage(tester, locale: const Locale('ko'));
-      await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
-      await tester.pumpAndSettle();
-
-      expect(alarmRepository.updatedSettings, [false]);
-      expect(cancelAllUseCase.callCount, 1);
-      expect(
-        tester
-            .widget<Switch>(find.byKey(const Key('alarmSettingsSwitch')))
-            .value,
-        isFalse,
-      );
-    },
-  );
 }
 
 Future<void> _pumpMyPage(
   WidgetTester tester, {
-  required Locale locale,
-  PrivacyPolicyLauncher? openPrivacyPolicy,
   NotificationService? notificationService,
-  AnalyticsPreferenceCubit? analyticsPreferenceCubit,
-  AuthState authState = const AuthState.loading(),
-  _StubAuthBloc? authBloc,
 }) async {
-  final bloc = authBloc ?? _StubAuthBloc(authState);
-  final analyticsCubit =
-      analyticsPreferenceCubit ?? _buildAnalyticsPreferenceCubit();
-  addTearDown(analyticsCubit.close);
+  final router = GoRouter(
+    initialLocation: '/myPage',
+    routes: [
+      GoRoute(
+        path: '/myPage',
+        builder: (_, _) =>
+            MyPageScreen(notificationService: notificationService),
+      ),
+      GoRoute(
+        path: '/myData',
+        builder: (_, _) => const Scaffold(body: Text('my data destination')),
+      ),
+      GoRoute(
+        path: '/privacyPolicy',
+        builder: (_, _) =>
+            const Scaffold(body: Text('bundled privacy destination')),
+      ),
+      GoRoute(
+        path: '/defaultPreparationSpareTimeEdit',
+        builder: (_, _) => const Scaffold(body: Text('preparation editor')),
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
   await tester.pumpWidget(
-    MaterialApp(
+    MaterialApp.router(
       theme: themeData,
-      locale: locale,
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: BlocProvider<AuthBloc>.value(
-        value: bloc,
-        child: MyPageScreen(
-          openPrivacyPolicy: openPrivacyPolicy,
-          notificationService: notificationService,
-          analyticsPreferenceCubit: analyticsCubit,
-        ),
-      ),
+      routerConfig: router,
     ),
   );
   await tester.pumpAndSettle();
 }
 
-AnalyticsPreferenceCubit _buildAnalyticsPreferenceCubit({
-  _FakeAnalyticsPreferenceRepository? repository,
-}) {
-  final analyticsRepository =
-      repository ?? _FakeAnalyticsPreferenceRepository();
-  return AnalyticsPreferenceCubit(
-    loadPreferenceUseCase: LoadAnalyticsPreferenceUseCase(analyticsRepository),
-    updatePreferenceUseCase: UpdateAnalyticsPreferenceUseCase(
-      analyticsRepository,
-    ),
-    analyticsService: ProductAnalyticsService(
-      client: _FakeAnalyticsProviderClient(),
-      appMetadataProvider: _FakeAppMetadataProvider(),
-      collectionAllowedInBuild: true,
-    ),
-  );
-}
-
-class _StubAuthBloc extends Mock implements AuthBloc {
-  _StubAuthBloc(this._state);
-
-  final AuthState _state;
-  final addedEvents = <AuthEvent>[];
-
-  @override
-  AuthState get state => _state;
-
-  @override
-  Stream<AuthState> get stream => const Stream.empty();
-
-  @override
-  bool get isClosed => false;
-
-  @override
-  void add(AuthEvent event) {
-    addedEvents.add(event);
-  }
-}
-
-const _authenticatedUser = UserEntity(
-  id: 'user-1',
-  email: 'user@example.com',
-  name: 'User',
-  spareTime: Duration(minutes: 10),
-  note: '',
-  score: 0,
-  isOnboardingCompleted: true,
-);
-
-class _FakeAnalyticsPreferenceRepository
-    implements AnalyticsPreferenceRepository {
-  AnalyticsPreference localPreference = const AnalyticsPreference(
-    enabled: false,
-  );
-  AnalyticsPreference accountPreference = const AnalyticsPreference(
-    enabled: false,
-  );
-
-  @override
-  Future<AnalyticsPreference> loadLocalPreference() async => localPreference;
-
-  @override
-  Future<void> saveLocalPreference(bool enabled) async {
-    localPreference = AnalyticsPreference(enabled: enabled);
-  }
-
-  @override
-  Future<AnalyticsPreference> loadAccountPreference() async =>
-      accountPreference;
-
-  @override
-  Future<AnalyticsPreference> updateAccountPreference(bool enabled) async {
-    accountPreference = AnalyticsPreference(enabled: enabled);
-    return accountPreference;
-  }
-}
-
-class _FakeAnalyticsProviderClient implements AnalyticsProviderClient {
-  @override
-  Future<void> setAnalyticsCollectionEnabled(bool enabled) async {}
-
-  @override
-  Future<void> logEvent({
-    required String name,
-    required Map<String, Object> parameters,
-  }) async {}
-
-  @override
-  Future<void> setUserId(String? userId) async {}
-}
-
-class _FakeNotificationService implements NotificationService {
-  _FakeNotificationService({
-    required this.currentStatus,
-    this.requestedStatus = AuthorizationStatus.denied,
-  });
-
-  AuthorizationStatus currentStatus;
-  final AuthorizationStatus requestedStatus;
-  int requestCount = 0;
-  int initializeCount = 0;
-  int openSettingsCount = 0;
-
-  @override
-  Future<AuthorizationStatus> checkNotificationPermission() async {
-    return currentStatus;
-  }
-
-  @override
-  Future<AuthorizationStatus> requestPermission() async {
-    requestCount += 1;
-    currentStatus = requestedStatus;
-    return requestedStatus;
-  }
-
-  @override
-  Future<void> initialize() async {
-    initializeCount += 1;
-  }
-
-  @override
-  Future<bool> openNotificationSettings() async {
-    openSettingsCount += 1;
-    return true;
-  }
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _FakeAlarmRepository implements AlarmRepository {
-  AlarmSettings settings = const AlarmSettings(alarmsEnabled: false);
+  AlarmSettings settings = const AlarmSettings(alarmsEnabled: true);
   final updatedSettings = <bool>[];
-  bool throwSettings = false;
 
   @override
-  Future<String> getDeviceId() => throw UnimplementedError();
-
-  @override
-  Future<AlarmDeviceInfo> buildCurrentDeviceInfo() =>
-      throw UnimplementedError();
-
-  @override
-  Future<AlarmSettings> getAlarmSettings() async {
-    if (throwSettings) {
-      throw Exception('settings unavailable');
-    }
-    return settings;
-  }
+  Future<AlarmSettings> getAlarmSettings() async => settings;
 
   @override
   Future<AlarmSettings> updateAlarmSettings({
@@ -763,34 +282,10 @@ class _FakeAlarmRepository implements AlarmRepository {
   }
 
   @override
-  Future<void> registerCurrentDevice(AlarmDeviceInfo deviceInfo) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> unregisterCurrentDevice(String deviceId) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<ScheduleWithPreparationEntity>> getAlarmWindow(
     DateTime startDate,
     DateTime endDate,
-  ) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> postAlarmStatus(AlarmStatusReport report) {
-    throw UnimplementedError();
-  }
-}
-
-class _FakeAppMetadataProvider implements AppMetadataProvider {
-  @override
-  Future<AppMetadata> getMetadata() async {
-    return const AppMetadata(version: '9.8.7', buildNumber: '654');
-  }
+  ) async => const [];
 }
 
 class _FakeAlarmRegistry implements AlarmRegistryRepository {
@@ -800,63 +295,48 @@ class _FakeAlarmRegistry implements AlarmRegistryRepository {
   Future<List<ScheduledAlarmRecord>> loadAll() async => records;
 
   @override
-  Future<void> upsert(ScheduledAlarmRecord record) {
-    throw UnimplementedError();
+  Future<void> deleteAll() async => records = const [];
+
+  @override
+  Future<void> deleteByScheduleId(String scheduleId) async {}
+
+  @override
+  Future<void> replaceAll(List<ScheduledAlarmRecord> records) async {
+    this.records = records;
   }
 
   @override
-  Future<void> deleteByScheduleId(String scheduleId) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> deleteAll() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> replaceAll(List<ScheduledAlarmRecord> records) {
-    throw UnimplementedError();
-  }
+  Future<void> upsert(ScheduledAlarmRecord record) async {}
 }
 
 class _FakeAlarmSchedulerService extends AlarmSchedulerService {
-  AlarmSchedulerCapabilities capabilities =
-      AlarmSchedulerCapabilities.unsupported;
+  AlarmSchedulerCapabilities capabilities = const AlarmSchedulerCapabilities(
+    supportsNativeAlarm: false,
+    nativeAlarmProvider: AlarmProvider.none,
+  );
   AlarmPermissionState permission = AlarmPermissionState.unsupported;
-  AlarmPermissionState? permissionAfterRequest;
   int requestCount = 0;
 
   @override
-  Future<AlarmSchedulerCapabilities> getCapabilities() async {
-    return capabilities;
-  }
+  Future<AlarmSchedulerCapabilities> getCapabilities() async => capabilities;
 
   @override
-  Future<AlarmPermissionState> checkPermission() async {
-    return permission;
-  }
+  Future<AlarmPermissionState> checkPermission() async => permission;
 
   @override
   Future<AlarmPermissionState> requestPermission() async {
     requestCount += 1;
-    final nextPermission = permissionAfterRequest;
-    if (nextPermission != null) {
-      permission = nextPermission;
-    }
     return permission;
   }
 }
 
 class _FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
-  AlarmPermissionState permission = AlarmPermissionState.unsupported;
+  AlarmPermissionState permission = AlarmPermissionState.granted;
   int requestCount = 0;
 
   @override
-  Future<AlarmPermissionState> checkPermission() async {
-    return permission;
-  }
+  Future<AlarmPermissionState> checkPermission() async => permission;
 
   @override
   Future<AlarmPermissionState> requestPermission() async {
@@ -865,50 +345,10 @@ class _FakeFallbackAlarmNotificationService
   }
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) {
-    throw UnimplementedError();
-  }
+  Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) async {}
 
   @override
-  Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) {
-    throw UnimplementedError();
-  }
-}
-
-ScheduledAlarmRecord _alarmRecord({required AlarmProvider provider}) {
-  return ScheduledAlarmRecord(
-    scheduleId: 'schedule-1',
-    alarmTime: DateTime(2026, 5, 15, 8),
-    preparationStartTime: DateTime(2026, 5, 15, 8, 5),
-    scheduleFingerprint: 'fingerprint',
-    nativeAlarmId: 1,
-    fallbackNotificationId: 1,
-    provider: provider,
-    scheduleTitle: 'Morning meeting',
-    payload: const {'type': 'schedule_alarm'},
-  );
-}
-
-class _FakeCancelAllAlarmsUseCase extends CancelAllAlarmsUseCase {
-  // ignore: use_super_parameters
-  _FakeCancelAllAlarmsUseCase(
-    AlarmRepository alarmRepository,
-    AlarmRegistryRepository registryRepository,
-    AlarmSchedulerService schedulerService,
-    FallbackAlarmNotificationService fallbackNotificationService,
-  ) : super(
-        alarmRepository,
-        registryRepository,
-        schedulerService,
-        fallbackNotificationService,
-      );
-
-  int callCount = 0;
-
-  @override
-  Future<void> call({bool unregisterDevice = false}) async {
-    callCount += 1;
-  }
+  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {}
 }
 
 class _FakeReconcileAlarmsUseCase extends ReconcileAlarmsUseCase {
@@ -933,15 +373,69 @@ class _FakeReconcileAlarmsUseCase extends ReconcileAlarmsUseCase {
     callCount += 1;
     return AlarmReconciliationResult(
       status: AlarmReconciliationStatus.armed,
-      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
+      nativeAlarmProvider: AlarmProvider.none,
       fallbackProvider: AlarmProvider.localNotification,
       armedScheduleIds: const [],
       skippedScheduleCount: 0,
       failures: const [],
       scheduleWindowStart: DateTime(2026),
-      scheduleWindowEnd: DateTime(2026),
+      scheduleWindowEnd: DateTime(2027),
       alarmCoverageStart: DateTime(2026),
-      alarmCoverageEnd: DateTime(2026),
+      alarmCoverageEnd: DateTime(2027),
     );
   }
+}
+
+class _FakeCancelAllAlarmsUseCase extends CancelAllAlarmsUseCase {
+  // ignore: use_super_parameters
+  _FakeCancelAllAlarmsUseCase(
+    AlarmRegistryRepository registryRepository,
+    AlarmSchedulerService schedulerService,
+    FallbackAlarmNotificationService fallbackNotificationService,
+  ) : super(registryRepository, schedulerService, fallbackNotificationService);
+
+  int callCount = 0;
+
+  @override
+  Future<void> call() async {
+    callCount += 1;
+  }
+}
+
+class _FakeNotificationService implements NotificationService {
+  _FakeNotificationService({
+    required this.currentStatus,
+    this.requestedStatus = AuthorizationStatus.denied,
+  });
+
+  AuthorizationStatus currentStatus;
+  final AuthorizationStatus requestedStatus;
+  int requestCount = 0;
+  int initializeCount = 0;
+  int openSettingsCount = 0;
+
+  @override
+  Future<AuthorizationStatus> checkNotificationPermission() async =>
+      currentStatus;
+
+  @override
+  Future<void> initialize() async {
+    initializeCount += 1;
+  }
+
+  @override
+  Future<bool> openNotificationSettings() async {
+    openSettingsCount += 1;
+    return true;
+  }
+
+  @override
+  Future<AuthorizationStatus> requestPermission() async {
+    requestCount += 1;
+    currentStatus = requestedStatus;
+    return requestedStatus;
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

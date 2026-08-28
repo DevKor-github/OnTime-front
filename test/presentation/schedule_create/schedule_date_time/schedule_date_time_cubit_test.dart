@@ -332,6 +332,48 @@ void main() {
       expect(submitted.scheduleTime.minute, 30);
       expect(submitted.maxAvailableTime, const Duration(minutes: 30));
       expect(submitted.previousScheduleName, 'Previous meeting');
+      expect(submitted.occurrenceOffsetSeconds, 0);
+    },
+  );
+
+  test(
+    'DST gap is rejected and overlap requires an explicit occurrence',
+    () async {
+      final formBloc = _FakeScheduleFormBloc(
+        state: ScheduleFormState(
+          id: 'dst-schedule',
+          timeZoneId: 'America/New_York',
+        ),
+      );
+      final cubit = ScheduleDateTimeCubit(
+        formBloc,
+        _FakeLoadAdjacentScheduleWithPreparationUseCase(),
+        _FakeGetAdjacentSchedulesWithPreparationUseCase(),
+      );
+      addTearDown(cubit.close);
+      cubit.initialize();
+
+      await cubit.scheduleDateChanged(DateTime(2027, 3, 14));
+      await cubit.scheduleTimeChanged(DateTime(2027, 3, 14, 2, 30));
+
+      expect(cubit.state.isNonexistentCivilTime, isTrue);
+      expect(cubit.scheduleDateTimeSubmitted(), isFalse);
+
+      await cubit.scheduleDateChanged(DateTime(2027, 11, 7));
+      await cubit.scheduleTimeChanged(DateTime(2027, 11, 7, 1, 30));
+
+      expect(cubit.state.occurrenceOffsetOptions, [-4 * 60 * 60, -5 * 60 * 60]);
+      expect(cubit.state.requiresOccurrenceChoice, isTrue);
+      expect(cubit.scheduleDateTimeSubmitted(), isFalse);
+
+      cubit.occurrenceOffsetSelected(-5 * 60 * 60);
+
+      expect(cubit.state.requiresOccurrenceChoice, isFalse);
+      expect(cubit.scheduleDateTimeSubmitted(), isTrue);
+      final submitted = formBloc.addedEvents
+          .whereType<ScheduleFormScheduleDateTimeChanged>()
+          .last;
+      expect(submitted.occurrenceOffsetSeconds, -5 * 60 * 60);
     },
   );
 }

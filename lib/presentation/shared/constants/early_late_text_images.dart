@@ -30,7 +30,7 @@ final Map<Range, List<Map<String, String>>> earlyMessagesWithImages = {
     {"message": "심호흡 한 번 하고\n천천히 걸어갈 시간이 생겼어요.", "image": 'character.svg'},
     {
       "message": "여유롭게 갈 수 있겠어요\n좋아하는 노래와 함께 산뜻하게 출발해봐요",
-      "image": 'character_headphone.svg'
+      "image": 'character_headphone.svg',
     },
   ],
   Range(11, 15): [
@@ -45,7 +45,7 @@ final Map<Range, List<Map<String, String>>> earlyMessagesWithImages = {
     {"message": "출발 전에 잊은 물건을\n챙길 기회가 생겼어요!", "image": "character.svg"},
     {
       "message": "예정 시간보다 빠르게 도착해서\n장소를 한 바퀴 둘러볼 수 있어요.",
-      "image": "character.svg"
+      "image": "character.svg",
     },
   ],
   Range(31, 40): [
@@ -53,10 +53,7 @@ final Map<Range, List<Map<String, String>>> earlyMessagesWithImages = {
     {"message": "조금 더 준비된 모습으로\n상대를 만날 수 있어요.", "image": "character.svg"},
   ],
   Range(41, 59): [
-    {
-      "message": "영화 예고편을 보며\n시간을 보낼 수 있어요!",
-      "image": "character.svg",
-    },
+    {"message": "영화 예고편을 보며\n시간을 보낼 수 있어요!", "image": "character.svg"},
     {"message": "약속 장소에서\n조용히 책 몇 페이지를 읽을 수 있어요.", "image": "character.svg"},
   ],
   Range.openEnded(60): [
@@ -94,7 +91,7 @@ Map<String, String> getEarlyMessage(int value) {
   }
   return {
     "message": "정확히 시간을 맞춰 준비했어요! 혹시 몸에 시계라도 있나요?",
-    "image": 'character.svg'
+    "image": 'character.svg',
   };
 }
 
@@ -104,6 +101,6 @@ Map<String, String> getLateMessage() {
   final selectedMessage = messages[Random().nextInt(messages.length)];
   return {
     "message": selectedMessage,
-    "image": lateMessagesWithImages[selectedMessage] ?? 'character.svg'
+    "image": lateMessagesWithImages[selectedMessage] ?? 'character.svg',
   };
 }

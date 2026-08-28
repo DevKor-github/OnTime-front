@@ -52,33 +52,6 @@ void main() {
     );
   });
 
-  group('isScheduleAlarmMessagePayload', () {
-    test('detects native alarm push messages from data or known titles', () {
-      expect(
-        isScheduleAlarmMessagePayload(
-          data: const {'type': 'schedule_alarm'},
-          title: null,
-        ),
-        isTrue,
-      );
-      expect(
-        isScheduleAlarmMessagePayload(data: const {}, title: '약속 알림'),
-        isTrue,
-      );
-      expect(
-        isScheduleAlarmMessagePayload(data: const {}, title: 'Schedule alarm'),
-        isTrue,
-      );
-      expect(
-        isScheduleAlarmMessagePayload(
-          data: const {'type': 'announcement'},
-          title: 'General',
-        ),
-        isFalse,
-      );
-    });
-  });
-
   group('notificationRouteForPayloadString', () {
     test(
       'routes schedule notification payload to the schedule start screen',
@@ -152,7 +125,7 @@ void main() {
   });
 
   group('notificationRouteForData', () {
-    test('routes background message data with the same notification rules', () {
+    test('routes decoded local payload data with the same rules', () {
       expect(
         notificationRouteForData(const {
           'type': 'schedule_notification',

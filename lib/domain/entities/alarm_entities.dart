@@ -204,22 +204,17 @@ class AlarmSchedulingException implements Exception {
   }
 }
 
-class DeviceSessionNotActiveException implements Exception {
-  const DeviceSessionNotActiveException();
-
-  @override
-  String toString() => 'DeviceSessionNotActiveException';
-}
-
 class AlarmSettings extends Equatable {
   final bool alarmsEnabled;
   final int defaultAlarmOffsetMinutes;
   final DateTime? updatedAt;
+  final bool detailedNotificationContent;
 
   const AlarmSettings({
     required this.alarmsEnabled,
     this.defaultAlarmOffsetMinutes = 5,
     this.updatedAt,
+    this.detailedNotificationContent = false,
   });
 
   Duration get alarmOffset => Duration(minutes: defaultAlarmOffsetMinutes);
@@ -229,37 +224,7 @@ class AlarmSettings extends Equatable {
     alarmsEnabled,
     defaultAlarmOffsetMinutes,
     updatedAt,
-  ];
-}
-
-class AlarmDeviceInfo extends Equatable {
-  final String deviceId;
-  final String platform;
-  final String appVersion;
-  final String osVersion;
-  final bool supportsNativeAlarm;
-  final AlarmProvider nativeAlarmProvider;
-  final AlarmProvider fallbackProvider;
-
-  const AlarmDeviceInfo({
-    required this.deviceId,
-    required this.platform,
-    required this.appVersion,
-    required this.osVersion,
-    required this.supportsNativeAlarm,
-    required this.nativeAlarmProvider,
-    required this.fallbackProvider,
-  });
-
-  @override
-  List<Object?> get props => [
-    deviceId,
-    platform,
-    appVersion,
-    osVersion,
-    supportsNativeAlarm,
-    nativeAlarmProvider,
-    fallbackProvider,
+    detailedNotificationContent,
   ];
 }
 
@@ -405,58 +370,6 @@ class AlarmReconciliationResult extends Equatable {
   ];
 }
 
-class AlarmStatusReport extends Equatable {
-  final String deviceId;
-  final DateTime reconciledAt;
-  final DateTime scheduleWindowStart;
-  final DateTime scheduleWindowEnd;
-  final DateTime alarmCoverageStart;
-  final DateTime alarmCoverageEnd;
-  final AlarmReconciliationStatus status;
-  final AlarmPermissionIssue? permissionIssue;
-  final AlarmProvider nativeAlarmProvider;
-  final AlarmProvider fallbackProvider;
-  final int armedScheduleCount;
-  final List<String> armedScheduleIds;
-  final int skippedScheduleCount;
-  final List<AlarmFailure> failures;
-
-  const AlarmStatusReport({
-    required this.deviceId,
-    required this.reconciledAt,
-    required this.scheduleWindowStart,
-    required this.scheduleWindowEnd,
-    required this.alarmCoverageStart,
-    required this.alarmCoverageEnd,
-    required this.status,
-    required this.nativeAlarmProvider,
-    required this.fallbackProvider,
-    required this.armedScheduleCount,
-    required this.armedScheduleIds,
-    required this.skippedScheduleCount,
-    required this.failures,
-    this.permissionIssue,
-  });
-
-  @override
-  List<Object?> get props => [
-    deviceId,
-    reconciledAt,
-    scheduleWindowStart,
-    scheduleWindowEnd,
-    alarmCoverageStart,
-    alarmCoverageEnd,
-    status,
-    permissionIssue,
-    nativeAlarmProvider,
-    fallbackProvider,
-    armedScheduleCount,
-    armedScheduleIds,
-    skippedScheduleCount,
-    failures,
-  ];
-}
-
 bool isAlarmEligibleSchedule(ScheduleWithPreparationEntity schedule) {
   return schedule.doneStatus == ScheduleDoneStatus.notEnded;
 }
@@ -487,6 +400,8 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
   ScheduleWithPreparationEntity schedule, {
   required Duration alarmOffset,
   required AlarmProvider provider,
+  bool detailedNotificationContent = false,
+  String? currentTimeZoneId,
 }) {
   final alarmTime = computeAlarmTime(schedule, offset: alarmOffset);
   final id = stableAlarmId(schedule.id);
@@ -499,7 +414,9 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
     nativeAlarmId: id,
     fallbackNotificationId: id,
     provider: provider,
-    scheduleTitle: schedule.scheduleName,
+    scheduleTitle: detailedNotificationContent
+        ? schedule.scheduleName
+        : 'OnTime',
     payload: {
       'type': 'schedule_notification',
       'alarmLaunchPayloadVersion': alarmLaunchPayloadVersion,
@@ -507,8 +424,12 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
       'alarmTime': alarmTime.toIso8601String(),
       'preparationStartTime': preparationStartTime.toIso8601String(),
       'scheduleFingerprint': buildAlarmScheduleFingerprint(schedule),
-      'placeName': schedule.place.placeName,
       'promptVariant': 'notification',
+      'detailedNotificationContent': detailedNotificationContent.toString(),
+      if (detailedNotificationContent &&
+          currentTimeZoneId != null &&
+          currentTimeZoneId != schedule.timeZoneId)
+        'notificationTimeZone': schedule.timeZoneId,
     },
   );
 }

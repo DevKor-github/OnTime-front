@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/shared/constants/constants.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -30,19 +28,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: title,
-      actions: actions ??
-          [
-            IconButton(
-              icon: friendsSvg,
-              onPressed: () {
-                context.read<AuthBloc>().add(AuthSignOutPressed());
-              },
-            ),
-            IconButton(
-              icon: bellSvg,
-              onPressed: () {},
-            )
-          ],
+      actions: actions ?? [IconButton(icon: bellSvg, onPressed: () {})],
       backgroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,

@@ -16,13 +16,16 @@ class TimedPreparationRepositoryImpl implements TimedPreparationRepository {
 
   @override
   Future<TimedPreparationSnapshotEntity?> getTimedPreparationSnapshot(
-      String scheduleId) {
+    String scheduleId,
+  ) {
     return localDataSource.loadPreparation(scheduleId);
   }
 
   @override
   Future<void> saveTimedPreparationSnapshot(
-      String scheduleId, TimedPreparationSnapshotEntity snapshot) {
+    String scheduleId,
+    TimedPreparationSnapshotEntity snapshot,
+  ) {
     return localDataSource.savePreparation(scheduleId, snapshot);
   }
 }

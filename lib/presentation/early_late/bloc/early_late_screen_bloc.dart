@@ -16,7 +16,9 @@ class EarlyLateScreenBloc
   }
 
   void _onLoadEarlyLateInfo(
-      LoadEarlyLateInfo event, Emitter<EarlyLateScreenState> emit) {
+    LoadEarlyLateInfo event,
+    Emitter<EarlyLateScreenState> emit,
+  ) {
     bool isLate = event.earlyLateTime < 0;
     int absSeconds = event.earlyLateTime.abs();
     int minuteValue = (absSeconds / 60).ceil();
@@ -29,40 +31,50 @@ class EarlyLateScreenBloc
         messageData['message'] ?? (isLate ? '조금 늦었지만 괜찮아요!' : '준비를 잘 마쳤어요!');
     final earlyLateImage = messageData['image'] ?? 'character.svg';
 
-    emit(EarlyLateScreenLoadSuccess(
-      checklist: List.generate(3, (index) => false),
-      isLate: isLate,
-      earlylateMessage: earlyLateMessage,
-      earlylateImage: earlyLateImage,
-    ));
+    emit(
+      EarlyLateScreenLoadSuccess(
+        checklist: List.generate(3, (index) => false),
+        isLate: isLate,
+        earlylateMessage: earlyLateMessage,
+        earlylateImage: earlyLateImage,
+      ),
+    );
   }
 
   void _onLoadChecklist(
-      ChecklistLoaded event, Emitter<EarlyLateScreenState> emit) {
+    ChecklistLoaded event,
+    Emitter<EarlyLateScreenState> emit,
+  ) {
     if (state is EarlyLateScreenLoadSuccess) {
       final currentState = state as EarlyLateScreenLoadSuccess;
-      emit(EarlyLateScreenLoadSuccess(
-        checklist: event.checklist,
-        isLate: currentState.isLate,
-        earlylateMessage: currentState.earlylateMessage,
-        earlylateImage: currentState.earlylateImage,
-      ));
+      emit(
+        EarlyLateScreenLoadSuccess(
+          checklist: event.checklist,
+          isLate: currentState.isLate,
+          earlylateMessage: currentState.earlylateMessage,
+          earlylateImage: currentState.earlylateImage,
+        ),
+      );
     }
   }
 
   void _onToggleChecklistItem(
-      ChecklistItemToggled event, Emitter<EarlyLateScreenState> emit) {
+    ChecklistItemToggled event,
+    Emitter<EarlyLateScreenState> emit,
+  ) {
     if (state is EarlyLateScreenLoadSuccess) {
       final currentState = state as EarlyLateScreenLoadSuccess;
       final updatedChecklist = List<bool>.from(currentState.checklist);
       updatedChecklist[event.index] = !updatedChecklist[event.index];
 
-      emit(EarlyLateScreenLoadSuccess(
-        checklist: updatedChecklist,
-        isLate: currentState.isLate,
-        earlylateMessage: currentState.earlylateMessage,
-        earlylateImage: currentState.earlylateImage,
-      ));
+      emit(
+        EarlyLateScreenLoadSuccess(
+          checklist: updatedChecklist,
+          isLate: currentState.isLate,
+          earlylateMessage: currentState.earlylateMessage,
+          earlylateImage: currentState.earlylateImage,
+        ),
+      );
     }
   }
 }

@@ -14,4 +14,3 @@ class PreparationEditDraftCubit extends Cubit<PreparationEntity?> {
 
   void clear() => emit(null);
 }
-

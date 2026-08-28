@@ -21,23 +21,22 @@ class TimeStepper extends StatelessWidget {
     final iconButtonStyle = ButtonStyle(
       backgroundColor: WidgetStatePropertyAll(Color(0xffe6e9f9)),
       foregroundColor: WidgetStatePropertyAll(colorScheme.primary),
-      shape: WidgetStatePropertyAll(CircleBorder(
-          side: BorderSide(color: colorScheme.primary, width: 1.0))),
+      shape: WidgetStatePropertyAll(
+        CircleBorder(side: BorderSide(color: colorScheme.primary, width: 1.0)),
+      ),
     );
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         IconButton(
-            icon: const Icon(Icons.remove),
-            style: iconButtonStyle,
-            onPressed: value > lowerBound ? onSpareTimeDecreased : null),
+          icon: const Icon(Icons.remove),
+          style: iconButtonStyle,
+          onPressed: value > lowerBound ? onSpareTimeDecreased : null,
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 35.0),
-          child: Text(
-            '${value.inMinutes}분',
-            style: textTheme.titleSmall,
-          ),
+          child: Text('${value.inMinutes}분', style: textTheme.titleSmall),
         ),
         IconButton(
           icon: const Icon(Icons.add),

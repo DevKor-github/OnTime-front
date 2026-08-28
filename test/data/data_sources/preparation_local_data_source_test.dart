@@ -20,11 +20,8 @@ void main() {
         .insert(
           UsersCompanion(
             id: const drift.Value('userId'),
-            email: const drift.Value('user@example.com'),
-            name: const drift.Value('User'),
-            spareTime: drift.Value(const Duration(minutes: 10).inSeconds),
+            spareTime: const drift.Value(10),
             note: const drift.Value('note'),
-            score: const drift.Value(4.5),
           ),
         );
     await database
@@ -58,14 +55,20 @@ void main() {
   });
 
   test('creates and updates the default user preparation', () async {
-    await dataSource.createDefaultPreparation(_preparation(userBased: true));
+    await dataSource.createDefaultPreparation(
+      _preparation(userBased: true),
+      userId: 'userId',
+    );
 
     final updated = const PreparationStepEntity(
       id: 'step-1',
       preparationName: 'Updated shower',
       preparationTime: Duration(minutes: 12),
     );
-    await dataSource.updatePreparation(updated);
+    await dataSource.replaceDefaultPreparation(
+      PreparationEntity(preparationStepList: [updated]),
+      userId: 'userId',
+    );
 
     final stored = await database.preparationUserDao
         .getPreparationUsersByUserId('userId');
@@ -98,7 +101,15 @@ void main() {
         preparationTime: Duration(minutes: 20),
         nextPreparationId: 'step-2',
       );
-      await dataSource.updatePreparation(updated);
+      await dataSource.replaceSchedulePreparation(
+        PreparationEntity(
+          preparationStepList: [
+            updated,
+            bySchedule.preparationStepList.last,
+          ],
+        ),
+        scheduleId: 'scheduleId',
+      );
       expect(
         (await dataSource.getPreparationStepById('step-1')).preparationName,
         'Updated schedule prep',

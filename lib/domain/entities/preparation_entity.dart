@@ -4,9 +4,7 @@ import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 class PreparationEntity extends Equatable {
   final List<PreparationStepEntity> preparationStepList;
 
-  const PreparationEntity({
-    required this.preparationStepList,
-  });
+  const PreparationEntity({required this.preparationStepList});
 
   Duration get totalDuration {
     return preparationStepList.fold(
@@ -20,9 +18,7 @@ class PreparationEntity extends Equatable {
       return this;
     }
 
-    final stepById = {
-      for (final step in preparationStepList) step.id: step,
-    };
+    final stepById = {for (final step in preparationStepList) step.id: step};
     final referencedIds = preparationStepList
         .map((step) => step.nextPreparationId)
         .whereType<String>()

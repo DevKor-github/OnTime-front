@@ -30,13 +30,14 @@ class TileStyle extends ThemeExtension<TileStyle> {
   /// The margin of the tile.
   final EdgeInsetsGeometry? margin;
   @override
-  TileStyle copyWith(
-      {Color? backgroundColor,
-      BorderRadius? borderRadius,
-      EdgeInsetsGeometry? padding,
-      EdgeInsetsGeometry? margin,
-      Size? minimumSize,
-      Size? maximumSize}) {
+  TileStyle copyWith({
+    Color? backgroundColor,
+    BorderRadius? borderRadius,
+    EdgeInsetsGeometry? padding,
+    EdgeInsetsGeometry? margin,
+    Size? minimumSize,
+    Size? maximumSize,
+  }) {
     return TileStyle(
       backgroundColor: backgroundColor ?? this.backgroundColor,
       borderRadius: borderRadius ?? this.borderRadius,

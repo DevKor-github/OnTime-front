@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
-import 'package:on_time_front/core/dio/api_error_message.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
@@ -159,11 +158,18 @@ class MonthlySchedulesBloc
         state.copyWith(
           lastDeletedSchedule: () => null,
           preparationDurationByScheduleId: () => previousPreparationMap,
-          deleteFailureMessage: () => ApiErrorMessage.fromException(e),
+          deleteFailureMessage: () => _readableErrorMessage(e),
           deleteFailureCount: () => state.deleteFailureCount + 1,
         ),
       );
     }
+  }
+
+  String _readableErrorMessage(Object error) {
+    if (error case StateError(message: final message)) {
+      return message;
+    }
+    return error.toString();
   }
 
   Future<void> _onRefreshRequested(

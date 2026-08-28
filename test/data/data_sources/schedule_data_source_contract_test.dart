@@ -4,17 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
-    'schedule remote data source contract does not expose domain entities',
-    () {
-      final violations = _scheduleEntityViolations(
-        'lib/data/data_sources/schedule_remote_data_source.dart',
-      );
-
-      expect(violations, isEmpty);
-    },
-  );
-
-  test(
     'schedule local data source contract does not expose domain entities',
     () {
       final violations = _scheduleEntityViolations(

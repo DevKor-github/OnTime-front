@@ -124,7 +124,6 @@ Future<_AlarmAllowHarness> _pumpAlarmAllowScreen(
     fallback,
   );
   final cancelAllUseCase = _FakeCancelAllAlarmsUseCase(
-    repository,
     registry,
     scheduler,
     fallback,
@@ -265,21 +264,15 @@ class _FakeReconcileAlarmsUseCase extends ReconcileAlarmsUseCase {
 class _FakeCancelAllAlarmsUseCase extends CancelAllAlarmsUseCase {
   // ignore: use_super_parameters
   _FakeCancelAllAlarmsUseCase(
-    AlarmRepository alarmRepository,
     AlarmRegistryRepository registryRepository,
     AlarmSchedulerService schedulerService,
     FallbackAlarmNotificationService fallbackNotificationService,
-  ) : super(
-        alarmRepository,
-        registryRepository,
-        schedulerService,
-        fallbackNotificationService,
-      );
+  ) : super(registryRepository, schedulerService, fallbackNotificationService);
 
   int callCount = 0;
 
   @override
-  Future<void> call({bool unregisterDevice = false}) async {
+  Future<void> call() async {
     callCount += 1;
   }
 }
@@ -301,37 +294,12 @@ class _FakeAlarmRepository implements AlarmRepository {
   }
 
   @override
-  Future<String> getDeviceId() async => 'device-id';
-
-  @override
-  Future<AlarmDeviceInfo> buildCurrentDeviceInfo() async {
-    return const AlarmDeviceInfo(
-      deviceId: 'device-id',
-      platform: 'test',
-      appVersion: '1.0.0',
-      osVersion: 'test',
-      supportsNativeAlarm: true,
-      nativeAlarmProvider: AlarmProvider.androidAlarmManager,
-      fallbackProvider: AlarmProvider.localNotification,
-    );
-  }
-
-  @override
   Future<List<ScheduleWithPreparationEntity>> getAlarmWindow(
     DateTime startDate,
     DateTime endDate,
   ) async {
     return const [];
   }
-
-  @override
-  Future<void> postAlarmStatus(AlarmStatusReport report) async {}
-
-  @override
-  Future<void> registerCurrentDevice(AlarmDeviceInfo deviceInfo) async {}
-
-  @override
-  Future<void> unregisterCurrentDevice(String deviceId) async {}
 }
 
 class _FakeAlarmRegistry implements AlarmRegistryRepository {

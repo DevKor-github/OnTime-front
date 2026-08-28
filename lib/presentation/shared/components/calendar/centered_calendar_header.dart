@@ -48,8 +48,9 @@ class CenteredCalendarHeader extends StatelessWidget {
               ),
               Flexible(
                 child: Text(
-                  DateFormat.yMMMM(AppLocalizations.of(context)!.localeName)
-                      .format(focusedMonth),
+                  DateFormat.yMMMM(
+                    AppLocalizations.of(context)!.localeName,
+                  ).format(focusedMonth),
                   style: titleTextStyle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

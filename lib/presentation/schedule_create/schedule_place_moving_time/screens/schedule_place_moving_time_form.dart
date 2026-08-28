@@ -33,38 +33,43 @@ class _SchedulePlaceMovingTimeFormState
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SchedulePlaceMovingTimeCubit,
-        SchedulePlaceMovingTimeState>(builder: (context, state) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextFormField(
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.appointmentPlace,
+    return BlocBuilder<
+      SchedulePlaceMovingTimeCubit,
+      SchedulePlaceMovingTimeState
+    >(
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.appointmentPlace,
+              ),
+              initialValue: state.placeName.value,
+              focusNode: _placeFocusNode,
+              textInputAction: TextInputAction.next,
+              onChanged: (newValue) {
+                context.read<SchedulePlaceMovingTimeCubit>().placeNameChanged(
+                  newValue,
+                );
+              },
             ),
-            initialValue: state.placeName.value,
-            focusNode: _placeFocusNode,
-            textInputAction: TextInputAction.next,
-            onChanged: (newValue) {
-              context
-                  .read<SchedulePlaceMovingTimeCubit>()
-                  .placeNameChanged(newValue);
-            },
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  readOnly: true,
-                  decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.travelTime),
-                  focusNode: _timeFocusNode,
-                  textInputAction: TextInputAction.done,
-                  controller: TextEditingController(
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.travelTime,
+                    ),
+                    focusNode: _timeFocusNode,
+                    textInputAction: TextInputAction.done,
+                    controller: TextEditingController(
                       text:
-                          '${state.moveTime.value.inHours}${AppLocalizations.of(context)!.hours} ${state.moveTime.value.inMinutes % 60}${AppLocalizations.of(context)!.minutes}'),
-                  onTap: () {
-                    context.showCupertinoTimerPickerModal(
+                          '${state.moveTime.value.inHours}${AppLocalizations.of(context)!.hours} ${state.moveTime.value.inMinutes % 60}${AppLocalizations.of(context)!.minutes}',
+                    ),
+                    onTap: () {
+                      context.showCupertinoTimerPickerModal(
                         title: AppLocalizations.of(context)!.selectTime,
                         mode: CupertinoTimerPickerMode.hm,
                         initialValue: state.moveTime.value,
@@ -73,24 +78,26 @@ class _SchedulePlaceMovingTimeFormState
                               .read<SchedulePlaceMovingTimeCubit>()
                               .moveTimeChanged(newTime);
                         },
-                        onDisposed: () {});
-                  },
+                        onDisposed: () {},
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            if (state.hasOverlapMessage)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+                child: MessageBubble(
+                  message: state.getOverlapMessage(context)!,
+                  type: state.isOverlapError
+                      ? MessageBubbleType.error
+                      : MessageBubbleType.warning,
                 ),
               ),
-            ],
-          ),
-          if (state.hasOverlapMessage)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 16.0),
-              child: MessageBubble(
-                      message: state.getOverlapMessage(context)!,
-                type: state.isOverlapError
-                    ? MessageBubbleType.error
-                    : MessageBubbleType.warning,
-                    ),
-            ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }

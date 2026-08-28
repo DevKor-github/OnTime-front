@@ -28,6 +28,10 @@ class PreparationStepNameState extends Equatable {
   }
 
   @override
-  List<Object> get props =>
-      [preparationId, preparationName, isValid, isSelected];
+  List<Object> get props => [
+    preparationId,
+    preparationName,
+    isValid,
+    isSelected,
+  ];
 }

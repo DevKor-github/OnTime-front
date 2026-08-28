@@ -9,9 +9,8 @@ part 'onboarding_state.dart';
 
 @Injectable()
 class OnboardingCubit extends Cubit<OnboardingState> {
-  OnboardingCubit(
-    this._createDefaultPreparationUseCase,
-  ) : super(OnboardingState());
+  OnboardingCubit(this._createDefaultPreparationUseCase)
+    : super(OnboardingState());
 
   final OnboardUseCase _createDefaultPreparationUseCase;
 
@@ -27,13 +26,15 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     List<OnboardingPreparationStepState>? preparationStepList,
     Duration? spareTime,
   }) {
-    emit(state.copyWith(
-        preparationStepList: preparationStepList, spareTime: spareTime));
+    emit(
+      state.copyWith(
+        preparationStepList: preparationStepList,
+        spareTime: spareTime,
+      ),
+    );
   }
 
-  void onboardingFormValidated({
-    required bool isValid,
-  }) {
+  void onboardingFormValidated({required bool isValid}) {
     emit(state.copyWith(isValid: isValid));
   }
 }

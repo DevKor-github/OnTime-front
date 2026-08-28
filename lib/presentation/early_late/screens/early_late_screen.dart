@@ -79,10 +79,7 @@ class _EarlyLateSection extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          _EarlyLateText(
-            earlyLateTime: earlyLateTime,
-            isLate: isLate,
-          ),
+          _EarlyLateText(earlyLateTime: earlyLateTime, isLate: isLate),
           const SizedBox(height: 20),
           EarlyLateMessageImageWidget(
             screenHeight: screenHeight,
@@ -99,15 +96,13 @@ class _EarlyLateText extends StatelessWidget {
   final int earlyLateTime;
   final bool isLate;
 
-  const _EarlyLateText({
-    required this.earlyLateTime,
-    required this.isLate,
-  });
+  const _EarlyLateText({required this.earlyLateTime, required this.isLate});
 
   @override
   Widget build(BuildContext context) {
-    final textColor =
-        isLate ? const Color(0xffFF6953) : const Color(0xff5C79FB);
+    final textColor = isLate
+        ? const Color(0xffFF6953)
+        : const Color(0xff5C79FB);
     return Text.rich(
       TextSpan(
         children: [

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
 import 'package:flutter_swipe_action_cell/core/controller.dart';
-import 'package:on_time_front/core/validation/backend_constraints.dart';
+import 'package:on_time_front/core/validation/local_input_limits.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart';
@@ -191,7 +191,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
       PreparationTimeValidationError.negative =>
         l10n.preparationTimeMinimumError,
       PreparationTimeValidationError.tooLarge =>
-        l10n.preparationTimeMaximumError(BackendConstraints.maxMinuteValue),
+        l10n.preparationTimeMaximumError(LocalInputLimits.maxMinuteValue),
       null => null,
     };
   }

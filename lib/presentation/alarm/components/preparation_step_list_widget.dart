@@ -51,7 +51,8 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
       if (key?.currentContext != null) {
         final RenderBox box =
             key!.currentContext!.findRenderObject() as RenderBox;
-        final double targetOffset = box.localToGlobal(Offset.zero).dy +
+        final double targetOffset =
+            box.localToGlobal(Offset.zero).dy +
             _scrollController.offset -
             (MediaQuery.of(context).size.height / 2) +
             (box.size.height / 2) -
@@ -81,8 +82,9 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
               key: _tileKeys[index],
               stepIndex: index + 1,
               preparationName: preparation.preparationName,
-              preparationTime:
-                  formatTime(preparation.preparationTime.inSeconds),
+              preparationTime: formatTime(
+                preparation.preparationTime.inSeconds,
+              ),
               isLastItem: index == widget.preparationSteps.length - 1,
               stepElapsedTime: widget.stepElapsedTimes[index],
               preparationStepState: widget.preparationStepStates[index],

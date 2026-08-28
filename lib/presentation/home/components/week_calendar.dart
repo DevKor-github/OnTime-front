@@ -3,11 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class WeekCalendar extends StatelessWidget with Diagnosticable {
-  const WeekCalendar(
-      {super.key,
-      required this.date,
-      required this.onDateSelected,
-      required this.highlightedDates});
+  const WeekCalendar({
+    super.key,
+    required this.date,
+    required this.onDateSelected,
+    required this.highlightedDates,
+  });
 
   final DateTime date;
   final ValueChanged<DateTime> onDateSelected;
@@ -22,25 +23,18 @@ class WeekCalendar extends StatelessWidget with Diagnosticable {
     if (date.month == DateTime.now().month &&
         date.day == DateTime.now().day &&
         date.year == DateTime.now().year) {
-      return DateTile.filled(
-        date: date,
-        onTap: () => onDateSelected(date),
-      );
+      return DateTile.filled(date: date, onTap: () => onDateSelected(date));
     }
-    if (highlightedDates.firstWhereOrNull((highlightedDate) =>
-            highlightedDate.month == date.month &&
-            highlightedDate.day == date.day &&
-            highlightedDate.year == date.year) !=
+    if (highlightedDates.firstWhereOrNull(
+          (highlightedDate) =>
+              highlightedDate.month == date.month &&
+              highlightedDate.day == date.day &&
+              highlightedDate.year == date.year,
+        ) !=
         null) {
-      return DateTile.outlined(
-        date: date,
-        onTap: () => onDateSelected(date),
-      );
+      return DateTile.outlined(date: date, onTap: () => onDateSelected(date));
     }
-    return DateTile(
-      date: date,
-      onTap: () => onDateSelected(date),
-    );
+    return DateTile(date: date, onTap: () => onDateSelected(date));
   }
 
   @override
@@ -59,9 +53,7 @@ class WeekCalendar extends StatelessWidget with Diagnosticable {
 }
 
 class DateTileThemeData extends ThemeExtension<DateTileThemeData> {
-  const DateTileThemeData({
-    this.style,
-  });
+  const DateTileThemeData({this.style});
 
   final DateTileStyle? style;
 
@@ -78,14 +70,14 @@ class DateTileThemeData extends ThemeExtension<DateTileThemeData> {
 
   @override
   ThemeExtension<DateTileThemeData> copyWith() {
-    return DateTileThemeData(
-      style: style,
-    );
+    return DateTileThemeData(style: style);
   }
 
   @override
   ThemeExtension<DateTileThemeData> lerp(
-      covariant ThemeExtension<DateTileThemeData>? other, double t) {
+    covariant ThemeExtension<DateTileThemeData>? other,
+    double t,
+  ) {
     if (other == null) return this;
     final otherData = other as DateTileThemeData;
     return DateTileThemeData(
@@ -188,21 +180,38 @@ class DateTileStyle {
     }
     return DateTileStyle(
       textStyle: WidgetStateProperty.lerp<TextStyle?>(
-          a?.textStyle, b?.textStyle, t, TextStyle.lerp),
+        a?.textStyle,
+        b?.textStyle,
+        t,
+        TextStyle.lerp,
+      ),
       backgroundColor: WidgetStateProperty.lerp<Color?>(
-          a?.backgroundColor, b?.backgroundColor, t, Color.lerp),
+        a?.backgroundColor,
+        b?.backgroundColor,
+        t,
+        Color.lerp,
+      ),
       forgroundColor: WidgetStateProperty.lerp<Color?>(
-          a?.forgroundColor, b?.forgroundColor, t, Color.lerp),
+        a?.forgroundColor,
+        b?.forgroundColor,
+        t,
+        Color.lerp,
+      ),
       shape: WidgetStateProperty.lerp<OutlinedBorder?>(
-          a?.shape, b?.shape, t, OutlinedBorder.lerp),
+        a?.shape,
+        b?.shape,
+        t,
+        OutlinedBorder.lerp,
+      ),
       side: _lerpSides(a?.side, b?.side, t),
     );
   }
 
   static WidgetStateProperty<BorderSide?>? _lerpSides(
-      WidgetStateProperty<BorderSide?>? a,
-      WidgetStateProperty<BorderSide?>? b,
-      double t) {
+    WidgetStateProperty<BorderSide?>? a,
+    WidgetStateProperty<BorderSide?>? b,
+    double t,
+  ) {
     if (a == null && b == null) {
       return null;
     }
@@ -210,15 +219,11 @@ class DateTileStyle {
   }
 }
 
-enum _DateTileVariant {
-  outlined,
-  filled,
-  defualt,
-}
+enum _DateTileVariant { outlined, filled, defualt }
 
 class DateTile extends StatefulWidget {
   const DateTile({super.key, this.style, required this.date, this.onTap})
-      : _variant = _DateTileVariant.defualt;
+    : _variant = _DateTileVariant.defualt;
 
   final DateTileStyle? style;
   final DateTime date;
@@ -228,12 +233,8 @@ class DateTile extends StatefulWidget {
 
   bool get enabled => onTap != null;
 
-  const DateTile.filled({
-    super.key,
-    this.style,
-    required this.date,
-    this.onTap,
-  }) : _variant = _DateTileVariant.filled;
+  const DateTile.filled({super.key, this.style, required this.date, this.onTap})
+    : _variant = _DateTileVariant.filled;
 
   const DateTile.outlined({
     super.key,
@@ -308,22 +309,28 @@ class _DateTileState extends State<DateTile> with TickerProviderStateMixin {
     }
 
     T? resolve<T>(
-        WidgetStateProperty<T?>? Function(DateTileStyle? style) getProperty) {
+      WidgetStateProperty<T?>? Function(DateTileStyle? style) getProperty,
+    ) {
       return effectiveValue((DateTileStyle? style) {
         return getProperty(style)?.resolve(statesController.value);
       });
     }
 
-    final TextStyle? resolvedTextStyle =
-        resolve<TextStyle?>((DateTileStyle? style) => style?.textStyle);
-    final Color? resolvedBackgroundColor =
-        resolve<Color?>((DateTileStyle? style) => style?.backgroundColor);
-    final Color? resolvedForgroundColor =
-        resolve<Color?>((DateTileStyle? style) => style?.forgroundColor);
-    final OutlinedBorder? resolvedShape =
-        resolve<OutlinedBorder?>((DateTileStyle? style) => style?.shape);
-    final BorderSide? resolvedSide =
-        resolve<BorderSide?>((DateTileStyle? style) => style?.side);
+    final TextStyle? resolvedTextStyle = resolve<TextStyle?>(
+      (DateTileStyle? style) => style?.textStyle,
+    );
+    final Color? resolvedBackgroundColor = resolve<Color?>(
+      (DateTileStyle? style) => style?.backgroundColor,
+    );
+    final Color? resolvedForgroundColor = resolve<Color?>(
+      (DateTileStyle? style) => style?.forgroundColor,
+    );
+    final OutlinedBorder? resolvedShape = resolve<OutlinedBorder?>(
+      (DateTileStyle? style) => style?.shape,
+    );
+    final BorderSide? resolvedSide = resolve<BorderSide?>(
+      (DateTileStyle? style) => style?.side,
+    );
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -337,14 +344,17 @@ class _DateTileState extends State<DateTile> with TickerProviderStateMixin {
         child: InkWell(
           statesController: statesController,
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 11.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 8.0,
+              horizontal: 11.0,
+            ),
             child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(_nameOfDay(widget.date.weekday)),
-                  Text(widget.date.day.toString()),
-                ]),
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(_nameOfDay(widget.date.weekday)),
+                Text(widget.date.day.toString()),
+              ],
+            ),
           ),
         ),
       ),
@@ -431,6 +441,7 @@ class _OutlinedDateTileStyle extends DateTileStyle {
   @override
   WidgetStateProperty<BorderSide?> get side {
     return WidgetStateProperty.all(
-        BorderSide(color: _colorScheme.primary, width: 1.0));
+      BorderSide(color: _colorScheme.primary, width: 1.0),
+    );
   }
 }

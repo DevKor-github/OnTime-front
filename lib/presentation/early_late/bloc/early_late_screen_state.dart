@@ -24,9 +24,9 @@ class EarlyLateScreenLoadSuccess extends EarlyLateScreenState {
 
   @override
   List<Object> get props => [
-        checklist,
-        isLate,
-        earlylateMessage,
-        earlylateImage,
-      ];
+    checklist,
+    isLate,
+    earlylateMessage,
+    earlylateImage,
+  ];
 }

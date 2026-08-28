@@ -1,5 +1,5 @@
 import 'package:formz/formz.dart';
-import 'package:on_time_front/core/validation/backend_constraints.dart';
+import 'package:on_time_front/core/validation/local_input_limits.dart';
 
 /// Validation errors for the [PreparationTimeInputModel] [FormzInput].
 enum PreparationTimeValidationError { zero, negative, tooLarge }
@@ -20,7 +20,7 @@ class PreparationTimeInputModel
     if (minutes == 0) {
       return PreparationTimeValidationError.zero;
     }
-    if (minutes > BackendConstraints.maxMinuteValue) {
+    if (minutes > LocalInputLimits.maxMinuteValue) {
       return PreparationTimeValidationError.tooLarge;
     }
     return null;

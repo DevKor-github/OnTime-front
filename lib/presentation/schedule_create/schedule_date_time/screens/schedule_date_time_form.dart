@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 import 'package:on_time_front/presentation/schedule_create/components/message_bubble.dart';
@@ -125,6 +126,56 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   type: MessageBubbleType.error,
                 ),
               ),
+            if (state.isNonexistentCivilTime)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 16.0),
+                child: MessageBubble(
+                  message: _dstGapMessage(context),
+                  type: MessageBubbleType.error,
+                ),
+              ),
+            if (state.hasAmbiguousCivilTime)
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0, left: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _dstOverlapMessage(context),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (
+                          var index = 0;
+                          index < state.occurrenceOffsetOptions.length;
+                          index++
+                        )
+                          ChoiceChip(
+                            label: Text(
+                              _occurrenceLabel(
+                                context,
+                                index,
+                                state.occurrenceOffsetOptions[index],
+                              ),
+                            ),
+                            selected:
+                                state.selectedOccurrenceOffsetSeconds ==
+                                state.occurrenceOffsetOptions[index],
+                            onSelected: (_) => context
+                                .read<ScheduleDateTimeCubit>()
+                                .occurrenceOffsetSelected(
+                                  state.occurrenceOffsetOptions[index],
+                                ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             if (state.isOverlapping)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, left: 16.0),
@@ -138,6 +189,25 @@ class ScheduleDateTimeForm extends StatelessWidget {
       },
     );
   }
+}
+
+String _dstGapMessage(BuildContext context) {
+  return Localizations.localeOf(context).languageCode == 'ko'
+      ? '일광절약시간 변경으로 존재하지 않는 시각이에요. 다른 시간을 선택해주세요.'
+      : 'This time does not exist because of a daylight-saving change. Choose another time.';
+}
+
+String _dstOverlapMessage(BuildContext context) {
+  return Localizations.localeOf(context).languageCode == 'ko'
+      ? '이 시각은 두 번 발생해요. 사용할 시각을 선택해주세요.'
+      : 'This time occurs twice. Choose which occurrence to use.';
+}
+
+String _occurrenceLabel(BuildContext context, int index, int offsetSeconds) {
+  final occurrence = Localizations.localeOf(context).languageCode == 'ko'
+      ? (index == 0 ? '첫 번째' : '두 번째')
+      : (index == 0 ? 'First' : 'Second');
+  return '$occurrence (${CivilTimeResolver.formatUtcOffset(offsetSeconds)})';
 }
 
 String _localizedDateString(BuildContext context, DateTime date) {

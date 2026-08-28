@@ -1,5 +1,1 @@
-enum LoginPlatform {
-  google,
-  kakao,
-  none,
-}
+enum LoginPlatform { google, kakao, none }

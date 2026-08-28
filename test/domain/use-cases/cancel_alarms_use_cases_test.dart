@@ -3,7 +3,6 @@ import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
-import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/cancel_schedule_alarm_use_case.dart';
 
@@ -53,24 +52,18 @@ void main() {
   );
 
   test(
-    'CancelAllAlarmsUseCase clears registry and unregisters device on logout',
+    'CancelAllAlarmsUseCase cancels local alarms and clears the registry',
     () async {
       final registry = _FakeAlarmRegistryRepository([
         _record('native', AlarmProvider.androidAlarmManager),
         _record('fallback', AlarmProvider.localNotification),
         _record('none', AlarmProvider.none),
       ]);
-      final alarmRepository = _FakeAlarmRepository();
       final scheduler = _FakeAlarmSchedulerService();
       final fallback = _FakeFallbackAlarmNotificationService();
-      final useCase = CancelAllAlarmsUseCase(
-        alarmRepository,
-        registry,
-        scheduler,
-        fallback,
-      );
+      final useCase = CancelAllAlarmsUseCase(registry, scheduler, fallback);
 
-      await useCase(unregisterDevice: true);
+      await useCase();
 
       expect(scheduler.canceledNative.map((record) => record.scheduleId), [
         'native',
@@ -79,27 +72,21 @@ void main() {
         'fallback',
       ]);
       expect(registry.deleteAllCount, 1);
-      expect(alarmRepository.unregisteredDeviceIds, ['device-1']);
     },
   );
 
-  test(
-    'CancelAllAlarmsUseCase tolerates unregister failures during cleanup',
-    () async {
-      final registry = _FakeAlarmRegistryRepository(const []);
-      final alarmRepository = _FakeAlarmRepository()..throwOnUnregister = true;
-      final useCase = CancelAllAlarmsUseCase(
-        alarmRepository,
-        registry,
-        _FakeAlarmSchedulerService(),
-        _FakeFallbackAlarmNotificationService(),
-      );
+  test('CancelAllAlarmsUseCase clears an empty local registry', () async {
+    final registry = _FakeAlarmRegistryRepository(const []);
+    final useCase = CancelAllAlarmsUseCase(
+      registry,
+      _FakeAlarmSchedulerService(),
+      _FakeFallbackAlarmNotificationService(),
+    );
 
-      await useCase(unregisterDevice: true);
+    await useCase();
 
-      expect(registry.deleteAllCount, 1);
-    },
-  );
+    expect(registry.deleteAllCount, 1);
+  });
 }
 
 ScheduledAlarmRecord _record(String scheduleId, AlarmProvider provider) {
@@ -161,25 +148,6 @@ class _FakeFallbackAlarmNotificationService
   @override
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) async {
     canceledFallback.add(record);
-  }
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FakeAlarmRepository implements AlarmRepository {
-  final unregisteredDeviceIds = <String>[];
-  bool throwOnUnregister = false;
-
-  @override
-  Future<String> getDeviceId() async => 'device-1';
-
-  @override
-  Future<void> unregisterCurrentDevice(String deviceId) async {
-    if (throwOnUnregister) {
-      throw Exception('backend unavailable');
-    }
-    unregisteredDeviceIds.add(deviceId);
   }
 
   @override

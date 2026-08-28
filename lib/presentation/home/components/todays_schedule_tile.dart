@@ -52,10 +52,7 @@ class TodaysScheduleTile extends StatelessWidget {
               compact: compact,
             ),
           ),
-          VerticalDivider(
-            width: 1,
-            color: colorScheme.primary,
-          ),
+          VerticalDivider(width: 1, color: colorScheme.primary),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(
@@ -89,18 +86,16 @@ class TodaysScheduleTile extends StatelessWidget {
         width: double.infinity,
         constraints: BoxConstraints(minHeight: compact ? 48 : 54),
         alignment: schedule == null ? Alignment.centerLeft : null,
-        child:
-            schedule == null ? _noSchedule(context) : _scheduleExists(context),
+        child: schedule == null
+            ? _noSchedule(context)
+            : _scheduleExists(context),
       ),
     );
   }
 }
 
 class _ScheduleDetailsColumn extends StatelessWidget {
-  const _ScheduleDetailsColumn({
-    required this.schedule,
-    required this.compact,
-  });
+  const _ScheduleDetailsColumn({required this.schedule, required this.compact});
 
   final ScheduleEntity schedule;
   final bool compact;
@@ -166,11 +161,7 @@ class _ScheduleLeftTimeColumn extends StatelessWidget {
           final hours = leftTime.inHours;
           final minutes = leftTime.inMinutes % 60;
 
-          return _TimeColumn(
-            hour: hours,
-            minute: minutes,
-            compact: compact,
-          );
+          return _TimeColumn(hour: hours, minute: minutes, compact: compact);
         },
       ),
     );
@@ -200,9 +191,7 @@ class _TimeColumn extends StatelessWidget {
           AppLocalizations.of(context)!.untilAppointment,
           style:
               (compact ? theme.textTheme.labelSmall : theme.textTheme.bodySmall)
-                  ?.copyWith(
-            color: colorScheme.primary,
-          ),
+                  ?.copyWith(color: colorScheme.primary),
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -210,12 +199,11 @@ class _TimeColumn extends StatelessWidget {
         SizedBox(height: compact ? 2 : 4),
         Text(
           '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-          style: (compact
-                  ? theme.textTheme.labelLarge
-                  : theme.textTheme.titleSmall)
-              ?.copyWith(
-            color: colorScheme.primary,
-          ),
+          style:
+              (compact
+                      ? theme.textTheme.labelLarge
+                      : theme.textTheme.titleSmall)
+                  ?.copyWith(color: colorScheme.primary),
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

@@ -20,19 +20,21 @@ class OnboardingTitle extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         RichText(
-            text: TextSpan(
-                text: title,
-                style: textTheme.titleLarge,
-                children: hint != null
-                    ? [
-                        TextSpan(
-                          text: hint,
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: AppColors.grey.shade600,
-                          ),
-                        )
-                      ]
-                    : [])),
+          text: TextSpan(
+            text: title,
+            style: textTheme.titleLarge,
+            children: hint != null
+                ? [
+                    TextSpan(
+                      text: hint,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: AppColors.grey.shade600,
+                      ),
+                    ),
+                  ]
+                : [],
+          ),
+        ),
         SizedBox(height: 8.0),
         subTitle ?? const SizedBox.shrink(),
       ],

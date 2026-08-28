@@ -6,50 +6,39 @@ class AppInputDecorationTheme {
   AppInputDecorationTheme._();
 
   static InputDecorationTheme create(
-      ColorScheme colorScheme, TextTheme textTheme) {
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
     return InputDecorationTheme(
       // Content padding
-      contentPadding:
-          const EdgeInsets.symmetric(vertical: 16.0, horizontal: 0.0),
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 16.0,
+        horizontal: 0.0,
+      ),
 
       // Border styling
       border: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.outline,
-          width: 1.0,
-        ),
+        borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
       ),
 
       // Enabled border (normal state)
       enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.outline,
-          width: 1.0,
-        ),
+        borderSide: BorderSide(color: colorScheme.outline, width: 1.0),
       ),
 
       // Focused border (blue underline)
       focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.primary,
-          width: 2.0,
-        ),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2.0),
       ),
 
       // Error border (red underline)
       errorBorder: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.error,
-          width: 2.0,
-        ),
+        borderSide: BorderSide(color: colorScheme.error, width: 2.0),
       ),
 
       // Focused error border
       focusedErrorBorder: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: colorScheme.error,
-          width: 2.0,
-        ),
+        borderSide: BorderSide(color: colorScheme.error, width: 2.0),
       ),
 
       // Disabled border
@@ -73,9 +62,7 @@ class AppInputDecorationTheme {
         color: colorScheme.outlineVariant,
       ),
 
-      errorStyle: textTheme.bodySmall?.copyWith(
-        color: colorScheme.error,
-      ),
+      errorStyle: textTheme.bodySmall?.copyWith(color: colorScheme.error),
 
       helperStyle: textTheme.bodySmall?.copyWith(
         color: colorScheme.outlineVariant,

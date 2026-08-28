@@ -27,7 +27,9 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
   }
 
   void _onTimerStarted(
-      ScheduleTimerStarted event, Emitter<ScheduleTimerState> emit) {
+    ScheduleTimerStarted event,
+    Emitter<ScheduleTimerState> emit,
+  ) {
     _scheduleTime = event.scheduleTime;
     _tickerSubscription?.cancel();
     _initialTimer?.cancel();
@@ -41,11 +43,13 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
       return;
     }
 
-    emit(ScheduleTimerRunning(
-      scheduleTime: event.scheduleTime,
-      currentTime: now,
-      remainingDuration: difference,
-    ));
+    emit(
+      ScheduleTimerRunning(
+        scheduleTime: event.scheduleTime,
+        currentTime: now,
+        remainingDuration: difference,
+      ),
+    );
 
     // Calculate time until next minute boundary (when seconds = 0)
     final secondsUntilNextMinute = 60 - now.second;
@@ -59,20 +63,23 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
       add(ScheduleTimerTicked(DateTime.now()));
 
       // Now create a periodic timer that runs exactly every minute
-      _tickerSubscription = Stream.periodic(
-        const Duration(minutes: 1),
-        (_) => DateTime.now(),
-      ).listen((currentTime) {
-        // Check if bloc is still active before adding events
-        if (!isClosed) {
-          add(ScheduleTimerTicked(currentTime));
-        }
-      });
+      _tickerSubscription =
+          Stream.periodic(
+            const Duration(minutes: 1),
+            (_) => DateTime.now(),
+          ).listen((currentTime) {
+            // Check if bloc is still active before adding events
+            if (!isClosed) {
+              add(ScheduleTimerTicked(currentTime));
+            }
+          });
     });
   }
 
   void _onTimerTicked(
-      ScheduleTimerTicked event, Emitter<ScheduleTimerState> emit) {
+    ScheduleTimerTicked event,
+    Emitter<ScheduleTimerState> emit,
+  ) {
     if (_scheduleTime == null) return;
 
     final difference = _scheduleTime!.difference(event.currentTime);
@@ -81,16 +88,20 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
       emit(ScheduleTimerFinished(scheduleTime: _scheduleTime!));
       _tickerSubscription?.cancel();
     } else {
-      emit(ScheduleTimerRunning(
-        scheduleTime: _scheduleTime!,
-        currentTime: event.currentTime,
-        remainingDuration: difference,
-      ));
+      emit(
+        ScheduleTimerRunning(
+          scheduleTime: _scheduleTime!,
+          currentTime: event.currentTime,
+          remainingDuration: difference,
+        ),
+      );
     }
   }
 
   void _onTimerStopped(
-      ScheduleTimerStopped event, Emitter<ScheduleTimerState> emit) {
+    ScheduleTimerStopped event,
+    Emitter<ScheduleTimerState> emit,
+  ) {
     _tickerSubscription?.cancel();
     _initialTimer?.cancel();
     _scheduleTime = null;
@@ -98,7 +109,9 @@ class ScheduleTimerBloc extends Bloc<ScheduleTimerEvent, ScheduleTimerState> {
   }
 
   void _onTimerUpdated(
-      ScheduleTimerUpdated event, Emitter<ScheduleTimerState> emit) {
+    ScheduleTimerUpdated event,
+    Emitter<ScheduleTimerState> emit,
+  ) {
     if (event.scheduleTime == null) {
       _tickerSubscription?.cancel();
       _initialTimer?.cancel();

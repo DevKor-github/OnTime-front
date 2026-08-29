@@ -61,6 +61,14 @@ List<String> validateLocalOnlyBoundary(Directory root) {
     if (content.contains('firebase') || content.contains('google-services')) {
       failures.add('$path contains a removed remote SDK configuration');
     }
+    if (path == 'ios/Runner/AppDelegate.swift' &&
+        const [
+          'messaging.messaging()',
+          'registerforremotenotifications',
+          'didregisterforremotenotificationswithdevicetoken',
+        ].any(content.contains)) {
+      failures.add('$path contains a removed remote notification hook');
+    }
   }
 
   return failures;

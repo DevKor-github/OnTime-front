@@ -71,6 +71,37 @@ List<String> validateLocalOnlyBoundary(Directory root) {
     }
   }
 
+  final webIndex = File('${root.path}/web/index.html');
+  if (webIndex.existsSync()) {
+    final content = webIndex.readAsStringSync().toLowerCase();
+    for (final marker in const [
+      'src="http://',
+      'src="https://',
+      "src='http://",
+      "src='https://",
+      'firebase-messaging-sw.js',
+      'google-signin-client_id',
+      'sqlite3wasmuri',
+    ]) {
+      if (content.contains(marker)) {
+        failures.add('web/index.html contains remote runtime marker $marker');
+      }
+    }
+  }
+
+  if (File('${root.path}/web/firebase-messaging-sw.js').existsSync()) {
+    failures.add('web/firebase-messaging-sw.js remains in the product bundle');
+  }
+
+  final webBootstrap = File('${root.path}/web/flutter_bootstrap.js');
+  if (Directory('${root.path}/web').existsSync() &&
+      (!webBootstrap.existsSync() ||
+          !RegExp(
+            r'''canvasKitBaseUrl\s*:\s*['"]canvaskit/['"]''',
+          ).hasMatch(webBootstrap.readAsStringSync()))) {
+    failures.add('web/flutter_bootstrap.js does not pin CanvasKit locally');
+  }
+
   return failures;
 }
 

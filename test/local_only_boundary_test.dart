@@ -40,4 +40,31 @@ void main() {
       ),
     );
   });
+
+  test('web remote bootstrap resources violate the local-only boundary', () {
+    final root = Directory.systemTemp.createTempSync(
+      'ontime_web_local_only_boundary_',
+    );
+    addTearDown(() => root.deleteSync(recursive: true));
+
+    Directory('${root.path}/lib').createSync(recursive: true);
+    File(
+      '${root.path}/pubspec.yaml',
+    ).writeAsStringSync('name: local_only_fixture\ndependencies:\n');
+    final manifest = File(
+      '${root.path}/android/app/src/main/AndroidManifest.xml',
+    );
+    manifest.parent.createSync(recursive: true);
+    manifest.writeAsStringSync('<manifest />');
+    final webIndex = File('${root.path}/web/index.html');
+    webIndex.parent.createSync(recursive: true);
+    webIndex.writeAsStringSync(
+      '<script src="https://accounts.example.test/client.js"></script>',
+    );
+
+    expect(
+      validateLocalOnlyBoundary(root),
+      contains('web/index.html contains remote runtime marker src="https://'),
+    );
+  });
 }

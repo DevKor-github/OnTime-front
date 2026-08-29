@@ -24,19 +24,12 @@
     <meta name="theme-color" content="transparent">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-
-    <meta name="google-signin-client_id"
-        content="456571312261-5kuf2r6i5i7lqjr7qealv06sdgkn3hcp.apps.googleusercontent.com">
-    <meta name="use_fedcm_for_prompt" content="true">
-
-
     <!-- iOS meta tags & icons -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="OnTime" />
     <link rel="apple-touch-icon" href="icons/Icon-192.png" />
-
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -54,20 +47,10 @@
         }
     </style>
 
-
-
+    <script src="sodium.js"></script>
 </head>
 
 <body>
-    <script>
-        window.sqlite3WasmUri = "https://unpkg.com/sql.js@1.8.0/dist/sql-wasm.wasm";
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('firebase-messaging-sw.js');
-            });
-        }
-    </script>
-    <script src="https://accounts.google.com/gsi/client" async></script>
     <script src="functions.js"></script>
     <script src="flutter_bootstrap.js" async></script>
 </body>

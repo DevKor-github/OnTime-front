@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:on_time_front/core/backup/backup_password.dart';
-import 'package:sodium_libs/sodium_libs_sumo.dart';
+import 'package:sodium/sodium_sumo.dart';
 
 class BackupCrypto {
   BackupCrypto({Future<SodiumSumo> Function()? sodiumLoader})
-    : _sodiumLoader = sodiumLoader ?? SodiumSumoInit.init;
+    : _sodiumLoader = sodiumLoader ?? (() async => SodiumSumoInit.init());
 
   static const _magic = 'ONTIMEBK';
   static const formatVersion = 1;
@@ -150,9 +150,9 @@ class BackupCrypto {
     final signedPassword = Int8List.fromList(
       password.utf8Bytes.map((byte) => byte > 127 ? byte - 256 : byte).toList(),
     );
-    return sodium.runIsolated((isolated, _, _) {
-      return isolated.crypto.pwhash(
-        outLen: isolated.crypto.secretStream.keyBytes,
+    return sodium.runIsolated((_, _) {
+      return sodium.crypto.pwhash(
+        outLen: sodium.crypto.secretStream.keyBytes,
         password: signedPassword,
         salt: salt,
         opsLimit: opsLimit,

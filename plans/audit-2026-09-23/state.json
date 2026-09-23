@@ -290,18 +290,24 @@
         "`reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214`",
         "permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시."
       ],
-      "status": "implementation_in_progress",
+      "status": "code_verified_ci_pending",
       "agent": "/root/grill_a14",
       "issue_number": 593,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/593",
       "decisions_file": "plans/audit-2026-09-23/issues/A14.md",
-      "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "implementation_commit": "282db21f5effa86eb2f82c81c247d57a0a6acfd0",
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Frozen source24 SHA256 matched; focused100/full772, analyzer, native Swift SDK/Kotlin compile, generated/local-only checks passed. a14-validation.json.",
+        "Root visually reviewed actual MyPage standalone KO/EN captures; fake receipts/in-memory DB, not physical OS screenshots."
+      ],
+      "blockers": [
+        "Remote CI pending; actual Android/iOS delivery and permission/Doze/reboot matrix not executed."
+      ],
       "sequence": 9,
       "issue_body_sha256": "23769c09503d629f813df5b93db7b2b6fce715dd15ea1571ea09fa06b9c1a5d4",
-      "readback_verified": true
+      "readback_verified": true,
+      "body_sha256": "2c068b0a81fa6eae7e339bff394a6e492a71f8395cc37ad7a724a2b7652c85a8"
     },
     {
       "audit_id": "A15",
@@ -314,7 +320,7 @@
         "`reconcile_alarms_use_case.dart:43-57`; `schedule_mutation_alarm_effects_coordinator.dart:37-52`",
         "dirty flag/data revision 기반 재실행 또는 직렬 작업 큐. snapshot 읽기 뒤 생성·수정·삭제를 끼워 넣어 최종 OS 예약이 최신 DB를 반영하는지 검사. reset/cancel과 경계 공유."
       ],
-      "status": "ready",
+      "status": "implementing",
       "agent": "/root/grill_a15",
       "issue_number": 594,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/594",

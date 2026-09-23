@@ -24,8 +24,8 @@
 | A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 089afee5 원격636 tests/84.96%·APK 통과, 최신main 통합678 tests 통과, 기기 검증 대기 |
 | A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 콜드 탭·선택 준비 유지 구현, 최종 b9f959db 원격707 tests/analyze·coverage87.11%·APK 통과, 기기 검증 대기 |
 | A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 예약/안내·registry 후속 수정 원격740 tests/87.20%·APK 통과, 기기 대기 |
-| A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | 실제3문답·플랫폼별 관측/취소 기준 확정, 전담 구현 중 |
-| A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 실제4문답·요청별 완료/실패 및 세대 직렬화 기준 확정, A14 뒤 구현 |
+| A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | provider 관측·취소 보존 구현282db21f, 로컬772 tests/native SDK 통과, 원격 CI·기기 대기 |
+| A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 실제4문답·요청별 완료/실패 및 세대 직렬화 기준 확정, 전담 구현 중 |
 | D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 실제4문답·취소 journal/중단 복구/부분 결과 기준 확정, A15 뒤 구현 |
 | A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | 실제3문답·정정 포함, 신선한 실제 타이머 전환 알림 기준 확정 |
 | A07 | [#599](https://github.com/DevKor-github/OnTime-front/issues/599) | 실제3문답·추가 정정 포함, DB 원자적 시작·run 시각·실패 재시도 기준 확정 |
@@ -36,7 +36,7 @@
 | D02 | [#604](https://github.com/DevKor-github/OnTime-front/issues/604) | 실제4문답·손상 DB 후보 검증/활성 쌍 교체·중단 복구 기준 확정 |
 | U08 | [#597](https://github.com/DevKor-github/OnTime-front/issues/597) | 홈 overflow 선행 수정18 tests/analyze 통과, 전체 매트릭스·기기 검증 미완료 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **19/64개**를 게시하고 원격 본문 동일성을 확인했으며 **45개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14 최종 검증을 진행 중이며 A15 전담은 순차 구현을 준비한다. D02까지 실제 문답과 복구 설계가 확정됐고 D03는 구현 대기다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **19/64개**를 게시하고 원격 본문 동일성을 확인했으며 **45개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14 로컬772 tests·native SDK 검증 후282db21f로 커밋했고 A15 전담 구현을 시작했다. D02까지 실제 문답과 복구 설계가 확정됐고 D03는 구현 대기다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
 
 ## 실행 순서
 

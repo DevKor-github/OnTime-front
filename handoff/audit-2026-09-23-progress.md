@@ -1,108 +1,50 @@
-# 종합 개선 실행 상태 — 진행 중
+# OnTime 종합 개선 실행 인계 — 진행 중
 
-이 파일은 완료 보고가 아니라 장기 실행의 인계 기록이다. 현재 상태의 기준은 `plans/audit-2026-09-23/state.json`, 이슈 상세/실제 문답은 `plans/audit-2026-09-23/issues/`다.
+현재 상태의 기준은 `plans/audit-2026-09-23/state.json`, 실제 문답과 이슈 본문은 `plans/audit-2026-09-23/issues/`다. 과거 검증 상세는 이슈별 validation JSON과 Git 기록을 읽는다.
 
-## 사용자 요청과 실행 규칙
+## 사용자 요청과 제품 경계
 
-- 감사 59개 개선 항목과 5개 기능 후보 전체(64개)를 상세 GitHub 이슈로 만들고 우선순위/의존성 순서로 구현·검증한다.
-- 각 이슈마다 새로운 전담 서브에이전트가 grill-with-docs를 읽고 root에게 질문을 한 번에 하나씩 묻는다. root가 사용자 대리로 답하고 실제 질문/답변 전체를 이슈에 포함한다. 가상 인터뷰 금지.
-- GitHub 게시 후 원격 본문을 read-back하여 로컬 원문과 대조한다.
-- Android/iOS local-only 제품. 서버/로그인/자동 cloud sync/remote analytics를 추가하지 않는다.
-- 실기기 검증을 자동 테스트나 빌드 성공으로 대체하지 않는다. 미실행 수용조건이 있으면 이슈를 열어 둔다.
+감사 59개 개선 항목과 기능 후보 5개, 총64개를 상세 GitHub 이슈로 만들고 우선순위/의존성 순서로 구현·검증한다. 항목마다 새 전담 서브에이전트가 grill-with-docs를 읽고 root에게 한 질문씩 보낸다. root가 사용자 대신 답하며 실제 전체 문답을 이슈에 넣고 게시 후 원격 본문과 대조한다. Android/iOS local-only 제품이며 서버·로그인·자동 cloud sync·remote analytics를 추가하지 않는다.
 
-## 저장소 및 전달
+실행하지 않은 수용 기준이 있으면 이슈는 열어 둔다. 테스트·빌드·PR·병합·실기기 전달·store 출시는 각각 다른 상태다. 사용자 추가 승인 없이 이미 확정한 범위의 구현, 커밋, Draft PR 갱신을 이어간다.
 
-- 저장소: DevKor-github/OnTime-front
-- 브랜치: fix/audit-20260923-stabilization
-- Draft PR: https://github.com/DevKor-github/OnTime-front/pull/585 (현재 task에 attach 완료)
-- 감사 baseline: 44067d7ab26b6290c16cdb13b99f57387dec08f6
-- A01: #583, 6e17e764
-- A02: #584, 35f4d603
-- A03: #586, 8eab02bd
-- A04: #587, c11d970c
-- A05: #588, 0c41589e. 전체617 tests/analyze 및 Android release APK CI 통과. coverage84.98%. 실제기기·후속 통합 미완료
-- A11: #589, 089afee5. 원격 전체 636 tests/coverage 84.96% 및 Android APK CI 통과. Native 행동/실제 SDK 타입검사 통과. 실제 기기 검증은 대기.
-- A12: #591, 실제4Q&A 및12차 검토 원격readback완료. 소스 동결, 최신 집중107 tests/analyze/정책 통과. 최신 전체suite는 ENOSPC로 원격 CI 대기. 이전707개 결과와 구분.
-- A13: #592, 실제3Q&A 포함본문readback완료. A12뒤구현대기.
-- A14: #593, 실제 3문답과 플랫폼 관측·취소 기준을 게시하고 본문 read-back 완료. A13 뒤 구현 대기.
-- A15: #594, 실제 4문답 전체 게시 및 read-back 완료, A14 뒤 구현 대기.
-- D03: #595, 실제 4문답 및 Q4 보충 포함 본문 read-back 완료. 구현 대기. A12 소스는 grill_a12만 수정하며 root는 추적 문서와 GitHub를 담당.
-- 나머지 이슈는 아직 생성 전이다. 전체 완료나 64개 생성 완료로 보고하지 않는다.
+## 현재 저장소와 이슈
 
-## 검증 경계
+- 저장소 DevKor-github/OnTime-front, 브랜치 fix/audit-20260923-stabilization, Draft PR #585 (task attach 완료).
+- 감사 baseline44067d7a. upstream PR590 반복 일정 main2b02fb77을 712b3708에서 통합했다. schema2/v1 migration, backupformat2/v1 호환, 반복 소유권·frozen·exclusions 및 가까운 미래60개 계약을 보존한다.
+- 상세 이슈 **19/64개** 게시 및 exact read-back 완료, **45개 생성 전**.
+- A01#583, A02#584, A03#586, A04#587, A05#588, A11#589, A12#591, A13#592, A14#593, A15#594, D03#595, U08#597, A06#598, A07#599, C01#600, A08#601, A09#602, D01#603, D02#604.
+- A01–A05/A11/A12/A13은 구현·자동 검증을 마쳤으나 기기 또는 후속 통합 조건이 남아 있다. U08은 홈 overflow 선행 패치만 구현했으며 전체 큰 글자 매트릭스는 미완료다.
+- A14는 source24개 동결 및 root hash 대조를 완료했고 receipt·전용 UI 캡처·커밋 전달을 마무리 중이다. A15 원래 전담은 readonly 준비를 마쳤으며 A14 commit 이후 구현한다.
+- A06/A07/C01/A08/A09/D01/D02/D03/A15의 실제 문답 및 상세 계획은 게시됐지만 구현 완료는 아니다.
 
-- A02 전체 Flutter 571개 및 analyze 통과.
-- A03 실제 FileSelectorIOS host 계약 등10개 + restore 화면3개 통과.
-- A04 통합 전체596개 통과 후 마지막2개 회귀는 targeted18개에 포함해 추가 통과. 수정 전 동일 회귀12개에서2pass/10fail. 실제 profile partial edit와 export snapshot 경합 테스트9개 통과. analyze 통과.
-- A01/A02 head 35f4d603에 대한 GitHub Dart/coverage 통과, Android release APK 및 APK/merged manifest 통과: run35825051793. identity JSON은 plans/audit-2026-09-23/a01-apk-validation.json. 일회용 검증 서명이며 store release 아님.
-- 최신 PR checks는 다시 읽어야 한다. 오래된 SHA 통과를 최신 결과로 보고하지 않는다.
-- Android 연결기기 없음. iOS 물리 기기는 offline. 부팅된 iPhone 17/iOS 26.5 시뮬레이터 `OnTime Recurring QA 20260923` (C8BA159D-A97A-458B-A5FC-B04A8B6F2848)에 기존 반복 QA 앱/데이터가 있으므로 보존한다. 시뮬레이터 발견만으로 picker/provider/양방향 복원/실제 알림 전달 검증을 완료하지 않는다.
-- Kotlin actual SDK compile, Swift plugin/XCTest typecheck 통과는 native runtime 테스트 및 전체 iOS linking과 다르다.
+## 최근 검증과 코드 기준
 
-## 에이전트 실행 상태
+- A12 b9f959db: remote707 tests/analyze, coverage87.11%, Android APK/manifest 통과. a12-ci-validation.json. 실제 OS cold-tap 미실행.
+- U08 bde8b2de: 실제 폰트430×932 홈14px overflow 수정. focused18, analyzer 및 전용 PNG 검토. 전체 매트릭스 미완료.
+- A13 59d92bdd: 정확 시각 권한·실제 timing receipt·선택적 안내 구현, 로컬734 tests. 이후 registry sanitizer가 timing을 누락하는 실제 결함을 발견해 edfff97c로 별도 수정, actual datasource/SharedPreferences mock 왕복6개 추가.
+- A13 최종 후속 head e2fbdf0b: Flutter run35885445743 전체740/analyze·coverage87.20%(11319/12981), Android run35885445710 APK/manifest 통과. artifact10763011276, synthetic merge67efb127, APK SHA2560ba8caf4d01d1c043b7c237af1c67a42626bff73743d58d5a011e93c747a293a. a13-persistence-ci-validation.json에 기록. 이전734 결과는 sanitizer 결함의 검출 증거가 아니다.
+- A14 최종 frozen source는 focused100, 전체772 tests/analyze, 실제 iOS26.5 SDK typecheck 및 AndroidSDK36/Flutter Kotlin compile을 통과했다. 중간 Flutter 명령 동시 실행의 ephemeral symlink 실패는 테스트 시작 전 환경 오류였고 같은 소스로 직렬 재시도해 통과했다. APK/Runner 전체 linking·실기기 전달과 구별한다.
+- D02 결정으로 CONTEXT active key 용어를 정정하고 ADR0036을 e733c472에 기록했다. 정확히 한 active pair와 후보/retired의 한시 보존, manifest/store epoch와 DB runtime generation의 역할을 분리한다. 설계 확정이며 구현 완료가 아니다.
 
-신규 agent 생성 오류는 이전 에이전트 완료 후 해소됐다. 원래 요청한 항목별 새 전담 agent 방식을 유지한다. A12 구현 중, A13/A14는 각 원래 전담 agent가 이후 구현하며 D03 문답과 게시가 완료됐다. U08 신규 agent 생성은 일시 한도 오류로 대기하며 A12 완료 후 다시 시도한다. 이전의 새 작업 또는 agent 재사용 질문은 더 이상 진행 조건이 아니다.
+## 에이전트와 다음 작업
 
-## 로컬 환경
+1. A14 전담 `/root/grill_a14`의 최종 receipt/capture를 읽고 root가 #593 본문 exact read-back→명시적 source staging→commit/push→새 SHA CI를 기록한다. A14 동결 소스를 임의 수정하지 않는다.
+2. `/root/grill_a15` 원래 전담에 A14 commit SHA를 전달하고 확정 #594 범위를 구현하도록 한다. 작은 단일 알림 writer, request cutoff별 완료와 trailing rerun, replacement quiesce/late native 반환 소유권을 지킨다. D03의 durable crash journal이나 D02 manifest를 여기서 완료했다고 주장하지 않는다.
+3. 이후 D03→A06→A07→C01→A08→A09 순서와 README 전체 우선순위를 따른다. 독립적인 다음 grill은 병행 가능하다.
+4. D04 신규 전담 생성은 agent thread limit으로 두 번 거절됐다. 다른 이슈 전담을 재사용하지 말고 슬롯/다음 실행에서 다시 생성한다. 기존 A15 전담 followup은 정상 접수됐다. 사용자 추가 승인/새 작업 요청은 필요 없다.
+5. D04 사전 read-only 확인: upstream schema2와 실제 v1→v2 onUpgrade가 존재한다. recurring_migration_test는 현재v2 파일에서 반복 표면을 제거해 v1처럼 만든 파일을 재연다. 따라서 감사 baseline의 'migration 없음'을 그대로 재게시하지 말고 고정 과거 schema fixture·upgrade 실패 rollback/키 보존 등 실제 남은 범위를 새 전담 grill로 재평가한다.
 
-- Flutter: /Users/ejunpark/Library/flutter/bin/flutter
-- Dart: /Users/ejunpark/Library/flutter/bin/cache/dart-sdk/bin/dart
-- gh: /Users/ejunpark/.local/bin/gh
-- shell 실행은 login:false. login shell에서 무관한 rbenv/디스크 오류가 있었음.
-- 현재 worktree `.dart_tool`/codegen 준비됨. source 변경 후 generator 재실행, 생성 Dart는 ignored artifact로 commit 금지.
-- 디스크 여유 최근 약0.3GiB로 줄었으며 수시로 변함. 무거운 iOS/Android local build 전에 확인하고 사용자 파일을 삭제해 공간을 만들지 않는다.
-- baseline npm test는 의도적 실패 placeholder이므로 쓰지 않는다.
+## 환경과 주의
 
-## 다음 작업
+- Flutter `/Users/ejunpark/Library/flutter/bin/flutter`, Dart `/Users/ejunpark/Library/flutter/bin/cache/dart-sdk/bin/dart`, gh `/Users/ejunpark/.local/bin/gh`.
+- shell은 login:false, sandbox_permissions를 넣지 않는다. Flutter 명령들은 ephemeral plugin 준비 경합을 피하도록 직렬 실행한다.
+- generated Dart `*.g.dart`/config/mocks/freezed는 ignored local outputs이며 커밋하지 않는다. 기존 tracked l10n 출력은 변경 ARB와 함께 관리한다. root npm test는 의도적 실패 placeholder이므로 사용하지 않는다.
+- 디스크 최근6.6GiB. 사용자 파일/다른 worktree를 정리하지 않는다. Android 연결기기 없고 물리iOS는 offline이었다.
+- 부팅된 iPhone17/iOS26.5 simulator OnTime Recurring QA 20260923 (C8BA159D-A97A-458B-A5FC-B04A8B6F2848)의 upstream QA 앱·데이터는 보존한다. 발견만으로 실제 전달·provider·양방향복원 검증을 통과 처리하지 않는다.
+- `/Users/ejunpark/.codex/worktrees/7b29/OnTime-front`는 다른 작업이다. 수정하지 않는다.
+- helper `/tmp/ontime-ci-audit.py`는 전체40자리 head SHA를 요구하며 해당 head의 Flutter와 Android 결과/작은 artifact identity를 기록한다. short SHA의 빈 결과를 근거로 쓰지 않는다.
 
-1. A12 전담 구현과 실제 router/Bloc/gate 회귀를 검토하고 source freeze 후 전체 테스트·커밋·CI를 진행한다.
-2. U08 새 전담 grill을 생성해 홈 카드 overflow 근거를 이슈화한다. 오류를 숨기지 않고 430×932 홈 회귀를 좁게 선행 수정할 수 있도록 의존성을 정한다. A12 완료 뒤 A13, A14, A15 순서로 구현한다.
-3. A12 커밋의 새 CI 결과와 APK identity를 기록하고 PR 및 이슈 검증 상태를 갱신한다. 통합 712b3708 CI는 모두 통과했다.
-4. 기존 QA 데이터와 사용자 파일을 보존하며 native 검증 환경을 활용한다. 실행하지 못한 실제 기기 조건은 open 상태로 유지한다.
+## A14 전달 완료와 A15 시작
 
-## Upstream main 통합과 CI
-
-A11 커밋 `089afee51b2572339b4650bd3679b1a1ef72781e`의 원격 workflow_dispatch Flutter run 35828807338은 636 tests/coverage 84.96%, Android run 35828809625는 APK/manifest 통과다. 각 receipt를 plans에 기록했다.
-
-작업 중 main에 PR #590 반복 일정 기능이 병합되어 PR #585가 충돌했다. PR baseRefOid/REST base.sha는 과거 기준을 반환했지만 git ls-remote 및 git/ref/heads/main은 `2b02fb770324de291488f3c74fe503dc063e2459`를 반환했다. 현재 main을 확인할 때 PR base 필드에 의존하지 않는다.
-
-Root는 main을 통합하면서 backup_service_test.dart 충돌 하나를 양측 회귀 보존으로 해결했다. 반복 일정, DB schema2 및 v1 migration, backup format2/v1 호환과 기존 감사 수정을 함께 검증했다. 생성기, local analyze, 전체 678 tests, generated/local-only 정책 검사가 통과했다. 통합 커밋 `712b37081f95ea30aa6d1c61072d167ddaec78de`를 push했고 PR은 MERGEABLE이다. 원격 Flutter run 35829634205도 678 tests와 coverage 85.35% (10679/12512)를 통과했다. Android run 35829634224도 통과했고, PR synthetic merge 31158b42의 APK identity를 upstream-integration-apk-validation.json에 기록했다.
-
-A12는 통합 이후 구현을 재개했다. A13/A14/A15 문답 준비는 독립적으로 진행하되 소스 구현은 순차적이다. 후속 감사(D04 migration, F01 반복 일정 등)는 upstream 기능으로 해결된 범위를 재평가해야 한다. 감사 baseline은 44067d7a이며, 현재 통합한 main은 2b02fb77이다.
-
-## 추가 UI 회귀 발견
-
-A12 실제 router 테스트에서 EN, 430×932/DPR1/text scale1, 실제 Pretendard 폰트로 home_screen_tmp.dart:185가 14px overflow했다. 원본 로그는 /tmp/a12-overflow.log, 영속 사본은 plans/audit-2026-09-23/u08-home-overflow-baseline.txt다. 390×844의 A12 경로는 통과한다. 홈 소스는 아직 수정하지 않았고 U08 전체 완료를 의미하지 않는다. 신규 grill_u08 생성이 2회 한도 오류로 실패했으며 A12 완료 뒤 다시 시도한다. 사용자에게 새 질문을 할 상황이 아니며 이미 준비된 A13 구현 등 진행 가능한 작업을 계속한다.
-
-A12 최종 소스24개 SHA-256을 a12-validation.json과 대조해 일치 확인했다. 선택한 준비 C→D→홈 실제 router 경로를 검증했다. 신규 U08 agent 생성 및 기존 A13 followup 모두 agent thread limit 오류였으며 조건 완화 없이 재시도/기존 확정 이슈 구현을 진행한다.
-
-## 2026-09-24 이어서 실행
-
-A12 b9f959db commit/push 및 PR 원격 head 확인 완료. GitHub Flutter run35881988783, Android run35881988613 실행 중. PR 상세 본문 갱신·동일성 read-back 완료. Agent 한도 해소 후 신규 U08/A06 전담 grill과 기존 A13 전담 구현이 실행 중이며 root가 실제 질문에 순차 답변한다. A12 이전707개 결과는 최종 소스 검증으로 재사용하지 않는다.
-
-A12 최종 b9f959db Flutter run35881988783이 707 tests/analyze/coverage87.11% (11189/12844) 통과했다. 이전 로컬707과 수는 같지만 최종 source에 대한 별도의 원격 증거다. Android run35881988613은 계속 실행 중.
-
-U08 #597와 A06 #598 생성 후 exact body read-back 완료. 13/64개 이슈 게시, 51개 생성 전. U08 홈 선행패치 구현 중(전체 매트릭스 완료 아님). A06 문답3개 및 OFF정책 정정 포함 준비 완료, A07 새 전담 grill 시작.
-
-A12 Android run35881988613 통과, artifact10760609601 및 synthetic merge1c8e60c3 identity read-back 완료. 상태 code_verified_device_pending. #591 본문에 최종 Flutter707/87.11%·APK 기록 추가 후 exact read-back 완료.
-
-A07 #599 상세본문/실제3문답과추가정정 게시후 exactreadback완료. 전체14/64개게시, 50개미생성. A14는최신A13소스readonly구현준비중이며A13commit전소스수정금지.
-
-U08 홈선행패치 sourcefreeze, 18 tests/analyze 및 root PNG시각검토/모든hash 일치. #597 본문업데이트 exactreadback완료. 전체U08미완료 유지. C01 신규전담grill시작.
-
-A13 `59d92bdd03cdd5e2dc33e95dd844f8d0bb508eab` 구현커밋. 최종전체734/analyze/정책통과; #592본체증거링크를정확commit영구링크로갱신후exactreadback완료. U08선행홈commit bde8b2de도포함. A14전담구현허용, C01/A08새전담grill진행. 원격push/CI확인이어가기.
-
-C01 #600 exactreadback완료: 15/64게시,49미생성. A08/A09전담grill진행중. A13/U08 push원격head dac9c5a2, Flutter35884708345/Android35884708227 실행중. A14조사에서 _safe가notificationTiming필드를drop하는A13실제persistence gap발견, 별도A13fix와realSharedPreferences왕복회귀우선처리. 기존734통과가이gap을커버하지못했음을명시.
-
-A13 persistence후속 `edfff97c4806fb2d154c324edf8965b1feb218e0`: sanitizer필드보존+actualdatasource/SharedPreferences mock 왕복10개통과, 원격#592본문갱신exactreadback완료. A08 #601 게시exactreadback완료, 전체16/64게시. A09문서작성중,D01새전담grill시작.
-
-
-## 최신 진행: A13 후속 CI / A09·D01 게시
-
-- A09 #602와 D01 #603을 상세 실제 문답과 함께 게시하고 exact body read-back했다. 총 18/64개 게시, 46개 미생성. D02는 네 문답 확정 후 상세 문서 작성 중이다.
-- A13 registry 후속 수정 edfff97c가 포함된 e2fbdf0b의 원격 Flutter740 tests/analyze·coverage87.20%, Android APK/manifest가 모두 통과했다. a13-persistence-ci-validation.json에 artifact10763011276 및 synthetic merge67efb127 identity를 기록했다. #592 최종 본문도 원격 동일성을 검증했다.
-- A14 전담이 최종 소스/전체 테스트/native SDK 검증 중이다. root는 unknown/unmapped 관측이 빈 ON/OFF에서 성공으로 사라지지 않게 리뷰했고 회귀가 추가됐다. 실제 OS 전달은 미실행이다.
-- D04 새 전담 생성은 agent thread limit으로 실패했다. 기존 전담을 재사용해 새 이슈 문답을 대신하지 않고 이후 재시도한다. 사용자 추가 승인 사항은 없다.
-- CONTEXT의 Installation Data Key는 정확히 하나의 active key라는 뜻으로 D02 문답에 맞춰 정정했다. 비활성 후보/retired 재료는 안전한 복구 정리까지 한시 보존한다.
-
-D02 #604도 실제 네 문답 및 보충 전체를 게시하고 exact body read-back했다. 현재 19/64개 게시, 45개 미생성. ADR0036은 e733c472에 기록했고 이슈에서 해당 commit permalink로 연결했다. A15 원래 전담 followup은 정상 접수되어 A14 commit 전 readonly 준비 중이다. D04 새 전담 생성 재시도는 여전히 thread limit이었다.
+A14는 282db21f5effa86eb2f82c81c247d57a0a6acfd0로 커밋했다. source24 해시 및 최종100/772/analyze/native SDK receipt와 전용 KO/EN PNG를 포함한다. #593 본문에 최종 구현/증거 링크를 넣고 exact read-back했다. A15 원래 전담에게 해당 SHA를 전달하고 구현을 허용했다. A14 원격 CI는 push 이후 새 head로 확인하며 아직 통과를 주장하지 않는다.

@@ -9,6 +9,7 @@ import 'package:on_time_front/presentation/onboarding/preparation_time/input_mod
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_time_input.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/tile.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/theme/tile_style.dart';
 
 class PreparationFormListField extends StatefulWidget {
@@ -64,6 +65,7 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
     height: 18,
     width: 18,
     fit: BoxFit.contain,
+    colorFilter: ColorFilter.mode(AppColors.grey.shade400, BlendMode.srcIn),
   );
 
   @override
@@ -206,7 +208,10 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
     return TextFieldTapRegion(
       child: Tile(
         key: ValueKey<String>(widget.preparationStep.id),
-        style: TileStyle(padding: EdgeInsets.fromLTRB(21, 19, 21, 19)),
+        style: TileStyle(
+          backgroundColor: AppColors.grey.shade50,
+          padding: const EdgeInsets.fromLTRB(21, 16, 30, 16),
+        ),
         leading: widget.index == null
             ? dragIndicatorSvg
             : ReorderableDragStartListener(

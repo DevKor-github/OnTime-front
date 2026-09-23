@@ -608,6 +608,24 @@ abstract class AppLocalizations {
   /// **'Edit Default Preparation / Spare Time'**
   String get editDefaultPreparation;
 
+  /// Title of the spare-time and preparation edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit spare time and preparation'**
+  String get editPreparationSpareTimeHeader;
+
+  /// Action that saves and closes an edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// Accessible label for the preparation list add button
+  ///
+  /// In en, this message translates to:
+  /// **'Add preparation step'**
+  String get addPreparationStep;
+
   /// Setting tile for allowing app notifications
   ///
   /// In en, this message translates to:
@@ -653,7 +671,7 @@ abstract class AppLocalizations {
   /// Section title for editing preparation time
   ///
   /// In en, this message translates to:
-  /// **'Edit preparation time'**
+  /// **'Edit preparation steps and times'**
   String get editPreparationTime;
 
   /// Label for total preparation time

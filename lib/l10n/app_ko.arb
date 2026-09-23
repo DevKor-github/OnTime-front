@@ -92,6 +92,9 @@
     "appSettings": "앱 설정",
     "accountSettings": "계정 설정",
     "editDefaultPreparation": "기본 준비과정 / 여유시간 수정",
+    "editPreparationSpareTimeHeader": "여유시간/준비과정 수정",
+    "done": "완료",
+    "addPreparationStep": "준비 과정 추가",
     "allowAppNotifications": "앱 알림 허용",
     "preciseNotificationPermissionRequired": "정확한 알림 권한이 필요해요",
     "preciseNotificationPermissionDescription": "정확한 시간에 준비를 알려드리기 위해 이 권한이 필요해요.",
@@ -107,7 +110,7 @@
     "logOut": "로그아웃",
     "deleteAccount": "회원 탈퇴",
     "editSpareTime": "여유시간 수정",
-    "editPreparationTime": "준비시간 수정",
+    "editPreparationTime": "준비 과정 및 시간 수정",
     "totalTime": "총 시간: ",
     "scheduleOverlapWarning": "\"{scheduleName}\"과 겹치지 않으려면 {minutes}분 안에 준비해야해요",
     "@scheduleOverlapWarning": {

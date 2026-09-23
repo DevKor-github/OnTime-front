@@ -299,6 +299,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editDefaultPreparation => 'Edit Default Preparation / Spare Time';
 
   @override
+  String get editPreparationSpareTimeHeader =>
+      'Edit spare time and preparation';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get addPreparationStep => 'Add preparation step';
+
+  @override
   String get allowAppNotifications => 'Allow App Notifications';
 
   @override
@@ -321,7 +331,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editSpareTime => 'Edit spare time';
 
   @override
-  String get editPreparationTime => 'Edit preparation time';
+  String get editPreparationTime => 'Edit preparation steps and times';
 
   @override
   String get totalTime => 'Total time: ';

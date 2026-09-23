@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
@@ -10,6 +11,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_pr
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/time_stepper.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class PreparationSpareTimeEditScreen extends StatelessWidget {
   const PreparationSpareTimeEditScreen({super.key});
@@ -90,16 +92,30 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
           shadowColor: Colors.transparent,
           scrolledUnderElevation: 0,
           backgroundColor: Colors.transparent,
+          toolbarHeight: 60,
+          centerTitle: true,
           leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_rounded,
-              color: Theme.of(context).colorScheme.outlineVariant,
+            tooltip: '뒤로',
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 8),
+            icon: SvgPicture.asset(
+              'chevron_left.svg',
+              package: 'assets',
+              width: 8,
+              height: 14,
+              colorFilter: ColorFilter.mode(
+                AppColors.grey.shade500,
+                BlendMode.srcIn,
+              ),
             ),
             onPressed: () => context.pop(),
           ),
           title: Text(
-            AppLocalizations.of(context)!.editDefaultPreparation,
-            style: Theme.of(context).textTheme.titleLarge,
+            AppLocalizations.of(context)!.editPreparationSpareTimeHeader,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontSize: 19,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           actions: [
             BlocBuilder<
@@ -115,6 +131,15 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                       previous.isValid != current.isValid,
                   builder: (context, preparationState) {
                     return TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(44, 44),
+                        padding: EdgeInsets.zero,
+                        textStyle: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
                       onPressed: state2.canSubmit && preparationState.isValid
                           ? () {
                               final currentPreparationState = context
@@ -131,7 +156,7 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                                   );
                             }
                           : null,
-                      child: Text(AppLocalizations.of(context)!.ok),
+                      child: Text(AppLocalizations.of(context)!.done),
                     );
                   },
                 );
@@ -139,8 +164,8 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
             ),
           ],
           bottom: const PreferredSize(
-            preferredSize: Size.fromHeight(33),
-            child: SizedBox(height: 33),
+            preferredSize: Size.fromHeight(17),
+            child: SizedBox(height: 17),
           ),
         ),
         body: const SafeArea(child: _PreparationSpareTimeEditBody()),
@@ -234,7 +259,7 @@ class _SpareTimeSection extends StatelessWidget {
           child: Text(
             AppLocalizations.of(context)!.editSpareTime,
             textAlign: TextAlign.start,
-            style: textTheme.titleMedium,
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
         ),
         SizedBox(height: 24.0),
@@ -287,7 +312,7 @@ class _PreparationSection extends StatelessWidget {
           child: Text(
             AppLocalizations.of(context)!.editPreparationTime,
             textAlign: TextAlign.start,
-            style: textTheme.titleMedium,
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
           ),
         ),
         SizedBox(height: 24.0),

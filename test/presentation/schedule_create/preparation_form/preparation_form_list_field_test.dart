@@ -65,7 +65,7 @@ void main() {
     );
 
     await tester.enterText(find.byType(TextFormField), 'Coffee');
-    await tester.tap(find.text('00'));
+    await tester.tap(find.text('00 분'));
     await tester.pumpAndSettle();
     focusNode.unfocus();
     await tester.pump();
@@ -170,7 +170,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField), 'Shower and pack');
 
     expect(removeCount, 0);
-    expect(find.text('10'), findsOneWidget);
+    expect(find.text('10 분'), findsOneWidget);
   });
 }
 

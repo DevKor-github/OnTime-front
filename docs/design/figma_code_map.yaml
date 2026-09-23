@@ -200,7 +200,13 @@ screens:
     flutter_golden: test/goldens/goldens/reset_complete_390x844.png
   - route: /defaultPreparationSpareTimeEdit
     figma_node: '600:35201'
-    status: pending
+    flutter: lib/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen.dart
+    state: six_step_fixture
+    status: reviewed
+    review_note: Korean 390x844 header, stepper, summary, 358x62 list rows, duration inputs, and add action compared with Figma. Six linked steps are a reference fixture, not a product maximum; a seventh can be added. Pretendard substitutes for Figma Noto Sans KR and IBM Plex Sans KR; native chrome is excluded.
+    figma_image: docs/design/review/figma/preparation-spare-time-edit-default.png
+    figma_sha256: bcd3b05ab6da3335d054e26910d8fe60183a2ef65ae2b0908c89e1fd84672569
+    flutter_golden: test/goldens/goldens/preparation_spare_time_edit_390x844.png
   - route: /calendar
     figma_node: '868:146599'
     state: empty

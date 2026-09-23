@@ -279,6 +279,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editDefaultPreparation => '기본 준비과정 / 여유시간 수정';
 
   @override
+  String get editPreparationSpareTimeHeader => '여유시간/준비과정 수정';
+
+  @override
+  String get done => '완료';
+
+  @override
+  String get addPreparationStep => '준비 과정 추가';
+
+  @override
   String get allowAppNotifications => '앱 알림 허용';
 
   @override
@@ -300,7 +309,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editSpareTime => '여유시간 수정';
 
   @override
-  String get editPreparationTime => '준비시간 수정';
+  String get editPreparationTime => '준비 과정 및 시간 수정';
 
   @override
   String get totalTime => '총 시간: ';

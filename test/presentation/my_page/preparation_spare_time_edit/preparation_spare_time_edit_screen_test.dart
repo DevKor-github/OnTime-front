@@ -20,8 +20,11 @@ import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_pr
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
+import '../../../helpers/visual_test_fonts.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadVisualTestFonts);
 
   late _FakePreparationStore preparationStore;
 
@@ -137,6 +140,79 @@ void main() {
           .preparationTime,
       const Duration(minutes: 15),
     );
+  });
+
+  testWidgets('six-row preparation editor matches the reviewed design', (
+    tester,
+  ) async {
+    preparationStore.defaultPreparation = const PreparationEntity(
+      preparationStepList: [
+        PreparationStepEntity(
+          id: 'step-1',
+          preparationName: '샤워하기',
+          preparationTime: Duration(minutes: 20),
+          nextPreparationId: 'step-2',
+        ),
+        PreparationStepEntity(
+          id: 'step-2',
+          preparationName: '옷 갈아입기',
+          preparationTime: Duration(minutes: 5),
+          nextPreparationId: 'step-3',
+        ),
+        PreparationStepEntity(
+          id: 'step-3',
+          preparationName: '화장하기',
+          preparationTime: Duration(minutes: 1),
+          nextPreparationId: 'step-4',
+        ),
+        PreparationStepEntity(
+          id: 'step-4',
+          preparationName: '헤어 세팅하기',
+          preparationTime: Duration(minutes: 1),
+          nextPreparationId: 'step-5',
+        ),
+        PreparationStepEntity(
+          id: 'step-5',
+          preparationName: '짐 챙기기',
+          preparationTime: Duration(minutes: 1),
+          nextPreparationId: 'step-6',
+        ),
+        PreparationStepEntity(
+          id: 'step-6',
+          preparationName: '신발 신기',
+          preparationTime: Duration(minutes: 2),
+        ),
+      ],
+    );
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.padding = FakeViewPadding(top: 44, bottom: 21);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetPadding);
+
+    await _pumpScreen(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('총 시간: 30분'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(6));
+    expect(tester.getTopLeft(find.text('여유시간 수정')), const Offset(16, 121));
+    expect(tester.getTopLeft(find.text('총 시간: 30분')), const Offset(16, 309));
+    expect(
+      tester.getRect(find.byKey(const ValueKey<String>('step-1'))),
+      const Rect.fromLTWH(16, 344, 358, 62),
+    );
+    expect(tester.getSize(find.byTooltip('준비 과정 추가')), const Size(44, 44));
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile(
+        '../../../goldens/goldens/preparation_spare_time_edit_390x844.png',
+      ),
+    );
+
+    await tester.tap(find.byTooltip('준비 과정 추가'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextFormField), findsNWidgets(7));
   });
 
   test(

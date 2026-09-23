@@ -22,6 +22,7 @@ class PreparationTimeInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final minutes = time.inMinutes < 0 ? 0 : time.inMinutes;
     return Row(
       children: [
         GestureDetector(
@@ -37,10 +38,9 @@ class PreparationTimeInput extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                (time.inMinutes < 10 ? '0' : '') +
-                    (time.inMinutes < 0 ? '0' : time.inMinutes.toString()),
-                style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer,
+                '${minutes.toString().padLeft(2, '0')} 분',
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),

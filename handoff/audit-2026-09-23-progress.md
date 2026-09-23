@@ -75,3 +75,11 @@ A12는 통합 이후 구현을 재개했다. A13/A14/A15 문답 준비는 독립
 A12 실제 router 테스트에서 EN, 430×932/DPR1/text scale1, 실제 Pretendard 폰트로 home_screen_tmp.dart:185가 14px overflow했다. 원본 로그는 /tmp/a12-overflow.log, 영속 사본은 plans/audit-2026-09-23/u08-home-overflow-baseline.txt다. 390×844의 A12 경로는 통과한다. 홈 소스는 아직 수정하지 않았고 U08 전체 완료를 의미하지 않는다. 신규 grill_u08 생성이 2회 한도 오류로 실패했으며 A12 완료 뒤 다시 시도한다. 사용자에게 새 질문을 할 상황이 아니며 이미 준비된 A13 구현 등 진행 가능한 작업을 계속한다.
 
 A12 최종 소스24개 SHA-256을 a12-validation.json과 대조해 일치 확인했다. 선택한 준비 C→D→홈 실제 router 경로를 검증했다. 신규 U08 agent 생성 및 기존 A13 followup 모두 agent thread limit 오류였으며 조건 완화 없이 재시도/기존 확정 이슈 구현을 진행한다.
+
+## 2026-09-24 이어서 실행
+
+A12 b9f959db commit/push 및 PR 원격 head 확인 완료. GitHub Flutter run35881988783, Android run35881988613 실행 중. PR 상세 본문 갱신·동일성 read-back 완료. Agent 한도 해소 후 신규 U08/A06 전담 grill과 기존 A13 전담 구현이 실행 중이며 root가 실제 질문에 순차 답변한다. A12 이전707개 결과는 최종 소스 검증으로 재사용하지 않는다.
+
+A12 최종 b9f959db Flutter run35881988783이 707 tests/analyze/coverage87.11% (11189/12844) 통과했다. 이전 로컬707과 수는 같지만 최종 source에 대한 별도의 원격 증거다. Android run35881988613은 계속 실행 중.
+
+U08 #597와 A06 #598 생성 후 exact body read-back 완료. 13/64개 이슈 게시, 51개 생성 전. U08 홈 선행패치 구현 중(전체 매트릭스 완료 아님). A06 문답3개 및 OFF정책 정정 포함 준비 완료, A07 새 전담 grill 시작.

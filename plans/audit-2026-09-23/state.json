@@ -232,11 +232,12 @@
       "issue_number": 591,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/591",
       "decisions_file": "plans/audit-2026-09-23/issues/A12.md",
-      "implementation_commit": null,
+      "implementation_commit": "b9f959db9b52806818d998fb6bb38298bc37b50e",
       "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Latest source focused 107 tests passed, including 2 production router widgets; analyzer, formatting, local-only and generated policy passed.",
-        "Source hashes: a12-validation.json. Latest full suite awaits remote CI; local ENOSPC. Earlier 707 tests predate final ownership fixes."
+        "Source hashes: a12-validation.json. Latest full suite awaits remote CI; local ENOSPC. Earlier 707 tests predate final ownership fixes.",
+        "Final b9f959db remote Flutter run35881988783: 707 tests, analyze, coverage87.11% (11189/12844) passed; Android run35881988613 pending."
       ],
       "blockers": [
         "Physical Android/iOS cold notification tap not executed."
@@ -256,7 +257,7 @@
         "`notification_service.dart:267`; `alarm_gate_cubit.dart:134-157`; `CONTEXT.md:443-452`, ADR 0008",
         "full-screen 표현과 timing 권한을 분리. 권한 있음→정확 예약, 없음→근사 예약과 그에 맞는 UI. 예약 API 모드와 실제 도착 시각 검증."
       ],
-      "status": "ready",
+      "status": "implementation_in_progress",
       "agent": "/root/grill_a13",
       "issue_number": 592,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/592",
@@ -352,16 +353,18 @@
         "`lib/presentation/app/bloc/schedule/schedule_bloc.dart:379,387-409,508-514`; `test/presentation/app/bloc/schedule/schedule_bloc_test.dart:1236-1243`",
         "실제 timer/clock을 전진시켜 단계 변경 알림 1회 검증. resume catch-up 시 중복/불필요 알림 정책도 함께 검증."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_a06",
+      "issue_number": 598,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/598",
       "decisions_file": "plans/audit-2026-09-23/issues/A06.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 12
+      "sequence": 12,
+      "readback_verified": true,
+      "body_sha256": "bc112bdf7b3df15e50484b1813b2897b7ffe31ff5f25cb66872e7fc549528b11"
     },
     {
       "audit_id": "A07",
@@ -992,10 +995,10 @@
         "글자 200%, 작은 화면, 긴 이름에서 타이머·결과·상세 화면 레이아웃을 확인한다.",
         "`preparation_step_tile.dart:51-54,83-88`, `schedule_detail.dart:332-350`, `early_late_screen.dart:29-53,139-148`의 고정 높이/겹침 구조가 후보. 홈·달력 일부 확대 테스트는 이미 있음. 실제 실패를 찾아 scroll/flexible 및 회귀 사례로 고정."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "partial_implementation_in_progress",
+      "agent": "/root/grill_u08",
+      "issue_number": 597,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/597",
       "decisions_file": "plans/audit-2026-09-23/issues/U08.md",
       "implementation_commit": null,
       "pr_url": null,
@@ -1003,7 +1006,9 @@
         "Additional baseline widget failure: bundled Pretendard, EN, 430x932, DPR1/text1 causes 14px home card overflow; plans/audit-2026-09-23/u08-home-overflow-baseline.txt. Dedicated grill still pending."
       ],
       "blockers": [],
-      "sequence": 42
+      "sequence": 42,
+      "readback_verified": true,
+      "body_sha256": "7014bb24318e2bcbaa8690ad78c1c8cc8a941f25b37967f79cf047fa34a60de7"
     },
     {
       "audit_id": "U09",

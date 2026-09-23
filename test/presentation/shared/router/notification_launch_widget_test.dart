@@ -37,11 +37,14 @@ void main() {
       'MaterialIcons',
     )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
   });
-  for (final oldId in ['B', 'old']) {
+  for (final (viewport, oldId) in [
+    for (final viewport in [const Size(390, 844), const Size(430, 932)])
+      for (final oldId in ['B', 'old']) (viewport, oldId),
+  ]) {
     testWidgets(
-      'production router gates, exact target, dedupe and retap from old $oldId',
+      'production router gates, exact target, dedupe and retap from old $oldId at ${viewport.width}',
       (tester) async {
-        tester.view.physicalSize = const Size(390, 844);
+        tester.view.physicalSize = viewport;
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);

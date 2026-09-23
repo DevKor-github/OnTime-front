@@ -1,0 +1,84 @@
+{
+  "audit_id": "U08",
+  "issue": "https://github.com/DevKor-github/OnTime-front/issues/597",
+  "scope": "Only the agreed home prerequisite patch; full U08 matrix and OS accessibility validation remain open",
+  "baseline_head": "204b6e65949c3cb439065dd67c64dfbb65ba1bfc",
+  "validated_at_utc": "2026-09-23T15:43:47.924477+00:00",
+  "worktree_note": "Other agents are implementing A13 in this shared worktree. These source hashes identify only the U08-owned patch and viewport-only A12 test expansion; this is not a full-suite or isolated release-artifact receipt.",
+  "source_sha256": {
+    "lib/presentation/home/screens/home_screen_tmp.dart": "7ee72ae05a14fc7fba987c1a675d9b90686635d2952475ea47edabbc764d97ff",
+    "test/presentation/home/screens/home_screen_tmp_test.dart": "ed9b9e448d887666929055bd0eb1ed03bbefae154c5346586bbd701955e63177",
+    "test/presentation/shared/router/notification_launch_widget_test.dart": "fdd9fdbe55d1cc9b848ac00ac49c61eda25b6f595d453e99ef2da286d9cf27da"
+  },
+  "checks": {
+    "red": {
+      "command": "flutter test --concurrency=1 test/presentation/home/screens/home_screen_tmp_test.dart --plain-name '430 portrait home'",
+      "exit_code": 1,
+      "passed": 1,
+      "failed": 1,
+      "failure": "Actual Pretendard, EN, 430x932, DPR 1, scale 1: schedule-present home RenderFlex bottom overflow of 14 pixels; empty home passed",
+      "source": "Before product source changes, b9f959db home baseline",
+      "log": "plans/audit-2026-09-23/artifacts/u08-home/u08-home-red.log"
+    },
+    "green": {
+      "command": "flutter test --concurrency=1 test/presentation/home/screens/home_screen_tmp_test.dart test/presentation/shared/router/notification_launch_widget_test.dart",
+      "exit_code": 0,
+      "passed": 18,
+      "home_tests": 14,
+      "production_router_tests": 4,
+      "log": "plans/audit-2026-09-23/artifacts/u08-home/u08-home-green.log",
+      "cases": [
+        "430x932 actual-font empty and scheduled home; tile contained in card; calendar below card and within viewport",
+        "430x932 final day in current month geometry and actual tap; route selected date asserted",
+        "430x932 View calendar tap opens calendar; today tile tap opens earlyStart",
+        "Existing 360x640 scale 1.3 empty/long schedule compact geometry, 390x844 normal geometry and top safe-area regression",
+        "Existing 360x640 today upcoming/ongoing routes and started-state tick navigation",
+        "Production goRouter A12 full notification gate/target/dedupe/C to D chosen preparation/home restoration scenario at 390x844 and 430x932, old ids B and old"
+      ]
+    },
+    "analyze": {
+      "command": "flutter analyze lib/presentation/home/screens/home_screen_tmp.dart test/presentation/home/screens/home_screen_tmp_test.dart test/presentation/shared/router/notification_launch_widget_test.dart",
+      "exit_code": 0,
+      "result": "No issues found",
+      "log": "plans/audit-2026-09-23/artifacts/u08-home/u08-home-analyze.log"
+    },
+    "format": "dart format applied to the three source/test files",
+    "diff_check": "pass",
+    "full_flutter_suite": "Not run by U08 agent; root integration/CI pending",
+    "full_u08_matrix": "Not run; remains open",
+    "android_os_large_font": "Not run; remains open",
+    "ios_os_large_font": "Not run; remains open"
+  },
+  "visual_evidence": {
+    "kind": "Standalone HomeScreenContent widget render inside MaterialApp/Scaffold, not production-router screenshot and not OS screenshot",
+    "viewport": [
+      430,
+      932
+    ],
+    "device_pixel_ratio": 1,
+    "locale": "en",
+    "text_scale": 1,
+    "safe_area_insets": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "font": "Bundled Pretendard Regular/Medium/SemiBold/Bold and MaterialIcons",
+    "asset": "Real bundled home_banner.png precached before capture",
+    "capture_harness": "/tmp/u08-home-capture-test.dart; temporary copy of home test with RepaintBoundary and image export; removed from repo test directory",
+    "capture_test_result": "2 passed; plans/audit-2026-09-23/artifacts/u08-home/u08-home-capture.log",
+    "images": {
+      "plans/audit-2026-09-23/artifacts/u08-home/u08-home-430-empty.png": "d7c032e122419072f37880a1d05eaa75a58bd034de8e3f619a7fe7082c7ba4e3",
+      "plans/audit-2026-09-23/artifacts/u08-home/u08-home-430-schedule.png": "0073fe53ebbddbd16513e5cc549a318299f5d84c7686fe2f3d7fd0f097dd37fa"
+    },
+    "inspection": "Both images inspected with view_image: no card/title/calendar overlap; last populated calendar row visible. Production-router 390/430 behavior is proved separately by the 4 widget regression cases. Full app chrome and OS safe-area behavior are not established by these PNGs.",
+    "reproduction_notes": "plans/audit-2026-09-23/artifacts/u08-home/README.md"
+  },
+  "log_sha256": {
+    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-red.log": "1b3a025301fa705be3e32162610e17edeeda884a731597bfb824b71fdc6dd145",
+    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-green.log": "227d707f3fe3b4ea04be8cfb40a25c39bea1e63965d96c26186686a2d36f57bc",
+    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-analyze.log": "fce00126a6910021065a6fe26f76740876cca63ee6218cfc0879a7f927ef5bbf",
+    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-capture.log": "83b725b6ad446ddeafdca0922a6c3128281becb7ee8aeca4b00ee7716e6bbf74"
+  }
+}

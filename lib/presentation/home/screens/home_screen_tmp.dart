@@ -75,31 +75,20 @@ class HomeScreenContent extends StatelessWidget {
 
           return Column(
             children: [
-              SizedBox(
-                height: metrics.topSectionHeight,
-                child: ColoredBox(
-                  color: colorScheme.primary,
-                  child: Column(
-                    children: [
-                      SizedBox(height: metrics.safeAreaGap),
-                      Expanded(
-                        child: ColoredBox(
-                          color: colorScheme.primary,
-                          child: Column(
-                            children: [
-                              SizedBox(height: metrics.heroTopPadding),
-                              _CharacterSection(
-                                score: score,
-                                height: metrics.bannerHeight,
-                                topPadding: 8,
-                              ),
-                              _TodaysScheduleOverlay(metrics: metrics),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              ColoredBox(
+                color: colorScheme.primary,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: metrics.safeAreaGap),
+                    SizedBox(height: metrics.heroTopPadding),
+                    _CharacterSection(
+                      score: score,
+                      height: metrics.bannerHeight,
+                      topPadding: 8,
+                    ),
+                    _TodaysScheduleOverlay(metrics: metrics),
+                  ],
                 ),
               ),
               Expanded(
@@ -146,8 +135,10 @@ class _TodaysScheduleOverlay extends StatelessWidget {
           hasSchedule: hasSchedule,
         );
 
-        return SizedBox(
-          height: metrics.todayOverlayHeight,
+        // The design height is a minimum: the real font and schedule tile
+        // can need more room than the empty state, even at normal text size.
+        return ConstrainedBox(
+          constraints: BoxConstraints(minHeight: metrics.todayOverlayHeight),
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
@@ -239,21 +230,24 @@ class _MonthlySchedule extends StatelessWidget {
       children: [
         _MonthlyScheduleHeader(metrics: metrics),
         Expanded(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: MonthCalendar(
-              key: const Key('home_month_calendar'),
-              monthlySchedulesState: monthlySchedulesState,
-              rowHeight: metrics.calendarRowHeight,
-              daysOfWeekHeight: metrics.calendarDaysOfWeekHeight,
-              contentPadding: EdgeInsets.only(
-                left: metrics.calendarPadding,
-                right: metrics.calendarPadding,
-                bottom: metrics.calendarPadding + metrics.calendarFabClearance,
+          child: LayoutBuilder(
+            builder: (context, constraints) => Align(
+              alignment: Alignment.topCenter,
+              child: MonthCalendar(
+                key: const Key('home_month_calendar'),
+                monthlySchedulesState: monthlySchedulesState,
+                rowHeight: metrics.calendarRowHeightFor(constraints.maxHeight),
+                daysOfWeekHeight: metrics.calendarDaysOfWeekHeight,
+                contentPadding: EdgeInsets.only(
+                  left: metrics.calendarPadding,
+                  right: metrics.calendarPadding,
+                  bottom:
+                      metrics.calendarPadding + metrics.calendarFabClearance,
+                ),
+                onDateSelected: (date) {
+                  context.go(calendarRouteLocation(date), extra: date);
+                },
               ),
-              onDateSelected: (date) {
-                context.go(calendarRouteLocation(date), extra: date);
-              },
             ),
           ),
         ),
@@ -375,7 +369,6 @@ class _HomeLayoutMetrics {
     required this.sectionHorizontalPadding,
     required this.sectionBottomPadding,
     required this.monthlyHeaderHeight,
-    required this.calendarRowHeight,
     required this.calendarDaysOfWeekHeight,
     required this.calendarPadding,
     required this.calendarFabClearance,
@@ -393,13 +386,22 @@ class _HomeLayoutMetrics {
   final double sectionHorizontalPadding;
   final double sectionBottomPadding;
   final double monthlyHeaderHeight;
-  final double calendarRowHeight;
   final double calendarDaysOfWeekHeight;
   final double calendarPadding;
   final double calendarFabClearance;
 
-  double get topSectionHeight =>
-      safeAreaGap + heroTopPadding + bannerHeight + todayOverlayHeight;
+  // Measure the space left after the naturally sized hero/card and header,
+  // rather than subtracting a fixed card height from the whole viewport.
+  double calendarRowHeightFor(double availableHeight) {
+    const calendarHeaderHeight = 72.0;
+    return ((availableHeight -
+                sectionBottomPadding -
+                (calendarPadding * 2) -
+                calendarDaysOfWeekHeight -
+                calendarHeaderHeight) /
+            6)
+        .clamp(28.0, 50.0);
+  }
 
   factory _HomeLayoutMetrics.fromConstraints({
     required BoxConstraints constraints,
@@ -435,22 +437,6 @@ class _HomeLayoutMetrics {
     final calendarDaysOfWeekHeight = scale(40, 22);
     final calendarPadding = scale(16, 4);
     final calendarFabClearance = scale(28, 20);
-    const calendarHeaderHeight = 72.0;
-    final calendarAvailableHeight =
-        height -
-        safeAreaGap -
-        heroTopPadding -
-        bannerHeight -
-        todayOverlayHeight -
-        sectionBottomPadding -
-        monthlyHeaderHeight;
-    final calendarRowHeight =
-        ((calendarAvailableHeight -
-                    (calendarPadding * 2) -
-                    calendarDaysOfWeekHeight -
-                    calendarHeaderHeight) /
-                6)
-            .clamp(28.0, 50.0);
 
     return _HomeLayoutMetrics(
       compact: pressure > 0.2,
@@ -465,7 +451,6 @@ class _HomeLayoutMetrics {
       sectionHorizontalPadding: scale(16, 8),
       sectionBottomPadding: sectionBottomPadding,
       monthlyHeaderHeight: monthlyHeaderHeight,
-      calendarRowHeight: calendarRowHeight,
       calendarDaysOfWeekHeight: calendarDaysOfWeekHeight,
       calendarPadding: calendarPadding,
       calendarFabClearance: calendarFabClearance,

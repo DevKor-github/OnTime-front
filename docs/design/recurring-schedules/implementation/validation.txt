@@ -1,0 +1,40 @@
+2026-09-23 — OnTime recurring schedules
+
+dart run build_runner build --delete-conflicting-outputs
+Built with build_runner/aot in 10s; wrote 245 outputs.
+Warnings: ignored deprecated option; SDK 3.12 / analyzer 3.10 language versions.
+
+flutter analyze
+No issues found! (ran in 1.8s)
+
+flutter test --concurrency=2
+00:47 +591: All tests passed!
+
+git diff --check
+Exit 0, no output.
+
+Screenshots are Flutter widget renders at 390x844, captured at 2x.
+Capture command:
+flutter test --dart-define=CAPTURE_RECURRING_SCREENSHOTS=true test/presentation/recurring/recurring_screens_test.dart
+
+No physical-device notification-delivery or release validation was performed.
+
+Follow-up native verification (2026-09-23):
+dart run tool/check_local_only_boundary.dart
+Local-only product boundary verified.
+
+flutter build ios --simulator --debug
+Xcode build done. 77.6s
+Built build/ios/iphonesimulator/Runner.app
+CocoaPods build succeeded; sqlcipher_flutter_libs emitted a future Swift Package Manager support warning.
+
+flutter test test/domain/use-cases/recurring_alarm_integration_test.dart
+00:00 +3: All tests passed!
+
+flutter analyze
+No issues found! (ran in 3.3s)
+
+iPhone 17 / iOS 26.5 QA simulator: fresh onboarding, three weekly occurrences,
+save/relaunch persistence, default preparation 4 minutes vs series-owned 3 minutes.
+Persisted alarm registry: three unique localNotification records.
+See native-ios/README.md for evidence and unexecuted physical-device/release checks.

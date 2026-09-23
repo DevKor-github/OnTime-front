@@ -24,7 +24,9 @@ class ScheduleFormSpareTimeCubit extends Cubit<ScheduleFormSpareTimeState> {
     required Duration? spareTime,
   }) {
     final formState = scheduleFormBloc.state;
-    final maxAvailableTime = formState.maxAvailableTime;
+    final maxAvailableTime = formState.recurrenceRule != null
+        ? null
+        : formState.maxAvailableTime;
 
     if (maxAvailableTime == null ||
         formState.scheduleTime == null ||

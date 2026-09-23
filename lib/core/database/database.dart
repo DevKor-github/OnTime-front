@@ -18,6 +18,7 @@ import 'package:on_time_front/data/tables/schedules_table.dart';
 import 'package:on_time_front/data/tables/user_table.dart';
 import 'package:on_time_front/core/utils/json_converters/duration_json_converters.dart';
 import 'package:uuid/uuid.dart';
+import 'package:on_time_front/data/tables/recurring_schedule_tables.dart';
 part 'database.g.dart';
 
 @Singleton()
@@ -30,6 +31,10 @@ part 'database.g.dart';
     PreparationUsers,
     PreparationTemplates,
     PreparationTemplateSteps,
+    PreparationDefinitions,
+    PreparationDefinitionSteps,
+    RecurringScheduleSegments,
+    RecurringScheduleExclusions,
   ],
   daos: [
     ScheduleDao,
@@ -47,7 +52,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -55,9 +60,22 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      throw StateError(
-        'Encrypted local database migrations must be explicitly implemented.',
-      );
+      if (from < 1 || to > schemaVersion) {
+        throw StateError(
+          'Only the encrypted local-only schema can be upgraded.',
+        );
+      }
+      if (from < 2) {
+        await m.createTable(preparationDefinitions);
+        await m.createTable(preparationDefinitionSteps);
+        await m.createTable(recurringScheduleSegments);
+        await m.createTable(recurringScheduleExclusions);
+        await m.addColumn(schedules, schedules.recurringSegmentId);
+        await m.addColumn(schedules, schedules.recurringSlotKey);
+        await m.addColumn(schedules, schedules.recurringOrdinal);
+        await m.addColumn(schedules, schedules.recurringOverrides);
+        await m.addColumn(schedules, schedules.preparationDefinitionId);
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -66,6 +84,11 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteAllDurableData() async {
     await transaction(() async {
+      await delete(recurringScheduleExclusions).go();
+      await delete(recurringScheduleSegments).go();
+      await delete(preparationDefinitionSteps).go();
+      // Schedule references are nullable metadata, cleared with schedules below.
+      await delete(preparationDefinitions).go();
       await delete(preparationTemplateSteps).go();
       await delete(preparationTemplates).go();
       await delete(preparationSchedules).go();

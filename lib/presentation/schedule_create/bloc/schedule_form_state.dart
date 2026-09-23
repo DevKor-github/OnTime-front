@@ -2,7 +2,14 @@ part of 'schedule_form_bloc.dart';
 
 enum ScheduleFormStatus { initial, loading, success, error }
 
-enum ScheduleFormSubmissionStatus { idle, submitting, success, failure }
+enum ScheduleFormSubmissionStatus {
+  idle,
+  submitting,
+  success,
+  failure,
+  review,
+  timeChoice,
+}
 
 enum IsPreparationChanged { changed, unchanged }
 
@@ -25,6 +32,13 @@ final class ScheduleFormState extends Equatable {
   final String? scheduleNote;
   final PreparationEntity? preparation;
   final SchedulePreparationMode? originalPreparationMode;
+  final ScheduleEntity? originalSchedule;
+  final PreparationEntity? originalPreparation;
+  final RecurrenceRule? recurrenceRule;
+  final RecurringEditScope recurringScope;
+  final bool recurrenceCountChanged;
+  final RecurrenceReview? recurrenceReview;
+  final DateTime? repeatedTimeDate;
   final bool isValid;
   final Duration? maxAvailableTime;
   final String? previousScheduleName;
@@ -46,6 +60,13 @@ final class ScheduleFormState extends Equatable {
     this.scheduleNote,
     this.preparation,
     this.originalPreparationMode,
+    this.originalSchedule,
+    this.originalPreparation,
+    this.recurrenceRule,
+    this.recurringScope = RecurringEditScope.occurrence,
+    this.recurrenceCountChanged = false,
+    this.recurrenceReview,
+    this.repeatedTimeDate,
     this.isValid = false,
     this.maxAvailableTime,
     this.previousScheduleName,
@@ -68,9 +89,16 @@ final class ScheduleFormState extends Equatable {
     String? scheduleNote,
     PreparationEntity? preparation,
     SchedulePreparationMode? originalPreparationMode,
+    ScheduleEntity? originalSchedule,
+    PreparationEntity? originalPreparation,
+    Object? recurrenceRule = _unset,
+    RecurringEditScope? recurringScope,
+    bool? recurrenceCountChanged,
+    Object? recurrenceReview = _unset,
+    DateTime? repeatedTimeDate,
     bool? isValid,
-    Duration? maxAvailableTime,
-    String? previousScheduleName,
+    Object? maxAvailableTime = _unset,
+    Object? previousScheduleName = _unset,
   }) {
     return ScheduleFormState(
       status: status ?? this.status,
@@ -93,18 +121,30 @@ final class ScheduleFormState extends Equatable {
       preparation: preparation ?? this.preparation,
       originalPreparationMode:
           originalPreparationMode ?? this.originalPreparationMode,
+      originalSchedule: originalSchedule ?? this.originalSchedule,
+      originalPreparation: originalPreparation ?? this.originalPreparation,
+      recurrenceRule: identical(recurrenceRule, _unset)
+          ? this.recurrenceRule
+          : recurrenceRule as RecurrenceRule?,
+      recurringScope: recurringScope ?? this.recurringScope,
+      recurrenceCountChanged:
+          recurrenceCountChanged ?? this.recurrenceCountChanged,
+      recurrenceReview: identical(recurrenceReview, _unset)
+          ? this.recurrenceReview
+          : recurrenceReview as RecurrenceReview?,
+      repeatedTimeDate: repeatedTimeDate ?? this.repeatedTimeDate,
       isValid: isValid ?? this.isValid,
-      maxAvailableTime: maxAvailableTime ?? this.maxAvailableTime,
-      previousScheduleName: previousScheduleName ?? this.previousScheduleName,
+      maxAvailableTime: identical(maxAvailableTime, _unset)
+          ? this.maxAvailableTime
+          : maxAvailableTime as Duration?,
+      previousScheduleName: identical(previousScheduleName, _unset)
+          ? this.previousScheduleName
+          : previousScheduleName as String?,
     );
   }
 
-  Duration get totalPreparationTime {
-    return preparation?.preparationStepList
-            .map((e) => e.preparationTime)
-            .reduce((value, element) => value + element) ??
-        Duration.zero;
-  }
+  Duration get totalPreparationTime =>
+      preparation?.totalDuration ?? Duration.zero;
 
   ScheduleEntity createEntity(ScheduleFormState state) {
     return ScheduleEntity(
@@ -124,6 +164,11 @@ final class ScheduleFormState extends Equatable {
       scheduleSpareTime: state.scheduleSpareTime,
       scheduleNote: state.scheduleNote ?? '',
       isStarted: false,
+      recurringSegmentId: originalSchedule?.recurringSegmentId,
+      recurringSlotKey: originalSchedule?.recurringSlotKey,
+      recurringOrdinal: originalSchedule?.recurringOrdinal,
+      recurringOverrides: originalSchedule?.recurringOverrides ?? '',
+      preparationDefinitionId: originalSchedule?.preparationDefinitionId,
     );
   }
 
@@ -145,6 +190,13 @@ final class ScheduleFormState extends Equatable {
     scheduleNote,
     preparation,
     originalPreparationMode,
+    originalSchedule,
+    originalPreparation,
+    recurrenceRule,
+    recurringScope,
+    recurrenceCountChanged,
+    recurrenceReview,
+    repeatedTimeDate,
     isValid,
     maxAvailableTime,
     previousScheduleName,

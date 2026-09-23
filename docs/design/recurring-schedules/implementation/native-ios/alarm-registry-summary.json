@@ -1,0 +1,21 @@
+{
+  "recordCount": 3,
+  "records": [
+    {
+      "scheduleId": "3e940fce-060c-5edd-a6f0-4c04aa13c602",
+      "alarmTime": "2026-09-24T05:50:00.000Z",
+      "provider": "localNotification"
+    },
+    {
+      "scheduleId": "e1a05594-5e60-5645-81d6-377cbba7dfbf",
+      "alarmTime": "2026-09-28T05:50:00.000Z",
+      "provider": "localNotification"
+    },
+    {
+      "scheduleId": "07904dfa-aac1-5618-b750-dd14061eeefa",
+      "alarmTime": "2026-10-01T05:50:00.000Z",
+      "provider": "localNotification"
+    }
+  ],
+  "evidenceType": "App-persisted scheduling registry; not physical notification delivery"
+}

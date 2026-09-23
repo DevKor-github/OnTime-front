@@ -27,6 +27,12 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     super.preparationFrozen,
     super.scoreContributionRecorded,
     super.customPreparations,
+    super.recurringSegmentId,
+    super.recurringSlotKey,
+    super.recurringOrdinal,
+    super.recurringOverrides,
+    super.preparationDefinitionId,
+
     required this.preparation,
   });
 
@@ -120,6 +126,12 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       preparationFrozen: schedule.preparationFrozen,
       scoreContributionRecorded: schedule.scoreContributionRecorded,
       customPreparations: schedule.customPreparations,
+      recurringSegmentId: schedule.recurringSegmentId,
+      recurringSlotKey: schedule.recurringSlotKey,
+      recurringOrdinal: schedule.recurringOrdinal,
+      recurringOverrides: schedule.recurringOverrides,
+      preparationDefinitionId: schedule.preparationDefinitionId,
+
       preparation: preparation,
     );
   }
@@ -146,6 +158,11 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     preparationTemplateDeleted,
     preparationFrozen,
     scoreContributionRecorded,
+    recurringSegmentId,
+    recurringSlotKey,
+    recurringOrdinal,
+    recurringOverrides,
+    preparationDefinitionId,
     preparation,
   ];
 }

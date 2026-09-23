@@ -205,6 +205,22 @@ _Avoid_: Preparation time, move time
 The user's fallback Preparation for new Schedules.
 _Avoid_: Base preparation, global preparation
 
+**Recurring Schedule (반복 일정)**:
+A series of scheduled commitments governed by a shared repetition rule.
+_Avoid_: Repeating alarm, duplicated notification
+
+**Recurring Schedule Preparation (반복 일정 전용 준비과정)**:
+A Preparation independently owned by one Recurring Schedule and reused for its scheduled commitments, separate from the default or template it was copied from.
+_Avoid_: Default Preparation, one-off Custom Preparation
+
+**Schedule Occurrence (일정 회차)**:
+One individual Schedule belonging to a Recurring Schedule.
+_Avoid_: Recurring Schedule, repeated notification
+
+**Unrecorded Schedule Occurrence (진행 기록 없는 회차)**:
+A past Schedule Occurrence with no recorded preparation activity or Schedule Outcome.
+_Avoid_: Late Schedule, completed Schedule, deleted occurrence
+
 **Custom Preparation**:
 A Schedule-specific Preparation that differs from the user's fallback or selected template.
 _Avoid_: Changed preparation, edited default
@@ -415,6 +431,8 @@ _Avoid_: Loaded range, stream range, cached range
 - A **Schedule** has one effective **Preparation** for calculating preparation timing.
 - A **Default Preparation** may seed a new **Schedule** before the user chooses a different preparation.
 - A **Custom Preparation** belongs to one **Schedule**.
+- A **Recurring Schedule** owns one **Recurring Schedule Preparation**, reused across its scheduled commitments.
+- Each **Schedule Occurrence** belongs to exactly one **Recurring Schedule** and may have its own **Custom Preparation**.
 - A **Monthly Calendar** displays **Schedules** grouped by calendar day.
 - A **Calendar Month Range** starts at the first day of its first month and ends before the first day of the month after its last month.
 - A **Monthly Calendar** may extend a **Calendar Month Range** when the user moves to an adjacent month.

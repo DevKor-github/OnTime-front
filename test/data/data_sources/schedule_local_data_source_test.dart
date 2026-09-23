@@ -213,5 +213,6 @@ Schedule _scheduleRow({
     preparationTemplateDeleted: false,
     preparationFrozen: false,
     scoreContributionRecorded: false,
+    recurringOverrides: '',
   );
 }

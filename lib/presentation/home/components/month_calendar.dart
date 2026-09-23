@@ -12,19 +12,23 @@ class MonthCalendar extends StatefulWidget {
     super.key,
     required this.monthlySchedulesState,
     this.initialDate,
+    this.sixWeekMonthsEnforced = true,
     this.dispatchBlocEvents = true,
     this.onDateSelected,
     this.rowHeight = 50,
     this.daysOfWeekHeight = 40,
+    this.headerVerticalPadding = 0,
     this.contentPadding = const EdgeInsets.all(16.0),
   });
 
   final MonthlySchedulesState monthlySchedulesState;
   final DateTime? initialDate;
+  final bool sixWeekMonthsEnforced;
   final bool dispatchBlocEvents;
   final void Function(DateTime)? onDateSelected;
   final double rowHeight;
   final double daysOfWeekHeight;
+  final double headerVerticalPadding;
   final EdgeInsetsGeometry contentPadding;
 
   @override
@@ -126,7 +130,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
                       day = DateTime(day.year, day.month, day.day);
                       return widget.monthlySchedulesState.schedules[day] ?? [];
                     },
-                    sixWeekMonthsEnforced: true,
+                    sixWeekMonthsEnforced: widget.sixWeekMonthsEnforced,
                     rowHeight: constrainedRowHeight,
                     availableGestures: AvailableGestures.none,
                     focusedDay: _focusedDay,
@@ -182,14 +186,20 @@ class _MonthCalendarState extends State<MonthCalendar> {
                     },
                     calendarBuilders: CalendarBuilders(
                       headerTitleBuilder: (context, date) {
-                        return CenteredCalendarHeader(
-                          focusedMonth: date,
-                          onLeftArrowTap: _onLeftArrowTap,
-                          onRightArrowTap: _onRightArrowTap,
-                          titleTextStyle:
-                              calendarTheme.headerStyle.titleTextStyle,
-                          leftIcon: calendarTheme.headerStyle.leftChevronIcon,
-                          rightIcon: calendarTheme.headerStyle.rightChevronIcon,
+                        return Padding(
+                          padding: EdgeInsets.symmetric(
+                            vertical: widget.headerVerticalPadding,
+                          ),
+                          child: CenteredCalendarHeader(
+                            focusedMonth: date,
+                            onLeftArrowTap: _onLeftArrowTap,
+                            onRightArrowTap: _onRightArrowTap,
+                            titleTextStyle:
+                                calendarTheme.headerStyle.titleTextStyle,
+                            leftIcon: calendarTheme.headerStyle.leftChevronIcon,
+                            rightIcon:
+                                calendarTheme.headerStyle.rightChevronIcon,
+                          ),
                         );
                       },
                       markerBuilder: (context, day, events) {
@@ -297,7 +307,13 @@ class _MonthCalendarState extends State<MonthCalendar> {
     const headerHeight = 64.0;
     final availableRowsHeight =
         maxHeight - verticalPadding - headerHeight - widget.daysOfWeekHeight;
-    final fittedRowHeight = availableRowsHeight / 6;
+    final firstWeekday =
+        DateTime(_focusedDay.year, _focusedDay.month, 1).weekday % 7;
+    final dayCount = DateTime(_focusedDay.year, _focusedDay.month + 1, 0).day;
+    final rowCount = widget.sixWeekMonthsEnforced
+        ? 6
+        : (firstWeekday + dayCount + 6) ~/ 7;
+    final fittedRowHeight = availableRowsHeight / rowCount;
 
     return fittedRowHeight.clamp(24.0, 56.0).toDouble();
   }

@@ -67,23 +67,26 @@ screens:
     figma_node: '600:34301'
     flutter: lib/presentation/home/screens/home_screen_tmp.dart
     state: default
-    status: pending
-    review_note: Figma uses a 2024-12-21 calendar and a sample appointment; a frozen matching app fixture is still needed.
+    status: in_progress
+    review_note: Full 390x844 shell, hero, today card, month header, weekdays, and navigation were visually compared. Figma labels its grid December 2024 but draws the actual November 2024 arrangement; Flutter preserves real December dates. This substantive source inconsistency awaits a product decision before exact parity can be signed off. Native chrome and bundled-font differences remain.
     figma_image: docs/design/review/figma/home-default.png
     figma_sha256: 87d9c1e3ed1a5a556f2fbb8081abaacdbeb41fbbf19f4d1cf998e015fac70d40
+    flutter_golden: test/goldens/goldens/home_default_390x844.png
     variants:
       - state: loading
         figma_node: '1824:2'
         status: in_progress
-        review_note: Month-only 72% white loading overlay and blocked date taps are implemented and behavior-tested. Full Home golden and today-card fixture are pending.
+        review_note: Full-shell golden compared; month-only 72% white overlay and blocked date taps are behavior-tested. The underlying Figma date grid conflicts with its December title as noted on the default state.
         figma_image: docs/design/review/figma/home-loading.png
         figma_sha256: 52362c7a344d8e4cf788b4ce9ac5bb89631e813a3a7f7e08ce9eb80cf041c6a7
+        flutter_golden: test/goldens/goldens/home_loading_390x844.png
       - state: error
         figma_node: '1824:694'
         status: in_progress
-        review_note: Month-only 92% white error overlay and retry for the focused month are implemented and behavior-tested. Full Home golden and today-card fixture are pending.
+        review_note: Full-shell golden compared; month-only 92% white error overlay and retry for the focused month are behavior-tested. The underlying Figma date grid conflicts with its December title as noted on the default state.
         figma_image: docs/design/review/figma/home-error.png
         figma_sha256: 7aa8f80ce1ff05847209828f49045bc8e1d0a09803fd1625534860ff4d746281
+        flutter_golden: test/goldens/goldens/home_error_390x844.png
   - route: /myPage
     figma_node: '965:4676'
     flutter: lib/presentation/my_page/my_page_screen.dart
@@ -231,10 +234,11 @@ screens:
   - route: /calendar
     figma_node: '868:146599'
     state: empty
-    status: pending
-    review_note: Figma fixture date is 2024-12-21; app logic currently treats that date as past.
+    status: in_progress
+    review_note: Korean 390x852 fixture now matches the soft header, 354x390 month card at x18/y111, selected-date heading, empty message, and 149x44 add action. Reference time is injected only in the test so 2024-12-21 is future; production still suppresses add on past dates. Figma's grid under the December 2024 title depicts November 2024, so Flutter keeps actual December dates pending product direction. Native status bar is excluded.
     figma_image: docs/design/review/figma/calendar-empty.png
     figma_sha256: 0a1bd7f2eb3afcc6c6809c8d9f7d05a904fcfcde6f13570188a97cc9bf242e8b
+    flutter_golden: test/goldens/goldens/calendar_empty_390x852.png
     variants:
       - {state: expanded, figma_node: '868:146600', status: pending}
       - {state: list, figma_node: '882:426235', status: pending}

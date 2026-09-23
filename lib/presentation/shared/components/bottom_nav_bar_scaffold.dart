@@ -62,8 +62,15 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           topLeft: Radius.circular(16.0),
           topRight: Radius.circular(16.0),
         ),
-        child: Container(
-          color: AppColors.white,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: currentLocation == '/home'
+                ? AppColors.blue.shade100
+                : AppColors.white,
+            border: const Border.fromBorderSide(
+              BorderSide(color: Color(0xffe8e8e8)),
+            ),
+          ),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 27.0),
             child: SizedBox(

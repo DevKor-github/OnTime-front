@@ -24,9 +24,15 @@ typedef CalendarCreateSheetBuilder =
     Widget Function(BuildContext context, DateTime initialDate);
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key, this.initialDate, this.createSheetBuilder});
+  const CalendarScreen({
+    super.key,
+    this.initialDate,
+    this.referenceDate,
+    this.createSheetBuilder,
+  });
 
   final DateTime? initialDate;
+  final DateTime? referenceDate;
   final CalendarCreateSheetBuilder? createSheetBuilder;
 
   @override
@@ -194,6 +200,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
     final calendarTheme = theme.extension<CalendarTheme>()!;
+    final viewport = MediaQuery.sizeOf(context);
+    final sourceLayout =
+        viewport.width >= 390 &&
+        viewport.height >= 800 &&
+        MediaQuery.textScalerOf(context).scale(1) <= 1.3;
 
     return PopScope(
       canPop: false,
@@ -205,19 +216,42 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: BlocProvider.value(
         value: _monthlySchedulesBloc,
         child: Scaffold(
-          backgroundColor: colorScheme.surfaceContainerLow,
+          backgroundColor: const Color(0xfff2f4f6),
           appBar: AppBar(
             title: Text(AppLocalizations.of(context)!.calendarTitle),
-            backgroundColor: colorScheme.surfaceContainerLow,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+            centerTitle: true,
+            backgroundColor: const Color(0xfff2f4f6),
+            leadingWidth:
+                (Localizations.localeOf(context).languageCode == 'ko'
+                    ? 80.0
+                    : 88.0) *
+                MediaQuery.textScalerOf(context).scale(1),
+            leading: TextButton(
               onPressed: _returnHome,
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xff4f69df),
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(80, 44),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 20),
+                  const Icon(Icons.chevron_left, size: 20),
+                  const SizedBox(width: 2),
+                  Text(
+                    AppLocalizations.of(context)!.home,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xff4f69df),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           body: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 18.0) +
-                EdgeInsets.only(bottom: 12.0),
+                EdgeInsets.only(top: sourceLayout ? 11 : 0, bottom: 12.0),
             child: BlocListener<MonthlySchedulesBloc, MonthlySchedulesState>(
               listenWhen: (previous, current) =>
                   previous.deleteFailureCount != current.deleteFailureCount,
@@ -240,10 +274,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           color: colorScheme.surface,
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: _calendarVerticalPadding,
-                            horizontal: _calendarHorizontalPadding,
-                          ),
+                          padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: _calendarHorizontalPadding,
+                              ) +
+                              EdgeInsets.only(
+                                top: _calendarVerticalPadding,
+                                bottom: sourceLayout
+                                    ? 52
+                                    : _calendarVerticalPadding,
+                              ),
                           child:
                               BlocBuilder<
                                 MonthlySchedulesBloc,
@@ -324,19 +364,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     },
                                     calendarBuilders: CalendarBuilders(
                                       headerTitleBuilder: (context, date) {
-                                        return CenteredCalendarHeader(
-                                          focusedMonth: date,
-                                          onLeftArrowTap: _onLeftArrowTap,
-                                          onRightArrowTap: _onRightArrowTap,
-                                          titleTextStyle: calendarTheme
-                                              .headerStyle
-                                              .titleTextStyle,
-                                          leftIcon: calendarTheme
-                                              .headerStyle
-                                              .leftChevronIcon,
-                                          rightIcon: calendarTheme
-                                              .headerStyle
-                                              .rightChevronIcon,
+                                        return Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: sourceLayout ? 15 : 0,
+                                          ),
+                                          child: CenteredCalendarHeader(
+                                            focusedMonth: date,
+                                            onLeftArrowTap: _onLeftArrowTap,
+                                            onRightArrowTap: _onRightArrowTap,
+                                            titleTextStyle: calendarTheme
+                                                .headerStyle
+                                                .titleTextStyle,
+                                            leftIcon: calendarTheme
+                                                .headerStyle
+                                                .leftChevronIcon,
+                                            rightIcon: calendarTheme
+                                                .headerStyle
+                                                .rightChevronIcon,
+                                          ),
                                         );
                                       },
                                       markerBuilder: (context, day, events) {
@@ -418,6 +463,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       builder: (context, state) {
                                         return _SelectedDateSchedulesContent(
                                           selectedDate: _selectedDate,
+                                          referenceDate: widget.referenceDate,
+                                          sourceLayout: sourceLayout,
                                           state: state,
                                           onAddSchedule: () =>
                                               _openCreateScheduleSheet(context),
@@ -476,6 +523,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
 class _SelectedDateSchedulesContent extends StatelessWidget {
   const _SelectedDateSchedulesContent({
     required this.selectedDate,
+    required this.referenceDate,
+    required this.sourceLayout,
     required this.state,
     required this.onAddSchedule,
     required this.onEditSchedule,
@@ -483,6 +532,8 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
   });
 
   final DateTime selectedDate;
+  final DateTime? referenceDate;
+  final bool sourceLayout;
   final MonthlySchedulesState state;
   final VoidCallback onAddSchedule;
   final ValueChanged<String> onEditSchedule;
@@ -501,7 +552,7 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
         return const SizedBox.expand();
       }
 
-      final now = DateTime.now();
+      final now = referenceDate ?? DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final selected = DateTime(
         selectedDate.year,
@@ -510,6 +561,7 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
       );
 
       return _EmptySchedulesView(
+        sourceLayout: sourceLayout,
         showAddButton: !selected.isBefore(today),
         onAddSchedule: onAddSchedule,
       );
@@ -544,10 +596,12 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
 
 class _EmptySchedulesView extends StatelessWidget {
   const _EmptySchedulesView({
+    required this.sourceLayout,
     required this.showAddButton,
     required this.onAddSchedule,
   });
 
+  final bool sourceLayout;
   final bool showAddButton;
   final VoidCallback onAddSchedule;
 
@@ -556,17 +610,21 @@ class _EmptySchedulesView extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
-    return Center(
+    return Align(
+      alignment: sourceLayout ? Alignment.topCenter : Alignment.center,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: EdgeInsets.fromLTRB(16, sourceLayout ? 32 : 12, 16, 12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          spacing: 16.0,
+          spacing: sourceLayout ? 33 : 16,
           children: [
             Text(
               AppLocalizations.of(context)!.noSchedules,
               style: textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.outlineVariant,
+                color: sourceLayout
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.outlineVariant,
+                fontWeight: sourceLayout ? FontWeight.w700 : null,
               ),
               textAlign: TextAlign.center,
             ),
@@ -574,23 +632,37 @@ class _EmptySchedulesView extends StatelessWidget {
               ElevatedButton(
                 onPressed: onAddSchedule,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.surface,
-                  side: BorderSide(
-                    width: 0.5,
-                    color: theme.colorScheme.outlineVariant,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 4.0,
-                    horizontal: 12.0,
+                  backgroundColor: sourceLayout
+                      ? const Color(0xff4f69df)
+                      : theme.colorScheme.surface,
+                  minimumSize: sourceLayout ? const Size(149, 44) : null,
+                  side: sourceLayout
+                      ? BorderSide.none
+                      : BorderSide(
+                          width: 0.5,
+                          color: theme.colorScheme.outlineVariant,
+                        ),
+                  padding: sourceLayout
+                      ? const EdgeInsets.symmetric(horizontal: 16)
+                      : const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 child: Text(
                   AppLocalizations.of(context)!.addAppointment,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style:
+                      (sourceLayout
+                              ? textTheme.bodyLarge
+                              : textTheme.bodyMedium)
+                          ?.copyWith(
+                            color: sourceLayout
+                                ? Colors.white
+                                : theme.colorScheme.onSurfaceVariant,
+                            fontWeight: sourceLayout ? FontWeight.w600 : null,
+                          ),
                 ),
               ),
           ],

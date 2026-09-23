@@ -18,6 +18,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get retry => '다시 시도';
 
   @override
+  String get preparationInProgress => '준비 진행 중';
+
+  @override
   String get noSchedules => '약속이 없어요';
 
   @override

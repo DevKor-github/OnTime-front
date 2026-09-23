@@ -26,6 +26,8 @@ import 'package:on_time_front/presentation/shared/components/calendar/centered_c
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../helpers/visual_test_fonts.dart';
+
 class _FakeSvgAssetBundle extends CachingAssetBundle {
   static const _svg =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"></svg>';
@@ -114,6 +116,7 @@ class _StubScheduleBloc extends Mock implements ScheduleBloc {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadVisualTestFonts);
 
   setUp(() async {
     await getIt.reset();
@@ -127,8 +130,11 @@ void main() {
     WidgetTester tester, {
     required Size size,
     required DateTime initialDate,
+    DateTime? referenceDate,
     List<ScheduleEntity> schedules = const [],
     double textScale = 1.0,
+    Locale locale = const Locale('en'),
+    bool visual = false,
     _StubLoadSchedulesForMonthUseCase? loadSchedulesForMonthUseCase,
     _StubDeleteScheduleUseCase? deleteScheduleUseCase,
     CalendarCreateSheetBuilder? createSheetBuilder,
@@ -148,35 +154,73 @@ void main() {
 
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = size;
+    if (visual) {
+      tester.view.padding = FakeViewPadding(top: 44, bottom: 21);
+      addTearDown(tester.view.resetPadding);
+    }
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(
-      DefaultAssetBundle(
-        bundle: _FakeSvgAssetBundle(),
-        child: MaterialApp(
-          theme: themeData,
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: MediaQuery(
-            data: MediaQueryData(
-              size: size,
-              textScaler: TextScaler.linear(textScale),
-            ),
-            child: BlocProvider<ScheduleBloc>.value(
-              value: _StubScheduleBloc(),
-              child: CalendarScreen(
-                initialDate: initialDate,
-                createSheetBuilder: createSheetBuilder,
-              ),
-            ),
+    final app = MaterialApp(
+      theme: themeData,
+      locale: locale,
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: MediaQuery(
+        data: MediaQueryData(
+          size: size,
+          textScaler: TextScaler.linear(textScale),
+          padding: visual
+              ? const EdgeInsets.only(top: 44, bottom: 21)
+              : EdgeInsets.zero,
+        ),
+        child: BlocProvider<ScheduleBloc>.value(
+          value: _StubScheduleBloc(),
+          child: CalendarScreen(
+            initialDate: initialDate,
+            referenceDate: referenceDate,
+            createSheetBuilder: createSheetBuilder,
           ),
         ),
       ),
     );
+    await tester.pumpWidget(
+      visual
+          ? app
+          : DefaultAssetBundle(bundle: _FakeSvgAssetBundle(), child: app),
+    );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('calendar empty shell can be compared with Figma', (
+    tester,
+  ) async {
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 852),
+      initialDate: DateTime(2024, 12, 21),
+      referenceDate: DateTime(2024, 12, 1),
+      locale: const Locale('ko'),
+      visual: true,
+    );
+
+    expect(find.text('2024년 12월'), findsOneWidget);
+    expect(find.text('약속이 없어요'), findsOneWidget);
+    expect(find.text('약속 추가하기'), findsOneWidget);
+    expect(
+      tester.getRect(find.byKey(const Key('calendar_card'))),
+      const Rect.fromLTWH(18, 111, 354, 390),
+    );
+    expect(
+      tester.getSize(find.widgetWithText(ElevatedButton, '약속 추가하기')).height,
+      greaterThanOrEqualTo(44),
+    );
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../../../goldens/goldens/calendar_empty_390x852.png'),
+    );
+  });
 
   testWidgets('compact future empty state fits with add button', (
     tester,
@@ -526,7 +570,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
 
     expect(find.byType(CalendarScreen), findsNothing);

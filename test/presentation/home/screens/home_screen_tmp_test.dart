@@ -276,16 +276,19 @@ void main() {
     );
     await tester.pump();
 
-    expect(tester.getSize(find.byKey(const Key('home_banner'))).width, 390);
+    expect(
+      tester.getSize(find.byKey(const Key('home_hero'))),
+      const Size(390, 230),
+    );
     expect(
       tester.getSize(find.byKey(const Key('today_schedule_card'))).width,
-      358,
+      360,
     );
     expect(
       tester.getSize(find.byKey(const Key('today_schedule_card'))).height,
-      137,
+      closeTo(137, 1),
     );
-    expect(_top(tester, 'home_banner'), closeTo(51, 1));
+    expect(_top(tester, 'home_hero'), 0);
     expect(_top(tester, 'today_schedule_card'), closeTo(177, 1));
     expect(_top(tester, 'today_background_surface'), closeTo(230, 1));
     expect(tester.takeException(), isNull);
@@ -312,7 +315,7 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byKey(const Key('home_banner')), findsOneWidget);
+      expect(find.byKey(const Key('home_hero')), findsOneWidget);
       expect(find.byKey(const Key('today_schedule_card')), findsOneWidget);
       expect(find.byKey(const Key('home_month_calendar')), findsOneWidget);
       expect(
@@ -346,11 +349,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(_top(tester, 'home_banner'), greaterThanOrEqualTo(71));
-    expect(
-      _bottomGap(tester, 'home_month_calendar', 844),
-      lessThanOrEqualTo(6),
-    );
+    expect(_top(tester, 'home_hero_copy'), greaterThanOrEqualTo(71));
+    expect(_top(tester, 'home_month_calendar'), 330);
     expect(tester.takeException(), isNull);
   });
 

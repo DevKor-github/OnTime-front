@@ -8,6 +8,10 @@
     "@retry": {
         "description": "Action to retry loading failed content"
     },
+    "preparationInProgress": "Preparing",
+    "@preparationInProgress": {
+        "description": "Status label for an active preparation on the home card"
+    },
     "@error": {
         "description": "Generic error message"
     },

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:on_time_front/presentation/home/bloc/schedule_timer_bloc.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+
+enum TodayScheduleTileState { scheduled, active, completed }
 
 class TodaysScheduleTile extends StatelessWidget {
   const TodaysScheduleTile({
@@ -11,204 +12,100 @@ class TodaysScheduleTile extends StatelessWidget {
     this.schedule,
     this.onTap,
     this.compact = false,
+    this.state = TodayScheduleTileState.scheduled,
   });
 
   final ScheduleEntity? schedule;
   final VoidCallback? onTap;
   final bool compact;
-
-  Widget _noSchedule(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 10.0 : 11.0,
-        vertical: compact ? 10.0 : 16.0,
-      ),
-      child: Text(
-        AppLocalizations.of(context)!.noAppointments,
-        style: theme.textTheme.bodyLarge?.copyWith(
-          color: theme.colorScheme.outlineVariant,
-          height: 22 / 16,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
-  Widget _scheduleExists(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: compact ? 10.0 : 16.0),
-            child: _ScheduleLeftTimeColumn(
-              scheduleTime: schedule!.scheduleTime,
-              compact: compact,
-            ),
-          ),
-          VerticalDivider(width: 1, color: colorScheme.primary),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: compact ? 12.0 : 21.0,
-                vertical: compact ? 8.0 : 11.0,
-              ),
-              child: _ScheduleDetailsColumn(
-                schedule: schedule!,
-                compact: compact,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  final TodayScheduleTileState state;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final empty = schedule == null;
+    final background = switch (empty ? null : state) {
+      null => const Color(0xfff3f3f3),
+      TodayScheduleTileState.scheduled => const Color(0xffdde4ff),
+      TodayScheduleTileState.active => AppColors.blue.shade600,
+      TodayScheduleTileState.completed => AppColors.grey.shade400,
+    };
+    final foreground = switch (empty ? null : state) {
+      null => AppColors.grey.shade700,
+      TodayScheduleTileState.scheduled => AppColors.blue.shade700,
+      TodayScheduleTileState.active ||
+      TodayScheduleTileState.completed => Colors.white,
+    };
+    final textTheme = Theme.of(context).textTheme;
+    final localizations = AppLocalizations.of(context)!;
+
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: onTap,
       child: Container(
+        height: compact ? 48 : 54,
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 20),
         decoration: BoxDecoration(
-          color: schedule == null
-              ? theme.colorScheme.surfaceContainerLow
-              : theme.colorScheme.primaryContainer,
+          color: background,
           borderRadius: BorderRadius.circular(8),
         ),
-        width: double.infinity,
-        constraints: BoxConstraints(minHeight: compact ? 48 : 54),
-        alignment: schedule == null ? Alignment.centerLeft : null,
-        child: schedule == null
-            ? _noSchedule(context)
-            : _scheduleExists(context),
+        child: empty
+            ? Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  localizations.noAppointments,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodyLarge?.copyWith(color: foreground),
+                ),
+              )
+            : Row(
+                children: [
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: Text(
+                      _leadingText(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyLarge?.copyWith(color: foreground),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      schedule!.scheduleName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
-}
 
-class _ScheduleDetailsColumn extends StatelessWidget {
-  const _ScheduleDetailsColumn({required this.schedule, required this.compact});
-
-  final ScheduleEntity schedule;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-    final formattedTime = DateFormat.jm(
-      AppLocalizations.of(context)!.localeName,
-    ).format(schedule.scheduleTime);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          schedule.scheduleName,
-          style: (compact ? textTheme.titleMedium : textTheme.titleLarge)
-              ?.copyWith(color: colorScheme.primary),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        //time PM H:MM
-        Text(
-          formattedTime,
-          style: textTheme.bodySmall?.copyWith(color: colorScheme.primary),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-}
-
-class _ScheduleLeftTimeColumn extends StatelessWidget {
-  const _ScheduleLeftTimeColumn({
-    required this.scheduleTime,
-    required this.compact,
-  });
-
-  final DateTime scheduleTime;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          ScheduleTimerBloc()..add(ScheduleTimerStarted(scheduleTime)),
-      child: BlocBuilder<ScheduleTimerBloc, ScheduleTimerState>(
-        builder: (context, state) {
-          Duration leftTime;
-
-          if (state is ScheduleTimerRunning) {
-            leftTime = state.remainingDuration;
-          } else if (state is ScheduleTimerFinished) {
-            leftTime = Duration.zero;
-          } else {
-            // Initial state - calculate immediately
-            leftTime = scheduleTime.difference(DateTime.now());
-          }
-
-          final hours = leftTime.inHours;
-          final minutes = leftTime.inMinutes % 60;
-
-          return _TimeColumn(hour: hours, minute: minutes, compact: compact);
-        },
-      ),
-    );
-  }
-}
-
-class _TimeColumn extends StatelessWidget {
-  const _TimeColumn({
-    required this.hour,
-    required this.minute,
-    required this.compact,
-  });
-
-  final int hour;
-  final int minute;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.untilAppointment,
-          style:
-              (compact ? theme.textTheme.labelSmall : theme.textTheme.bodySmall)
-                  ?.copyWith(color: colorScheme.primary),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        SizedBox(height: compact ? 2 : 4),
-        Text(
-          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
-          style:
-              (compact
-                      ? theme.textTheme.labelLarge
-                      : theme.textTheme.titleSmall)
-                  ?.copyWith(color: colorScheme.primary),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
+  String _leadingText(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    switch (state) {
+      case TodayScheduleTileState.active:
+        return localizations.preparationInProgress;
+      case TodayScheduleTileState.completed:
+        return localizations.done;
+      case TodayScheduleTileState.scheduled:
+        final date = schedule!.scheduleTime;
+        final locale = localizations.localeName;
+        if (locale.startsWith('ko')) {
+          final dayPeriod = DateFormat('a', locale).format(date);
+          final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+          final minute = date.minute == 0 ? '' : ' ${date.minute}분';
+          return '${date.month}월 ${date.day}일 $dayPeriod $hour시$minute';
+        }
+        return '${DateFormat.MMMd(locale).format(date)} ${DateFormat.jm(locale).format(date)}';
+    }
   }
 }

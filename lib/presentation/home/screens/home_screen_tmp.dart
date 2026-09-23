@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
@@ -75,6 +76,7 @@ class HomeScreenContent extends StatelessWidget {
         builder: (context, constraints) {
           final metrics = _HomeLayoutMetrics.fromConstraints(
             constraints: constraints,
+            viewportHeight: MediaQuery.sizeOf(context).height,
             textScale: MediaQuery.textScalerOf(context).scale(1),
             safeAreaTop: MediaQuery.paddingOf(context).top,
           );
@@ -83,30 +85,42 @@ class HomeScreenContent extends StatelessWidget {
             children: [
               SizedBox(
                 height: metrics.topSectionHeight,
-                child: ColoredBox(
-                  color: colorScheme.primary,
-                  child: Column(
-                    children: [
-                      SizedBox(height: metrics.safeAreaGap),
-                      Expanded(
-                        child: ColoredBox(
-                          color: colorScheme.primary,
-                          child: Column(
-                            children: [
-                              SizedBox(height: metrics.heroTopPadding),
-                              _CharacterSection(
-                                score: score,
-                                height: metrics.bannerHeight,
-                                topPadding: 8,
+                child: metrics.compact
+                    ? ColoredBox(
+                        color: colorScheme.primary,
+                        child: Column(
+                          children: [
+                            SizedBox(height: metrics.safeAreaGap),
+                            Expanded(
+                              child: ColoredBox(
+                                color: colorScheme.primary,
+                                child: Column(
+                                  children: [
+                                    SizedBox(height: metrics.heroTopPadding),
+                                    _CharacterSection(
+                                      score: score,
+                                      height: metrics.bannerHeight,
+                                      topPadding: 8,
+                                    ),
+                                    _TodaysScheduleOverlay(metrics: metrics),
+                                  ],
+                                ),
                               ),
-                              _TodaysScheduleOverlay(metrics: metrics),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
+                      )
+                    : Stack(
+                        children: [
+                          const _HomeHero(),
+                          Positioned(
+                            top: 177,
+                            left: 0,
+                            right: 0,
+                            child: _TodaysScheduleOverlay(metrics: metrics),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
               ),
               Expanded(
                 child: Container(
@@ -148,6 +162,14 @@ class _TodaysScheduleOverlay extends StatelessWidget {
             ? null
             : scheduleState.schedule;
         final hasSchedule = todaySchedule != null;
+        var tileState = TodayScheduleTileState.scheduled;
+        if (todaySchedule != null &&
+            todaySchedule.doneStatus != ScheduleDoneStatus.notEnded) {
+          tileState = TodayScheduleTileState.completed;
+        } else if (scheduleState.status == ScheduleStatus.ongoing ||
+            scheduleState.status == ScheduleStatus.started) {
+          tileState = TodayScheduleTileState.active;
+        }
         final target = resolveTodayTileNavigationTarget(
           scheduleStatus: scheduleState.status,
           hasSchedule: hasSchedule,
@@ -186,9 +208,11 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                   ),
                   color: theme.colorScheme.surface,
                   elevation: 6,
-                  shadowColor: Colors.black.withValues(alpha: 0.4),
+                  shadowColor: Colors.black.withValues(alpha: 0.12),
                   child: Padding(
-                    padding: EdgeInsets.all(metrics.todayCardPadding),
+                    padding: metrics.compact
+                        ? EdgeInsets.all(metrics.todayCardPadding)
+                        : const EdgeInsets.fromLTRB(20, 20, 20, 22),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +224,10 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                                       ? theme.textTheme.titleSmall
                                       : theme.textTheme.titleMedium)
                                   ?.copyWith(
-                                    height: metrics.compact ? 22 / 16 : 22 / 18,
+                                    height: metrics.compact ? 22 / 16 : 1.4,
+                                    fontWeight: metrics.compact
+                                        ? FontWeight.w600
+                                        : FontWeight.w700,
                                   ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -209,6 +236,7 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                         TodaysScheduleTile(
                           key: const Key('today_schedule_tile'),
                           schedule: todaySchedule,
+                          state: tileState,
                           compact: metrics.compact,
                           onTap: target == null
                               ? null
@@ -243,6 +271,35 @@ class _MonthlySchedule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget calendar({required bool compact}) => MonthCalendar(
+      key: const Key('home_month_calendar'),
+      monthlySchedulesState: monthlySchedulesState,
+      initialDate: referenceDate,
+      sixWeekMonthsEnforced: compact,
+      rowHeight: metrics.calendarRowHeight,
+      daysOfWeekHeight: metrics.calendarDaysOfWeekHeight,
+      headerVerticalPadding: compact ? 0 : 11,
+      contentPadding: compact
+          ? EdgeInsets.only(
+              left: metrics.calendarPadding,
+              right: metrics.calendarPadding,
+              bottom: metrics.calendarPadding + metrics.calendarFabClearance,
+            )
+          : const EdgeInsets.all(16),
+      onDateSelected: (date) {
+        context.go(calendarRouteLocation(date), extra: date);
+      },
+    );
+
+    if (!metrics.compact) {
+      return Column(
+        children: [
+          const SizedBox(height: 16),
+          SizedBox(width: 360, height: 391, child: calendar(compact: false)),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -250,21 +307,7 @@ class _MonthlySchedule extends StatelessWidget {
         Expanded(
           child: Align(
             alignment: Alignment.topCenter,
-            child: MonthCalendar(
-              key: const Key('home_month_calendar'),
-              monthlySchedulesState: monthlySchedulesState,
-              initialDate: referenceDate,
-              rowHeight: metrics.calendarRowHeight,
-              daysOfWeekHeight: metrics.calendarDaysOfWeekHeight,
-              contentPadding: EdgeInsets.only(
-                left: metrics.calendarPadding,
-                right: metrics.calendarPadding,
-                bottom: metrics.calendarPadding + metrics.calendarFabClearance,
-              ),
-              onDateSelected: (date) {
-                context.go(calendarRouteLocation(date), extra: date);
-              },
-            ),
+            child: calendar(compact: true),
           ),
         ),
       ],
@@ -371,6 +414,54 @@ class _CharacterSection extends StatelessWidget {
   }
 }
 
+class _HomeHero extends StatelessWidget {
+  const _HomeHero();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      key: const Key('home_hero'),
+      height: 230,
+      width: double.infinity,
+      child: ClipRect(
+        child: ColoredBox(
+          color: const Color(0xff4f69df),
+          child: Stack(
+            children: [
+              Positioned(
+                left: 18,
+                top: 81,
+                width: 200,
+                child: Text(
+                  AppLocalizations.of(context)!.slogan,
+                  key: const Key('home_hero_copy'),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    height: 1.4,
+                    color: Color(0xffdce3ff),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -4,
+                top: 48,
+                width: 176,
+                height: 246,
+                child: Image.asset(
+                  'home_mascot.png',
+                  package: 'assets',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _HomeLayoutMetrics {
   const _HomeLayoutMetrics({
     required this.compact,
@@ -408,11 +499,13 @@ class _HomeLayoutMetrics {
   final double calendarPadding;
   final double calendarFabClearance;
 
-  double get topSectionHeight =>
-      safeAreaGap + heroTopPadding + bannerHeight + todayOverlayHeight;
+  double get topSectionHeight => compact
+      ? safeAreaGap + heroTopPadding + bannerHeight + todayOverlayHeight
+      : 314;
 
   factory _HomeLayoutMetrics.fromConstraints({
     required BoxConstraints constraints,
+    required double viewportHeight,
     required double textScale,
     required double safeAreaTop,
   }) {
@@ -420,7 +513,7 @@ class _HomeLayoutMetrics {
         ? constraints.maxHeight
         : 800.0;
     final width = constraints.maxWidth.isFinite ? constraints.maxWidth : 390.0;
-    final heightPressure = (1 - ((height - 640) / 204)).clamp(0.0, 1.0);
+    final heightPressure = (1 - ((viewportHeight - 640) / 204)).clamp(0.0, 1.0);
     final widthPressure = width <= 380 ? 1.0 : 0.0;
     final textPressure = ((textScale - 1) / 0.3).clamp(0.0, 1.0);
     final pressure = math.max(
@@ -436,7 +529,7 @@ class _HomeLayoutMetrics {
     final heroTopPadding = safeAreaTop > 0 ? 0.0 : scale(43, 18);
     const bannerAspectRatio = 1170 / 402;
     final fullWidthBannerHeight = width / bannerAspectRatio;
-    final maxBannerHeight = math.min(scale(180, 124), height * 0.22);
+    final maxBannerHeight = math.min(scale(180, 124), viewportHeight * 0.22);
     final bannerHeight = math.min(fullWidthBannerHeight, maxBannerHeight);
     final todayOverlayHeight = scale(137, 137);
     final todayHeroOverlap = scale(53, todayOverlayHeight / 2);
@@ -470,9 +563,9 @@ class _HomeLayoutMetrics {
       todayOverlayHeight: todayOverlayHeight,
       todayHeroOverlap: todayHeroOverlap,
       todayCardPadding: scale(20, 8),
-      todayTitleGap: scale(21, 6),
-      cardHorizontalPadding: 16,
-      sectionHorizontalPadding: scale(16, 8),
+      todayTitleGap: scale(16, 6),
+      cardHorizontalPadding: scale(15, 16),
+      sectionHorizontalPadding: scale(15, 8),
       sectionBottomPadding: sectionBottomPadding,
       monthlyHeaderHeight: monthlyHeaderHeight,
       calendarRowHeight: calendarRowHeight,

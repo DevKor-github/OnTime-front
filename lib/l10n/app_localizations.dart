@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'Try again'**
   String get retry;
 
+  /// Status label for an active preparation on the home card
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get preparationInProgress;
+
   /// Text shown when there are no schedules on a selected date
   ///
   /// In en, this message translates to:

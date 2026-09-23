@@ -18,6 +18,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Try again';
 
   @override
+  String get preparationInProgress => 'Preparing';
+
+  @override
   String get noSchedules => 'No schedules';
 
   @override

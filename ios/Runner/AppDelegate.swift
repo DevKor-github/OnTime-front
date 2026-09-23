@@ -28,6 +28,9 @@ private let onTimeAlarmLaunchURLHost = "alarm"
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OnTimeBackupExport") {
+      BackupExportPlugin.register(with: registrar)
+    }
     let channel = FlutterMethodChannel(
       name: "on_time_front/native_alarm",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()

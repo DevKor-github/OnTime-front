@@ -113,11 +113,14 @@ class _MyDataScreenState extends State<MyDataScreen> {
       final saved = await getIt<BackupService>().exportToUserSelectedFile(
         password,
       );
-      if (!mounted || !saved) return;
+      if (!mounted || saved == BackupExportResult.cancelled) return;
+      final message = saved == BackupExportResult.saved
+          ? '암호화 백업을 저장했습니다.'
+          : '파일은 저장됐지만 백업 상태를 갱신하지 못했습니다. 앱을 다시 열어 백업 상태를 확인하고 필요하면 다시 내보내주세요.';
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('암호화 백업을 저장했습니다.')));
-      await _loadFreshness();
+      ).showSnackBar(SnackBar(content: Text(message)));
+      if (saved == BackupExportResult.saved) await _loadFreshness();
     });
   }
 
@@ -202,82 +205,10 @@ class _MyDataScreenState extends State<MyDataScreen> {
     }
   }
 
-  Future<String?> _askPassword({required bool confirm}) async {
-    final first = TextEditingController();
-    final second = TextEditingController();
-    String? error;
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(confirm ? '백업 비밀번호 만들기' : '백업 비밀번호 입력'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: first,
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
-                autofillHints: null,
-                decoration: const InputDecoration(
-                  labelText: '백업 비밀번호',
-                  helperText: '15~128자, 대소문자와 공백을 그대로 구분합니다.',
-                ),
-              ),
-              if (confirm) ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: second,
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  autofillHints: null,
-                  decoration: const InputDecoration(labelText: '백업 비밀번호 확인'),
-                ),
-              ],
-              if (error != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
-            ),
-            FilledButton(
-              onPressed: () {
-                try {
-                  final parsed = BackupPassword.parse(first.text);
-                  if (confirm &&
-                      parsed.normalized !=
-                          BackupPassword.parse(second.text).normalized) {
-                    throw const FormatException('비밀번호가 서로 다릅니다.');
-                  }
-                  Navigator.pop(context, parsed.normalized);
-                } on FormatException catch (exception) {
-                  setDialogState(
-                    () => error = exception.message == '비밀번호가 서로 다릅니다.'
-                        ? exception.message
-                        : '백업 비밀번호는 15~128자로 입력해주세요.',
-                  );
-                }
-              },
-              child: const Text('계속'),
-            ),
-          ],
-        ),
-      ),
-    );
-    first.dispose();
-    second.dispose();
-    return result;
-  }
+  Future<String?> _askPassword({required bool confirm}) => showDialog<String>(
+    context: context,
+    builder: (context) => _BackupPasswordDialog(confirm: confirm),
+  );
 
   Future<void> _run(Future<void> Function() action) async {
     setState(() => _busy = true);
@@ -325,5 +256,91 @@ class LocalDataResetCompleteScreen extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+class _BackupPasswordDialog extends StatefulWidget {
+  const _BackupPasswordDialog({required this.confirm});
+  final bool confirm;
+
+  @override
+  State<_BackupPasswordDialog> createState() => _BackupPasswordDialogState();
+}
+
+class _BackupPasswordDialogState extends State<_BackupPasswordDialog> {
+  final first = TextEditingController();
+  final second = TextEditingController();
+  String? error;
+
+  @override
+  void dispose() {
+    first.dispose();
+    second.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.confirm ? '백업 비밀번호 만들기' : '백업 비밀번호 입력'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: first,
+          obscureText: true,
+          enableSuggestions: false,
+          autocorrect: false,
+          autofillHints: null,
+          decoration: const InputDecoration(
+            labelText: '백업 비밀번호',
+            helperText: '15~128자, 대소문자와 공백을 그대로 구분합니다.',
+          ),
+        ),
+        if (widget.confirm) ...[
+          const SizedBox(height: 12),
+          TextField(
+            controller: second,
+            obscureText: true,
+            enableSuggestions: false,
+            autocorrect: false,
+            autofillHints: null,
+            decoration: const InputDecoration(labelText: '백업 비밀번호 확인'),
+          ),
+        ],
+        if (error != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        ],
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('취소'),
+      ),
+      FilledButton(
+        onPressed: () {
+          try {
+            final parsed = BackupPassword.parse(first.text);
+            if (widget.confirm &&
+                parsed.normalized !=
+                    BackupPassword.parse(second.text).normalized) {
+              throw const FormatException('비밀번호가 서로 다릅니다.');
+            }
+            Navigator.pop(context, parsed.normalized);
+          } on FormatException catch (exception) {
+            setState(
+              () => error = exception.message == '비밀번호가 서로 다릅니다.'
+                  ? exception.message
+                  : '백업 비밀번호는 15~128자로 입력해주세요.',
+            );
+          }
+        },
+        child: const Text('계속'),
+      ),
+    ],
   );
 }

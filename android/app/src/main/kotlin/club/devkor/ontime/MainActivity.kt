@@ -38,6 +38,9 @@ open class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        if (!flutterEngine.plugins.has(BackupExportPlugin::class.java)) {
+            flutterEngine.plugins.add(BackupExportPlugin())
+        }
         NativeLog.d(TAG, "configureFlutterEngine registering method channel")
         methodChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,

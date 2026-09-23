@@ -4,8 +4,10 @@ import 'package:drift/drift.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
+import 'package:on_time_front/core/backup/backup_file_export_port.dart';
 import 'package:on_time_front/core/constants/local_profile.dart';
 import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/device_info_service/shared.dart';
 import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
@@ -18,6 +20,8 @@ import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
 enum BackupFreshness { neverExported, noChanges, unexportedChanges }
+
+enum BackupExportResult { cancelled, saved, savedFreshnessUpdateFailed }
 
 class BackupFreshnessStatus {
   const BackupFreshnessStatus({
@@ -62,7 +66,11 @@ class BackupService {
     this._database,
     this._metadataProvider, {
     @ignoreParam BackupCrypto? crypto,
-  }) : _crypto = crypto ?? BackupCrypto();
+    @ignoreParam BackupFileExportPort? exportPort,
+    @ignoreParam LocalDataOperationGate? operationGate,
+  }) : _crypto = crypto ?? BackupCrypto(),
+       _exportPort = exportPort ?? const NativeBackupFileExportPort(),
+       _operationGate = operationGate ?? LocalDataOperationGate.shared;
 
   static const _typeGroup = XTypeGroup(
     label: 'OnTime Backup',
@@ -73,27 +81,43 @@ class BackupService {
   final AppDatabase _database;
   final AppMetadataProvider _metadataProvider;
   final BackupCrypto _crypto;
+  final BackupFileExportPort _exportPort;
+  final LocalDataOperationGate _operationGate;
 
-  Future<bool> exportToUserSelectedFile(String password) async {
+  Future<BackupExportResult> exportToUserSelectedFile(
+    String password,
+  ) => _operationGate.run(() async {
+    final generation = _operationGate.generation;
     final snapshot = await _captureSnapshot();
     final encrypted = await _encryptSnapshot(snapshot, password);
-    final location = await getSaveLocation(
-      acceptedTypeGroups: const [_typeGroup],
-      suggestedName: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
-    );
-    if (location == null) return false;
-    await XFile.fromData(
-      encrypted,
-      name: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
-      mimeType: 'application/octet-stream',
-    ).saveTo(location.path);
-    await _database.userDao.markExported(
-      userId: localProfileId,
-      revision: snapshot.dataRevision,
-      cutoff: snapshot.cutoff,
-    );
-    return true;
-  }
+    final BackupFileExportReceipt receipt;
+    try {
+      receipt = await _exportPort.export(
+        encryptedBytes: encrypted,
+        suggestedName: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
+      );
+    } catch (_) {
+      throw const BackupFileExportFailure();
+    }
+    if (receipt == BackupFileExportReceipt.cancelled) {
+      return BackupExportResult.cancelled;
+    }
+    // A successful file save is distinct from updating this installation's
+    // freshness metadata. Never repeat or undo the external save on DB failure.
+    if (_operationGate.generation != generation) {
+      return BackupExportResult.savedFreshnessUpdateFailed;
+    }
+    try {
+      await _database.userDao.markExported(
+        userId: localProfileId,
+        revision: snapshot.dataRevision,
+        cutoff: snapshot.cutoff,
+      );
+    } catch (_) {
+      return BackupExportResult.savedFreshnessUpdateFailed;
+    }
+    return BackupExportResult.saved;
+  });
 
   Future<BackupRestoreCandidate?> selectAndPreviewRestore(
     String password,
@@ -133,17 +157,17 @@ class BackupService {
     );
   }
 
-  Future<Uint8List> _encryptSnapshot(
-    _BackupData snapshot,
-    String password,
-  ) {
+  Future<Uint8List> _encryptSnapshot(_BackupData snapshot, String password) {
     return _crypto.encrypt(
       plaintext: Uint8List.fromList(utf8.encode(jsonEncode(snapshot.toJson()))),
       password: password,
     );
   }
 
-  Future<void> applyRestore(BackupRestoreCandidate candidate) async {
+  Future<void> applyRestore(BackupRestoreCandidate candidate) =>
+      _operationGate.run(() => _applyRestore(candidate), replacesData: true);
+
+  Future<void> _applyRestore(BackupRestoreCandidate candidate) async {
     final data = candidate._data;
     final profile = data.profile.valueOrNull!;
     await _database.transaction(() async {

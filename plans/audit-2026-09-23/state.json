@@ -21,8 +21,8 @@
       "issue_number": 583,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/583",
       "decisions_file": "plans/audit-2026-09-23/issues/A01.md",
-      "implementation_commit": null,
-      "pr_url": null,
+      "implementation_commit": "6e17e764",
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Python manifest policy: 11 tests pass; source regression failed before fix",
         "Local-only boundary passes"
@@ -45,18 +45,28 @@
         "`lib/core/backup/backup_service.dart:77-95`; `pubspec.lock:323-346`; file_selector 1.1.0 지원표 및 플랫폼 구현",
         "모바일 문서 내보내기 API로 저장. 양 플랫폼에서 저장한 파일을 다시 열고, 다른 플랫폼에서도 복원. 저장 취소/실패 시 freshness가 성공으로 바뀌지 않아야 함."
       ],
-      "status": "ready",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a02",
       "issue_number": 584,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/584",
       "decisions_file": "plans/audit-2026-09-23/issues/A02.md",
       "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Targeted service/port/gate: 16 passed",
+        "Export/password dialog widget: 5 passed",
+        "Full Flutter suite: 571 passed",
+        "flutter analyze: no issues",
+        "Kotlin Android SDK compile and Swift SDK typecheck passed; XCTest not executed"
+      ],
+      "blockers": [
+        "Physical Android/iOS picker/provider and cross-platform export/restore verification pending",
+        "Full iOS build and native test execution pending"
+      ],
       "sequence": 2,
       "issue_body_sha256": "e0b8fca33ca5913263230ae4c264a496eed9e745265475adb4063d8b04f0bfba",
-      "readback_verified": true
+      "readback_verified": true,
+      "body_sha256": "0fccad866304a88f2acdbb514d4983077e304c3964569841620dd6599eff8ed7"
     },
     {
       "audit_id": "A03",
@@ -69,16 +79,18 @@
         "`backup_service.dart:67-71,98-103`; file_selector_ios 0.5.3+6 `file_selector_ios.dart:65-69`",
         "등록한 UTType 또는 검증 가능한 데이터 타입으로 파일 선택 가능. 실제 `.ontimebackup` 선택·취소·다른 형식·손상 파일 검사."
       ],
-      "status": "grilling",
+      "status": "ready",
       "agent": "/root/grill_a03",
-      "issue_number": null,
-      "issue_url": null,
+      "issue_number": 586,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/586",
       "decisions_file": "plans/audit-2026-09-23/issues/A03.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 3
+      "sequence": 3,
+      "readback_verified": true,
+      "body_sha256": "b71cdb49ee31482c29244505f041bd6ec18084401d8a3b7aa68e18db9a90984c"
     },
     {
       "audit_id": "A04",
@@ -91,16 +103,18 @@
         "`lib/data/mappers/domain_persistence_mappers.dart:108-123`; `lib/data/daos/user_dao.dart:15-18`; `lib/data/repositories/user_repository_impl.dart:48-67`; `schedule_repository_impl.dart:140-155`",
         "프로필/설정/점수/백업 메타데이터별 부분 UPDATE. 알림 OFF·상세 ON·백업 이력이 있는 상태에서 여유시간 수정/일정 완료 후 관련 없는 값 보존. revision은 단조 증가."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_a04",
+      "issue_number": 587,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/587",
       "decisions_file": "plans/audit-2026-09-23/issues/A04.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 4
+      "sequence": 4,
+      "readback_verified": true,
+      "body_sha256": "d7aad74fd3e48468cd0d9ffde95cb531b48e1bc2ee616d74eca32a766ba5a603"
     },
     {
       "audit_id": "A05",

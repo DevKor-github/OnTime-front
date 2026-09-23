@@ -69,13 +69,8 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
     await markDurableDataChanged(userId);
   }
 
-  Future<({
-    bool enabled,
-    int offsetMinutes,
-    bool detailedNotificationContent,
-  })> getAlarmSettings(
-    String userId,
-  ) async {
+  Future<({bool enabled, int offsetMinutes, bool detailedNotificationContent})>
+  getAlarmSettings(String userId) async {
     final row = await (select(
       users,
     )..where((table) => table.id.equals(userId))).getSingleOrNull();
@@ -111,11 +106,13 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
     required int revision,
     required DateTime cutoff,
   }) async {
-    await (update(users)..where((table) => table.id.equals(userId))).write(
-      UsersCompanion(
-        lastExportedRevision: Value(revision),
-        lastExportedAt: Value(cutoff),
-      ),
-    );
+    final updated =
+        await (update(users)..where((table) => table.id.equals(userId))).write(
+          UsersCompanion(
+            lastExportedRevision: Value(revision),
+            lastExportedAt: Value(cutoff),
+          ),
+        );
+    if (updated != 1) throw StateError('Local profile unavailable');
   }
 }

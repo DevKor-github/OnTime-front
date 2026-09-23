@@ -76,6 +76,9 @@ class BackupService {
     label: 'OnTime Backup',
     extensions: ['ontimebackup'],
     mimeTypes: ['application/octet-stream'],
+    // iOS filters by UTI only. Files transferred from Android may not have a
+    // custom backup UTI, so authenticate their contents after selection.
+    uniformTypeIdentifiers: ['public.data'],
   );
 
   final AppDatabase _database;

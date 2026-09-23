@@ -50,7 +50,7 @@
       "issue_number": 584,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/584",
       "decisions_file": "plans/audit-2026-09-23/issues/A02.md",
-      "implementation_commit": null,
+      "implementation_commit": "35f4d603",
       "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Targeted service/port/gate: 16 passed",
@@ -79,15 +79,22 @@
         "`backup_service.dart:67-71,98-103`; file_selector_ios 0.5.3+6 `file_selector_ios.dart:65-69`",
         "등록한 UTType 또는 검증 가능한 데이터 타입으로 파일 선택 가능. 실제 `.ontimebackup` 선택·취소·다른 형식·손상 파일 검사."
       ],
-      "status": "ready",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a03",
       "issue_number": 586,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/586",
       "decisions_file": "plans/audit-2026-09-23/issues/A03.md",
       "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Actual FileSelectorIOS host contract + picker/data preservation: 10 tests passed",
+        "Targeted Dart analyzer: no issues",
+        "Previous extension-only filter fails before native host (negative regression)"
+      ],
+      "blockers": [
+        "iOS Files provider and Android-to-iOS actual backup selection pending",
+        "Full iOS build and preview-cancel widget verification pending"
+      ],
       "sequence": 3,
       "readback_verified": true,
       "body_sha256": "b71cdb49ee31482c29244505f041bd6ec18084401d8a3b7aa68e18db9a90984c"
@@ -127,16 +134,18 @@
         "`lib/presentation/my_page/my_page_screen.dart:121-124`; `lib/domain/use-cases/reconcile_alarms_use_case.dart:516-526`",
         "내용 정책도 등록 버전에 포함. ON→OFF 시 기존 OS 예약을 교체하고 실제 표시가 비공개인지 확인. locale·일정명·표시 시간대 변경도 검사."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_a05",
+      "issue_number": 588,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/588",
       "decisions_file": "plans/audit-2026-09-23/issues/A05.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 5
+      "sequence": 5,
+      "readback_verified": true,
+      "body_sha256": "59c23b65c9d1486e3af26f2eac3017fd5461494699c847bd1245333420c6d83c"
     },
     {
       "audit_id": "A11",
@@ -149,8 +158,8 @@
         "`schedule_with_preparation_entity.dart:44-70`; `alarm_entities.dart:413,426`; `alarm_registry_local_data_source.dart:48-54`; `notification_service.dart:268`",
         "payload/registry에서 필요한 식별자와 버전만 보존. 내용 비교가 필요하면 원문을 노출하지 않는 digest 사용. 기존 registry 및 플러그인 예약 payload 교체, 상세 OFF 상태에서 준비 원문이 남지 않는지 검사."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
+      "status": "grilling",
+      "agent": "/root/grill_a11",
       "issue_number": null,
       "issue_url": null,
       "decisions_file": "plans/audit-2026-09-23/issues/A11.md",

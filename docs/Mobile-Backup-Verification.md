@@ -18,8 +18,6 @@
 
 | 검사 | 결과 | 증명 범위 |
 |---|---|---|
-| Dart export port / BackupService / local-data operation gate | 16개 통과 | root 실행 결과. channel 결과·DB freshness·동시 실행의 단위 테스트이며 실제 OS picker는 실행하지 않음. |
-| My Data export widget | 5개 통과 | root 실행 결과. 비밀번호 dialog lifecycle 및 export 결과 안내 회귀. 실제 native provider는 실행하지 않음. |
 | Dart 서비스·port·gate 회귀 테스트 16개 | 통과 | snapshot revision, 취소/실패, single-flight, late callback, DB mark 실패 |
 | 비밀번호·export 화면 widget 테스트 5개 | 통과 | 제출/취소 전환 중 controller 수명, 결과별 안내와 busy 해제 |
 | 전체 Flutter 테스트 | 571개 통과 | 기존 회귀 포함. 실기기/네이티브 UI 실행 아님. |
@@ -31,7 +29,7 @@
 | Xcode project `plutil -lint` | 통과 | 프로젝트 문법. 실제 Sources compile/link는 별도 필요. |
 | `git diff --check` | 통과 | 패치 공백 오류. 동작 증거는 아님. |
 
-Dart 결과의 대상 파일은 `test/core/backup/backup_file_export_port_test.dart`, `test/core/backup/backup_service_test.dart`, `test/core/database/local_data_operation_gate_test.dart`, `test/presentation/my_page/my_data_export_test.dart`다. 첫 widget 실행에서 dialog exit transition 도중 controller가 너무 일찍 dispose되는 실제 오류를 발견했고, root가 dialog State 소유로 고친 뒤 5개 테스트가 통과했다. 전체 Flutter suite와 analyzer의 최종 결과는 별도 실행 완료 후 기록한다.
+Dart 결과의 대상 파일은 `test/core/backup/backup_file_export_port_test.dart`, `test/core/backup/backup_service_test.dart`, `test/core/database/local_data_operation_gate_test.dart`, `test/presentation/my_page/my_data_export_test.dart`다. 첫 widget 실행에서 dialog exit transition 도중 controller가 너무 일찍 dispose되는 실제 오류를 발견했고, root가 dialog State 소유로 고친 뒤 5개 테스트가 통과했다. 같은 변경에서 전체 Flutter suite 571개와 analyzer도 통과했다.
 
 실행한 명령(환경 절대경로를 보존해 재현 가능하게 기록):
 

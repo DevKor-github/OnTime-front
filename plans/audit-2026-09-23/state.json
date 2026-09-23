@@ -84,16 +84,17 @@
       "issue_number": 586,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/586",
       "decisions_file": "plans/audit-2026-09-23/issues/A03.md",
-      "implementation_commit": null,
+      "implementation_commit": "8eab02bd",
       "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Actual FileSelectorIOS host contract + picker/data preservation: 10 tests passed",
         "Targeted Dart analyzer: no issues",
-        "Previous extension-only filter fails before native host (negative regression)"
+        "Previous extension-only filter fails before native host (negative regression)",
+        "Restore preview cancellation, picker cancellation, invalid file retry: 3 widget tests passed"
       ],
       "blockers": [
         "iOS Files provider and Android-to-iOS actual backup selection pending",
-        "Full iOS build and preview-cancel widget verification pending"
+        "Full iOS build pending"
       ],
       "sequence": 3,
       "readback_verified": true,
@@ -110,15 +111,23 @@
         "`lib/data/mappers/domain_persistence_mappers.dart:108-123`; `lib/data/daos/user_dao.dart:15-18`; `lib/data/repositories/user_repository_impl.dart:48-67`; `schedule_repository_impl.dart:140-155`",
         "프로필/설정/점수/백업 메타데이터별 부분 UPDATE. 알림 OFF·상세 ON·백업 이력이 있는 상태에서 여유시간 수정/일정 완료 후 관련 없는 값 보존. revision은 단조 증가."
       ],
-      "status": "ready",
+      "status": "code_verified_ci_pending",
       "agent": "/root/grill_a04",
       "issue_number": 587,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/587",
       "decisions_file": "plans/audit-2026-09-23/issues/A04.md",
       "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Baseline behavioral regression: 2 passed, 10 failed",
+        "Final DAO/repository targeted suite: 18 passed",
+        "Full Flutter suite before final two added regressions: 596 passed",
+        "Backup export actual partial edit integration: 9 passed",
+        "flutter analyze: no issues"
+      ],
+      "blockers": [
+        "Latest commit GitHub CI and merge pending"
+      ],
       "sequence": 4,
       "readback_verified": true,
       "body_sha256": "d7aad74fd3e48468cd0d9ffde95cb531b48e1bc2ee616d74eca32a766ba5a603"

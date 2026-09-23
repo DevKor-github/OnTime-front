@@ -41,14 +41,7 @@ class AlarmRepositoryImpl implements AlarmRepository {
       userId: localProfileId,
       enabled: alarmsEnabled,
     );
-    return AlarmSettings(
-      alarmsEnabled: alarmsEnabled,
-      defaultAlarmOffsetMinutes: 0,
-      updatedAt: DateTime.now(),
-      detailedNotificationContent: (await _userDao.getAlarmSettings(
-        localProfileId,
-      )).detailedNotificationContent,
-    );
+    return getAlarmSettings();
   }
 
   @override

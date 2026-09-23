@@ -10,7 +10,6 @@ import 'package:on_time_front/data/daos/user_dao.dart';
 import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:rxdart/subjects.dart';
@@ -137,19 +136,10 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         ),
       );
 
-      final user = await _userDao.getUserById(localProfileId);
-      if (!existing.schedule.scoreContributionRecorded && user != null) {
-        final value = user.valueOrNull!;
-        await _userDao.putUser(
-          UserEntity(
-            id: value.id,
-            spareTime: value.spareTime,
-            note: value.note,
-            isOnboardingCompleted: value.isOnboardingCompleted,
-            eligibleOutcomeCount: value.eligibleOutcomeCount + 1,
-            onTimeOutcomeCount:
-                value.onTimeOutcomeCount + (latenessTime > 0 ? 0 : 1),
-          ),
+      if (!existing.schedule.scoreContributionRecorded) {
+        await _userDao.incrementScore(
+          localProfileId,
+          onTime: latenessTime <= 0,
         );
       }
       await _userDao.markDurableDataChanged(localProfileId);

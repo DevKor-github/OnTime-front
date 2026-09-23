@@ -40,31 +40,14 @@ class UserRepositoryImpl implements UserRepository {
       note: '',
     );
     await _userDao.putUser(profile);
-    _userStreamController.add(profile);
-    return profile;
+    final stored = (await _userDao.getUserById(localProfileId))!;
+    _userStreamController.add(stored);
+    return stored;
   }
 
   @override
-  Future<void> saveUser(UserEntity user) async {
-    final value = user.valueOrNull;
-    if (value == null) {
-      throw ArgumentError.value(
-        user,
-        'user',
-        'An empty profile cannot be saved.',
-      );
-    }
-    if (value.id != localProfileId) {
-      throw ArgumentError.value(
-        value.id,
-        'user.id',
-        'Only one local profile exists.',
-      );
-    }
-    await _userDao.putUser(user);
-    await _userDao.markDurableDataChanged(localProfileId);
-    final saved = await _userDao.getUserById(localProfileId);
-    if (saved != null) _userStreamController.add(saved);
+  Future<void> updateSpareTime(Duration spareTime) async {
+    await _userDao.updateSpareTime(localProfileId, spareTime);
   }
 
   @override

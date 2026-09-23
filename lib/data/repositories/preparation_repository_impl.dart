@@ -4,7 +4,6 @@ import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/daos/user_dao.dart';
 import 'package:on_time_front/data/data_sources/preparation_local_data_source.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
@@ -17,11 +16,13 @@ class PreparationRepositoryImpl implements PreparationRepository {
     required AppDatabase database,
   }) : _localDataSource = preparationLocalDataSource,
        _userRepository = userRepository,
-       _userDao = database.userDao;
+       _userDao = database.userDao,
+       _database = database;
 
   final PreparationLocalDataSource _localDataSource;
   final UserRepository _userRepository;
   final UserDao _userDao;
+  final AppDatabase _database;
   final _preparationStreamController =
       BehaviorSubject<Map<String, PreparationEntity>>.seeded(const {});
 
@@ -35,21 +36,25 @@ class PreparationRepositoryImpl implements PreparationRepository {
     required Duration spareTime,
     required String note,
   }) async {
-    await _localDataSource.createDefaultPreparation(
-      preparationEntity,
-      userId: localProfileId,
-    );
-    final profile = (await _userRepository.getUser()).valueOrNull!;
-    await _userRepository.saveUser(
-      UserEntity(
-        id: profile.id,
+    await _userRepository.getUser();
+    await _database.transaction(() async {
+      final existing = await _localDataSource.getDefaultPreparation(
+        localProfileId,
+      );
+      final changed = !_samePreparation(existing, preparationEntity);
+      if (changed) {
+        await _localDataSource.createDefaultPreparation(
+          preparationEntity.ordered,
+          userId: localProfileId,
+        );
+      }
+      await _userDao.completeOnboarding(
+        userId: localProfileId,
         spareTime: spareTime,
         note: note,
-        isOnboardingCompleted: true,
-        eligibleOutcomeCount: profile.eligibleOutcomeCount,
-        onTimeOutcomeCount: profile.onTimeOutcomeCount,
-      ),
-    );
+        preparationChanged: changed,
+      );
+    });
   }
 
   @override
@@ -103,18 +108,22 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }
 
   @override
-  Future<void> updateSpareTime(Duration newSpareTime) async {
-    final profile = (await _userRepository.getUser()).valueOrNull!;
-    await _userRepository.saveUser(
-      UserEntity(
-        id: profile.id,
-        spareTime: newSpareTime,
-        note: profile.note,
-        isOnboardingCompleted: profile.isOnboardingCompleted,
-        eligibleOutcomeCount: profile.eligibleOutcomeCount,
-        onTimeOutcomeCount: profile.onTimeOutcomeCount,
-      ),
-    );
+  Future<void> updateSpareTime(Duration newSpareTime) =>
+      _userRepository.updateSpareTime(newSpareTime);
+
+  bool _samePreparation(PreparationEntity left, PreparationEntity right) {
+    final a = left.ordered.preparationStepList;
+    final b = right.ordered.preparationStepList;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      // Links are reconstructed by storage from this order; callers may omit them.
+      if (a[i].id != b[i].id ||
+          a[i].preparationName != b[i].preparationName ||
+          a[i].preparationTime.inMinutes != b[i].preparationTime.inMinutes) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void _emitSchedulePreparation(

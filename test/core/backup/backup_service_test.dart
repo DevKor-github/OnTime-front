@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
@@ -68,7 +69,10 @@ void main() {
   test(
     'saved receipt marks only the captured revision despite an ordinary edit',
     () async {
-      await database.userDao.markDurableDataChanged('local-profile');
+      await database.userDao.updateAlarmSettings(
+        userId: 'local-profile',
+        enabled: false,
+      );
       final initial =
           (await database.select(database.users).getSingle()).dataRevision;
       final pending = service.exportToUserSelectedFile(password);
@@ -79,12 +83,17 @@ void main() {
       );
       expect(candidate.preview.scheduleCount, 1);
       expect(exportPort.name, endsWith('.ontimebackup'));
-      await database.userDao.markDurableDataChanged('local-profile');
+      await database.userDao.updateSpareTime(
+        'local-profile',
+        const Duration(minutes: 11),
+      );
       exportPort.completion.complete(BackupFileExportReceipt.saved);
       expect(await pending, BackupExportResult.saved);
       final row = await database.select(database.users).getSingle();
       expect(row.lastExportedRevision, initial);
       expect(row.dataRevision, initial + 1);
+      expect(row.spareTime, 11);
+      expect(row.alarmsEnabled, false);
       expect(
         (await service.getFreshness()).freshness,
         BackupFreshness.unexportedChanges,
@@ -227,13 +236,9 @@ void main() {
 
   test('wrong password leaves current database unchanged', () async {
     final encrypted = await service.createEncryptedBackup(password);
-    await database.userDao.putUser(
-      const UserEntity(
-        id: 'local-profile',
-        spareTime: Duration.zero,
-        note: 'must survive',
-      ),
-    );
+    await (database.update(database.users)
+          ..where((row) => row.id.equals('local-profile')))
+        .write(const UsersCompanion(note: Value('must survive')));
 
     await expectLater(
       service.previewEncryptedBackup(encrypted, 'wrong backup password'),

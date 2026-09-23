@@ -5,7 +5,7 @@ abstract interface class UserRepository {
 
   Future<UserEntity> getUser();
 
-  Future<void> saveUser(UserEntity user);
+  Future<void> updateSpareTime(Duration spareTime);
 
   Future<void> resetLocalData();
 }

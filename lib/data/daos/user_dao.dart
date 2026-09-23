@@ -12,10 +12,12 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
 
   UserDao(this.db) : super(db);
 
+  /// Creates a profile only; an existing profile is never overwritten.
   Future<void> putUser(UserEntity userEntity) async {
-    await into(
-      db.users,
-    ).insertOnConflictUpdate(userEntity.toUserRow().toCompanion(false));
+    await into(db.users).insert(
+      userEntity.toUserRow().toCompanion(false),
+      mode: InsertMode.insertOrIgnore,
+    );
   }
 
   Future<void> createUser(UserEntity userEntity) => putUser(userEntity);
@@ -41,9 +43,24 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
         .map((row) => row?.toUserEntity());
   }
 
+  Future<User> _requireProfile(String userId) async {
+    final row = await (select(
+      users,
+    )..where((u) => u.id.equals(userId))).getSingleOrNull();
+    if (row == null) throw StateError('Local profile unavailable');
+    return row;
+  }
+
+  Future<void> _writeProfile(String userId, UsersCompanion change) async {
+    final updated = await (update(
+      users,
+    )..where((u) => u.id.equals(userId))).write(change);
+    if (updated != 1) throw StateError('Local profile unavailable');
+  }
+
   Future<void> markDurableDataChanged(String userId) async {
-    final now = DateTime.now();
-    await customStatement(
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final updated = await customUpdate(
       '''
       UPDATE users
       SET data_revision = data_revision + 1,
@@ -51,23 +68,75 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
           last_durable_data_at = ?
       WHERE id = ?
       ''',
-      [
-        now.millisecondsSinceEpoch ~/ 1000,
-        now.millisecondsSinceEpoch ~/ 1000,
-        userId,
+      variables: [
+        Variable<int>(now),
+        Variable<int>(now),
+        Variable<String>(userId),
       ],
+      updates: {users},
     );
+    if (updated != 1) throw StateError('Local profile unavailable');
+  }
+
+  Future<void> updateSpareTime(String userId, Duration spareTime) =>
+      transaction(() async {
+        final current = await _requireProfile(userId);
+        if (current.spareTime == spareTime.inMinutes) return;
+        await _writeProfile(
+          userId,
+          UsersCompanion(spareTime: Value(spareTime.inMinutes)),
+        );
+        await markDurableDataChanged(userId);
+      });
+
+  /// The preparation write and this call share the repository's transaction.
+  Future<void> completeOnboarding({
+    required String userId,
+    required Duration spareTime,
+    required String note,
+    required bool preparationChanged,
+  }) => transaction(() async {
+    final current = await _requireProfile(userId);
+    final profileChanged =
+        current.spareTime != spareTime.inMinutes ||
+        current.note != note ||
+        !current.isOnboardingCompleted;
+    if (!profileChanged && !preparationChanged) return;
+    if (profileChanged) {
+      await _writeProfile(
+        userId,
+        UsersCompanion(
+          spareTime: Value(spareTime.inMinutes),
+          note: Value(note),
+          isOnboardingCompleted: const Value(true),
+        ),
+      );
+    }
+    await markDurableDataChanged(userId);
+  });
+
+  /// Called inside the schedule outcome transaction; its revision is owned there.
+  Future<void> incrementScore(String userId, {required bool onTime}) async {
+    final updated = await customUpdate(
+      '''
+      UPDATE users SET eligible_outcome_count = eligible_outcome_count + 1,
+          on_time_outcome_count = on_time_outcome_count + ? WHERE id = ?
+      ''',
+      variables: [Variable<int>(onTime ? 1 : 0), Variable<String>(userId)],
+      updates: {users},
+    );
+    if (updated != 1) throw StateError('Local profile unavailable');
   }
 
   Future<void> updateAlarmSettings({
     required String userId,
     required bool enabled,
-  }) async {
-    await (update(users)..where((table) => table.id.equals(userId))).write(
-      UsersCompanion(alarmsEnabled: Value(enabled)),
-    );
+  }) => transaction(() async {
+    final current = await _requireProfile(userId);
+    if (current.alarmsEnabled == enabled) return;
+    await _writeProfile(userId, UsersCompanion(alarmsEnabled: Value(enabled)));
     await markDurableDataChanged(userId);
-  }
+  });
 
   Future<({bool enabled, int offsetMinutes, bool detailedNotificationContent})>
   getAlarmSettings(String userId) async {
@@ -84,22 +153,30 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
   Future<void> updateDetailedNotificationContent({
     required String userId,
     required bool enabled,
-  }) async {
-    await (update(users)..where((table) => table.id.equals(userId))).write(
+  }) => transaction(() async {
+    final current = await _requireProfile(userId);
+    if (current.detailedNotificationContent == enabled) return;
+    await _writeProfile(
+      userId,
       UsersCompanion(detailedNotificationContent: Value(enabled)),
     );
     await markDurableDataChanged(userId);
-  }
+  });
 
-  Future<void> resetScore(String userId) async {
-    await (update(users)..where((table) => table.id.equals(userId))).write(
+  Future<void> resetScore(String userId) => transaction(() async {
+    final current = await _requireProfile(userId);
+    if (current.eligibleOutcomeCount == 0 && current.onTimeOutcomeCount == 0) {
+      return;
+    }
+    await _writeProfile(
+      userId,
       const UsersCompanion(
         eligibleOutcomeCount: Value(0),
         onTimeOutcomeCount: Value(0),
       ),
     );
     await markDurableDataChanged(userId);
-  }
+  });
 
   Future<void> markExported({
     required String userId,

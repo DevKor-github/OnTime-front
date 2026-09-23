@@ -1,0 +1,96 @@
+name: Android Notification Contract
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main, 'release/**', 'hotfix/**']
+  push:
+    branches: [main, 'release/**', 'hotfix/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-notification-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.4'
+          channel: stable
+          cache: true
+      - name: Verify source receiver contract and negative fixtures
+        run: python3 -B -m unittest discover -s test/tool -p 'test_*.py' -v
+      - name: Install packages and generate local outputs
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+          dart run tool/check_generated_dart_policy.dart
+          dart run tool/check_local_only_boundary.dart
+      - name: Create disposable validation signing key
+        run: |
+          keytool -genkeypair -noprompt \
+            -keystore "$RUNNER_TEMP/notification-validation.jks" \
+            -alias notification-validation -keyalg RSA -keysize 2048 -validity 2 \
+            -dname 'CN=OnTime CI Validation Only' \
+            -storepass validation-only -keypass validation-only
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/notification-validation.jks" >> "$GITHUB_ENV"
+      - name: Build release configuration for validation only
+        env:
+          ANDROID_KEYSTORE_PASSWORD: validation-only
+          ANDROID_KEY_ALIAS: notification-validation
+          ANDROID_KEY_PASSWORD: validation-only
+        run: flutter build apk --release
+      - name: Inspect manifest packaged inside APK
+        run: |
+          mkdir -p artifacts/android-notification-contract
+          "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" manifest print \
+            build/app/outputs/flutter-apk/app-release.apk \
+            > artifacts/android-notification-contract/apk-manifest.xml
+          python3 tool/check_android_notification_manifest.py \
+            artifacts/android-notification-contract/apk-manifest.xml
+      - name: Verify merged manifests and record artifact identity
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, shutil, subprocess
+          from pathlib import Path
+          paths = sorted(Path('build/app/intermediates').glob('merged_manifest*/release/**/AndroidManifest.xml'))
+          if not paths:
+              raise SystemExit('No release merged manifest was produced')
+          subprocess.run(['python3', 'tool/check_android_notification_manifest.py', *map(str, paths)], check=True)
+          evidence = Path('artifacts/android-notification-contract')
+          for index, path in enumerate(paths):
+              shutil.copyfile(path, evidence / f'merged-manifest-{index}.xml')
+          apk = Path('build/app/outputs/flutter-apk/app-release.apk')
+          record = {
+              'commit': os.environ['GITHUB_SHA'],
+              'artifact': str(apk),
+              'sha256': hashlib.sha256(apk.read_bytes()).hexdigest(),
+              'signing': 'disposable CI validation key; not a store release',
+              'merged_manifests': [str(path) for path in paths],
+              'device_delivery_verified': False,
+          }
+          (evidence / 'identity.json').write_text(json.dumps(record, indent=2) + '\n')
+          print(json.dumps(record, indent=2))
+          PY
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-notification-contract-${{ github.sha }}
+          path: artifacts/android-notification-contract/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Remove disposable key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/notification-validation.jks"

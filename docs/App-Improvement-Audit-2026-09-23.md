@@ -1,0 +1,188 @@
+# OnTime 앱 종합 보완 감사
+
+작성일: 2026-09-23 (KST)  
+기준: `44067d7ab26b6290c16cdb13b99f57387dec08f6`, 앱 `1.1.0+56`  
+범위: 제품 기능, Flutter/Dart 구조, Android/iOS 연결, 데이터·백업·보안, 테스트, CI/CD, 성능, 접근성, 운영 문서.
+
+## 판단과 검증 범위
+
+현재 앱은 **서버·계정 없이 Android/iOS 설치 안에서 데이터를 관리하는 local-only 제품**이다. 이 방향은 CONTEXT와 ADR 0011 이후의 결정을 기준으로 확인했다. 자동 클라우드 동기화나 원격 분석 도입을 기본 개선안으로 삼지 않는다.
+
+단위·위젯 테스트 기반과 도메인 분리는 이미 존재한다. 가장 시급한 보완은 새 기능의 수보다 **실제 기기에서 알림이 전달되는지, 사용자가 백업을 저장하고 복구할 수 있는지, 일반 저장이 다른 설정을 보존하는지**다. 아래에는 기존 코드에서 확인한 결함, 검증 공백, 선택적 제품 제안을 구분했다. 저장소 감사가 모든 실기기 결함의 부재를 증명하지는 않는다.
+
+| 확인 항목 | 결과와 한계 |
+|---|---|
+| 로컬 HEAD와 원격 main | 같은 `44067d7a`; 감사 시작 시 작업 트리 깨끗함 |
+| 추적 파일 | `lib/` 301개, `test/` 102개, `docs/` 71개, workflow 5개. test 수치는 보조 파일 포함 |
+| 동일 HEAD 원격 CI | 2026-08-29 실행의 analyze 성공, **552 tests passed**, coverage gate 성공을 로그에서 다시 확인 |
+| 커버리지 원본 | **8,336 / 10,119 = 82.38%**, 저장된 LCOV artifact를 메모리에서 읽어 재계산 |
+| 이번 로컬 실행 | `dart tool/check_generated_dart_policy.dart`, `dart tool/check_local_only_boundary.dart` 모두 성공 |
+| main 보호 | GitHub API에서 `protected=false`, effective branch rules `[]` 확인 |
+| staging 환경 | GitHub API에서 `protection_rules=[]`, `deployment_branch_policy=null` 확인. 이는 현재 draft 업로드 환경 상태이며 공개 배포가 자동 진행된다는 의미는 아님 |
+| 미실행 | 새 full test/analyze, Android/iOS build, 실기기 알림·파일 선택·복구, 성능 계측, 스크린리더 QA |
+| 실행 제약 | 머신이 `No space left on device`를 반환했고 시작 시 가용 공간 약 119MiB. 이후 일부 공간이 생겼으나 큰 생성·빌드는 수행하지 않음. 기존 사용자 파일은 삭제하지 않음 |
+| 스토어 상태 | App Store Connect/Play Console의 현재 승인·출시·신고내용은 이번에 조회하지 않음 |
+
+원격 근거: [동일 커밋 CI 실행](https://github.com/DevKor-github/OnTime-front/actions/runs/33227696850), [coverage artifact](https://github.com/DevKor-github/OnTime-front/actions/runs/33227696850/artifacts/9707476169).
+
+**우선순위:** P0 = 해당 기능을 제공하는 다음 배포 전 반드시 해결; P1 = 데이터·개인정보·핵심 기능 신뢰성 또는 출시 검증에 높은 영향; P2 = 사용성·유지보수·운영 개선; P3 = 사용자 수요에 따라 선택할 확장.
+
+**판정:** `확인`은 코드/설정/문서에서 직접 확인했다는 뜻이며 실기기 재현 완료와 다르다. `검증 필요`는 조건부 실패·성능·운영 상태를 실행으로 확인해야 한다. `제안`은 현재 결함으로 단정하지 않는 보완이다.
+
+## 1. 다음 배포에서 먼저 해결할 기능·데이터 결함
+
+| ID | 우선순위·판정 | 문제와 사용자 영향 | 근거 | 완료 기준 |
+|---|---|---|---|---|
+| A01 | **P0 · 확인** | Android 예약 알림의 실제 수신 receiver 선언이 빠졌다. 예약 호출과 앱 registry가 성공해도 OS가 예약 시각에 호출할 수신 컴포넌트가 없다. 자체 NativeAlarmReceiver는 플러그인의 receiver를 대신하지 않는다. | `android/app/src/main/AndroidManifest.xml:52-64`; `lib/core/services/notification_service.dart:237-269`; 고정된 `flutter_local_notifications` 플러그인 manifest/문서 | 플러그인 ScheduledNotificationReceiver 및 필요한 boot receiver 선언. **release merged manifest** 검사 후 화면 잠금·프로세스 종료·재부팅에서 실제 알림 수신 확인. |
+| A02 | **P0 · 확인** | Android/iOS 백업 내보내기가 해당 플랫폼에서 미지원인 `getSaveLocation()`을 사용한다. 암호화 성공 뒤 파일 저장 단계에서 실패하는 경로다. | `lib/core/backup/backup_service.dart:77-95`; `pubspec.lock:323-346`; file_selector 1.1.0 지원표 및 플랫폼 구현 | 모바일 문서 내보내기 API로 저장. 양 플랫폼에서 저장한 파일을 다시 열고, 다른 플랫폼에서도 복원. 저장 취소/실패 시 freshness가 성공으로 바뀌지 않아야 함. |
+| A03 | **P1 · 확인** | iOS 백업 복원 picker에 필요한 `uniformTypeIdentifiers`가 없다. 현재 타입 그룹은 extensions/mimeTypes만 있어 iOS 구현이 ArgumentError를 던진다. | `backup_service.dart:67-71,98-103`; file_selector_ios 0.5.3+6 `file_selector_ios.dart:65-69` | 등록한 UTType 또는 검증 가능한 데이터 타입으로 파일 선택 가능. 실제 `.ontimebackup` 선택·취소·다른 형식·손상 파일 검사. |
+| A04 | **P1 · 확인** | 프로필 전체 upsert가 알림 enabled를 true, 상세 표시를 false, revision을 0으로 덮어쓴다. 기본 여유시간 수정이나 일정 완료의 점수 갱신도 이 경로를 거친다. 사용자 설정과 백업 상태가 다른 작업 때문에 바뀐다. | `lib/data/mappers/domain_persistence_mappers.dart:108-123`; `lib/data/daos/user_dao.dart:15-18`; `lib/data/repositories/user_repository_impl.dart:48-67`; `schedule_repository_impl.dart:140-155` | 프로필/설정/점수/백업 메타데이터별 부분 UPDATE. 알림 OFF·상세 ON·백업 이력이 있는 상태에서 여유시간 수정/일정 완료 후 관련 없는 값 보존. revision은 단조 증가. |
+| A05 | **P1 · 확인** | 상세 알림을 OFF해도 기존 예약 알림의 내용을 바꾸지 않을 수 있다. 재등록 비교가 시간과 fingerprint/version만 보고 표시 내용·상세 설정을 무시한다. 잠금화면에 기존 일정명이 남을 수 있다. | `lib/presentation/my_page/my_page_screen.dart:121-124`; `lib/domain/use-cases/reconcile_alarms_use_case.dart:516-526` | 내용 정책도 등록 버전에 포함. ON→OFF 시 기존 OS 예약을 교체하고 실제 표시가 비공개인지 확인. locale·일정명·표시 시간대 변경도 검사. |
+| A06 | **P1 · 확인** | 준비 단계 자동 변경 알림이 실제 1초 타이머 경로와 연결되지 않았다. 정상 타이머는 refresh 이벤트를 보내는데 단계 변경 알림은 ScheduleTick 처리에서만 발생한다. 기존 테스트는 다른 이벤트를 직접 주입한다. | `lib/presentation/app/bloc/schedule/schedule_bloc.dart:379,387-409,508-514`; `test/presentation/app/bloc/schedule/schedule_bloc_test.dart:1236-1243` | 실제 timer/clock을 전진시켜 단계 변경 알림 1회 검증. resume catch-up 시 중복/불필요 알림 정책도 함께 검증. |
+| A07 | **P1 · 확인** | 준비 시작 ID를 DB 쓰기 전에 성공 목록에 넣는다. 첫 저장 실패 시 제거하지 않아 같은 실행 중 재시도가 no-op이 된다. | `lib/domain/use-cases/schedule_preparation_session_use_case.dart:84-87` | 실패 시 재시도 가능, 성공 중복 호출은 멱등. 첫 write 실패→두 번째 성공과 동시 호출을 실제 repository 경계에서 검사. |
+| A08 | **P1 · 확인** | 일정과 준비 단계 저장이 하나의 transaction이 아니다. 두 번째 저장 실패 시 일정만 바뀌었지만 UI는 실패를 표시한다. 일정 저장 직후 알림 reconciliation도 시작하므로 부분 상태를 읽는 경쟁 가능성이 있다. | `create_schedule_form_submission_use_case.dart:16-23`; `update_schedule_form_submission_use_case.dart:28-35`; `create_schedule_with_place_use_case.dart:17-20`; `schedule_mutation_alarm_effects_coordinator.dart:41-52` | 일정·장소·준비·revision을 하나의 원자적 작업으로 commit 후 알림 effects 실행. 두 번째 write 실패 시 전체 rollback, 같은 입력 재시도 때 중복 일정 없음. 경쟁의 실제 발생은 별도 재현. |
+| A09 | **P1 · 확인 + 재현 필요** | 복원은 DB만 교체하고 기존 timed preparation/early start SharedPreferences와 메모리 세션을 비우지 않는다. 동일 ID·fingerprint를 복원하면 백업에서 제외되어야 할 이전 진행 상태를 재사용할 수 있다. | `backup_service.dart:146-196`; `my_data_screen.dart:159-165`; `preparation_with_time_local_data_source.dart`; `early_start_session_local_data_source.dart`; session use case의 restore 경로 | 복원 orchestration에서 활동 중 세션/구독/알림을 정리하고 DB 교체 후 재시작. 같은 ID의 진행 중 일정 복원 후 진행 이력이 되살아나지 않아야 함. 실패 시 기존 DB 보존. |
+| A10 | **P1 · 확인 + 기기 검증 필요** | 절대시각과 표시용 civil time 사용이 혼재한다. 준비 시작은 occurrenceInstantUtc를 쓰지만 화면 카운트다운·지난 일정 판정 일부는 scheduleTime을 직접 쓴다. 다른 시간대 이동 시 남은 시간/진행 대상이 달라질 수 있다. | `lib/domain/entities/schedule_entity.dart:56-74`; `schedule_bloc.dart:128,664`; `lib/presentation/home/components/todays_schedule_tile.dart:145-158` | 비교·타이머는 absolute instant, 입력·표시는 civil time으로 통일. Seoul/New York 기기 시간대 전환, DST gap/overlap, 재시작 전후 같은 일정의 실제 시작 순간이 같아야 함. |
+| A11 | **P1 · 확인** | 암호화 DB 밖에 준비 이름이 평문으로 남는다. cacheFingerprint가 hash가 아니라 준비 이름을 이어 붙인 문자열이고 알림 registry와 payload에 복제된다. | `schedule_with_preparation_entity.dart:44-70`; `alarm_entities.dart:413,426`; `alarm_registry_local_data_source.dart:48-54`; `notification_service.dart:268` | payload/registry에서 필요한 식별자와 버전만 보존. 내용 비교가 필요하면 원문을 노출하지 않는 digest 사용. 기존 registry 및 플러그인 예약 payload 교체, 상세 OFF 상태에서 준비 원문이 남지 않는지 검사. |
+| A12 | **P1 · 구현 누락 확인, 기기 재현 필요** | 앱 종료 상태에서 일반 알림 탭으로 시작할 때 대상 일정이 유실될 수 있다. 실행 중 callback만 등록하고 플러그인의 launch details를 읽지 않는다. 자체 native launch payload는 별도 경로다. | `notification_service.dart:153-165`; `android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt:231-232`; 앱 전체 `getNotificationAppLaunchDetails` 호출 없음 | Android/iOS fallback 각각 종료→알림 탭→정확한 일정으로 한 번만 이동. DB/라우터 준비 지연 중에는 payload를 보존. |
+| A13 | **P1 · 확인** | Android가 정확 알림 권한과 무관하게 항상 inexact 모드로 예약한다. full-screen alarm 지원과 정확한 notification timing을 같은 capability로 다루고 있다. | `notification_service.dart:267`; `alarm_gate_cubit.dart:134-157`; `CONTEXT.md:443-452`, ADR 0008 | full-screen 표현과 timing 권한을 분리. 권한 있음→정확 예약, 없음→근사 예약과 그에 맞는 UI. 예약 API 모드와 실제 도착 시각 검증. |
+| A14 | **P1 · 논리 확인, OS 상황 재현 필요** | 기존 provider의 지원 여부만 확인해 예약을 유지한다. 현재 권한 철회/허용과 deliveryPolicy의 activeProvider, 실제 OS pending 상태가 반영되지 않는다. AlarmKit 권한 철회 후 fallback으로 바뀌지 않거나 사라진 예약을 armed로 표시할 수 있다. | `reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214` | permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시. |
+| A15 | **P1 · 경쟁 조건 확인, 결정적 재현 필요** | 재등록 실행 중 들어온 새 요청은 기존 Future에 합류만 한다. 기존 작업이 일정을 읽은 뒤 새 일정이 저장되면 후속 실행 없이 오래된 예약 결과가 최종 상태로 남을 수 있다. | `reconcile_alarms_use_case.dart:43-57`; `schedule_mutation_alarm_effects_coordinator.dart:37-52` | dirty flag/data revision 기반 재실행 또는 직렬 작업 큐. snapshot 읽기 뒤 생성·수정·삭제를 끼워 넣어 최종 OS 예약이 최신 DB를 반영하는지 검사. reset/cancel과 경계 공유. |
+
+플러그인 계약은 공식 [file_selector 지원표](https://pub.dev/packages/file_selector#features-supported-by-platform), [필터 형식 지원](https://pub.dev/packages/file_selector#filtering-by-file-types), [flutter_local_notifications 20.1.0 Android 설정](https://pub.dev/packages/flutter_local_notifications/versions/20.1.0#androidmanifestxml-setup), [cold launch 처리](https://pub.dev/packages/flutter_local_notifications/versions/20.1.0#initialisation)를 참조했다. 앱의 고정 dependency 구현과 함께 확인한 내용이며 실제 기기 실행 결과로 표현하지 않았다.
+
+## 2. 백업·복구·로컬 데이터 수명주기
+
+| ID | 우선순위·판정 | 보완과 이유 | 근거 | 완료 기준 |
+|---|---|---|---|---|
+| D01 | **P1 · 확인** | bootstrap 실패가 runApp 이전에 나면 복구 화면에도 진입하지 못한다. secure storage·파일 정리 실패를 제한된 복구 상태로 전달해야 한다. | `lib/main.dart:13-25`; `local_data_lifecycle.dart:23-42`; AuthBloc의 recovery 처리는 그 이후 사용자 로드에만 적용 | keychain 접근/디스크 write 실패를 주입해 blank launch 대신 데이터 보존 안내·재시도 제공. 자동 삭제는 금지. |
+| D02 | **P1 · 확인** | 복구 화면은 재시도와 전체 삭제만 제공한다. ADR가 약속한 백업 복원 경로가 없으며 정상 DB를 요구하는 현재 restore로는 손상 DB 복구도 해결되지 않는다. reset 예외도 화면에서 처리하지 않는다. | `local_data_recovery_screen.dart:45-63,96-99`; `docs/adr/0023-preserve-local-data-when-migration-fails.md:7` | 보존된 DB·키를 건드리지 않고 백업 검증→새 암호화 DB 복원→성공 후 교체. 초기화 실패 시 busy 해제와 재시도. |
+| D03 | **P1 · 코드 확인, 장애 재현 필요** | 초기화뿐 아니라 개별/전체 알림 취소·reconcile에서 취소 실패를 무시하고 registry를 지운다. OS 예약이 남아도 다음 실행은 취소할 기록을 잃는다. 기존 테스트 일부도 실패 후 빈 registry를 정상으로 고정한다. | `local_data_reset_service.dart:19-25`; `local_data_lifecycle.dart:45-69`; `cancel_schedule_alarm_use_case.dart:25-37`; `cancel_all_alarms_use_case.dart:19-41`; `reconcile_alarms_use_case.dart:549-570`; 관련 테스트 `:951-975` | 이미 없음과 실제 취소 실패 구분, 실패 기록 보존·재시도·OS read-back. 중간 강제 종료 후 정리 완료. reset marker는 검증 가능한 종료 상태까지 유지. |
+| D04 | **P1 · 개선** | DB v1의 onUpgrade는 명시적으로 실패한다. 현재 v1 자체의 장애라고 볼 수 없으나 다음 schema 변경 전 migration 기반이 필요하다. | `database.dart:49-64`; `test/core/database/database_index_test.dart:32` | version별 schema snapshot, 기존 파일 fixture, transaction rollback, 디스크 부족·암호키 오류 테스트. 실패 시 파일·키 보존. |
+| D05 | **P1 · 확인/보강** | 복원 전 전체 파일을 readAsBytes하고 복호화 결과·JSON도 모두 메모리에 올린다. frame 수 상한은 있지만 총 파일 크기·총 레코드/문자열의 제품 한도가 없다. timezone ID는 비어 있지 않은지만 확인한다. | `backup_service.dart:101-103,415-472`; `backup_crypto.dart:18-19,111-135` | 읽기 전 파일 크기 제한, 레코드·텍스트·기간 상한, 실제 IANA zone/DST 검증, 준비 그래프·참조 무결성 검증. 초대형/잘린/이상 값 입력이 활성 DB를 바꾸지 않아야 함. |
+| D06 | **P2 · 확인** | 백업 알림의 30일 기준이 마지막 변경일이다. 계속 쓰는 사용자는 오래된 미백업 변경이 있어도 매번 기한이 밀린다. 현재 알림은 My Data 내부에만 있고 dismiss 상태도 없다. | `backup_service.dart:198-220`; `user_dao.dart:44-58`; `my_data_screen.dart:48-56`; ADR 0035 | 첫 미백업 변경 시점 또는 미백업 revision의 age를 추적. 매일 변경해도 30일 지난 미백업 변경은 안내. 제품 규칙대로 비차단·닫기 가능. |
+| D07 | **P2 · 확인** | 템플릿 백업의 createdAt을 읽지만 복원할 때 updatedAt만 put(now)으로 전달한다. 빈 DB 삽입 시 createdAt이 updatedAt으로 바뀌어 정렬·원본 메타데이터가 달라진다. | `backup_service.dart:187-193,397-405`; `preparation_template_dao.dart:40-45` | createdAt/updatedAt을 별개로 저장하고 template 포함 round-trip 동등성 검사. |
+
+잘 갖춘 부분도 유지해야 한다. 백업에는 비밀번호 정규화·Argon2id·인증 암호화·header 파라미터 제한이 있고, 복원 전 검증 및 DB transaction이 있다. 부족한 것은 알고리즘을 새로 만드는 일이 아니라 모바일 I/O, 전체 수명주기, 오류 경계와 실제 복구 검증이다.
+
+## 3. 사용자 흐름·접근성·현지화
+
+| ID | 우선순위·판정 | 보완할 점 | 근거 및 완료 기준 |
+|---|---|---|---|
+| U01 | **P1 · 확인** | 완료 이력도 개별 삭제 가능하게 한다. | `schedule_detail.dart:108-123`은 notEnded만 삭제 허용. `CONTEXT.md:411-413`과 상충. 완료/비정상 이력의 상세를 삭제해도 점수 집계 정책을 보존하고, 기존 삭제 숨김 테스트를 수정. |
+| U02 | **P1 · 확인** | 일정 시간대 선택과 다른 기기 시간대에서의 환산 시각을 표시한다. | `schedule_date_time_form.dart:29-187`, `schedule_detail.dart:175-176,209-215`; CONTEXT 382-388의 제품 요구와 차이. 생성·편집·상세·알림의 시간대 의미를 통일. |
+| U03 | **P1 · 확인/재현 필요** | 상세 알림 토글의 로딩/저장/재등록 실패와 연속 조작을 처리한다. | `my_page_screen.dart:110-134`: UI 선반영 후 저장, 잠금·rollback·오류 안내 없음. 실패 주입과 빠른 ON→OFF에서 UI/DB/OS가 일치해야 함. A05의 재등록 비교 수정과 함께 처리. |
+| U04 | **P2 · 확인** | 정확히 1시간·2시간의 결과가 0분으로 표시되는 오류를 수정한다. | `shared/utils/time_format.dart:34-44`: hours와 minutes가 모두 양수일 때만 시간 출력. ±3600, ±7200, 0/59/60/3599/3601 경계 검증. |
+| U05 | **P2 · 확인** | 영어 locale에서 한국어가 섞이는 설정·준비·결과·백업·오류 문구를 정리한다. | 앱은 EN/KO 지원(`app.dart:203-204`), 여러 화면과 time_format은 한국어 고정. ARB와 locale-aware 시간 단위/12·24시간 표기로 통일. |
+| U06 | **P2 · 확인** | 여러 단계 일정 작성/수정의 미저장 이탈을 보호한다. | `schedule_multi_page_form.dart:203-210`, `calendar_screen.dart:139-148`: pop/dismiss 보호 없음. 변경 없는 경우 즉시 닫기, 변경 있으면 계속 편집/폐기 선택. OS back·시트 drag·바깥 탭도 동일 정책. |
+| U07 | **P2 · 확인 + 기기 검증 필요** | 아이콘 이름, swipe/drag 대체 조작, 입력 필드 라벨을 보완한다. | `centered_calendar_header.dart:36-71`, `schedule_detail.dart:93-137,370-385`, `schedule_date_time_form.dart:78`, `reorderable_tile.dart:14-20`. TalkBack/VoiceOver로 생성·수정·삭제·순서 변경을 수행할 수 있어야 함. |
+| U08 | **P2 · 검증 필요** | 글자 200%, 작은 화면, 긴 이름에서 타이머·결과·상세 화면 레이아웃을 확인한다. | `preparation_step_tile.dart:51-54,83-88`, `schedule_detail.dart:332-350`, `early_late_screen.dart:29-53,139-148`의 고정 높이/겹침 구조가 후보. 홈·달력 일부 확대 테스트는 이미 있음. 실제 실패를 찾아 scroll/flexible 및 회귀 사례로 고정. |
+| U09 | **P2 · 확인** | 오류·빈 상태에 행동을 제공한다. | `schedule_multi_page_form.dart:65,76-79`은 raw exception/error 노출, `calendar_screen.dart:253-257,500-501`은 일반 오류/빈 영역. 입력 유지·재시도·돌아가기·일정 추가를 적절히 제공하고 내부 예외를 사용자 문구와 분리. |
+
+## 4. 코드베이스·성능·개발 경험
+
+| ID | 우선순위·판정 | 권장 변경 | 근거 및 검증 |
+|---|---|---|---|
+| C01 | **P1 · 구조 개선** | 저장/복원/초기화를 domain workflow와 data transaction으로 묶고 UI는 결과만 받도록 한다. | MyDataScreen이 BackupService·ResetService·Reconcile을 직접 조합. A08/A09/D02처럼 DB·runtime·OS effect의 경계가 여러 계층에 흩어져 있음. 정상/부분 실패를 하나의 계약으로 테스트. |
+| C02 | **P2 · 성능 검증 필요** | 전체 이력 구독 후 메모리 필터를 기간 SQL 조회로 바꿀지 계측한다. | `schedule_repository_impl.dart:27-30,48-64`. 이력을 무기한 보존하므로 100/1,000/10,000 일정에서 query count·메모리·월 전환·startup 측정. 실제 느리다는 실측은 아직 없음. |
+| C03 | **P2 · 성능 검증 필요** | 백업 snapshot과 템플릿 로드의 N+1 조회를 batch/join으로 줄인다. | `backup_service.dart:229-235`, `preparation_template_dao.dart:16-20,71-76`. snapshot 일관성은 유지하면서 DB transaction 보유 시간·export latency·peak memory 비교. |
+| C04 | **P2 · 구조 개선** | 준비 시간 계산을 단일 순수 도메인 계산기로 정리한다. 실제 구현을 복사한 테스트 fake도 줄인다. | ScheduleBloc과 SchedulePreparationSessionUseCase 및 테스트용 restore 계산에 비슷한 로직이 분산. clock 주입, action event→state 순수 계산, 실제 workflow 테스트로 회귀 방지. |
+| C05 | **P2 · 구조 개선** | 값만 전달하는 use case·사용되지 않는 local data source를 정리한다. | 기존 open [#535](https://github.com/DevKor-github/OnTime-front/issues/535), `plans/issue-535-use-case-classification.md` 활용. 트랜잭션/정책이 있는 workflow는 유지하고 파일 수를 줄이기 위한 일괄 합치기는 피함. |
+| C06 | **P2 · 확인** | controller/stream 수명과 오래된 이름을 정리한다. | `schedule_multi_page_form.dart:42-43` controller 생성 후 dispose 없음. AuthBloc/authenticated/login_platform/HomeScreenTmp 등 local profile과 어긋난 명명은 사용 경로 확인 후 정리. 기능 수정과 불필요하게 큰 rename을 섞지 않음. |
+| C07 | **P2 · 제안** | 일관된 로컬 개발 환경을 제공한다. | CI Flutter 3.44.4는 고정돼 있으나 native SDK/toolchain까지 재현할 bootstrap 문서·버전 점검을 추가. analyzer와 별도로 `dart format --output=none --set-exit-if-changed`를 변경 경로에 실행. 코드 생성 산출물 비추적 정책은 유지. |
+| C08 | **P1 · 구현 확인, 장기 실행 검증 필요** | 가장 가까운 일정의 조회 범위를 날짜 변경·resume에 맞춰 갱신한다. | `get_nearest_upcoming_schedule_use_case.dart:27-34`는 구독 시작의 now와 2일 범위를 고정하고 `app.dart:94-113` resume은 시간 refresh만 한다. clock 주입 후 프로세스가 수일 살아 있는 상황에서 새 날짜 일정이 선택되는지 테스트. |
+
+## 5. 테스트 전략: 82.38%의 의미와 채워야 할 구간
+
+커버리지 gate는 작동하고 있다. 다만 LCOV에 등장한 앱 파일만 분모에 넣고, DB schema/table·생성 파일 등은 제외한다. 이 수치를 네이티브 기능이나 전체 앱 시나리오 성공률로 해석하면 안 된다.
+
+| 동일 HEAD LCOV 대상 | 실행된 line / 대상 line |
+|---|---:|
+| notification_service.dart | 0 / 96 |
+| installation_key_store.dart | 0 / 12 |
+| open_database_native.dart | 0 / 13 |
+| local_data_lifecycle.dart | 0 / 39 |
+| local_data_reset_service.dart | 0 / 9 |
+| auth_bloc.dart | 0 / 23 |
+| my_data_screen.dart | 2 / 143 |
+| local_data_recovery_screen.dart | 1 / 37 |
+
+LCOV에 없는 앱 소스 후보 31개에는 interface·조건부 export·상수도 포함된다. 따라서 이를 그대로 “31개 기능 미테스트”라고 세면 안 된다. 다만 `main.dart`, `app.dart`처럼 실제 startup/lifecycle을 연결하는 경로도 빠져 있다. `auth_bloc_test.dart`는 이름과 달리 AuthState 생성만 검사하며 이벤트·복구 전이를 실행하지 않는다.
+
+| ID | 우선순위 | 보완 | 완료 기준 |
+|---|---|---|---|
+| T01 | **P1** | 핵심 실제 app E2E를 추가한다. 현재 integration_test 디렉터리가 없고 iOS RunnerTests는 testExample placeholder다. | 비행기 모드 새 설치→온보딩→일정 저장→실제 알림→진행→완료→재실행의 데이터 유지. 양 모바일 플랫폼 실행 기록. |
+| T02 | **P1** | 네이티브 계약 테스트와 실기기 매트릭스를 분리한다. | method channel 성공 mock에 그치지 않고 receiver/merged manifest/file picker/keychain/SQLCipher/AlarmKit·fallback을 검사. OS 권한·잠금 화면은 native UI 자동화 또는 수동 기기 절차로 검증. |
+| T03 | **P1** | 실패·복원·재시도 테스트를 우선한다. | A04/A07/A08/A09와 D01-D05의 장애 주입, write 실패 후 재시도, concurrent operations, 중간 프로세스 종료, 복원 rollback. crypto tamper 검사는 header/frame 순서·잘림·final marker·다중 chunk도 포함. |
+| T04 | **P1** | 실제 이벤트 경로를 테스트하고 잘못된 동작을 고정한 기대값을 수정한다. | timer tick 직접 주입 대신 실제 scheduler; 상태만 검사하는 AuthBloc 테스트 보완; 완료 이력 삭제 숨김 기대 수정. mock 안에 생산 알고리즘을 복제하지 않음. |
+| T05 | **P2** | 모듈별·변경 코드별 coverage와 미포함 파일 목록을 본다. | 전체 80%는 유지하면서 data lifecycle/backup/notification 등 위험 모듈 목표를 별도로 설정. 제외 사유 명시. 숫자를 올리기 위한 얕은 getter 테스트는 제외. |
+| T06 | **P2** | 접근성·현지화·성능 회귀 예산을 둔다. | EN/KO, text scale, 작은 화면, 12/24h, dark/high contrast 지원 범위 명시. 대량 history·backup의 기준 데이터를 저장하고 p95 시간/메모리/프레임 예산을 최초 실측 후 결정. |
+
+Flutter의 [테스트 개요](https://docs.flutter.dev/testing/overview)와 [plugin 테스트 지침](https://docs.flutter.dev/testing/testing-plugins)을 참고했다. Flutter integration_test만으로 OS 권한/파일 picker 등 native UI 조작 전체를 해결할 수 없으므로 해당 검증 경로를 따로 둔다.
+
+## 6. CI/CD·공급망·배포 검증
+
+| ID | 우선순위·판정 | 현재 상태와 보완 | 완료 기준 |
+|---|---|---|---|
+| R01 | **P1 · 원격 확인** | main 보호와 effective rules가 없다. 검사 성공이 병합의 필수 조건이 아니다. | PR·최신 커밋 필수 검사와 필요한 review를 ruleset으로 강제. 실패한 검사로 일반 변경이 main에 들어가지 않는지 확인. [GitHub status checks](https://docs.github.com/en/pull-requests/reference/status-checks) |
+| R02 | **P1 · 확인** | 일반 PR CI는 Ubuntu의 Dart analyze/test뿐이다. Android build는 수동 deploy, iOS build workflow는 없다. Swift/Kotlin·plugin/manifest 결함을 일찍 잡기 어렵다. | PR에서 Android assemble/release 구성 및 iOS simulator/no-sign build, 중요한 native 테스트. 릴리스 후보에서는 실제 signed artifact smoke. |
+| R03 | **P2 · 확인** | Widgetbook deploy workflow는 테스트 workflow와 독립적으로 main push/PR에서 실행한다. quality 실패여도 카탈로그가 배포될 수 있다. | reusable quality job을 needs로 연결하거나 같은 SHA의 성공을 확인. **현재 Firebase 배포 대상은 Widgetbook**이며 제품 backend 배포로 혼동하지 않음. 기존 #393 범위를 현재 제품에 맞게 정리. |
+| R04 | **P1 · 확인** | Android deploy는 analyze/test를 다시 하지만 coverage gate는 없다. main 보호도 없어 검사 수준이 경로마다 다르다. | 동일 quality workflow 재사용, 같은 SHA의 coverage/native smoke 포함. 중복 테스트를 무작정 늘리지 말고 artifact/provenance를 연결. |
+| R05 | **P2 · 확인** | workflow concurrency/timeout 설정이 없고 Android 두 workflow가 동일 Play app/track 자원을 겹쳐 수정할 수 있다. staging 환경 보호도 없다. | PR 실행은 최신 작업만 유지, 배포는 package/track별 직렬화, 작업 시간 제한. draft 업로드와 공개 승격 권한을 구분해 필요한 환경 제한 적용. |
+| R06 | **P2 · 확인** | `npm install --no-save --no-package-lock googleapis`로 매번 가변 버전을 설치하고 action refs도 tag 기반이다. Widgetbook은 checkout@v3/setup-java@v1을 쓴다. | 배포 도구용 lockfile+`npm ci`, 검토된 action commit pin, dependency update 자동화/검토. 실제 취약점 발견이라고 단정하지 않음. |
+| R07 | **P2 · 확인** | Play upload는 edit commit 응답을 출력하고 끝난다. 새 edit로 track/versionCode를 재조회하지 않고 기존 releases 보존 정책도 명시하지 않는다. | 업로드 전 기존 track 상태 기록, 필요한 release 보존 정책 적용, commit 후 authoritative read-back. **draft 업로드 성공과 사용자 배포 성공을 별도 상태로 기록**. |
+| R08 | **P2 · 확인/제안** | AAB artifact 14일 보관은 있으나 SHA·version·digest·테스트·store 상태를 묶는 release manifest와 일관된 iOS 절차가 없다. docs는 production tag flow를 설명하지만 구현된 workflow는 수동 Android draft/Widgetbook뿐이다. | immutable release manifest, artifact hash/서명·필요한 symbol 파일, CI 증거, store read-back을 연결. 테스트한 바이너리를 승격. tag와 실제 artifact 일치, 재현 가능한 rollback/forward-fix 절차. [Artifact provenance](https://docs.github.com/en/actions/concepts/security/artifact-attestations) |
+| R09 | **P1 · 확인/검증 필요** | no-network 체크는 소스 문자열/일부 설정 검사다. 통과만으로 final APK/IPA의 전체 SDK·merged manifest·runtime traffic을 증명하지 못한다. | final artifact 권한·SDK·entitlement 검사와 비행기 모드 cold start. 앱 자체 트래픽을 별도로 관찰. 사용자 명시적 외부 navigation은 제품 정책에 따라 구분. |
+
+## 7. 운영·문서·정책 일치
+
+| ID | 우선순위·판정 | 보완 | 완료 기준 |
+|---|---|---|---|
+| O01 | **P1 · 확인** | README와 Architecture/Smoke Test/Monitoring 문서가 제거된 서버·로그인·FCM·Firebase를 현재 기능처럼 설명한다. Release-Checklist는 generated Dart를 commit하라는 문장도 남아 AGENTS와 충돌한다. | `README.md:5,68-129`, `docs/Architecture.md:134-138,298`, `docs/Android-Release-Smoke-Test.md:57-60`, `docs/Release-Checklist.md:77-78` 정리. 깨끗한 checkout에서 새 문서만 따라 모바일 실행 가능. 과거 자료는 historical/superseded 표시. |
+| O02 | **P1 · 문서 확인, 스토어 미확인** | Data Safety 문서가 기존 계정·FCM·원격 analytics와 계정 삭제 URL을 설명한다. 현재 binary와 store 신고가 일치하는지는 확인해야 한다. | `docs/Google-Play-Data-Safety.md:64-86,122-152`. final binary의 데이터 흐름 표를 기준으로 privacy policy·store metadata·screenshots 검토 후 store 화면 read-back. 이번 감사는 법률 적합성이나 스토어 위반을 판정하지 않음. |
+| O03 | **P2 · 확인/제안** | production AppLogger는 비활성인데 운영 문서는 Firebase crash/FCM 관찰을 전제한다. local-only에 맞는 진단·지원 절차가 부족하다. | `app_logger.dart:11-30`, `docs/Release-Rollout-Monitoring.md:88-114`. 로컬 비식별 오류코드·최근 실패 단계·사용자 명시적 진단 내보내기, OS/store crash 정보와 지원 템플릿. 자동 원격 수집은 기본안에서 제외. |
+| O04 | **P2 · 원격 확인** | backlog에 #518 analytics, #458 account deletion, #426 login 등 현재 제품 방향과 충돌하거나 오래된 이슈가 열려 있다. #392 migration/#397 native QA/#535 구조 개선은 재평가 가치가 있다. | 재현/폐기/대체/유효 상태를 분류하고 본 감사 ID와 연결. open issue라는 사실만으로 현재 결함이 있다고 단정하지 않음. 이슈 상태 변경은 이번에 하지 않음. |
+| O05 | **P2 · 제안** | 출시 운영 책임과 중단 기준을 local-only 기준으로 다시 쓴다. | 일정 저장 실패·알림 전달 실패·복원 데이터 차이·startup recovery 발생을 release stop 조건으로 정함. 담당자·기기·버전·artifact digest·기대/실제·증거를 한 양식에 기록. 문서 체크박스만으로 기기 QA 완료로 판정하지 않음. |
+
+## 8. 안정화 이후 검토할 제품 기능
+
+아래는 현재 결함 목록과 구분한 수요 검증 후보다. backend·로그인 추가 없이 구현할 수 있다. 현 기능을 완성하는 일이 먼저이며, 모두 추가해야 한다는 뜻은 아니다.
+
+| 후보 | 사용자 가치 | 범위 결정·완료 기준 |
+|---|---|---|
+| 반복 일정·일정 복제 | 정기 수업/출근 등 반복 입력 감소 | 반복 중 한 건/이후/전체 수정·삭제, DST, 예외일, 알림 capacity 정책부터 정의. 먼저 단순 복제의 사용성을 확인할 수 있음. |
+| 일정 이력 검색·필터 | 데이터가 늘어도 이름/장소/기간/완료 여부로 찾기 | U01 개별 삭제와 함께 local indexed search, 결과 없음·대량 데이터 검증. |
+| 알림 상태 진단 | 알림이 왜 안 오는지 사용자가 이해 | 다음 실제 예약 시각, OS 권한/채널 차단, 정확/근사 여부, 대상 제외 이유, 명시적 테스트 알림. 진단 화면의 문구는 실측 가능한 상태만 표시. |
+| 백업 안내 개선 | 기기 분실·교체 전 사용자가 백업을 준비 | A02/A03/D06 완료 후 최근 성공 시점, 미백업 변경, 비밀번호 분실 안내. 외부 파일이 아직 존재한다고 보장하지 않기. |
+| 로컬 준비 패턴 요약 | 예상 준비시간을 더 현실적으로 조정 | 준비 action event 기반 집계의 정확성·보존 범위·삭제 정책부터 확인. 자동 추적/원격 전송 없이 명시적인 로컬 통계. |
+
+## 9. 권장 실행 순서
+
+1. **알림·파일 I/O를 먼저 복구:** A01-A03. 각 수정은 실제 모바일 release build에서 증명한다.
+2. **사용자 선택과 저장 원자성 보장:** A04-A09/A11-A15, D03. 설정 보존, 개인정보 표시 변경, 실제 timer event, 재시도, 폼 transaction, 복원 runtime 정리, 알림 cold start·권한·동시성 처리.
+3. **복구·시간대 제품 계약 완성:** A10, D01-D05, U01-U03. 정상 플로우와 장애 복구를 같이 검사한다.
+4. **앞 단계 검증을 배포 조건으로 고정:** T01-T04, R01-R04/R09. CI 성공과 기기 기능 성공의 증거를 연결한다.
+5. **사용성과 유지보수 개선:** U04-U09, D06-D07, C01-C07, R05-R08, O01-O05. O01/O02의 문서 정합성은 출시 준비와 병행한다.
+6. **수요가 확인된 확장만 선택:** 반복/복제·검색·로컬 분석. 전 단계의 핵심 실패를 새 기능으로 가리지 않는다.
+
+기간은 인원·기기 접근성·스토어 후보 상태를 확인하지 않았으므로 임의로 약속하지 않는다. 각 묶음은 실패 재현 또는 명시된 위험 조건 → 수정 → 회귀 테스트 → 같은 release artifact의 기기 증거 순서로 닫는다.
+
+## 10. 출시 후보 필수 검증 표
+
+| 시나리오 | 기대 결과 | 이번 감사 실행 여부 |
+|---|---|---|
+| Android 예약→앱 종료→잠금→알림 | 실제 도착, 탭으로 해당 일정 이동 | 미실행 |
+| 재부팅·앱 업데이트 후 예약 | 중복 없이 보존/재등록 | 미실행 |
+| 60개 예약 용량 소진 후 앱 재진입 | 정책대로 다음 가까운 일정 보충, coverage 설명 일치 | 미실행; 용량 제한 자체는 구현돼 있음 |
+| 정확 알림 권한 거부/철회·채널 차단 | 실제 전달 가능성에 맞는 상태와 복구 안내 | 미실행 |
+| iOS AlarmKit 지원/미지원·허용/거부 | 계약대로 alarm 또는 notification, cold start 라우팅 | 미실행 |
+| 알림 상세 ON→OFF | 이미 등록된 잠금화면 내용도 비공개 | 미실행 |
+| 모바일 export→다른 OS restore | 일정·준비·템플릿·설정·점수 동등, runtime 제외 | 미실행 |
+| 잘못된 비밀번호·손상·과대 파일 | 기존 DB 불변, 사용자에게 복구 가능한 오류 | 일부 원격 unit test만 성공, 기기 미실행 |
+| DB/keychain 오류·중간 초기화 종료 | 데이터 보존 recovery 또는 사용자 의도한 reset 완료 | 미실행 |
+| 준비 저장 실패·시작 저장 실패 후 재시도 | 부분 데이터·중복·영구 no-op 없음 | 미실행 |
+| 시간대 변경·DST·자정 | 동일 absolute 일정 순간, 명확한 지역시각 표시 | 기존 unit test 일부 존재, 전체 기기 흐름 미실행 |
+| 10,000 일정과 장기 이력 | 실측한 메모리/응답/백업 예산 내 동작 | 미실행 |
+| EN/KO·200% 글자·VoiceOver/TalkBack | 핵심 행동 완료, 잘림·이름 없는 제어 없음 | 미실행 |
+
+이번 변경은 이 감사 문서뿐이다. 앱 코드·workflow·원격 설정·이슈·스토어를 수정하지 않았다. 본 문서는 구현 완료 보고가 아닌, 근거를 붙인 개선 backlog와 검증 계획이다.

@@ -110,6 +110,12 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get error;
 
+  /// Action to retry loading failed content
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
+
   /// Text shown when there are no schedules on a selected date
   ///
   /// In en, this message translates to:

@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error => 'Error';
 
   @override
+  String get retry => 'Try again';
+
+  @override
   String get noSchedules => 'No schedules';
 
   @override

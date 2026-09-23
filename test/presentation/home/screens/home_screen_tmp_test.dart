@@ -98,6 +98,9 @@ void main() {
   Widget buildSubject({
     required Size size,
     required ScheduleState scheduleState,
+    MonthlySchedulesState monthState = const MonthlySchedulesState(
+      status: MonthlySchedulesStatus.success,
+    ),
     double textScale = 1.0,
     EdgeInsets padding = EdgeInsets.zero,
   }) {
@@ -133,12 +136,7 @@ void main() {
           child: SizedBox(
             width: size.width,
             height: size.height,
-            child: HomeScreenContent(
-              state: const MonthlySchedulesState(
-                status: MonthlySchedulesStatus.success,
-              ),
-              userScore: 80,
-            ),
+            child: HomeScreenContent(state: monthState, userScore: 80),
           ),
         ),
       ),
@@ -291,6 +289,44 @@ void main() {
     expect(_top(tester, 'today_schedule_card'), closeTo(177, 1));
     expect(_top(tester, 'today_background_surface'), closeTo(230, 1));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('monthly loading and error leave the home hero and today card', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final status in [
+      MonthlySchedulesStatus.loading,
+      MonthlySchedulesStatus.error,
+    ]) {
+      await tester.pumpWidget(
+        buildSubject(
+          size: const Size(390, 844),
+          scheduleState: const ScheduleState.notExists(),
+          monthState: MonthlySchedulesState(status: status),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('home_banner')), findsOneWidget);
+      expect(find.byKey(const Key('today_schedule_card')), findsOneWidget);
+      expect(find.byKey(const Key('home_month_calendar')), findsOneWidget);
+      expect(
+        find.byKey(
+          Key(
+            status == MonthlySchedulesStatus.loading
+                ? 'home_month_loading_overlay'
+                : 'home_month_error_overlay',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('banner clears the device safe area before rendering', (

@@ -36,7 +36,7 @@ class HomeScreenTmp extends StatelessWidget {
             ..add(MonthlySchedulesSubscriptionRequested(date: dateOfToday)),
       child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
         builder: (context, state) {
-          return HomeScreenContent(state: state);
+          return HomeScreenContent(state: state, referenceDate: dateOfToday);
         },
       ),
     );
@@ -45,10 +45,16 @@ class HomeScreenTmp extends StatelessWidget {
 
 /// The actual home screen content that can be tested independently
 class HomeScreenContent extends StatelessWidget {
-  const HomeScreenContent({super.key, required this.state, this.userScore});
+  const HomeScreenContent({
+    super.key,
+    required this.state,
+    this.userScore,
+    this.referenceDate,
+  });
 
   final MonthlySchedulesState state;
   final double? userScore;
+  final DateTime? referenceDate;
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +118,7 @@ class HomeScreenContent extends StatelessWidget {
                   child: _MonthlySchedule(
                     monthlySchedulesState: state,
                     metrics: metrics,
+                    referenceDate: referenceDate,
                   ),
                 ),
               ),
@@ -227,10 +234,12 @@ class _MonthlySchedule extends StatelessWidget {
   const _MonthlySchedule({
     required this.monthlySchedulesState,
     required this.metrics,
+    required this.referenceDate,
   });
 
   final MonthlySchedulesState monthlySchedulesState;
   final _HomeLayoutMetrics metrics;
+  final DateTime? referenceDate;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +253,7 @@ class _MonthlySchedule extends StatelessWidget {
             child: MonthCalendar(
               key: const Key('home_month_calendar'),
               monthlySchedulesState: monthlySchedulesState,
+              initialDate: referenceDate,
               rowHeight: metrics.calendarRowHeight,
               daysOfWeekHeight: metrics.calendarDaysOfWeekHeight,
               contentPadding: EdgeInsets.only(

@@ -4,6 +4,10 @@
         "description": "The title of the calendar screen"
     },
     "error": "Error",
+    "retry": "Try again",
+    "@retry": {
+        "description": "Action to retry loading failed content"
+    },
     "@error": {
         "description": "Generic error message"
     },

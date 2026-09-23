@@ -11,7 +11,8 @@ reference:
 
 # Each route status applies to its listed state only. Variants have separate
 # statuses. reviewed means the Figma image and Flutter capture were compared;
-# a passing Flutter golden by itself is insufficient.
+# a passing Flutter golden by itself is insufficient. excluded applies only
+# to Figma visual parity; route behavior still requires app tests.
 screens:
   - route: /recovery
     figma_node: '1957:11762'
@@ -39,19 +40,29 @@ screens:
         flutter_golden: test/goldens/goldens/recovery_busy_390x844.png
   - route: /startup
     figma_node: null
-    status: pending
+    flutter: lib/presentation/startup/screens/startup_screen.dart
+    status: excluded
+    reason: App-only splash; canonical source-matched board 285:5 has no startup shell. Its hidden login start belongs to the retired login flow.
   - route: /allowNotification
     figma_node: null
-    status: pending
+    flutter: lib/presentation/notification_allow/screens/notification_allow_screen.dart
+    status: excluded
+    reason: No notification-permission screen on canonical board 285:5. The OS permission prompt is platform-owned; app behavior is tested separately.
   - route: /allowAlarm
     figma_node: null
-    status: pending
+    flutter: lib/presentation/alarm_allow/screens/alarm_allow_screen.dart
+    status: excluded
+    reason: No alarm-permission screen on canonical board 285:5. The OS permission prompt is platform-owned; app behavior is tested separately.
   - route: /onboarding
     figma_node: null
-    status: pending
+    flutter: lib/presentation/onboarding/screens/onboarding_screen.dart
+    status: excluded
+    reason: No local-only onboarding shell on canonical board 285:5. The hidden LoginPermissionPrompt is from the retired social-login flow.
   - route: /onboarding/start
     figma_node: null
-    status: pending
+    flutter: lib/presentation/onboarding/screens/onboarding_start_screen.dart
+    status: excluded
+    reason: No onboarding-start shell on canonical board 285:5; the hidden login-start frame is from the retired social-login flow.
   - route: /home
     figma_node: '600:34301'
     flutter: lib/presentation/home/screens/home_screen_tmp.dart
@@ -61,8 +72,18 @@ screens:
     figma_image: docs/design/review/figma/home-default.png
     figma_sha256: 87d9c1e3ed1a5a556f2fbb8081abaacdbeb41fbbf19f4d1cf998e015fac70d40
     variants:
-      - {state: loading, figma_node: '1824:2', status: pending}
-      - {state: error, figma_node: '1824:694', status: pending}
+      - state: loading
+        figma_node: '1824:2'
+        status: in_progress
+        review_note: Month-only 72% white loading overlay and blocked date taps are implemented and behavior-tested. Full Home golden and today-card fixture are pending.
+        figma_image: docs/design/review/figma/home-loading.png
+        figma_sha256: 52362c7a344d8e4cf788b4ce9ac5bb89631e813a3a7f7e08ce9eb80cf041c6a7
+      - state: error
+        figma_node: '1824:694'
+        status: in_progress
+        review_note: Month-only 92% white error overlay and retry for the focused month are implemented and behavior-tested. Full Home golden and today-card fixture are pending.
+        figma_image: docs/design/review/figma/home-error.png
+        figma_sha256: 7aa8f80ce1ff05847209828f49045bc8e1d0a09803fd1625534860ff4d746281
   - route: /myPage
     figma_node: '965:4676'
     flutter: lib/presentation/my_page/my_page_screen.dart

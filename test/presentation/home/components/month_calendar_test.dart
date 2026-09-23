@@ -165,6 +165,77 @@ void main() {
     expect(find.byType(MonthCalendar), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('loading masks only the month calendar and blocks date taps', (
+    tester,
+  ) async {
+    DateTime? selected;
+    await tester.pumpWidget(
+      _TestApp(
+        child: SizedBox(
+          width: 360,
+          height: 391,
+          child: MonthCalendar(
+            initialDate: DateTime(2024, 12, 21),
+            dispatchBlocEvents: false,
+            monthlySchedulesState: const MonthlySchedulesState(
+              status: MonthlySchedulesStatus.loading,
+            ),
+            onDateSelected: (date) => selected = date,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      tester.getSize(find.byKey(const Key('home_month_loading_overlay'))),
+      const Size(360, 391),
+    );
+    await tester.tapAt(tester.getCenter(find.text('21').last));
+    await tester.pump();
+    expect(selected, isNull);
+    expect(find.byKey(const Key('home_month_retry')), findsNothing);
+  });
+
+  testWidgets('error retry reloads the displayed month', (tester) async {
+    final bloc = _RecordingMonthlySchedulesBloc();
+    await tester.pumpWidget(
+      _TestApp(
+        bloc: bloc,
+        child: SizedBox(
+          width: 360,
+          height: 391,
+          child: MonthCalendar(
+            initialDate: DateTime(2024, 12, 21),
+            monthlySchedulesState: const MonthlySchedulesState(
+              status: MonthlySchedulesStatus.error,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('오류'), findsOneWidget);
+    expect(find.text('다시 시도'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('home_month_error_overlay'))),
+      const Size(360, 391),
+    );
+    await tester.tap(find.byKey(const Key('home_month_retry')));
+    await tester.pump();
+    expect(
+      bloc.addedEvents,
+      contains(
+        isA<MonthlySchedulesSubscriptionRequested>().having(
+          (event) => event.date,
+          'date',
+          DateTime(2024, 12, 21),
+        ),
+      ),
+    );
+  });
 }
 
 class _TestApp extends StatelessWidget {
@@ -177,6 +248,7 @@ class _TestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = MaterialApp(
       theme: themeData,
+      locale: const Locale('ko'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: child),
@@ -189,6 +261,7 @@ class _TestApp extends StatelessWidget {
 
     return MaterialApp(
       theme: themeData,
+      locale: const Locale('ko'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: BlocProvider<MonthlySchedulesBloc>.value(

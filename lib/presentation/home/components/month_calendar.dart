@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/schedule_marker_builder.dart';
@@ -10,6 +11,7 @@ class MonthCalendar extends StatefulWidget {
   const MonthCalendar({
     super.key,
     required this.monthlySchedulesState,
+    this.initialDate,
     this.dispatchBlocEvents = true,
     this.onDateSelected,
     this.rowHeight = 50,
@@ -18,6 +20,7 @@ class MonthCalendar extends StatefulWidget {
   });
 
   final MonthlySchedulesState monthlySchedulesState;
+  final DateTime? initialDate;
   final bool dispatchBlocEvents;
   final void Function(DateTime)? onDateSelected;
   final double rowHeight;
@@ -49,7 +52,11 @@ class _MonthCalendarState extends State<MonthCalendar> {
   @override
   void initState() {
     super.initState();
-    _focusedDay = _clampDay(DateTime.now(), _firstDay, _lastDay);
+    _focusedDay = _clampDay(
+      widget.initialDate ?? DateTime.now(),
+      _firstDay,
+      _lastDay,
+    );
     _selectedDay = _focusedDay;
   }
 
@@ -102,108 +109,177 @@ class _MonthCalendarState extends State<MonthCalendar> {
           verticalPadding: resolvedPadding.vertical,
         );
 
-        return Container(
-          padding: widget.contentPadding,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(11)),
-          child: TableCalendar(
-            locale: Localizations.localeOf(context).toString(),
-            eventLoader: (day) {
-              day = DateTime(day.year, day.month, day.day);
-              return widget.monthlySchedulesState.schedules[day] ?? [];
-            },
-            sixWeekMonthsEnforced: true,
-            rowHeight: constrainedRowHeight,
-            availableGestures: AvailableGestures.none,
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            firstDay: _firstDay,
-            lastDay: _lastDay,
-            calendarFormat: CalendarFormat.month,
-            headerStyle: calendarTheme.headerStyle,
-            daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
-            daysOfWeekHeight: widget.daysOfWeekHeight,
-            calendarStyle: calendarTheme.calendarStyle,
-            onDaySelected: (selectedDay, focusedDay) {
-              final clampedSelectedDay = _clampDay(
-                selectedDay,
-                _firstDay,
-                _lastDay,
-              );
-              final clampedFocusedDay = _clampDay(
-                focusedDay,
-                _firstDay,
-                _lastDay,
-              );
+        final status = widget.monthlySchedulesState.status;
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              AbsorbPointer(
+                absorbing:
+                    status == MonthlySchedulesStatus.loading ||
+                    status == MonthlySchedulesStatus.error,
+                child: Container(
+                  padding: widget.contentPadding,
+                  child: TableCalendar(
+                    locale: Localizations.localeOf(context).toString(),
+                    eventLoader: (day) {
+                      day = DateTime(day.year, day.month, day.day);
+                      return widget.monthlySchedulesState.schedules[day] ?? [];
+                    },
+                    sixWeekMonthsEnforced: true,
+                    rowHeight: constrainedRowHeight,
+                    availableGestures: AvailableGestures.none,
+                    focusedDay: _focusedDay,
+                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                    firstDay: _firstDay,
+                    lastDay: _lastDay,
+                    calendarFormat: CalendarFormat.month,
+                    headerStyle: calendarTheme.headerStyle,
+                    daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
+                    daysOfWeekHeight: widget.daysOfWeekHeight,
+                    calendarStyle: calendarTheme.calendarStyle,
+                    onDaySelected: (selectedDay, focusedDay) {
+                      final clampedSelectedDay = _clampDay(
+                        selectedDay,
+                        _firstDay,
+                        _lastDay,
+                      );
+                      final clampedFocusedDay = _clampDay(
+                        focusedDay,
+                        _firstDay,
+                        _lastDay,
+                      );
 
-              setState(() {
-                _selectedDay = clampedSelectedDay;
-                _focusedDay = clampedFocusedDay;
-              });
+                      setState(() {
+                        _selectedDay = clampedSelectedDay;
+                        _focusedDay = clampedFocusedDay;
+                      });
 
-              widget.onDateSelected?.call(clampedSelectedDay);
-            },
-            onPageChanged: (focusedDay) {
-              final clampedFocusedDay = _clampDay(
-                focusedDay,
-                _firstDay,
-                _lastDay,
-              );
+                      widget.onDateSelected?.call(clampedSelectedDay);
+                    },
+                    onPageChanged: (focusedDay) {
+                      final clampedFocusedDay = _clampDay(
+                        focusedDay,
+                        _firstDay,
+                        _lastDay,
+                      );
 
-              setState(() {
-                _focusedDay = clampedFocusedDay;
-              });
+                      setState(() {
+                        _focusedDay = clampedFocusedDay;
+                      });
 
-              if (widget.dispatchBlocEvents) {
-                context.read<MonthlySchedulesBloc>().add(
-                  MonthlySchedulesMonthAdded(
-                    date: DateTime(
-                      clampedFocusedDay.year,
-                      clampedFocusedDay.month,
-                      1,
+                      if (widget.dispatchBlocEvents) {
+                        context.read<MonthlySchedulesBloc>().add(
+                          MonthlySchedulesMonthAdded(
+                            date: DateTime(
+                              clampedFocusedDay.year,
+                              clampedFocusedDay.month,
+                              1,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    calendarBuilders: CalendarBuilders(
+                      headerTitleBuilder: (context, date) {
+                        return CenteredCalendarHeader(
+                          focusedMonth: date,
+                          onLeftArrowTap: _onLeftArrowTap,
+                          onRightArrowTap: _onRightArrowTap,
+                          titleTextStyle:
+                              calendarTheme.headerStyle.titleTextStyle,
+                          leftIcon: calendarTheme.headerStyle.leftChevronIcon,
+                          rightIcon: calendarTheme.headerStyle.rightChevronIcon,
+                        );
+                      },
+                      markerBuilder: (context, day, events) {
+                        return selectedDayScheduleMarkerBuilder(
+                          selectedDay: _selectedDay,
+                          day: day,
+                          events: events,
+                        );
+                      },
+                      selectedBuilder: (context, day, focusedDay) {
+                        return Container(
+                          margin: const EdgeInsets.all(4.0),
+                          alignment: Alignment.center,
+                          decoration: calendarTheme.selectedDayDecoration,
+                          child: Text(
+                            day.day.toString(),
+                            style: calendarTheme.selectedDayTextStyle,
+                          ),
+                        );
+                      },
+                      todayBuilder: (context, day, focusedDay) => Container(
+                        margin: const EdgeInsets.all(4.0),
+                        alignment: Alignment.center,
+                        decoration: calendarTheme.todayDecoration,
+                        child: Text(
+                          day.day.toString(),
+                          style: calendarTheme.todayTextStyle,
+                        ),
+                      ),
                     ),
                   ),
-                );
-              }
-            },
-            calendarBuilders: CalendarBuilders(
-              headerTitleBuilder: (context, date) {
-                return CenteredCalendarHeader(
-                  focusedMonth: date,
-                  onLeftArrowTap: _onLeftArrowTap,
-                  onRightArrowTap: _onRightArrowTap,
-                  titleTextStyle: calendarTheme.headerStyle.titleTextStyle,
-                  leftIcon: calendarTheme.headerStyle.leftChevronIcon,
-                  rightIcon: calendarTheme.headerStyle.rightChevronIcon,
-                );
-              },
-              markerBuilder: (context, day, events) {
-                return selectedDayScheduleMarkerBuilder(
-                  selectedDay: _selectedDay,
-                  day: day,
-                  events: events,
-                );
-              },
-              selectedBuilder: (context, day, focusedDay) {
-                return Container(
-                  margin: const EdgeInsets.all(4.0),
-                  alignment: Alignment.center,
-                  decoration: calendarTheme.selectedDayDecoration,
-                  child: Text(
-                    day.day.toString(),
-                    style: calendarTheme.selectedDayTextStyle,
-                  ),
-                );
-              },
-              todayBuilder: (context, day, focusedDay) => Container(
-                margin: const EdgeInsets.all(4.0),
-                alignment: Alignment.center,
-                decoration: calendarTheme.todayDecoration,
-                child: Text(
-                  day.day.toString(),
-                  style: calendarTheme.todayTextStyle,
                 ),
               ),
-            ),
+              if (status == MonthlySchedulesStatus.loading)
+                Positioned.fill(
+                  child: ColoredBox(
+                    key: const Key('home_month_loading_overlay'),
+                    color: const Color(0xB8FFFFFF),
+                    child: Center(
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3.5,
+                          color: const Color(0xff5c79fb),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (status == MonthlySchedulesStatus.error)
+                Positioned.fill(
+                  child: ColoredBox(
+                    key: const Key('home_month_error_overlay'),
+                    color: const Color(0xEBFFFFFF),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.error,
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          SizedBox(
+                            height: 44,
+                            child: TextButton(
+                              key: const Key('home_month_retry'),
+                              onPressed: widget.dispatchBlocEvents
+                                  ? () => context
+                                        .read<MonthlySchedulesBloc>()
+                                        .add(
+                                          MonthlySchedulesSubscriptionRequested(
+                                            date: _focusedDay,
+                                          ),
+                                        )
+                                  : null,
+                              child: Text(
+                                AppLocalizations.of(context)!.retry,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: const Color(0xff5c79fb),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         );
       },

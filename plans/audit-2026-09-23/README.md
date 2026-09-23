@@ -23,7 +23,7 @@
 | A05 | [#588](https://github.com/DevKor-github/OnTime-front/issues/588) | 전체617 tests/analyze·Android APK CI 통과, coverage84.98%, 기기·후속 통합 대기 |
 | A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 089afee5 원격636 tests/84.96%·APK 통과, 최신main 통합678 tests 통과, 기기 검증 대기 |
 | A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 콜드 탭·선택 준비 유지 구현, 최종 b9f959db 원격707 tests/analyze·coverage87.11%·APK 통과, 기기 검증 대기 |
-| A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 예약/안내 구현734 tests + registry 후속10 tests 통과, 최신 CI·기기 대기 |
+| A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 예약/안내·registry 후속 수정 원격740 tests/87.20%·APK 통과, 기기 대기 |
 | A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | 실제3문답·플랫폼별 관측/취소 기준 확정, 전담 구현 중 |
 | A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 실제4문답·요청별 완료/실패 및 세대 직렬화 기준 확정, A14 뒤 구현 |
 | D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 실제4문답·취소 journal/중단 복구/부분 결과 기준 확정, A15 뒤 구현 |
@@ -31,9 +31,11 @@
 | A07 | [#599](https://github.com/DevKor-github/OnTime-front/issues/599) | 실제3문답·추가 정정 포함, DB 원자적 시작·run 시각·실패 재시도 기준 확정 |
 | C01 | [#600](https://github.com/DevKor-github/OnTime-front/issues/600) | 실제3문답·staging/gate 보충 포함, 구체 workflow·부분 결과·통합 의존성 확정 |
 | A08 | [#601](https://github.com/DevKor-github/OnTime-front/issues/601) | 실제4문답·원자 저장/조회·충돌/멱등/소유권 기준 확정 |
+| A09 | [#602](https://github.com/DevKor-github/OnTime-front/issues/602) | 실제4문답·staging/runtime 세대·복원 후 정리 기준 확정 |
+| D01 | [#603](https://github.com/DevKor-github/OnTime-front/issues/603) | 실제4문답·DB 비의존 시작 복구·키/파일 보존 기준 확정 |
 | U08 | [#597](https://github.com/DevKor-github/OnTime-front/issues/597) | 홈 overflow 선행 수정18 tests/analyze 통과, 전체 매트릭스·기기 검증 미완료 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 16개를 게시하고 본문을 재확인했으며, 나머지 48개는 생성 전이다. A12는 최종 원격707 tests·APK 통과 후 기기 검증 대기, A13/A14/A15/D03는 문답 완료·구현 대기다. A12 화면 검증 중 U08 홈 카드 overflow가 추가 재현돼 전담 grill과 #597 게시 후 좁은 선행 수정을 진행한다. 최신 main 통합 커밋 `712b3708`의 원격 Flutter 678개 테스트와 analyze가 통과했고 coverage는 85.35%다. Android release APK/manifest CI도 통과했으며 artifact identity를 기록했다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **18/64개**를 게시하고 원격 본문 동일성을 확인했으며 **46개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14 구현·검증 및 D02 전담 문답을 진행 중이며 A15/D03는 순차 구현 대기다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
 
 ## 실행 순서
 

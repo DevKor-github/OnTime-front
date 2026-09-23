@@ -95,3 +95,12 @@ A13 `59d92bdd03cdd5e2dc33e95dd844f8d0bb508eab` 구현커밋. 최종전체734/ana
 C01 #600 exactreadback완료: 15/64게시,49미생성. A08/A09전담grill진행중. A13/U08 push원격head dac9c5a2, Flutter35884708345/Android35884708227 실행중. A14조사에서 _safe가notificationTiming필드를drop하는A13실제persistence gap발견, 별도A13fix와realSharedPreferences왕복회귀우선처리. 기존734통과가이gap을커버하지못했음을명시.
 
 A13 persistence후속 `edfff97c4806fb2d154c324edf8965b1feb218e0`: sanitizer필드보존+actualdatasource/SharedPreferences mock 왕복10개통과, 원격#592본문갱신exactreadback완료. A08 #601 게시exactreadback완료, 전체16/64게시. A09문서작성중,D01새전담grill시작.
+
+
+## 최신 진행: A13 후속 CI / A09·D01 게시
+
+- A09 #602와 D01 #603을 상세 실제 문답과 함께 게시하고 exact body read-back했다. 총 18/64개 게시, 46개 미생성. D02는 네 문답 확정 후 상세 문서 작성 중이다.
+- A13 registry 후속 수정 edfff97c가 포함된 e2fbdf0b의 원격 Flutter740 tests/analyze·coverage87.20%, Android APK/manifest가 모두 통과했다. a13-persistence-ci-validation.json에 artifact10763011276 및 synthetic merge67efb127 identity를 기록했다. #592 최종 본문도 원격 동일성을 검증했다.
+- A14 전담이 최종 소스/전체 테스트/native SDK 검증 중이다. root는 unknown/unmapped 관측이 빈 ON/OFF에서 성공으로 사라지지 않게 리뷰했고 회귀가 추가됐다. 실제 OS 전달은 미실행이다.
+- D04 새 전담 생성은 agent thread limit으로 실패했다. 기존 전담을 재사용해 새 이슈 문답을 대신하지 않고 이후 재시도한다. 사용자 추가 승인 사항은 없다.
+- CONTEXT의 Installation Data Key는 정확히 하나의 active key라는 뜻으로 D02 문답에 맞춰 정정했다. 비활성 후보/retired 재료는 안전한 복구 정리까지 한시 보존한다.

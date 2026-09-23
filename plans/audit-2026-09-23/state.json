@@ -258,7 +258,7 @@
         "`notification_service.dart:267`; `alarm_gate_cubit.dart:134-157`; `CONTEXT.md:443-452`, ADR 0008",
         "full-screen 표현과 timing 권한을 분리. 권한 있음→정확 예약, 없음→근사 예약과 그에 맞는 UI. 예약 API 모드와 실제 도착 시각 검증."
       ],
-      "status": "code_verified_ci_pending",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a13",
       "issue_number": 592,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/592",
@@ -268,15 +268,15 @@
       "verification": [
         "Final integrated lib/test tree: 734 tests, analyzer, 11 manifest tests and generated/local-only policies passed.",
         "Source22/artifact hashes matched; EN/KO real-font standalone widget captures verified. a13-validation.json.",
-        "A14 review found _safe registry reconstruction drops notificationTiming; real SharedPreferences round-trip follow-up underway. Prior 734 tests do not cover this defect.",
-        "Registry sanitizer follow-up edfff97c: actual datasource + SharedPreferences mock backend 10 passed, including 6 mode/pending round trips. a13-persistence-validation.json."
+        "Registry sanitizer follow-up edfff97c: actual datasource + SharedPreferences mock backend 10 passed, including 6 mode/pending round trips. a13-persistence-validation.json.",
+        "Final follow-up head e2fbdf0b: remote Flutter 740 tests/analyze, coverage 87.20% (11319/12981), Android release APK/manifest passed. a13-persistence-ci-validation.json."
       ],
       "blockers": [
-        "Remote Flutter/APK CI pending after push; actual Android timing and iOS device regression not executed."
+        "Actual Android exact timing/permission/Doze/reboot and iOS device regression not executed."
       ],
       "sequence": 8,
       "readback_verified": true,
-      "body_sha256": "a7636206f9f3c481f2380fada459a78ff3f56194335cbc212990963f570d6804",
+      "body_sha256": "baab5f33ce7bd44c3851068bcd8a10f003406fac96ea4d627f79d76352278f97",
       "implementation_followup_commit": "edfff97c4806fb2d154c324edf8965b1feb218e0"
     },
     {
@@ -457,16 +457,18 @@
         "`backup_service.dart:146-196`; `my_data_screen.dart:159-165`; `preparation_with_time_local_data_source.dart`; `early_start_session_local_data_source.dart`; session use case의 restore 경로",
         "복원 orchestration에서 활동 중 세션/구독/알림을 정리하고 DB 교체 후 재시작. 같은 ID의 진행 중 일정 복원 후 진행 이력이 되살아나지 않아야 함. 실패 시 기존 DB 보존."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_a09",
+      "issue_number": 602,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/602",
       "decisions_file": "plans/audit-2026-09-23/issues/A09.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 16
+      "sequence": 16,
+      "readback_verified": true,
+      "body_sha256": "97c77e8e911aa351002e7979674507f4586ef0fabd96ad3cf91343e902f2638a"
     },
     {
       "audit_id": "D01",
@@ -479,16 +481,18 @@
         "`lib/main.dart:13-25`; `local_data_lifecycle.dart:23-42`; AuthBloc의 recovery 처리는 그 이후 사용자 로드에만 적용",
         "keychain 접근/디스크 write 실패를 주입해 blank launch 대신 데이터 보존 안내·재시도 제공. 자동 삭제는 금지."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_d01",
+      "issue_number": 603,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/603",
       "decisions_file": "plans/audit-2026-09-23/issues/D01.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 17
+      "sequence": 17,
+      "readback_verified": true,
+      "body_sha256": "f75e396b4b7da225ec721ee745f11d95ebf264e0debd3d3ca82cbd33894b8d21"
     },
     {
       "audit_id": "D02",
@@ -501,8 +505,8 @@
         "`local_data_recovery_screen.dart:45-63,96-99`; `docs/adr/0023-preserve-local-data-when-migration-fails.md:7`",
         "보존된 DB·키를 건드리지 않고 백업 검증→새 암호화 DB 복원→성공 후 교체. 초기화 실패 시 busy 해제와 재시도."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
+      "status": "grilling",
+      "agent": "/root/grill_d02",
       "issue_number": null,
       "issue_url": null,
       "decisions_file": "plans/audit-2026-09-23/issues/D02.md",

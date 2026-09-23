@@ -154,14 +154,16 @@
       "issue_number": 588,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/588",
       "decisions_file": "plans/audit-2026-09-23/issues/A05.md",
-      "implementation_commit": null,
+      "implementation_commit": "0c41589eef35481088ae64dabf1924e97f3635ea",
       "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Full Flutter suite: 617 passed (concurrency=1)",
         "flutter analyze: no issues",
         "Core privacy regressions failed before fix and passed after",
         "Swift syntax parse, local-only policy and diff check passed",
-        "Source digests checked against a05-source-validation.json"
+        "Source digests checked against a05-source-validation.json",
+        "GitHub Flutter run35826834208: 617 tests, coverage84.98% (8733/10277), analyze passed at 0c41589e",
+        "GitHub Android run35826834204: actual release APK and merged manifests passed; receipt a05-apk-validation.json"
       ],
       "blockers": [
         "Actual Android/iOS lock-screen delivery and displayed notification removal pending",
@@ -182,17 +184,30 @@
         "`schedule_with_preparation_entity.dart:44-70`; `alarm_entities.dart:413,426`; `alarm_registry_local_data_source.dart:48-54`; `notification_service.dart:268`",
         "payload/registry에서 필요한 식별자와 버전만 보존. 내용 비교가 필요하면 원문을 노출하지 않는 digest 사용. 기존 registry 및 플러그인 예약 payload 교체, 상세 OFF 상태에서 준비 원문이 남지 않는지 검사."
       ],
-      "status": "ready",
+      "status": "code_verified_integration_pending",
       "agent": "/root/grill_a11",
       "issue_number": 589,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/589",
       "decisions_file": "plans/audit-2026-09-23/issues/A11.md",
       "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Full Flutter suite 634 passed before last review edits",
+        "Subsequent targeted 59 passed; final runtime/bloc/repository targeted 42 passed",
+        "Final flutter analyze: no issues",
+        "Kotlin/JVM and Swift/macOS privacy behavior contracts passed",
+        "Actual Android SDK type compile and iOS simulator SDK typecheck passed; not device/linking proof",
+        "local-only/generated policy, 11 manifest tests and diff check passed"
+      ],
+      "blockers": [
+        "Exact final commit remote CI pending",
+        "Android/iOS upgrade and OS cancellation/delivery verification pending",
+        "Pre-runApp Recovery UI remains D01; cleanup hook implemented",
+        "Third-party plugin pre-first-launch boot persistence is outside cleanup guarantee"
+      ],
       "sequence": 6,
-      "readback_verified": true
+      "readback_verified": true,
+      "body_sha256": "451d17d7e378a2673b098c1180f4bf8aa98023bef1a672544a7dafbd2515ce41"
     },
     {
       "audit_id": "A12",
@@ -205,8 +220,8 @@
         "`notification_service.dart:153-165`; `android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt:231-232`; 앱 전체 `getNotificationAppLaunchDetails` 호출 없음",
         "Android/iOS fallback 각각 종료→알림 탭→정확한 일정으로 한 번만 이동. DB/라우터 준비 지연 중에는 payload를 보존."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
+      "status": "grilling",
+      "agent": "/root/grill_a12",
       "issue_number": null,
       "issue_url": null,
       "decisions_file": "plans/audit-2026-09-23/issues/A12.md",

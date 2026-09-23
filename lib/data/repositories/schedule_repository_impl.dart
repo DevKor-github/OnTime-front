@@ -111,7 +111,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     await _scheduleDao.updateScheduleWithPlace(
       schedule.toScheduleWithPlaceRow(),
     );
-    await _clearTimedPreparation(schedule.id);
+    // Retain the old content-free identity until the session validator sees
+    // this edit. Deleting it would make an invalid run look like a fresh one
+    // and allow automatic catch-up. Unchanged timing/shape stays resumable.
     await _userDao.markDurableDataChanged(localProfileId);
   }
 

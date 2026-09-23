@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
@@ -41,7 +43,35 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       occurrenceInstantUtc.subtract(totalDuration);
 
   /// Fingerprint for validating whether cached timed-preparation is still valid.
-  String get cacheFingerprint {
+  String get timingIdentity => _identity('timing', [
+    occurrenceInstantUtc.toIso8601String(),
+    timeZoneId,
+    occurrenceOffsetSeconds,
+    moveTime.inMilliseconds,
+    (scheduleSpareTime ?? Duration.zero).inMilliseconds,
+  ]);
+
+  String get preparationShapeIdentity => _identity('shape', [
+    for (final step in preparation.preparationStepList)
+      [
+        step.id,
+        step.preparationName,
+        step.preparationTime.inMilliseconds,
+        step.nextPreparationId,
+      ],
+  ]);
+
+  String get cacheFingerprint =>
+      _identity('session', [timingIdentity, preparationShapeIdentity]);
+
+  static String _identity(String domain, List<Object?> values) =>
+      'v2:${sha256.convert(utf8.encode(jsonEncode(['ontime', 2, domain, values])))}';
+
+  static bool isCurrentIdentity(String value) =>
+      RegExp(r'^v2:[0-9a-f]{64}$').hasMatch(value);
+
+  /// Read-only compatibility comparison. Never persist or log this value.
+  String get legacyCacheFingerprint {
     final spare = scheduleSpareTime ?? Duration.zero;
     final buffer = StringBuffer()
       ..write(scheduleTime.toIso8601String())

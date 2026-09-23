@@ -245,11 +245,13 @@ class TestSchedulePreparationSessionUseCase
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
     RestoredSessionCallback? onRestoredSession,
+    void Function()? onInvalidated,
   }) async {
     final snapshot = await getTimedPreparationSnapshotUseCase(schedule.id);
     if (snapshot == null) return schedule;
     if (snapshot.scheduleFingerprint != schedule.cacheFingerprint) {
       await clearPersistedState(schedule.id);
+      onInvalidated?.call();
       return schedule;
     }
     onRestoredSession?.call(

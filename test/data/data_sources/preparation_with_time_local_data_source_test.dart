@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/data_sources/preparation_with_time_local_data_source.dart';
 import 'package:on_time_front/data/repositories/timed_preparation_repository_impl.dart';
@@ -22,8 +23,14 @@ void main() {
 
     final loaded = await dataSource.loadPreparation('schedule-1');
 
-    expect(loaded, snapshot);
-    expect(loaded!.preparation.currentStep?.id, 'step-2');
+    expect(loaded!.contentOmitted, isTrue);
+    expect(loaded.scheduleFingerprint, snapshot.scheduleFingerprint);
+    final raw = (await SharedPreferences.getInstance()).getString(
+      'preparation_with_time_schedule-1',
+    )!;
+    expect(raw, isNot(contains('Pack')));
+    expect(raw, isNot(contains('Dress')));
+    expect(raw, isNot(contains('nextId')));
     expect(loaded.preparation.stepElapsedTimesInSeconds, [600, 120]);
   });
 
@@ -59,11 +66,9 @@ void main() {
     },
   );
 
-  test(
-    'loadPreparation supports legacy snapshots without savedAt or fingerprint',
-    () async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('preparation_with_time_legacy', '''
+  test('loadPreparation rejects unverifiable legacy snapshots', () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('preparation_with_time_legacy', '''
       {
         "steps": [
           {
@@ -77,34 +82,68 @@ void main() {
       }
       ''');
 
-      final loaded = await dataSource.loadPreparation('legacy');
+    final loaded = await dataSource.loadPreparation('legacy');
 
-      expect(loaded, isNotNull);
-      expect(loaded!.scheduleFingerprint, '');
-      expect(loaded.preparation.preparationStepList.single.isDone, isFalse);
-      expect(
-        loaded.preparation.preparationStepList.single.elapsedTime,
-        const Duration(minutes: 10),
-      );
-    },
-  );
+    expect(loaded, isNull);
+  });
+
+  test('clearPreparation removes only the requested schedule snapshot', () async {
+    await dataSource.savePreparation('schedule-1', _snapshot());
+    await dataSource.savePreparation(
+      'schedule-2',
+      _snapshot(
+        scheduleFingerprint:
+            'v2:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      ),
+    );
+
+    await dataSource.clearPreparation('schedule-1');
+
+    expect(await dataSource.loadPreparation('schedule-1'), isNull);
+    expect(
+      (await dataSource.loadPreparation('schedule-2'))!.scheduleFingerprint,
+      'v2:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    );
+  });
 
   test(
-    'clearPreparation removes only the requested schedule snapshot',
+    'explicit malformed events and negative progress invalidate whole snapshot',
     () async {
+      final prefs = await SharedPreferences.getInstance();
       await dataSource.savePreparation('schedule-1', _snapshot());
-      await dataSource.savePreparation(
-        'schedule-2',
-        _snapshot(scheduleFingerprint: 'other-fingerprint'),
+      final baseline =
+          jsonDecode(prefs.getString('preparation_with_time_schedule-1')!)
+              as Map<String, dynamic>;
+      for (final invalid in [
+        null,
+        'invalid',
+        [42],
+        [
+          {'type': 'unknown', 'occurredAt': 1},
+        ],
+        [
+          {'type': 'skipStep', 'occurredAt': 1},
+        ],
+        [
+          {'type': 'skipStep', 'occurredAt': 1, 'stepId': 42},
+        ],
+        [
+          {'type': 'skipStep', 'occurredAt': 1.2, 'stepId': 'step-1'},
+        ],
+      ]) {
+        await prefs.setString(
+          'preparation_with_time_schedule-1',
+          jsonEncode({...baseline, 'actionEvents': invalid}),
+        );
+        expect(await dataSource.loadPreparation('schedule-1'), isNull);
+      }
+      final negative = jsonDecode(jsonEncode(baseline)) as Map<String, dynamic>;
+      (negative['steps'] as List).first['elapsed'] = -1;
+      await prefs.setString(
+        'preparation_with_time_schedule-1',
+        jsonEncode(negative),
       );
-
-      await dataSource.clearPreparation('schedule-1');
-
       expect(await dataSource.loadPreparation('schedule-1'), isNull);
-      expect(
-        (await dataSource.loadPreparation('schedule-2'))!.scheduleFingerprint,
-        'other-fingerprint',
-      );
     },
   );
 
@@ -119,7 +158,11 @@ void main() {
       await repository.saveTimedPreparationSnapshot('schedule-1', snapshot);
       expect(
         await repository.getTimedPreparationSnapshot('schedule-1'),
-        snapshot,
+        isA<TimedPreparationSnapshotEntity>().having(
+          (value) => value.contentOmitted,
+          'content omitted',
+          true,
+        ),
       );
 
       await repository.clearTimedPreparation('schedule-1');
@@ -132,7 +175,8 @@ void main() {
 }
 
 TimedPreparationSnapshotEntity _snapshot({
-  String scheduleFingerprint = 'fingerprint',
+  String scheduleFingerprint =
+      'v2:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   DateTime? startedAt,
   List<PreparationActionEventEntity> actionEvents = const [],
 }) {

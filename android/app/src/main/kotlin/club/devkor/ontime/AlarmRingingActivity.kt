@@ -138,15 +138,10 @@ class AlarmRingingActivity : Activity() {
     }
 
     private fun capturePayload(intent: Intent?) {
-        val extras = mutableMapOf<String, String>()
         val rawExtras = intent?.extras
-        if (rawExtras != null) {
-            for (key in rawExtras.keySet()) {
-                rawExtras.get(key)?.let { extras[key] = it.toString() }
-            }
-        }
-        extras["type"] = "schedule_alarm"
-        extras["promptVariant"] = "alarm"
+        val extras = AlarmLaunchPayload.deliveryExtras(
+            rawExtras?.keySet()?.associateWith { key -> rawExtras.get(key) },
+        )
         requestCode = extras["nativeAlarmId"]?.toIntOrNull()
             ?: extras["scheduleId"]?.hashCode()
             ?: 1
@@ -368,9 +363,7 @@ class AlarmRingingActivity : Activity() {
     private fun startPreparing() {
         stopRinging(showStoppedState = false)
         NativeAlarmReceiver.cancelAlarmNotification(this, requestCode)
-        val launchPayload = payload.toMutableMap().apply {
-            put("alarmLaunchAction", "startPreparation")
-        }
+        val launchPayload = AlarmLaunchPayload.sanitize(payload) ?: emptyMap()
         NativeLog.d(
             TAG,
             "AlarmRingingActivity start preparing handoff requestCode=$requestCode " +

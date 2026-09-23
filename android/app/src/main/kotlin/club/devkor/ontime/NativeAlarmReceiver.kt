@@ -112,7 +112,9 @@ class NativeAlarmReceiver : BroadcastReceiver() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or
                     Intent.FLAG_ACTIVITY_SINGLE_TOP
-                putAlarmExtras(extras)
+                AlarmLaunchPayload.sanitize(extras)?.forEach { (key, value) ->
+                    putExtra(key, value)
+                }
             }
         }
 
@@ -152,53 +154,25 @@ class NativeAlarmReceiver : BroadcastReceiver() {
             }
         }
 
-        private fun ringingIntentFromArgs(context: Context, args: Map<*, *>): Intent {
-            val extras = mutableMapOf<String, String>()
-            extras["type"] = "schedule_alarm"
-            extras["scheduleId"] = args["scheduleId"]?.toString().orEmpty()
-            extras["promptVariant"] = "alarm"
-            extras["alarmTime"] = args["alarmTime"]?.toString().orEmpty()
-            extras["preparationStartTime"] =
-                args["preparationStartTime"]?.toString().orEmpty()
-            extras["nativeAlarmId"] = requestCodeFromArgs(args).toString()
-            args["title"]?.toString()?.let { extras["title"] = it }
-            args["body"]?.toString()?.let { extras["body"] = it }
-
-            val payload = args["payload"] as? Map<*, *>
-            payload?.forEach { (key, value) ->
-                if (key != null && value != null) {
-                    extras[key.toString()] = value.toString()
-                }
+        private fun deliveryExtrasFromArgs(args: Map<*, *>): Map<String, String> {
+            // Outer provider arguments own identity/display. Nested route data cannot override them.
+            return AlarmLaunchPayload.deliveryExtras(args).toMutableMap().apply {
+                put("nativeAlarmId", requestCodeFromArgs(args).toString())
             }
-            return ringingIntentFromExtras(context, extras)
+        }
+
+        private fun ringingIntentFromArgs(context: Context, args: Map<*, *>): Intent {
+            return ringingIntentFromExtras(context, deliveryExtrasFromArgs(args))
         }
 
         private fun Intent.putAlarmExtrasFromArgs(args: Map<*, *>) {
-            putExtra("type", "schedule_alarm")
-            putExtra("scheduleId", args["scheduleId"]?.toString())
-            putExtra("promptVariant", "alarm")
-            putExtra("alarmTime", args["alarmTime"]?.toString())
-            putExtra("preparationStartTime", args["preparationStartTime"]?.toString())
-            putExtra("nativeAlarmId", requestCodeFromArgs(args).toString())
-            putExtra("title", args["title"]?.toString())
-            putExtra("body", args["body"]?.toString())
-
-            val payload = args["payload"] as? Map<*, *>
-            payload?.forEach { (key, value) ->
-                if (key != null && value != null) {
-                    putExtra(key.toString(), value.toString())
-                }
-            }
+            putAlarmExtras(deliveryExtrasFromArgs(args))
         }
 
         private fun Intent.putAlarmExtras(extras: Map<String, String>) {
-            for ((key, value) in extras) {
-                if (value.isNotEmpty()) {
-                    putExtra(key, value)
-                }
+            AlarmLaunchPayload.deliveryExtras(extras).forEach { (key, value) ->
+                putExtra(key, value)
             }
-            putExtra("type", "schedule_alarm")
-            putExtra("promptVariant", "alarm")
         }
     }
 
@@ -342,15 +316,9 @@ class NativeAlarmReceiver : BroadcastReceiver() {
     }
 
     private fun payloadFromIntent(intent: Intent): Map<String, String> {
-        val payload = mutableMapOf<String, String>()
-        val extras = intent.extras
-        if (extras != null) {
-            for (key in extras.keySet()) {
-                extras.get(key)?.let { payload[key] = it.toString() }
-            }
-        }
-        payload["type"] = "schedule_alarm"
-        payload["promptVariant"] = "alarm"
-        return payload
+        val extras = intent.extras ?: return emptyMap()
+        return AlarmLaunchPayload.deliveryExtras(
+            extras.keySet().associateWith { key -> extras.get(key) },
+        )
     }
 }

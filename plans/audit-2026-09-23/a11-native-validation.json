@@ -1,0 +1,27 @@
+{
+  "scope": "A11 native launch privacy; source verification only",
+  "results": {
+    "kotlin_jvm_privacy_contract": "passed",
+    "swift_macos_privacy_and_UserDefaults_contract": "passed including sync failure and readback mismatch",
+    "android_sdk36_flutter_type_compile": "passed with generated BuildConfig/R symbol stubs; deprecation warnings only",
+    "ios_simulator_sdk_typecheck": "passed AppDelegate/helper/BackupExportPlugin using real registrant header",
+    "xcode_project_plutil": "passed",
+    "actual_device_upgrade_delivery": "not run",
+    "runner_full_linking": "not run"
+  },
+  "source_sha256": {
+    "android/app/src/main/kotlin/club/devkor/ontime/AlarmLaunchPayload.kt": "9d2485c8c45e559a93f0d457dfa35ef5a05ebaf610a22a59788f75f7d55e01d9",
+    "android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt": "fecb7519c1fdfd846e51890c2b4f865409f3ee1e79bfd0822c1b18013c26e434",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmReceiver.kt": "ba03fce43d0167d79189b037d0d3d205bad5518c682d17b48080273f2ab3e711",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmPolicy.kt": "439f8fa99257c2d6e8e4c9bb32a56ddf6acc284cd1a44f15c8f7f86765ee7a50",
+    "android/app/src/main/kotlin/club/devkor/ontime/BackupExportPlugin.kt": "4ad01cff546229ac1d941441710d0c63c226947289d38c33d01af1328a242728",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmBootReceiver.kt": "2a85c577706925edc6eb972c7c59d1b2f0617da5ac452c4c5745bad7801b9311",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeLog.kt": "74c67917c22da5a7faba4d8b643d520d322cf917f03574742e592fc647a3c985",
+    "android/app/src/main/kotlin/club/devkor/ontime/AlarmRingingActivity.kt": "7c8d44256ee94eb74af779770ca11902b4485f53b6a9a94f10e87ad6520dee84",
+    "ios/Runner/AppDelegate.swift": "575ca83f5b3d60400083205ec109300fd483acf1e93af95e3201eac723178c97",
+    "ios/Runner/AlarmLaunchPayload.swift": "29ab79ad928d8083dd84b360714ea387de67b0773fb647cf463520f2121463c1",
+    "ios/Runner.xcodeproj/project.pbxproj": "480c9e8b7d845c18d6fa04eb5be6956f1868a0fb50cbe98f41b2c84e211b1d30",
+    "test/native/AlarmLaunchPayloadTest.swift": "407f6ea590e7de93ed7c10a46414c2295fa3f2c9bbe0435660eaa70e5a70c576",
+    "test/native/AlarmLaunchPayloadTest.kt": "a9ab8a7e1cffe0c291fe0bb8ee671d8f08c98e23bc89baa121ad0a8e16c48e2d"
+  }
+}

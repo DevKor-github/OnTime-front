@@ -69,7 +69,8 @@ void main() {
         expect(target.extra, {
           'type': 'schedule_notification',
           'scheduleId': 'schedule-1',
-          'title': 'Morning meeting',
+          'alarmLaunchPayloadVersion': '9',
+          'promptVariant': 'notification',
         });
       },
     );
@@ -124,6 +125,17 @@ void main() {
     });
   });
 
+  test('invalid schedule hints never route to nearest preparation', () {
+    for (final bad in [null, 42, '', ' ', 'x' * 513, 'a\u0000b']) {
+      for (final type in ['schedule_alarm', 'schedule_notification']) {
+        expect(
+          notificationRouteForData({'type': type, 'scheduleId': bad}),
+          isNull,
+        );
+      }
+    }
+  });
+
   group('notificationRouteForData', () {
     test('routes decoded local payload data with the same rules', () {
       expect(
@@ -133,7 +145,12 @@ void main() {
         }),
         const NotificationRouteTarget(
           '/scheduleStart',
-          extra: {'type': 'schedule_notification', 'scheduleId': 'schedule-2'},
+          extra: {
+            'type': 'schedule_notification',
+            'scheduleId': 'schedule-2',
+            'alarmLaunchPayloadVersion': '9',
+            'promptVariant': 'notification',
+          },
         ),
       );
       expect(

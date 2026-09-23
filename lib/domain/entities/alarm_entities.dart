@@ -4,7 +4,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 
 const alarmDefaultOffset = Duration(minutes: 5);
-const alarmLaunchPayloadVersion = '8';
+const alarmLaunchPayloadVersion = '9';
 
 enum AlarmProvider { androidAlarmManager, iosAlarmKit, localNotification, none }
 
@@ -499,9 +499,6 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
       'type': 'schedule_notification',
       'alarmLaunchPayloadVersion': alarmLaunchPayloadVersion,
       'scheduleId': schedule.id,
-      'alarmTime': alarmTime.toIso8601String(),
-      'preparationStartTime': preparationStartTime.toIso8601String(),
-      'scheduleFingerprint': buildAlarmScheduleFingerprint(schedule),
       'promptVariant': 'notification',
       'detailedNotificationContent': detailedNotificationContent.toString(),
       if (detailedNotificationContent &&

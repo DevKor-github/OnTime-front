@@ -83,7 +83,13 @@ void main() {
           expect(fallback['body'], original.deliveryContent.body);
           expect(native['title'], fallback['title']);
           expect(native['body'], fallback['body']);
-          expect(jsonDecode(fallback['payload'] as String), original.payload);
+          expect(jsonDecode(fallback['payload'] as String), {
+            'type': 'schedule_notification',
+            'scheduleId': original.scheduleId,
+            'alarmLaunchPayloadVersion': '9',
+            'promptVariant': 'notification',
+          });
+          expect(native['payload'], jsonDecode(fallback['payload'] as String));
           if (!detailed) {
             expect(
               '${fallback['title']} ${fallback['body']}',

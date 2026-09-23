@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/notification_route_payload.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart';
@@ -232,7 +233,7 @@ class AlarmSchedulerService {
       'provider': record.provider.wireValue,
       'title': content.title,
       'body': content.body,
-      'payload': record.payload,
+      'payload': minimalScheduleRoutePayload(record.payload),
     };
   }
 
@@ -276,6 +277,7 @@ class AlarmSchedulerService {
 
   Map<String, String>? _payloadFromObject(Object? raw) {
     if (raw is! Map) return null;
-    return raw.map((key, value) => MapEntry(key.toString(), value.toString()));
+    final safe = minimalScheduleRoutePayload(raw);
+    return safe.isEmpty ? null : safe;
   }
 }

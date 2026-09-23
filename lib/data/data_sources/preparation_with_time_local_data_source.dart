@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
@@ -29,7 +30,14 @@ class PreparationWithTimeLocalDataSourceImpl
     final prefs = await SharedPreferences.getInstance();
     final key = '$_prefsKeyPrefix$scheduleId';
 
+    if (!ScheduleWithPreparationEntity.isCurrentIdentity(
+      snapshot.scheduleFingerprint,
+    )) {
+      throw StateError('Unvalidated preparation snapshot cannot be persisted');
+    }
     final jsonMap = {
+      'schemaVersion': 2,
+      if (snapshot.requiresConfirmation) 'requiresConfirmation': true,
       'savedAt': snapshot.savedAt.millisecondsSinceEpoch,
       'startedAt': snapshot.startedAt?.millisecondsSinceEpoch,
       'scheduleFingerprint': snapshot.scheduleFingerprint,
@@ -46,9 +54,6 @@ class PreparationWithTimeLocalDataSourceImpl
           .map(
             (s) => {
               'id': s.id,
-              'name': s.preparationName,
-              'time': s.preparationTime.inMilliseconds,
-              'nextId': s.nextPreparationId,
               'elapsed': s.elapsedTime.inMilliseconds,
               'isDone': s.isDone,
             },
@@ -56,7 +61,9 @@ class PreparationWithTimeLocalDataSourceImpl
           .toList(),
     };
 
-    await prefs.setString(key, jsonEncode(jsonMap));
+    if (!await prefs.setString(key, jsonEncode(jsonMap))) {
+      throw StateError('Preparation snapshot was not saved');
+    }
   }
 
   @override
@@ -70,32 +77,47 @@ class PreparationWithTimeLocalDataSourceImpl
 
     try {
       final Map<String, dynamic> map = jsonDecode(jsonString);
+      final minimal = map['schemaVersion'] == 2;
+      if (map['schemaVersion'] != null && !minimal) return null;
       final List<dynamic> steps = map['steps'] as List<dynamic>;
 
       final stepEntities = steps.map((raw) {
         final m = raw as Map<String, dynamic>;
         return PreparationStepWithTimeEntity(
           id: m['id'] as String,
-          preparationName: m['name'] as String,
-          preparationTime: Duration(milliseconds: (m['time'] as num).toInt()),
-          nextPreparationId: m['nextId'] as String?,
+          preparationName: minimal ? '' : m['name'] as String,
+          preparationTime: minimal
+              ? Duration.zero
+              : Duration(milliseconds: (m['time'] as num).toInt()),
+          nextPreparationId: minimal ? null : m['nextId'] as String?,
           elapsedTime: Duration(milliseconds: (m['elapsed'] as num).toInt()),
           isDone: m['isDone'] as bool? ?? false,
         );
       }).toList();
 
+      if (stepEntities.any((step) => step.elapsedTime.isNegative)) return null;
       final savedAtMillis = (map['savedAt'] as num?)?.toInt();
       final startedAtMillis = (map['startedAt'] as num?)?.toInt();
       final scheduleFingerprint = map['scheduleFingerprint'] as String? ?? '';
-      final actionEvents = _actionEventsFromJson(map['actionEvents']);
+      final actionEvents = _actionEventsFromJson(
+        map['actionEvents'],
+        supplied: map.containsKey('actionEvents'),
+      );
+      if (minimal &&
+          !ScheduleWithPreparationEntity.isCurrentIdentity(
+            scheduleFingerprint,
+          )) {
+        return null;
+      }
 
+      if (savedAtMillis == null || scheduleFingerprint.isEmpty) return null;
       return TimedPreparationSnapshotEntity(
+        contentOmitted: minimal,
+        requiresConfirmation: map['requiresConfirmation'] == true,
         preparation: PreparationWithTimeEntity(
           preparationStepList: stepEntities,
         ),
-        savedAt: savedAtMillis == null
-            ? DateTime.now()
-            : DateTime.fromMillisecondsSinceEpoch(savedAtMillis),
+        savedAt: DateTime.fromMillisecondsSinceEpoch(savedAtMillis),
         startedAt: startedAtMillis == null
             ? null
             : DateTime.fromMillisecondsSinceEpoch(startedAtMillis),
@@ -111,27 +133,45 @@ class PreparationWithTimeLocalDataSourceImpl
   Future<void> clearPreparation(String scheduleId) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '$_prefsKeyPrefix$scheduleId';
-    await prefs.remove(key);
+    if (!await prefs.remove(key)) {
+      throw StateError('Preparation snapshot was not removed');
+    }
   }
 }
 
-List<PreparationActionEventEntity> _actionEventsFromJson(Object? raw) {
-  if (raw is! List<dynamic>) return const [];
+List<PreparationActionEventEntity> _actionEventsFromJson(
+  Object? raw, {
+  required bool supplied,
+}) {
+  if (!supplied) return const [];
+  if (raw is! List<dynamic>) {
+    throw const FormatException('Invalid preparation events');
+  }
   final events = <PreparationActionEventEntity>[];
   for (final item in raw) {
-    if (item is! Map<String, dynamic>) continue;
-    final typeName = item['type'] as String?;
-    final occurredAtMillis = (item['occurredAt'] as num?)?.toInt();
-    if (typeName == null || occurredAtMillis == null) continue;
+    if (item is! Map<String, dynamic>) {
+      throw const FormatException('Invalid preparation event');
+    }
+    final typeName = item['type'];
+    final occurredAtMillis = item['occurredAt'];
+    final stepId = item['stepId'];
+    if (typeName is! String ||
+        occurredAtMillis is! int ||
+        (stepId != null && (stepId is! String || stepId.isEmpty))) {
+      throw const FormatException('Invalid preparation event fields');
+    }
     final type = PreparationActionEventType.values
         .where((value) => value.name == typeName)
         .firstOrNull;
-    if (type == null) continue;
+    if (type == null ||
+        (type == PreparationActionEventType.skipStep && stepId == null)) {
+      throw const FormatException('Invalid preparation event type');
+    }
     events.add(
       PreparationActionEventEntity(
         type: type,
         occurredAt: DateTime.fromMillisecondsSinceEpoch(occurredAtMillis),
-        stepId: item['stepId'] as String?,
+        stepId: stepId as String?,
       ),
     );
   }

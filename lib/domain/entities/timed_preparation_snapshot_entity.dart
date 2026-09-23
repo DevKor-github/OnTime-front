@@ -8,6 +8,8 @@ class TimedPreparationSnapshotEntity extends Equatable {
     required this.savedAt,
     required this.scheduleFingerprint,
     this.startedAt,
+    this.contentOmitted = false,
+    this.requiresConfirmation = false,
     this.actionEvents = const [],
   });
 
@@ -15,6 +17,8 @@ class TimedPreparationSnapshotEntity extends Equatable {
   final DateTime savedAt;
   final String scheduleFingerprint;
   final DateTime? startedAt;
+  final bool contentOmitted;
+  final bool requiresConfirmation;
   final List<PreparationActionEventEntity> actionEvents;
 
   TimedPreparationSnapshotEntity copyWith({
@@ -23,12 +27,15 @@ class TimedPreparationSnapshotEntity extends Equatable {
     String? scheduleFingerprint,
     DateTime? startedAt,
     List<PreparationActionEventEntity>? actionEvents,
+    bool? requiresConfirmation,
   }) {
     return TimedPreparationSnapshotEntity(
       preparation: preparation ?? this.preparation,
       savedAt: savedAt ?? this.savedAt,
       scheduleFingerprint: scheduleFingerprint ?? this.scheduleFingerprint,
       startedAt: startedAt ?? this.startedAt,
+      contentOmitted: contentOmitted,
+      requiresConfirmation: requiresConfirmation ?? this.requiresConfirmation,
       actionEvents: actionEvents ?? this.actionEvents,
     );
   }
@@ -40,5 +47,7 @@ class TimedPreparationSnapshotEntity extends Equatable {
     scheduleFingerprint,
     startedAt,
     actionEvents,
+    contentOmitted,
+    requiresConfirmation,
   ];
 }

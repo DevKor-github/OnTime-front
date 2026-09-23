@@ -39,7 +39,12 @@ void main() {
       );
 
       expect(receivedPayloads, [
-        {'type': 'schedule_alarm', 'scheduleId': 'schedule-1'},
+        {
+          'type': 'schedule_alarm',
+          'scheduleId': 'schedule-1',
+          'alarmLaunchPayloadVersion': '9',
+          'promptVariant': 'alarm',
+        },
       ]);
     },
   );
@@ -55,7 +60,12 @@ void main() {
       await service.dispatchPendingLaunchPayload();
 
       expect(receivedPayloads, [
-        {'type': 'schedule_alarm', 'scheduleId': 'schedule-2'},
+        {
+          'type': 'schedule_alarm',
+          'scheduleId': 'schedule-2',
+          'alarmLaunchPayloadVersion': '9',
+          'promptVariant': 'alarm',
+        },
       ]);
     },
   );
@@ -202,7 +212,8 @@ void main() {
     expect(nativeArguments!['payload'], {
       'type': 'schedule_alarm',
       'scheduleId': 'schedule-1',
-      'detailedNotificationContent': 'true',
+      'alarmLaunchPayloadVersion': '9',
+      'promptVariant': 'alarm',
     });
   });
 

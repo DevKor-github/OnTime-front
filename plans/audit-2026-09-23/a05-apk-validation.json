@@ -1,0 +1,17 @@
+{
+  "run_url": "https://github.com/DevKor-github/OnTime-front/actions/runs/35826834204",
+  "artifact_id": 10735293499,
+  "head_commit": "0c41589eef35481088ae64dabf1924e97f3635ea",
+  "identity": {
+    "commit": "c6876d2a41e733d6916544cead07c3ead8896e6a",
+    "artifact": "build/app/outputs/flutter-apk/app-release.apk",
+    "sha256": "a598adfbdd39ca1bc788a829200196458bcc88a23cbe8f1068dcd21e2923ffd0",
+    "signing": "disposable CI validation key; not a store release",
+    "merged_manifests": [
+      "build/app/intermediates/merged_manifest/release/outputReleaseAppLinkSettings/AndroidManifest.xml",
+      "build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml",
+      "build/app/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml"
+    ],
+    "device_delivery_verified": false
+  }
+}

@@ -20,10 +20,10 @@
 | A02 | [#584](https://github.com/DevKor-github/OnTime-front/issues/584) | native export·gate·Dart/Android build 검증, 실기기 파일 I/O 대기 |
 | A03 | [#586](https://github.com/DevKor-github/OnTime-front/issues/586) | 실제 iOS plugin 계약·복원 취소 화면 검증, iOS 기기/build 대기 |
 | A04 | [#587](https://github.com/DevKor-github/OnTime-front/issues/587) | partial update·transaction 회귀 통과, 최신 CI/merge 대기 |
-| A05 | [#588](https://github.com/DevKor-github/OnTime-front/issues/588) | 전체617 tests/analyze 통과, 기기·후속 통합 대기 |
-| A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 원문 복제 제거 문답/상세 범위 확정, A05 뒤 구현 |
+| A05 | [#588](https://github.com/DevKor-github/OnTime-front/issues/588) | 전체617 tests/analyze·Android APK CI 통과, coverage84.98%, 기기·후속 통합 대기 |
+| A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 원문 복제 제거 구현·로컬634/추가targeted검증 완료, 정확SHA CI·기기 검증 대기 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 나머지 58개는 아직 이슈 생성 전이며, 신규 에이전트 생성 한도 해결 방법에 대한 사용자 응답을 기다리는 동안 이미 준비한 이슈 구현을 계속한다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 나머지 58개는 아직 이슈 생성 전이다. 이전 신규 생성 한도 오류는 사용자 후속 turn에서 재시도해 해소됐고, 새 전담 grill_a12가 다음 이슈 문답을 진행한다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
 
 ## 실행 순서
 

@@ -128,6 +128,8 @@ void main() {
       'fingerprint-1',
       null,
       const [],
+      false,
+      false,
     ]);
   });
 

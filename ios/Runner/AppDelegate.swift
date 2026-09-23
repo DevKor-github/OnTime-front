@@ -20,8 +20,11 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     Self.current = self
+    _ = AlarmLaunchPayload.sanitizeStored(
+      in: .standard, key: onTimeAlarmLaunchPayloadDefaultsKey
+    )
     if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+      UNUserNotificationCenter.current().delegate = self
     }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -53,6 +56,14 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       scheduleNativeAlarm(call, result: result)
     case "cancelNativeAlarm":
       cancelNativeAlarm(call, result: result)
+    case "sanitizeStoredLaunchPayload":
+      let cleaned = AlarmLaunchPayload.sanitizeStored(
+        in: .standard, key: onTimeAlarmLaunchPayloadDefaultsKey
+      )
+      result(cleaned ? nil : FlutterError(
+        code: "privacyCleanupFailed",
+        message: "Could not confirm pending launch cleanup.", details: nil
+      ))
     case "getLaunchPayload":
       result(takeStoredAlarmLaunchPayload())
     case "getLocalTimeZone":
@@ -160,8 +171,8 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     #if canImport(AlarmKit)
     if #available(iOS 26.0, *) {
       guard let args = call.arguments as? [String: Any],
-            let scheduleId = args["scheduleId"] as? String,
-            !scheduleId.isEmpty,
+            let route = AlarmLaunchPayload.sanitize(args),
+            let scheduleId = route["scheduleId"],
             let alarmTimeMillis = int64Value(args["alarmTime"]) else {
         result(FlutterError(
           code: "invalidArguments",
@@ -280,31 +291,25 @@ private let onTimeAlarmLaunchURLHost = "alarm"
 
   private func takeStoredAlarmLaunchPayload() -> [String: String]? {
     let defaults = UserDefaults.standard
-    guard let payload = defaults.dictionary(
-      forKey: onTimeAlarmLaunchPayloadDefaultsKey
-    ) as? [String: String] else {
-      return nil
-    }
+    let payload = AlarmLaunchPayload.sanitize(
+      defaults.dictionary(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+    )
     defaults.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
     return payload
   }
 
   static func handleAlarmLaunchURL(_ url: URL) -> Bool {
     guard url.scheme == onTimeAlarmLaunchURLScheme,
-          url.host == onTimeAlarmLaunchURLHost else {
-      return false
-    }
-
-    var payload: [String: String] = [
-      "type": "schedule_alarm",
-      "promptVariant": "alarm"
-    ]
+          url.host == onTimeAlarmLaunchURLHost else { return false }
+    var values: [String: Any] = [:]
     if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-      for item in components.queryItems ?? [] {
-        if let value = item.value {
-          payload[item.name] = value
-        }
-      }
+      // Duplicate identity parameters are ambiguous, not last-value-wins.
+      let identities = (components.queryItems ?? []).filter { $0.name == "scheduleId" }
+      if identities.count == 1 { values["scheduleId"] = identities.first?.value }
+    }
+    guard let payload = AlarmLaunchPayload.sanitize(values) else {
+      UserDefaults.standard.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+      return true
     }
     storeAlarmLaunchPayload(payload)
     current?.notifyFlutterAlarmLaunch(payload)
@@ -312,49 +317,36 @@ private let onTimeAlarmLaunchURLHost = "alarm"
   }
 
   fileprivate static func alarmLaunchURL(payload: [String: String]) -> URL? {
+    guard let clean = AlarmLaunchPayload.sanitize(payload) else { return nil }
     var components = URLComponents()
     components.scheme = onTimeAlarmLaunchURLScheme
     components.host = onTimeAlarmLaunchURLHost
-    components.queryItems = payload.keys.sorted().map { key in
-      URLQueryItem(name: key, value: payload[key])
+    components.queryItems = clean.keys.sorted().map { key in
+      URLQueryItem(name: key, value: clean[key])
     }
     return components.url
   }
 
   fileprivate static func storeAlarmLaunchPayload(_ payload: [String: String]) {
-    UserDefaults.standard.set(payload, forKey: onTimeAlarmLaunchPayloadDefaultsKey)
-    UserDefaults.standard.synchronize()
-  }
-
-  private func storeAlarmLaunchPayload(_ payload: [String: String]) {
-    Self.storeAlarmLaunchPayload(payload)
+    let defaults = UserDefaults.standard
+    if let clean = AlarmLaunchPayload.sanitize(payload) {
+      defaults.set(clean, forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+    } else {
+      defaults.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+    }
+    defaults.synchronize()
   }
 
   private func notifyFlutterAlarmLaunch(_ payload: [String: String]) {
+    guard let clean = AlarmLaunchPayload.sanitize(payload) else { return }
     DispatchQueue.main.async {
-      self.nativeAlarmChannel?.invokeMethod("alarmLaunch", arguments: payload)
+      self.nativeAlarmChannel?.invokeMethod("alarmLaunch", arguments: clean)
     }
   }
 
   private func alarmPayload(from args: [String: Any]) -> [String: String] {
-    var payload: [String: String] = [:]
-    if let rawPayload = args["payload"] as? [String: Any] {
-      for (key, value) in rawPayload {
-        payload[key] = "\(value)"
-      }
-    }
-    payload["type"] = "schedule_alarm"
-    payload["promptVariant"] = "alarm"
-    if let scheduleId = args["scheduleId"] as? String {
-      payload["scheduleId"] = scheduleId
-    }
-    if let alarmTime = int64Value(args["alarmTime"]) {
-      payload["alarmTime"] = "\(alarmTime)"
-    }
-    if let preparationStartTime = int64Value(args["preparationStartTime"]) {
-      payload["preparationStartTime"] = "\(preparationStartTime)"
-    }
-    return payload
+    // Provider time/title/body and nested payload are not route instructions.
+    return AlarmLaunchPayload.sanitize(args) ?? [:]
   }
 
   private func int64Value(_ value: Any?) -> Int64? {
@@ -400,18 +392,19 @@ public struct OpenScheduleAlarmIntent: LiveActivityIntent {
   }
 
   public init(payload: [String: String]) {
-    let data = try? JSONSerialization.data(withJSONObject: payload, options: [])
+    let data = try? JSONSerialization.data(withJSONObject: AlarmLaunchPayload.sanitize(payload) ?? [:], options: [])
     encodedPayload = data.flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
   }
 
   public func perform() async throws -> some IntentResult & OpensIntent {
     if let data = encodedPayload.data(using: .utf8),
-       let payload = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
+       let raw = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+       let payload = AlarmLaunchPayload.sanitize(raw) {
       #if DEBUG
-      NSLog("OnTime AlarmKit Open intent invoked for scheduleId=%@", payload["scheduleId"] ?? "")
+      NSLog("OnTime AlarmKit Open intent invoked with a routing hint")
       #endif
-      AppDelegate.storeAlarmLaunchPayload(payload)
-      if let url = AppDelegate.alarmLaunchURL(payload: payload) {
+      await AppDelegate.storeAlarmLaunchPayload(payload)
+      if let url = await AppDelegate.alarmLaunchURL(payload: payload) {
         return .result(opensIntent: OpenURLIntent(url))
       }
     }

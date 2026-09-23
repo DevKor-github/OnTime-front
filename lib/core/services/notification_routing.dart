@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/notification_route_payload.dart';
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
@@ -46,12 +47,10 @@ NotificationRouteTarget? notificationRouteForData(Map<dynamic, dynamic> data) {
   final type = data['type']?.toString();
   final scheduleId = data['scheduleId']?.toString();
 
-  if ((type == 'schedule_alarm' || type == 'schedule_notification') &&
-      scheduleId != null) {
-    return NotificationRouteTarget(
-      '/scheduleStart',
-      extra: Map<String, dynamic>.from(data),
-    );
+  if (type == 'schedule_alarm' || type == 'schedule_notification') {
+    final safe = minimalScheduleRoutePayload(data);
+    if (safe.isEmpty) return null;
+    return NotificationRouteTarget('/scheduleStart', extra: safe);
   }
 
   if (type != null && type.contains('5min')) {

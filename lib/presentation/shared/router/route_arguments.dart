@@ -67,8 +67,12 @@ String calendarRouteLocation(DateTime date) {
 Map<String, dynamic>? scheduleStartRouteExtraFromState(GoRouterState state) {
   final extra = routeExtraMap(state.extra);
   final queryExtra = _scheduleStartExtraFromQuery(state.uri.queryParameters);
-  if (queryExtra == null) return extra;
-  return {...queryExtra, ...?extra};
+  final merged = {...?queryExtra, ...?extra};
+  // Neither an old notification nor a deep link may execute a start action
+  // or carry the old content-bearing fingerprint into UI state.
+  merged.remove('scheduleFingerprint');
+  merged.remove('alarmLaunchAction');
+  return merged.isEmpty ? null : merged;
 }
 
 class EarlyLateRouteArguments {
@@ -122,12 +126,7 @@ Map<String, dynamic>? _scheduleStartExtraFromQuery(
 ) {
   final parsed = <String, dynamic>{};
 
-  for (final key in const [
-    'scheduleId',
-    'scheduleFingerprint',
-    'promptVariant',
-    'alarmLaunchAction',
-  ]) {
+  for (final key in const ['scheduleId', 'promptVariant']) {
     final value = routeStringValue(queryParameters[key]);
     if (value != null) parsed[key] = value;
   }

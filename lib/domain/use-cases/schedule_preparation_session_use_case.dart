@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:on_time_front/domain/entities/preparation_snapshot_validation.dart';
 
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
@@ -117,13 +118,24 @@ class SchedulePreparationSessionUseCase {
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
     RestoredSessionCallback? onRestoredSession,
+    void Function()? onInvalidated,
   }) async {
-    final snapshot = await _timedPreparationRepository
+    final stored = await _timedPreparationRepository
         .getTimedPreparationSnapshot(schedule.id);
-    if (snapshot == null) return schedule;
-    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint &&
-        !_canRestoreAcrossFingerprintMismatch(snapshot, schedule)) {
+    if (stored == null) return schedule;
+    final snapshot = validatePreparationSnapshot(stored, schedule);
+    if (snapshot == null || snapshot.requiresConfirmation) {
       await clearPersistedState(schedule.id);
+      await _timedPreparationRepository.saveTimedPreparationSnapshot(
+        schedule.id,
+        TimedPreparationSnapshotEntity(
+          preparation: schedule.preparation,
+          savedAt: now,
+          scheduleFingerprint: schedule.cacheFingerprint,
+          requiresConfirmation: true,
+        ),
+      );
+      onInvalidated?.call();
       return schedule;
     }
 
@@ -296,42 +308,5 @@ class SchedulePreparationSessionUseCase {
           step.id == current.id ? step.copyWith(isDone: true) : step,
       ],
     );
-  }
-
-  bool _canRestoreAcrossFingerprintMismatch(
-    TimedPreparationSnapshotEntity snapshot,
-    ScheduleWithPreparationEntity schedule,
-  ) {
-    return _scheduleTimingFingerprintPrefix(snapshot.scheduleFingerprint) ==
-            _scheduleTimingFingerprintPrefix(schedule.cacheFingerprint) &&
-        _hasSamePreparationShape(snapshot.preparation, schedule.preparation);
-  }
-
-  String _scheduleTimingFingerprintPrefix(String fingerprint) {
-    final parts = fingerprint.split('|');
-    if (parts.length < 4) {
-      return fingerprint;
-    }
-    return '${parts[0]}|${parts[1]}|${parts[2]}|';
-  }
-
-  bool _hasSamePreparationShape(
-    PreparationWithTimeEntity left,
-    PreparationWithTimeEntity right,
-  ) {
-    final leftSteps = left.preparationStepList;
-    final rightSteps = right.preparationStepList;
-    if (leftSteps.length != rightSteps.length) {
-      return false;
-    }
-    for (var index = 0; index < leftSteps.length; index++) {
-      final leftStep = leftSteps[index];
-      final rightStep = rightSteps[index];
-      if (leftStep.preparationName != rightStep.preparationName ||
-          leftStep.preparationTime != rightStep.preparationTime) {
-        return false;
-      }
-    }
-    return true;
   }
 }

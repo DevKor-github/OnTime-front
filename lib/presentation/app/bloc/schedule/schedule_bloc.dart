@@ -152,17 +152,24 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final hasEarlyStartSession = earlyStartSession != null;
     if (isClosed) return;
 
-    ScheduleWithPreparationEntity resolvedSchedule;
-    if (!hasEarlyStartSession && incoming.preparationStartTime.isAfter(now)) {
-      // Prevent stale pre-start cache from reviving outdated progress.
+    _snapshotInvalidated = false;
+    var resolvedSchedule = await _restoreFromSnapshotIfValid(incoming);
+    if (!_snapshotInvalidated &&
+        !hasEarlyStartSession &&
+        incoming.preparationStartTime.isAfter(now)) {
       await _schedulePreparationSessionUseCase.clearPersistedState(incoming.id);
       resolvedSchedule = incoming;
       _clearActivePreparationRun();
-    } else {
-      resolvedSchedule = await _restoreFromSnapshotIfValid(incoming);
     }
     if (isClosed) return;
     _initializeNotificationTracking(resolvedSchedule);
+    if (_snapshotInvalidated) {
+      _activeEarlyStartScheduleId = null;
+      _clearActivePreparationRun();
+      _stopPreparationTimer();
+      emit(ScheduleState.upcoming(resolvedSchedule));
+      return;
+    }
 
     if (hasEarlyStartSession) {
       _activeEarlyStartScheduleId = resolvedSchedule.id;
@@ -220,6 +227,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleStarted event,
     Emitter<ScheduleState> emit,
   ) async {
+    if (_snapshotInvalidated) return;
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       if (_activeEarlyStartScheduleId == _currentScheduleId) return;
       AppLogger.debug('schedule started scheduleId=${state.schedule!.id}');
@@ -239,10 +247,11 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   ) async {
     AppLogger.debug(
       'alarm prompt requested: scheduleId=${event.scheduleId} '
-      'startPreparation=${event.startPreparation} '
-      'fingerprint=${event.scheduleFingerprint}',
+      'startPreparation=${event.startPreparation}',
     );
-    final cachedSchedule = _matchingCachedAlarmSchedule(event);
+    final cachedSchedule = event.startPreparation
+        ? _matchingCachedAlarmSchedule(event)
+        : null;
     if (cachedSchedule != null) {
       await _activateAlarmPromptSchedule(
         cachedSchedule,
@@ -293,8 +302,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       if (!event.startPreparation) return null;
       AppLogger.debug(
         'alarm prompt using cached schedule despite fingerprint mismatch: '
-        'scheduleId=${event.scheduleId} '
-        'expected=$fingerprint actual=${cachedSchedule.cacheFingerprint}',
+        'scheduleId=${event.scheduleId}',
       );
     }
     AppLogger.debug(
@@ -315,6 +323,12 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _scheduleStartTimer = null;
     _stopPreparationTimer();
     _initializeNotificationTracking(schedule);
+    await _restoreFromSnapshotIfValid(schedule);
+    if (_snapshotInvalidated) {
+      _clearActivePreparationRun();
+      emit(ScheduleState.upcoming(schedule));
+      return;
+    }
 
     if (!event.startPreparation) {
       AppLogger.debug(
@@ -352,6 +366,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       startedAt: startedAt,
     );
 
+    _snapshotInvalidated = false;
     _activePreparationRunStartedAt = startedAt;
     _activePreparationActionEvents = const [];
     emit(ScheduleState.started(schedule, isEarlyStarted: true));
@@ -528,12 +543,19 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     return super.close();
   }
 
+  bool _snapshotInvalidated = false;
+
   Future<ScheduleWithPreparationEntity> _restoreFromSnapshotIfValid(
     ScheduleWithPreparationEntity incoming,
   ) async {
+    _clearActivePreparationRun();
+    _snapshotInvalidated = false;
     return _schedulePreparationSessionUseCase.restoreTimedPreparationIfValid(
       incoming,
       now: _nowProvider(),
+      onInvalidated: () {
+        _snapshotInvalidated = true;
+      },
       onRestoredSession: ({required startedAt, required actionEvents}) {
         _activePreparationRunStartedAt = startedAt;
         _activePreparationActionEvents = actionEvents;

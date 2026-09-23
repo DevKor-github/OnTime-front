@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:on_time_front/domain/entities/notification_route_payload.dart';
+import 'package:on_time_front/data/data_sources/alarm_registry_local_data_source.dart';
 import 'dart:io' show Platform;
 import 'dart:ui' as ui;
 
@@ -69,6 +72,88 @@ class NotificationService {
     required NotificationTapRouter notificationTapRouter,
   }) {
     _notificationTapRouter = notificationTapRouter;
+  }
+
+  /// Uses only the plugin's public API. Its pending list is cache evidence,
+  /// not proof about historical OS logs or first-launch-before-boot delivery.
+  Future<void> removeLegacySchedulePayloads() async {
+    await setupFlutterNotifications();
+    final source = AlarmRegistryLocalDataSourceImpl();
+    var records = await source.loadAll();
+    final pending = await _localNotifications.pendingNotificationRequests();
+    for (final request in pending) {
+      Map<String, dynamic>? payload;
+      try {
+        final decoded = jsonDecode(request.payload ?? '');
+        if (decoded is Map<String, dynamic>) payload = decoded;
+      } catch (_) {
+        /* Unknown ownership is not cancelled indiscriminately. */
+      }
+      final owner = records
+          .where(
+            (record) =>
+                record.provider == AlarmProvider.localNotification &&
+                record.fallbackNotificationId == request.id,
+          )
+          .firstOrNull;
+      final knownScheduleType =
+          payload?['type'] == 'schedule_notification' ||
+          payload?['type'] == 'schedule_alarm';
+      if (owner == null && !knownScheduleType) continue;
+      final safe = payload == null
+          ? <String, String>{}
+          : minimalScheduleRoutePayload(payload);
+      if (safe.isNotEmpty &&
+          payload!.length == safe.length &&
+          safe.entries.every((entry) => payload![entry.key] == entry.value)) {
+        continue;
+      }
+      // A malformed route can still be an owned platform registration. This
+      // internal cancellation-only ID is never used to load or open a Schedule.
+      final id =
+          safe['scheduleId'] ??
+          owner?.scheduleId ??
+          'privacy-cleanup:notification:${request.id}';
+      final existing =
+          owner ??
+          records
+              .where(
+                (record) =>
+                    record.scheduleId == id &&
+                    record.provider == AlarmProvider.localNotification,
+              )
+              .firstOrNull;
+      final tombstone =
+          (existing ??
+                  ScheduledAlarmRecord(
+                    scheduleId: id,
+                    alarmTime: DateTime.fromMillisecondsSinceEpoch(
+                      0,
+                      isUtc: true,
+                    ),
+                    preparationStartTime: DateTime.fromMillisecondsSinceEpoch(
+                      0,
+                      isUtc: true,
+                    ),
+                    scheduleFingerprint: '',
+                    provider: AlarmProvider.localNotification,
+                    scheduleTitle: 'OnTime',
+                    payload: safe,
+                  ))
+              .copyWith(
+                fallbackNotificationId: request.id,
+                cancellationPending: true,
+              );
+      records = [...records.where((record) => record != existing), tombstone];
+      await source.replaceAll(records); // Ownership survives interruption.
+      await _localNotifications.cancel(id: request.id);
+      final remaining = await _localNotifications.pendingNotificationRequests();
+      if (remaining.any((record) => record.id == request.id)) {
+        throw StateError('Legacy notification cancellation is unconfirmed');
+      }
+      records = records.where((record) => record != tombstone).toList();
+      await source.replaceAll(records);
+    }
   }
 
   Future<void> initialize() {
@@ -257,7 +342,9 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      payload: encodeLocalNotificationPayload(record.payload),
+      payload: encodeLocalNotificationPayload(
+        minimalScheduleRoutePayload(record.payload),
+      ),
     );
   }
 

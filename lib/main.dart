@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/database/bootstrap_privacy_boundary.dart';
+import 'package:on_time_front/core/services/runtime_privacy_migration.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -14,7 +16,10 @@ void main() async {
   AppLogger.configureFlutterDebugPrint();
   await HardwareKeyboard.instance.syncKeyboardState().catchError((_) {});
   await initializeDateFormatting();
-  await LocalDataLifecycle.bootstrap();
+  await bootstrapWithPrivacyCleanup(
+    bootstrap: LocalDataLifecycle.bootstrap,
+    cleanup: RuntimePrivacyMigration.clearLegacyWithoutDatabase,
+  );
   configureDependencies();
   NotificationService.instance.configureDelegate(
     notificationTapRouter: getIt.get<NotificationTapRouter>(),

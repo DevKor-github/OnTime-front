@@ -30,7 +30,8 @@ open class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
         NativeLog.d(TAG, "MainActivity onCreate ${NativeLog.summarizeIntent(intent)}")
         configureAlarmLaunchWindow(intent)
-        payloadFromIntent(intent)?.let {
+        launchPayload = payloadFromIntent(intent)
+        launchPayload?.let {
             NativeLog.d(TAG, "Captured launch payload from onCreate ${NativeLog.summarizeMap(it)}")
             launchPayload = it
         }
@@ -73,9 +74,20 @@ open class MainActivity : FlutterActivity() {
                 "cancelNativeAlarm" -> cancelNativeAlarm(call, result)
                 "getLocalTimeZone" -> result.success(TimeZone.getDefault().id)
                 "excludeFromBackup" -> result.success(null)
+                "sanitizeStoredLaunchPayload" -> {
+                    launchPayload = AlarmLaunchPayload.sanitize(launchPayload)
+                    // Remove old raw extras from the activity's retained intent too.
+                    if (intent?.action == ACTION_SCHEDULE_ALARM) {
+                        val clean = payloadFromIntent(intent)
+                        intent?.replaceExtras(Bundle().apply {
+                            clean?.forEach { (key, value) -> putString(key, value) }
+                        })
+                    }
+                    result.success(null)
+                }
                 "getLaunchPayload" -> {
                     NativeLog.d(TAG, "getLaunchPayload -> ${NativeLog.summarizeMap(launchPayload)}")
-                    result.success(launchPayload)
+                    result.success(AlarmLaunchPayload.sanitize(launchPayload))
                     launchPayload = null
                 }
                 else -> result.notImplemented()
@@ -88,7 +100,8 @@ open class MainActivity : FlutterActivity() {
         NativeLog.d(TAG, "MainActivity onNewIntent ${NativeLog.summarizeIntent(intent)}")
         setIntent(intent)
         configureAlarmLaunchWindow(intent)
-        payloadFromIntent(intent)?.let {
+        launchPayload = payloadFromIntent(intent)
+        launchPayload?.let {
             NativeLog.d(TAG, "Captured launch payload from onNewIntent ${NativeLog.summarizeMap(it)}")
             launchPayload = it
             methodChannel?.invokeMethod("alarmLaunch", it)
@@ -114,8 +127,8 @@ open class MainActivity : FlutterActivity() {
         }
 
         val triggerAtMillis = (args["alarmTime"] as? Number)?.toLong()
-        val scheduleId = args["scheduleId"]?.toString()
-        if (triggerAtMillis == null || scheduleId.isNullOrEmpty()) {
+        val scheduleId = AlarmLaunchPayload.sanitize(args)?.get("scheduleId")
+        if (triggerAtMillis == null || scheduleId == null) {
             NativeLog.w(TAG, "scheduleNativeAlarm invalid ${NativeLog.summarizeMap(args)}")
             result.error("invalidArguments", "Missing scheduleId or alarmTime", null)
             return
@@ -234,13 +247,13 @@ open class MainActivity : FlutterActivity() {
     private fun payloadFromIntent(intent: Intent?): Map<String, String>? {
         if (intent?.action != ACTION_SCHEDULE_ALARM) return null
         val extras = intent.extras ?: return null
-        val payload = mutableMapOf<String, String>()
-        for (key in extras.keySet()) {
-            extras.get(key)?.let { payload[key] = it.toString() }
-        }
-        payload["type"] = "schedule_alarm"
-        payload["promptVariant"] = "alarm"
-        return payload
+        val clean = AlarmLaunchPayload.sanitize(
+            extras.keySet().associateWith { key -> extras.get(key) },
+        )
+        intent.replaceExtras(Bundle().apply {
+            clean?.forEach { (key, value) -> putString(key, value) }
+        })
+        return clean
     }
 
     private fun exactAlarmPermissionState(): String {

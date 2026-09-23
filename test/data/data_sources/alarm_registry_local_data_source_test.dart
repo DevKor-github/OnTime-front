@@ -16,6 +16,22 @@ void main() {
   });
 
   test(
+    'wrong-typed known registry is removed instead of retaining raw text',
+    () async {
+      SharedPreferences.setMockInitialValues({
+        'scheduled_alarm_registry': ['SECRET'],
+      });
+      expect(await dataSource.loadAll(), isEmpty);
+      expect(
+        (await SharedPreferences.getInstance()).containsKey(
+          'scheduled_alarm_registry',
+        ),
+        isFalse,
+      );
+    },
+  );
+
+  test(
     'loadAll returns empty for missing, empty, and corrupt storage',
     () async {
       expect(await dataSource.loadAll(), isEmpty);
@@ -102,11 +118,17 @@ ScheduledAlarmRecord _record(String scheduleId) {
     scheduleId: scheduleId,
     alarmTime: DateTime(2026, 5, 15, 8),
     preparationStartTime: DateTime(2026, 5, 15, 8, 5),
-    scheduleFingerprint: 'fingerprint-$scheduleId',
+    scheduleFingerprint: 'v2:${'a' * 64}',
     nativeAlarmId: 42,
     fallbackNotificationId: 43,
     provider: AlarmProvider.androidAlarmManager,
     scheduleTitle: 'Meeting',
-    payload: {'type': 'schedule_alarm', 'scheduleId': scheduleId},
+    payload: {
+      'type': 'schedule_alarm',
+      'scheduleId': scheduleId,
+      'alarmLaunchPayloadVersion': '9',
+      'promptVariant': 'alarm',
+      'detailedNotificationContent': 'false',
+    },
   );
 }

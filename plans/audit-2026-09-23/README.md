@@ -23,8 +23,8 @@
 | A05 | [#588](https://github.com/DevKor-github/OnTime-front/issues/588) | 전체617 tests/analyze·Android APK CI 통과, coverage84.98%, 기기·후속 통합 대기 |
 | A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 089afee5 원격636 tests/84.96%·APK 통과, 최신main 통합678 tests 통과, 기기 검증 대기 |
 | A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 콜드 탭·선택 준비 유지 구현, 최종 b9f959db 원격707 tests/analyze·coverage87.11%·APK 통과, 기기 검증 대기 |
-| A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 실제3문답·정확/근사 결과 정책 확정, 전담 구현 중 |
-| A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | 실제3문답·플랫폼별 관측/취소 기준 확정, A13 뒤 구현 |
+| A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 실제 모드·권한별 재예약·안내 구현, 통합734 tests 통과, 원격 CI·기기 대기 |
+| A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | 실제3문답·플랫폼별 관측/취소 기준 확정, 전담 구현 중 |
 | A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 실제4문답·요청별 완료/실패 및 세대 직렬화 기준 확정, A14 뒤 구현 |
 | D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 실제4문답·취소 journal/중단 복구/부분 결과 기준 확정, A15 뒤 구현 |
 | A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | 실제3문답·정정 포함, 신선한 실제 타이머 전환 알림 기준 확정 |

@@ -258,18 +258,23 @@
         "`notification_service.dart:267`; `alarm_gate_cubit.dart:134-157`; `CONTEXT.md:443-452`, ADR 0008",
         "full-screen 표현과 timing 권한을 분리. 권한 있음→정확 예약, 없음→근사 예약과 그에 맞는 UI. 예약 API 모드와 실제 도착 시각 검증."
       ],
-      "status": "implementation_in_progress",
+      "status": "code_verified_ci_pending",
       "agent": "/root/grill_a13",
       "issue_number": 592,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/592",
       "decisions_file": "plans/audit-2026-09-23/issues/A13.md",
-      "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "implementation_commit": "59d92bdd03cdd5e2dc33e95dd844f8d0bb508eab",
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Final integrated lib/test tree: 734 tests, analyzer, 11 manifest tests and generated/local-only policies passed.",
+        "Source22/artifact hashes matched; EN/KO real-font standalone widget captures verified. a13-validation.json."
+      ],
+      "blockers": [
+        "Remote Flutter/APK CI pending after push; actual Android timing and iOS device regression not executed."
+      ],
       "sequence": 8,
       "readback_verified": true,
-      "body_sha256": "529653281b85ffb9d907bf7e341077bf6aceacb21f591aceda9660ca81339ee2"
+      "body_sha256": "3fa5e5d3e20db32cfea0e76cd6c4ce56950eabfe60b7e3c15df597d63f9a269e"
     },
     {
       "audit_id": "A14",
@@ -282,7 +287,7 @@
         "`reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214`",
         "permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시."
       ],
-      "status": "ready",
+      "status": "implementation_in_progress",
       "agent": "/root/grill_a14",
       "issue_number": 593,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/593",

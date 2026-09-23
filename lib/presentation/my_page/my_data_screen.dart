@@ -7,6 +7,7 @@ import 'package:on_time_front/core/database/local_data_reset_service.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/components/app_spinner.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
@@ -90,10 +91,9 @@ class _MyDataScreenState extends State<MyDataScreen> {
                   style: const TextStyle(fontSize: 14, height: 1.2),
                 ),
                 if (freshness?.reminderDue == true) ...[
-                  const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     '30일 이상 백업되지 않은 변경 사항이 있습니다.',
-                    style: TextStyle(color: AppColors.red.shade800),
+                    style: TextStyle(fontSize: 14, height: 1.2),
                   ),
                 ],
               ],
@@ -118,8 +118,6 @@ class _MyDataScreenState extends State<MyDataScreen> {
             onTap: _restore,
           ),
           const SizedBox(height: 18),
-          const Divider(height: 1),
-          const SizedBox(height: 17),
           _DataActionRow(
             rowKey: const Key('localDataResetRow'),
             enabled: !_busy,
@@ -131,8 +129,8 @@ class _MyDataScreenState extends State<MyDataScreen> {
           ),
           if (_busy)
             const Padding(
-              padding: EdgeInsets.only(top: 24),
-              child: Center(child: CircularProgressIndicator()),
+              padding: EdgeInsets.only(top: 18),
+              child: Center(child: AppSpinner()),
             ),
         ],
       ),
@@ -156,9 +154,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
         password,
       );
       if (!mounted || !saved) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('암호화 백업을 저장했습니다.')));
+      showMyDataResultSnackBar(context, '암호화 백업을 저장했습니다.');
       await _loadFreshness();
     });
   }
@@ -177,9 +173,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
       await getIt<BackupService>().applyRestore(candidate);
       await getIt<ReconcileAlarmsUseCase>()();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('백업을 복원했습니다.')));
+      showMyDataResultSnackBar(context, '백업을 복원했습니다.');
       await _loadFreshness();
     });
   }
@@ -233,10 +227,30 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   void _showError(Object error) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('작업을 완료하지 못했습니다: $error')));
+    showMyDataResultSnackBar(context, '작업을 완료하지 못했습니다: $error');
   }
+}
+
+void showMyDataResultSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(
+          fontFamily: 'Pretendard',
+          fontSize: 14,
+          height: 16 / 14,
+          color: Colors.white,
+        ),
+      ),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color(0xFF323232),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 48),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+  );
 }
 
 class _BackupPasswordDialog extends StatefulWidget {
@@ -468,48 +482,51 @@ class _DataActionRow extends StatelessWidget {
       button: true,
       enabled: enabled,
       label: '$title. $subtitle',
-      child: InkWell(
-        key: rowKey,
-        onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 68),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 24,
-                  color: destructive ? titleColor : AppColors.grey.shade700,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          height: 1.2,
-                          fontWeight: FontWeight.w600,
-                          color: titleColor,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.2,
-                          color: AppColors.grey.shade700,
-                        ),
-                      ),
-                    ],
+      child: Opacity(
+        opacity: enabled ? 1 : 0.38,
+        child: InkWell(
+          key: rowKey,
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(12),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 68),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 24,
+                    color: destructive ? titleColor : AppColors.grey.shade700,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            height: 1.2,
+                            fontWeight: FontWeight.w600,
+                            color: titleColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            height: 1.2,
+                            color: AppColors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -73,7 +73,7 @@ screens:
     flutter: lib/presentation/my_page/my_data_screen.dart
     state: default
     status: reviewed
-    review_note: App-owned content and 358x68 row geometry checked against node metadata. Native status bar and home indicator are excluded from Flutter golden.
+    review_note: App-owned content, 358x68 rows, and 18px row spacing checked against node metadata. Native status bar and home indicator are excluded from Flutter golden.
     figma_image: docs/design/review/figma/my-data-default.png
     figma_sha256: 5f2a48998edfd1b3b47d4bff0022f941626ea94fbe3cae36799260a23aa41ed7
     flutter_golden: test/goldens/goldens/my_data_default_390x844.png
@@ -120,14 +120,62 @@ screens:
         figma_image: docs/design/review/figma/my-data-password-mismatch.png
         figma_sha256: 894f3c951dfcb852e4f42b96c40cd19586434ac3eecda4aad3f8b5211f7f4621
         flutter_golden: test/goldens/goldens/my_data_password_mismatch_390x844.png
-      - {state: freshness_checking, figma_node: '1985:11908', status: pending}
-      - {state: freshness_no_changes, figma_node: '1987:11925', status: pending}
-      - {state: freshness_unexported_changes, figma_node: '1989:11942', status: pending}
-      - {state: freshness_reminder_due, figma_node: '1991:11959', status: pending}
-      - {state: busy, figma_node: '1996:11977', status: pending}
-      - {state: export_success_snackbar, figma_node: '1999:11994', status: pending}
-      - {state: restore_success_snackbar, figma_node: '2000:12010', status: pending}
-      - {state: operation_failure_snackbar, figma_node: '2001:12027', status: pending}
+      - state: freshness_checking
+        figma_node: '1985:11908'
+        status: reviewed
+        review_note: Pending asynchronous freshness lookup, 68px status card, and action spacing compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-freshness-checking.png
+        figma_sha256: cd98356ebc2cfed2ec369acf4acbb1ae81d16bbd761ee1fba5228e0aad9689ea
+        flutter_golden: test/goldens/goldens/my_data_freshness_checking_390x844.png
+      - state: freshness_no_changes
+        figma_node: '1987:11925'
+        status: reviewed
+        review_note: No-changes text and status card compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-freshness-no-changes.png
+        figma_sha256: 42972adfb56946596e963d3bfa5311f6cdf5eace2fb6f914db203c4e8c1bea3d
+        flutter_golden: test/goldens/goldens/my_data_freshness_no_changes_390x844.png
+      - state: freshness_unexported_changes
+        figma_node: '1989:11942'
+        status: reviewed
+        review_note: Unexported-changes text and status card compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-freshness-unexported.png
+        figma_sha256: bd2307f8dcf8fa3aa3b846d8bac6a4eb586f1fb5464fffb05c930d0a1631c91a
+        flutter_golden: test/goldens/goldens/my_data_freshness_unexported_390x844.png
+      - state: freshness_reminder_due
+        figma_node: '1991:11959'
+        status: reviewed
+        review_note: Two-line 30-day reminder grows the card without hiding actions; color and 18px row spacing compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-freshness-reminder.png
+        figma_sha256: e36b489f777f60d72099d5a888b8f07108314eb344796c7b5ab2d335208f076c
+        flutter_golden: test/goldens/goldens/my_data_freshness_reminder_390x844.png
+      - state: busy
+        figma_node: '1996:11977'
+        status: reviewed
+        review_note: Disabled row opacity, exported 40px spinner at y466, and no concurrent restore action compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-busy.png
+        figma_sha256: d70f19ee78f45d98b1e228997ac4e2baf68e1efd177821402bbd80fa2c544b33
+        flutter_golden: test/goldens/goldens/my_data_busy_390x844.png
+      - state: export_success_snackbar
+        figma_node: '1999:11994'
+        status: reviewed
+        review_note: 358x44 result bar at y752 after successful export compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-export-success.png
+        figma_sha256: edab25e7b2f4c5541cd01e1a2242e0aba01c4d1a341d481e86fddac5057a5aac
+        flutter_golden: test/goldens/goldens/my_data_export_success_390x844.png
+      - state: restore_success_snackbar
+        figma_node: '2000:12010'
+        status: reviewed
+        review_note: Result-bar visual compared through the shared UI helper; end-to-end native restore remains pending.
+        figma_image: docs/design/review/figma/my-data-restore-success.png
+        figma_sha256: 86c4162179792464efd9da6cf615b2aa9f45100a342f83a59aa28a904b437d29
+        flutter_golden: test/goldens/goldens/my_data_restore_success_390x844.png
+      - state: operation_failure_snackbar
+        figma_node: '2001:12027'
+        status: reviewed
+        review_note: Result-bar visual compared; failed export clears the busy state and displays its error. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-operation-failure.png
+        figma_sha256: 0390e8213191266798c61e773409b6b0f3861027fbc1f94e28b1be6e0cc32e00
+        flutter_golden: test/goldens/goldens/my_data_operation_failure_390x844.png
   - route: /privacyPolicy
     figma_node: '1950:11759'
     flutter: lib/presentation/my_page/privacy_policy_screen.dart

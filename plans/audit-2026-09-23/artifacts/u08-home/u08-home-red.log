@@ -25,7 +25,7 @@ The test description was:
 00:00 +1 -1: 430 portrait home fits actual font, schedule=true [E]
   Test failed. See exception logs above.
   The test description was: 430 portrait home fits actual font, schedule=true
-  
+
 00:00 +1 -1: (tearDownAll)
 00:00 +1 -1: Some tests failed.
 

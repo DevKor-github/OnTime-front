@@ -33,3 +33,5 @@ PNG 재생성 시 `home_screen_tmp_test.dart`의 `430 portrait home fits actual 
 - `u08-home-capture.log`: 최종 캡처용 임시 harness 2 passed.
 
 200% 글자, 다른 화면의 전체 매트릭스, Android/iOS 실제 OS 큰 글자 검증은 미실행이다.
+
+저장소 로그 사본은 행 끝 공백만 정리했다. 테스트 결과와 오류 내용은 보존하며 JSON의 로그 해시는 저장된 사본을 기준으로 한다. 원본 /tmp 로그는 변경하지 않았다.

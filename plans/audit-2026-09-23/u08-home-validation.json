@@ -76,9 +76,10 @@
     "reproduction_notes": "plans/audit-2026-09-23/artifacts/u08-home/README.md"
   },
   "log_sha256": {
-    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-red.log": "1b3a025301fa705be3e32162610e17edeeda884a731597bfb824b71fdc6dd145",
+    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-red.log": "2ed1016c615fdfa5d23f07797dc91cefab253906fb6132eddac6c382d18a0993",
     "plans/audit-2026-09-23/artifacts/u08-home/u08-home-green.log": "227d707f3fe3b4ea04be8cfb40a25c39bea1e63965d96c26186686a2d36f57bc",
-    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-analyze.log": "fce00126a6910021065a6fe26f76740876cca63ee6218cfc0879a7f927ef5bbf",
+    "plans/audit-2026-09-23/artifacts/u08-home/u08-home-analyze.log": "d26001314e9eec9d7cd213b9e200c65d944800273e01b35a084651a72b8dc212",
     "plans/audit-2026-09-23/artifacts/u08-home/u08-home-capture.log": "83b725b6ad446ddeafdca0922a6c3128281becb7ee8aeca4b00ee7716e6bbf74"
-  }
+  },
+  "log_storage_note": "Repository log copies normalize line-ending trailing whitespace only; test results and error text are unchanged. Original /tmp logs remain untouched."
 }

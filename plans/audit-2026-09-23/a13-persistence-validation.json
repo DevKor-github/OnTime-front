@@ -1,0 +1,16 @@
+{
+  "audit_id": "A13",
+  "issue": 592,
+  "finding": "Registry privacy sanitization omitted notificationTiming on actual datasource read/write path.",
+  "validation": {
+    "command": "flutter test test/data/data_sources/alarm_registry_local_data_source_test.dart",
+    "result": "10 passed (6 new round trips)",
+    "executor": "grill_a14; root reviewed source/assertions and recorded reported execution result",
+    "scope": "Real AlarmRegistryLocalDataSourceImpl and SharedPreferences API with mock initial-values backend; not physical device disk/restart proof.",
+    "matrix": "exact/approximate/platformDefault x cancellationPending false/true; raw stored mode and all Equatable content/ownership fields across fresh datasource and second sanitizing read."
+  },
+  "source_sha256": {
+    "lib/data/data_sources/alarm_registry_local_data_source.dart": "1369c3435ad9e83480481d07533a99e76972da866cde28279324a951f772b098",
+    "test/data/data_sources/alarm_registry_local_data_source_test.dart": "1117d008d5940ea8b449f7af2016815be1294ff617f68f2cbb7842252e8b8ad0"
+  }
+}

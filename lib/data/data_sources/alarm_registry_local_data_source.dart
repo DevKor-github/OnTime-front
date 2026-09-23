@@ -49,6 +49,7 @@ class AlarmRegistryLocalDataSourceImpl implements AlarmRegistryLocalDataSource {
       contentDigest: current ? record.contentDigest : null,
       contentVersion: current ? record.contentVersion : null,
       contentLanguageCode: current ? record.contentLanguageCode : null,
+      notificationTiming: current ? record.notificationTiming : null,
       cancellationPending: record.cancellationPending || !current,
       notificationContent: current ? record.notificationContent : null,
     );

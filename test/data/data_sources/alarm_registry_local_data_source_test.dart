@@ -111,6 +111,46 @@ void main() {
       expect(prefs.getString('scheduled_alarm_registry'), isNull);
     },
   );
+
+  for (final timing in NotificationTiming.values) {
+    for (final pending in [false, true]) {
+      test(
+        'preferences round trip preserves $timing and ownership pending=$pending',
+        () async {
+          final content = ScheduledNotificationContent(
+            scheduleTitle: 'Private meeting',
+            detailed: false,
+            languageCode: 'ko',
+          );
+          final original = _record('persisted').copyWith(
+            provider: AlarmProvider.localNotification,
+            scheduleTitle: content.title,
+            contentDigest: content.digest,
+            contentVersion: ScheduledNotificationContent.schemaVersion,
+            contentLanguageCode: content.languageCode,
+            notificationTiming: timing,
+            cancellationPending: pending,
+          );
+
+          await dataSource.replaceAll([original]);
+          final prefs = await SharedPreferences.getInstance();
+          final stored =
+              jsonDecode(prefs.getString('scheduled_alarm_registry')!) as List;
+          expect(stored.single['notificationTiming'], timing.name);
+          final loaded =
+              (await AlarmRegistryLocalDataSourceImpl().loadAll()).single;
+          expect(loaded, original);
+          expect(loaded.hasCurrentContent, !pending);
+          // The read path sanitizes and can rewrite storage; a second read must
+          // retain the actual scheduling mode and the cancellation identity too.
+          expect(
+            (await AlarmRegistryLocalDataSourceImpl().loadAll()).single,
+            original,
+          );
+        },
+      );
+    }
+  }
 }
 
 ScheduledAlarmRecord _record(String scheduleId) {

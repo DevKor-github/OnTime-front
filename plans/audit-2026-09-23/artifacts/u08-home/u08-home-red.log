@@ -1,0 +1,33 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/home/screens/home_screen_tmp_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: 430 portrait home fits actual font, schedule=false
+00:00 +1: 430 portrait home fits actual font, schedule=true
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 14 pixels on the bottom.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/home/screens/home_screen_tmp_test.dart:178:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/home/screens/home_screen_tmp_test.dart line 178
+The test description was:
+  430 portrait home fits actual font, schedule=true
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +1 -1: 430 portrait home fits actual font, schedule=true [E]
+  Test failed. See exception logs above.
+  The test description was: 430 portrait home fits actual font, schedule=true
+  
+00:00 +1 -1: (tearDownAll)
+00:00 +1 -1: Some tests failed.
+
+Failing tests:
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/home/screens/home_screen_tmp_test.dart: 430 portrait home fits actual font, schedule=true

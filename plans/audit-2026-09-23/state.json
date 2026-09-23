@@ -378,16 +378,18 @@
         "`lib/domain/use-cases/schedule_preparation_session_use_case.dart:84-87`",
         "실패 시 재시도 가능, 성공 중복 호출은 멱등. 첫 write 실패→두 번째 성공과 동시 호출을 실제 repository 경계에서 검사."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_a07",
+      "issue_number": 599,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/599",
       "decisions_file": "plans/audit-2026-09-23/issues/A07.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 13
+      "sequence": 13,
+      "readback_verified": true,
+      "body_sha256": "6d58178bbc4ffcfe52875c46537bb8eb3250cd4f9a1f13356bb7a44475065b20"
     },
     {
       "audit_id": "C01",
@@ -996,20 +998,23 @@
         "글자 200%, 작은 화면, 긴 이름에서 타이머·결과·상세 화면 레이아웃을 확인한다.",
         "`preparation_step_tile.dart:51-54,83-88`, `schedule_detail.dart:332-350`, `early_late_screen.dart:29-53,139-148`의 고정 높이/겹침 구조가 후보. 홈·달력 일부 확대 테스트는 이미 있음. 실제 실패를 찾아 scroll/flexible 및 회귀 사례로 고정."
       ],
-      "status": "partial_implementation_in_progress",
+      "status": "partial_code_verified",
       "agent": "/root/grill_u08",
       "issue_number": 597,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/597",
       "decisions_file": "plans/audit-2026-09-23/issues/U08.md",
-      "implementation_commit": null,
+      "implementation_commit": "bde8b2deb4d521b7b486f746cb09fc71a007c52d",
       "pr_url": null,
       "verification": [
-        "Additional baseline widget failure: bundled Pretendard, EN, 430x932, DPR1/text1 causes 14px home card overflow; plans/audit-2026-09-23/u08-home-overflow-baseline.txt. Dedicated grill still pending."
+        "Home prerequisite patch: actual-font430x932 14px overflow red->green; 18 focused tests (home14/router4) and targeted analyzer passed.",
+        "Root visually inspected scheduled-home PNG; widget render only. u08-home-validation.json source/image/log hashes matched."
       ],
-      "blockers": [],
+      "blockers": [
+        "Remaining full U08 viewport/locale/scale/safe-area matrix and Android/iOS OS large-font validation."
+      ],
       "sequence": 42,
       "readback_verified": true,
-      "body_sha256": "7014bb24318e2bcbaa8690ad78c1c8cc8a941f25b37967f79cf047fa34a60de7"
+      "body_sha256": "ff5cd4c85fbe77fe189f19b2ab322c8d54da3c1f2f9f087362316b2fb4de4705"
     },
     {
       "audit_id": "U09",

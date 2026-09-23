@@ -85,3 +85,7 @@ A12 최종 b9f959db Flutter run35881988783이 707 tests/analyze/coverage87.11% (
 U08 #597와 A06 #598 생성 후 exact body read-back 완료. 13/64개 이슈 게시, 51개 생성 전. U08 홈 선행패치 구현 중(전체 매트릭스 완료 아님). A06 문답3개 및 OFF정책 정정 포함 준비 완료, A07 새 전담 grill 시작.
 
 A12 Android run35881988613 통과, artifact10760609601 및 synthetic merge1c8e60c3 identity read-back 완료. 상태 code_verified_device_pending. #591 본문에 최종 Flutter707/87.11%·APK 기록 추가 후 exact read-back 완료.
+
+A07 #599 상세본문/실제3문답과추가정정 게시후 exactreadback완료. 전체14/64개게시, 50개미생성. A14는최신A13소스readonly구현준비중이며A13commit전소스수정금지.
+
+U08 홈선행패치 sourcefreeze, 18 tests/analyze 및 root PNG시각검토/모든hash 일치. #597 본문업데이트 exactreadback완료. 전체U08미완료 유지. C01 신규전담grill시작.

@@ -18,10 +18,14 @@ import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
+import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+
+import '../../helpers/visual_test_fonts.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadVisualTestFonts);
 
   late AppDatabase database;
   late _FakeAlarmRepository alarmRepository;
@@ -85,8 +89,14 @@ void main() {
   ) async {
     await _pumpMyPage(tester);
 
-    final detailSwitch = find.widgetWithText(SwitchListTile, '알림에 일정 이름 표시');
-    expect(tester.widget<SwitchListTile>(detailSwitch).value, isFalse);
+    final detailSwitch = find.byKey(const Key('detailedNotificationSwitch'));
+    expect(detailSwitch, findsOneWidget);
+    expect(
+      (await database.userDao.getAlarmSettings(
+        localProfileId,
+      )).detailedNotificationContent,
+      isFalse,
+    );
 
     await tester.tap(detailSwitch);
     await tester.pumpAndSettle();
@@ -98,6 +108,16 @@ void main() {
       isTrue,
     );
     expect(reconcile.callCount, 1);
+
+    await tester.tap(find.text('알림에 일정 이름 표시'));
+    await tester.pumpAndSettle();
+    expect(
+      (await database.userDao.getAlarmSettings(
+        localProfileId,
+      )).detailedNotificationContent,
+      isFalse,
+    );
+    expect(reconcile.callCount, 2);
   });
 
   testWidgets('disabling schedule delivery cancels every local registration', (
@@ -222,6 +242,99 @@ void main() {
     await tester.tap(find.text('Privacy Policy'));
     await tester.pumpAndSettle();
     expect(find.text('bundled privacy destination'), findsOneWidget);
+  });
+
+  testWidgets('my page 390x844 default visual can be reviewed', (tester) async {
+    final semantics = tester.ensureSemantics();
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.padding = FakeViewPadding(top: 44, bottom: 21);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetPadding);
+
+    final router = GoRouter(
+      initialLocation: '/myPage',
+      routes: [
+        ShellRoute(
+          builder: (context, state, child) =>
+              BottomNavBarScaffold(child: child),
+          routes: [
+            GoRoute(
+              path: '/myPage',
+              builder: (context, state) => MyPageScreen(
+                notificationService: _FakeNotificationService(
+                  currentStatus: AuthorizationStatus.denied,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: themeData,
+        debugShowCheckedModeBanner: false,
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.byKey(const Key('myPageAlarmSection'))).dy,
+      91,
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('myPageAlarmSection'))).height,
+      116,
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('myPageDataSection'))).dy,
+      219,
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('myPageDataSection'))).height,
+      108,
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('myPageAppSection'))).dy,
+      339,
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('primaryAddButton'))),
+      const Offset(157, 735),
+    );
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../../goldens/goldens/my_page_default_390x844.png'),
+    );
+    await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    semantics.dispose();
+
+    tester.view.physicalSize = const Size(375, 667);
+    await tester.pumpWidget(
+      MaterialApp.router(
+        theme: themeData,
+        locale: const Locale('ko'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(2),
+          ),
+          child: child!,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('백업, 복원 및 로컬 데이터 초기화'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
 

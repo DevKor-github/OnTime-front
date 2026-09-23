@@ -10,7 +10,8 @@ Implementation basis: committed `feature/figma-offline-screen-sync` at `44067d7a
 
 ## Execution checkpoint (2026-09-23)
 
-- Created a route and variant inventory with hash-verified Figma images. Three route defaults and two confirmation variants are visually reviewed; 17 route defaults and 23 variants remain pending. The manifest and `dart run tool/report_figma_ui_coverage.dart` are the current coverage source.
+- Created a route and variant inventory with hash-verified Figma images. Four route defaults and two confirmation variants are visually reviewed; 16 route defaults and 23 variants remain pending. The manifest and `dart run tool/report_figma_ui_coverage.dart` are the current coverage source.
 - Built deterministic 390×844 widget fixtures for My Data, local-data recovery, and reset completion. Tests cover Figma geometry, goldens, reset cancellation, retry, 2× text, and iOS touch target guidance. The shared confirmation dialog now has a 277px card, Figma action colors, and 44px touch targets.
-- `flutter analyze --no-pub`, the local-only boundary check, and 563 Flutter tests with coverage (single-concurrency run) passed. Coverage is 83.19% against the CI minimum of 80%. The iOS simulator build was attempted twice and failed because the host disk ran out of space; no native launch or physical-device profile is claimed.
+- Matched the My Page section grid and 24px selection controls to Figma, including the bottom navigation button position. A Korean 390×844 golden and iOS touch/semantics checks cover the default state.
+- `flutter analyze --no-pub`, the local-only boundary check, and 564 Flutter tests with coverage (single-concurrency run) passed. Coverage is 83.95% against the CI minimum of 80%. The iOS simulator build was attempted twice and failed because the host disk ran out of space; no native launch or physical-device profile is claimed.
 - A separate handoff note in `handoff/ios-ui-quality-figma-parity.md` records the remaining work and build constraint.

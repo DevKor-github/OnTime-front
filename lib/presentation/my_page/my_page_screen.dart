@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
@@ -27,33 +28,38 @@ class MyPageScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
       appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(context)!.myPageTitle,
-          style: Theme.of(context).textTheme.titleLarge,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 14),
+          child: Text(
+            AppLocalizations.of(context)!.myPageTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
         ),
+        toolbarHeight: 47,
+        centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
       body: SingleChildScrollView(
         child: Column(
           spacing: 12,
           children: [
-            const _FrameView(title: '알람 설정', child: _AlarmStatusView()),
+            const _FrameView(
+              key: Key('myPageAlarmSection'),
+              title: '알람 설정',
+              child: _AlarmStatusView(),
+            ),
             _FrameView(
+              key: const Key('myPageDataSection'),
               title: '내 데이터',
-              child: Column(
-                spacing: 25,
-                children: [
-                  _SettingTile(
-                    title: '백업, 복원 및 로컬 데이터 초기화',
-                    onTap: () => context.push('/myData'),
-                  ),
-                ],
+              child: _SettingTile(
+                title: '백업, 복원 및 로컬 데이터 초기화',
+                onTap: () => context.push('/myData'),
               ),
             ),
             _FrameView(
+              key: const Key('myPageAppSection'),
               title: AppLocalizations.of(context)!.appSettings,
               child: Column(
-                spacing: 25,
                 children: [
                   _SettingTile(
                     title: AppLocalizations.of(context)!.editDefaultPreparation,
@@ -68,6 +74,7 @@ class MyPageScreen extends StatelessWidget {
                   const _DetailedNotificationTile(),
                   _SettingTile(
                     title: AppLocalizations.of(context)!.allowAppNotifications,
+                    minHeight: 68,
                     onTap: () async {
                       await _handleNotificationPermission(
                         context,
@@ -126,12 +133,50 @@ class _DetailedNotificationTileState extends State<_DetailedNotificationTile> {
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile(
-      contentPadding: EdgeInsets.zero,
-      title: const Text('알림에 일정 이름 표시'),
-      subtitle: const Text('기본값은 잠금 화면에 상세 내용을 표시하지 않습니다.'),
-      value: _enabled,
-      onChanged: _loading ? null : _change,
+    final textTheme = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: _loading ? null : () => _change(!_enabled),
+      child: Semantics(
+        button: true,
+        toggled: _enabled,
+        label: '알림에 일정 이름 표시',
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
+            child: Row(
+              children: [
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width - 76,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('알림에 일정 이름 표시', style: textTheme.bodyLarge),
+                      const SizedBox(height: 4),
+                      Text(
+                        '기본값은 잠금 화면에 상세 내용을 표시하지 않습니다.',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ExcludeSemantics(
+                  child: _SelectionSwitch(
+                    key: const Key('detailedNotificationSwitch'),
+                    value: _enabled,
+                    label: '알림에 일정 이름 표시',
+                    onChanged: null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -295,29 +340,37 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 72),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
           children: [
-            Text(
-              AppLocalizations.of(context)!.scheduleNotificationSetting,
-              style: textTheme.bodyLarge,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.scheduleNotificationSetting,
+                  style: textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _isLoading ? '확인 중' : _statusLabel,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.outline,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              _isLoading ? '확인 중' : _statusLabel,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
+            _SelectionSwitch(
+              key: const Key('alarmSettingsSwitch'),
+              value: _alarmsEnabled,
+              label: AppLocalizations.of(context)!.scheduleNotificationSetting,
+              onChanged: _isUpdating ? null : _toggle,
             ),
           ],
         ),
-        Switch(
-          key: const Key('alarmSettingsSwitch'),
-          value: _alarmsEnabled,
-          onChanged: _isUpdating ? null : _toggle,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -392,7 +445,7 @@ bool _shouldRecoverNativeAlarmPermission(
 }
 
 class _FrameView extends StatelessWidget {
-  const _FrameView({required this.title, required this.child});
+  const _FrameView({super.key, required this.title, required this.child});
 
   final String title;
   final Widget child;
@@ -403,29 +456,39 @@ class _FrameView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Material(
       color: Theme.of(context).colorScheme.surface,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 19),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 25,
-          children: [
-            Text(
-              title,
-              style: textTheme.bodyMedium!.copyWith(color: colorScheme.outline),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 44,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Center(
+                child: Text(
+                  title,
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: colorScheme.outline,
+                  ),
+                ),
+              ),
             ),
-            child,
-          ],
-        ),
+          ),
+          child,
+        ],
       ),
     );
   }
 }
 
 class _SettingTile extends StatelessWidget {
-  const _SettingTile({required this.title, required this.onTap});
+  const _SettingTile({
+    required this.title,
+    required this.onTap,
+    this.minHeight = 64,
+  });
 
   final String title;
   final VoidCallback onTap;
+  final double minHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -433,19 +496,92 @@ class _SettingTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: textTheme.bodyLarge),
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: colorScheme.outlineVariant,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minHeight),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+          child: Row(
+            children: [
+              Flexible(
+                fit: FlexFit.loose,
+                child: Text(title, style: textTheme.bodyLarge),
+              ),
+              RotatedBox(
+                quarterTurns: 2,
+                child: SvgPicture.asset(
+                  'chevron_left.svg',
+                  package: 'assets',
+                  width: 8,
+                  height: 14,
+                  colorFilter: ColorFilter.mode(
+                    colorScheme.outlineVariant,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
+}
+
+class _SelectionSwitch extends StatelessWidget {
+  const _SelectionSwitch({
+    super.key,
+    required this.value,
+    required this.label,
+    required this.onChanged,
+  });
+
+  final bool value;
+  final String label;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    toggled: value,
+    enabled: onChanged != null,
+    label: label,
+    child: InkWell(
+      onTap: onChanged == null ? null : () => onChanged!(!value),
+      customBorder: const CircleBorder(),
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 3),
+            child: Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                color: value
+                    ? const Color(0xFF4F69DF)
+                    : const Color(0xFFE8E8E8),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 Future<void> _handleNotificationPermission(

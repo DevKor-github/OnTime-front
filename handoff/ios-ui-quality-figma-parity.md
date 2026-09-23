@@ -6,10 +6,11 @@ Source Figma file: `FIdR6bUMHScn9FWbwqrBsA` (`OnTime-Design-System`), page `1:25
 
 ## Current result
 
-- `docs/design/figma_code_map.yaml` inventories 20 active router paths and 25 known Figma variants. Three default routes and two confirmation variants have reviewed captures and Flutter goldens. Seventeen routes and 23 variants remain pending. `dart run tool/report_figma_ui_coverage.dart --strict` is intentionally not passing yet.
+- `docs/design/figma_code_map.yaml` inventories 20 active router paths and 25 known Figma variants. Four default routes and two confirmation variants have reviewed captures and Flutter goldens. Sixteen routes and 23 variants remain pending. `dart run tool/report_figma_ui_coverage.dart --strict` is intentionally not passing yet.
 - My Data default: Figma node `1948:12072`, 358×68 card/row geometry and route actions checked. Recovery default `1957:11762` and reset complete `1963:11762` were adjusted to source icon/text/button positions. My Data reset confirmation `1977:11817` and recovery reset confirmation `2003:12059` use the shared 277px dialog. Native status bar and home indicator remain outside Flutter widget goldens; minor font rasterization differences remain.
 - The shared dialog and action buttons now use the source card width and colors. Buttons are 44px high for the iOS tap-target check; Figma's visible button reference is 43px. A recovery reset failure now clears the busy state and shows an error message.
-- Flutter analysis passed, local-only product boundary passed, and all 563 Flutter tests passed with `--coverage --concurrency=1`. Coverage is 83.19% (8460/10169 lines), above CI's 80% minimum. The parallel coverage run stalled in an existing My Page navigation test; its isolated rerun passed. The single-concurrency full run completed normally. Goldens were generated and visually inspected.
+- My Page default now matches the Figma 91px top chrome, 116px alarm section, 108px data section, and bottom navigation action placement. Its selection controls keep 44px tap surfaces around the visible 24px rings. Local notification opt-in behavior remains covered by the original widget tests.
+- Flutter analysis passed, local-only product boundary passed, and all 564 Flutter tests passed with `--coverage --concurrency=1`. Coverage is 83.95% (8576/10215 lines), above CI's 80% minimum. The parallel coverage run stalled in an existing My Page navigation test; its isolated rerun passed. The single-concurrency full run completed normally. Goldens were generated and visually inspected.
 
 ## Native test constraint
 

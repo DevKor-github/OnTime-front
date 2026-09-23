@@ -63,9 +63,11 @@ screens:
     figma_node: '965:4676'
     flutter: lib/presentation/my_page/my_page_screen.dart
     state: default
-    status: pending
+    status: reviewed
+    review_note: 390x844 alarm and data section geometry, 24px selection rings, bottom navigation, and iOS touch and semantics guidelines checked. Native status bar and home indicator are excluded from Flutter golden.
     figma_image: docs/design/review/figma/my-page-default.png
     figma_sha256: 5bce6547ebc2858f6cffa0a1993dad6a144d6ee864face8e818672e93bfc7607
+    flutter_golden: test/goldens/goldens/my_page_default_390x844.png
   - route: /myData
     figma_node: '1948:12072'
     flutter: lib/presentation/my_page/my_data_screen.dart

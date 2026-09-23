@@ -65,7 +65,7 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
         child: Container(
           color: AppColors.white,
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 32.0),
+            padding: const EdgeInsets.only(bottom: 27.0),
             child: SizedBox(
               height: 56,
               child: Row(
@@ -94,27 +94,34 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
           ),
         ),
       ),
-      floatingActionButton: SizedBox(
-        height: 76,
-        width: 76,
-        child: FilledButton(
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isDismissible: false,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => const ScheduleCreateScreen(),
-            );
-          },
-          // onPressed: () {
-          //   context.go('/scheduleCreate');
-          // },
-          style: FilledButton.styleFrom(
-            shape: CircleBorder(),
-            padding: EdgeInsets.all(13),
+      floatingActionButton: Transform.translate(
+        offset: const Offset(0, 12),
+        child: SizedBox(
+          key: const Key('primaryAddButton'),
+          height: 76,
+          width: 76,
+          child: FilledButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isDismissible: false,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const ScheduleCreateScreen(),
+              );
+            },
+            // onPressed: () {
+            //   context.go('/scheduleCreate');
+            // },
+            style: FilledButton.styleFrom(
+              shape: CircleBorder(),
+              padding: EdgeInsets.all(13),
+            ),
+            child: Semantics(
+              label: AppLocalizations.of(context)!.plus,
+              child: _PlusIcon(),
+            ),
           ),
-          child: _PlusIcon(),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

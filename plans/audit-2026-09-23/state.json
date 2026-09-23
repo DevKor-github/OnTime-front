@@ -328,7 +328,7 @@
       "issue_number": 594,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/594",
       "decisions_file": "plans/audit-2026-09-23/issues/A15.md",
-      "implementation_commit": null,
+      "implementation_commit": "ecd04293363fa79bd9cd1b140169619dfc083b96",
       "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Deterministic post-snapshot request regression failed before fix; trailing pass now covers each accepted cutoff",
@@ -343,7 +343,7 @@
       ],
       "sequence": 10,
       "readback_verified": true,
-      "body_sha256": "016d79f9ab44a022c92cbab9237e47515fe5e0f8a643b9501d471e46cde453d9"
+      "body_sha256": "4ce883db47e54c4605b2ede3d4cdccb1a0379e17778407452b7492c4409b2948"
     },
     {
       "audit_id": "D03",
@@ -356,7 +356,7 @@
         "`local_data_reset_service.dart:19-25`; `local_data_lifecycle.dart:45-69`; `cancel_schedule_alarm_use_case.dart:25-37`; `cancel_all_alarms_use_case.dart:19-41`; `reconcile_alarms_use_case.dart:549-570`; 관련 테스트 `:951-975`",
         "이미 없음과 실제 취소 실패 구분, 실패 기록 보존·재시도·OS read-back. 중간 강제 종료 후 정리 완료. reset marker는 검증 가능한 종료 상태까지 유지."
       ],
-      "status": "ready",
+      "status": "implementing",
       "agent": "/root/grill_d03",
       "issue_number": 595,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/595",

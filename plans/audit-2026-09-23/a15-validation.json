@@ -3,7 +3,7 @@
   "issue_number": 594,
   "recorded_at": "2026-09-24T01:47:52.715324+09:00",
   "base_head": "d2ae69d3f0e139d2d88c46a7f1e0b8da5e403830",
-  "implementation_commit": null,
+  "implementation_commit": "ecd04293363fa79bd9cd1b140169619dfc083b96",
   "scope": "Dart source, real Drift/SharedPreferences persistence, actual use-case/service integrations, blocking fake OS boundaries; no actual OS delivery proof",
   "source_freeze": {
     "file_count": 37,

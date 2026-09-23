@@ -14,7 +14,7 @@
 - 감사 baseline44067d7a. main2b02fb77(PR590 recurring)을712b3708에서 통합했다. schema2/v1 migration, backupformat2/v1 호환, recurring ownership/frozen/exclusions, nearest60을 유지한다.
 - 상세 이슈 **21/64개** 게시·exact read-back 완료, **43개 생성 전**.
 - A01#583 A02#584 A03#586 A04#587 A05#588 A11#589 A12#591 A13#592 A14#593 A15#594 D03#595 U08#597 A06#598 A07#599 C01#600 A08#601 A09#602 D01#603 D02#604 D04#605 D05#606.
-- A01–A05/A11/A12/A13 자동검증 통과, 기기/후속 통합 조건은 남음. U08 홈 overflow 선행 수정만 포함. A14 구현/CI 후 실제 registry ownership 보존 문제를 A15에서 후속 수정 중. A15는 아직 source freeze 전.
+- A01–A05/A11/A12/A13 자동검증 통과, 기기/후속 통합 조건은 남음. U08 홈 overflow 선행 수정만 포함. A14 구현/CI 후 실제 registry ownership 보존 문제를 A15에서 후속 수정 중. A15는37파일 해시·795 tests/analyze 검증 뒤 ecd04293363fa79bd9cd1b140169619dfc083b96로 커밋했다.
 - D05까지 이슈별 설계가 확정됐으나 설계 게시와 구현 완료는 다르다.
 
 ## 최근 최종 검증
@@ -24,14 +24,14 @@
 - A14 282db21f source24 해시·focused100/full772/analyze/iOS26.5 SDK typecheck/AndroidSDK36 Kotlin compile 통과. artifacts/a14에는 실제 MyPage widget KO/EN PNG와 로그가 있음. OS 실기기 화면 아님.
 - A14 b81259bf: Flutter35887794993 full772/analyze,87.44%(11487/13137), Android35887794956 통과. artifact10763053548/synthetic3ebcf192/APK7e88d688...; a14-ci-validation.json.
 - A15 전 bebf2a31: Flutter35889125749 full772/analyze,87.33%(11472/13137), Android35889125735 통과. artifact10764089340/synthetic e53967c1/APKf8d95a14...; pre-a15-ci-validation.json. 동일 제품 소스여도 각 run의 coverage와 artifact identity를 섞지 않는다.
-- A15 테스트: 결정적 snapshot barrier가 수정 전 실패. actual BackupService+Drift+owner restore/reset 경계33, UI/privacy/CRUD focused35 등 중간 결과 통과. 실제 CRUD/preparation/recurring nearest60 통합 후 최종 full/analyze 실행 중이며 최종 통과 숫자는 아직 없음.
+- A15 테스트: 결정적 snapshot barrier가 수정 전 실패. actual BackupService+Drift+owner restore/reset 경계33, UI/privacy/CRUD focused35 등 중간 결과 통과. 실제 CRUD/preparation/recurring nearest60 통합 후 최종 frozen source full795/analyze 통과, aggregate de887b4e5d34a0ac9c37d62e92a652128fabde3ae1ddcb6dc54d6eccff446dd2. a15-validation.json에37파일/로그해시·초기실패·수정 근거를 기록했다.
 
 ## 현재 에이전트 및 다음 작업
 
-1. `/root/grill_a15` 원래 전담이 source/test/A15.md/receipt를 소유해 구현 중. root는 tracking/GitHub/commit 소유. Flutter 명령을 병행하지 않는다.
-2. A15는 단일 native owner·request cutoff/trailing drain·replacement generation을 구현한다. 취소 실패 최소 ownership을 실제 platform ID로 보존하고 repo upsert/dedup 왕복을 검사한다. reset marker 후 실패해도 DB/키를 지우거나 새 writer를 열지 않는다. DB start/finish 후 취소 오류를 durable commit 실패처럼 취급하지 않는다. actual BackupService/Reset/CRUD/Preparation/recurring 통합 증거 포함 필요.
-3. A15 source freeze 이후 root hash/최종 tests/analyze/issue 전체 리뷰 반영을 확인하고 #594 read-back→명시적 staging→commit/push→새 SHA CI. A14 #593의 실제 ownership 후속 상태도 증거에 맞게 갱신한다.
-4. D03 원래 전담 `/root/grill_d03` followup이 접수되어 읽기 전용 구현 준비 중이다. root가 A15 commit SHA를 전달하기 전 소스/테스트/문서 편집 및 Flutter 명령은 금지했다. 이후 durable crash journal/cleanup을 구현한다. A15 인메모리 큐가 D03의 재시작 복구까지 완료했다고 주장하지 않는다. 전체 구현 순서는 README를 따른다.
+1. A15 원래 전담은 최종37파일 동결을 완료했고 root가 source/log hash를 대조해 ecd04293로 commit/push했다. #594/#593의 로컬 검증 본문을 exact read-back했다. 새 원격 CI를 해당 전체SHA로 추적한다.
+2. A15에는 단일 native owner·request cutoff/trailing drain·replacement generation, 실제 platform ID ownership 보존, reset 실패 gate와 actual BackupService/Reset/CRUD/Preparation/recurring 회귀가 포함된다. 실제 mutation 테스트의 추가 reconcile 호출을 제거해 접수 누락을 숨기지 않는다.
+3. `/root/grill_d03` 원래 전담에 ecd04293363fa79bd9cd1b140169619dfc083b96를 전달하고 D03 소스/테스트/D03문서/receipt 구현 권한을 줬다. root는 tracking/GitHub/commit 소유. Flutter 명령을 병행하지 않는다.
+4. D03은 A15 owner/cleanup을 재사용해 independent durable journal, bootstrap interrupted-reset, typed partial/retry UI, 최소 D01 시작 복구를 구현한다. 영속 journal 검증 후 A15의 임시 '취소 실패면 DB 보존/같은프로세스 재시도 금지'를 확정 D03의 'quiesce된 취소반환 후 원문삭제+cleanup pending/retry' 계약으로 확장할 수 있다. 실제 사용자데이터/기존simulator는 보존한다.
 5. D05 신규 전담 grill을 완료해 #606에 게시했다. 입력 암호문72MiB/평문64MiB/중첩32/일정100k/전체500k/정의별steps1000, 실제 bounded parsing·자료/그래프/시간대 검증·export 대칭·모바일 측정 계약이다. legacy duration에1440분을 일괄 강제하지 않고 과거 명시 offset 의미를 보존한다. D05 문답과 수용기준만 확정, 구현 전이다.
 6. A10 사전 read-only 확인: ScheduleBloc:244/835, Home timer:39, TodaysScheduleTile:158, adjacent usecase:54/73에 scheduleTime 직접 비교가 남아 있다. occurrenceInstantUtc의 offset-null fallback은 device-local toUtc이고 CivilTimeResolver unknown zone은 UTC fallback이다. 이 사실만으로 모든 civil-date 조회를 instant 비교로 일괄 치환하지 말고 A10 전담이 calendar bucket/commitment 의미를 구분해야 한다. 다음 신규 전담은 A10. 이번 생성 시도는 agent thread limit으로 거절됐다. 다른 항목 전담을 재사용하지 말고 다음 실행에서 새 agent 생성. 사용자 승인 대기가 아니다. 그동안 A15 리뷰/검증을 계속한다.
 

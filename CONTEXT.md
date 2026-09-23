@@ -378,7 +378,8 @@ _Avoid_: Loaded range, stream range, cached range
 - **Platform-Managed Data Transfer** is not a supported OnTime backup or recovery path.
 - OnTime excludes its active data from **Platform-Managed Data Transfer** wherever the Supported Product Platform exposes such control.
 - OnTime does not promise that every operating system or device manufacturer will honor the requested exclusion.
-- Each app installation has exactly one **Installation Data Key** stored only in device-bound secure storage.
+- Each app installation has exactly one active **Installation Data Key** stored only in device-bound secure storage.
+- A verified Backup Restore may temporarily retain inactive recovery key material; it does not represent another active Installation Data Key and is removed after safe recovery cleanup.
 - The **Installation Data Key** is not synchronized, backed up, exported, or included in an OnTime Backup.
 - OnTime uses the **Installation Data Key** without requiring a Backup Password or biometric prompt during normal app use.
 - Losing the **Installation Data Key** makes active Durable OnTime Data unreadable; recovery requires a readable OnTime Backup or a destructive local-data reset.

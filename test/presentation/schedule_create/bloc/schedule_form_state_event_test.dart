@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -9,7 +10,10 @@ void main() {
     final time = DateTime(2026, 5, 15, 9);
     final preparation = _preparation();
 
-    expect(const ScheduleFormEditRequested(scheduleId: 's-1').props, ['s-1']);
+    expect(const ScheduleFormEditRequested(scheduleId: 's-1').props, [
+      's-1',
+      RecurringEditScope.occurrence,
+    ]);
     expect(
       ScheduleFormCreateRequested(
         initialDate: date,

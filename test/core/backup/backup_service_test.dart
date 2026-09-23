@@ -1,3 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:on_time_front/data/repositories/recurring_schedule_repository_impl.dart';
+import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
@@ -47,35 +52,155 @@ void main() {
       ),
       'local-profile',
     );
-    await database.scheduleDao.createSchedule(_schedule().toScheduleWithPlaceRow());
+    await database.scheduleDao.createSchedule(
+      _schedule().toScheduleWithPlaceRow(),
+    );
   });
 
   tearDown(() => database.close());
 
-  test('preview authenticates backup and restore replaces active data', () async {
-    final encrypted = await service.createEncryptedBackup(password);
+  test(
+    'preview authenticates backup and restore replaces active data',
+    () async {
+      final encrypted = await service.createEncryptedBackup(password);
 
-    await database.deleteAllDurableData();
-    await database.userDao.putUser(
-      const UserEntity(
-        id: 'local-profile',
-        spareTime: Duration.zero,
-        note: 'replacement data',
-      ),
-    );
+      await database.deleteAllDurableData();
+      await database.userDao.putUser(
+        const UserEntity(
+          id: 'local-profile',
+          spareTime: Duration.zero,
+          note: 'replacement data',
+        ),
+      );
 
-    final candidate = await service.previewEncryptedBackup(encrypted, password);
-    expect(candidate.preview.scheduleCount, 1);
-    expect(candidate.preview.defaultPreparationStepCount, 1);
+      final candidate = await service.previewEncryptedBackup(
+        encrypted,
+        password,
+      );
+      expect(candidate.preview.scheduleCount, 1);
+      expect(candidate.preview.defaultPreparationStepCount, 1);
 
-    await service.applyRestore(candidate);
+      await service.applyRestore(candidate);
 
-    final restoredUser = (await database.userDao.getUserById('local-profile'))!;
-    final restoredSchedules = await database.scheduleDao.getScheduleList();
-    expect(restoredUser.note, 'local note');
-    expect(restoredUser.scoreOrNull, 75);
-    expect(restoredSchedules.single.schedule.id, 'schedule-1');
-  });
+      final restoredUser = (await database.userDao.getUserById(
+        'local-profile',
+      ))!;
+      final restoredSchedules = await database.scheduleDao.getScheduleList();
+      expect(restoredUser.note, 'local note');
+      expect(restoredUser.scoreOrNull, 75);
+      expect(restoredSchedules.single.schedule.id, 'schedule-1');
+    },
+  );
+
+  test(
+    'format 2 restores owned preparation and exclusions without regenerating deleted slots',
+    () async {
+      final recurring = RecurringScheduleRepositoryImpl(
+        database,
+        now: () => DateTime.utc(2030, 1, 1),
+      );
+      final schedule = _schedule().copyWith(
+        id: 'series',
+        scheduleTime: DateTime.utc(2030, 1, 2, 10),
+        timeZoneId: 'UTC',
+        occurrenceOffsetSeconds: 0,
+      );
+      final preparation = await database.preparationUserDao
+          .getPreparationUsersByUserId('local-profile');
+      final rule = RecurrenceRule(
+        frequency: RecurrenceFrequency.daily,
+        start: schedule.scheduleTime,
+        timeZoneId: 'UTC',
+        count: 3,
+      );
+      await recurring.create(schedule, preparation, rule);
+      final generated = (await database.scheduleDao.getScheduleList())
+          .map((r) => r.toScheduleEntity())
+          .where((s) => s.isRecurring)
+          .toList();
+      final deleted = generated[1];
+      await recurring.delete(deleted, RecurringEditScope.occurrence);
+      final encrypted = await service.createEncryptedBackup(password);
+      final candidate = await service.previewEncryptedBackup(
+        encrypted,
+        password,
+      );
+      await service.applyRestore(candidate);
+      await recurring.materialize(DateTime.utc(2030), DateTime.utc(2031));
+      final restored = (await database.scheduleDao.getScheduleList())
+          .map((r) => r.toScheduleEntity())
+          .where((s) => s.isRecurring)
+          .toList();
+      expect(restored, hasLength(2));
+      expect(restored.any((s) => s.id == deleted.id), isFalse);
+      expect(
+        (await recurring.getPreparation(
+          restored.first.preparationDefinitionId!,
+        )).preparationStepList.single.preparationName,
+        'Pack',
+      );
+    },
+  );
+
+  test(
+    'format 1 remains importable and malformed new references never replace data',
+    () async {
+      final crypto = BackupCrypto(sodiumLoader: loadSodiumForTest);
+      final encrypted = await service.createEncryptedBackup(password);
+      final json =
+          jsonDecode(
+                utf8.decode(
+                  await crypto.decrypt(
+                    container: encrypted,
+                    password: password,
+                  ),
+                ),
+              )
+              as Map<String, dynamic>;
+      json['formatVersion'] = 1;
+      json.remove('recurring');
+      for (final value in json['schedules'] as List) {
+        for (final key in [
+          'recurringSegmentId',
+          'recurringSlotKey',
+          'recurringOrdinal',
+          'recurringOverrides',
+          'preparationDefinitionId',
+        ]) {
+          (value as Map).remove(key);
+        }
+      }
+      Future<Uint8List> encoded() => crypto.encrypt(
+        plaintext: Uint8List.fromList(utf8.encode(jsonEncode(json))),
+        password: password,
+      );
+      final old = await service.previewEncryptedBackup(
+        await encoded(),
+        password,
+      );
+      await service.applyRestore(old);
+      expect(
+        (await database.scheduleDao.getScheduleList()).single.schedule.id,
+        'schedule-1',
+      );
+      json['formatVersion'] = 2;
+      json['recurring'] = {
+        'definitions': [],
+        'steps': [],
+        'segments': [],
+        'exclusions': [],
+      };
+      (json['schedules'] as List).first['preparationDefinitionId'] = 'unknown';
+      await expectLater(
+        service.previewEncryptedBackup(await encoded(), password),
+        throwsFormatException,
+      );
+      expect(
+        (await database.scheduleDao.getScheduleList()).single.schedule.id,
+        'schedule-1',
+      );
+    },
+  );
 
   test('wrong password leaves current database unchanged', () async {
     final encrypted = await service.createEncryptedBackup(password);

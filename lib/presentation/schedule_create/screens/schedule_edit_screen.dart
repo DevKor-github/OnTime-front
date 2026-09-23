@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -6,17 +7,23 @@ import 'package:on_time_front/presentation/schedule_create/components/keyboard_b
 import 'package:on_time_front/presentation/schedule_create/components/schedule_multi_page_form.dart';
 
 class ScheduleEditScreen extends StatelessWidget {
-  const ScheduleEditScreen({super.key, required this.scheduleId});
+  const ScheduleEditScreen({
+    super.key,
+    required this.scheduleId,
+    this.scope = RecurringEditScope.occurrence,
+  });
 
   final String scheduleId;
+  final RecurringEditScope scope;
 
   @override
   Widget build(BuildContext context) {
     return KeyboardBackedBottomSheet(
       child: BlocProvider<ScheduleFormBloc>(
-        create: (context) =>
-            getIt.get<ScheduleFormBloc>()
-              ..add(ScheduleFormEditRequested(scheduleId: scheduleId)),
+        create: (context) => getIt.get<ScheduleFormBloc>()
+          ..add(
+            ScheduleFormEditRequested(scheduleId: scheduleId, scope: scope),
+          ),
         child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
           builder: (context, state) {
             return ScheduleMultiPageForm(

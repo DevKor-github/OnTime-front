@@ -1,0 +1,142 @@
+{
+  "fileKey": "FIdR6bUMHScn9FWbwqrBsA",
+  "boards": {
+    "creation": "2110:2405",
+    "management": "2110:21269"
+  },
+  "weekday": {
+    "createdNodeIds": [
+      "2112:253",
+      "2112:250",
+      "2112:254",
+      "2112:251",
+      "2112:255",
+      "2112:252",
+      "2112:256"
+    ],
+    "set": "2112:253",
+    "label": "Label#2112:4",
+    "variants": [
+      {
+        "id": "2112:250",
+        "name": "State=Unselected"
+      },
+      {
+        "id": "2112:251",
+        "name": "State=Selected"
+      },
+      {
+        "id": "2112:252",
+        "name": "State=Disabled"
+      }
+    ]
+  },
+  "screens": {
+    "DateTime": {
+      "screen": "2112:2394",
+      "body": "2112:2420"
+    },
+    "Weekly": {
+      "screen": "2112:21323",
+      "body": "2112:21331"
+    },
+    "Monthly": {
+      "screen": "2112:21352",
+      "body": "2112:21360"
+    },
+    "Ending": {
+      "screen": "2112:21395",
+      "body": "2112:21403"
+    },
+    "Preparation": {
+      "screen": "2112:21456",
+      "body": "2112:21464"
+    },
+    "Review": {
+      "screen": "2112:21500",
+      "body": "2112:21508"
+    },
+    "Conflicts": {
+      "screen": "2112:21531",
+      "body": "2112:21539"
+    },
+    "PersistentConflict": {
+      "screen": "2112:21557",
+      "body": "2112:21565"
+    },
+    "Scope": {
+      "screen": "2112:21588",
+      "body": "2112:21596"
+    },
+    "Detached": {
+      "screen": "2112:21613",
+      "body": "2112:21621"
+    },
+    "TimeExceptions": {
+      "screen": "2112:21635",
+      "body": "2112:21643"
+    },
+    "SaveError": {
+      "screen": "2112:21659",
+      "body": "2112:21667"
+    },
+    "Management": {
+      "screen": "2112:21676",
+      "body": "2112:21684"
+    },
+    "Detail": {
+      "screen": "2112:21715",
+      "body": "2112:21723"
+    },
+    "Empty": {
+      "screen": "2112:21756",
+      "body": "2112:21764"
+    },
+    "Occurrence": {
+      "screen": "2112:21768",
+      "body": "2112:21776"
+    },
+    "Frequency": {
+      "screen": "2113:21627",
+      "body": "2113:21635"
+    },
+    "MonthlyFields": {
+      "screen": "2113:21670",
+      "body": "2113:21678"
+    },
+    "EndDate": {
+      "screen": "2113:21708",
+      "body": "2113:21716"
+    },
+    "EndConfirm": {
+      "screen": "2113:21745",
+      "body": "2113:21753"
+    },
+    "MyPageEntry": {
+      "screen": "2113:21761",
+      "body": "2113:21769"
+    }
+  },
+  "validation": {
+    "screenCount": 21,
+    "weekdayVariants": 3,
+    "prototypeLinks": 18,
+    "overlappingCreationScreens": 0,
+    "zeroWidthNonemptyText": 0,
+    "minimumWeekdayTouchTarget": 44,
+    "fontLimitationApproved": true,
+    "productCodeChanged": false
+  },
+  "remainingCountPolicyUpdate": {
+    "decisions": [
+      20,
+      21
+    ],
+    "mutatedTextIds": [
+      "2112:21623",
+      "2112:21610"
+    ],
+    "verified": "2026-09-23",
+    "readBackVerified": true
+  }
+}

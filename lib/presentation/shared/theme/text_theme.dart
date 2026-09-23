@@ -58,7 +58,7 @@ TextTheme _textTheme = TextTheme(
     fontWeight: FontWeight.w400,
     height: 1.4,
   ),
-);
+).apply(fontFamily: 'Pretendard');
 
 extension CustomTextThemeExtension on TextTheme {
   TextStyle get headlineExtraSmall => TextStyle(

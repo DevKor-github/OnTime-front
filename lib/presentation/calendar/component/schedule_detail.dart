@@ -1,3 +1,4 @@
+import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_swipe_action_cell/core/cell.dart';
@@ -104,7 +105,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     final canEdit =
         widget.schedule.doneStatus == ScheduleDoneStatus.notEnded &&
         !_hasPreparationStarted(now) &&
-        !widget.schedule.scheduleTime.isBefore(now);
+        !widget.schedule.occurrenceInstantUtc.isBefore(now.toUtc());
     final canDelete = widget.schedule.doneStatus == ScheduleDoneStatus.notEnded;
     return [
       if (canDelete)
@@ -148,7 +149,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       return false;
     }
 
-    final preparationStartTime = widget.schedule.scheduleTime.subtract(
+    final preparationStartTime = widget.schedule.occurrenceInstantUtc.subtract(
       widget.schedule.moveTime +
           preparationTime +
           (widget.schedule.scheduleSpareTime ?? Duration.zero),
@@ -260,11 +261,37 @@ class _ScheduleDetailsColumn extends StatelessWidget {
             // icon size provided by IconTheme above
             collapsedIconColor:
                 theme.colorScheme.onSurfaceVariant, // Color when collapsed
-            title: Text(
-              schedule.scheduleName,
-              style: theme.textTheme.titleLarge,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  schedule.scheduleName,
+                  style: theme.textTheme.titleLarge,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (schedule.isRecurring)
+                  Text(
+                    recurrenceText(context, '반복 일정', 'Recurring schedule'),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                if (schedule.isRecurring &&
+                    !schedule.isStarted &&
+                    schedule.doneStatus == ScheduleDoneStatus.notEnded &&
+                    schedule.occurrenceInstantUtc.isBefore(
+                      DateTime.now().toUtc(),
+                    ))
+                  Text(
+                    recurrenceText(
+                      context,
+                      '진행 기록 없음',
+                      'No preparation recorded',
+                    ),
+                    style: theme.textTheme.bodySmall,
+                  ),
+              ],
             ),
             childrenPadding: const EdgeInsets.only(top: 16.0),
             subtitle: Padding(

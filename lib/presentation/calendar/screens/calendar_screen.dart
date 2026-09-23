@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
+import 'package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_scope_sheet.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -138,16 +141,35 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Future<void> _openEditScheduleSheet(
     BuildContext context, {
-    required String scheduleId,
+    required ScheduleEntity schedule,
   }) async {
+    final scope = schedule.isRecurring
+        ? await showRecurrenceScope(context)
+        : RecurringEditScope.occurrence;
+    if (scope == null || !context.mounted) return;
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ScheduleEditScreen(scheduleId: scheduleId),
+      builder: (context) =>
+          ScheduleEditScreen(scheduleId: schedule.id, scope: scope),
     );
 
     _refreshSchedulesIfSaved(saved);
+  }
+
+  Future<void> _deleteRecurring(
+    BuildContext context,
+    ScheduleEntity schedule,
+  ) async {
+    final scope = await showRecurrenceScope(context, deleting: true);
+    if (scope == null || !context.mounted) return;
+    try {
+      await getIt<RecurringSchedulesUseCase>().delete(schedule, scope);
+      _refreshSchedulesIfSaved(true);
+    } catch (_) {
+      if (context.mounted) await _showScheduleDeleteFailureDialog(context);
+    }
   }
 
   Future<void> _showScheduleDeleteFailureDialog(BuildContext context) {
@@ -421,12 +443,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                           state: state,
                                           onAddSchedule: () =>
                                               _openCreateScheduleSheet(context),
-                                          onEditSchedule: (scheduleId) =>
+                                          onEditSchedule: (schedule) =>
                                               _openEditScheduleSheet(
                                                 context,
-                                                scheduleId: scheduleId,
+                                                schedule: schedule,
                                               ),
                                           onDeleteSchedule: (schedule) {
+                                            if (schedule.isRecurring) {
+                                              _deleteRecurring(
+                                                context,
+                                                schedule,
+                                              );
+                                              return;
+                                            }
                                             showTwoButtonDeleteDialog(
                                               context,
                                               title: AppLocalizations.of(
@@ -485,7 +514,7 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
   final DateTime selectedDate;
   final MonthlySchedulesState state;
   final VoidCallback onAddSchedule;
-  final ValueChanged<String> onEditSchedule;
+  final ValueChanged<ScheduleEntity> onEditSchedule;
   final ValueChanged<ScheduleEntity> onDeleteSchedule;
 
   @override
@@ -532,7 +561,7 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
               preparationTime:
                   state.preparationDurationByScheduleId[schedule.id],
               isEarlyStarted: isEarlyStarted,
-              onEdit: () => onEditSchedule(schedule.id),
+              onEdit: () => onEditSchedule(schedule),
               onDeleted: () => onDeleteSchedule(schedule),
             );
           },

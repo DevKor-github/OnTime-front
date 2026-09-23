@@ -64,6 +64,11 @@ extension SchedulePersistenceMapper on ScheduleEntity {
       preparationTemplateDeleted: preparationTemplateDeleted,
       preparationFrozen: preparationFrozen,
       scoreContributionRecorded: scoreContributionRecorded,
+      recurringSegmentId: recurringSegmentId,
+      recurringSlotKey: recurringSlotKey,
+      recurringOrdinal: recurringOrdinal,
+      recurringOverrides: recurringOverrides,
+      preparationDefinitionId: preparationDefinitionId,
     );
   }
 
@@ -101,6 +106,11 @@ extension ScheduleWithPlacePersistenceMapper on ScheduleWithPlace {
       preparationTemplateDeleted: schedule.preparationTemplateDeleted,
       preparationFrozen: schedule.preparationFrozen,
       scoreContributionRecorded: schedule.scoreContributionRecorded,
+      recurringSegmentId: schedule.recurringSegmentId,
+      recurringSlotKey: schedule.recurringSlotKey,
+      recurringOrdinal: schedule.recurringOrdinal,
+      recurringOverrides: schedule.recurringOverrides,
+      preparationDefinitionId: schedule.preparationDefinitionId,
     );
   }
 }

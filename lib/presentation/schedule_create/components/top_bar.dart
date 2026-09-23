@@ -7,10 +7,14 @@ class TopBar extends StatelessWidget {
     required this.onNextPageButtonClicked,
     required this.onPreviousPageButtonClicked,
     required this.isNextButtonEnabled,
+    this.title,
+    this.actionLabel,
   });
 
   final void Function()? onNextPageButtonClicked;
   final void Function()? onPreviousPageButtonClicked;
+  final String? title;
+  final String? actionLabel;
   final bool isNextButtonEnabled; // 버튼 활성화 여부
 
   @override
@@ -30,7 +34,7 @@ class TopBar extends StatelessWidget {
         Expanded(
           child: Center(
             child: Text(
-              AppLocalizations.of(context)!.addAppointment,
+              title ?? AppLocalizations.of(context)!.addAppointment,
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
@@ -39,7 +43,7 @@ class TopBar extends StatelessWidget {
         // 버튼 활성화 여부에 따라 색상 변화 추후 추가 가능
         TextButton(
           onPressed: isNextButtonEnabled ? onNextPageButtonClicked : null,
-          child: Text(AppLocalizations.of(context)!.next),
+          child: Text(actionLabel ?? AppLocalizations.of(context)!.next),
         ),
       ],
     );

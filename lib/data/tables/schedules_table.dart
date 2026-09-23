@@ -33,6 +33,12 @@ class Schedules extends Table {
   BoolColumn get scoreContributionRecorded =>
       boolean().withDefault(const Constant(false))();
 
+  TextColumn get recurringSegmentId => text().nullable()();
+  TextColumn get recurringSlotKey => text().nullable()();
+  IntColumn get recurringOrdinal => integer().nullable()();
+  TextColumn get recurringOverrides => text().withDefault(const Constant(''))();
+  TextColumn get preparationDefinitionId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

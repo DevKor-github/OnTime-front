@@ -14,13 +14,17 @@ import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:on_time_front/domain/repositories/recurring_schedule_repository.dart';
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 
 @Singleton(as: ScheduleRepository)
 class ScheduleRepositoryImpl implements ScheduleRepository {
   ScheduleRepositoryImpl({
     required AppDatabase database,
     required TimedPreparationRepository timedPreparationRepository,
-  }) : _database = database,
+    RecurringScheduleRepository? recurringScheduleRepository,
+  }) : _recurring = recurringScheduleRepository,
+       _database = database,
        _scheduleDao = database.scheduleDao,
        _userDao = database.userDao,
        _timedPreparationRepository = timedPreparationRepository {
@@ -31,6 +35,7 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     );
   }
 
+  final RecurringScheduleRepository? _recurring;
   final AppDatabase _database;
   final ScheduleDao _scheduleDao;
   final UserDao _userDao;
@@ -48,8 +53,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   Stream<List<ScheduleEntity>> watchSchedulesByDate(
     DateTime startDate,
     DateTime endDate,
-  ) {
-    return scheduleStream
+  ) async* {
+    await _recurring?.materialize(startDate, endDate);
+    yield* scheduleStream
         .map((schedules) {
           final result = schedules
               .where(
@@ -72,7 +78,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
 
   @override
   Future<void> deleteSchedule(ScheduleEntity schedule) async {
-    await _scheduleDao.deleteSchedule(schedule.toScheduleRow());
+    if (schedule.isRecurring && _recurring != null) {
+      await _recurring.delete(schedule, RecurringEditScope.occurrence);
+    } else {
+      await _scheduleDao.deleteSchedule(schedule.toScheduleRow());
+    }
     await _clearTimedPreparation(schedule.id);
     await _userDao.markDurableDataChanged(localProfileId);
   }
@@ -100,6 +110,11 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     DateTime startDate,
     DateTime? endDate,
   ) async {
+    await _recurring?.materialize(
+      startDate,
+      endDate ?? DateTime.utc(9999, 12, 31),
+      perSeriesLimit: endDate == null ? 60 : null,
+    );
     final rows = await _scheduleDao.getSchedulesByDate(startDate, endDate);
     return rows.map((row) => row.toScheduleEntity()).toList();
   }

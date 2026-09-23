@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/services/notification_routing.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:convert';
 import 'package:on_time_front/domain/entities/notification_route_payload.dart';
 import 'package:on_time_front/data/data_sources/alarm_registry_local_data_source.dart';
@@ -61,6 +63,13 @@ class NotificationService {
   bool _isFlutterLocalNotificationsInitialized = false;
   bool _isTimezoneInitialized = false;
   Future<void>? _initializationFuture;
+  Future<void>? _setupFuture;
+  Future<void>? _launchFuture;
+  bool _launchCollected = false;
+  int _callbackReceipt = 0;
+  (int, int)? _delegateInstalledReceipt;
+  String? _deferredPayload;
+  int? _deferredGeneration;
 
   bool get _isIOS => !kIsWeb && (_isIOSOverride ?? Platform.isIOS);
 
@@ -72,6 +81,75 @@ class NotificationService {
     required NotificationTapRouter notificationTapRouter,
   }) {
     _notificationTapRouter = notificationTapRouter;
+    _delegateInstalledReceipt =
+        notificationTapRouter is NavigationNotificationTapRouter
+        ? notificationTapRouter.receipt
+        : null;
+    final deferred = _deferredPayload;
+    _deferredPayload = null;
+    if (deferred != null &&
+        _deferredGeneration == LocalDataOperationGate.shared.generation) {
+      _notificationTapRouter.routeLocalNotificationTap(deferred);
+    }
+  }
+
+  void _receiveResponse(String? raw) {
+    final data = safeNotificationTapData(raw);
+    if (data == null) return;
+    _callbackReceipt++;
+    final safe = jsonEncode(data);
+    if (_notificationTapRouter is NoopNotificationTapRouter) {
+      _deferredPayload = safe;
+      _deferredGeneration = LocalDataOperationGate.shared.generation;
+    } else {
+      _notificationTapRouter.routeLocalNotificationTap(safe);
+    }
+  }
+
+  /// Initial launch details are not consumed by either native plugin. Read once
+  /// successfully per service lifetime, with explicit retry after failure.
+  Future<void> collectInitialLaunch() {
+    if (_launchCollected) return Future.value();
+    return _launchFuture ??= _collectInitialLaunch().whenComplete(() {
+      _launchFuture = null;
+    });
+  }
+
+  Future<void> _collectInitialLaunch() async {
+    final receipt = _callbackReceipt;
+    final generation = LocalDataOperationGate.shared.generation;
+    final router = _notificationTapRouter;
+    final routerReceipt = router is NavigationNotificationTapRouter
+        ? router.receipt
+        : null;
+    try {
+      await setupFlutterNotifications();
+      final details = await _localNotifications
+          .getNotificationAppLaunchDetails();
+      _launchCollected = true;
+      if (receipt != _callbackReceipt ||
+          generation != LocalDataOperationGate.shared.generation ||
+          details?.didNotificationLaunchApp != true) {
+        return;
+      }
+      final raw = details?.notificationResponse?.payload;
+      if (router is NavigationNotificationTapRouter &&
+          identical(router, _notificationTapRouter) &&
+          routerReceipt != null) {
+        router.receiveInitial(raw, routerReceipt);
+      } else {
+        final currentRouter = _notificationTapRouter;
+        if (currentRouter is NavigationNotificationTapRouter) {
+          final installed = _delegateInstalledReceipt;
+          if (installed == null) return;
+          currentRouter.receiveInitial(raw, installed);
+        } else {
+          _receiveResponse(raw);
+        }
+      }
+    } catch (_) {
+      // Callback registration survives. A later initialize/resume can retry.
+    }
   }
 
   /// Uses only the plugin's public API. Its pending list is cache evidence,
@@ -164,6 +242,7 @@ class NotificationService {
 
   Future<void> _initialize() async {
     await setupFlutterNotifications();
+    await collectInitialLaunch();
     await _ensureTimezoneInitialized();
   }
 
@@ -213,9 +292,14 @@ class NotificationService {
   Future<bool> openNotificationSettings() =>
       permission_handler.openAppSettings();
 
-  Future<void> setupFlutterNotifications() async {
-    if (_isFlutterLocalNotificationsInitialized) return;
+  Future<void> setupFlutterNotifications() {
+    if (_isFlutterLocalNotificationsInitialized) return Future.value();
+    return _setupFuture ??= _setupFlutterNotifications().whenComplete(() {
+      _setupFuture = null;
+    });
+  }
 
+  Future<void> _setupFlutterNotifications() async {
     const generalChannel = AndroidNotificationChannel(
       'high_importance_channel',
       'Important notifications',
@@ -245,7 +329,7 @@ class NotificationService {
         ),
       ),
       onDidReceiveNotificationResponse: (response) {
-        _notificationTapRouter.routeLocalNotificationTap(response.payload);
+        _receiveResponse(response.payload);
       },
     );
     _isFlutterLocalNotificationsInitialized = true;
@@ -317,6 +401,7 @@ class NotificationService {
       );
     }
     await setupFlutterNotifications();
+    await collectInitialLaunch();
     await _ensureTimezoneInitialized();
     final content = record.deliveryContent;
     await _localNotifications.zonedSchedule(

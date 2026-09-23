@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'dart:async';
 import 'package:on_time_front/domain/entities/preparation_snapshot_validation.dart';
 
@@ -180,41 +181,71 @@ class SchedulePreparationSessionUseCase {
     required String scheduleId,
     required bool startPreparation,
     String? scheduleFingerprint,
+    bool Function()? isCurrent,
   }) async {
+    bool current() => isCurrent?.call() ?? true;
     try {
       final schedule = await _scheduleRepository.getScheduleById(scheduleId);
-      if (_isEnded(schedule.doneStatus)) {
-        await _cancelScheduleAlarmUseCase(scheduleId);
-        return const SchedulePreparationPromptResult.rejected();
-      }
-
-      final preparationFuture = _preparationRepository.preparationStream
-          .map((preparations) => preparations[scheduleId])
-          .where((preparation) => preparation != null)
-          .cast<PreparationEntity>()
-          .first;
-      await _preparationRepository.getPreparationByScheduleId(scheduleId);
-      final preparation = await preparationFuture;
-      final scheduleWithPreparation =
-          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-            schedule,
-            PreparationWithTimeEntity.fromPreparation(preparation),
-          );
-
-      if (scheduleFingerprint != null &&
-          scheduleFingerprint != scheduleWithPreparation.cacheFingerprint &&
-          !startPreparation) {
-        await _cancelScheduleAlarmUseCase(scheduleId);
-        return const SchedulePreparationPromptResult.rejected();
-      }
-
-      return SchedulePreparationPromptResult.ready(scheduleWithPreparation);
-    } catch (_) {
-      if (startPreparation) {
+      if (!current()) {
         return const SchedulePreparationPromptResult.unavailable();
       }
-      await _cancelScheduleAlarmUseCase(scheduleId);
-      return const SchedulePreparationPromptResult.rejected();
+      if (_isEnded(schedule.doneStatus)) {
+        if (isCurrent == null) await _cancelScheduleAlarmUseCase(scheduleId);
+        return const SchedulePreparationPromptResult.rejected();
+      }
+      // Subscribe first, but retain only a finite snapshot of the loaded map.
+      // No uncancelled firstWhere waiter survives a failed preparation lookup.
+      PreparationEntity? preparation;
+      Object? streamError;
+      final firstSnapshot = Completer<void>();
+      final subscription = _preparationRepository.preparationStream.listen(
+        (preparations) {
+          preparation = preparations[scheduleId];
+          if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+        },
+        onError: (Object error, StackTrace stack) {
+          streamError = error;
+          if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+        },
+        onDone: () {
+          if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+        },
+      );
+      try {
+        await _preparationRepository.getPreparationByScheduleId(scheduleId);
+        if (!current()) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
+        // The repository publishes the loaded map before completing the load.
+        // Wait for stream delivery, not an arbitrary timer or cached firstWhere.
+        await firstSnapshot.future;
+        if (!current() || streamError != null) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
+      } finally {
+        await subscription.cancel();
+      }
+      if (!current() || preparation == null) {
+        return const SchedulePreparationPromptResult.unavailable();
+      }
+      final combined =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            schedule,
+            PreparationWithTimeEntity.fromPreparation(preparation!),
+          );
+      if (scheduleFingerprint != null &&
+          scheduleFingerprint != combined.cacheFingerprint &&
+          !startPreparation) {
+        if (isCurrent == null) await _cancelScheduleAlarmUseCase(scheduleId);
+        return const SchedulePreparationPromptResult.rejected();
+      }
+      return SchedulePreparationPromptResult.ready(combined);
+    } on ScheduleNotFound {
+      return current()
+          ? const SchedulePreparationPromptResult.rejected()
+          : const SchedulePreparationPromptResult.unavailable();
+    } catch (_) {
+      return const SchedulePreparationPromptResult.unavailable();
     }
   }
 

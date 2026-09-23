@@ -1,3 +1,5 @@
+import 'package:rxdart/rxdart.dart';
+import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -200,7 +202,7 @@ void main() {
     },
   );
 
-  test('prompt validation failure rejects only non-start prompts', () async {
+  test('database failure retains both prompt kinds as unavailable', () async {
     final scheduleRepository = _FakeScheduleRepository()
       ..throwingIds.addAll({'ready-prompt', 'start-prompt'});
     final cancelScheduleAlarmUseCase = _FakeCancelScheduleAlarmUseCase();
@@ -222,10 +224,71 @@ void main() {
       startPreparation: true,
     );
 
-    expect(readyPrompt.status, SchedulePreparationPromptStatus.rejected);
+    expect(readyPrompt.status, SchedulePreparationPromptStatus.unavailable);
     expect(startPrompt.status, SchedulePreparationPromptStatus.unavailable);
-    expect(cancelScheduleAlarmUseCase.cancelledScheduleIds, ['ready-prompt']);
+    expect(cancelScheduleAlarmUseCase.cancelledScheduleIds, isEmpty);
   });
+
+  test(
+    'BehaviorSubject replay resolves the loaded map and stream errors stay unavailable',
+    () async {
+      final repository = _FakeScheduleRepository();
+      repository.schedulesById['recurring-occurrence'] = _scheduleEntity(
+        'recurring-occurrence',
+        preparationDefinitionId: 'dedicated-definition',
+      );
+      final preparations = _ReplayPreparationRepository();
+      final useCase = SchedulePreparationSessionUseCase(
+        repository,
+        preparations,
+        _FakeTimedPreparationRepository(),
+        _FakeEarlyStartSessionRepository(),
+        _FakeCancelScheduleAlarmUseCase(),
+        _FakeReconcileAlarmsUseCase(),
+      );
+      var result = await useCase.resolvePromptedSchedule(
+        scheduleId: 'recurring-occurrence',
+        startPreparation: false,
+        isCurrent: () => true,
+      );
+      expect(result.status, SchedulePreparationPromptStatus.ready);
+      expect(result.schedule!.id, 'recurring-occurrence');
+      expect(result.schedule!.preparationDefinitionId, 'dedicated-definition');
+      expect(
+        result.schedule!.preparation.preparationStepList.single.preparationName,
+        'Pack',
+      );
+      preparations.fail = true;
+      result = await useCase.resolvePromptedSchedule(
+        scheduleId: 'recurring-occurrence',
+        startPreparation: false,
+        isCurrent: () => true,
+      );
+      expect(result.status, SchedulePreparationPromptStatus.unavailable);
+      await preparations.subject.close();
+    },
+  );
+
+  test(
+    'definitive missing is rejected without treating storage failure as missing',
+    () async {
+      final repository = _FakeScheduleRepository();
+      final useCase = SchedulePreparationSessionUseCase(
+        repository,
+        _FakePreparationRepository(),
+        _FakeTimedPreparationRepository(),
+        _FakeEarlyStartSessionRepository(),
+        _FakeCancelScheduleAlarmUseCase(),
+        _FakeReconcileAlarmsUseCase(),
+      );
+      final result = await useCase.resolvePromptedSchedule(
+        scheduleId: 'missing',
+        startPreparation: false,
+        isCurrent: () => true,
+      );
+      expect(result.status, SchedulePreparationPromptStatus.rejected);
+    },
+  );
 
   test(
     'finish completes the preparation session and clears scheduled delivery',
@@ -289,6 +352,7 @@ ScheduleWithPreparationEntity _scheduleWithPreparation(String id) {
 ScheduleEntity _scheduleEntity(
   String id, {
   ScheduleDoneStatus doneStatus = ScheduleDoneStatus.notEnded,
+  String? preparationDefinitionId,
 }) {
   return ScheduleWithPreparationEntity(
     id: id,
@@ -301,6 +365,7 @@ ScheduleEntity _scheduleEntity(
     scheduleSpareTime: const Duration(minutes: 5),
     scheduleNote: '',
     doneStatus: doneStatus,
+    preparationDefinitionId: preparationDefinitionId,
     preparation: const PreparationWithTimeEntity(preparationStepList: []),
   );
 }
@@ -344,6 +409,7 @@ class _FakeScheduleRepository implements ScheduleRepository {
 
   @override
   Future<ScheduleEntity> getScheduleById(String id) async {
+    if (id == 'missing') throw ScheduleNotFound(id);
     if (throwingIds.contains(id)) {
       throw Exception('schedule unavailable');
     }
@@ -458,5 +524,21 @@ class _FakeReconcileAlarmsUseCase implements ReconcileAlarmsUseCase {
       alarmCoverageStart: now,
       alarmCoverageEnd: now,
     );
+  }
+}
+
+class _ReplayPreparationRepository extends _FakePreparationRepository {
+  final subject = BehaviorSubject<Map<String, PreparationEntity>>.seeded({});
+  bool fail = false;
+  @override
+  Stream<Map<String, PreparationEntity>> get preparationStream =>
+      subject.stream;
+  @override
+  Future<void> getPreparationByScheduleId(String scheduleId) async {
+    if (fail) {
+      subject.addError(StateError('storage'));
+    } else {
+      subject.add({scheduleId: _preparation('definition-step')});
+    }
   }
 }

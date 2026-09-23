@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
@@ -53,6 +54,20 @@ void main() async {
   tearDown(() async {
     await appDatabase.close();
   });
+  test(
+    'missing schedule has typed absence while database failure stays an error',
+    () async {
+      await expectLater(
+        scheduleDao.getScheduleById('missing'),
+        throwsA(isA<ScheduleNotFound>()),
+      );
+      await appDatabase.customStatement('DROP TABLE schedules');
+      await expectLater(
+        scheduleDao.getScheduleById('missing'),
+        throwsA(isNot(isA<ScheduleNotFound>())),
+      );
+    },
+  );
   group('createSchedule', () {
     test('should insert a schedule into the database', () async {
       final result = await scheduleDao.createSchedule(scheduleWithPlaceModel);

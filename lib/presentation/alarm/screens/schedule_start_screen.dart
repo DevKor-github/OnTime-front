@@ -57,6 +57,9 @@ ScheduleStartLaunchAction scheduleStartLaunchActionFromRouteExtra(
 
 class ScheduleStartScreen extends StatefulWidget {
   final ScheduleStartPromptVariant promptVariant;
+  final bool requiresExplicitStart;
+  final bool Function()? isCurrent;
+  final VoidCallback? onExplicitStart;
 
   @Deprecated(
     'Use promptVariant. This field is kept only for backward compatibility.',
@@ -66,6 +69,9 @@ class ScheduleStartScreen extends StatefulWidget {
   const ScheduleStartScreen({
     super.key,
     this.promptVariant = ScheduleStartPromptVariant.officialStart,
+    this.requiresExplicitStart = false,
+    this.isCurrent,
+    this.onExplicitStart,
     this.isFiveMinutesBefore = false,
   });
 
@@ -94,6 +100,11 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
       ),
     );
 
+    if (!context.mounted) return;
+    if (!(widget.isCurrent?.call() ?? true)) {
+      if (ModalRoute.of(context)?.isCurrent == true) context.go('/home');
+      return;
+    }
     if (result == DialogActionResult.secondary && context.mounted) {
       context.go('/home');
     }
@@ -148,7 +159,10 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     BuildContext context,
     ScheduleStartPromptVariant variant,
   ) {
-    if (variant == ScheduleStartPromptVariant.earlyStart ||
+    if (!(widget.isCurrent?.call() ?? true)) return;
+    widget.onExplicitStart?.call();
+    if (widget.requiresExplicitStart ||
+        variant == ScheduleStartPromptVariant.earlyStart ||
         variant == ScheduleStartPromptVariant.alarm) {
       context.read<ScheduleBloc>().add(const SchedulePreparationStarted());
     }

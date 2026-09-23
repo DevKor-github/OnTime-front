@@ -86,3 +86,12 @@ final class ScheduleFinished extends ScheduleEvent {
   @override
   List<Object?> get props => [latenessTime];
 }
+
+final class _NotificationPromptPresented extends ScheduleEvent {
+  const _NotificationPromptPresented(this.schedule, this.owner, this.isCurrent);
+  final ScheduleWithPreparationEntity schedule;
+  final Object owner;
+  final bool Function() isCurrent;
+  @override
+  List<Object?> get props => [schedule, owner];
+}

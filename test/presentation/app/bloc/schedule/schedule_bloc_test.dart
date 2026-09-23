@@ -344,6 +344,7 @@ class FakeSchedulePreparationSessionUseCase
     required String scheduleId,
     required bool startPreparation,
     String? scheduleFingerprint,
+    bool Function()? isCurrent,
   }) async {
     if (unavailablePromptIds.contains(scheduleId)) {
       return const SchedulePreparationPromptResult.unavailable();

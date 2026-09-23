@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'package:drift/drift.dart';
 import 'package:on_time_front/data/tables/places_table.dart';
 import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
@@ -41,7 +42,8 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
     try {
       final query = await (select(db.schedules).join([
         leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),
-      ])..where(db.schedules.id.equals(id))).getSingle();
+      ])..where(db.schedules.id.equals(id))).getSingleOrNull();
+      if (query == null) throw ScheduleNotFound(id);
       return ScheduleWithPlace(
         schedule: query.readTable(db.schedules),
         place: query.readTable(db.places),

@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
+
 /// Serializes operations that snapshot or replace the current installation.
 /// Ordinary edits remain available while a backup destination picker is open.
-final class LocalDataOperationGate {
+final class LocalDataOperationGate extends ChangeNotifier {
   static final shared = LocalDataOperationGate();
 
   bool _busy = false;
@@ -8,6 +10,7 @@ final class LocalDataOperationGate {
   int _generation = 0;
 
   int get generation => _generation;
+  bool get isAvailable => !_busy && !_unavailable;
 
   Future<T> run<T>(
     Future<T> Function() action, {
@@ -17,10 +20,12 @@ final class LocalDataOperationGate {
     if (_unavailable) throw const LocalDataUnavailable();
     _busy = true;
     if (replacesData) _generation++;
+    notifyListeners();
     try {
       return await action();
     } finally {
       _busy = false;
+      notifyListeners();
     }
   }
 
@@ -28,6 +33,7 @@ final class LocalDataOperationGate {
   void invalidate() {
     _generation++;
     _unavailable = true;
+    notifyListeners();
   }
 }
 

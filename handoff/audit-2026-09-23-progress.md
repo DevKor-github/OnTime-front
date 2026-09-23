@@ -22,7 +22,7 @@
 - A04: #587, c11d970c
 - A05: #588, 0c41589e. 전체617 tests/analyze 및 Android release APK CI 통과. coverage84.98%. 실제기기·후속 통합 미완료
 - A11: #589, 089afee5. 원격 전체 636 tests/coverage 84.96% 및 Android APK CI 통과. Native 행동/실제 SDK 타입검사 통과. 실제 기기 검증은 대기.
-- A12: #591, 실제4Q&A·15AC 원격readback완료. grill_a12 구현중.
+- A12: #591, 실제4Q&A 및12차 검토 원격readback완료. 소스 동결, 최신 집중107 tests/analyze/정책 통과. 최신 전체suite는 ENOSPC로 원격 CI 대기. 이전707개 결과와 구분.
 - A13: #592, 실제3Q&A 포함본문readback완료. A12뒤구현대기.
 - A14: #593, 실제 3문답과 플랫폼 관측·취소 기준을 게시하고 본문 read-back 완료. A13 뒤 구현 대기.
 - A15: #594, 실제 4문답 전체 게시 및 read-back 완료, A14 뒤 구현 대기.
@@ -50,7 +50,7 @@
 - gh: /Users/ejunpark/.local/bin/gh
 - shell 실행은 login:false. login shell에서 무관한 rbenv/디스크 오류가 있었음.
 - 현재 worktree `.dart_tool`/codegen 준비됨. source 변경 후 generator 재실행, 생성 Dart는 ignored artifact로 commit 금지.
-- 디스크 여유 최근 약1.7GiB로 줄었으며 수시로 변함. 무거운 iOS/Android local build 전에 확인하고 사용자 파일을 삭제해 공간을 만들지 않는다.
+- 디스크 여유 최근 약0.3GiB로 줄었으며 수시로 변함. 무거운 iOS/Android local build 전에 확인하고 사용자 파일을 삭제해 공간을 만들지 않는다.
 - baseline npm test는 의도적 실패 placeholder이므로 쓰지 않는다.
 
 ## 다음 작업
@@ -73,3 +73,5 @@ A12는 통합 이후 구현을 재개했다. A13/A14/A15 문답 준비는 독립
 ## 추가 UI 회귀 발견
 
 A12 실제 router 테스트에서 EN, 430×932/DPR1/text scale1, 실제 Pretendard 폰트로 home_screen_tmp.dart:185가 14px overflow했다. 원본 로그는 /tmp/a12-overflow.log, 영속 사본은 plans/audit-2026-09-23/u08-home-overflow-baseline.txt다. 390×844의 A12 경로는 통과한다. 홈 소스는 아직 수정하지 않았고 U08 전체 완료를 의미하지 않는다. 신규 grill_u08 생성이 2회 한도 오류로 실패했으며 A12 완료 뒤 다시 시도한다. 사용자에게 새 질문을 할 상황이 아니며 이미 준비된 A13 구현 등 진행 가능한 작업을 계속한다.
+
+A12 최종 소스24개 SHA-256을 a12-validation.json과 대조해 일치 확인했다. 선택한 준비 C→D→홈 실제 router 경로를 검증했다. 신규 U08 agent 생성 및 기존 A13 followup 모두 agent thread limit 오류였으며 조건 완화 없이 재시도/기존 확정 이슈 구현을 진행한다.

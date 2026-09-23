@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
@@ -69,6 +70,25 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   void _registerHandlers() {
+    on<_NotificationPromptPresented>((event, emit) {
+      if (!identical(_notificationPromptOwner, event.owner) ||
+          !event.isCurrent()) {
+        return;
+      }
+      _scheduleStartTimer?.cancel();
+      _scheduleStartTimer = null;
+      _stopPreparationTimer();
+      _activeEarlyStartScheduleId = null;
+      _currentScheduleId = event.schedule.id;
+      _clearActivePreparationRun();
+      _snapshotInvalidated = true;
+      emit(
+        ScheduleState.upcoming(
+          event.schedule,
+          notificationPromptOwner: event.owner,
+        ),
+      );
+    });
     on<ScheduleSubscriptionRequested>(_onSubscriptionRequested);
     on<ScheduleUpcomingReceived>(_onUpcomingReceived);
     on<ScheduleAlarmPromptRequested>(_onAlarmPromptRequested);
@@ -99,11 +119,105 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   bool _suppressNextCatchUpStepNotification = false;
   final Map<String, Set<String>> _notifiedStepIdsByScheduleId = {};
 
+  Object? _notificationPreparationOwner;
+  Object? _notificationPreparationViewOwner;
+  Object? get notificationPreparationOwner =>
+      notificationPreparationId == null ? null : _notificationPreparationOwner;
+  String? _notificationPreparationId;
+  int? _notificationPreparationGeneration;
+  String? get notificationPreparationId =>
+      _notificationPreparationGeneration ==
+          LocalDataOperationGate.shared.generation
+      ? _notificationPreparationId
+      : null;
+
+  void confirmNotificationPrompt(Object owner) {
+    if (!ownsNotificationPrompt(owner)) return;
+    _notificationPreparationOwner = Object();
+    _notificationPreparationViewOwner = null;
+    _notificationPreparationId = state.schedule!.id;
+    _notificationPreparationGeneration =
+        LocalDataOperationGate.shared.generation;
+    releaseNotificationPrompt(owner, resumeNearest: false);
+  }
+
+  void attachNotificationPreparation(Object owner, Object viewOwner) {
+    if (identical(_notificationPreparationOwner, owner)) {
+      _notificationPreparationViewOwner = viewOwner;
+    }
+  }
+
+  void releaseNotificationPreparation(Object owner, Object viewOwner) {
+    if (!identical(_notificationPreparationOwner, owner) ||
+        !identical(_notificationPreparationViewOwner, viewOwner)) {
+      return;
+    }
+    _notificationPreparationOwner = null;
+    _notificationPreparationViewOwner = null;
+    _notificationPreparationId = null;
+    _notificationPreparationGeneration = null;
+    _notificationRevision++;
+    if (!isClosed && _notificationPromptOwner == null) {
+      add(const ScheduleSubscriptionRequested());
+    }
+  }
+
+  int _notificationRevision = 0;
+  Object? _notificationPromptOwner;
+
+  bool Function() _captureBackgroundValidity() {
+    final revision = _notificationRevision;
+    final generation = LocalDataOperationGate.shared.generation;
+    return () =>
+        !isClosed &&
+        _notificationPromptOwner == null &&
+        revision == _notificationRevision &&
+        generation == LocalDataOperationGate.shared.generation;
+  }
+
+  bool ownsNotificationPrompt(Object owner) =>
+      identical(_notificationPromptOwner, owner) &&
+      identical(state.notificationPromptOwner, owner);
+
+  /// The tap coordinator has already resolved this exact occurrence from the
+  /// current database. Showing a confirmation never starts a timer/run or
+  /// mutates the persisted confirmation marker.
+  void presentNotificationPrompt(
+    ScheduleWithPreparationEntity schedule,
+    Object owner,
+    bool Function() isCurrent,
+  ) {
+    if (isClosed || !isCurrent()) return;
+    _notificationPreparationOwner = null;
+    _notificationPreparationViewOwner = null;
+    _notificationPreparationId = null;
+    _notificationPreparationGeneration = null;
+    _notificationRevision++;
+    _notificationPromptOwner = owner;
+    add(_NotificationPromptPresented(schedule, owner, isCurrent));
+  }
+
+  void releaseNotificationPrompt(Object owner, {bool resumeNearest = true}) {
+    if (identical(_notificationPromptOwner, owner)) {
+      _notificationRevision++;
+      _notificationPromptOwner = null;
+      if (resumeNearest && !isClosed) {
+        add(const ScheduleSubscriptionRequested());
+      }
+    }
+  }
+
+  int _subscriptionRevision = 0;
+
   Future<void> _onSubscriptionRequested(
     ScheduleSubscriptionRequested event,
     Emitter<ScheduleState> emit,
   ) async {
-    await _upcomingScheduleSubscription?.cancel();
+    final revision = ++_subscriptionRevision;
+    final previous = _upcomingScheduleSubscription;
+    _upcomingScheduleSubscription = null;
+    await previous?.cancel();
+    if (isClosed || revision != _subscriptionRevision) return;
 
     _upcomingScheduleSubscription = _getNearestUpcomingScheduleUseCase().listen(
       (upcomingSchedule) {
@@ -119,7 +233,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleUpcomingReceived event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (isClosed) return;
+    if (notificationPreparationId != null) return;
+    final current = _captureBackgroundValidity();
+    if (!current()) return;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
     final now = _nowProvider();
@@ -129,6 +245,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       final staleId = event.upcomingSchedule?.id ?? _currentScheduleId;
       if (staleId != null) {
         await _clearPersistedState(staleId);
+        if (!current()) return;
       }
       _stopPreparationTimer();
       emit(const ScheduleState.notExists());
@@ -143,17 +260,23 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final incoming = event.upcomingSchedule!;
     if (_currentScheduleId != null && _currentScheduleId != incoming.id) {
       await _clearPersistedState(_currentScheduleId!);
+      if (!current()) return;
       _notifiedStepIdsByScheduleId.remove(_currentScheduleId);
       _clearActivePreparationRun();
     }
     _currentScheduleId = incoming.id;
 
+    if (_notificationPromptOwner != null) return;
     final earlyStartSession = await _getEarlyStartSession(incoming.id);
     final hasEarlyStartSession = earlyStartSession != null;
-    if (isClosed) return;
+    if (!current()) return;
 
     _snapshotInvalidated = false;
-    var resolvedSchedule = await _restoreFromSnapshotIfValid(incoming);
+    var resolvedSchedule = await _restoreFromSnapshotIfValid(
+      incoming,
+      isCurrent: current,
+    );
+    if (!current()) return;
     if (!_snapshotInvalidated &&
         !hasEarlyStartSession &&
         incoming.preparationStartTime.isAfter(now)) {
@@ -161,7 +284,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       resolvedSchedule = incoming;
       _clearActivePreparationRun();
     }
-    if (isClosed) return;
+    if (!current()) return;
     _initializeNotificationTracking(resolvedSchedule);
     if (_snapshotInvalidated) {
       _activeEarlyStartScheduleId = null;
@@ -188,9 +311,10 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
             );
       }
       await _startScheduleLocally(resolvedSchedule.id);
-      if (isClosed) return;
+      if (!current()) return;
       emit(ScheduleState.started(resolvedSchedule, isEarlyStarted: true));
       await _saveTimedPreparationSnapshot(resolvedSchedule, force: true);
+      if (!current()) return;
       _startPreparationTimer();
       return;
     }
@@ -207,7 +331,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
     if (_isPreparationOnGoing(resolvedSchedule, now)) {
       await _startScheduleLocally(resolvedSchedule.id);
-      if (isClosed) return;
+      if (!current()) return;
       emit(ScheduleState.ongoing(resolvedSchedule));
       AppLogger.debug(
         'ongoing scheduleId=${resolvedSchedule.id} '
@@ -227,12 +351,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleStarted event,
     Emitter<ScheduleState> emit,
   ) async {
+    final current = _captureBackgroundValidity();
+    if (!current()) return;
     if (_snapshotInvalidated) return;
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       if (_activeEarlyStartScheduleId == _currentScheduleId) return;
       AppLogger.debug('schedule started scheduleId=${state.schedule!.id}');
       await _startScheduleLocally(state.schedule!.id);
-      if (isClosed) return;
+      if (!current()) return;
       emit(ScheduleState.started(state.schedule!));
       _initializeNotificationTracking(state.schedule!);
       _navigationService.push('/scheduleStart');
@@ -245,6 +371,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleAlarmPromptRequested event,
     Emitter<ScheduleState> emit,
   ) async {
+    final current = _captureBackgroundValidity();
+    if (!current()) return;
     AppLogger.debug(
       'alarm prompt requested: scheduleId=${event.scheduleId} '
       'startPreparation=${event.startPreparation}',
@@ -258,6 +386,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         event,
         emit,
         source: 'cached',
+        isCurrent: current,
       );
       return;
     }
@@ -267,7 +396,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
           scheduleId: event.scheduleId,
           startPreparation: event.startPreparation,
           scheduleFingerprint: event.scheduleFingerprint,
+          isCurrent: current,
         );
+    if (!current()) return;
     switch (promptResult.status) {
       case SchedulePreparationPromptStatus.ready:
         await _activateAlarmPromptSchedule(
@@ -275,6 +406,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
           event,
           emit,
           source: 'remote',
+          isCurrent: current,
         );
       case SchedulePreparationPromptStatus.rejected:
         AppLogger.debug(
@@ -316,14 +448,17 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleAlarmPromptRequested event,
     Emitter<ScheduleState> emit, {
     required String source,
+    required bool Function() isCurrent,
   }) async {
+    if (!isCurrent()) return;
     _currentScheduleId = schedule.id;
     _activeEarlyStartScheduleId = null;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
     _stopPreparationTimer();
     _initializeNotificationTracking(schedule);
-    await _restoreFromSnapshotIfValid(schedule);
+    await _restoreFromSnapshotIfValid(schedule, isCurrent: isCurrent);
+    if (!isCurrent()) return;
     if (_snapshotInvalidated) {
       _clearActivePreparationRun();
       emit(ScheduleState.upcoming(schedule));
@@ -351,6 +486,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     SchedulePreparationStarted event,
     Emitter<ScheduleState> emit,
   ) async {
+    final current = _captureBackgroundValidity();
+    if (!current()) return;
     final schedule = state.schedule;
     if (schedule == null) return;
     if (_activeEarlyStartScheduleId == schedule.id) return;
@@ -366,6 +503,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       startedAt: startedAt,
     );
 
+    if (!current()) return;
     _snapshotInvalidated = false;
     _activePreparationRunStartedAt = startedAt;
     _activePreparationActionEvents = const [];
@@ -375,6 +513,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   Future<void> _onTick(ScheduleTick event, Emitter<ScheduleState> emit) async {
+    if (_notificationPromptOwner != null) return;
     if (state.schedule == null) return;
     final oldStepId = state.schedule!.preparation.currentStep?.id;
     final updatedPreparation = state.schedule!.preparation.timeElapsed(
@@ -403,7 +542,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     SchedulePreparationTimeRefreshRequested event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (state.schedule == null) return;
+    if (_notificationPromptOwner != null || state.schedule == null) return;
     if (state.schedule!.preparation.isAllStepsDone) return;
     final startedAt = _activePreparationRunStartedAt;
     if (startedAt == null) return;
@@ -427,7 +566,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleStepSkipped event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (state.schedule == null) return;
+    if (_notificationPromptOwner != null || state.schedule == null) return;
     if (state.schedule!.preparation.isAllStepsDone) return;
     final now = _nowProvider();
     _activePreparationRunStartedAt ??= state.isEarlyStarted
@@ -463,13 +602,20 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleFinished event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (state.schedule == null) return;
+    final current = _captureBackgroundValidity();
+    if (!current() || state.schedule == null) return;
     final scheduleId = state.schedule!.id;
     try {
       await _schedulePreparationSessionUseCase.finishSchedulePreparation(
         scheduleId,
         latenessTime: event.latenessTime,
       );
+      if (!current()) return;
+      final restoreNearest = notificationPreparationId != null;
+      _notificationPreparationOwner = null;
+      _notificationPreparationViewOwner = null;
+      _notificationPreparationId = null;
+      _notificationPreparationGeneration = null;
       // After finishing, clear timers and set state to notExists
       _stopPreparationTimer();
       _scheduleStartTimer?.cancel();
@@ -478,6 +624,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _lastSnapshotSavedAt = null;
       _clearActivePreparationRun();
       emit(const ScheduleState.notExists());
+      if (restoreNearest) add(const ScheduleSubscriptionRequested());
     } catch (error) {
       AppLogger.debug('error finishing schedule: $error');
     }
@@ -546,17 +693,19 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   bool _snapshotInvalidated = false;
 
   Future<ScheduleWithPreparationEntity> _restoreFromSnapshotIfValid(
-    ScheduleWithPreparationEntity incoming,
-  ) async {
+    ScheduleWithPreparationEntity incoming, {
+    bool Function()? isCurrent,
+  }) async {
     _clearActivePreparationRun();
     _snapshotInvalidated = false;
     return _schedulePreparationSessionUseCase.restoreTimedPreparationIfValid(
       incoming,
       now: _nowProvider(),
       onInvalidated: () {
-        _snapshotInvalidated = true;
+        if (isCurrent?.call() ?? true) _snapshotInvalidated = true;
       },
       onRestoredSession: ({required startedAt, required actionEvents}) {
+        if (!(isCurrent?.call() ?? true)) return;
         _activePreparationRunStartedAt = startedAt;
         _activePreparationActionEvents = actionEvents;
       },

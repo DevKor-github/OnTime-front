@@ -289,6 +289,7 @@ class TestSchedulePreparationSessionUseCase
     required String scheduleId,
     required bool startPreparation,
     String? scheduleFingerprint,
+    bool Function()? isCurrent,
   }) async {
     return const SchedulePreparationPromptResult.unavailable();
   }
@@ -369,6 +370,12 @@ class StaticScheduleBloc implements ScheduleBloc {
 
   @override
   Stream<ScheduleState> get stream => const Stream.empty();
+
+  @override
+  String? get notificationPreparationId => null;
+
+  @override
+  Object? get notificationPreparationOwner => null;
 
   @override
   bool get isClosed => false;

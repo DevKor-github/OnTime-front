@@ -561,16 +561,18 @@
         "`backup_service.dart:101-103,415-472`; `backup_crypto.dart:18-19,111-135`",
         "읽기 전 파일 크기 제한, 레코드·텍스트·기간 상한, 실제 IANA zone/DST 검증, 준비 그래프·참조 무결성 검증. 초대형/잘린/이상 값 입력이 활성 DB를 바꾸지 않아야 함."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_d05",
+      "issue_number": 606,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/606",
       "decisions_file": "plans/audit-2026-09-23/issues/D05.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 20
+      "sequence": 20,
+      "readback_verified": true,
+      "body_sha256": "15cea8d115b001831a7fc9deb65e68fb9934879c2a361b50aa594fb06c4ad2ef"
     },
     {
       "audit_id": "A10",

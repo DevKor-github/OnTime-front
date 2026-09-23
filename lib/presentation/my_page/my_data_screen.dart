@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/backup/backup_password.dart';
 import 'package:on_time_front/core/backup/backup_service.dart';
 import 'package:on_time_front/core/database/local_data_reset_service.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
+import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 class MyDataScreen extends StatefulWidget {
   const MyDataScreen({super.key});
@@ -32,59 +36,97 @@ class _MyDataScreenState extends State<MyDataScreen> {
   Widget build(BuildContext context) {
     final freshness = _freshness;
     return Scaffold(
-      appBar: AppBar(title: const Text('내 데이터')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('백업 상태', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Text(_freshnessLabel(freshness)),
-                  if (freshness?.reminderDue == true) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      '30일 이상 백업되지 않은 변경 사항이 있습니다.',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+      appBar: AppBar(
+        leading: IconButton(
+          tooltip: '뒤로',
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 8),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/myPage');
+            }
+          },
+          icon: SvgPicture.asset(
+            'chevron_left.svg',
+            package: 'assets',
+            width: 8,
+            height: 14,
+            colorFilter: ColorFilter.mode(
+              AppColors.grey.shade500,
+              BlendMode.srcIn,
             ),
           ),
-          const SizedBox(height: 12),
-          ListTile(
+        ),
+        title: const Text('내 데이터'),
+        centerTitle: true,
+        toolbarHeight: 60,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontSize: 19,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 32),
+        children: [
+          Padding(
+            key: const Key('backupStatusCard'),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '백업 상태',
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 1.2,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _freshnessLabel(freshness),
+                  style: const TextStyle(fontSize: 14, height: 1.2),
+                ),
+                if (freshness?.reminderDue == true) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    '30일 이상 백업되지 않은 변경 사항이 있습니다.',
+                    style: TextStyle(color: AppColors.red.shade800),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _DataActionRow(
+            rowKey: const Key('backupExportRow'),
             enabled: !_busy,
-            leading: const Icon(Icons.lock_outline),
-            title: const Text('암호화 백업 내보내기'),
-            subtitle: const Text('선택한 파일 위치에만 저장합니다.'),
+            icon: Icons.lock_outline,
+            title: '암호화 백업 내보내기',
+            subtitle: '선택한 파일 위치에만 저장합니다.',
             onTap: _export,
           ),
-          ListTile(
+          const SizedBox(height: 18),
+          _DataActionRow(
+            rowKey: const Key('backupRestoreRow'),
             enabled: !_busy,
-            leading: const Icon(Icons.restore),
-            title: const Text('백업에서 복원'),
-            subtitle: const Text('미리 확인한 뒤 현재 데이터를 완전히 교체합니다.'),
+            icon: Icons.restore,
+            title: '백업에서 복원',
+            subtitle: '미리 확인한 뒤 현재 데이터를 완전히 교체합니다.',
             onTap: _restore,
           ),
-          const Divider(height: 32),
-          ListTile(
+          const SizedBox(height: 18),
+          const Divider(height: 1),
+          const SizedBox(height: 17),
+          _DataActionRow(
+            rowKey: const Key('localDataResetRow'),
             enabled: !_busy,
-            leading: Icon(
-              Icons.delete_forever,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            title: Text(
-              '로컬 데이터 초기화',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            subtitle: const Text('이 기기의 OnTime 데이터와 알람을 모두 삭제합니다.'),
+            icon: Icons.delete_forever,
+            title: '로컬 데이터 초기화',
+            subtitle: '이 기기의 OnTime 데이터와 알람을 모두 삭제합니다.',
+            destructive: true,
             onTap: _reset,
           ),
           if (_busy)
@@ -167,30 +209,23 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   Future<void> _reset() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('모든 로컬 데이터를 삭제할까요?'),
-        content: const Text(
-          '일정, 준비 단계, 기록, 설정, 알람과 기기 암호화 키가 삭제됩니다. '
-          '이미 내보낸 백업 파일은 삭제되지 않습니다. 이 작업은 되돌릴 수 없습니다.',
+    final result = await showTwoActionDialog(
+      context,
+      config: const TwoActionDialogConfig(
+        title: '모든 로컬 데이터를 삭제할까요?',
+        description:
+            '일정, 준비 단계, 기록, 설정, 알람과 기기 암호화 키가 삭제됩니다. '
+            '이미 내보낸 백업 파일은 삭제되지 않습니다. 이 작업은 되돌릴 수 없습니다.',
+        secondaryAction: DialogActionConfig(label: '취소'),
+        primaryAction: DialogActionConfig(
+          label: '모두 삭제',
+          variant: ModalWideButtonVariant.destructive,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('모두 삭제'),
-          ),
-        ],
+        barrierColor: Color(0x6B000000),
+        alignment: Alignment(0, 0.04),
       ),
     );
-    if (confirmed != true) return;
+    if (result != DialogActionResult.primary) return;
     setState(() => _busy = true);
     try {
       await getIt<LocalDataResetService>().reset();
@@ -297,30 +332,137 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 }
 
+class _DataActionRow extends StatelessWidget {
+  const _DataActionRow({
+    required this.rowKey,
+    required this.enabled,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.destructive = false,
+  });
+
+  final Key rowKey;
+  final bool enabled;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool destructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleColor = destructive
+        ? AppColors.red.shade800
+        : AppColors.grey[950]!;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: '$title. $subtitle',
+      child: InkWell(
+        key: rowKey,
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(12),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 68),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 24,
+                  color: destructive ? titleColor : AppColors.grey.shade700,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          height: 1.2,
+                          fontWeight: FontWeight.w600,
+                          color: titleColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          height: 1.2,
+                          color: AppColors.grey.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class LocalDataResetCompleteScreen extends StatelessWidget {
   const LocalDataResetCompleteScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
+  Widget build(BuildContext context) => Scaffold(
     body: SafeArea(
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.check_circle_outline, size: 64),
-              SizedBox(height: 20),
-              Text(
-                '로컬 데이터를 삭제했습니다.',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 27),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      height: 77,
+                      child: Icon(
+                        Icons.check_circle_outline,
+                        size: 68,
+                        color: Color(0xFF111111),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      '로컬 데이터를 삭제했습니다.',
+                      style: TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 20,
+                        height: 1.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 18),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 336),
+                      child: const Text(
+                        'OnTime을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로\n시작합니다.',
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 14,
+                          height: 1.2,
+                          letterSpacing: -0.15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(height: 12),
-              Text(
-                'OnTime을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로 시작합니다.',
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -1,0 +1,155 @@
+schema_version: 1
+figma_file_key: FIdR6bUMHScn9FWbwqrBsA
+figma_page: '1:25'
+figma_board: '285:5'
+reference:
+  platform: ios
+  locale: ko
+  viewport: 390x844
+  text_scale: 1.0
+  flutter_commit: 44067d7ab26b6290c16cdb13b99f57387dec08f6
+
+# Each route status applies to its listed state only. Variants have separate
+# statuses. reviewed means the Figma image and Flutter capture were compared;
+# a passing Flutter golden by itself is insufficient.
+screens:
+  - route: /recovery
+    figma_node: '1957:11762'
+    flutter: lib/presentation/startup/screens/local_data_recovery_screen.dart
+    state: default
+    status: reviewed
+    review_note: Default content compared against Figma at 390x844. Text rendering differs by a few pixels; 48px reset touch area is intentional.
+    figma_image: docs/design/review/figma/recovery-default.png
+    figma_sha256: 28cfabab83c134efd2665bd33e90cffbf6a85c80fd79d53c097e31ab0e733faf
+    flutter_golden: test/goldens/goldens/recovery_default_390x844.png
+    variants:
+      - state: reset_confirmation
+        figma_node: '2003:12059'
+        status: reviewed
+        review_note: Dialog card is 277px; buttons use 44px accessible touch targets versus 43px visible reference. Native chrome is excluded.
+        figma_image: docs/design/review/figma/recovery-reset-confirmation.png
+        figma_sha256: b573b5285d438a0ada585f4d82ff17d52c796706b7018068b4faff7fe1dccfb1
+        flutter_golden: test/goldens/goldens/recovery_reset_confirmation_390x844.png
+      - state: busy
+        figma_node: '2005:12036'
+        status: pending
+  - route: /startup
+    figma_node: null
+    status: pending
+  - route: /allowNotification
+    figma_node: null
+    status: pending
+  - route: /allowAlarm
+    figma_node: null
+    status: pending
+  - route: /onboarding
+    figma_node: null
+    status: pending
+  - route: /onboarding/start
+    figma_node: null
+    status: pending
+  - route: /home
+    figma_node: '600:34301'
+    flutter: lib/presentation/home/screens/home_screen_tmp.dart
+    state: default
+    status: pending
+    review_note: Figma uses a 2024-12-21 calendar and a sample appointment; a frozen matching app fixture is still needed.
+    figma_image: docs/design/review/figma/home-default.png
+    figma_sha256: 87d9c1e3ed1a5a556f2fbb8081abaacdbeb41fbbf19f4d1cf998e015fac70d40
+    variants:
+      - {state: loading, figma_node: '1824:2', status: pending}
+      - {state: error, figma_node: '1824:694', status: pending}
+  - route: /myPage
+    figma_node: '965:4676'
+    flutter: lib/presentation/my_page/my_page_screen.dart
+    state: default
+    status: pending
+    figma_image: docs/design/review/figma/my-page-default.png
+    figma_sha256: 5bce6547ebc2858f6cffa0a1993dad6a144d6ee864face8e818672e93bfc7607
+  - route: /myData
+    figma_node: '1948:12072'
+    flutter: lib/presentation/my_page/my_data_screen.dart
+    state: default
+    status: reviewed
+    review_note: App-owned content and 358x68 row geometry checked against node metadata. Native status bar and home indicator are excluded from Flutter golden.
+    figma_image: docs/design/review/figma/my-data-default.png
+    figma_sha256: 5f2a48998edfd1b3b47d4bff0022f941626ea94fbe3cae36799260a23aa41ed7
+    flutter_golden: test/goldens/goldens/my_data_default_390x844.png
+    variants:
+      - state: reset_confirmation
+        figma_node: '1977:11817'
+        status: reviewed
+        review_note: Dialog card is 277px; buttons use 44px accessible touch targets versus 43px visible reference. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-reset-confirmation.png
+        figma_sha256: 71fbec92ba42e5918e57db6e0941b46e10961657f698d5475d0af84446fece8a
+        flutter_golden: test/goldens/goldens/my_data_reset_confirmation_390x844.png
+      - {state: restore_preview_confirmation, figma_node: '1978:11791', status: pending}
+      - {state: backup_password_create, figma_node: '1979:11816', status: pending}
+      - {state: backup_password_input, figma_node: '1980:11841', status: pending}
+      - {state: backup_password_invalid_length, figma_node: '1981:11866', status: pending}
+      - {state: backup_password_mismatch, figma_node: '1982:11891', status: pending}
+      - {state: freshness_checking, figma_node: '1985:11908', status: pending}
+      - {state: freshness_no_changes, figma_node: '1987:11925', status: pending}
+      - {state: freshness_unexported_changes, figma_node: '1989:11942', status: pending}
+      - {state: freshness_reminder_due, figma_node: '1991:11959', status: pending}
+      - {state: busy, figma_node: '1996:11977', status: pending}
+      - {state: export_success_snackbar, figma_node: '1999:11994', status: pending}
+      - {state: restore_success_snackbar, figma_node: '2000:12010', status: pending}
+      - {state: operation_failure_snackbar, figma_node: '2001:12027', status: pending}
+  - route: /privacyPolicy
+    figma_node: '1950:11759'
+    flutter: lib/presentation/my_page/privacy_policy_screen.dart
+    status: pending
+  - route: /resetComplete
+    figma_node: '1963:11762'
+    flutter: lib/presentation/my_page/my_data_screen.dart
+    state: default
+    status: reviewed
+    review_note: Default icon and text positions compared against Figma at 390x844; native system chrome is outside the Flutter golden.
+    figma_image: docs/design/review/figma/reset-complete.png
+    figma_sha256: 010fd0e1b2a0bc99c38fdf0097d4cc3f4834b76d9bd4b8ec726810e1441d9d18
+    flutter_golden: test/goldens/goldens/reset_complete_390x844.png
+  - route: /defaultPreparationSpareTimeEdit
+    figma_node: '600:35201'
+    status: pending
+  - route: /calendar
+    figma_node: '868:146599'
+    state: empty
+    status: pending
+    review_note: Figma fixture date is 2024-12-21; app logic currently treats that date as past.
+    figma_image: docs/design/review/figma/calendar-empty.png
+    figma_sha256: 0a1bd7f2eb3afcc6c6809c8d9f7d05a904fcfcde6f13570188a97cc9bf242e8b
+    variants:
+      - {state: expanded, figma_node: '868:146600', status: pending}
+      - {state: list, figma_node: '882:426235', status: pending}
+      - {state: swipe_actions, figma_node: '882:464741', status: pending}
+      - {state: expanded_actions, figma_node: '882:493347', status: pending}
+      - {state: delete_confirm, figma_node: '882:512625', status: pending}
+      - {state: loading, figma_node: '1816:6728', status: pending}
+      - {state: error, figma_node: '1816:6984', status: pending}
+  - route: /scheduleCreate
+    figma_node: null
+    status: pending
+  - route: '/scheduleEdit/:scheduleId'
+    figma_node: null
+    status: pending
+  - route: /preparationEdit
+    figma_node: null
+    status: pending
+  - route: /scheduleStart
+    figma_node: null
+    status: pending
+  - route: /alarmScreen
+    figma_node: null
+    status: pending
+  - route: /earlyLate
+    figma_node: null
+    status: pending
+  - route: /moving
+    figma_node: null
+    status: pending
+
+hidden_historical_nodes:
+  - '466:6517' # server-backed login
+  - '600:36265' # provider permission prompt
+  - '600:36353' # account logout dialog

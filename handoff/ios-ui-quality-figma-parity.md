@@ -2,6 +2,8 @@
 
 2026-09-23 checkpoint. Branch: `codex/ios-ui-quality-figma-parity`, based on committed `feature/figma-offline-screen-sync` commit `44067d7ab26b6290c16cdb13b99f57387dec08f6`. This isolated worktree did not copy changes from other worktrees.
 
+The remote feature branch advanced to `f0877d1d` (offline recurring schedules) after this worktree branched. It was fetched for comparison, but these QA commits have not been rebased onto it. Reconcile that new commit and rerun checks before opening a PR against the moving feature branch.
+
 Source Figma file: `FIdR6bUMHScn9FWbwqrBsA` (`OnTime-Design-System`), page `1:25`, board `285:5`. The old `GiDCK...` link is not the review source. Reference viewport: Korean iOS 390×844.
 
 ## Current result
@@ -26,6 +28,7 @@ An iPhone 16 iOS 18 simulator was booted, but `flutter run --no-resident` failed
 ## Next work
 
 1. Resolve the Figma Home/Calendar month-title/date-grid contradiction with product guidance. Continue deterministic Flutter fixtures for Calendar's seven remaining variants and remaining routes without falsifying calendar dates. The Calendar empty fixture's reference clock is test-only. Source PNGs for these paths are saved and hash-checked in the manifest.
-2. Add native behavior and accessibility checks for export/restore and reset failures. Review Home loading/error and Calendar expanded/list/swipe/delete/loading/error states.
+2. Add native behavior and accessibility checks for export/restore and reset failures. Resolve Home loading/error sign-off after the date-grid decision, then review Calendar expanded/list/swipe/delete/loading/error states.
+   Figma desktop context for Calendar loading/error nodes repeatedly timed out on 2026-09-23; browser navigation to one of those nodes also timed out. Do not infer their visual details from the empty-state capture.
 3. Add iOS integration scenarios for schedule create/edit/delete, backup/restore/reset, recovery and permissions once the simulator build is possible. Profile scrolling/navigation on an attached iPhone. Do not infer native correctness from widget goldens.
 4. Re-run `flutter analyze --no-pub`, `flutter test --no-pub --concurrency=1`, `dart run tool/check_local_only_boundary.dart`, and `dart run tool/report_figma_ui_coverage.dart`. Complete strict coverage only after each design route and variant is genuinely reviewed or explicitly excluded with a reason.

@@ -12,8 +12,8 @@
 
 - 저장소 DevKor-github/OnTime-front, 브랜치 fix/audit-20260923-stabilization, Draft PR #585 (task attach 완료).
 - 감사 baseline44067d7a. upstream PR590 반복 일정 main2b02fb77을 712b3708에서 통합했다. schema2/v1 migration, backupformat2/v1 호환, 반복 소유권·frozen·exclusions 및 가까운 미래60개 계약을 보존한다.
-- 상세 이슈 **19/64개** 게시 및 exact read-back 완료, **45개 생성 전**.
-- A01#583, A02#584, A03#586, A04#587, A05#588, A11#589, A12#591, A13#592, A14#593, A15#594, D03#595, U08#597, A06#598, A07#599, C01#600, A08#601, A09#602, D01#603, D02#604.
+- 상세 이슈 **20/64개** 게시 및 exact read-back 완료, **44개 생성 전**.
+- A01#583, A02#584, A03#586, A04#587, A05#588, A11#589, A12#591, A13#592, A14#593, A15#594, D03#595, U08#597, A06#598, A07#599, C01#600, A08#601, A09#602, D01#603, D02#604, D04#605.
 - A01–A05/A11/A12/A13은 구현·자동 검증을 마쳤으나 기기 또는 후속 통합 조건이 남아 있다. U08은 홈 overflow 선행 패치만 구현했으며 전체 큰 글자 매트릭스는 미완료다.
 - A14는 source24개 동결 및 root hash 대조를 완료했고 receipt·전용 UI 캡처·커밋 전달을 마무리 중이다. A15 원래 전담은 readonly 준비를 마쳤으며 A14 commit 이후 구현한다.
 - A06/A07/C01/A08/A09/D01/D02/D03/A15의 실제 문답 및 상세 계획은 게시됐지만 구현 완료는 아니다.
@@ -48,3 +48,13 @@
 ## A14 전달 완료와 A15 시작
 
 A14는 282db21f5effa86eb2f82c81c247d57a0a6acfd0로 커밋했다. source24 해시 및 최종100/772/analyze/native SDK receipt와 전용 KO/EN PNG를 포함한다. #593 본문에 최종 구현/증거 링크를 넣고 exact read-back했다. A15 원래 전담에게 해당 SHA를 전달하고 구현을 허용했다. A14 원격 CI는 push 이후 새 head로 확인하며 아직 통과를 주장하지 않는다.
+
+원격 push head는 b81259bf66881289bf6bca9ac7cca2548de6a326이며 PR #585 본문을 A14 구현/증거 및 총19개 이슈에 맞춰 갱신하고 exact read-back했다. Flutter run35887794993, Android run35887794956은 실행 중이다. a14-ci-validation.json은 현재 중간 snapshot이며 최종 통과로 보고하지 않는다. 다음 실행은 이 두 run을 같은 전체 SHA로 확인한다. A15는 snapshot 이후 새 일정+두 번째 call barrier가 수정 전 실패함을 /tmp/a15-red.log로 확인하고 구현 중이다.
+
+## D04 게시 / A14 최종 CI / A15 리뷰
+
+D04 #605 실제 네 문답 및 보충을 게시하고 exact read-back했다. 현재20/64,44개 미생성. 실제v1→v2가 있으므로 baseline을 정정했고 DDL/version 원자성, 미래 schema downgrade 거부, 과거 독립 fixture, Android background SQLCipher loader와 cipher_version guard, 실제 모바일 검증을 AC로 확정했다. 앱에서 평문 유출을 재현했다는 뜻은 아니다.
+
+A14 b81259bf의 Flutter35887794993 전체772/analyze·coverage87.44% 및 Android35887794956 APK/manifest가 모두 통과했다. artifact10763053548/synthetic merge3ebcf192/APK7e88d688...를 receipt에 기록했다. 다만 A15 리뷰에서 실제 registry의 scheduleId dedup이 복수 provider/platform-ID 취소 ownership을 잃을 수 있음을 발견해 후속 통합 미완료를 #593에 명시했다. A15가 실제 repo/datasource 왕복, 중복 ownership keeper·취소, reset intent 이후 실패 시 신규 writer 차단, DB 시작/완료 후 취소 오류의 별도 처리까지 수정 중이다. 이 검토 후 전체 A15 테스트는 아직 완료되지 않았다.
+
+D05 새 전담 생성은 이번 continuation에서도 thread limit으로 한 번 실패했다. D04 신규 생성은 성공했다. 다음 continuation에서 D05 신규 전담을 다시 생성하며 기존 전담을 다른 항목에 재사용하지 않는다.

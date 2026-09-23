@@ -290,7 +290,7 @@
         "`reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214`",
         "permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시."
       ],
-      "status": "code_verified_ci_pending",
+      "status": "code_verified_followup_pending",
       "agent": "/root/grill_a14",
       "issue_number": 593,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/593",
@@ -299,15 +299,17 @@
       "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Frozen source24 SHA256 matched; focused100/full772, analyzer, native Swift SDK/Kotlin compile, generated/local-only checks passed. a14-validation.json.",
-        "Root visually reviewed actual MyPage standalone KO/EN captures; fake receipts/in-memory DB, not physical OS screenshots."
+        "Root visually reviewed actual MyPage standalone KO/EN captures; fake receipts/in-memory DB, not physical OS screenshots.",
+        "Remote b81259bf: Flutter772/analyze, coverage87.44% (11487/13137), Android APK/manifest passed. a14-ci-validation.json."
       ],
       "blockers": [
-        "Remote CI pending; actual Android/iOS delivery and permission/Doze/reboot matrix not executed."
+        "A15 integration follow-up: actual registry scheduleId dedup can lose multiple provider/platform-ID cancellation ownership; implementation underway.",
+        "Actual Android/iOS delivery and permission/Doze/reboot matrix not executed."
       ],
       "sequence": 9,
       "issue_body_sha256": "23769c09503d629f813df5b93db7b2b6fce715dd15ea1571ea09fa06b9c1a5d4",
       "readback_verified": true,
-      "body_sha256": "2c068b0a81fa6eae7e339bff394a6e492a71f8395cc37ad7a724a2b7652c85a8"
+      "body_sha256": "562f5779035405a4a284ba08f76067b19c50eddf6050aa6d5f47093ad3a4c470"
     },
     {
       "audit_id": "A15",
@@ -527,7 +529,7 @@
     {
       "audit_id": "D04",
       "priority": "P1",
-      "summary": "DB v1의 onUpgrade는 명시적으로 실패한다. 현재 v1 자체의 장애라고 볼 수 없으나 다음 schema 변경 전 migration 기반이 필요하다.",
+      "summary": "현재 v1→v2 migration은 존재하지만 DDL/version 원자성·미래 버전 거부·독립 역사 fixture·실제 SQLCipher loader/guard 및 실패 보존 검증을 보강해야 한다.",
       "audit_cells": [
         "D04",
         "**P1 · 개선**",
@@ -535,16 +537,18 @@
         "`database.dart:49-64`; `test/core/database/database_index_test.dart:32`",
         "version별 schema snapshot, 기존 파일 fixture, transaction rollback, 디스크 부족·암호키 오류 테스트. 실패 시 파일·키 보존."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_d04",
+      "issue_number": 605,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/605",
       "decisions_file": "plans/audit-2026-09-23/issues/D04.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 19
+      "sequence": 19,
+      "readback_verified": true,
+      "body_sha256": "6ab517bf1b1a2b59c81d52306941df653be2f81d01efaea44da3af0036575247"
     },
     {
       "audit_id": "D05",

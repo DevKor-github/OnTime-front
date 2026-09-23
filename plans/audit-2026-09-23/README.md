@@ -24,7 +24,7 @@
 | A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 089afee5 원격636 tests/84.96%·APK 통과, 최신main 통합678 tests 통과, 기기 검증 대기 |
 | A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 콜드 탭·선택 준비 유지 구현, 최종 b9f959db 원격707 tests/analyze·coverage87.11%·APK 통과, 기기 검증 대기 |
 | A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 예약/안내·registry 후속 수정 원격740 tests/87.20%·APK 통과, 기기 대기 |
-| A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | provider 관측·취소 보존 구현282db21f, 로컬772 tests/native SDK 통과, 원격 CI·기기 대기 |
+| A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | provider 관측 구현282db21f, 원격772 tests/87.44%·APK 통과, A15 실제 ownership 저장 후속·기기 대기 |
 | A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 실제4문답·요청별 완료/실패 및 세대 직렬화 기준 확정, 전담 구현 중 |
 | D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 실제4문답·취소 journal/중단 복구/부분 결과 기준 확정, A15 뒤 구현 |
 | A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | 실제3문답·정정 포함, 신선한 실제 타이머 전환 알림 기준 확정 |
@@ -34,9 +34,10 @@
 | A09 | [#602](https://github.com/DevKor-github/OnTime-front/issues/602) | 실제4문답·staging/runtime 세대·복원 후 정리 기준 확정 |
 | D01 | [#603](https://github.com/DevKor-github/OnTime-front/issues/603) | 실제4문답·DB 비의존 시작 복구·키/파일 보존 기준 확정 |
 | D02 | [#604](https://github.com/DevKor-github/OnTime-front/issues/604) | 실제4문답·손상 DB 후보 검증/활성 쌍 교체·중단 복구 기준 확정 |
+| D04 | [#605](https://github.com/DevKor-github/OnTime-front/issues/605) | 실제4문답·migration 원자성/역사 schema/SQLCipher 확인·실패 보존 기준 확정 |
 | U08 | [#597](https://github.com/DevKor-github/OnTime-front/issues/597) | 홈 overflow 선행 수정18 tests/analyze 통과, 전체 매트릭스·기기 검증 미완료 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **19/64개**를 게시하고 원격 본문 동일성을 확인했으며 **45개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14 로컬772 tests·native SDK 검증 후282db21f로 커밋했고 A15 전담 구현을 시작했다. D02까지 실제 문답과 복구 설계가 확정됐고 D03는 구현 대기다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **20/64개**를 게시하고 원격 본문 동일성을 확인했으며 **44개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14 로컬772 tests·native SDK 검증 후282db21f로 커밋했고 A15 전담 구현을 시작했다. D02까지 실제 문답과 복구 설계가 확정됐고 D03는 구현 대기다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
 
 ## 실행 순서
 
@@ -60,7 +61,7 @@
 | 16 | A09 | P1 | 복원은 DB만 교체하고 기존 timed preparation/early start SharedPreferences와 메모리 세션을 비우지 않는다. 동일 ID·fingerprint를 복원하면 백업에서 제외되어야 할 이전 진행 상태를 재사용할 수 있다. |
 | 17 | D01 | P1 | bootstrap 실패가 runApp 이전에 나면 복구 화면에도 진입하지 못한다. secure storage·파일 정리 실패를 제한된 복구 상태로 전달해야 한다. |
 | 18 | D02 | P1 | 복구 화면은 재시도와 전체 삭제만 제공한다. ADR가 약속한 백업 복원 경로가 없으며 정상 DB를 요구하는 현재 restore로는 손상 DB 복구도 해결되지 않는다. reset 예외도 화면에서 처리하지 않는다. |
-| 19 | D04 | P1 | DB v1의 onUpgrade는 명시적으로 실패한다. 현재 v1 자체의 장애라고 볼 수 없으나 다음 schema 변경 전 migration 기반이 필요하다. |
+| 19 | D04 | P1 | 현재 v1→v2는 존재한다. DDL/version 원자성, 미래 버전 거부, 역사 fixture, SQLCipher loader/guard 및 실패 보존을 보강한다. |
 | 20 | D05 | P1 | 복원 전 전체 파일을 readAsBytes하고 복호화 결과·JSON도 모두 메모리에 올린다. frame 수 상한은 있지만 총 파일 크기·총 레코드/문자열의 제품 한도가 없다. timezone ID는 비어 있지 않은지만 확인한다. |
 | 21 | A10 | P1 | 절대시각과 표시용 civil time 사용이 혼재한다. 준비 시작은 occurrenceInstantUtc를 쓰지만 화면 카운트다운·지난 일정 판정 일부는 scheduleTime을 직접 쓴다. 다른 시간대 이동 시 남은 시간/진행 대상이 달라질 수 있다. |
 | 22 | U02 | P1 | 일정 시간대 선택과 다른 기기 시간대에서의 환산 시각을 표시한다. |

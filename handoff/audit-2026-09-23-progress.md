@@ -26,7 +26,7 @@
 - A13: #592, 실제3Q&A 포함본문readback완료. A12뒤구현대기.
 - A14: #593, 실제 3문답과 플랫폼 관측·취소 기준을 게시하고 본문 read-back 완료. A13 뒤 구현 대기.
 - A15: #594, 실제 4문답 전체 게시 및 read-back 완료, A14 뒤 구현 대기.
-- D03: 신규 grill_d03 문답 진행 중. A12 소스는 grill_a12만 수정하며 root는 추적 문서와 GitHub를 담당.
+- D03: #595, 실제 4문답 및 Q4 보충 포함 본문 read-back 완료. 구현 대기. A12 소스는 grill_a12만 수정하며 root는 추적 문서와 GitHub를 담당.
 - 나머지 이슈는 아직 생성 전이다. 전체 완료나 64개 생성 완료로 보고하지 않는다.
 
 ## 검증 경계
@@ -41,7 +41,7 @@
 
 ## 에이전트 실행 상태
 
-신규 agent 생성 오류는 이전 에이전트 완료 후 해소됐다. 원래 요청한 항목별 새 전담 agent 방식을 유지한다. A12 구현 중, A13/A14는 각 원래 전담 agent가 이후 구현하며 D03의 새 전담 agent가 질문 중이다. 이전의 새 작업 또는 agent 재사용 질문은 더 이상 진행 조건이 아니다.
+신규 agent 생성 오류는 이전 에이전트 완료 후 해소됐다. 원래 요청한 항목별 새 전담 agent 방식을 유지한다. A12 구현 중, A13/A14는 각 원래 전담 agent가 이후 구현하며 D03 문답과 게시가 완료됐다. U08 신규 agent 생성은 일시 한도 오류로 대기하며 A12 완료 후 다시 시도한다. 이전의 새 작업 또는 agent 재사용 질문은 더 이상 진행 조건이 아니다.
 
 ## 로컬 환경
 
@@ -56,8 +56,8 @@
 ## 다음 작업
 
 1. A12 전담 구현과 실제 router/Bloc/gate 회귀를 검토하고 source freeze 후 전체 테스트·커밋·CI를 진행한다.
-2. D03 문답에 답하고 전체 문답을 포함한 상세 issue를 게시한다. A12 완료 뒤 A13, A14, A15 순서로 구현한다.
-3. 통합 커밋 712b3708의 Android CI 결과와 APK identity를 기록하고 PR 및 이슈의 검증 상태를 갱신한다.
+2. U08 새 전담 grill을 생성해 홈 카드 overflow 근거를 이슈화한다. 오류를 숨기지 않고 430×932 홈 회귀를 좁게 선행 수정할 수 있도록 의존성을 정한다. A12 완료 뒤 A13, A14, A15 순서로 구현한다.
+3. A12 커밋의 새 CI 결과와 APK identity를 기록하고 PR 및 이슈 검증 상태를 갱신한다. 통합 712b3708 CI는 모두 통과했다.
 4. 기존 QA 데이터와 사용자 파일을 보존하며 native 검증 환경을 활용한다. 실행하지 못한 실제 기기 조건은 open 상태로 유지한다.
 
 ## Upstream main 통합과 CI
@@ -69,3 +69,7 @@ A11 커밋 `089afee51b2572339b4650bd3679b1a1ef72781e`의 원격 workflow_dispatc
 Root는 main을 통합하면서 backup_service_test.dart 충돌 하나를 양측 회귀 보존으로 해결했다. 반복 일정, DB schema2 및 v1 migration, backup format2/v1 호환과 기존 감사 수정을 함께 검증했다. 생성기, local analyze, 전체 678 tests, generated/local-only 정책 검사가 통과했다. 통합 커밋 `712b37081f95ea30aa6d1c61072d167ddaec78de`를 push했고 PR은 MERGEABLE이다. 원격 Flutter run 35829634205도 678 tests와 coverage 85.35% (10679/12512)를 통과했다. Android run 35829634224도 통과했고, PR synthetic merge 31158b42의 APK identity를 upstream-integration-apk-validation.json에 기록했다.
 
 A12는 통합 이후 구현을 재개했다. A13/A14/A15 문답 준비는 독립적으로 진행하되 소스 구현은 순차적이다. 후속 감사(D04 migration, F01 반복 일정 등)는 upstream 기능으로 해결된 범위를 재평가해야 한다. 감사 baseline은 44067d7a이며, 현재 통합한 main은 2b02fb77이다.
+
+## 추가 UI 회귀 발견
+
+A12 실제 router 테스트에서 EN, 430×932/DPR1/text scale1, 실제 Pretendard 폰트로 home_screen_tmp.dart:185가 14px overflow했다. 원본 로그는 /tmp/a12-overflow.log, 영속 사본은 plans/audit-2026-09-23/u08-home-overflow-baseline.txt다. 390×844의 A12 경로는 통과한다. 홈 소스는 아직 수정하지 않았고 U08 전체 완료를 의미하지 않는다. 신규 grill_u08 생성이 2회 한도 오류로 실패했으며 A12 완료 뒤 다시 시도한다. 사용자에게 새 질문을 할 상황이 아니며 이미 준비된 A13 구현 등 진행 가능한 작업을 계속한다.

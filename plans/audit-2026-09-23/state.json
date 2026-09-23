@@ -323,16 +323,18 @@
         "`local_data_reset_service.dart:19-25`; `local_data_lifecycle.dart:45-69`; `cancel_schedule_alarm_use_case.dart:25-37`; `cancel_all_alarms_use_case.dart:19-41`; `reconcile_alarms_use_case.dart:549-570`; 관련 테스트 `:951-975`",
         "이미 없음과 실제 취소 실패 구분, 실패 기록 보존·재시도·OS read-back. 중간 강제 종료 후 정리 완료. reset marker는 검증 가능한 종료 상태까지 유지."
       ],
-      "status": "grill_in_progress",
+      "status": "ready",
       "agent": "/root/grill_d03",
-      "issue_number": null,
-      "issue_url": null,
+      "issue_number": 595,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/595",
       "decisions_file": "plans/audit-2026-09-23/issues/D03.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 11
+      "sequence": 11,
+      "readback_verified": true,
+      "body_sha256": "9b64e0d110e831fabf030cd3408f496784fe2d5e189d9cdbd76edd1ba5bb6e65"
     },
     {
       "audit_id": "A06",
@@ -992,7 +994,9 @@
       "decisions_file": "plans/audit-2026-09-23/issues/U08.md",
       "implementation_commit": null,
       "pr_url": null,
-      "verification": [],
+      "verification": [
+        "Additional baseline widget failure: bundled Pretendard, EN, 430x932, DPR1/text1 causes 14px home card overflow; plans/audit-2026-09-23/u08-home-overflow-baseline.txt. Dedicated grill still pending."
+      ],
       "blockers": [],
       "sequence": 42
     },

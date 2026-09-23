@@ -26,8 +26,9 @@
 | A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 실제3문답·정확/근사 결과 정책 확정, A12 뒤 구현 |
 | A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | 실제3문답·플랫폼별 관측/취소 기준 확정, A13 뒤 구현 |
 | A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 실제4문답·요청별 완료/실패 및 세대 직렬화 기준 확정, A14 뒤 구현 |
+| D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 실제4문답·취소 journal/중단 복구/부분 결과 기준 확정, A15 뒤 구현 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 10개를 게시하고 본문을 재확인했으며, 나머지 54개는 생성 전이다. A12는 구현 중, A13/A14/A15는 문답 완료·구현 대기, 신규 전담 grill_d03은 다음 문답을 진행한다. 최신 main 통합 커밋 `712b3708`의 원격 Flutter 678개 테스트와 analyze가 통과했고 coverage는 85.35%다. Android release APK/manifest CI도 통과했으며 artifact identity를 기록했다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 11개를 게시하고 본문을 재확인했으며, 나머지 53개는 생성 전이다. A12는 구현 중, A13/A14/A15/D03는 문답 완료·구현 대기다. A12 화면 검증 중 U08 홈 카드 overflow가 추가 재현돼 별도 전담 grill 후 좁은 선행 수정을 검토한다. 최신 main 통합 커밋 `712b3708`의 원격 Flutter 678개 테스트와 analyze가 통과했고 coverage는 85.35%다. Android release APK/manifest CI도 통과했으며 artifact identity를 기록했다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
 
 ## 실행 순서
 

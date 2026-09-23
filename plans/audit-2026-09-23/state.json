@@ -267,14 +267,17 @@
       "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
       "verification": [
         "Final integrated lib/test tree: 734 tests, analyzer, 11 manifest tests and generated/local-only policies passed.",
-        "Source22/artifact hashes matched; EN/KO real-font standalone widget captures verified. a13-validation.json."
+        "Source22/artifact hashes matched; EN/KO real-font standalone widget captures verified. a13-validation.json.",
+        "A14 review found _safe registry reconstruction drops notificationTiming; real SharedPreferences round-trip follow-up underway. Prior 734 tests do not cover this defect.",
+        "Registry sanitizer follow-up edfff97c: actual datasource + SharedPreferences mock backend 10 passed, including 6 mode/pending round trips. a13-persistence-validation.json."
       ],
       "blockers": [
         "Remote Flutter/APK CI pending after push; actual Android timing and iOS device regression not executed."
       ],
       "sequence": 8,
       "readback_verified": true,
-      "body_sha256": "3fa5e5d3e20db32cfea0e76cd6c4ce56950eabfe60b7e3c15df597d63f9a269e"
+      "body_sha256": "a7636206f9f3c481f2380fada459a78ff3f56194335cbc212990963f570d6804",
+      "implementation_followup_commit": "edfff97c4806fb2d154c324edf8965b1feb218e0"
     },
     {
       "audit_id": "A14",
@@ -406,16 +409,18 @@
         "저장/복원/초기화를 domain workflow와 data transaction으로 묶고 UI는 결과만 받도록 한다.",
         "MyDataScreen이 BackupService·ResetService·Reconcile을 직접 조합. A08/A09/D02처럼 DB·runtime·OS effect의 경계가 여러 계층에 흩어져 있음. 정상/부분 실패를 하나의 계약으로 테스트."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_c01",
+      "issue_number": 600,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/600",
       "decisions_file": "plans/audit-2026-09-23/issues/C01.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 14
+      "sequence": 14,
+      "readback_verified": true,
+      "body_sha256": "2fb0876dfbbef2ee14038ab85bf1fb4e9bb724197551a76889309c93a19d8c1b"
     },
     {
       "audit_id": "A08",
@@ -428,16 +433,18 @@
         "`create_schedule_form_submission_use_case.dart:16-23`; `update_schedule_form_submission_use_case.dart:28-35`; `create_schedule_with_place_use_case.dart:17-20`; `schedule_mutation_alarm_effects_coordinator.dart:41-52`",
         "일정·장소·준비·revision을 하나의 원자적 작업으로 commit 후 알림 effects 실행. 두 번째 write 실패 시 전체 rollback, 같은 입력 재시도 때 중복 일정 없음. 경쟁의 실제 발생은 별도 재현."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "ready",
+      "agent": "/root/grill_a08",
+      "issue_number": 601,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/601",
       "decisions_file": "plans/audit-2026-09-23/issues/A08.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 15
+      "sequence": 15,
+      "readback_verified": true,
+      "body_sha256": "bd5f1b77a400c56f5fb1656412201f72d8288a0a63ed79a699a16f45e7cc1c76"
     },
     {
       "audit_id": "A09",

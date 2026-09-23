@@ -91,3 +91,7 @@ A07 #599 상세본문/실제3문답과추가정정 게시후 exactreadback완료
 U08 홈선행패치 sourcefreeze, 18 tests/analyze 및 root PNG시각검토/모든hash 일치. #597 본문업데이트 exactreadback완료. 전체U08미완료 유지. C01 신규전담grill시작.
 
 A13 `59d92bdd03cdd5e2dc33e95dd844f8d0bb508eab` 구현커밋. 최종전체734/analyze/정책통과; #592본체증거링크를정확commit영구링크로갱신후exactreadback완료. U08선행홈commit bde8b2de도포함. A14전담구현허용, C01/A08새전담grill진행. 원격push/CI확인이어가기.
+
+C01 #600 exactreadback완료: 15/64게시,49미생성. A08/A09전담grill진행중. A13/U08 push원격head dac9c5a2, Flutter35884708345/Android35884708227 실행중. A14조사에서 _safe가notificationTiming필드를drop하는A13실제persistence gap발견, 별도A13fix와realSharedPreferences왕복회귀우선처리. 기존734통과가이gap을커버하지못했음을명시.
+
+A13 persistence후속 `edfff97c4806fb2d154c324edf8965b1feb218e0`: sanitizer필드보존+actualdatasource/SharedPreferences mock 왕복10개통과, 원격#592본문갱신exactreadback완료. A08 #601 게시exactreadback완료, 전체16/64게시. A09문서작성중,D01새전담grill시작.

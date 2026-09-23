@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/database/local_data_reset_service.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/presentation/shared/components/app_spinner.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
@@ -21,99 +22,118 @@ class _LocalDataRecoveryScreenState extends State<LocalDataRecoveryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Center(
-                child: Padding(
-                  // The action has a 48px touch target while its Figma label
-                  // occupies only 21px. Balance the extra hit area below it.
-                  padding: const EdgeInsets.fromLTRB(24, 27, 24, 0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 77, child: _StorageSymbol()),
-                      const SizedBox(height: 18),
-                      Text(
-                        '로컬 데이터를 열 수 없습니다.',
-                        style: const TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 20,
-                          height: 1.2,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 18),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 336),
-                        child: const Text(
-                          'OnTime은 데이터를 자동으로 삭제하지 않았습니다. 잠시 후\n'
-                          '다시 시도하거나, 복구할 수 없는 경우에만 모든 로컬 데이터를\n'
-                          '초기화하세요.',
-                          style: TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 14,
-                            height: 1.2,
-                            letterSpacing: -0.35,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: Padding(
+                      // The action has a 48px touch target while its Figma label
+                      // occupies only 21px. Balance the extra hit area below it.
+                      padding: const EdgeInsets.fromLTRB(24, 27, 24, 0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 77, child: _StorageSymbol()),
+                          const SizedBox(height: 18),
+                          Text(
+                            '로컬 데이터를 열 수 없습니다.',
+                            style: const TextStyle(
+                              fontFamily: 'Pretendard',
+                              fontSize: 20,
+                              height: 1.2,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      FilledButton(
-                        onPressed: _busy
-                            ? null
-                            : () {
-                                context.read<AuthBloc>().add(
-                                  const AuthUserSubscriptionRequested(),
-                                );
-                              },
-                        style: FilledButton.styleFrom(
-                          fixedSize: const Size(112, 47),
-                          padding: EdgeInsets.zero,
-                          backgroundColor: const Color(0xFF536AE8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                          const SizedBox(height: 18),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 336),
+                            child: const Text(
+                              'OnTime은 데이터를 자동으로 삭제하지 않았습니다. 잠시 후\n'
+                              '다시 시도하거나, 복구할 수 없는 경우에만 모든 로컬 데이터를\n'
+                              '초기화하세요.',
+                              style: TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 14,
+                                height: 1.2,
+                                letterSpacing: -0.35,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                          textStyle: const TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          const SizedBox(height: 18),
+                          Opacity(
+                            opacity: _busy ? 0.38 : 1,
+                            child: FilledButton(
+                              onPressed: _busy
+                                  ? null
+                                  : () {
+                                      context.read<AuthBloc>().add(
+                                        const AuthUserSubscriptionRequested(),
+                                      );
+                                    },
+                              style: FilledButton.styleFrom(
+                                fixedSize: const Size(112, 47),
+                                padding: EdgeInsets.zero,
+                                backgroundColor: const Color(0xFF536AE8),
+                                disabledBackgroundColor: const Color(
+                                  0xFF536AE8,
+                                ),
+                                disabledForegroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontFamily: 'Pretendard',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('다시 시도'),
+                            ),
                           ),
-                        ),
-                        child: const Text('다시 시도'),
-                      ),
-                      const SizedBox(height: 18),
-                      TextButton(
-                        onPressed: _busy ? null : _confirmReset,
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFFD6362B),
-                          minimumSize: const Size(214, 48),
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.topLeft,
-                          textStyle: const TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                          const SizedBox(height: 18),
+                          Opacity(
+                            opacity: _busy ? 0.38 : 1,
+                            child: TextButton(
+                              onPressed: _busy ? null : _confirmReset,
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFFD6362B),
+                                disabledForegroundColor: const Color(
+                                  0xFFD6362B,
+                                ),
+                                minimumSize: const Size(214, 48),
+                                padding: EdgeInsets.zero,
+                                alignment: Alignment.topLeft,
+                                textStyle: const TextStyle(
+                                  fontFamily: 'Pretendard',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('모든 로컬 데이터 초기화'),
+                            ),
                           ),
-                        ),
-                        child: const Text('모든 로컬 데이터 초기화'),
+                        ],
                       ),
-                      if (_busy)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 12),
-                          child: CircularProgressIndicator(),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+          if (_busy)
+            Positioned(
+              top: MediaQuery.sizeOf(context).height / 2 + 163.5,
+              left: 0,
+              right: 0,
+              child: const Center(child: AppSpinner()),
+            ),
+        ],
       ),
     );
   }

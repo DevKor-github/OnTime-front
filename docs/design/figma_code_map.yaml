@@ -32,7 +32,11 @@ screens:
         flutter_golden: test/goldens/goldens/recovery_reset_confirmation_390x844.png
       - state: busy
         figma_node: '2005:12036'
-        status: pending
+        status: reviewed
+        review_note: Disabled action opacity and 40px spinner at y585.5 compared. Figma PNG omits its storage glyph even though node context specifies it; Flutter preserves the default icon. Native chrome is excluded.
+        figma_image: docs/design/review/figma/recovery-busy.png
+        figma_sha256: 6fc99430c1cfde7196416cc8332c531d97f42873689a4b56d63fc8b1faaca4cf
+        flutter_golden: test/goldens/goldens/recovery_busy_390x844.png
   - route: /startup
     figma_node: null
     status: pending

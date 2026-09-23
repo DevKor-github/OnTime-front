@@ -1,4 +1,6 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
+import 'package:on_time_front/domain/repositories/recurring_schedule_repository.dart';
 import 'package:on_time_front/core/constants/local_profile.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/data/daos/user_dao.dart';
@@ -15,10 +17,15 @@ class AlarmRepositoryImpl implements AlarmRepository {
     required AppDatabase database,
     required ScheduleRepository scheduleRepository,
     required PreparationRepository preparationRepository,
-  }) : _userDao = database.userDao,
+    RecurringScheduleRepository? recurringScheduleRepository,
+  }) : _database = database,
+       _recurring = recurringScheduleRepository,
+       _userDao = database.userDao,
        _scheduleRepository = scheduleRepository,
        _preparationRepository = preparationRepository;
 
+  final AppDatabase _database;
+  final RecurringScheduleRepository? _recurring;
   final UserDao _userDao;
   final ScheduleRepository _scheduleRepository;
   final PreparationRepository _preparationRepository;
@@ -49,10 +56,16 @@ class AlarmRepositoryImpl implements AlarmRepository {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    final schedules = await _scheduleRepository.getSchedulesByDate(
-      startDate,
-      endDate,
-    );
+    // Reconciliation has a long search horizon but the platform can only hold
+    // a bounded pending set. Supply the nearest candidates from each series.
+    final civilStart = startDate.subtract(const Duration(days: 2));
+    await _recurring?.materialize(civilStart, endDate, perSeriesLimit: 64);
+    final schedules = _recurring == null
+        ? await _scheduleRepository.getSchedulesByDate(startDate, endDate)
+        : (await _database.scheduleDao.getSchedulesByDate(
+            civilStart,
+            endDate.add(const Duration(days: 2)),
+          )).map((r) => r.toScheduleEntity()).toList();
     final defaultPreparation = await _preparationRepository
         .getDefualtPreparation();
     final result = <ScheduleWithPreparationEntity>[];

@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
@@ -13,19 +14,27 @@ class UpdateScheduleFormSubmissionUseCase {
   final UpdatePreparationByScheduleIdUseCase
   _updatePreparationByScheduleIdUseCase;
   final String Function() _newId;
+  final RecurringSchedulesUseCase? _recurring;
 
   UpdateScheduleFormSubmissionUseCase(
     this._updateScheduleUseCase,
-    this._updatePreparationByScheduleIdUseCase,
-  ) : _newId = const Uuid().v7;
+    this._updatePreparationByScheduleIdUseCase, {
+    RecurringSchedulesUseCase? recurringSchedules,
+  }) : _recurring = recurringSchedules,
+       _newId = const Uuid().v7;
 
   UpdateScheduleFormSubmissionUseCase.withIdGenerator(
     this._updateScheduleUseCase,
     this._updatePreparationByScheduleIdUseCase, {
     required String Function() newId,
-  }) : _newId = newId;
+  }) : _recurring = null,
+       _newId = newId;
 
   Future<void> call(ScheduleFormSubmission submission) async {
+    if (submission.originalSchedule?.preparationDefinitionId != null) {
+      await _recurring!.save(submission);
+      return;
+    }
     await _updateScheduleUseCase(submission.schedule);
     if (submission.preparationChanged) {
       await _updatePreparationByScheduleIdUseCase(

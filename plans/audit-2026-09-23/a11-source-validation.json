@@ -1,5 +1,5 @@
 {
-  "scope": "A11 final source freeze after local targeted validation; remote full CI pending",
+  "scope": "A11 source at the recorded commit; upstream changes are verified separately",
   "verification": {
     "full_suite_before_last_review_edits": 634,
     "subsequent_targeted": 59,
@@ -50,5 +50,15 @@
     "test/domain/entities/preparation_snapshot_validation_test.dart": "47a4934dfaa4f37c95a38105acf5ed03efd31962a7a87e2dc56abbd3f4a002de",
     "test/native/AlarmLaunchPayloadTest.kt": "a9ab8a7e1cffe0c291fe0bb8ee671d8f08c98e23bc89baa121ad0a8e16c48e2d",
     "test/native/AlarmLaunchPayloadTest.swift": "407f6ea590e7de93ed7c10a46414c2295fa3f2c9bbe0435660eaa70e5a70c576"
+  },
+  "head_commit": "089afee51b2572339b4650bd3679b1a1ef72781e",
+  "remote_validation": {
+    "flutter_run": 35828807338,
+    "full_tests": 636,
+    "coverage_percent": 84.96,
+    "covered_lines": 8943,
+    "total_lines": 10526,
+    "android_run": 35828809625,
+    "result": "passed"
   }
 }

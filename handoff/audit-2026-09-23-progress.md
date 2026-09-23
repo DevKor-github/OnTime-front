@@ -23,7 +23,8 @@
 - A05: #588, 0c41589e. 전체617 tests/analyze 및 Android release APK CI 통과. coverage84.98%. 실제기기·후속 통합 미완료
 - A11: #589, source freeze. 전체634 및 이후targeted59/최종42, analyze 통과. Native 행동/실제SDK 타입검사 통과. Root commit/CI 및 실제기기 검증 추적
 - A12: #591, 실제4Q&A·15AC 원격readback완료. grill_a12 구현중.
-- A13: grill_a13 문답완료·문서작성중, issue생성전.
+- A13: #592, 실제3Q&A 포함본문readback완료. A12뒤구현대기.
+- A14: 신규grill_a14가문답중,소스수정없음.
 - 나머지 이슈는 아직 생성 전이다. 전체 완료나 64개 생성 완료로 보고하지 않는다.
 
 ## 검증 경계
@@ -57,6 +58,10 @@
 3. 신규 grill_a12와 문답을 마쳐 전체 실제 문답을 포함한 A12 issue를 만든 뒤 우선순위 순서로 구현.
 4. native device 및 iOS build 검증은 실제 환경을 확보해 별도 수행. 이슈 open 상태와 코드/CI/merge/release를 구분.
 
-## A11 정확 SHA CI 및 GitHub 상태
+## Upstream main 통합과 CI
 
-A11 head089afee51b2572339b4650bd3679b1a1ef72781e를 push했으나 GitHub는 동일 main44067d7a와 PR585를 mergeable=false/dirty로표시했다. 로컬 merge-base는main그자체이고 merge-tree는충돌없이headtree를반환한다. 실제파일충돌로단정하거나강제rewrite하지않았다. PR event CI가생성되지않아동일head에workflow_dispatch로 Flutter35828807338 및 Android35828809625를실행했다. 결과추적필요. PR병합가능상태와수동CI는별개증거다.
+A11 head089afee51b2572339b4650bd3679b1a1ef72781e push뒤 PR585가dirty여서 동일head에workflow_dispatch Flutter35828807338/Android35828809625를실행했다(둘다통과: Flutter636,coverage84.96%,AndroidAPKreceipt기록). 원인은 GitHub오류가아니라작업중main에PR590이병합된것이었다. PR baseRefOid/REST base.sha는기존44067d7a로보였지만 git ls-remote 및 git/ref/heads/main은 최신2b02fb770324de291488f3c74fe503dc063e2459를반환했다. 실제현재main ref를읽어야한다.
+
+Root는 문답기록37fc0144 commit후 git fetch origin main 및 merge --no-ff --no-commit origin/main을실행했다. test/core/backup/backup_service_test.dart의충돌1개를양측테스트보존으로해결했고, 자동병합4코어파일을확인했다. 생성기완료, 전체678 tests/analyze 및 policy/diff검사통과. 로그는 /tmp/ontime-upstream-merge-analyze.log 및 /tmp/ontime-upstream-merge-tests.log. Root가mergecommit/push후A12구현재개한다. generated파일추적금지.
+
+A12는소스편집전잠시대기시켰다. 통합검증/mergecommit후 /root/grill_a12에followup_task로구현재개지시한다. A13/A14는계획/문답만하며소스편집금지. 이후각항목구현전에새main기능으로이미해결된부분을다시판정한다(예:D04 v1→v2migration, 반복기능후보). 원래감사baseline은44067d7a로유지하되currentbase는2b02fb77이다.

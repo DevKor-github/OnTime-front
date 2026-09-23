@@ -29,6 +29,7 @@ void main() {
             preparationTemplateDeleted: false,
             preparationFrozen: false,
             scoreContributionRecorded: false,
+            recurringOverrides: '',
           ),
           place: const Place(id: 'place-model', placeName: 'Clinic'),
         ).toScheduleEntity();

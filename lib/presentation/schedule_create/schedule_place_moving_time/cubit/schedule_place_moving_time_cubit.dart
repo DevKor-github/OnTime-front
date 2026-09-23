@@ -24,7 +24,9 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
 
     // Check for overlap using current form state values
     final formState = scheduleFormBloc.state;
-    final maxAvailableTime = formState.maxAvailableTime;
+    final maxAvailableTime = formState.recurrenceRule != null
+        ? null
+        : formState.maxAvailableTime;
     final moveTime = schedulePlaceMovingTimeState.moveTime.value;
 
     Duration? overlapDuration;
@@ -71,7 +73,9 @@ class SchedulePlaceMovingTimeCubit extends Cubit<SchedulePlaceMovingTimeState> {
 
     // Check for overlap if maxAvailableTime exists
     final formState = scheduleFormBloc.state;
-    final maxAvailableTime = formState.maxAvailableTime;
+    final maxAvailableTime = formState.recurrenceRule != null
+        ? null
+        : formState.maxAvailableTime;
     final oldMoveTime = formState.moveTime ?? Duration.zero;
 
     Duration? overlapDuration;

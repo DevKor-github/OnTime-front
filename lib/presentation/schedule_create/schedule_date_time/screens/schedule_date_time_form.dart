@@ -1,3 +1,7 @@
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_settings_sheet.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
+import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,8 +30,11 @@ class ScheduleDateTimeForm extends StatelessWidget {
 
     return BlocBuilder<ScheduleDateTimeCubit, ScheduleDateTimeState>(
       builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        final form = context
+            .read<ScheduleDateTimeCubit>()
+            .scheduleFormBloc
+            .state;
+        return ListView(
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +117,63 @@ class ScheduleDateTimeForm extends StatelessWidget {
                 ),
               ],
             ),
-            if (state.hasPreviousOverlapMessage)
+            const SizedBox(height: 24),
+            if (form.originalSchedule == null || form.recurrenceRule != null)
+              RecurrenceValue(
+                label: recurrenceText(context, '반복', 'Repeat'),
+                value: form.recurrenceRule == null
+                    ? recurrenceText(context, '반복 안 함', 'Does not repeat')
+                    : recurrenceLabel(context, form.recurrenceRule!),
+                onTap: state.selectedScheduleDateTime == null
+                    ? null
+                    : () async {
+                        final bloc = context.read<ScheduleFormBloc>();
+                        final cubit = context.read<ScheduleDateTimeCubit>();
+                        final selected =
+                            await showModalBottomSheet<
+                              RecurrenceSettingsResult
+                            >(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              builder: (context) => SizedBox(
+                                height: MediaQuery.sizeOf(context).height * .9,
+                                child: RecurrenceSettingsSheet(
+                                  start: state.selectedScheduleDateTime!,
+                                  timeZoneId: form.timeZoneId,
+                                  initial: form.recurrenceRule,
+                                  allowNone: form.originalSchedule == null,
+                                  leadTime:
+                                      form.totalPreparationTime +
+                                      (form.moveTime ?? Duration.zero) +
+                                      (form.scheduleSpareTime ?? Duration.zero),
+                                ),
+                              ),
+                            );
+                        if (selected != null &&
+                            !bloc.isClosed &&
+                            !cubit.isClosed) {
+                          bloc.add(
+                            ScheduleFormRecurringChanged(
+                              selected.rule,
+                              countChanged:
+                                  form.recurrenceCountChanged ||
+                                  selected.countChanged,
+                            ),
+                          );
+                          cubit.setRecurring(selected.rule != null);
+                        }
+                      },
+              ),
+            if (state.isRecurring)
+              Text(
+                recurrenceText(
+                  context,
+                  '시작일 이후 조건에 맞는 날짜부터 반복해요. 실제 첫 일정은 준비시간을 반영해 저장 전에 확인합니다.',
+                  'Repeats from the first matching date. Review the actual first occurrence after setting preparation time.',
+                ),
+              ),
+            if (!state.isRecurring && state.hasPreviousOverlapMessage)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, left: 16.0),
                 child: MessageBubble(
@@ -118,7 +181,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   type: MessageBubbleType.warning,
                 ),
               ),
-            if (state.hasPastScheduleTimeMessage)
+            if (!state.isRecurring && state.hasPastScheduleTimeMessage)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, left: 16.0),
                 child: MessageBubble(
@@ -126,7 +189,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   type: MessageBubbleType.error,
                 ),
               ),
-            if (state.isNonexistentCivilTime)
+            if (!state.isRecurring && state.isNonexistentCivilTime)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, left: 16.0),
                 child: MessageBubble(
@@ -134,7 +197,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   type: MessageBubbleType.error,
                 ),
               ),
-            if (state.hasAmbiguousCivilTime)
+            if (!state.isRecurring && state.hasAmbiguousCivilTime)
               Padding(
                 padding: const EdgeInsets.only(top: 12.0, left: 16.0),
                 child: Column(
@@ -176,7 +239,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   ],
                 ),
               ),
-            if (state.isOverlapping)
+            if (!state.isRecurring && state.isOverlapping)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, left: 16.0),
                 child: MessageBubble(

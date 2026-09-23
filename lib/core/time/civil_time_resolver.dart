@@ -40,16 +40,11 @@ abstract final class CivilTimeResolver {
       civilTime.microsecond,
     );
 
-    // Collect offsets used around the selected date, then round-trip each
-    // candidate instant. This avoids TZDateTime normalizing a nonexistent
-    // civil time and correctly preserves both sides of an overlap.
-    final candidateOffsets = <int>{};
-    for (var hours = -36; hours <= 36; hours++) {
-      final nearbyInstant = civilAsUtc.add(Duration(hours: hours));
-      candidateOffsets.add(
-        tz.TZDateTime.from(nearbyInstant, location).timeZoneOffset.inSeconds,
-      );
-    }
+    // Enumerate actual zone offsets and round-trip each candidate. This also
+    // preserves historical second-level offsets without 73 lookups per slot.
+    final candidateOffsets = location.zones
+        .map((zone) => zone.offset ~/ Duration.millisecondsPerSecond)
+        .toSet();
 
     final occurrences = <CivilTimeOccurrence>[];
     for (final offsetSeconds in candidateOffsets) {
@@ -68,6 +63,11 @@ abstract final class CivilTimeResolver {
       (left, right) => left.instantUtc.compareTo(right.instantUtc),
     );
     return occurrences;
+  }
+
+  static DateTime civilTimeAt(DateTime instant, String timeZoneId) {
+    _ensureInitialized();
+    return tz.TZDateTime.from(instant.toUtc(), _locationOrUtc(timeZoneId));
   }
 
   static String formatUtcOffset(int offsetSeconds) {

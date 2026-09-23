@@ -37,6 +37,7 @@ void main() async {
     preparationTemplateDeleted: false,
     preparationFrozen: false,
     scoreContributionRecorded: false,
+    recurringOverrides: '',
   );
 
   final scheduleWithPlaceModel = ScheduleWithPlace(

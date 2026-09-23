@@ -197,10 +197,11 @@
         "Final flutter analyze: no issues",
         "Kotlin/JVM and Swift/macOS privacy behavior contracts passed",
         "Actual Android SDK type compile and iOS simulator SDK typecheck passed; not device/linking proof",
-        "local-only/generated policy, 11 manifest tests and diff check passed"
+        "local-only/generated policy, 11 manifest tests and diff check passed",
+        "Exact 089afee5 GitHub Flutter workflow_dispatch 35828807338: 636 tests, coverage84.96% (8943/10526), analyze passed",
+        "Exact 089afee5 Android workflow_dispatch 35828809625: release APK/manifest passed; receipt a11-apk-validation.json"
       ],
       "blockers": [
-        "Exact final commit remote CI pending",
         "Android/iOS upgrade and OS cancellation/delivery verification pending",
         "Pre-runApp Recovery UI remains D01; cleanup hook implemented",
         "Third-party plugin pre-first-launch boot persistence is outside cleanup guarantee"
@@ -244,16 +245,18 @@
         "`notification_service.dart:267`; `alarm_gate_cubit.dart:134-157`; `CONTEXT.md:443-452`, ADR 0008",
         "full-screen 표현과 timing 권한을 분리. 권한 있음→정확 예약, 없음→근사 예약과 그에 맞는 UI. 예약 API 모드와 실제 도착 시각 검증."
       ],
-      "status": "grilling",
+      "status": "ready",
       "agent": "/root/grill_a13",
-      "issue_number": null,
-      "issue_url": null,
+      "issue_number": 592,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/592",
       "decisions_file": "plans/audit-2026-09-23/issues/A13.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 8
+      "sequence": 8,
+      "readback_verified": true,
+      "body_sha256": "529653281b85ffb9d907bf7e341077bf6aceacb21f591aceda9660ca81339ee2"
     },
     {
       "audit_id": "A14",
@@ -266,8 +269,8 @@
         "`reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214`",
         "permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
+      "status": "grilling",
+      "agent": "/root/grill_a14",
       "issue_number": null,
       "issue_url": null,
       "decisions_file": "plans/audit-2026-09-23/issues/A14.md",
@@ -1445,5 +1448,14 @@
       "blockers": [],
       "sequence": 64
     }
-  ]
+  ],
+  "current_upstream_main": "2b02fb770324de291488f3c74fe503dc063e2459",
+  "upstream_integration_status": "local_verified_678_tests",
+  "upstream_integration_validation": {
+    "full_tests": 678,
+    "analyze": "no issues",
+    "generated_policy": "passed",
+    "local_only_policy": "passed",
+    "conflict_resolution": "both backup test sets preserved"
+  }
 }

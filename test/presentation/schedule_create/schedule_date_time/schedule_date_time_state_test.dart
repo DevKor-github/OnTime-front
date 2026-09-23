@@ -5,7 +5,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_date_time/in
 
 void main() {
   test('rejects selected schedule time in the past', () {
-    final past = DateTime.now().subtract(const Duration(minutes: 5));
+    final past = DateTime.now().toUtc().subtract(const Duration(minutes: 5));
     final state = ScheduleDateTimeState(
       scheduleDate: ScheduleDateInputModel.dirty(past),
       scheduleTime: ScheduleTimeInputModel.dirty(past),
@@ -19,7 +19,7 @@ void main() {
   });
 
   test('accepts selected schedule time in the future', () {
-    final future = DateTime.now().add(const Duration(days: 1));
+    final future = DateTime.now().toUtc().add(const Duration(days: 1));
     final state = ScheduleDateTimeState(
       scheduleDate: ScheduleDateInputModel.dirty(future),
       scheduleTime: ScheduleTimeInputModel.dirty(future),

@@ -1,3 +1,4 @@
+import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -31,6 +32,22 @@ class _ScheduleSpareAndPreparingTimeFormState
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (context
+                    .read<ScheduleFormSpareTimeCubit>()
+                    .scheduleFormBloc
+                    .state
+                    .recurrenceRule !=
+                null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Text(
+                  recurrenceText(
+                    context,
+                    '이 반복 일정의 준비과정이에요. 수정한 내용은 다른 반복 일정이나 기본 준비과정에 영향을 주지 않아요.',
+                    'This preparation belongs to this series. Changes do not affect other series or your default preparation.',
+                  ),
+                ),
+              ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

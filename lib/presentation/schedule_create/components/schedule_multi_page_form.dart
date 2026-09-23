@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_review_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -49,12 +52,90 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
   }
 
   @override
+  void dispose() {
+    _pageViewController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<ScheduleFormBloc, ScheduleFormState>(
       listenWhen: (previous, current) =>
           previous.submissionStatus != current.submissionStatus,
-      listener: (context, state) {
-        if (state.submissionStatus == ScheduleFormSubmissionStatus.success) {
+      listener: (context, state) async {
+        if (state.submissionStatus == ScheduleFormSubmissionStatus.review) {
+          final bloc = context.read<ScheduleFormBloc>();
+          final selected = await showModalBottomSheet<Set<String>>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => SizedBox(
+              height: MediaQuery.sizeOf(context).height * .9,
+              child: RecurrenceReviewSheet(
+                review: state.recurrenceReview!,
+                form: state,
+              ),
+            ),
+          );
+          if (bloc.isClosed) return;
+          if (selected == null) {
+            bloc.add(const ScheduleFormReviewDismissed());
+          } else if (state.originalSchedule == null) {
+            bloc.add(
+              ScheduleFormCreated(confirmed: true, excludedSlots: selected),
+            );
+          } else {
+            bloc.add(
+              ScheduleFormUpdated(confirmed: true, excludedSlots: selected),
+            );
+          }
+        } else if (state.submissionStatus ==
+            ScheduleFormSubmissionStatus.timeChoice) {
+          final bloc = context.read<ScheduleFormBloc>();
+          final choice = await showDialog<RepeatedCivilTime>(
+            context: context,
+            builder: (context) => SimpleDialog(
+              title: Text(
+                recurrenceText(context, '두 번 발생하는 시각', 'Repeated time'),
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    recurrenceText(
+                      context,
+                      '${recurrenceDate(context, state.repeatedTimeDate!)}은 두 번 발생해요. 이후 같은 경우에도 선택한 순서를 적용합니다.',
+                      '${recurrenceDate(context, state.repeatedTimeDate!)} occurs twice. This choice also applies to future repeated times.',
+                    ),
+                  ),
+                ),
+                for (final choice in RepeatedCivilTime.values)
+                  SimpleDialogOption(
+                    onPressed: () => Navigator.of(context).pop(choice),
+                    child: Text(
+                      recurrenceText(
+                        context,
+                        choice == RepeatedCivilTime.first
+                            ? '첫 번째 시각'
+                            : '두 번째 시각',
+                        choice == RepeatedCivilTime.first
+                            ? 'First occurrence'
+                            : 'Second occurrence',
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+          if (bloc.isClosed) return;
+          if (choice == null) {
+            bloc.add(const ScheduleFormReviewDismissed());
+          } else {
+            bloc.add(ScheduleFormRepeatedTimeChosen(choice));
+          }
+        } else if (state.submissionStatus ==
+            ScheduleFormSubmissionStatus.success) {
           Navigator.of(context).pop(true);
         } else if (state.submissionStatus ==
             ScheduleFormSubmissionStatus.failure) {
@@ -115,6 +196,15 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                   child: Column(
                     children: [
                       TopBar(
+                        actionLabel: _tabController.index == 3
+                            ? recurrenceText(
+                                context,
+                                state.recurrenceRule == null ? '저장' : '확인',
+                                state.recurrenceRule == null
+                                    ? 'Save'
+                                    : 'Review',
+                              )
+                            : null,
                         onNextPageButtonClicked:
                             (state.isValid && !isSubmitting)
                             ? () => _onNextPageButtonClicked(context)

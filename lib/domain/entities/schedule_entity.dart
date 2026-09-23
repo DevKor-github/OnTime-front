@@ -28,6 +28,12 @@ class ScheduleEntity extends Equatable {
   final bool scoreContributionRecorded;
   final PreparationEntity? customPreparations;
 
+  final String? recurringSegmentId;
+  final String? recurringSlotKey;
+  final int? recurringOrdinal;
+  final String recurringOverrides;
+  final String? preparationDefinitionId;
+
   const ScheduleEntity({
     required this.id,
     required this.place,
@@ -51,7 +57,14 @@ class ScheduleEntity extends Equatable {
     this.preparationFrozen = false,
     this.scoreContributionRecorded = false,
     this.customPreparations,
+    this.recurringSegmentId,
+    this.recurringSlotKey,
+    this.recurringOrdinal,
+    this.recurringOverrides = '',
+    this.preparationDefinitionId,
   });
+
+  bool get isRecurring => recurringSegmentId != null;
 
   /// The absolute instant selected for this civil schedule occurrence.
   ///
@@ -75,6 +88,18 @@ class ScheduleEntity extends Equatable {
   }
 
   ScheduleEntity copyWith({
+    String? id,
+    PlaceEntity? place,
+    String? scheduleName,
+    DateTime? scheduleTime,
+    Duration? moveTime,
+    bool? isChanged,
+    bool? isStarted,
+    Duration? scheduleSpareTime,
+    String? scheduleNote,
+    int? latenessTime,
+    bool clearRecurring = false,
+    bool clearPreparationDefinition = false,
     ScheduleDoneStatus? doneStatus,
     String? timeZoneId,
     int? occurrenceOffsetSeconds,
@@ -87,21 +112,26 @@ class ScheduleEntity extends Equatable {
     bool? preparationFrozen,
     bool? scoreContributionRecorded,
     PreparationEntity? customPreparations,
+    String? recurringSegmentId,
+    String? recurringSlotKey,
+    int? recurringOrdinal,
+    String? recurringOverrides,
+    String? preparationDefinitionId,
   }) {
     return ScheduleEntity(
-      id: id,
-      place: place,
-      scheduleName: scheduleName,
+      id: id ?? this.id,
+      place: place ?? this.place,
+      scheduleName: scheduleName ?? this.scheduleName,
       timeZoneId: timeZoneId ?? this.timeZoneId,
       occurrenceOffsetSeconds:
           occurrenceOffsetSeconds ?? this.occurrenceOffsetSeconds,
-      scheduleTime: scheduleTime,
-      moveTime: moveTime,
-      isChanged: isChanged,
-      isStarted: isStarted,
-      scheduleSpareTime: scheduleSpareTime,
-      scheduleNote: scheduleNote,
-      latenessTime: latenessTime,
+      scheduleTime: scheduleTime ?? this.scheduleTime,
+      moveTime: moveTime ?? this.moveTime,
+      isChanged: isChanged ?? this.isChanged,
+      isStarted: isStarted ?? this.isStarted,
+      scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
+      scheduleNote: scheduleNote ?? this.scheduleNote,
+      latenessTime: latenessTime ?? this.latenessTime,
       doneStatus: doneStatus ?? this.doneStatus,
       startedAt: startedAt ?? this.startedAt,
       finishedAt: finishedAt ?? this.finishedAt,
@@ -116,6 +146,19 @@ class ScheduleEntity extends Equatable {
       scoreContributionRecorded:
           scoreContributionRecorded ?? this.scoreContributionRecorded,
       customPreparations: customPreparations ?? this.customPreparations,
+      recurringSegmentId: clearRecurring
+          ? null
+          : recurringSegmentId ?? this.recurringSegmentId,
+      recurringSlotKey: clearRecurring
+          ? null
+          : recurringSlotKey ?? this.recurringSlotKey,
+      recurringOrdinal: clearRecurring
+          ? null
+          : recurringOrdinal ?? this.recurringOrdinal,
+      recurringOverrides: recurringOverrides ?? this.recurringOverrides,
+      preparationDefinitionId: clearPreparationDefinition
+          ? null
+          : preparationDefinitionId ?? this.preparationDefinitionId,
     );
   }
 
@@ -148,6 +191,11 @@ class ScheduleEntity extends Equatable {
     preparationFrozen,
     scoreContributionRecorded,
     customPreparations,
+    recurringSegmentId,
+    recurringSlotKey,
+    recurringOrdinal,
+    recurringOverrides,
+    preparationDefinitionId,
   ];
 }
 

@@ -1,3 +1,5 @@
+import 'package:on_time_front/presentation/recurring/recurring_management_screen.dart';
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -127,6 +129,13 @@ GoRouter goRouterConfig(
         ],
       ),
       GoRoute(
+        path: '/recurringSchedules',
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: const RecurringManagementScreen(),
+        ),
+      ),
+      GoRoute(
         path: '/myData',
         pageBuilder: (context, state) =>
             _buildAppRoutePage(state: state, child: const MyDataScreen()),
@@ -172,6 +181,9 @@ GoRouter goRouterConfig(
           state: state,
           child: ScheduleEditScreen(
             scheduleId: state.pathParameters['scheduleId']!,
+            scope: state.uri.queryParameters['scope'] == 'following'
+                ? RecurringEditScope.following
+                : RecurringEditScope.occurrence,
           ),
         ),
       ),

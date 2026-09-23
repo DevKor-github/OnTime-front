@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
@@ -23,6 +24,7 @@ class ScheduleFormDraft extends Equatable {
   final String? scheduleNote;
   final PreparationEntity preparation;
   final SchedulePreparationMode? originalPreparationMode;
+  final ScheduleEntity? originalSchedule;
 
   const ScheduleFormDraft({
     required this.id,
@@ -38,6 +40,7 @@ class ScheduleFormDraft extends Equatable {
     required this.scheduleNote,
     required this.preparation,
     this.originalPreparationMode,
+    this.originalSchedule,
   });
 
   @override
@@ -55,6 +58,7 @@ class ScheduleFormDraft extends Equatable {
     scheduleNote,
     preparation,
     originalPreparationMode,
+    originalSchedule,
   ];
 }
 
@@ -133,6 +137,7 @@ class LoadScheduleFormDraftUseCase {
       scheduleNote: schedule.scheduleNote,
       preparation: preparation,
       originalPreparationMode: schedule.preparationMode,
+      originalSchedule: schedule,
     );
   }
 

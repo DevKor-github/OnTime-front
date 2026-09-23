@@ -30,7 +30,7 @@ void main() {
   );
 
   test('rejects in-place upgrades across the one-way local cutover', () async {
-    expect(database.schemaVersion, 1);
+    expect(database.schemaVersion, 2);
 
     await expectLater(
       database.migration.onUpgrade(database.createMigrator(), 0, 1),

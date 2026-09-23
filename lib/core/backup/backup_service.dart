@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/backup/recurring_backup_data.dart';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -133,10 +134,7 @@ class BackupService {
     );
   }
 
-  Future<Uint8List> _encryptSnapshot(
-    _BackupData snapshot,
-    String password,
-  ) {
+  Future<Uint8List> _encryptSnapshot(_BackupData snapshot, String password) {
     return _crypto.encrypt(
       plaintext: Uint8List.fromList(utf8.encode(jsonEncode(snapshot.toJson()))),
       password: password,
@@ -172,6 +170,7 @@ class BackupService {
         data.defaultPreparation,
         localProfileId,
       );
+      await data.recurring.restore(_database);
       for (final schedule in data.schedules) {
         await _database.scheduleDao.createSchedule(
           schedule.toScheduleWithPlaceRow(),
@@ -247,6 +246,7 @@ class BackupService {
             .getPreparationUsersByUserId(localProfileId),
         schedulePreparations: schedulePreparations,
         templates: await _database.preparationTemplateDao.getAll(),
+        recurring: await RecurringBackupData.capture(_database),
       );
     });
   }
@@ -279,6 +279,7 @@ class _BackupData {
     required this.defaultPreparation,
     required this.schedulePreparations,
     required this.templates,
+    this.recurring = const RecurringBackupData(),
   });
 
   final DateTime cutoff;
@@ -293,9 +294,11 @@ class _BackupData {
   final PreparationEntity defaultPreparation;
   final Map<String, PreparationEntity> schedulePreparations;
   final List<PreparationTemplateEntity> templates;
+  final RecurringBackupData recurring;
 
   Map<String, Object?> toJson() => {
-    'formatVersion': 1,
+    'formatVersion': 2,
+    'recurring': recurring.toJson(),
     'cutoff': cutoff.toIso8601String(),
     'sourceAppVersion': sourceAppVersion,
     'sourcePlatform': sourcePlatform,
@@ -332,7 +335,8 @@ class _BackupData {
   };
 
   factory _BackupData.fromJson(Map<String, dynamic> json) {
-    if (_asInt(json['formatVersion'], 'formatVersion') != 1) {
+    final version = _asInt(json['formatVersion'], 'formatVersion');
+    if (version != 1 && version != 2) {
       throw const FormatException('Unsupported backup data version.');
     }
     final profile = _asMap(json['profile'], 'profile');
@@ -343,6 +347,9 @@ class _BackupData {
     );
     final templates = _asList(json['templates'], 'templates');
     final result = _BackupData(
+      recurring: version == 1
+          ? const RecurringBackupData()
+          : RecurringBackupData.fromJson(json['recurring']),
       cutoff: _asDate(json['cutoff'], 'cutoff'),
       sourceAppVersion: _asString(json['sourceAppVersion'], 'sourceAppVersion'),
       sourcePlatform: _asString(json['sourcePlatform'], 'sourcePlatform'),
@@ -413,6 +420,7 @@ class _BackupData {
 }
 
 void _validateBackupData(_BackupData data) {
+  data.recurring.validate(data.schedules);
   final profile = data.profile.valueOrNull!;
   if (profile.onTimeOutcomeCount > profile.eligibleOutcomeCount) {
     throw const FormatException(
@@ -490,6 +498,11 @@ Map<String, Object?> _scheduleToJson(ScheduleEntity value) => {
   'preparationTemplateName': value.preparationTemplateName,
   'preparationTemplateDeleted': value.preparationTemplateDeleted,
   'scoreContributionRecorded': value.scoreContributionRecorded,
+  'recurringSegmentId': value.recurringSegmentId,
+  'recurringSlotKey': value.recurringSlotKey,
+  'recurringOrdinal': value.recurringOrdinal,
+  'recurringOverrides': value.recurringOverrides,
+  'preparationDefinitionId': value.preparationDefinitionId,
 };
 
 ScheduleEntity _scheduleFromJson(Map<String, dynamic> json) {
@@ -499,6 +512,28 @@ ScheduleEntity _scheduleFromJson(Map<String, dynamic> json) {
     'schedule.occurrenceOffsetSeconds',
   );
   return ScheduleEntity(
+    recurringSegmentId: _nullableString(
+      json['recurringSegmentId'],
+      'schedule.recurringSegmentId',
+    ),
+    recurringSlotKey: _nullableString(
+      json['recurringSlotKey'],
+      'schedule.recurringSlotKey',
+    ),
+    recurringOrdinal: _nullableInt(
+      json['recurringOrdinal'],
+      'schedule.recurringOrdinal',
+    ),
+    recurringOverrides:
+        _nullableString(
+          json['recurringOverrides'],
+          'schedule.recurringOverrides',
+        ) ??
+        '',
+    preparationDefinitionId: _nullableString(
+      json['preparationDefinitionId'],
+      'schedule.preparationDefinitionId',
+    ),
     id: _asString(json['id'], 'schedule.id'),
     place: PlaceEntity(
       id: _asString(place['id'], 'schedule.place.id'),

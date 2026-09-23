@@ -36,6 +36,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     );
     emit(
       state.copyWith(
+        isRecurring: scheduleDateTimeState.isRecurring,
         scheduleDate: scheduleDateTimeState.scheduleDate,
         scheduleTime: scheduleDateTimeState.scheduleTime,
         timeZoneId: scheduleDateTimeState.timeZoneId,
@@ -105,6 +106,20 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
+  void setRecurring(bool enabled) {
+    emit(
+      state.copyWith(
+        isRecurring: enabled,
+        clearOverlap: enabled,
+        clearPreviousOverlap: enabled,
+      ),
+    );
+    if (!enabled) {
+      checkScheduleOverlap();
+    }
+    validateCurrentSelection();
+  }
+
   void validateCurrentSelection() {
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
@@ -164,6 +179,11 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   }
 
   Future<void> checkScheduleOverlap() async {
+    if (state.isRecurring) {
+      emit(state.copyWith(clearOverlap: true, clearPreviousOverlap: true));
+      validateCurrentSelection();
+      return;
+    }
     if (state.scheduleDate.value == null || state.scheduleTime.value == null) {
       scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
       return;
@@ -365,9 +385,13 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         ScheduleFormScheduleDateTimeChanged(
           scheduleDate: state.scheduleDate.value!,
           scheduleTime: state.scheduleTime.value!,
-          occurrenceOffsetSeconds: state.selectedOccurrenceOffsetSeconds!,
-          maxAvailableTime: state.previousOverlapDuration,
-          previousScheduleName: state.previousScheduleName,
+          occurrenceOffsetSeconds: state.selectedOccurrenceOffsetSeconds ?? 0,
+          maxAvailableTime: state.isRecurring
+              ? null
+              : state.previousOverlapDuration,
+          previousScheduleName: state.isRecurring
+              ? null
+              : state.previousScheduleName,
         ),
       );
       return true;

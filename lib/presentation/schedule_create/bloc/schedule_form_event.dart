@@ -10,10 +10,14 @@ sealed class ScheduleFormEvent extends Equatable {
 final class ScheduleFormEditRequested extends ScheduleFormEvent {
   final String scheduleId;
 
-  const ScheduleFormEditRequested({required this.scheduleId});
+  final RecurringEditScope scope;
+  const ScheduleFormEditRequested({
+    required this.scheduleId,
+    this.scope = RecurringEditScope.occurrence,
+  });
 
   @override
-  List<Object> get props => [scheduleId];
+  List<Object> get props => [scheduleId, scope];
 }
 
 final class ScheduleFormCreateRequested extends ScheduleFormEvent {
@@ -103,11 +107,25 @@ final class ScheduleFormPreparationChanged extends ScheduleFormEvent {
 }
 
 final class ScheduleFormUpdated extends ScheduleFormEvent {
-  const ScheduleFormUpdated();
+  final bool confirmed;
+  final Set<String> excludedSlots;
+  const ScheduleFormUpdated({
+    this.confirmed = false,
+    this.excludedSlots = const {},
+  });
+  @override
+  List<Object> get props => [confirmed, excludedSlots];
 }
 
 final class ScheduleFormCreated extends ScheduleFormEvent {
-  const ScheduleFormCreated();
+  final bool confirmed;
+  final Set<String> excludedSlots;
+  const ScheduleFormCreated({
+    this.confirmed = false,
+    this.excludedSlots = const {},
+  });
+  @override
+  List<Object> get props => [confirmed, excludedSlots];
 }
 
 final class ScheduleFormValidated extends ScheduleFormEvent {
@@ -117,4 +135,23 @@ final class ScheduleFormValidated extends ScheduleFormEvent {
 
   @override
   List<Object> get props => [isValid];
+}
+
+final class ScheduleFormRecurringChanged extends ScheduleFormEvent {
+  const ScheduleFormRecurringChanged(this.rule, {this.countChanged = false});
+  final RecurrenceRule? rule;
+  final bool countChanged;
+  @override
+  List<Object> get props => [rule ?? '', countChanged];
+}
+
+final class ScheduleFormReviewDismissed extends ScheduleFormEvent {
+  const ScheduleFormReviewDismissed();
+}
+
+final class ScheduleFormRepeatedTimeChosen extends ScheduleFormEvent {
+  const ScheduleFormRepeatedTimeChosen(this.choice);
+  final RepeatedCivilTime choice;
+  @override
+  List<Object> get props => [choice];
 }

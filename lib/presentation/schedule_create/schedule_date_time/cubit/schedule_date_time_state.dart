@@ -7,6 +7,7 @@ class ScheduleDateTimeState extends Equatable {
     this.scheduleDate = const ScheduleDateInputModel.pure(),
     this.scheduleTime = const ScheduleTimeInputModel.pure(),
     this.isOverlapping = false,
+    this.isRecurring = false,
     this.nextScheduleName,
     this.nextPreparationStartTime,
     this.previousOverlapDuration,
@@ -20,6 +21,7 @@ class ScheduleDateTimeState extends Equatable {
   final ScheduleDateInputModel scheduleDate;
   final ScheduleTimeInputModel scheduleTime;
   final bool isOverlapping;
+  final bool isRecurring;
   final String? nextScheduleName;
   final DateTime? nextPreparationStartTime;
   final Duration? previousOverlapDuration;
@@ -42,11 +44,12 @@ class ScheduleDateTimeState extends Equatable {
 
   bool get isValid =>
       Formz.validate([scheduleDate, scheduleTime]) &&
-      !isOverlapping &&
-      !isPastScheduleTime &&
-      !isNonexistentCivilTime &&
-      !requiresOccurrenceChoice &&
-      selectedOccurrenceOffsetSeconds != null;
+      (isRecurring ||
+          (!isOverlapping &&
+              !isPastScheduleTime &&
+              !isNonexistentCivilTime &&
+              !requiresOccurrenceChoice &&
+              selectedOccurrenceOffsetSeconds != null));
 
   DateTime? get selectedScheduleDateTime {
     if (scheduleDate.value == null || scheduleTime.value == null) {
@@ -68,7 +71,15 @@ class ScheduleDateTimeState extends Equatable {
     if (selectedDateTime == null) {
       return false;
     }
-    return selectedDateTime.isBefore(DateTime.now());
+    final offset = selectedOccurrenceOffsetSeconds;
+    if (offset == null) return selectedDateTime.isBefore(DateTime.now());
+    return DateTime.utc(
+      selectedDateTime.year,
+      selectedDateTime.month,
+      selectedDateTime.day,
+      selectedDateTime.hour,
+      selectedDateTime.minute,
+    ).subtract(Duration(seconds: offset)).isBefore(DateTime.now().toUtc());
   }
 
   /// Returns true if there's an overlap warning or error to display (for next schedule)
@@ -125,6 +136,7 @@ class ScheduleDateTimeState extends Equatable {
     ScheduleDateInputModel? scheduleDate,
     ScheduleTimeInputModel? scheduleTime,
     bool? isOverlapping,
+    bool? isRecurring,
     String? nextScheduleName,
     DateTime? nextPreparationStartTime,
     Duration? previousOverlapDuration,
@@ -137,6 +149,7 @@ class ScheduleDateTimeState extends Equatable {
     Object? selectedOccurrenceOffsetSeconds = _unset,
   }) {
     return ScheduleDateTimeState(
+      isRecurring: isRecurring ?? this.isRecurring,
       scheduleDate: scheduleDate ?? this.scheduleDate,
       scheduleTime: scheduleTime ?? this.scheduleTime,
       isOverlapping: clearOverlap
@@ -167,6 +180,7 @@ class ScheduleDateTimeState extends Equatable {
 
   static ScheduleDateTimeState fromScheduleFormState(ScheduleFormState state) {
     return ScheduleDateTimeState(
+      isRecurring: state.recurrenceRule != null,
       scheduleDate: ScheduleDateInputModel.pure(state.scheduleTime),
       scheduleTime: ScheduleTimeInputModel.pure(state.scheduleTime),
       timeZoneId: state.timeZoneId,
@@ -179,6 +193,7 @@ class ScheduleDateTimeState extends Equatable {
     scheduleDate,
     scheduleTime,
     isOverlapping,
+    isRecurring,
     nextScheduleName ?? '',
     nextPreparationStartTime ?? DateTime(0),
     previousOverlapDuration ?? const Duration(),

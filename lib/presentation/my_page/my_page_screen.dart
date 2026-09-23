@@ -1,3 +1,4 @@
+import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -61,6 +62,14 @@ class MyPageScreen extends StatelessWidget {
               title: AppLocalizations.of(context)!.appSettings,
               child: Column(
                 children: [
+                  _SettingTile(
+                    title: recurrenceText(
+                      context,
+                      '반복 일정 관리',
+                      'Recurring schedules',
+                    ),
+                    onTap: () => context.push('/recurringSchedules'),
+                  ),
                   _SettingTile(
                     title: AppLocalizations.of(context)!.editDefaultPreparation,
                     onTap: () async {

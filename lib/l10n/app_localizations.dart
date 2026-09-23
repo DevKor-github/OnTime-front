@@ -919,6 +919,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Settings'**
   String get openSettings;
+
+  /// No description provided for @notificationTimingEducationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve preparation notification timing'**
+  String get notificationTimingEducationTitle;
+
+  /// No description provided for @notificationTimingEducationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are on, but may arrive after preparation starts. Allow precise timing to improve scheduling. Delivery may still be delayed by the OS, battery settings, or device conditions.'**
+  String get notificationTimingEducationDescription;
+
+  /// No description provided for @notificationTimingAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise timing available'**
+  String get notificationTimingAvailable;
+
+  /// No description provided for @notificationTimingApproximate.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate timing · precise timing can be enabled'**
+  String get notificationTimingApproximate;
+
+  /// No description provided for @notificationApproximateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification · approximate timing'**
+  String get notificationApproximateStatus;
+
+  /// No description provided for @notificationMixedTimingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification · some approximate timing'**
+  String get notificationMixedTimingStatus;
+
+  /// No description provided for @notificationIncompleteStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification scheduling incomplete or needs checking'**
+  String get notificationIncompleteStatus;
+
+  /// No description provided for @notificationTimingSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing settings'**
+  String get notificationTimingSettings;
 }
 
 class _AppLocalizationsDelegate

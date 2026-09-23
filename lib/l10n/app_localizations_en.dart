@@ -482,4 +482,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openSettings => 'Open Settings';
+
+  @override
+  String get notificationTimingEducationTitle =>
+      'Improve preparation notification timing';
+
+  @override
+  String get notificationTimingEducationDescription =>
+      'Notifications are on, but may arrive after preparation starts. Allow precise timing to improve scheduling. Delivery may still be delayed by the OS, battery settings, or device conditions.';
+
+  @override
+  String get notificationTimingAvailable => 'Precise timing available';
+
+  @override
+  String get notificationTimingApproximate =>
+      'Approximate timing · precise timing can be enabled';
+
+  @override
+  String get notificationApproximateStatus =>
+      'Notification · approximate timing';
+
+  @override
+  String get notificationMixedTimingStatus =>
+      'Notification · some approximate timing';
+
+  @override
+  String get notificationIncompleteStatus =>
+      'Notification scheduling incomplete or needs checking';
+
+  @override
+  String get notificationTimingSettings => 'Timing settings';
 }

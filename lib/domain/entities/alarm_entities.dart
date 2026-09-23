@@ -260,6 +260,9 @@ class AlarmSchedulerCapabilities extends Equatable {
   ];
 }
 
+/// Actual successful registration mode; null on a record means legacy/unknown.
+enum NotificationTiming { platformDefault, exact, approximate }
+
 class ScheduledAlarmRecord extends Equatable {
   final String scheduleId;
   final DateTime alarmTime;
@@ -274,6 +277,7 @@ class ScheduledAlarmRecord extends Equatable {
   final int? contentVersion;
   final String? contentLanguageCode;
   final bool cancellationPending;
+  final NotificationTiming? notificationTiming;
   // Ephemeral: the registry stores only the digest/version, not another copy
   // of the rendered body. Fresh desired records always carry this snapshot.
   final ScheduledNotificationContent? notificationContent;
@@ -325,6 +329,7 @@ class ScheduledAlarmRecord extends Equatable {
     this.contentVersion,
     this.contentLanguageCode,
     this.cancellationPending = false,
+    this.notificationTiming,
     this.notificationContent,
   });
 
@@ -341,6 +346,7 @@ class ScheduledAlarmRecord extends Equatable {
     int? contentVersion,
     String? contentLanguageCode,
     bool? cancellationPending,
+    NotificationTiming? notificationTiming,
     ScheduledNotificationContent? notificationContent,
   }) {
     return ScheduledAlarmRecord(
@@ -358,6 +364,7 @@ class ScheduledAlarmRecord extends Equatable {
       contentVersion: contentVersion ?? this.contentVersion,
       contentLanguageCode: contentLanguageCode ?? this.contentLanguageCode,
       cancellationPending: cancellationPending ?? this.cancellationPending,
+      notificationTiming: notificationTiming ?? this.notificationTiming,
       notificationContent: notificationContent ?? this.notificationContent,
     );
   }
@@ -377,6 +384,7 @@ class ScheduledAlarmRecord extends Equatable {
     contentVersion,
     contentLanguageCode,
     cancellationPending,
+    notificationTiming,
   ];
 }
 

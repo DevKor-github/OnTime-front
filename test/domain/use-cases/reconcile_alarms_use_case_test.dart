@@ -153,6 +153,20 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
 
 class FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
+  AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
+  int timingRequestCount = 0;
+  NotificationTiming? actualTimingOverride;
+
+  @override
+  Future<AlarmPermissionState> checkExactTimingPermission() async =>
+      timingPermission;
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    timingRequestCount++;
+    return timingPermission;
+  }
+
   AlarmPermissionState permission = AlarmPermissionState.denied;
   bool throwOnCheckPermission = false;
   final scheduledFallback = <ScheduledAlarmRecord>[];
@@ -174,7 +188,9 @@ class FakeFallbackAlarmNotificationService
   Future<AlarmPermissionState> requestPermission() async => permission;
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async {
     if (throwPermissionOnScheduleIds.contains(record.scheduleId)) {
       throw const AlarmSchedulingException(
         reason: AlarmFailureReason.platformError,
@@ -192,6 +208,12 @@ class FakeFallbackAlarmNotificationService
       throw Exception('fallback channel failed');
     }
     scheduledFallback.add(record);
+    return actualTimingOverride ??
+        (timingPermission == AlarmPermissionState.unsupported
+            ? NotificationTiming.platformDefault
+            : timingPermission == AlarmPermissionState.granted
+            ? NotificationTiming.exact
+            : NotificationTiming.approximate);
   }
 
   @override
@@ -232,6 +254,139 @@ void main() {
       timeZoneProvider: () async => deviceZone,
     );
   });
+
+  test(
+    'Android grant and revoke replace timing while preserving capacity and ownership',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.denied;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'timing',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      expect(
+        registryRepository.records.single.notificationTiming,
+        NotificationTiming.approximate,
+      );
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      await useCase();
+      expect(fallbackService.canceledFallback, hasLength(1));
+      expect(
+        registryRepository.records.single.notificationTiming,
+        NotificationTiming.exact,
+      );
+      fallbackService.timingPermission = AlarmPermissionState.denied;
+      await useCase();
+      expect(fallbackService.canceledFallback, hasLength(2));
+      expect(
+        registryRepository.records.single.notificationTiming,
+        NotificationTiming.approximate,
+      );
+      expect(fallbackService.scheduledFallback, hasLength(3));
+      await useCase();
+      expect(fallbackService.scheduledFallback, hasLength(3));
+    },
+  );
+
+  test(
+    'actual downgrade receipt is persisted instead of optimistic permission',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      fallbackService.actualTimingOverride = NotificationTiming.approximate;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'race',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      final stored = ScheduledAlarmRecordModel(
+        registryRepository.records.single,
+      ).toJson();
+      expect(stored['notificationTiming'], 'approximate');
+      expect(
+        ScheduledAlarmRecordModel.fromJson(stored).record.notificationTiming,
+        NotificationTiming.approximate,
+      );
+    },
+  );
+
+  test(
+    'legacy or malformed mode keeps ownership and forces Android replacement',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'legacy',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      for (final raw in [null, 12, 'not-a-mode']) {
+        final stored = ScheduledAlarmRecordModel(
+          registryRepository.records.single,
+        ).toJson();
+        stored['notificationTiming'] = raw;
+        final legacy = ScheduledAlarmRecordModel.fromJson(stored).record;
+        expect(legacy.scheduleId, 'legacy');
+        expect(legacy.fallbackNotificationId, isNotNull);
+        expect(legacy.notificationTiming, isNull);
+        registryRepository.records = [legacy];
+        await useCase();
+        expect(
+          registryRepository.records.single.notificationTiming,
+          NotificationTiming.exact,
+        );
+      }
+      expect(fallbackService.canceledFallback, hasLength(3));
+    },
+  );
+
+  test('timing change cannot overwrite a failed cancellation', () async {
+    fallbackService.timingPermission = AlarmPermissionState.denied;
+    alarmRepository.schedules = [
+      scheduleWithAlarmAt(
+        id: 'blocked',
+        alarmTime: now.add(const Duration(hours: 1)),
+      ),
+    ];
+    await useCase();
+    fallbackService.timingPermission = AlarmPermissionState.granted;
+    fallbackService.throwOnCancelIds.add('blocked');
+    final result = await useCase();
+    expect(result.status, AlarmReconciliationStatus.partial);
+    expect(result.armedScheduleIds, isEmpty);
+    expect(fallbackService.scheduledFallback, hasLength(1));
+    expect(registryRepository.records.single.cancellationPending, isTrue);
+    expect(
+      registryRepository.records.single.notificationTiming,
+      NotificationTiming.approximate,
+    );
+  });
+
+  test(
+    'display denial plus cancellation failure preserves OS ownership',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'denied',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      final id = registryRepository.records.single.fallbackNotificationId;
+      fallbackService.permission = AlarmPermissionState.denied;
+      fallbackService.throwOnCancelIds.add('denied');
+      final result = await useCase();
+      expect(result.armedScheduleIds, isEmpty);
+      expect(registryRepository.records.single.fallbackNotificationId, id);
+      expect(registryRepository.records.single.cancellationPending, isTrue);
+      expect(fallbackService.scheduledFallback, hasLength(1));
+    },
+  );
 
   test(
     'requests the full future window and schedules only eligible records',

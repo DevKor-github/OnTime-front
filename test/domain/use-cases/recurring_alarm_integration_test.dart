@@ -241,6 +241,19 @@ class _NativeAlarms extends Fake implements AlarmSchedulerService {
 }
 
 class _Notifications extends Fake implements FallbackAlarmNotificationService {
+  AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
+  int timingRequestCount = 0;
+
+  @override
+  Future<AlarmPermissionState> checkExactTimingPermission() async =>
+      timingPermission;
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    timingRequestCount++;
+    return timingPermission;
+  }
+
   @override
   Future<AlarmPermissionState> checkPermission() async =>
       AlarmPermissionState.denied;

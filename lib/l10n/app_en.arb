@@ -600,6 +600,13 @@
     "openSettings": "Open Settings",
     "@openSettings": {
         "description": "Button text to open app settings"
-    }
-    
+    },
+    "notificationTimingEducationTitle": "Improve preparation notification timing",
+    "notificationTimingEducationDescription": "Notifications are on, but may arrive after preparation starts. Allow precise timing to improve scheduling. Delivery may still be delayed by the OS, battery settings, or device conditions.",
+    "notificationTimingAvailable": "Precise timing available",
+    "notificationTimingApproximate": "Approximate timing · precise timing can be enabled",
+    "notificationApproximateStatus": "Notification · approximate timing",
+    "notificationMixedTimingStatus": "Notification · some approximate timing",
+    "notificationIncompleteStatus": "Notification scheduling incomplete or needs checking",
+    "notificationTimingSettings": "Timing settings"
 }

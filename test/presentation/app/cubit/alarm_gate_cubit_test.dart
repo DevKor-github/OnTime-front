@@ -368,6 +368,19 @@ class _FakeAlarmSchedulerService extends AlarmSchedulerService {
 
 class _FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
+  AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
+  int timingRequestCount = 0;
+
+  @override
+  Future<AlarmPermissionState> checkExactTimingPermission() async =>
+      timingPermission;
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    timingRequestCount++;
+    return timingPermission;
+  }
+
   _FakeFallbackAlarmNotificationService({
     this.checkPermissionState = AlarmPermissionState.denied,
     this.requestPermissionState = AlarmPermissionState.denied,
@@ -387,7 +400,9 @@ class _FakeFallbackAlarmNotificationService
   }
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {}
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async => NotificationTiming.platformDefault;
 
   @override
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) async {}

@@ -206,20 +206,18 @@ class ReconcileAlarmsUseCase {
       for (final record in desiredRecords) record.scheduleId: record,
     };
 
-    final staleRecords = existingRecords.where((record) {
-      final desired = desiredByScheduleId[record.scheduleId];
-      return desired == null ||
-          !_recordMatches(record, desired) ||
-          !_recordProviderMatchesCapabilities(record, capabilities);
-    }).toList();
-    AppLogger.debug(
-      '$_logTag staleRecords=${staleRecords.length} '
-      'stale=${_recordSummary(staleRecords)}',
-    );
-    final failedCancellations = await _cancelRecords(staleRecords);
-    final blockedScheduleIds = failedCancellations
-        .map((record) => record.scheduleId)
-        .toSet();
+    final timingPermission = await _fallbackNotificationService
+        .checkExactTimingPermission();
+    final desiredTiming = timingPermission == AlarmPermissionState.unsupported
+        ? NotificationTiming.platformDefault
+        : timingPermission == AlarmPermissionState.granted
+        ? NotificationTiming.exact
+        : NotificationTiming.approximate;
+    bool timingMatches(ScheduledAlarmRecord record) =>
+        record.provider != AlarmProvider.localNotification ||
+        // iOS has no Android timing access and keeps its existing delivery policy.
+        desiredTiming == NotificationTiming.platformDefault ||
+        record.notificationTiming == desiredTiming;
 
     final nativePermission = await _checkNativePermission(capabilities);
     final fallbackPermission = await _checkFallbackPermission(capabilities);
@@ -233,6 +231,23 @@ class ReconcileAlarmsUseCase {
       fallbackPermission: fallbackPermission,
     );
 
+    final staleRecords = existingRecords.where((record) {
+      final desired = desiredByScheduleId[record.scheduleId];
+      return !deliveryPolicy.canDeliver ||
+          desired == null ||
+          !_recordMatches(record, desired) ||
+          !_recordProviderMatchesCapabilities(record, capabilities) ||
+          !timingMatches(record);
+    }).toList();
+    AppLogger.debug(
+      '$_logTag staleRecords=${staleRecords.length} '
+      'stale=${_recordSummary(staleRecords)}',
+    );
+    final failedCancellations = await _cancelRecords(staleRecords);
+    final blockedScheduleIds = failedCancellations
+        .map((record) => record.scheduleId)
+        .toSet();
+
     final finalRecords = <ScheduledAlarmRecord>[];
     final failures = _cancellationFailures(failedCancellations);
     AlarmPermissionIssue? permissionIssue;
@@ -244,7 +259,9 @@ class ReconcileAlarmsUseCase {
       final existing = existingByScheduleId[desired.scheduleId];
       if (existing != null &&
           _recordMatches(existing, desired) &&
-          _recordProviderMatchesCapabilities(existing, capabilities)) {
+          _recordProviderMatchesCapabilities(existing, capabilities) &&
+          timingMatches(existing) &&
+          deliveryPolicy.canDeliver) {
         AppLogger.debug(
           '$_logTag keeping existing alarm '
           'scheduleId=${existing.scheduleId} provider=${existing.provider}',
@@ -451,10 +468,12 @@ class ReconcileAlarmsUseCase {
           'scheduleId=${fallbackRecord.scheduleId} '
           'alarmTime=${fallbackRecord.alarmTime.toIso8601String()}',
         );
-        await _fallbackNotificationService.scheduleFallbackAlarm(
+        final timing = await _fallbackNotificationService.scheduleFallbackAlarm(
           fallbackRecord,
         );
-        return _ScheduleAttempt(record: fallbackRecord);
+        return _ScheduleAttempt(
+          record: fallbackRecord.copyWith(notificationTiming: timing),
+        );
       } on AlarmSchedulingException catch (error) {
         AppLogger.debug(
           '$_logTag fallback schedule failed '

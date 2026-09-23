@@ -1,3 +1,4 @@
+import 'package:on_time_front/presentation/shared/components/notification_timing_education.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/core/services/notification_tap_router.dart';
 import 'package:on_time_front/domain/use-cases/schedule_preparation_session_use_case.dart';
@@ -83,9 +84,33 @@ class _AppRouterViewState extends State<_AppRouterView>
           null &&
       _router.routerDelegate.navigatorKey.currentContext != null;
 
+  void _offerTimingEducation() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !_readyForNotification() ||
+          _router.routeInformationProvider.value.uri.path != '/home') {
+        return;
+      }
+      final navigatorContext =
+          _router.routerDelegate.navigatorKey.currentContext;
+      if (navigatorContext != null) {
+        unawaited(
+          NotificationTimingEducation.offerOnce(
+            navigatorContext,
+            isCurrent: () =>
+                mounted &&
+                _readyForNotification() &&
+                _router.routeInformationProvider.value.uri.path == '/home',
+          ),
+        );
+      }
+    });
+  }
+
   void _retryNotificationTap() {
     if (!mounted) return;
     _tapRouter?.retry();
+    _offerTimingEducation();
   }
 
   @override

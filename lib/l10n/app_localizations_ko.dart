@@ -452,4 +452,29 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get openSettings => '설정 열기';
+
+  @override
+  String get notificationTimingEducationTitle => '준비 시작 알림을 더 정확하게';
+
+  @override
+  String get notificationTimingEducationDescription =>
+      '현재 알림은 켜져 있으며 준비 시작 시각보다 늦게 도착할 수 있어요. 정확한 시각 권한을 허용하면 더 정확하게 예약할 수 있어요. OS, 절전 설정과 기기 상태에 따라 도착이 늦어질 수 있습니다.';
+
+  @override
+  String get notificationTimingAvailable => '정확한 시각 예약 가능';
+
+  @override
+  String get notificationTimingApproximate => '근사 시각 예약 · 정확한 시각 설정 가능';
+
+  @override
+  String get notificationApproximateStatus => '알림 · 근사 시각';
+
+  @override
+  String get notificationMixedTimingStatus => '알림 · 일부 근사 시각';
+
+  @override
+  String get notificationIncompleteStatus => '알림 예약 일부 실패 또는 확인 필요';
+
+  @override
+  String get notificationTimingSettings => '정확한 시각 설정하기';
 }

@@ -1,0 +1,124 @@
+{
+  "audit_id": "A13",
+  "issue_number": 592,
+  "recorded_at": "2026-09-23T15:45:07.401396+00:00",
+  "baseline_head": "204b6e65949c3cb439065dd67c64dfbb65ba1bfc",
+  "status": "code_verified_device_pending",
+  "owned_source_hashes": {
+    "lib/core/services/fallback_alarm_notification_service.dart": "8ef4f9288d15492b4050e80785155b32ad6bf83578d74a4d7fcc7ce9393a8e8b",
+    "lib/core/services/notification_service.dart": "386d557bd601e3dbec614cc76213c14f5b51d73596e0c8f52b1604af2df34abd",
+    "lib/data/models/scheduled_alarm_record_model.dart": "1366c69727bae27a06f9887939ea7e7ab5c6a5eed432513ec6ecb92d765c4233",
+    "lib/domain/entities/alarm_entities.dart": "851ae98da3e5be4ddff790f8ae0b9edbccf44b08c498657cd94b14fc8f387a28",
+    "lib/domain/entities/schedule_notification_status.dart": "c6df22af19630f652902955fbfa227cf514918b4959158972d4d269d630ed0e9",
+    "lib/domain/use-cases/reconcile_alarms_use_case.dart": "44a00c808141fcf24842b49dd18c8f1f2647297b9d59d7ec4137151093b00a37",
+    "lib/l10n/app_en.arb": "5ede619f29b0f64cc2822167f1fa3f4406c160a2065d6bfd83cbeb1329110bf3",
+    "lib/l10n/app_ko.arb": "440c1a24ba7afd4117019d2d52dc78bca608eb30ae1bdc83a85d9d84bc65bce5",
+    "lib/l10n/app_localizations.dart": "535f7e7021874591221582309ee5392ad22c94b4385985261bca04e33a46fd2c",
+    "lib/l10n/app_localizations_en.dart": "f44dd3228e8a0ca92d95636c321723d5210e7399d3d9a49df9a23c0e0cc71213",
+    "lib/l10n/app_localizations_ko.dart": "782e1f66bf9be34a677c0f298b13b38ff087af15bd2aa0468f01a6db837fe1e1",
+    "lib/presentation/app/screens/app.dart": "1e2bf2d22e0afcfa67739c951eabbe701d0bf1f3f21d1121d74ca1620dd2c788",
+    "lib/presentation/my_page/my_page_screen.dart": "7b7cd2cc76d80c3ee268cb3da068dd5e437ade12ed5b86094ad6929b9d12fd03",
+    "lib/presentation/shared/components/notification_timing_education.dart": "bdfca87e3ba18234dfc41d7cb29ce4af6b1fe7c76828ac98aaf7efd7e4bd4207",
+    "test/core/services/android_notification_timing_test.dart": "f2e9032bf1be099fbf36d8ddf1a6bc29d0763ebd7de3ee2c1bed4f7d086ed168",
+    "test/core/services/fallback_alarm_notification_service_test.dart": "481b16728461a7eb8bd2fc9c470fac09d612f50da18e6799dc180843bf744381",
+    "test/domain/entities/schedule_notification_status_test.dart": "b28197cb799ac27ea839c646208447330727a4f9778f2f22883aa3f37e28b592",
+    "test/domain/use-cases/reconcile_alarms_use_case_test.dart": "2c317e35fc6450eadcf8918642d424656271d582afebfab1369213669c48bc76",
+    "test/domain/use-cases/recurring_alarm_integration_test.dart": "78ad4277cf1e9bc0c60a9a1635b5e47fc66a6bdc6a15947290f47708cad70b44",
+    "test/presentation/alarm_allow/alarm_allow_screen_test.dart": "4bba257a8f32957600e7aa4200011ae25698fc5c398a4731bcf59e2a396e63e1",
+    "test/presentation/app/cubit/alarm_gate_cubit_test.dart": "b408ffc81432aad0a36ec68563b3af4f0ec4f4d4c251bb23c283f88c8ebb2889",
+    "test/presentation/my_page/my_page_screen_test.dart": "6a67690afecdc6a92cedfdc827daf1941881ac7e5e78b5b931b61d4e2dd95d88"
+  },
+  "full_suite_lib_test_tree_sha256_before": "6fe32b6428b177589b1cb1204ade533cc71a3afbf7018b0c840bd6c864d01f60",
+  "full_suite_lib_test_file_count": 463,
+  "concurrent_changes_included": [
+    "U08 home visibility source and tests",
+    "root A12 notification launch widget test adjustment"
+  ],
+  "checks": [
+    {
+      "command": "flutter test --no-pub --concurrency=1 <Android boundary, adapter, status model, reconcile, MyPage files>",
+      "result": "71 passed before final generation guard regression and lint-only edits"
+    },
+    {
+      "command": "flutter analyze --no-pub",
+      "result": "No issues found"
+    },
+    {
+      "command": "flutter test --no-pub --concurrency=1 --reporter expanded",
+      "result": "initial attempt interrupted by agent to apply analyzer fixes; not a completed pass"
+    },
+    {
+      "command": "flutter test --no-pub --concurrency=1 --reporter expanded",
+      "result": "734 passed, 0 failed",
+      "exit_code": 0,
+      "duration_seconds": 108
+    },
+    {
+      "command": "python3 test/tool/test_android_notification_manifest.py",
+      "result": "11 passed",
+      "exit_code": 0
+    },
+    {
+      "command": "dart run tool/check_local_only_boundary.dart",
+      "result": "Local-only product boundary verified",
+      "exit_code": 0
+    },
+    {
+      "command": "flutter test --no-pub --concurrency=1 /tmp/a13_capture_test.dart --plain-name capture...",
+      "result": "1 passed; 2 English widget screenshots",
+      "exit_code": 0
+    },
+    {
+      "command": "flutter test --no-pub --concurrency=1 /tmp/a13_capture_ko_test.dart --plain-name capture...",
+      "result": "1 passed; 2 Korean widget screenshots",
+      "exit_code": 0
+    },
+    {
+      "command": "dart run tool/check_generated_dart_policy.dart",
+      "result": "passed",
+      "performed_by": "root independent check reported via collaboration"
+    },
+    {
+      "command": "dart run tool/check_local_only_boundary.dart",
+      "result": "passed",
+      "performed_by": "root independent repeat check reported via collaboration"
+    }
+  ],
+  "device_verification": "not run; no physical Android timing/delivery proof",
+  "limitations": [
+    "OS exact access revocation stops app and cancels future exact alarms; no automatic approximate guarantee until next app execution",
+    "Native full-screen policy remains false; no USE_EXACT_ALARM or independent background scheduler",
+    "General OS pending reconciliation A14 and coalescing A15 remain separate"
+  ],
+  "full_suite_lib_test_tree_sha256_after": "6fe32b6428b177589b1cb1204ade533cc71a3afbf7018b0c840bd6c864d01f60",
+  "full_suite_source_unchanged": true,
+  "owned_source_hashes_unchanged": true,
+  "completed_at": "2026-09-23T15:48:49.466476+00:00",
+  "capture_conditions": {
+    "surface_logical_px": "430x932",
+    "raster_scale": 2,
+    "font": "bundled Pretendard Regular/Medium/SemiBold/Bold and MaterialIcons",
+    "locales": [
+      "en",
+      "ko"
+    ],
+    "fixture": "standalone real MyPage widget with in-memory Drift settings and fake scheduling receipts; future approximate local notification",
+    "verified": "PNG images visually inspected; no overflow or clipped dialog/actions in these captures",
+    "not_verified": "Not an Android emulator/device screenshot; not an OS settings flow, actual delivery timing, or release artifact proof",
+    "harness": "capture-harness-*.dart.txt copies preserve test-harness source outside lib/test; only named capture test executed"
+  },
+  "artifacts_sha256": {
+    "plans/audit-2026-09-23/artifacts/a13/analyze.log": "360e3b9db9114c24f0d6533162f4e35a346ea82448a6b5b9424d7faf70e8ce16",
+    "plans/audit-2026-09-23/artifacts/a13/android-approximate-status-ko.png": "28abd44f37920086976e7e57162f27a849e2c371c064ceefb39c4b97a4690c43",
+    "plans/audit-2026-09-23/artifacts/a13/android-approximate-status.png": "c2218e1f8fabbb5f5a1251c4abd623f55707c263c45ebae63d28ccc68e95a00d",
+    "plans/audit-2026-09-23/artifacts/a13/capture-en.log": "dbcf7de48b735b7de63018734f30658781453d360e66bf273915a0f0965f124d",
+    "plans/audit-2026-09-23/artifacts/a13/capture-harness-en.dart.txt": "ebb7c668de5befacb27e50c0ff0fc7da75d3dffce4bc47b122f370aef80df7e8",
+    "plans/audit-2026-09-23/artifacts/a13/capture-harness-ko.dart.txt": "08057f94e22c4ceff76a448ba2f7b0ffbe42270c75263b378e41a880cdad1a7f",
+    "plans/audit-2026-09-23/artifacts/a13/capture-ko.log": "a64274504915e0414dfc29a0939324483a17e1aaa2eb559bfc2534946dc60b5d",
+    "plans/audit-2026-09-23/artifacts/a13/full-suite.log": "2c6eee8fec93b6ac605abfab213bb88830382b8c22925cb55748aaab4c2eb35b",
+    "plans/audit-2026-09-23/artifacts/a13/optional-timing-education-ko.png": "17cf17c9ed9884b099ed31a3a2970a1510c5958d7aca507075a23b718be9a7f6",
+    "plans/audit-2026-09-23/artifacts/a13/optional-timing-education.png": "6d2dfc4271645666173ed52fae1537cf3d177b98d163d689c2ad964f670e3496",
+    "plans/audit-2026-09-23/artifacts/a13/targeted.log": "1bf2a4e5280e40fb866a91328539526fa46df68f9aa6356fc442684db3f901c7"
+  },
+  "artifact_logs_note": "Repository log copies have trailing whitespace removed before hashing; original /tmp logs preserved."
+}

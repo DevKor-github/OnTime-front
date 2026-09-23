@@ -7,7 +7,11 @@ abstract interface class FallbackAlarmNotificationService {
 
   Future<AlarmPermissionState> requestPermission();
 
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record);
+  Future<AlarmPermissionState> checkExactTimingPermission();
+
+  Future<AlarmPermissionState> requestExactTimingPermission();
+
+  Future<NotificationTiming> scheduleFallbackAlarm(ScheduledAlarmRecord record);
 
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record);
 }
@@ -37,7 +41,17 @@ class FallbackAlarmNotificationServiceImpl
   }
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) {
+  Future<AlarmPermissionState> checkExactTimingPermission() =>
+      _notificationService.checkExactTimingPermission();
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() =>
+      _notificationService.requestExactTimingPermission();
+
+  @override
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) {
     return _notificationService.scheduleFallbackAlarm(record);
   }
 

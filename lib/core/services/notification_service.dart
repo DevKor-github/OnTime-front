@@ -27,11 +27,13 @@ class NotificationService {
     NotificationTapRouter? notificationTapRouter,
     String Function()? localeProvider,
     bool? isIOSOverride,
+    bool? isAndroidOverride,
   }) : _localNotifications =
            localNotifications ?? FlutterLocalNotificationsPlugin(),
        _notificationTapRouter =
            notificationTapRouter ?? const NoopNotificationTapRouter(),
        _localeProvider = localeProvider,
+       _isAndroidOverride = isAndroidOverride,
        _isIOSOverride = isIOSOverride;
 
   @visibleForTesting
@@ -42,10 +44,12 @@ class NotificationService {
     bool isFlutterLocalNotificationsInitialized = false,
     bool isTimezoneInitialized = false,
     bool? isIOSOverride,
+    bool? isAndroidOverride,
   }) : _localNotifications = localNotifications,
        _notificationTapRouter =
            notificationTapRouter ?? const NoopNotificationTapRouter(),
        _localeProvider = localeProvider,
+       _isAndroidOverride = isAndroidOverride,
        _isIOSOverride = isIOSOverride,
        _isFlutterLocalNotificationsInitialized =
            isFlutterLocalNotificationsInitialized,
@@ -60,6 +64,7 @@ class NotificationService {
   NotificationTapRouter _notificationTapRouter;
   final String Function()? _localeProvider;
   final bool? _isIOSOverride;
+  final bool? _isAndroidOverride;
   bool _isFlutterLocalNotificationsInitialized = false;
   bool _isTimezoneInitialized = false;
   Future<void>? _initializationFuture;
@@ -72,6 +77,8 @@ class NotificationService {
   int? _deferredGeneration;
 
   bool get _isIOS => !kIsWeb && (_isIOSOverride ?? Platform.isIOS);
+
+  bool get _isAndroid => !kIsWeb && (_isAndroidOverride ?? Platform.isAndroid);
 
   String get _locale =>
       _localeProvider?.call() ??
@@ -391,7 +398,47 @@ class NotificationService {
         permission == AuthorizationStatus.provisional;
   }
 
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {
+  /// Timing access is independent of notification display and full-screen UI.
+  Future<AlarmPermissionState> checkExactTimingPermission() async {
+    if (!_isAndroid) return AlarmPermissionState.unsupported;
+    try {
+      final allowed = await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.canScheduleExactNotifications();
+      return allowed == true
+          ? AlarmPermissionState.granted
+          : allowed == false
+          ? AlarmPermissionState.denied
+          : AlarmPermissionState.notDetermined;
+    } on PlatformException {
+      return AlarmPermissionState.notDetermined;
+    } on MissingPluginException {
+      return AlarmPermissionState.notDetermined;
+    }
+  }
+
+  /// Call only after the user explicitly chooses to open timing settings.
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    if (!_isAndroid) return AlarmPermissionState.unsupported;
+    try {
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestExactAlarmsPermission();
+    } on PlatformException {
+      return checkExactTimingPermission();
+    } on MissingPluginException {
+      return AlarmPermissionState.notDetermined;
+    }
+    return checkExactTimingPermission();
+  }
+
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async {
     record.requireCurrentContent();
     if (!await hasNotificationPermission()) {
       throw const AlarmSchedulingException(
@@ -404,33 +451,53 @@ class NotificationService {
     await collectInitialLaunch();
     await _ensureTimezoneInitialized();
     final content = record.deliveryContent;
-    await _localNotifications.zonedSchedule(
-      id: fallbackNotificationIdForRecord(record),
-      title: content.title,
-      body: content.body,
-      scheduledDate: tz.TZDateTime.from(record.alarmTime, tz.local),
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'scheduled_notification_channel',
-          'Schedule notifications',
-          channelDescription: 'OnTime schedule preparation notifications.',
-          importance: Importance.max,
-          priority: Priority.max,
-          category: AndroidNotificationCategory.reminder,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          interruptionLevel: InterruptionLevel.timeSensitive,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      payload: encodeLocalNotificationPayload(
-        minimalScheduleRoutePayload(record.payload),
-      ),
-    );
+    final permission = await checkExactTimingPermission();
+    var timing = !_isAndroid
+        ? NotificationTiming.platformDefault
+        : permission == AlarmPermissionState.granted
+        ? NotificationTiming.exact
+        : NotificationTiming.approximate;
+    Future<void> schedule(NotificationTiming mode) =>
+        _localNotifications.zonedSchedule(
+          id: fallbackNotificationIdForRecord(record),
+          title: content.title,
+          body: content.body,
+          scheduledDate: tz.TZDateTime.from(record.alarmTime, tz.local),
+          notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'scheduled_notification_channel',
+              'Schedule notifications',
+              channelDescription: 'OnTime schedule preparation notifications.',
+              importance: Importance.max,
+              priority: Priority.max,
+              category: AndroidNotificationCategory.reminder,
+              icon: '@mipmap/ic_launcher',
+            ),
+            iOS: DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+              interruptionLevel: InterruptionLevel.timeSensitive,
+            ),
+          ),
+          androidScheduleMode: mode == NotificationTiming.exact
+              ? AndroidScheduleMode.exactAllowWhileIdle
+              : AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: encodeLocalNotificationPayload(
+            minimalScheduleRoutePayload(record.payload),
+          ),
+        );
+    try {
+      await schedule(timing);
+    } on PlatformException catch (error) {
+      if (timing != NotificationTiming.exact ||
+          error.code != 'exact_alarms_not_permitted') {
+        rethrow;
+      }
+      timing = NotificationTiming.approximate;
+      await schedule(timing); // Exactly one retry; other errors stay visible.
+    }
+    return timing;
   }
 
   Future<void> cancelFallbackNotification(int notificationId) async {

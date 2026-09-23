@@ -41,6 +41,9 @@ class ScheduledAlarmRecordModel {
         contentDigest: validMetadata ? rawDigest : null,
         contentVersion: validMetadata ? rawVersion : null,
         contentLanguageCode: validMetadata ? rawLanguage as String : null,
+        notificationTiming: NotificationTiming.values
+            .where((value) => value.name == json['notificationTiming'])
+            .firstOrNull,
         cancellationPending:
             rawPending == true || (rawPending != null && rawPending is! bool),
       ),
@@ -64,6 +67,8 @@ class ScheduledAlarmRecordModel {
       if (record.contentVersion != null)
         'contentVersion': record.contentVersion,
       if (record.cancellationPending) 'cancellationPending': true,
+      if (record.notificationTiming != null)
+        'notificationTiming': record.notificationTiming!.name,
     };
   }
 }

@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'dart:async';
@@ -54,6 +55,52 @@ void main() {
       expect(snapshot.preparation, schedule.preparation);
       expect(snapshot.savedAt, startedAt);
       expect(snapshot.scheduleFingerprint, schedule.cacheFingerprint);
+    },
+  );
+
+  test(
+    'cancellation failure does not undo committed start or skip its snapshot',
+    () async {
+      final schedules = _FakeScheduleRepository();
+      final snapshots = _FakeTimedPreparationRepository();
+      final early = _FakeEarlyStartSessionRepository();
+      final reconcile = _FakeReconcileAlarmsUseCase();
+      final useCase = SchedulePreparationSessionUseCase(
+        schedules,
+        _FakePreparationRepository(),
+        snapshots,
+        early,
+        _FakeCancelScheduleAlarmUseCase()..fails = true,
+        reconcile,
+      );
+      final schedule = _scheduleWithPreparation('schedule-1');
+      await useCase.startEarlySession(schedule, startedAt: DateTime.utc(2026));
+      expect(schedules.startedScheduleIds, [schedule.id]);
+      expect(snapshots.snapshots[schedule.id], isNotNull);
+      expect(reconcile.callCount, 1);
+    },
+  );
+
+  test(
+    'cancellation failure after finish still clears completed runtime',
+    () async {
+      final schedules = _FakeScheduleRepository();
+      final snapshots = _FakeTimedPreparationRepository();
+      final early = _FakeEarlyStartSessionRepository();
+      final reconcile = _FakeReconcileAlarmsUseCase();
+      final useCase = SchedulePreparationSessionUseCase(
+        schedules,
+        _FakePreparationRepository(),
+        snapshots,
+        early,
+        _FakeCancelScheduleAlarmUseCase()..fails = true,
+        reconcile,
+      );
+      await useCase.finishSchedulePreparation('schedule-1', latenessTime: 7);
+      expect(schedules.finishedSchedules, [('schedule-1', 7)]);
+      expect(snapshots.clearedScheduleIds, ['schedule-1']);
+      expect(early.clearedScheduleIds, ['schedule-1']);
+      expect(reconcile.callCount, 1);
     },
   );
 
@@ -498,10 +545,12 @@ class _FakeEarlyStartSessionRepository implements EarlyStartSessionRepository {
 
 class _FakeCancelScheduleAlarmUseCase implements CancelScheduleAlarmUseCase {
   final cancelledScheduleIds = <String>[];
+  bool fails = false;
 
   @override
   Future<void> call(String scheduleId) async {
     cancelledScheduleIds.add(scheduleId);
+    if (fails) throw const AlarmCleanupIncomplete();
   }
 }
 

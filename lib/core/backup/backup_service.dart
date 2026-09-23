@@ -1,5 +1,6 @@
 import 'package:on_time_front/core/backup/recurring_backup_data.dart';
 import 'dart:convert';
+import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 
 import 'package:drift/drift.dart';
 import 'package:file_selector/file_selector.dart';
@@ -65,7 +66,8 @@ class BackupRestoreCandidate {
 class BackupService {
   BackupService(
     this._database,
-    this._metadataProvider, {
+    this._metadataProvider,
+    this._cancelAllAlarms, {
     @ignoreParam BackupCrypto? crypto,
     @ignoreParam BackupFileExportPort? exportPort,
     @ignoreParam LocalDataOperationGate? operationGate,
@@ -83,6 +85,7 @@ class BackupService {
   );
 
   final AppDatabase _database;
+  final CancelAllAlarmsUseCase _cancelAllAlarms;
   final AppMetadataProvider _metadataProvider;
   final BackupCrypto _crypto;
   final BackupFileExportPort _exportPort;
@@ -172,6 +175,7 @@ class BackupService {
       _operationGate.run(() => _applyRestore(candidate), replacesData: true);
 
   Future<void> _applyRestore(BackupRestoreCandidate candidate) async {
+    await _cancelAllAlarms.forDataReplacement();
     final data = candidate._data;
     final profile = data.profile.valueOrNull!;
     await _database.transaction(() async {

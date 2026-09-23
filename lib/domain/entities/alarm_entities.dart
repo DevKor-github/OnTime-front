@@ -522,3 +522,15 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
     },
   );
 }
+
+/// Identity of the actual owned OS request, not its database Schedule label.
+String alarmOwnershipKey(ScheduledAlarmRecord record) {
+  final Object identity = switch (record.provider) {
+    AlarmProvider.localNotification =>
+      record.fallbackNotificationId ?? stableAlarmId(record.scheduleId),
+    AlarmProvider.androidAlarmManager =>
+      record.nativeAlarmId ?? stableAlarmId(record.scheduleId),
+    AlarmProvider.iosAlarmKit || AlarmProvider.none => record.scheduleId,
+  };
+  return '${record.provider.name}:$identity';
+}

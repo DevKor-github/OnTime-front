@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
@@ -28,12 +29,12 @@ void main() {
       expect(fallback.canceledFallback.map((record) => record.scheduleId), [
         'schedule-1',
       ]);
-      expect(registry.deletedScheduleIds, ['schedule-1']);
+      expect(registry.records.map((r) => r.scheduleId), ['schedule-2']);
     },
   );
 
   test(
-    'CancelScheduleAlarmUseCase still deletes registry when platform cancel fails',
+    'CancelScheduleAlarmUseCase preserves retry ownership when cancellation fails',
     () async {
       final registry = _FakeAlarmRegistryRepository([
         _record('schedule-1', AlarmProvider.androidAlarmManager),
@@ -45,9 +46,13 @@ void main() {
         _FakeFallbackAlarmNotificationService(),
       );
 
-      await useCase('schedule-1');
+      await expectLater(
+        useCase('schedule-1'),
+        throwsA(isA<AlarmCleanupIncomplete>()),
+      );
 
-      expect(registry.deletedScheduleIds, ['schedule-1']);
+      expect(registry.records.single.scheduleId, 'schedule-1');
+      expect(registry.records.single.cancellationPending, isTrue);
     },
   );
 
@@ -71,7 +76,7 @@ void main() {
       expect(fallback.canceledFallback.map((record) => record.scheduleId), [
         'fallback',
       ]);
-      expect(registry.deleteAllCount, 1);
+      expect(registry.records, isEmpty);
     },
   );
 
@@ -85,7 +90,7 @@ void main() {
 
     await useCase();
 
-    expect(registry.deleteAllCount, 1);
+    expect(registry.records, isEmpty);
   });
 }
 
@@ -104,7 +109,7 @@ ScheduledAlarmRecord _record(String scheduleId, AlarmProvider provider) {
 class _FakeAlarmRegistryRepository implements AlarmRegistryRepository {
   _FakeAlarmRegistryRepository(this.records);
 
-  final List<ScheduledAlarmRecord> records;
+  List<ScheduledAlarmRecord> records;
   final deletedScheduleIds = <String>[];
   int deleteAllCount = 0;
 
@@ -119,6 +124,11 @@ class _FakeAlarmRegistryRepository implements AlarmRegistryRepository {
   @override
   Future<void> deleteAll() async {
     deleteAllCount += 1;
+  }
+
+  @override
+  Future<void> replaceAll(List<ScheduledAlarmRecord> next) async {
+    records = List.of(next);
   }
 
   @override

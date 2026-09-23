@@ -1,3 +1,4 @@
+import '../../helpers/noop_alarm_reconciliation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -141,12 +142,15 @@ void main() {
       ),
       CreateScheduleFormSubmissionUseCase(
         CreateScheduleWithPlaceUseCase(schedules, alarms),
-        CreateCustomPreparationUseCase(preparations),
+        CreateCustomPreparationUseCase(preparations, NoopAlarmReconciliation()),
         recurringSchedules: useCase,
       ),
       UpdateScheduleFormSubmissionUseCase(
         UpdateScheduleUseCase(schedules, alarms),
-        UpdatePreparationByScheduleIdUseCase(preparations),
+        UpdatePreparationByScheduleIdUseCase(
+          preparations,
+          NoopAlarmReconciliation(),
+        ),
         recurringSchedules: useCase,
       ),
       recurringSchedules: useCase,

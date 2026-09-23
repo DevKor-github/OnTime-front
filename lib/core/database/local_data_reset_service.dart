@@ -26,10 +26,12 @@ class LocalDataResetService {
 
   Future<void> _reset() async {
     await LocalDataLifecycle.markResetPending();
-    await _cancelAllAlarms().catchError((_) {});
-    await NotificationService.instance.cancelAll().catchError((_) {});
-    await _database.close();
+    // The durable reset intent is now irrevocable in this process. Even if
+    // cleanup fails, do not reopen normal writers; bootstrap resumes reset.
     _operationGate.invalidate();
+    await _cancelAllAlarms.forDataReplacement();
+    await NotificationService.instance.cancelAll();
+    await _database.close();
     await deleteLocalDatabaseFiles(includeLegacy: true);
     await (await SharedPreferences.getInstance()).clear();
     await _keyStore.delete();

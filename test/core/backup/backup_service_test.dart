@@ -1,3 +1,4 @@
+import '../../helpers/noop_alarm_cleanup.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -37,6 +38,7 @@ void main() {
     service = BackupService(
       database,
       _MetadataProvider(),
+      NoopAlarmCleanup(),
       crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
       exportPort: exportPort,
       operationGate: gate,

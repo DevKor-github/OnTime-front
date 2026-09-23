@@ -49,7 +49,9 @@ class AlarmRegistryLocalDataSourceImpl implements AlarmRegistryLocalDataSource {
       contentDigest: current ? record.contentDigest : null,
       contentVersion: current ? record.contentVersion : null,
       contentLanguageCode: current ? record.contentLanguageCode : null,
-      notificationTiming: current ? record.notificationTiming : null,
+      // The enum is a scheduling receipt, not private content. Keep it even
+      // on a minimal cancellation tombstone with no fingerprint/content.
+      notificationTiming: record.notificationTiming,
       cancellationPending: record.cancellationPending || !current,
       notificationContent: current ? record.notificationContent : null,
     );

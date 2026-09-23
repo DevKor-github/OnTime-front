@@ -170,7 +170,7 @@ class _AppRouterViewState extends State<_AppRouterView>
         disableAlarmsWhenPermissionMissing: true,
       ),
     );
-    unawaited(getIt.get<ReconcileAlarmsUseCase>()());
+    requestAlarmReconciliation(getIt.get<ReconcileAlarmsUseCase>());
   }
 
   void _handleAlarmLaunchPayload(Map<String, String> payload) {

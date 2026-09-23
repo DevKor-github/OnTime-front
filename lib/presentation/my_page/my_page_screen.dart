@@ -136,7 +136,24 @@ class _DetailedNotificationTileState extends State<_DetailedNotificationTile> {
   Future<void> _change(bool enabled) async {
     setState(() => _enabled = enabled);
     await getIt<DetailedNotificationPreferenceService>().setEnabled(enabled);
-    await getIt<ReconcileAlarmsUseCase>()();
+    var incomplete = false;
+    try {
+      final result = await getIt<ReconcileAlarmsUseCase>()();
+      incomplete =
+          result.status == AlarmReconciliationStatus.partial ||
+          result.status == AlarmReconciliationStatus.settingsUnavailable;
+    } catch (_) {
+      incomplete = true;
+    }
+    if (incomplete && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.notificationIncompleteStatus,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -305,6 +322,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
           if (!delivery.policy.canDeliver &&
               delivery.policy.shouldDisableAlarms) {
             await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+            requestAlarmReconciliation(getIt<ReconcileAlarmsUseCase>());
             await getIt.get<CancelAllAlarmsUseCase>()();
             await _load();
             return;
@@ -325,6 +343,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
         if (!delivery.policy.canDeliver &&
             delivery.policy.shouldDisableAlarms) {
           await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+          requestAlarmReconciliation(getIt<ReconcileAlarmsUseCase>());
           await getIt.get<CancelAllAlarmsUseCase>()();
           await _load();
           return;
@@ -332,6 +351,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
         await alarmRepository.updateAlarmSettings(alarmsEnabled: true);
       } else {
         await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+        requestAlarmReconciliation(getIt<ReconcileAlarmsUseCase>());
         await getIt.get<CancelAllAlarmsUseCase>()();
       }
       await _load();
@@ -344,6 +364,10 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
           mounted) {
         await _load();
       }
+    } catch (_) {
+      // The preference may already be committed. Re-read it and expose the
+      // incomplete delivery state instead of undoing it or leaking a Future.
+      if (mounted) await _load();
     } finally {
       if (mounted) {
         setState(() {

@@ -290,7 +290,7 @@
         "`reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214`",
         "permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시."
       ],
-      "status": "code_verified_followup_pending",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a14",
       "issue_number": 593,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/593",
@@ -300,16 +300,17 @@
       "verification": [
         "Frozen source24 SHA256 matched; focused100/full772, analyzer, native Swift SDK/Kotlin compile, generated/local-only checks passed. a14-validation.json.",
         "Root visually reviewed actual MyPage standalone KO/EN captures; fake receipts/in-memory DB, not physical OS screenshots.",
-        "Remote b81259bf: Flutter772/analyze, coverage87.44% (11487/13137), Android APK/manifest passed. a14-ci-validation.json."
+        "Remote b81259bf: Flutter772/analyze, coverage87.44% (11487/13137), Android APK/manifest passed. a14-ci-validation.json.",
+        "A15 followup local795/analyze and actual registry/data source ownership roundtrip passed; final remote CI separately pending"
       ],
       "blockers": [
-        "A15 integration follow-up: actual registry scheduleId dedup can lose multiple provider/platform-ID cancellation ownership; implementation underway.",
-        "Actual Android/iOS delivery and permission/Doze/reboot matrix not executed."
+        "Actual Android/iOS delivery and permission/Doze/reboot matrix not executed.",
+        "A15 ownership followup local verification passed; final remote CI pending."
       ],
       "sequence": 9,
       "issue_body_sha256": "23769c09503d629f813df5b93db7b2b6fce715dd15ea1571ea09fa06b9c1a5d4",
       "readback_verified": true,
-      "body_sha256": "562f5779035405a4a284ba08f76067b19c50eddf6050aa6d5f47093ad3a4c470"
+      "body_sha256": "5efdc7fd7cc9debee0f5f7fed3f5146d346eb8ca52f9286b41960f750304b888"
     },
     {
       "audit_id": "A15",
@@ -322,18 +323,27 @@
         "`reconcile_alarms_use_case.dart:43-57`; `schedule_mutation_alarm_effects_coordinator.dart:37-52`",
         "dirty flag/data revision 기반 재실행 또는 직렬 작업 큐. snapshot 읽기 뒤 생성·수정·삭제를 끼워 넣어 최종 OS 예약이 최신 DB를 반영하는지 검사. reset/cancel과 경계 공유."
       ],
-      "status": "implementing",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a15",
       "issue_number": 594,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/594",
       "decisions_file": "plans/audit-2026-09-23/issues/A15.md",
       "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Deterministic post-snapshot request regression failed before fix; trailing pass now covers each accepted cutoff",
+        "Final frozen source: 795 Flutter tests and analyzer passed; root independently compared 37 before/after/current source hashes",
+        "Actual BackupService/Reset + Drift integration preserves replacement ordering and pending reset safety; fake OS and mock secure storage are not device evidence",
+        "Actual CRUD/preparation/recurring usecases trigger trailing reconciliation without test-injected extra calls; nearest60 and no self-dirty loop checked",
+        "Actual registry repository/data source and SharedPreferences mock backend retain multiple platform ownerships and cancellation timing enum"
+      ],
+      "blockers": [
+        "Real Android/iOS concurrent edits, restore/reset and delivery verification pending",
+        "Remote CI for final A15 commit pending; D03 durable crash journal and A09 full restore runtime cleanup remain separate"
+      ],
       "sequence": 10,
       "readback_verified": true,
-      "body_sha256": "a565fc9d7133fb725312f7d10e5601e480c04b71fcc6dc91b8c98c5b75485179"
+      "body_sha256": "016d79f9ab44a022c92cbab9237e47515fe5e0f8a643b9501d471e46cde453d9"
     },
     {
       "audit_id": "D03",

@@ -1,0 +1,238 @@
+{
+  "audit_id": "A15",
+  "issue_number": 594,
+  "recorded_at": "2026-09-24T01:47:52.715324+09:00",
+  "base_head": "d2ae69d3f0e139d2d88c46a7f1e0b8da5e403830",
+  "implementation_commit": null,
+  "scope": "Dart source, real Drift/SharedPreferences persistence, actual use-case/service integrations, blocking fake OS boundaries; no actual OS delivery proof",
+  "source_freeze": {
+    "file_count": 37,
+    "production_count": 21,
+    "test_count": 16,
+    "before_after_equal": true,
+    "before_aggregate_sha256": "de887b4e5d34a0ac9c37d62e92a652128fabde3ae1ddcb6dc54d6eccff446dd2",
+    "after_aggregate_sha256": "de887b4e5d34a0ac9c37d62e92a652128fabde3ae1ddcb6dc54d6eccff446dd2",
+    "algorithm": "SHA-256 of UTF-8 compact JSON of path-to-SHA256 map with sorted keys",
+    "before_raw_path": "/tmp/a15-source-final-before.json",
+    "after_raw_path": "/tmp/a15-source-final-after.json",
+    "source_sha256": {
+      "lib/core/backup/backup_service.dart": "9e9115611b34037085c81c458b2c448ff5db5f9aa6824127a3f895db8bfee651",
+      "lib/core/database/local_data_operation_gate.dart": "ca8bfc6f0524d72bd31fb6edd7b460c9fbb920b82a8115eee765903a855df431",
+      "lib/core/database/local_data_reset_service.dart": "5a68174b12e492561e6ffd01339910d9baefb24c59f6e0a2e15bc6600be230fe",
+      "lib/core/services/alarm_operation_coordinator.dart": "3f0c722ef010266df9b33170fe4296f9ce38a10bcc41c1dfffefc5ad712bc9e6",
+      "lib/core/services/alarm_registration_cleanup.dart": "ec761f598843f1bb4e921b94220f2148a5b09b2adc1d6f663c163afe700dfe75",
+      "lib/core/services/runtime_privacy_migration.dart": "2af68dea5f0ad56fcc356e7c7dfcb60f476de4c749c60b2dc1afdff11b171100",
+      "lib/data/data_sources/alarm_registry_local_data_source.dart": "c6630f012bc4b7a30182aa5981171dd87c77672ba09980897402e9a5470ec091",
+      "lib/data/repositories/alarm_registry_repository_impl.dart": "5dbc52c6e3374d5e4832c31d6f588182ae03a2f686860cecea79e3444d81d772",
+      "lib/domain/entities/alarm_entities.dart": "8b293fe26b9e427767f0e27e1c241f3fa67f355c3be63c7db03319f49ba2f140",
+      "lib/domain/use-cases/cancel_all_alarms_use_case.dart": "5132abe8512f86cd3d9854331f132c63196b33c5966c7d444195014f12b843eb",
+      "lib/domain/use-cases/cancel_schedule_alarm_use_case.dart": "910edcb21f162d0720c4bd3ee78b40ef05abb571b02eeae7ae4a0e4536bc4939",
+      "lib/domain/use-cases/create_custom_preparation_use_case.dart": "9e65bad6207798a9b5388e49d9d41e47e58334a7ff6a2cbe629c8f7976c179e6",
+      "lib/domain/use-cases/reconcile_alarms_use_case.dart": "3be8e6c940f4657ec31fbdfe0de7291e58b1f45294c05878f141d604736c0a14",
+      "lib/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart": "a74af417500c2808c6dcf47acbe1e4a6074428d5076baa94cc6c2071bc37c6e1",
+      "lib/domain/use-cases/schedule_preparation_session_use_case.dart": "94a0ac310c64127682cf26cb1d46568a767d6a106e68c8726281038216938a22",
+      "lib/domain/use-cases/update_default_preparation_use_case.dart": "f82e82a391bdb3bd956ecedba14e2b0d00e01848b1b5aac5d3828c50171fab41",
+      "lib/domain/use-cases/update_preparation_by_schedule_id_use_case.dart": "364f367b7b167b03d39b181724a3116e48e369910750e3f2aa7c54ce1e9e4496",
+      "lib/presentation/app/bloc/auth/auth_bloc.dart": "b8b6787ca4e4cc4ad4b0dd0589ccaab80625361813a825c82d1826aac79a3eed",
+      "lib/presentation/app/cubit/alarm_gate_cubit.dart": "2e97460db5f79359ae97dd6fd85e1fa2dfccc2e493e72c66a3766898444cdbbd",
+      "lib/presentation/app/screens/app.dart": "a70e26a65959f877d747240ec6dfc56508ea787fdab5d786eab4f017dab834ac",
+      "lib/presentation/my_page/my_page_screen.dart": "4ca549582472ae6ce460fd27681ba1505e5a8d042c03a89ed61b600027f0bf37",
+      "test/core/backup/backup_restore_picker_test.dart": "e1e4fd9bf75d61be96a9bbb0dbc52ad449f7a310c5e48d6386baa669086261f0",
+      "test/core/backup/backup_service_test.dart": "a414c730497e3459e615f0c56b1db2232c463055b6a52df80e9cd2fb4ecc7547",
+      "test/core/database/alarm_replacement_integration_test.dart": "1f5b4753fcd41b94166f7bb44f0869bcb82b9cf314d154eeb14b4a718895c247",
+      "test/data/repositories/alarm_registry_repository_impl_test.dart": "6413a15f52de0ecc764888e33a0b097933233f7760a4138b570f91a61d5ba3ec",
+      "test/domain/use-cases/alarm_reconciliation_concurrency_test.dart": "065806b405504892aaf5c2f00560cdd8de22955e7ae13d532251c95753aa53bb",
+      "test/domain/use-cases/cancel_alarms_use_cases_test.dart": "b7da59e69109ce0faa5cc497c7e4a65cb6bfb2eecc8a51b24f21de690997c5ba",
+      "test/domain/use-cases/reconcile_alarms_use_case_test.dart": "a9372393dca8435a937b5fc54e714bcfbfb5a6d060d979e11e0a0a7437f9f9c0",
+      "test/domain/use-cases/recurring_alarm_integration_test.dart": "ce2f5ee98073ceabd55a21b6bd5a4695da81ce7a6dac50d34e9fc5ca12858da3",
+      "test/domain/use-cases/schedule_mutation_alarm_effects_coordinator_test.dart": "b767e76b1bd30c61b370de46f1f4b791224317ca270c2c1fd1580a0ca4af8253",
+      "test/domain/use-cases/schedule_preparation_session_use_case_test.dart": "a01103a4a356a0b72356c95d2a469fcd50ad724be17ff901265b77c83af88a08",
+      "test/domain/use-cases/timed_preparation_use_cases_test.dart": "36f30958c8ccb72d7d999b3fab9ce53b04f5dab3628f837882147cc41aa0719e",
+      "test/helpers/noop_alarm_cleanup.dart": "25ff39efd57c1bd6fe5f3cedde19abd1b88fb114d4e703b96cb429751b70a59c",
+      "test/helpers/noop_alarm_reconciliation.dart": "dd2a9e0f9888a7c64466daca2b16e78bac3a6a2361a997d69ca7ad6355548fd9",
+      "test/presentation/my_page/my_data_restore_test.dart": "015004e6c96f8c6608768cab8532bf1e953c7507cec214149bfc810409fd9895",
+      "test/presentation/my_page/my_page_screen_test.dart": "4f6c9577f8ba8572e28be470764fa9f47e4345d09f56e13b40e5bbbafbdb058f",
+      "test/presentation/recurring/recurring_form_integration_test.dart": "889e5c4cd7f1d954f3eb2eb2d18c7b226f93a8ac6e40ae00962393a90b4506cd"
+    },
+    "base_head_source_sha256": {
+      "lib/core/backup/backup_service.dart": "3ce7559eba72034e18db31afabc3418bfb6e2f7aa13d0cbc2ffdd2d04286f29f",
+      "lib/core/database/local_data_operation_gate.dart": "eddfd35db2879f169fc438b4ca2e41793547437f3a9bfae5a64dcc2ae9e97299",
+      "lib/core/database/local_data_reset_service.dart": "470b5ddeeb48e55fba618af70b2e1c17750db1197ccb5e00e262155cfe4f8a2f",
+      "lib/core/services/alarm_operation_coordinator.dart": null,
+      "lib/core/services/alarm_registration_cleanup.dart": null,
+      "lib/core/services/runtime_privacy_migration.dart": "055c3c42ce1c8db14c5e0c0be32b9d8acf60cf939d582728e43c888ffbd8fcea",
+      "lib/data/data_sources/alarm_registry_local_data_source.dart": "1369c3435ad9e83480481d07533a99e76972da866cde28279324a951f772b098",
+      "lib/data/repositories/alarm_registry_repository_impl.dart": "064eb8e4626e1a35b9fdb14089d8a3db7d53df6c8daaa6a220537ddeb5416f6f",
+      "lib/domain/entities/alarm_entities.dart": "e553b399b33366e66d97f4d9a48be51f893b2665d3526de6863996dc3df9f5eb",
+      "lib/domain/use-cases/cancel_all_alarms_use_case.dart": "a0552a206ca23434b377b5d12838afb9c6868dc611bc5a1c019f691fe991f2b5",
+      "lib/domain/use-cases/cancel_schedule_alarm_use_case.dart": "c6545be67ddd695f458f740120ff261a37f50a110b3ba137b60cbf49a7683588",
+      "lib/domain/use-cases/create_custom_preparation_use_case.dart": "ad0594dac6b8fd8036c591cb90c3cb6773ed47ffcf7ef1e6825c70ccd5bc0e10",
+      "lib/domain/use-cases/reconcile_alarms_use_case.dart": "b35da04adb14635ff3e49d7c20bcd990fb999188cfaf4901216ee75e6a2cab55",
+      "lib/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart": "aea586206a5176bcd5ea47879e3336affea9fed8fd17febb362265a7479c63c7",
+      "lib/domain/use-cases/schedule_preparation_session_use_case.dart": "e50d09d05abbb455efe5988835c78bd11aaaca00ced486aa0618735660ebb8b8",
+      "lib/domain/use-cases/update_default_preparation_use_case.dart": "d9908f62cd0664fb5b6105cf242489ac5c2c7184536efe4228785ce9ee9eae71",
+      "lib/domain/use-cases/update_preparation_by_schedule_id_use_case.dart": "8e6bddc5f8a7a0b0611ba54a8936415e10f148a354abc9143bc30122456b5dc4",
+      "lib/presentation/app/bloc/auth/auth_bloc.dart": "3ef6696aa67c820bfe1e156200affbbaca7295b54dca16853a2d91b81f878d85",
+      "lib/presentation/app/cubit/alarm_gate_cubit.dart": "3fc38676137cf6f43f83d0bd03d8d639d770171630dba9d0f5e75769e9bb21e7",
+      "lib/presentation/app/screens/app.dart": "1e2bf2d22e0afcfa67739c951eabbe701d0bf1f3f21d1121d74ca1620dd2c788",
+      "lib/presentation/my_page/my_page_screen.dart": "a6b09b5008a5d1c550b98ca5b741e07eeaf5f49c295f63a6c6cd64ebdbfa4af9",
+      "test/core/backup/backup_restore_picker_test.dart": "0b009b213a12668cc5c97a72e8d20d4771b228bff73500eb215551ca033e6d85",
+      "test/core/backup/backup_service_test.dart": "1560a1c41881deea8ba8328afef67bccae0a2ff87589f4ac241ee2732c787e96",
+      "test/core/database/alarm_replacement_integration_test.dart": null,
+      "test/data/repositories/alarm_registry_repository_impl_test.dart": "3b13f9f905a1e19afb568539f22d21c198ffcb340dd85cf422b8c68d544b8640",
+      "test/domain/use-cases/alarm_reconciliation_concurrency_test.dart": null,
+      "test/domain/use-cases/cancel_alarms_use_cases_test.dart": "1f6a8d517962d5b768ee9c0f0a6c681b72f2d148d1bac4760b9dadf1950f9b31",
+      "test/domain/use-cases/reconcile_alarms_use_case_test.dart": "a3fcfc825fbb660cf51835847cceaf1d5223d1b62d8d3834f4df436beadf5b63",
+      "test/domain/use-cases/recurring_alarm_integration_test.dart": "4213d878156b6f446ecede4c9816cc3b51ba0729bfd1706e32722ef5b76ae49a",
+      "test/domain/use-cases/schedule_mutation_alarm_effects_coordinator_test.dart": "f3dc6df80bcf768f123d375fd3c1780e42f2c3b83211aa1e0cc04649cd661811",
+      "test/domain/use-cases/schedule_preparation_session_use_case_test.dart": "f0f9f56df3a2eab969d105cb58695fae9a192a1a38d33c2fc82b487732c0d0c4",
+      "test/domain/use-cases/timed_preparation_use_cases_test.dart": "5eb010ee6b41b7f5de15a829d889d4baa31b742791b9c505185ebaf70bea1825",
+      "test/helpers/noop_alarm_cleanup.dart": null,
+      "test/helpers/noop_alarm_reconciliation.dart": null,
+      "test/presentation/my_page/my_data_restore_test.dart": "137c479fb85da20cc835ace34bd680a8ccdf44545e6edd7efce45956f80cb1bf",
+      "test/presentation/my_page/my_page_screen_test.dart": "d6f00ea706ec4b93fdde2ed37fd883c6fe193d866fd77544f61aa29bf858021a",
+      "test/presentation/recurring/recurring_form_integration_test.dart": "604eaa2702dcc54e213a55679c7d2596a3aa6038fe35bce303368644bfe44fc7"
+    }
+  },
+  "commands": [
+    {
+      "command": "dart run build_runner build --delete-conflicting-outputs",
+      "exit_code": 0,
+      "result": "314 ignored local outputs; 10 seconds; option deprecated/ignored by installed generator; SDK/analyzer version warning recorded",
+      "log": "generation"
+    },
+    {
+      "command": "flutter test test/domain/use-cases/recurring_alarm_integration_test.dart --reporter expanded",
+      "exit_code": 0,
+      "passed": 5,
+      "evidence": "Strengthened actual create/update/preparation entrypoint tests do not inject a post-mutation reconcile request",
+      "log": "automatic_mutation"
+    },
+    {
+      "command": "flutter test --reporter expanded",
+      "exit_code": 0,
+      "passed": 795,
+      "phase": "final frozen source after actual mutation test strengthening",
+      "log": "full"
+    },
+    {
+      "command": "flutter analyze",
+      "exit_code": 0,
+      "result": "No issues found; 2.9 seconds",
+      "log": "analyzer"
+    },
+    {
+      "command": "dart run tool/check_generated_dart_policy.dart",
+      "exit_code": 0,
+      "result": "outputs ignored and untracked",
+      "log": "generated_policy"
+    },
+    {
+      "command": "dart run tool/check_local_only_boundary.dart",
+      "exit_code": 0,
+      "result": "Local-only product boundary verified",
+      "log": "local_boundary"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "failed_runs": [
+    {
+      "log": "red",
+      "result": "snapshot-after-mutation regression fails against previous coalescing behavior: expected committed-after-snapshot, actual empty list",
+      "resolution": "Revision/cutoff trailing drain implemented"
+    },
+    {
+      "log": "initial_full_failure",
+      "result": "791 passed, 1 failed: old MyPage exact reconciliation call count expected2, actual3",
+      "resolution": "Removed implementation-count assertion; preserved committed preference/cancel/display assertions"
+    },
+    {
+      "log": "ownership_failure",
+      "result": "62 passed, 1 failed: minimal cancellation record lost notificationTiming",
+      "resolution": "Preserve timing enum in ownershipOnly and actual storage sanitizer; added real SharedPreferences roundtrip assertion"
+    }
+  ],
+  "additional_review": {
+    "automatic_mutation_test_masking": "Final test review removed test-injected reconciliation after actual mutation; waits only on shared owner queue barrier. Same fix for deletion coordinator regression. Only two test files changed after earlier freeze; product source unchanged. Final full795/analyze rerun with independently captured before/after hash maps.",
+    "initial_freeze_aggregate": "92383a48e7e0e9ca5ab186a39ba25db66473af291a9117749ca31408cbdffa2e",
+    "actual_lifecycle": "3 tests instantiate actual BackupService/LocalDataResetService and real Drift; mocks limited to OS/key/prefs adapters. NoopAlarmCleanup elsewhere is isolation only.",
+    "actual_registry": "Actual SharedPreferences data source plus repository roundtrip/keeper tests cover multiple actual IDs and failures; old A14 fake registry suite did not establish this property."
+  },
+  "logs": {
+    "red": {
+      "raw_path": "/tmp/a15-red.log",
+      "raw_sha256": "a9fe4facb3e9843c5d1ccd9639620aa168ea96375615df0c39693b55b80562bc",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/red.txt",
+      "repository_copy_sha256": "429af3a6ce7221abf258a8c7a8e395ae2e12d62c4de5243d7fffe0005e3890e6",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "generation": {
+      "raw_path": "/tmp/a15-codegen-final.log",
+      "raw_sha256": "8719835fd34396b9bea2e1cea65be2b9a301b45c73f7754fdb8c2a5fb120e1c8",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/generation.txt",
+      "repository_copy_sha256": "8719835fd34396b9bea2e1cea65be2b9a301b45c73f7754fdb8c2a5fb120e1c8",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "initial_full_failure": {
+      "raw_path": "/tmp/a15-full.log",
+      "raw_sha256": "694369cc91b8c2dc17353954ac7fa7f9b363515a4a45667b976a635fa76d83a1",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/initial_full_failure.txt",
+      "repository_copy_sha256": "a2b4f427be75a92182532e461e1d17a80abdd78df747ef3b8aa5a750361ce70e",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "ownership_failure": {
+      "raw_path": "/tmp/a15-ownership.log",
+      "raw_sha256": "3ca5e6b162e34843d5fc018111626610be6e689cdb63e0364fd0c5d08db82d26",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/ownership_failure.txt",
+      "repository_copy_sha256": "67394ed5f805512710a227195e3dce536086c3c41df9da8a2f473d6bbe5890a0",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "automatic_mutation": {
+      "raw_path": "/tmp/a15-mutation-automatic.log",
+      "raw_sha256": "786bbae9857ef025d00bdd9df6ca256bc5b9e9f62ff0234ab4a90ba3fbfad17a",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/automatic_mutation.txt",
+      "repository_copy_sha256": "786bbae9857ef025d00bdd9df6ca256bc5b9e9f62ff0234ab4a90ba3fbfad17a",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "full": {
+      "raw_path": "/tmp/a15-source-final-full.log",
+      "raw_sha256": "f21216416f39996029298ce3a5774df46baee6d60bd33e82fb734285a4ad671e",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/full.txt",
+      "repository_copy_sha256": "f21216416f39996029298ce3a5774df46baee6d60bd33e82fb734285a4ad671e",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "analyzer": {
+      "raw_path": "/tmp/a15-source-final-analyze.log",
+      "raw_sha256": "61dfef2a9720f3cfd638bf1767ebaf11fc0fb97cb07c122dd974665f0aa19c60",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/analyzer.txt",
+      "repository_copy_sha256": "02961fdf15a57099ad9e22f439cb5b8251d4e8e2730430674693e3d5623076da",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "generated_policy": {
+      "raw_path": "/tmp/a15-generated-policy.log",
+      "raw_sha256": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/generated_policy.txt",
+      "repository_copy_sha256": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    },
+    "local_boundary": {
+      "raw_path": "/tmp/a15-local-boundary.log",
+      "raw_sha256": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a15/local_boundary.txt",
+      "repository_copy_sha256": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+      "normalization": "LF line endings and trailing whitespace removal; original retained"
+    }
+  },
+  "limitations": [
+    "Android/iOS real device permission, Doze, reboot, lock screen, timing and duplicates NOT RUN/device pending",
+    "Native source unchanged; native SDK build/APK/Runner linking not rerun by A15",
+    "Permanently pending native Future retains owner and can keep replacement pending; caller timeout does not cancel native side effect",
+    "In-memory ownership is not crash durability; D03 persistent journal and full interrupted-reset bootstrap recovery remain follow-up",
+    "Reset marker followed by cancellation failure leaves gate invalidated; same-process reset retry rejected; restart policy remains",
+    "D02 corrupted-DB recovery manifest not implemented",
+    "Multi-read transaction snapshot consistency remains A08/C01; broader settings save races remain U03"
+  ]
+}

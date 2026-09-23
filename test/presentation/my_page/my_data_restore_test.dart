@@ -1,3 +1,4 @@
+import '../../helpers/noop_alarm_cleanup.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,7 @@ void main() {
     final delegate = BackupService(
       database,
       _Metadata(),
+      NoopAlarmCleanup(),
       crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
     );
     final candidate = await delegate.previewEncryptedBackup(

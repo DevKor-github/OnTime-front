@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:flutter/services.dart';
 import 'package:on_time_front/core/database/bootstrap_privacy_boundary.dart';
 import 'package:injectable/injectable.dart';
@@ -23,7 +24,10 @@ class RuntimePrivacyMigration {
     this.snapshots,
     this.registry, {
     @ignoreParam Future<void> Function()? cleanPlatform,
-  }) : _cleanPlatform = cleanPlatform;
+    @ignoreParam AlarmOperationCoordinator? operations,
+  }) : _cleanPlatform = cleanPlatform,
+       _operations = operations ?? AlarmOperationCoordinator.shared;
+  final AlarmOperationCoordinator _operations;
   final Future<void> Function()? _cleanPlatform;
   final ScheduleRepository schedules;
   final PreparationLocalDataSource preparations;
@@ -33,7 +37,12 @@ class RuntimePrivacyMigration {
   static const _earlyPrefix = 'early_start_session_';
   static const _native = MethodChannel('on_time_front/native_alarm');
 
-  Future<void> run() async {
+  Future<void> run() {
+    final lease = _operations.capture();
+    return _operations.run(lease, _run);
+  }
+
+  Future<void> _run() async {
     final prefs = await SharedPreferences.getInstance();
     for (final key
         in prefs.getKeys().where((key) => key.startsWith(_prefix)).toList()) {
@@ -69,7 +78,7 @@ class RuntimePrivacyMigration {
               Error.throwWithStackTrace(error, stack);
             },
             cleanup: () =>
-                clearLegacyWithoutDatabase(cleanupPlatform: _cleanPlatform),
+                _clearLegacyWithoutDatabase(cleanupPlatform: _cleanPlatform),
           );
         }
       }
@@ -106,6 +115,16 @@ class RuntimePrivacyMigration {
   }
 
   static Future<void> clearLegacyWithoutDatabase({
+    Future<void> Function()? cleanupPlatform,
+  }) {
+    final owner = AlarmOperationCoordinator.shared;
+    return owner.run(
+      owner.capture(),
+      () => _clearLegacyWithoutDatabase(cleanupPlatform: cleanupPlatform),
+    );
+  }
+
+  static Future<void> _clearLegacyWithoutDatabase({
     Future<void> Function()? cleanupPlatform,
   }) async {
     final prefs = await SharedPreferences.getInstance();

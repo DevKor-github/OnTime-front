@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'dart:async';
 import 'package:on_time_front/domain/entities/preparation_snapshot_validation.dart';
@@ -74,7 +76,8 @@ class SchedulePreparationSessionUseCase {
       startedAt: startedAt,
     );
     await startSchedulePreparation(schedule.id);
-    await _cancelScheduleAlarmUseCase(schedule.id);
+    requestAlarmReconciliation(_reconcileAlarmsUseCase);
+    if (!await _cancelDelivery(schedule.id)) return;
     await saveTimedPreparationSnapshot(
       schedule,
       savedAt: startedAt,
@@ -172,9 +175,9 @@ class SchedulePreparationSessionUseCase {
   }) async {
     await startSchedulePreparation(scheduleId);
     await _scheduleRepository.finishSchedule(scheduleId, latenessTime);
-    await _cancelScheduleAlarmUseCase(scheduleId);
+    requestAlarmReconciliation(_reconcileAlarmsUseCase);
+    if (!await _cancelDelivery(scheduleId)) return;
     await clearPersistedState(scheduleId);
-    unawaited(_reconcileAlarmsUseCase());
   }
 
   Future<SchedulePreparationPromptResult> resolvePromptedSchedule({
@@ -190,7 +193,9 @@ class SchedulePreparationSessionUseCase {
         return const SchedulePreparationPromptResult.unavailable();
       }
       if (_isEnded(schedule.doneStatus)) {
-        if (isCurrent == null) await _cancelScheduleAlarmUseCase(scheduleId);
+        if (isCurrent == null && !await _cancelDelivery(scheduleId)) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
         return const SchedulePreparationPromptResult.rejected();
       }
       // Subscribe first, but retain only a finite snapshot of the loaded map.
@@ -236,7 +241,9 @@ class SchedulePreparationSessionUseCase {
       if (scheduleFingerprint != null &&
           scheduleFingerprint != combined.cacheFingerprint &&
           !startPreparation) {
-        if (isCurrent == null) await _cancelScheduleAlarmUseCase(scheduleId);
+        if (isCurrent == null && !await _cancelDelivery(scheduleId)) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
         return const SchedulePreparationPromptResult.rejected();
       }
       return SchedulePreparationPromptResult.ready(combined);
@@ -246,6 +253,21 @@ class SchedulePreparationSessionUseCase {
           : const SchedulePreparationPromptResult.unavailable();
     } catch (_) {
       return const SchedulePreparationPromptResult.unavailable();
+    }
+  }
+
+  Future<bool> _cancelDelivery(String scheduleId) async {
+    try {
+      await _cancelScheduleAlarmUseCase(scheduleId);
+      return true;
+    } on AlarmOperationInvalidated {
+      // The old DB action must not write/clear transient state in a new store.
+      return false;
+    } catch (error) {
+      AppLogger.debug(
+        '[PreparationSession] delivery cleanup incomplete errorType=${error.runtimeType}',
+      );
+      return true; // Durable start/finish succeeded; ownership remains for retry.
     }
   }
 

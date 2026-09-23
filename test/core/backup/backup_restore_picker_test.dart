@@ -1,3 +1,4 @@
+import '../../helpers/noop_alarm_cleanup.dart';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -50,6 +51,7 @@ void main() {
     service = BackupService(
       database,
       _Metadata(),
+      NoopAlarmCleanup(),
       crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
     );
     await database.userDao.putUser(

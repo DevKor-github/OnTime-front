@@ -19,7 +19,10 @@ class AlarmRegistryRepositoryImpl implements AlarmRegistryRepository {
     final records = await loadAll();
     final nextRecords =
         records
-            .where((existing) => existing.scheduleId != record.scheduleId)
+            .where(
+              (existing) =>
+                  alarmOwnershipKey(existing) != alarmOwnershipKey(record),
+            )
             .toList()
           ..add(record);
     await replaceAll(nextRecords);
@@ -40,10 +43,10 @@ class AlarmRegistryRepositoryImpl implements AlarmRegistryRepository {
 
   @override
   Future<void> replaceAll(List<ScheduledAlarmRecord> records) {
-    final byScheduleId = <String, ScheduledAlarmRecord>{};
+    final byOwnership = <String, ScheduledAlarmRecord>{};
     for (final record in records) {
-      byScheduleId[record.scheduleId] = record;
+      byOwnership[alarmOwnershipKey(record)] = record;
     }
-    return localDataSource.replaceAll(byScheduleId.values.toList());
+    return localDataSource.replaceAll(byOwnership.values.toList());
   }
 }

@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:async';
@@ -107,6 +108,40 @@ void main() {
     expect(reconcile.callCount, 2);
   });
 
+  testWidgets(
+    'committed detailed preference survives delivery invalidation without unhandled error',
+    (tester) async {
+      await _pumpMyPage(tester);
+      reconcile.fail = true;
+      final detail = find.widgetWithText(SwitchListTile, '알림에 일정 이름 표시');
+      await tester.tap(detail);
+      await tester.pumpAndSettle();
+      expect(
+        (await database.userDao.getAlarmSettings(
+          localProfileId,
+        )).detailedNotificationContent,
+        true,
+      );
+      expect(tester.widget<SwitchListTile>(detail).value, true);
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'OFF cancellation failure keeps committed preference and shows cleanup status',
+    (tester) async {
+      await _pumpMyPage(tester);
+      cancelAll.fail = true;
+      reconcile.disabledStatus = AlarmReconciliationStatus.partial;
+      await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
+      await tester.pumpAndSettle();
+      expect(alarmRepository.settings.alarmsEnabled, false);
+      expect(find.text('Off · cancellation needs checking'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('disabling schedule delivery cancels every local registration', (
     tester,
   ) async {
@@ -117,7 +152,6 @@ void main() {
 
     expect(alarmRepository.updatedSettings, [false]);
     expect(cancelAll.callCount, 1);
-    expect(reconcile.callCount, 2);
     expect(find.text('꺼짐'), findsOneWidget);
   });
 
@@ -568,10 +602,12 @@ class _FakeReconcileAlarmsUseCase extends ReconcileAlarmsUseCase {
   int callCount = 0;
   List<String> armedIds = [];
   AlarmReconciliationStatus status = AlarmReconciliationStatus.armed;
+  bool fail = false;
 
   @override
   Future<AlarmReconciliationResult> call() async {
     callCount += 1;
+    if (fail) throw const AlarmOperationInvalidated();
     return AlarmReconciliationResult(
       status: (await repository.getAlarmSettings()).alarmsEnabled
           ? status
@@ -598,10 +634,12 @@ class _FakeCancelAllAlarmsUseCase extends CancelAllAlarmsUseCase {
   ) : super(registryRepository, schedulerService, fallbackNotificationService);
 
   int callCount = 0;
+  bool fail = false;
 
   @override
   Future<void> call() async {
     callCount += 1;
+    if (fail) throw const AlarmCleanupIncomplete();
   }
 }
 

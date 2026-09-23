@@ -76,7 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await Future.delayed(const Duration(milliseconds: 0));
         if (state.status == AuthStatus.authenticated) {
           _scheduleBloc.add(const ScheduleSubscriptionRequested());
-          unawaited(_reconcileAlarmsUseCase());
+          requestAlarmReconciliation(_reconcileAlarmsUseCase);
         }
       },
       onError: addError,

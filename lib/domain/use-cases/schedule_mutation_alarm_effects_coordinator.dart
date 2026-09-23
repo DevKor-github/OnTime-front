@@ -23,10 +23,19 @@ class ScheduleMutationAlarmEffectsCoordinator {
     required ScheduleMutationAlarmOperation operation,
     required String scheduleId,
   }) async {
+    // Acceptance is synchronous after the durable commit, even if targeted
+    // cancellation subsequently fails. The drain will retry from current data.
+    final reconciliation = _reconcileAlarmsUseCase();
+    _observe(reconciliation, operation, scheduleId);
     if (_requiresTargetedCancellation(operation)) {
-      await _cancelScheduleAlarmUseCase(scheduleId);
+      try {
+        await _cancelScheduleAlarmUseCase(scheduleId);
+      } catch (error) {
+        AppLogger.debug(
+          '$_logTag cancellation incomplete errorType=${error.runtimeType}',
+        );
+      }
     }
-    _reconcileBestEffort(operation, scheduleId);
   }
 
   bool _requiresTargetedCancellation(ScheduleMutationAlarmOperation operation) {
@@ -34,22 +43,20 @@ class ScheduleMutationAlarmEffectsCoordinator {
         operation == ScheduleMutationAlarmOperation.finished;
   }
 
-  void _reconcileBestEffort(
+  void _observe(
+    Future<dynamic> reconciliation,
     ScheduleMutationAlarmOperation operation,
     String scheduleId,
   ) {
     unawaited(
-      _reconcileAlarmsUseCase().then<void>((_) {}).catchError((
-        Object error,
-        StackTrace _,
-      ) {
-        AppLogger.debug(
-          '$_logTag reconcile failed '
-          'operation=${operation.name} '
-          'scheduleId=$scheduleId '
-          'errorType=${error.runtimeType}',
-        );
-      }),
+      reconciliation.then<void>(
+        (_) {},
+        onError: (Object error, StackTrace _) {
+          AppLogger.debug(
+            '$_logTag reconcile failed operation=${operation.name} errorType=${error.runtimeType}',
+          );
+        },
+      ),
     );
   }
 }

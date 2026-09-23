@@ -31,9 +31,9 @@
 1. `/root/grill_a15` 원래 전담이 source/test/A15.md/receipt를 소유해 구현 중. root는 tracking/GitHub/commit 소유. Flutter 명령을 병행하지 않는다.
 2. A15는 단일 native owner·request cutoff/trailing drain·replacement generation을 구현한다. 취소 실패 최소 ownership을 실제 platform ID로 보존하고 repo upsert/dedup 왕복을 검사한다. reset marker 후 실패해도 DB/키를 지우거나 새 writer를 열지 않는다. DB start/finish 후 취소 오류를 durable commit 실패처럼 취급하지 않는다. actual BackupService/Reset/CRUD/Preparation/recurring 통합 증거 포함 필요.
 3. A15 source freeze 이후 root hash/최종 tests/analyze/issue 전체 리뷰 반영을 확인하고 #594 read-back→명시적 staging→commit/push→새 SHA CI. A14 #593의 실제 ownership 후속 상태도 증거에 맞게 갱신한다.
-4. 이후 D03 원래 전담 followup으로 durable crash journal/cleanup 구현. A15 인메모리 큐가 D03의 재시작 복구까지 완료했다고 주장하지 않는다. 전체 구현 순서는 README를 따른다.
+4. D03 원래 전담 `/root/grill_d03` followup이 접수되어 읽기 전용 구현 준비 중이다. root가 A15 commit SHA를 전달하기 전 소스/테스트/문서 편집 및 Flutter 명령은 금지했다. 이후 durable crash journal/cleanup을 구현한다. A15 인메모리 큐가 D03의 재시작 복구까지 완료했다고 주장하지 않는다. 전체 구현 순서는 README를 따른다.
 5. D05 신규 전담 grill을 완료해 #606에 게시했다. 입력 암호문72MiB/평문64MiB/중첩32/일정100k/전체500k/정의별steps1000, 실제 bounded parsing·자료/그래프/시간대 검증·export 대칭·모바일 측정 계약이다. legacy duration에1440분을 일괄 강제하지 않고 과거 명시 offset 의미를 보존한다. D05 문답과 수용기준만 확정, 구현 전이다.
-6. 다음 신규 전담은 A10. 이번 생성 시도는 agent thread limit으로 거절됐다. 다른 항목 전담을 재사용하지 말고 다음 실행에서 새 agent 생성. 사용자 승인 대기가 아니다. 그동안 A15 리뷰/검증을 계속한다.
+6. A10 사전 read-only 확인: ScheduleBloc:244/835, Home timer:39, TodaysScheduleTile:158, adjacent usecase:54/73에 scheduleTime 직접 비교가 남아 있다. occurrenceInstantUtc의 offset-null fallback은 device-local toUtc이고 CivilTimeResolver unknown zone은 UTC fallback이다. 이 사실만으로 모든 civil-date 조회를 instant 비교로 일괄 치환하지 말고 A10 전담이 calendar bucket/commitment 의미를 구분해야 한다. 다음 신규 전담은 A10. 이번 생성 시도는 agent thread limit으로 거절됐다. 다른 항목 전담을 재사용하지 말고 다음 실행에서 새 agent 생성. 사용자 승인 대기가 아니다. 그동안 A15 리뷰/검증을 계속한다.
 
 ## 확정 복구 계약
 

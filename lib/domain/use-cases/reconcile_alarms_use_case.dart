@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/core/services/alarm_registration_cleanup.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/local_time_zone_service.dart';
 import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
@@ -27,16 +30,28 @@ class ReconcileAlarmsUseCase {
   final AlarmNowProvider _nowProvider;
   final String Function() _languageCodeProvider;
   final Future<String> Function() _timeZoneProvider;
-  Future<AlarmReconciliationResult>? _inFlight;
+  final AlarmOperationCoordinator _operations;
+  final _requests = <_ReconciliationRequest>[];
+  int _revision = 0;
+  bool _draining = false;
+
+  AlarmRegistrationCleanup get _cleanup => AlarmRegistrationCleanup(
+    _registryRepository,
+    _schedulerService,
+    _fallbackNotificationService,
+    _operations,
+  );
 
   ReconcileAlarmsUseCase(
     this._alarmRepository,
     this._registryRepository,
     this._schedulerService,
-    this._fallbackNotificationService,
-  ) : _nowProvider = DateTime.now,
-      _languageCodeProvider = _currentLanguageCode,
-      _timeZoneProvider = LocalTimeZoneService.current;
+    this._fallbackNotificationService, {
+    @ignoreParam AlarmOperationCoordinator? operations,
+  }) : _operations = operations ?? AlarmOperationCoordinator.shared,
+       _nowProvider = DateTime.now,
+       _languageCodeProvider = _currentLanguageCode,
+       _timeZoneProvider = LocalTimeZoneService.current;
 
   @visibleForTesting
   ReconcileAlarmsUseCase.test(
@@ -47,7 +62,9 @@ class ReconcileAlarmsUseCase {
     required AlarmNowProvider nowProvider,
     String Function()? languageCodeProvider,
     Future<String> Function()? timeZoneProvider,
-  }) : _nowProvider = nowProvider,
+    AlarmOperationCoordinator? operations,
+  }) : _operations = operations ?? AlarmOperationCoordinator.shared,
+       _nowProvider = nowProvider,
        _languageCodeProvider = languageCodeProvider ?? _currentLanguageCode,
        _timeZoneProvider = timeZoneProvider ?? LocalTimeZoneService.current;
 
@@ -55,28 +72,70 @@ class ReconcileAlarmsUseCase {
       ui.PlatformDispatcher.instance.locale.languageCode;
 
   Future<AlarmReconciliationResult> call() {
-    final running = _inFlight;
-    if (running != null) {
-      AppLogger.debug('$_logTag call joined existing in-flight reconciliation');
-      return running;
+    final AlarmOperationLease lease;
+    try {
+      lease = _operations.capture();
+    } catch (error, stack) {
+      return Future.error(error, stack);
     }
-
-    late final Future<AlarmReconciliationResult> pending;
-    pending = _run().whenComplete(() {
-      if (identical(_inFlight, pending)) {
-        _inFlight = null;
-      }
-    });
-    _inFlight = pending;
-    return pending;
+    final request = _ReconciliationRequest(++_revision, lease);
+    _requests.add(request);
+    if (!_draining) {
+      _draining = true;
+      _operations.addListener(_invalidateRequests);
+      unawaited(_drain());
+    }
+    return request.completer.future;
   }
 
-  Future<AlarmReconciliationResult> _run() async {
+  void _invalidateRequests() {
+    for (final request in _requests) {
+      if (!request.lease.isCurrent && !request.completer.isCompleted) {
+        request.completer.completeError(const AlarmOperationInvalidated());
+      }
+    }
+  }
+
+  Future<void> _drain() async {
+    try {
+      while (_requests.isNotEmpty) {
+        final batch = List<_ReconciliationRequest>.of(_requests);
+        final cutoff = batch.last.revision;
+        try {
+          final result = await _operations.run(
+            batch.last.lease,
+            () => _run(batch.last.lease),
+          );
+          batch.last.lease.check();
+          for (final request in batch) {
+            if (!request.completer.isCompleted) {
+              request.completer.complete(result);
+            }
+          }
+        } catch (error, stack) {
+          for (final request in batch) {
+            if (!request.completer.isCompleted) {
+              request.completer.completeError(error, stack);
+            }
+          }
+        }
+        _requests.removeWhere((request) => request.revision <= cutoff);
+      }
+    } finally {
+      // No await between the final queue check and idle transition.
+      _operations.removeListener(_invalidateRequests);
+      _draining = false;
+    }
+  }
+
+  Future<AlarmReconciliationResult> _run(AlarmOperationLease lease) async {
+    lease.check();
     final now = _nowProvider();
     final scheduleWindowStart = now;
     final scheduleWindowEnd = DateTime(now.year + 50, 1, 1);
     final alarmCoverageStart = now;
     final capabilities = await _schedulerService.getCapabilities();
+    lease.check();
     final alarmCoverageEnd = scheduleWindowEnd;
     AppLogger.debug(
       '$_logTag start now=${now.toIso8601String()} '
@@ -95,11 +154,13 @@ class ReconcileAlarmsUseCase {
     AlarmSettings settings;
     try {
       settings = await _alarmRepository.getAlarmSettings();
+      lease.check();
       AppLogger.debug(
         '$_logTag settings alarmsEnabled=${settings.alarmsEnabled} '
         'alarmOffset=${settings.alarmOffset}',
       );
     } catch (_) {
+      lease.check();
       AppLogger.debug('$_logTag settings unavailable');
       final result = _result(
         status: AlarmReconciliationStatus.settingsUnavailable,
@@ -113,7 +174,7 @@ class ReconcileAlarmsUseCase {
     }
 
     if (!settings.alarmsEnabled) {
-      final stored = await _registryRepository.loadAll();
+      final stored = await _operations.loadRecords(_registryRepository);
       final observed = await _observeFallback();
       final records = [...stored, ..._fallbackOrphans(observed, stored)];
       final nativeObserved = await _observeNative(records, capabilities);
@@ -121,8 +182,13 @@ class ReconcileAlarmsUseCase {
       AppLogger.debug(
         '$_logTag alarms disabled; canceling existingRecords=${records.length}',
       );
+      lease.check();
       final failedCancellations = await _cancelRecords(records);
-      await _registryRepository.replaceAll(failedCancellations);
+      lease.check();
+      await _operations.replaceRecords(
+        _registryRepository,
+        failedCancellations,
+      );
       final result = _result(
         status:
             failedCancellations.isEmpty &&
@@ -159,10 +225,12 @@ class ReconcileAlarmsUseCase {
         scheduleWindowStart,
         scheduleWindowEnd,
       );
+      lease.check();
       AppLogger.debug(
         '$_logTag getAlarmWindow success count=${schedules.length}',
       );
     } catch (error) {
+      lease.check();
       AppLogger.debug('$_logTag getAlarmWindow failed: $error');
       final result = _result(
         status: AlarmReconciliationStatus.partial,
@@ -210,7 +278,7 @@ class ReconcileAlarmsUseCase {
       'desired=${_recordSummary(desiredRecords)}',
     );
 
-    final storedRecords = await _registryRepository.loadAll();
+    final storedRecords = await _operations.loadRecords(_registryRepository);
     final fallbackObservation = await _observeFallback();
     final existingRecords = [
       ...storedRecords,
@@ -224,9 +292,6 @@ class ReconcileAlarmsUseCase {
       '$_logTag existingRecords=${existingRecords.length} '
       'existing=${_recordSummary(existingRecords)}',
     );
-    final existingByScheduleId = {
-      for (final record in existingRecords) record.scheduleId: record,
-    };
     final desiredByScheduleId = {
       for (final record in desiredRecords) record.scheduleId: record,
     };
@@ -256,9 +321,26 @@ class ReconcileAlarmsUseCase {
       fallbackPermission: fallbackPermission,
     );
 
+    final existingByScheduleId = <String, ScheduledAlarmRecord>{};
+    for (final record in existingRecords) {
+      final desired = desiredByScheduleId[record.scheduleId];
+      final previous = existingByScheduleId[record.scheduleId];
+      bool keepable(ScheduledAlarmRecord value) =>
+          desired != null &&
+          !value.cancellationPending &&
+          _recordMatches(value, desired) &&
+          value.provider == deliveryPolicy.activeProvider &&
+          timingMatches(value);
+      if (previous == null || (!keepable(previous) && keepable(record))) {
+        existingByScheduleId[record.scheduleId] = record;
+      }
+    }
+
+    lease.check();
     final staleRecords = existingRecords.where((record) {
       final desired = desiredByScheduleId[record.scheduleId];
-      return !deliveryPolicy.canDeliver ||
+      return !identical(record, existingByScheduleId[record.scheduleId]) ||
+          !deliveryPolicy.canDeliver ||
           desired == null ||
           !_recordMatches(record, desired) ||
           _fallbackIdentityConflict(record, fallbackObservation) ||
@@ -271,12 +353,19 @@ class ReconcileAlarmsUseCase {
       'stale=${_recordSummary(staleRecords)}',
     );
     final failedCancellations = await _cancelRecords(staleRecords);
+    lease.check();
     final blockedScheduleIds = failedCancellations
         .map((record) => record.scheduleId)
         .toSet();
 
     final finalRecords = <ScheduledAlarmRecord>[];
-    final retainedRecords = <ScheduledAlarmRecord>[];
+    final retainedRecords = <ScheduledAlarmRecord>[
+      ...existingRecords.where(
+        (record) =>
+            blockedScheduleIds.contains(record.scheduleId) &&
+            !staleRecords.contains(record),
+      ),
+    ];
     final failures = [
       ..._cancellationFailures(failedCancellations),
       if (!fallbackObservation.available &&
@@ -291,6 +380,7 @@ class ReconcileAlarmsUseCase {
     AlarmPermissionIssue? permissionIssue;
 
     for (final desired in desiredRecords) {
+      lease.check();
       // Never overwrite cancellation evidence or report an old detailed
       // registration as a newly armed private one.
       if (blockedScheduleIds.contains(desired.scheduleId)) continue;
@@ -333,6 +423,7 @@ class ReconcileAlarmsUseCase {
           : desired;
       final scheduled = await _scheduleRecord(
         reapplied,
+        lease: lease,
         capabilities: capabilities,
         deliveryPolicy: deliveryPolicy,
         fallbackPermission: fallbackPermission,
@@ -396,7 +487,8 @@ class ReconcileAlarmsUseCase {
         failures.add(_observationFailure(scheduleId: record.scheduleId));
       }
     }
-    await _registryRepository.replaceAll([
+    lease.check();
+    await _operations.replaceRecords(_registryRepository, [
       ...confirmedRecords,
       ...retainedRecords,
       ...failedCancellations,
@@ -504,6 +596,7 @@ class ReconcileAlarmsUseCase {
 
   Future<_ScheduleAttempt> _scheduleRecord(
     ScheduledAlarmRecord desired, {
+    required AlarmOperationLease lease,
     required AlarmSchedulerCapabilities capabilities,
     required AlarmDeliveryPolicy deliveryPolicy,
     required AlarmPermissionState fallbackPermission,
@@ -512,7 +605,9 @@ class ReconcileAlarmsUseCase {
       final record = desired.copyWith(
         provider: capabilities.nativeAlarmProvider,
       );
+      lease.check();
       await _rememberOwnership([record]);
+      lease.check();
       try {
         if (!record.alarmTime.isAfter(_nowProvider())) {
           return const _ScheduleAttempt(
@@ -520,8 +615,10 @@ class ReconcileAlarmsUseCase {
           );
         }
         await _schedulerService.scheduleNativeAlarm(record);
+        lease.check();
         return _ScheduleAttempt(record: record);
       } catch (error) {
+        if (error is AlarmOperationInvalidated) rethrow;
         // A channel error can follow an OS write. Confirm cleanup before
         // changing providers; do not create two deliveries for one Schedule.
         final pending = await _cancelRecords([record]);
@@ -531,6 +628,7 @@ class ReconcileAlarmsUseCase {
             failureReason: AlarmFailureReason.cancellationFailed,
           );
         }
+        lease.check();
         if (fallbackPermission != AlarmPermissionState.granted) {
           return _ScheduleAttempt(
             failureReason: error is AlarmSchedulingException
@@ -552,7 +650,9 @@ class ReconcileAlarmsUseCase {
       final record = desired.copyWith(
         provider: AlarmProvider.localNotification,
       );
+      lease.check();
       await _rememberOwnership([record]);
+      lease.check();
       try {
         if (!record.alarmTime.isAfter(_nowProvider())) {
           return const _ScheduleAttempt(
@@ -562,11 +662,14 @@ class ReconcileAlarmsUseCase {
         final timing = await _fallbackNotificationService.scheduleFallbackAlarm(
           record,
         );
+        lease.check();
         return _ScheduleAttempt(
           record: record.copyWith(notificationTiming: timing),
         );
       } catch (error) {
+        if (error is AlarmOperationInvalidated) rethrow;
         final pending = await _cancelRecords([record]);
+        lease.check();
         return _ScheduleAttempt(
           pendingRecord: pending.firstOrNull,
           message: error is AlarmSchedulingException
@@ -795,48 +898,12 @@ class ReconcileAlarmsUseCase {
     );
   }
 
-  String _ownershipKey(ScheduledAlarmRecord record) =>
-      '${record.provider.name}:${record.provider == AlarmProvider.localNotification ? record.fallbackNotificationId ?? stableAlarmId(record.scheduleId) : record.scheduleId}';
-
-  Future<void> _rememberOwnership(List<ScheduledAlarmRecord> records) async {
-    final stored = await _registryRepository.loadAll();
-    final keys = records.map(_ownershipKey).toSet();
-    await _registryRepository.replaceAll([
-      ...stored.where((record) => !keys.contains(_ownershipKey(record))),
-      ...records.map((record) => record.copyWith(cancellationPending: true)),
-    ]);
-  }
+  Future<void> _rememberOwnership(List<ScheduledAlarmRecord> records) =>
+      _operations.remember(_registryRepository, records);
 
   Future<List<ScheduledAlarmRecord>> _cancelRecords(
     List<ScheduledAlarmRecord> records,
-  ) async {
-    final failed = <ScheduledAlarmRecord>[];
-    if (records.isNotEmpty) await _rememberOwnership(records);
-    for (final record in records) {
-      try {
-        if (record.provider == AlarmProvider.localNotification) {
-          AppLogger.debug(
-            '$_logTag cancel fallback '
-            'scheduleId=${record.scheduleId} provider=${record.provider}',
-          );
-          await _fallbackNotificationService.cancelFallbackAlarm(record);
-        } else if (record.provider != AlarmProvider.none) {
-          AppLogger.debug(
-            '$_logTag cancel native '
-            'scheduleId=${record.scheduleId} provider=${record.provider}',
-          );
-          await _schedulerService.cancelNativeAlarm(record);
-        }
-      } catch (_) {
-        failed.add(record.copyWith(cancellationPending: true));
-        AppLogger.debug(
-          '$_logTag cancel failed; retaining retry evidence '
-          'scheduleId=${record.scheduleId} provider=${record.provider}',
-        );
-      }
-    }
-    return failed;
-  }
+  ) => _cleanup.cancelRecords(records);
 
   AlarmReconciliationResult _result({
     required AlarmReconciliationStatus status,
@@ -893,4 +960,26 @@ class _ScheduleAttempt {
     this.failureReason,
     this.message,
   });
+}
+
+final class _ReconciliationRequest {
+  _ReconciliationRequest(this.revision, this.lease);
+  final int revision;
+  final AlarmOperationLease lease;
+  final completer = Completer<AlarmReconciliationResult>();
+}
+
+/// Acceptance is synchronous; errors remain observed where DB saves do not wait
+/// for operating-system delivery effects.
+void requestAlarmReconciliation(ReconcileAlarmsUseCase reconcile) {
+  unawaited(
+    reconcile().then<void>(
+      (_) {},
+      onError: (Object error, StackTrace _) {
+        AppLogger.debug(
+          '[ReconcileAlarms] request ended errorType=${error.runtimeType}',
+        );
+      },
+    ),
+  );
 }

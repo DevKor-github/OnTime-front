@@ -649,13 +649,9 @@ void main() {
       expect(result.status, AlarmReconciliationStatus.partial);
       expect(result.armedScheduleIds, isEmpty);
       expect(result.failures.single.scheduleId, 'private-failure');
-      expect(
-        registryRepository
-            .records
-            .single
-            .payload['detailedNotificationContent'],
-        'true',
-      );
+      expect(registryRepository.records.single.payload, isEmpty);
+      expect(registryRepository.records.single.scheduleTitle, 'OnTime');
+      expect(registryRepository.records.single.cancellationPending, isTrue);
       expect(fallbackService.scheduledFallback, hasLength(1));
       expect(alarmRepository.settings.detailedNotificationContent, isFalse);
     },
@@ -1002,7 +998,7 @@ void main() {
     },
   );
 
-  test('coalesces overlapping reconciliation requests', () async {
+  test('overlapping requests each observe their requested pass', () async {
     alarmRepository.schedules = [
       scheduleWithAlarmAt(
         id: 'eligible',
@@ -1012,8 +1008,8 @@ void main() {
 
     final results = await Future.wait([useCase(), useCase()]);
 
-    expect(results[0], results[1]);
-    expect(alarmRepository.alarmWindowRequestCount, 1);
+    expect(results[0].armedScheduleIds, ['eligible']);
+    expect(results[1].armedScheduleIds, ['eligible']);
     expect(schedulerService.scheduledNative, isEmpty);
     expect(fallbackService.scheduledFallback.length, 1);
   });

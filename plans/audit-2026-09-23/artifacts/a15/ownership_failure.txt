@@ -1,0 +1,76 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart
+00:00 +0: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: Android grant and revoke replace timing while preserving capacity and ownership
+00:00 +1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: real storage retains every failed platform ownership for the same Schedule
+00:00 +2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: real storage retains every failed platform ownership for the same Schedule
+00:00 +3: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: legacy or malformed mode keeps ownership and forces Android replacement
+00:00 +4: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: real registry preserves duplicate ownership until confirmed cancellation: failure=false
+00:00 +4 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: real registry preserves duplicate ownership until confirmed cancellation: failure=false
+00:00 +4 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: timing change cannot overwrite a failed cancellation [E]
+  Expected: NotificationTiming:<NotificationTiming.approximate>
+    Actual: <null>
+
+  package:matcher                                                  expect
+  package:flutter_test/src/widget_tester.dart 473:18               expect
+  test/domain/use-cases/reconcile_alarms_use_case_test.dart 412:5  main.<fn>
+
+00:00 +5 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: display denial plus cancellation failure preserves OS ownership
+00:00 +6 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: real registry preserves duplicate ownership until confirmed cancellation: failure=true
+00:00 +7 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: real registry preserves duplicate ownership until confirmed cancellation: failure=true
+00:00 +8 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: real registry preserves duplicate ownership until confirmed cancellation: failure=true
+00:00 +9 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: clears an already armed just-missed alarm instead of scheduling catch-up
+00:00 +10 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: loadAll returns the current local registry
+00:00 +11 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: android schedule notifications arm beyond 24 hours
+00:00 +12 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/alarm_registry_repository_impl_test.dart: upsert replaces an existing schedule record and keeps others
+00:00 +13 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: arms only the nearest 60 future alarms and reports the overflow
+00:00 +14 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: arms only the nearest 60 future alarms and reports the overflow
+00:00 +15 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: arms only the nearest 60 future alarms and reports the overflow
+00:00 +16 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: keeps alarm content private unless detailed content is enabled
+00:00 +17 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: replaces an existing detailed registration when details are disabled
+00:00 +18 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: does not report private armed or discard evidence when detailed cancellation fails
+00:00 +19 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: changes detailed titles but does not reschedule private title-only edits
+00:00 +20 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: reconciles locale and visible time zone using one content snapshot
+00:00 +21 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: legacy content metadata is replaced once and current persisted metadata is stable
+00:00 +22 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: cancellation failure survives restart, blocks only that ID and retries after recovery
+00:00 +23 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: private scheduling failure never restores details and retries next time
+00:00 +24 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: global disable retains failed cancellation instead of claiming disabled
+00:00 +25 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: cleans a past owned notification without re-emitting it or canceling other IDs
+00:00 +26 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: an already started preparation never receives a new start notification
+00:00 +27 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: iOS native privacy cancellation also preserves failed evidence and retries
+00:00 +28 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: overlapping requests each observe their requested pass
+00:00 +29 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: cancels stale record before rescheduling changed fingerprint
+00:00 +30 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: replaces matching Android native registry record with notification
+00:00 +31 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: keeps matching iOS fallback only when OS pending confirms it
+00:00 +32 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: reschedules stale record with old alarm launch payload version
+00:00 +33 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: uses local notification fallback when native alarms are unsupported
+00:00 +34 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: uses local notification fallback when exact alarm permission is denied
+00:00 +35 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: falls back to local notification when native scheduling fails
+00:00 +36 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: reports notification permission when only fallback delivery is denied
+00:00 +37 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: reports permissionNeeded when exact alarm and fallback permissions are denied
+00:00 +38 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: does not use notification fallback when fallback provider is disabled
+00:00 +39 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: settingsUnavailable reports without canceling existing registry
+00:00 +40 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: alarm window failure reports partial without throwing
+00:00 +41 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: global disabled cancels all local alarms and clears registry
+00:00 +42 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: reports partial when scheduling a desired notification fails
+00:00 +43 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: notification permission is reported when fallback notification is unavailable
+00:00 +44 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: fallback scheduling failures become permission or partial reports
+00:00 +45 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: fallback alarm scheduling exceptions without permission issue are partial failures
+00:00 +46 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: unsupported local providers return unsupported without throwing
+00:00 +47 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: permission check failures degrade to denied or unsupported states
+00:00 +48 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: cancel failures retain retry evidence without claiming armed
+00:00 +49 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +50 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +51 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +52 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +53 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +54 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +55 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +56 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +57 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +58 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +59 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:01 +60 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore cancellation failure preserves original database and ownership
+00:01 +61 -1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: durable reset intent blocks writers after cancellation failure without deleting data
+00:01 +62 -1: Some tests failed.
+
+Failing tests:
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/reconcile_alarms_use_case_test.dart: timing change cannot overwrite a failed cancellation

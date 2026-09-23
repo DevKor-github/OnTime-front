@@ -7,9 +7,12 @@ final class LocalDataOperationGate extends ChangeNotifier {
 
   bool _busy = false;
   bool _unavailable = false;
+  bool _replacingData = false;
   int _generation = 0;
 
   int get generation => _generation;
+  bool get isReplacingData => _replacingData;
+  bool get isInvalidated => _unavailable;
   bool get isAvailable => !_busy && !_unavailable;
 
   Future<T> run<T>(
@@ -19,17 +22,20 @@ final class LocalDataOperationGate extends ChangeNotifier {
     if (_busy) throw const LocalDataOperationBusy();
     if (_unavailable) throw const LocalDataUnavailable();
     _busy = true;
+    _replacingData = replacesData;
     if (replacesData) _generation++;
     notifyListeners();
     try {
       return await action();
     } finally {
       _busy = false;
+      _replacingData = false;
       notifyListeners();
     }
   }
 
-  /// Reset closes the active database; it cannot be used again before restart.
+  /// Reset intent makes the installation unavailable until restart, including
+  /// when cancellation fails before the old database can safely be closed.
   void invalidate() {
     _generation++;
     _unavailable = true;

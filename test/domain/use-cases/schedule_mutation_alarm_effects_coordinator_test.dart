@@ -31,7 +31,7 @@ void main() {
   );
 
   test(
-    'deleted and finished schedules cancel targeted alarm before reconciling',
+    'deleted and finished schedules accept reconciliation before awaiting cancellation',
     () async {
       final events = <String>[];
       final cancel = _FakeCancelScheduleAlarmUseCase(events: events);
@@ -52,10 +52,10 @@ void main() {
       await pumpEventQueue();
 
       expect(events, [
+        'reconcile',
         'cancel:schedule-1',
         'reconcile',
         'cancel:schedule-2',
-        'reconcile',
       ]);
     },
   );

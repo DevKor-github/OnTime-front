@@ -244,7 +244,7 @@ void main() {
     expect(find.text('bundled privacy destination'), findsOneWidget);
   });
 
-  testWidgets('my page 390x844 default visual can be reviewed', (tester) async {
+  testWidgets('my page 390x844 current visual is tracked', (tester) async {
     final semantics = tester.ensureSemantics();
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);

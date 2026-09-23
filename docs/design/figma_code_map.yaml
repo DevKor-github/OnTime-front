@@ -91,11 +91,23 @@ screens:
     figma_node: '965:4676'
     flutter: lib/presentation/my_page/my_page_screen.dart
     state: default
-    status: reviewed
-    review_note: 390x844 alarm and data section geometry, 24px selection rings, bottom navigation, and iOS touch and semantics guidelines checked. Native status bar and home indicator are excluded from Flutter golden.
+    status: in_progress
+    review_note: Original 390x844 alarm and data geometry, selection rings, bottom navigation, and touch/semantics were reviewed. Upstream f0877d1d added a recurring-management row; the current golden tracks it but the new MyPageEntry Figma state still needs a fresh capture and visual comparison. Native status bar and home indicator are excluded.
     figma_image: docs/design/review/figma/my-page-default.png
     figma_sha256: 5bce6547ebc2858f6cffa0a1993dad6a144d6ee864face8e818672e93bfc7607
     flutter_golden: test/goldens/goldens/my_page_default_390x844.png
+    variants:
+      - {state: recurring_entry, figma_node: '2113:21761', status: pending}
+  - route: /recurringSchedules
+    figma_node: '2112:21676'
+    flutter: lib/presentation/recurring/recurring_management_screen.dart
+    state: management
+    status: pending
+    review_note: Newly merged offline recurring-management flow has a dedicated Figma board and tests, but has not yet joined this 390x844 parity review.
+    variants:
+      - {state: detail, figma_node: '2112:21715', status: pending}
+      - {state: empty, figma_node: '2112:21756', status: pending}
+      - {state: occurrence, figma_node: '2112:21768', status: pending}
   - route: /myData
     figma_node: '1948:12072'
     flutter: lib/presentation/my_page/my_data_screen.dart
@@ -248,8 +260,26 @@ screens:
       - {state: loading, figma_node: '1816:6728', status: pending}
       - {state: error, figma_node: '1816:6984', status: pending}
   - route: /scheduleCreate
-    figma_node: null
+    figma_node: '2112:2394'
+    state: date_time
     status: pending
+    review_note: Newly merged recurring creation frames are in the same Figma design system; they represent content inside the existing four-step sheet rather than standalone routes.
+    variants:
+      - {state: weekly, figma_node: '2112:21323', status: pending}
+      - {state: monthly, figma_node: '2112:21352', status: pending}
+      - {state: ending, figma_node: '2112:21395', status: pending}
+      - {state: preparation, figma_node: '2112:21456', status: pending}
+      - {state: review, figma_node: '2112:21500', status: pending}
+      - {state: conflicts, figma_node: '2112:21531', status: pending}
+      - {state: persistent_conflict, figma_node: '2112:21557', status: pending}
+      - {state: scope, figma_node: '2112:21588', status: pending}
+      - {state: detached, figma_node: '2112:21613', status: pending}
+      - {state: time_exceptions, figma_node: '2112:21635', status: pending}
+      - {state: save_error, figma_node: '2112:21659', status: pending}
+      - {state: frequency, figma_node: '2113:21627', status: pending}
+      - {state: monthly_fields, figma_node: '2113:21670', status: pending}
+      - {state: end_date, figma_node: '2113:21708', status: pending}
+      - {state: end_confirm, figma_node: '2113:21745', status: pending}
   - route: '/scheduleEdit/:scheduleId'
     figma_node: null
     status: pending

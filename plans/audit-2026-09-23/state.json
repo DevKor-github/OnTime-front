@@ -26,7 +26,8 @@
       "verification": [
         "Python manifest policy: 11 tests pass; source regression failed before fix",
         "Local-only boundary passes",
-        "GitHub run 35825051793 release APK build, APK manifest and merged manifest verification passed; artifact identity read back"
+        "GitHub run 35825051793 release APK build, APK manifest and merged manifest verification passed; artifact identity read back",
+        "Integrated upstream commit 712b3708: remote Flutter 678 tests/analyze, coverage85.35% (10679/12512); Android APK/manifest CI passed, identity recorded"
       ],
       "blockers": [
         "Actual Android device delivery not yet verified; no connected device"
@@ -59,7 +60,8 @@
         "Full Flutter suite: 571 passed",
         "flutter analyze: no issues",
         "Kotlin Android SDK compile and Swift SDK typecheck passed; XCTest not executed",
-        "GitHub release APK build and full test/coverage passed for 35f4d603"
+        "GitHub release APK build and full test/coverage passed for 35f4d603",
+        "Integrated upstream commit 712b3708: remote Flutter 678 tests/analyze, coverage85.35% (10679/12512); Android APK/manifest CI passed, identity recorded"
       ],
       "blockers": [
         "Physical Android/iOS picker/provider and cross-platform export/restore verification pending",
@@ -94,7 +96,8 @@
         "Previous extension-only filter fails before native host (negative regression)",
         "Restore preview cancellation, picker cancellation, invalid file retry: 3 widget tests passed",
         "GitHub run 35825820148 test/analyze/coverage success for head e1ac7bc3; coverage 84.44% (8599/10184 lines)",
-        "GitHub run 35825820116 Android release APK + APK/merged manifest success; artifact10735595648 identity read back"
+        "GitHub run 35825820116 Android release APK + APK/merged manifest success; artifact10735595648 identity read back",
+        "Integrated upstream commit 712b3708: remote Flutter 678 tests/analyze, coverage85.35% (10679/12512); Android APK/manifest CI passed, identity recorded"
       ],
       "blockers": [
         "iOS Files provider and Android-to-iOS actual backup selection pending",
@@ -129,7 +132,8 @@
         "Backup export actual partial edit integration: 9 passed",
         "flutter analyze: no issues",
         "GitHub run 35825820148 test/analyze/coverage success for head e1ac7bc3; coverage 84.44% (8599/10184 lines)",
-        "GitHub run 35825820116 Android release APK + APK/merged manifest success; artifact10735595648 identity read back"
+        "GitHub run 35825820116 Android release APK + APK/merged manifest success; artifact10735595648 identity read back",
+        "Integrated upstream commit 712b3708: remote Flutter 678 tests/analyze, coverage85.35% (10679/12512); Android APK/manifest CI passed, identity recorded"
       ],
       "blockers": [
         "Merge and release verification pending"
@@ -163,7 +167,8 @@
         "Swift syntax parse, local-only policy and diff check passed",
         "Source digests checked against a05-source-validation.json",
         "GitHub Flutter run35826834208: 617 tests, coverage84.98% (8733/10277), analyze passed at 0c41589e",
-        "GitHub Android run35826834204: actual release APK and merged manifests passed; receipt a05-apk-validation.json"
+        "GitHub Android run35826834204: actual release APK and merged manifests passed; receipt a05-apk-validation.json",
+        "Integrated upstream commit 712b3708: remote Flutter 678 tests/analyze, coverage85.35% (10679/12512); Android APK/manifest CI passed, identity recorded"
       ],
       "blockers": [
         "Actual Android/iOS lock-screen delivery and displayed notification removal pending",
@@ -184,7 +189,7 @@
         "`schedule_with_preparation_entity.dart:44-70`; `alarm_entities.dart:413,426`; `alarm_registry_local_data_source.dart:48-54`; `notification_service.dart:268`",
         "payload/registry에서 필요한 식별자와 버전만 보존. 내용 비교가 필요하면 원문을 노출하지 않는 digest 사용. 기존 registry 및 플러그인 예약 payload 교체, 상세 OFF 상태에서 준비 원문이 남지 않는지 검사."
       ],
-      "status": "code_verified_integration_pending",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a11",
       "issue_number": 589,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/589",
@@ -199,7 +204,8 @@
         "Actual Android SDK type compile and iOS simulator SDK typecheck passed; not device/linking proof",
         "local-only/generated policy, 11 manifest tests and diff check passed",
         "Exact 089afee5 GitHub Flutter workflow_dispatch 35828807338: 636 tests, coverage84.96% (8943/10526), analyze passed",
-        "Exact 089afee5 Android workflow_dispatch 35828809625: release APK/manifest passed; receipt a11-apk-validation.json"
+        "Exact 089afee5 Android workflow_dispatch 35828809625: release APK/manifest passed; receipt a11-apk-validation.json",
+        "Integrated upstream commit 712b3708: remote Flutter 678 tests/analyze, coverage85.35% (10679/12512); Android APK/manifest CI passed, identity recorded"
       ],
       "blockers": [
         "Android/iOS upgrade and OS cancellation/delivery verification pending",
@@ -269,7 +275,7 @@
         "`reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214`",
         "permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시."
       ],
-      "status": "issue_created",
+      "status": "ready",
       "agent": "/root/grill_a14",
       "issue_number": 593,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/593",
@@ -293,16 +299,18 @@
         "`reconcile_alarms_use_case.dart:43-57`; `schedule_mutation_alarm_effects_coordinator.dart:37-52`",
         "dirty flag/data revision 기반 재실행 또는 직렬 작업 큐. snapshot 읽기 뒤 생성·수정·삭제를 끼워 넣어 최종 OS 예약이 최신 DB를 반영하는지 검사. reset/cancel과 경계 공유."
       ],
-      "status": "grill_in_progress",
+      "status": "ready",
       "agent": "/root/grill_a15",
-      "issue_number": null,
-      "issue_url": null,
+      "issue_number": 594,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/594",
       "decisions_file": "plans/audit-2026-09-23/issues/A15.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 10
+      "sequence": 10,
+      "readback_verified": true,
+      "body_sha256": "a565fc9d7133fb725312f7d10e5601e480c04b71fcc6dc91b8c98c5b75485179"
     },
     {
       "audit_id": "D03",
@@ -315,8 +323,8 @@
         "`local_data_reset_service.dart:19-25`; `local_data_lifecycle.dart:45-69`; `cancel_schedule_alarm_use_case.dart:25-37`; `cancel_all_alarms_use_case.dart:19-41`; `reconcile_alarms_use_case.dart:549-570`; 관련 테스트 `:951-975`",
         "이미 없음과 실제 취소 실패 구분, 실패 기록 보존·재시도·OS read-back. 중간 강제 종료 후 정리 완료. reset marker는 검증 가능한 종료 상태까지 유지."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
+      "status": "grill_in_progress",
+      "agent": "/root/grill_d03",
       "issue_number": null,
       "issue_url": null,
       "decisions_file": "plans/audit-2026-09-23/issues/D03.md",

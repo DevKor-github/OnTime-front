@@ -22,10 +22,11 @@
 | A04 | [#587](https://github.com/DevKor-github/OnTime-front/issues/587) | partial update·transaction 회귀 통과, 최신 CI/merge 대기 |
 | A05 | [#588](https://github.com/DevKor-github/OnTime-front/issues/588) | 전체617 tests/analyze·Android APK CI 통과, coverage84.98%, 기기·후속 통합 대기 |
 | A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 089afee5 원격636 tests/84.96%·APK 통과, 최신main 통합678 tests 통과, 기기 검증 대기 |
-| A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 실제4문답·15회귀 기준 확정, upstream 통합 후 구현 |
+| A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 실제4문답·15회귀 기준 확정, 통합 후 구현 중 |
 | A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 실제3문답·정확/근사 결과 정책 확정, A12 뒤 구현 |
+| A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | 실제3문답·플랫폼별 관측/취소 기준 확정, A13 뒤 구현 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 나머지 56개는 아직 이슈 생성 전이다. 이전 신규 생성 한도 오류는 사용자 후속 turn에서 재시도해 해소됐고, 새 전담 grill_a12가 upstream 통합 후 구현하며, A13은 문답 완료·구현 대기, grill_a14가 다음 문답을 진행한다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 9개를 게시하고 본문을 재확인했으며, 나머지 55개는 생성 전이다. A12는 구현 중, A13/A14는 문답 완료·구현 대기, 신규 전담 grill_a15는 다음 문답을 진행한다. 최신 main 통합 커밋 `712b3708`의 원격 Flutter 678개 테스트와 analyze가 통과했고 coverage는 85.35%다. Android release APK/manifest CI도 통과했으며 artifact identity를 기록했다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
 
 ## 실행 순서
 

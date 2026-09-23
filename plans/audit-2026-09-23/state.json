@@ -221,7 +221,7 @@
         "`notification_service.dart:153-165`; `android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt:231-232`; 앱 전체 `getNotificationAppLaunchDetails` 호출 없음",
         "Android/iOS fallback 각각 종료→알림 탭→정확한 일정으로 한 번만 이동. DB/라우터 준비 지연 중에는 payload를 보존."
       ],
-      "status": "implementing",
+      "status": "implementation_in_progress",
       "agent": "/root/grill_a12",
       "issue_number": 591,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/591",
@@ -269,16 +269,18 @@
         "`reconcile_alarms_use_case.dart:204-230,529-538`; `my_page_screen.dart:203-214`",
         "permission grant/revoke·OS 예약 유실·재시작 후 provider와 OS pending/registry를 일치시킴. 불일치 시 취소·교체·정직한 상태 표시."
       ],
-      "status": "grilling",
+      "status": "issue_created",
       "agent": "/root/grill_a14",
-      "issue_number": null,
-      "issue_url": null,
+      "issue_number": 593,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/593",
       "decisions_file": "plans/audit-2026-09-23/issues/A14.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 9
+      "sequence": 9,
+      "issue_body_sha256": "23769c09503d629f813df5b93db7b2b6fce715dd15ea1571ea09fa06b9c1a5d4",
+      "readback_verified": true
     },
     {
       "audit_id": "A15",
@@ -291,8 +293,8 @@
         "`reconcile_alarms_use_case.dart:43-57`; `schedule_mutation_alarm_effects_coordinator.dart:37-52`",
         "dirty flag/data revision 기반 재실행 또는 직렬 작업 큐. snapshot 읽기 뒤 생성·수정·삭제를 끼워 넣어 최종 OS 예약이 최신 DB를 반영하는지 검사. reset/cancel과 경계 공유."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
+      "status": "grill_in_progress",
+      "agent": "/root/grill_a15",
       "issue_number": null,
       "issue_url": null,
       "decisions_file": "plans/audit-2026-09-23/issues/A15.md",
@@ -1450,12 +1452,19 @@
     }
   ],
   "current_upstream_main": "2b02fb770324de291488f3c74fe503dc063e2459",
-  "upstream_integration_status": "local_verified_678_tests",
+  "upstream_integration_status": "flutter_and_android_ci_passed",
   "upstream_integration_validation": {
     "full_tests": 678,
     "analyze": "no issues",
     "generated_policy": "passed",
     "local_only_policy": "passed",
-    "conflict_resolution": "both backup test sets preserved"
-  }
+    "conflict_resolution": "both backup test sets preserved",
+    "flutter_ci_run": 35829634205,
+    "coverage_percent": 85.35,
+    "coverage_lines_hit": 10679,
+    "coverage_lines_found": 12512,
+    "android_ci_run": 35829634224,
+    "android_apk_identity_file": "plans/audit-2026-09-23/upstream-integration-apk-validation.json"
+  },
+  "upstream_integration_commit": "712b37081f95ea30aa6d1c61072d167ddaec78de"
 }

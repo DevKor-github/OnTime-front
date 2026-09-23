@@ -21,10 +21,11 @@
 - A03: #586, 8eab02bd
 - A04: #587, c11d970c
 - A05: #588, 0c41589e. 전체617 tests/analyze 및 Android release APK CI 통과. coverage84.98%. 실제기기·후속 통합 미완료
-- A11: #589, source freeze. 전체634 및 이후targeted59/최종42, analyze 통과. Native 행동/실제SDK 타입검사 통과. Root commit/CI 및 실제기기 검증 추적
+- A11: #589, 089afee5. 원격 전체 636 tests/coverage 84.96% 및 Android APK CI 통과. Native 행동/실제 SDK 타입검사 통과. 실제 기기 검증은 대기.
 - A12: #591, 실제4Q&A·15AC 원격readback완료. grill_a12 구현중.
 - A13: #592, 실제3Q&A 포함본문readback완료. A12뒤구현대기.
-- A14: 신규grill_a14가문답중,소스수정없음.
+- A14: #593, 실제 3문답과 플랫폼 관측·취소 기준을 게시하고 본문 read-back 완료. A13 뒤 구현 대기.
+- A15: 신규 grill_a15 문답 진행 중. A12 소스는 grill_a12만 수정하며 root는 추적 문서와 GitHub를 담당.
 - 나머지 이슈는 아직 생성 전이다. 전체 완료나 64개 생성 완료로 보고하지 않는다.
 
 ## 검증 경계
@@ -34,12 +35,12 @@
 - A04 통합 전체596개 통과 후 마지막2개 회귀는 targeted18개에 포함해 추가 통과. 수정 전 동일 회귀12개에서2pass/10fail. 실제 profile partial edit와 export snapshot 경합 테스트9개 통과. analyze 통과.
 - A01/A02 head 35f4d603에 대한 GitHub Dart/coverage 통과, Android release APK 및 APK/merged manifest 통과: run35825051793. identity JSON은 plans/audit-2026-09-23/a01-apk-validation.json. 일회용 검증 서명이며 store release 아님.
 - 최신 PR checks는 다시 읽어야 한다. 오래된 SHA 통과를 최신 결과로 보고하지 않는다.
-- Android 연결기기 없음, iOS 연결기기 offline. picker/provider/양방향복원/실제알림 전달 미검증.
+- Android 연결기기 없음. iOS 물리 기기는 offline. 부팅된 iPhone 17/iOS 26.5 시뮬레이터 `OnTime Recurring QA 20260923` (C8BA159D-A97A-458B-A5FC-B04A8B6F2848)에 기존 반복 QA 앱/데이터가 있으므로 보존한다. 시뮬레이터 발견만으로 picker/provider/양방향 복원/실제 알림 전달 검증을 완료하지 않는다.
 - Kotlin actual SDK compile, Swift plugin/XCTest typecheck 통과는 native runtime 테스트 및 전체 iOS linking과 다르다.
 
 ## 에이전트 실행 상태
 
-이전 turn에서 신규 생성이 `agent thread limit reached`로 실패했지만 사용자 "계속해" 메시지 이후 재시도하여 `/root/grill_a12` 신규 생성이 성공했다. 새 작업/기존 agent 재사용 선택은 더 이상 진행 조건이 아니다. 원래 요청한 이슈마다 새 전담 agent 방식을 유지한다. A12는 read-only 조사와 grill을 시작했으며 GitHub issue는 아직 생성 전이다. A11은 최종 문답 기록 후 root가 commit/CI를 진행한다.
+신규 agent 생성 오류는 이전 에이전트 완료 후 해소됐다. 원래 요청한 항목별 새 전담 agent 방식을 유지한다. A12 구현 중, A13/A14는 각 원래 전담 agent가 이후 구현하며 A15의 새 전담 agent가 질문 중이다. 이전의 새 작업 또는 agent 재사용 질문은 더 이상 진행 조건이 아니다.
 
 ## 로컬 환경
 
@@ -48,20 +49,22 @@
 - gh: /Users/ejunpark/.local/bin/gh
 - shell 실행은 login:false. login shell에서 무관한 rbenv/디스크 오류가 있었음.
 - 현재 worktree `.dart_tool`/codegen 준비됨. source 변경 후 generator 재실행, 생성 Dart는 ignored artifact로 commit 금지.
-- 디스크 여유 최근 약400MiB로 줄었으며 수시로 변함. 무거운 iOS/Android local build 전에 확인하고 사용자 파일을 삭제해 공간을 만들지 않는다.
+- 디스크 여유 최근 약1.7GiB로 줄었으며 수시로 변함. 무거운 iOS/Android local build 전에 확인하고 사용자 파일을 삭제해 공간을 만들지 않는다.
 - baseline npm test는 의도적 실패 placeholder이므로 쓰지 않는다.
 
 ## 다음 작업
 
-1. A05 전체617 tests/analyze 통과한 변경의 CI 및 실제 기기·후속 통합 증거 추적.
-2. A11 상세 범위대로 fingerprint/runtime/native payload 개인정보 전환을 구현·검증.
-3. 신규 grill_a12와 문답을 마쳐 전체 실제 문답을 포함한 A12 issue를 만든 뒤 우선순위 순서로 구현.
-4. native device 및 iOS build 검증은 실제 환경을 확보해 별도 수행. 이슈 open 상태와 코드/CI/merge/release를 구분.
+1. A12 전담 구현과 실제 router/Bloc/gate 회귀를 검토하고 source freeze 후 전체 테스트·커밋·CI를 진행한다.
+2. A15 문답에 답하고 전체 문답을 포함한 상세 issue를 게시한다. A12 완료 뒤 A13, A14, A15 순서로 구현한다.
+3. 통합 커밋 712b3708의 Android CI 결과와 APK identity를 기록하고 PR 및 이슈의 검증 상태를 갱신한다.
+4. 기존 QA 데이터와 사용자 파일을 보존하며 native 검증 환경을 활용한다. 실행하지 못한 실제 기기 조건은 open 상태로 유지한다.
 
 ## Upstream main 통합과 CI
 
-A11 head089afee51b2572339b4650bd3679b1a1ef72781e push뒤 PR585가dirty여서 동일head에workflow_dispatch Flutter35828807338/Android35828809625를실행했다(둘다통과: Flutter636,coverage84.96%,AndroidAPKreceipt기록). 원인은 GitHub오류가아니라작업중main에PR590이병합된것이었다. PR baseRefOid/REST base.sha는기존44067d7a로보였지만 git ls-remote 및 git/ref/heads/main은 최신2b02fb770324de291488f3c74fe503dc063e2459를반환했다. 실제현재main ref를읽어야한다.
+A11 커밋 `089afee51b2572339b4650bd3679b1a1ef72781e`의 원격 workflow_dispatch Flutter run 35828807338은 636 tests/coverage 84.96%, Android run 35828809625는 APK/manifest 통과다. 각 receipt를 plans에 기록했다.
 
-Root는 문답기록37fc0144 commit후 git fetch origin main 및 merge --no-ff --no-commit origin/main을실행했다. test/core/backup/backup_service_test.dart의충돌1개를양측테스트보존으로해결했고, 자동병합4코어파일을확인했다. 생성기완료, 전체678 tests/analyze 및 policy/diff검사통과. 로그는 /tmp/ontime-upstream-merge-analyze.log 및 /tmp/ontime-upstream-merge-tests.log. Root가mergecommit/push후A12구현재개한다. generated파일추적금지.
+작업 중 main에 PR #590 반복 일정 기능이 병합되어 PR #585가 충돌했다. PR baseRefOid/REST base.sha는 과거 기준을 반환했지만 git ls-remote 및 git/ref/heads/main은 `2b02fb770324de291488f3c74fe503dc063e2459`를 반환했다. 현재 main을 확인할 때 PR base 필드에 의존하지 않는다.
 
-A12는소스편집전잠시대기시켰다. 통합검증/mergecommit후 /root/grill_a12에followup_task로구현재개지시한다. A13/A14는계획/문답만하며소스편집금지. 이후각항목구현전에새main기능으로이미해결된부분을다시판정한다(예:D04 v1→v2migration, 반복기능후보). 원래감사baseline은44067d7a로유지하되currentbase는2b02fb77이다.
+Root는 main을 통합하면서 backup_service_test.dart 충돌 하나를 양측 회귀 보존으로 해결했다. 반복 일정, DB schema2 및 v1 migration, backup format2/v1 호환과 기존 감사 수정을 함께 검증했다. 생성기, local analyze, 전체 678 tests, generated/local-only 정책 검사가 통과했다. 통합 커밋 `712b37081f95ea30aa6d1c61072d167ddaec78de`를 push했고 PR은 MERGEABLE이다. 원격 Flutter run 35829634205도 678 tests와 coverage 85.35% (10679/12512)를 통과했다. Android run 35829634224도 통과했고, PR synthetic merge 31158b42의 APK identity를 upstream-integration-apk-validation.json에 기록했다.
+
+A12는 통합 이후 구현을 재개했다. A13/A14/A15 문답 준비는 독립적으로 진행하되 소스 구현은 순차적이다. 후속 감사(D04 migration, F01 반복 일정 등)는 upstream 기능으로 해결된 범위를 재평가해야 한다. 감사 baseline은 44067d7a이며, 현재 통합한 main은 2b02fb77이다.

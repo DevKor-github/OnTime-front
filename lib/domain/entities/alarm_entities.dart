@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:on_time_front/domain/entities/scheduled_notification_content.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 
@@ -31,6 +32,7 @@ enum AlarmPermissionIssue {
 enum AlarmFailureReason {
   preparationLoadFailed,
   scheduleInvalid,
+  cancellationFailed,
   platformError,
   unknown,
 }
@@ -124,6 +126,8 @@ extension AlarmFailureReasonWireValue on AlarmFailureReason {
         return 'preparationLoadFailed';
       case AlarmFailureReason.scheduleInvalid:
         return 'scheduleInvalid';
+      case AlarmFailureReason.cancellationFailed:
+        return 'cancellationFailed';
       case AlarmFailureReason.platformError:
         return 'platformError';
       case AlarmFailureReason.unknown:
@@ -139,6 +143,9 @@ extension AlarmFailureReasonWireValue on AlarmFailureReason {
       case 'scheduleInvalid':
       case 'SCHEDULE_INVALID':
         return AlarmFailureReason.scheduleInvalid;
+      case 'cancellationFailed':
+      case 'CANCELLATION_FAILED':
+        return AlarmFailureReason.cancellationFailed;
       case 'platformError':
       case 'PLATFORM_ERROR':
         return AlarmFailureReason.platformError;
@@ -263,6 +270,46 @@ class ScheduledAlarmRecord extends Equatable {
   final AlarmProvider provider;
   final String scheduleTitle;
   final Map<String, String> payload;
+  final String? contentDigest;
+  final int? contentVersion;
+  final String? contentLanguageCode;
+  final bool cancellationPending;
+  // Ephemeral: the registry stores only the digest/version, not another copy
+  // of the rendered body. Fresh desired records always carry this snapshot.
+  final ScheduledNotificationContent? notificationContent;
+
+  ScheduledNotificationContent get deliveryContent =>
+      notificationContent ??
+      ScheduledNotificationContent(
+        scheduleTitle: scheduleTitle,
+        detailed: payload['detailedNotificationContent'] == 'true',
+        displayTimeZone: payload['notificationTimeZone'],
+        languageCode: contentLanguageCode ?? 'en',
+      );
+
+  bool get hasCurrentContent =>
+      contentVersion == ScheduledNotificationContent.schemaVersion &&
+      (contentLanguageCode == 'ko' || contentLanguageCode == 'en') &&
+      contentDigest != null &&
+      contentDigest == deliveryContent.digest &&
+      contentDigest ==
+          ScheduledNotificationContent(
+            scheduleTitle: scheduleTitle,
+            detailed: payload['detailedNotificationContent'] == 'true',
+            displayTimeZone: payload['notificationTimeZone'],
+            languageCode: contentLanguageCode ?? 'en',
+          ).digest &&
+      !cancellationPending;
+
+  void requireCurrentContent() {
+    if (!hasCurrentContent) {
+      throw const AlarmSchedulingException(
+        reason: AlarmFailureReason.scheduleInvalid,
+        message:
+            'Notification content requires reconciliation before scheduling',
+      );
+    }
+  }
 
   const ScheduledAlarmRecord({
     required this.scheduleId,
@@ -274,6 +321,11 @@ class ScheduledAlarmRecord extends Equatable {
     required this.payload,
     this.nativeAlarmId,
     this.fallbackNotificationId,
+    this.contentDigest,
+    this.contentVersion,
+    this.contentLanguageCode,
+    this.cancellationPending = false,
+    this.notificationContent,
   });
 
   ScheduledAlarmRecord copyWith({
@@ -285,6 +337,11 @@ class ScheduledAlarmRecord extends Equatable {
     AlarmProvider? provider,
     String? scheduleTitle,
     Map<String, String>? payload,
+    String? contentDigest,
+    int? contentVersion,
+    String? contentLanguageCode,
+    bool? cancellationPending,
+    ScheduledNotificationContent? notificationContent,
   }) {
     return ScheduledAlarmRecord(
       scheduleId: scheduleId,
@@ -297,6 +354,11 @@ class ScheduledAlarmRecord extends Equatable {
       provider: provider ?? this.provider,
       scheduleTitle: scheduleTitle ?? this.scheduleTitle,
       payload: payload ?? this.payload,
+      contentDigest: contentDigest ?? this.contentDigest,
+      contentVersion: contentVersion ?? this.contentVersion,
+      contentLanguageCode: contentLanguageCode ?? this.contentLanguageCode,
+      cancellationPending: cancellationPending ?? this.cancellationPending,
+      notificationContent: notificationContent ?? this.notificationContent,
     );
   }
 
@@ -311,6 +373,10 @@ class ScheduledAlarmRecord extends Equatable {
     provider,
     scheduleTitle,
     payload,
+    contentDigest,
+    contentVersion,
+    contentLanguageCode,
+    cancellationPending,
   ];
 }
 
@@ -402,10 +468,20 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
   required AlarmProvider provider,
   bool detailedNotificationContent = false,
   String? currentTimeZoneId,
+  String languageCode = 'en',
 }) {
   final alarmTime = computeAlarmTime(schedule, offset: alarmOffset);
   final id = stableAlarmId(schedule.id);
   final preparationStartTime = schedule.preparationStartTime;
+  final content = ScheduledNotificationContent(
+    scheduleTitle: schedule.scheduleName,
+    detailed: detailedNotificationContent,
+    languageCode: languageCode,
+    displayTimeZone:
+        currentTimeZoneId != null && currentTimeZoneId != schedule.timeZoneId
+        ? schedule.timeZoneId
+        : null,
+  );
   return ScheduledAlarmRecord(
     scheduleId: schedule.id,
     alarmTime: alarmTime,
@@ -414,9 +490,11 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
     nativeAlarmId: id,
     fallbackNotificationId: id,
     provider: provider,
-    scheduleTitle: detailedNotificationContent
-        ? schedule.scheduleName
-        : 'OnTime',
+    scheduleTitle: content.title,
+    notificationContent: content,
+    contentDigest: content.digest,
+    contentVersion: ScheduledNotificationContent.schemaVersion,
+    contentLanguageCode: content.languageCode,
     payload: {
       'type': 'schedule_notification',
       'alarmLaunchPayloadVersion': alarmLaunchPayloadVersion,

@@ -223,6 +223,7 @@ class NotificationService {
   }
 
   Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {
+    record.requireCurrentContent();
     if (!await hasNotificationPermission()) {
       throw const AlarmSchedulingException(
         reason: AlarmFailureReason.platformError,
@@ -232,20 +233,11 @@ class NotificationService {
     }
     await setupFlutterNotifications();
     await _ensureTimezoneInitialized();
-    final detailed = record.payload['detailedNotificationContent'] == 'true';
-    final notificationTimeZone = record.payload['notificationTimeZone'];
+    final content = record.deliveryContent;
     await _localNotifications.zonedSchedule(
       id: fallbackNotificationIdForRecord(record),
-      title: detailed
-          ? record.scheduleTitle
-          : (_locale == 'ko' ? '일정 준비 시간이에요' : 'Time to prepare'),
-      body: detailed && notificationTimeZone != null
-          ? (_locale == 'ko'
-                ? '일정 시간대: $notificationTimeZone'
-                : 'Schedule time zone: $notificationTimeZone')
-          : (_locale == 'ko'
-                ? 'OnTime을 열어 일정을 확인하세요.'
-                : 'Open OnTime to review your schedule.'),
+      title: content.title,
+      body: content.body,
       scheduledDate: tz.TZDateTime.from(record.alarmTime, tz.local),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(

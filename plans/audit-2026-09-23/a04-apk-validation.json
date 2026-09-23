@@ -1,11 +1,11 @@
 {
-  "run_url": "https://github.com/DevKor-github/OnTime-front/actions/runs/35825051793",
-  "artifact_id": 10734459803,
-  "head_commit": "35f4d60334783c65b70ee6d241bbea49d6557f4b",
+  "run_url": "https://github.com/DevKor-github/OnTime-front/actions/runs/35825820116",
+  "artifact_id": 10735595648,
+  "head_commit": "e1ac7bc3b4df922822c2a6325b5483cedec15a42",
   "identity": {
-    "commit": "8667aefee9c669979dea948e56748527658449c5",
+    "commit": "c494a5d86b368171dc73208b9607ea01c37f6b1d",
     "artifact": "build/app/outputs/flutter-apk/app-release.apk",
-    "sha256": "7917c77a20f4e40b26224920609fef3b0e3c7b403d9c2cf8ffb4e98b30a8c145",
+    "sha256": "81fa1455847348159d74717bc4983e80b7b1c813492eee4497485ed76f5a5c3e",
     "signing": "disposable CI validation key; not a store release",
     "merged_manifests": [
       "build/app/intermediates/merged_manifest/release/outputReleaseAppLinkSettings/AndroidManifest.xml",
@@ -13,6 +13,5 @@
       "build/app/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml"
     ],
     "device_delivery_verified": false
-  },
-  "source": "GitHub pull_request synthetic merge commit; recorded separately from branch head"
+  }
 }

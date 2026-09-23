@@ -271,7 +271,11 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       return
     }
     #endif
-    result(nil)
+    result(FlutterError(
+      code: "unsupported",
+      message: "AlarmKit cancellation cannot be confirmed on this build or OS version.",
+      details: nil
+    ))
   }
 
   private func takeStoredAlarmLaunchPayload() -> [String: String]? {

@@ -88,6 +88,7 @@ class AlarmSchedulerService {
   }
 
   Future<void> scheduleNativeAlarm(ScheduledAlarmRecord record) async {
+    record.requireCurrentContent();
     try {
       AppLogger.debug(
         '$_logTag scheduleNativeAlarm start '
@@ -138,10 +139,13 @@ class AlarmSchedulerService {
       );
     } on MissingPluginException {
       AppLogger.debug(
-        '$_logTag cancelNativeAlarm skipped: missing plugin '
+        '$_logTag cancelNativeAlarm failed: missing plugin '
         'scheduleId=${record.scheduleId}',
       );
-      return;
+      throw const AlarmSchedulingException(
+        reason: AlarmFailureReason.cancellationFailed,
+        message: 'Native cancellation is unavailable',
+      );
     } on PlatformException catch (error) {
       AppLogger.debug(
         '$_logTag cancelNativeAlarm platform error '
@@ -218,6 +222,7 @@ class AlarmSchedulerService {
   }
 
   Map<String, dynamic> _recordToMethodArguments(ScheduledAlarmRecord record) {
+    final content = record.deliveryContent;
     return {
       'scheduleId': record.scheduleId,
       'alarmTime': record.alarmTime.millisecondsSinceEpoch,
@@ -225,10 +230,8 @@ class AlarmSchedulerService {
           record.preparationStartTime.millisecondsSinceEpoch,
       'nativeAlarmId': record.nativeAlarmId ?? stableAlarmId(record.scheduleId),
       'provider': record.provider.wireValue,
-      'title': record.scheduleTitle,
-      'body': record.payload['notificationTimeZone'] == null
-          ? 'It is time to get ready.'
-          : 'Schedule time zone: ${record.payload['notificationTimeZone']}',
+      'title': content.title,
+      'body': content.body,
       'payload': record.payload,
     };
   }

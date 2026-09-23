@@ -1,0 +1,68 @@
+{
+  "issue": "https://github.com/DevKor-github/OnTime-front/issues/588",
+  "audit_id": "A05",
+  "verified_at_utc": "2026-09-23T06:26:02.427241+00:00",
+  "head_before_code_commit": "e1ac7bc3b4df922822c2a6325b5483cedec15a42",
+  "working_tree_source_sha256": {
+    "ios/Runner/AppDelegate.swift": "3994ee06f17845f6c020d55c915daa0b765e34e114efdbfa9da75d3e2bec3ed7",
+    "lib/core/services/alarm_scheduler_service.dart": "13f5f733869251a030627a7fcd8f27f9abadfcca80d1ba5bbc5ef7eae038353d",
+    "lib/core/services/notification_service.dart": "da306ecd163f4dee761c92718c3f69e89514761b321020f05d40c779dadfb058",
+    "lib/data/models/scheduled_alarm_record_model.dart": "4094972bd4e81f01fc69ec5294722e3861f732ea167f9c97c365a20f86391359",
+    "lib/domain/entities/alarm_entities.dart": "1d78846ca3482009765be7f1858d31cc5a1042fdfb223b4ce57b11ec09c1ecc6",
+    "lib/domain/entities/scheduled_notification_content.dart": "f2f6d2fcf72c9f10b42b659589c7cae641c357b14135e27b13ad96a8920ae95e",
+    "lib/domain/use-cases/reconcile_alarms_use_case.dart": "f57fe9fc711f50828e259700a9dfebf3ff46f7c7aed022738cfaf58fb095dc54",
+    "pubspec.yaml": "e9948b9c20fd0f3937d3b755959f0642ff065370049d280a6aec096379d40d3a",
+    "pubspec.lock": "097b9cb731bf8e46e73ea9aa907f223dce7ec5432f9e45ccc69347d5aab1cdda",
+    "test/core/services/alarm_scheduler_service_test.dart": "869c36070b636a9d6b6cf0e11e374eb6bbce1629021e06cc673368f3d3aa6fde",
+    "test/core/services/scheduled_notification_delivery_test.dart": "e217346cb0eded6bcd945b7072d5313cc3be9a3ba99674d73f9a4bda13bd1cc3",
+    "test/data/data_sources/alarm_registry_local_data_source_test.dart": "8707858080d06f4f60a4e6d02190e03b6d540f4a35a6cc99e2a887dad2821609",
+    "test/domain/use-cases/reconcile_alarms_use_case_test.dart": "940cc72c2a20e4810e0410b388476a30293cbc5e7a0cd4ff6a07c06ecc5a4872"
+  },
+  "checks": [
+    {
+      "command": "flutter test test/domain/use-cases/reconcile_alarms_use_case_test.dart --plain-name detailed --reporter expanded",
+      "phase": "before fix",
+      "result": "two new regression tests failed for expected reasons: no cancellation on OFF, cancellation failure reported armed"
+    },
+    {
+      "command": "flutter test --no-pub --concurrency=1 --reporter expanded",
+      "result": "passed",
+      "passed": 617,
+      "failed": 0,
+      "duration": "2m27s",
+      "log": "/tmp/a05-full-tests.txt",
+      "log_sha256": "4fc7469fc0cbc880ed465042a169f0248f8b1b499e96891bffbc7bb9df948c5c"
+    },
+    {
+      "command": "flutter analyze --no-pub",
+      "result": "passed; No issues found",
+      "log": "/tmp/a05-analyze.txt"
+    },
+    {
+      "command": "swiftc -frontend -parse ios/Runner/AppDelegate.swift",
+      "result": "passed; syntax parse only, not native build/device proof"
+    },
+    {
+      "command": "dart run tool/check_local_only_boundary.dart",
+      "result": "passed"
+    },
+    {
+      "command": "dart format --output=none --set-exit-if-changed <10 changed Dart source/test files>",
+      "result": "passed; 0 changed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "environment_note": "One intermediate plugin test compiler run failed with ENOSPC. Only that failed run process and its exact temporary compiler directory were removed; subsequent complete suite passed.",
+  "not_verified": [
+    "actual Android/iOS lock-screen delivery and displayed notification removal",
+    "A11 old raw fingerprint/payload cleanup",
+    "A15 concurrent reconcile final-state convergence",
+    "U03 toggle error UX integration",
+    "D03 complete reset/cancel retry and authoritative OS read-back"
+  ],
+  "issue_complete": false,
+  "codegen_required": false
+}

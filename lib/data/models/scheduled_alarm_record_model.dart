@@ -9,6 +9,19 @@ class ScheduledAlarmRecordModel {
     final payload = (json['payload'] as Map<String, dynamic>? ?? const {}).map(
       (key, value) => MapEntry(key, value.toString()),
     );
+    // New comparison metadata must never make us discard ownership evidence
+    // for the whole registry. Malformed values force a safe legacy replacement.
+    final rawDigest = json['contentDigest'];
+    final rawVersion = json['contentVersion'];
+    final rawLanguage = json['contentLanguageCode'];
+    final rawPending = json['cancellationPending'];
+    final validMetadata =
+        rawDigest is String &&
+        RegExp(r'^[0-9a-f]{64}$').hasMatch(rawDigest) &&
+        rawVersion is int &&
+        rawVersion > 0 &&
+        (rawLanguage == 'ko' || rawLanguage == 'en') &&
+        (rawPending == null || rawPending is bool);
     return ScheduledAlarmRecordModel(
       ScheduledAlarmRecord(
         scheduleId: json['scheduleId'] as String,
@@ -25,6 +38,11 @@ class ScheduledAlarmRecordModel {
         ),
         scheduleTitle: json['scheduleTitle'] as String? ?? '',
         payload: payload,
+        contentDigest: validMetadata ? rawDigest : null,
+        contentVersion: validMetadata ? rawVersion : null,
+        contentLanguageCode: validMetadata ? rawLanguage as String : null,
+        cancellationPending:
+            rawPending == true || (rawPending != null && rawPending is! bool),
       ),
     );
   }
@@ -40,6 +58,12 @@ class ScheduledAlarmRecordModel {
       'provider': record.provider.wireValue,
       'scheduleTitle': record.scheduleTitle,
       'payload': record.payload,
+      if (record.contentDigest != null) 'contentDigest': record.contentDigest,
+      if (record.contentLanguageCode != null)
+        'contentLanguageCode': record.contentLanguageCode,
+      if (record.contentVersion != null)
+        'contentVersion': record.contentVersion,
+      if (record.cancellationPending) 'cancellationPending': true,
     };
   }
 }

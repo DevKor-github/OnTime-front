@@ -92,7 +92,9 @@
         "Actual FileSelectorIOS host contract + picker/data preservation: 10 tests passed",
         "Targeted Dart analyzer: no issues",
         "Previous extension-only filter fails before native host (negative regression)",
-        "Restore preview cancellation, picker cancellation, invalid file retry: 3 widget tests passed"
+        "Restore preview cancellation, picker cancellation, invalid file retry: 3 widget tests passed",
+        "GitHub run 35825820148 test/analyze/coverage success for head e1ac7bc3; coverage 84.44% (8599/10184 lines)",
+        "GitHub run 35825820116 Android release APK + APK/merged manifest success; artifact10735595648 identity read back"
       ],
       "blockers": [
         "iOS Files provider and Android-to-iOS actual backup selection pending",
@@ -113,7 +115,7 @@
         "`lib/data/mappers/domain_persistence_mappers.dart:108-123`; `lib/data/daos/user_dao.dart:15-18`; `lib/data/repositories/user_repository_impl.dart:48-67`; `schedule_repository_impl.dart:140-155`",
         "프로필/설정/점수/백업 메타데이터별 부분 UPDATE. 알림 OFF·상세 ON·백업 이력이 있는 상태에서 여유시간 수정/일정 완료 후 관련 없는 값 보존. revision은 단조 증가."
       ],
-      "status": "code_verified_ci_pending",
+      "status": "code_verified_merge_pending",
       "agent": "/root/grill_a04",
       "issue_number": 587,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/587",
@@ -125,10 +127,12 @@
         "Final DAO/repository targeted suite: 18 passed",
         "Full Flutter suite before final two added regressions: 596 passed",
         "Backup export actual partial edit integration: 9 passed",
-        "flutter analyze: no issues"
+        "flutter analyze: no issues",
+        "GitHub run 35825820148 test/analyze/coverage success for head e1ac7bc3; coverage 84.44% (8599/10184 lines)",
+        "GitHub run 35825820116 Android release APK + APK/merged manifest success; artifact10735595648 identity read back"
       ],
       "blockers": [
-        "Latest commit GitHub CI and merge pending"
+        "Merge and release verification pending"
       ],
       "sequence": 4,
       "readback_verified": true,
@@ -145,18 +149,27 @@
         "`lib/presentation/my_page/my_page_screen.dart:121-124`; `lib/domain/use-cases/reconcile_alarms_use_case.dart:516-526`",
         "내용 정책도 등록 버전에 포함. ON→OFF 시 기존 OS 예약을 교체하고 실제 표시가 비공개인지 확인. locale·일정명·표시 시간대 변경도 검사."
       ],
-      "status": "implementing",
+      "status": "code_verified_integration_pending",
       "agent": "/root/grill_a05",
       "issue_number": 588,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/588",
       "decisions_file": "plans/audit-2026-09-23/issues/A05.md",
       "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Full Flutter suite: 617 passed (concurrency=1)",
+        "flutter analyze: no issues",
+        "Core privacy regressions failed before fix and passed after",
+        "Swift syntax parse, local-only policy and diff check passed",
+        "Source digests checked against a05-source-validation.json"
+      ],
+      "blockers": [
+        "Actual Android/iOS lock-screen delivery and displayed notification removal pending",
+        "A11/A15/U03/D03 integration pending"
+      ],
       "sequence": 5,
       "readback_verified": true,
-      "body_sha256": "59c23b65c9d1486e3af26f2eac3017fd5461494699c847bd1245333420c6d83c"
+      "body_sha256": "b8bbdf6aaa69075453f3f55cb327594e2cf2ca1c4e3acf703e04cfc6b3f0fa67"
     },
     {
       "audit_id": "A11",

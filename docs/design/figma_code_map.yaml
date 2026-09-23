@@ -183,7 +183,12 @@ screens:
   - route: /privacyPolicy
     figma_node: '1950:11759'
     flutter: lib/presentation/my_page/privacy_policy_screen.dart
-    status: pending
+    state: default
+    status: reviewed
+    review_note: 350px text grid at x20/y122, 16px body with 24.8px line height, centered title, scrolling, and 2x text checked. Pretendard substitutes for the unbundled Figma Noto Sans KR; native chrome is excluded.
+    figma_image: docs/design/review/figma/privacy-policy-default.png
+    figma_sha256: b5ebab499f9dae67e7379b078e2b432d050d636078d6719c512a1dd80ca09632
+    flutter_golden: test/goldens/goldens/privacy_policy_390x844.png
   - route: /resetComplete
     figma_node: '1963:11762'
     flutter: lib/presentation/my_page/my_data_screen.dart

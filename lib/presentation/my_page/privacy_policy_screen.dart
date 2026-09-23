@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -6,10 +9,40 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('개인정보 처리방침')),
+      appBar: AppBar(
+        leading: IconButton(
+          tooltip: '뒤로',
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 8),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/myPage');
+            }
+          },
+          icon: SvgPicture.asset(
+            'chevron_left.svg',
+            package: 'assets',
+            width: 8,
+            height: 14,
+            colorFilter: ColorFilter.mode(
+              AppColors.grey.shade500,
+              BlendMode.srcIn,
+            ),
+          ),
+        ),
+        title: const Text('개인정보 처리방침'),
+        centerTitle: true,
+        toolbarHeight: 60,
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontSize: 19,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       body: const SelectionArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(20, 18, 20, 24),
           child: Text(
             'OnTime 로컬 전용 개인정보 처리방침\n\n'
             '시행일: 2026년 8월 28일\n\n'
@@ -25,7 +58,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
             '파일 선택, 로컬 알림, 알람과 앱 권한 처리는 Android 또는 iOS가 제공합니다. 운영체제나 사용자가 선택한 외부 파일 제공자의 처리에는 해당 서비스의 정책이 적용됩니다.\n\n'
             '6. 문의\n'
             '앱 배포 페이지에 표시된 개발자 연락처를 이용할 수 있습니다.',
-            style: TextStyle(fontSize: 15, height: 1.55),
+            style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 16,
+              height: 1.55,
+            ),
           ),
         ),
       ),

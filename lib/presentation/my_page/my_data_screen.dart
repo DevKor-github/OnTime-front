@@ -172,32 +172,8 @@ class _MyDataScreenState extends State<MyDataScreen> {
       );
       if (!mounted || candidate == null) return;
       final preview = candidate.preview;
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('복원 내용 확인'),
-          content: Text(
-            '백업 시점: ${preview.cutoff.toLocal()}\n'
-            '앱 버전: ${preview.sourceAppVersion}\n'
-            '원본 플랫폼: ${preview.sourcePlatform}\n'
-            '일정 ${preview.scheduleCount}개\n'
-            '준비 템플릿 ${preview.templateCount}개\n'
-            '기본 준비 단계 ${preview.defaultPreparationStepCount}개\n\n'
-            '현재 로컬 데이터는 모두 교체됩니다.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('취소'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('복원'),
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true) return;
+      final confirmed = await showRestorePreviewDialog(context, preview);
+      if (confirmed != DialogActionResult.primary) return;
       await getIt<BackupService>().applyRestore(candidate);
       await getIt<ReconcileAlarmsUseCase>()();
       if (!mounted) return;
@@ -238,80 +214,11 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   Future<String?> _askPassword({required bool confirm}) async {
-    final first = TextEditingController();
-    final second = TextEditingController();
-    String? error;
-    final result = await showDialog<String>(
+    return showDialog<String>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(confirm ? '백업 비밀번호 만들기' : '백업 비밀번호 입력'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: first,
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
-                autofillHints: null,
-                decoration: const InputDecoration(
-                  labelText: '백업 비밀번호',
-                  helperText: '15~128자, 대소문자와 공백을 그대로 구분합니다.',
-                ),
-              ),
-              if (confirm) ...[
-                const SizedBox(height: 12),
-                TextField(
-                  controller: second,
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  autofillHints: null,
-                  decoration: const InputDecoration(labelText: '백업 비밀번호 확인'),
-                ),
-              ],
-              if (error != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('취소'),
-            ),
-            FilledButton(
-              onPressed: () {
-                try {
-                  final parsed = BackupPassword.parse(first.text);
-                  if (confirm &&
-                      parsed.normalized !=
-                          BackupPassword.parse(second.text).normalized) {
-                    throw const FormatException('비밀번호가 서로 다릅니다.');
-                  }
-                  Navigator.pop(context, parsed.normalized);
-                } on FormatException catch (exception) {
-                  setDialogState(
-                    () => error = exception.message == '비밀번호가 서로 다릅니다.'
-                        ? exception.message
-                        : '백업 비밀번호는 15~128자로 입력해주세요.',
-                  );
-                }
-              },
-              child: const Text('계속'),
-            ),
-          ],
-        ),
-      ),
+      barrierColor: const Color(0x6B000000),
+      builder: (context) => _BackupPasswordDialog(confirm: confirm),
     );
-    first.dispose();
-    second.dispose();
-    return result;
   }
 
   Future<void> _run(Future<void> Function() action) async {
@@ -330,6 +237,207 @@ class _MyDataScreenState extends State<MyDataScreen> {
       context,
     ).showSnackBar(SnackBar(content: Text('작업을 완료하지 못했습니다: $error')));
   }
+}
+
+class _BackupPasswordDialog extends StatefulWidget {
+  const _BackupPasswordDialog({required this.confirm});
+
+  final bool confirm;
+
+  @override
+  State<_BackupPasswordDialog> createState() => _BackupPasswordDialogState();
+}
+
+class _BackupPasswordDialogState extends State<_BackupPasswordDialog> {
+  final _first = TextEditingController();
+  final _second = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _first.dispose();
+    _second.dispose();
+    super.dispose();
+  }
+
+  void _continue() {
+    try {
+      final parsed = BackupPassword.parse(_first.text);
+      if (widget.confirm &&
+          parsed.normalized != BackupPassword.parse(_second.text).normalized) {
+        throw const FormatException('비밀번호가 서로 다릅니다.');
+      }
+      Navigator.of(context).pop(parsed.normalized);
+    } on FormatException catch (exception) {
+      setState(
+        () => _error = exception.message == '비밀번호가 서로 다릅니다.'
+            ? exception.message
+            : '백업 비밀번호는 15~128자로 입력해주세요.',
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topInset = _figmaDialogTopInset(context);
+    final availableHeight =
+        MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).bottom;
+    const bodyStyle = TextStyle(
+      fontFamily: 'Pretendard',
+      fontSize: 13,
+      height: 1.4,
+      color: Color(0xFF545454),
+    );
+    return TwoActionDialog(
+      config: TwoActionDialogConfig(
+        title: widget.confirm ? '백업 비밀번호 만들기' : '백업 비밀번호 입력',
+        secondaryAction: const DialogActionConfig(label: '취소'),
+        primaryAction: const DialogActionConfig(
+          label: '계속',
+          variant: ModalWideButtonVariant.primary,
+        ),
+        alignment: Alignment.topCenter,
+        insetPadding: EdgeInsets.only(top: topInset),
+        innerPadding: const EdgeInsets.all(16),
+        titleContentSpacing: 12,
+        contentActionsSpacing: 11,
+      ),
+      onSecondaryPressed: () => Navigator.of(context).pop(),
+      onPrimaryPressed: _continue,
+      customContent: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: (availableHeight - topInset - 124).clamp(
+            80.0,
+            double.infinity,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('백업 비밀번호', style: bodyStyle),
+              const SizedBox(height: 12),
+              _passwordField(_first, '백업 비밀번호', bodyStyle),
+              const Text(
+                '15~128자, 대소문자와 공백을 그대로 구분합니다.',
+                style: bodyStyle,
+                textAlign: TextAlign.center,
+              ),
+              if (widget.confirm) ...[
+                const SizedBox(height: 16),
+                const Text('백업 비밀번호 확인', style: bodyStyle),
+                const SizedBox(height: 12),
+                _passwordField(_second, '백업 비밀번호 확인', bodyStyle),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  style: bodyStyle.copyWith(color: const Color(0xFFBF2E22)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _passwordField(
+    TextEditingController controller,
+    String label,
+    TextStyle style,
+  ) {
+    return SizedBox(
+      height: 44,
+      child: Center(
+        child: Semantics(
+          label: label,
+          child: TextField(
+            controller: controller,
+            obscureText: true,
+            enableSuggestions: false,
+            autocorrect: false,
+            autofillHints: null,
+            textAlign: TextAlign.center,
+            style: style,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            onChanged: (_) {
+              if (_error != null) setState(() => _error = null);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+double _figmaDialogTopInset(BuildContext context) {
+  final availableHeight =
+      MediaQuery.sizeOf(context).height -
+      MediaQuery.viewInsetsOf(context).bottom;
+  final targetTop = (availableHeight - 400).clamp(16.0, 352.0);
+  final systemTopInset =
+      View.of(context).padding.top / View.of(context).devicePixelRatio;
+  return (targetTop - systemTopInset).clamp(0.0, double.infinity);
+}
+
+Future<DialogActionResult> showRestorePreviewDialog(
+  BuildContext context,
+  BackupRestorePreview preview,
+) {
+  final description =
+      '백업 시점: ${_formatBackupCutoff(preview.cutoff)}\n'
+      '앱 버전: ${preview.sourceAppVersion}\n'
+      '원본 플랫폼: ${preview.sourcePlatform}\n'
+      '일정 ${preview.scheduleCount}개\n'
+      '준비 템플릿 ${preview.templateCount}개\n'
+      '기본 준비 단계 ${preview.defaultPreparationStepCount}개\n\n'
+      '현재 로컬 데이터는 모두 교체됩니다.';
+  return showTwoActionDialog(
+    context,
+    config: TwoActionDialogConfig(
+      title: '복원 내용 확인',
+      secondaryAction: const DialogActionConfig(label: '취소'),
+      primaryAction: const DialogActionConfig(
+        label: '복원',
+        variant: ModalWideButtonVariant.primary,
+      ),
+      barrierColor: const Color(0x6B000000),
+      alignment: Alignment.topCenter,
+      insetPadding: EdgeInsets.only(top: _figmaDialogTopInset(context)),
+    ),
+    customContent: Text(
+      description,
+      style: const TextStyle(
+        fontFamily: 'Pretendard',
+        fontSize: 13,
+        height: 1.55,
+        letterSpacing: -0.4,
+        color: Color(0xFF545454),
+      ),
+      textAlign: TextAlign.center,
+    ),
+  );
+}
+
+String _formatBackupCutoff(DateTime cutoff) {
+  final local = cutoff.toLocal();
+  final period = local.hour < 12 ? '오전' : '오후';
+  final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '${local.year}. ${local.month}. ${local.day}. $period $hour:$minute';
 }
 
 class _DataActionRow extends StatelessWidget {

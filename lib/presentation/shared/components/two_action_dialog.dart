@@ -29,6 +29,7 @@ class TwoActionDialogConfig {
     this.contentActionsSpacing = TwoActionDialogTokens.contentActionsSpacing,
     this.barrierColor,
     this.alignment = Alignment.center,
+    this.insetPadding,
   });
 
   final String title;
@@ -42,6 +43,7 @@ class TwoActionDialogConfig {
   final double contentActionsSpacing;
   final Color? barrierColor;
   final AlignmentGeometry alignment;
+  final EdgeInsets? insetPadding;
 }
 
 abstract final class TwoActionDialogTokens {
@@ -177,6 +179,7 @@ class TwoActionDialog extends StatelessWidget {
       actionsAlignment: MainAxisAlignment.center,
       innerPadding: config.innerPadding,
       alignment: config.alignment,
+      insetPadding: config.insetPadding,
       titleTextAlign: TextAlign.center,
       contentTextAlign: TextAlign.center,
       titleContentSpacing: config.titleContentSpacing,

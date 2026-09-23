@@ -85,11 +85,41 @@ screens:
         figma_image: docs/design/review/figma/my-data-reset-confirmation.png
         figma_sha256: 71fbec92ba42e5918e57db6e0941b46e10961657f698d5475d0af84446fece8a
         flutter_golden: test/goldens/goldens/my_data_reset_confirmation_390x844.png
-      - {state: restore_preview_confirmation, figma_node: '1978:11791', status: pending}
-      - {state: backup_password_create, figma_node: '1979:11816', status: pending}
-      - {state: backup_password_input, figma_node: '1980:11841', status: pending}
-      - {state: backup_password_invalid_length, figma_node: '1981:11866', status: pending}
-      - {state: backup_password_mismatch, figma_node: '1982:11891', status: pending}
+      - state: restore_preview_confirmation
+        figma_node: '1978:11791'
+        status: reviewed
+        review_note: 277px card, top 352px, sample metadata, cancel action, and 2x text compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-restore-preview.png
+        figma_sha256: ffb62bd9764f8897e14d95f6f12334fd0be6f8ec0a30f31c615fd37ad68a5689
+        flutter_golden: test/goldens/goldens/my_data_restore_preview_390x844.png
+      - state: backup_password_create
+        figma_node: '1979:11816'
+        status: reviewed
+        review_note: 277px card, top 352px, filled 15-character fixture, secure fields, and labeled 44px actions compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-password-create.png
+        figma_sha256: 7e04e15b88d878162767d910c9d45f3703a2fbe6bf27d56522204cef66abb04b
+        flutter_golden: test/goldens/goldens/my_data_password_create_390x844.png
+      - state: backup_password_input
+        figma_node: '1980:11841'
+        status: reviewed
+        review_note: Filled 15-character restore password fixture and cancel behavior compared. Native chrome is excluded.
+        figma_image: docs/design/review/figma/my-data-password-input.png
+        figma_sha256: 94dd76f87a6a7fe77bd9672bdb645f52aa91700e48b2eeab101fbf2f4507f0c1
+        flutter_golden: test/goldens/goldens/my_data_password_input_390x844.png
+      - state: backup_password_invalid_length
+        figma_node: '1981:11866'
+        status: reviewed
+        review_note: Filled 9-character fixture and length error compared. Invalid password does not trigger export.
+        figma_image: docs/design/review/figma/my-data-password-invalid.png
+        figma_sha256: de016130f45b290c63baddad21479e1ed2b65de2701be604bd8432c55d67ec9f
+        flutter_golden: test/goldens/goldens/my_data_password_invalid_390x844.png
+      - state: backup_password_mismatch
+        figma_node: '1982:11891'
+        status: reviewed
+        review_note: Two different 15-character fixtures and mismatch error compared. Invalid password does not trigger export.
+        figma_image: docs/design/review/figma/my-data-password-mismatch.png
+        figma_sha256: 894f3c951dfcb852e4f42b96c40cd19586434ac3eecda4aad3f8b5211f7f4621
+        flutter_golden: test/goldens/goldens/my_data_password_mismatch_390x844.png
       - {state: freshness_checking, figma_node: '1985:11908', status: pending}
       - {state: freshness_no_changes, figma_node: '1987:11925', status: pending}
       - {state: freshness_unexported_changes, figma_node: '1989:11942', status: pending}

@@ -22,6 +22,8 @@
 - A04: #587, c11d970c
 - A05: #588, 0c41589e. 전체617 tests/analyze 및 Android release APK CI 통과. coverage84.98%. 실제기기·후속 통합 미완료
 - A11: #589, source freeze. 전체634 및 이후targeted59/최종42, analyze 통과. Native 행동/실제SDK 타입검사 통과. Root commit/CI 및 실제기기 검증 추적
+- A12: #591, 실제4Q&A·15AC 원격readback완료. grill_a12 구현중.
+- A13: grill_a13 문답완료·문서작성중, issue생성전.
 - 나머지 이슈는 아직 생성 전이다. 전체 완료나 64개 생성 완료로 보고하지 않는다.
 
 ## 검증 경계
@@ -54,3 +56,7 @@
 2. A11 상세 범위대로 fingerprint/runtime/native payload 개인정보 전환을 구현·검증.
 3. 신규 grill_a12와 문답을 마쳐 전체 실제 문답을 포함한 A12 issue를 만든 뒤 우선순위 순서로 구현.
 4. native device 및 iOS build 검증은 실제 환경을 확보해 별도 수행. 이슈 open 상태와 코드/CI/merge/release를 구분.
+
+## A11 정확 SHA CI 및 GitHub 상태
+
+A11 head089afee51b2572339b4650bd3679b1a1ef72781e를 push했으나 GitHub는 동일 main44067d7a와 PR585를 mergeable=false/dirty로표시했다. 로컬 merge-base는main그자체이고 merge-tree는충돌없이headtree를반환한다. 실제파일충돌로단정하거나강제rewrite하지않았다. PR event CI가생성되지않아동일head에workflow_dispatch로 Flutter35828807338 및 Android35828809625를실행했다. 결과추적필요. PR병합가능상태와수동CI는별개증거다.

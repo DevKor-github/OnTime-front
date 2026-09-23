@@ -83,3 +83,5 @@ A12 b9f959db commit/push 및 PR 원격 head 확인 완료. GitHub Flutter run358
 A12 최종 b9f959db Flutter run35881988783이 707 tests/analyze/coverage87.11% (11189/12844) 통과했다. 이전 로컬707과 수는 같지만 최종 source에 대한 별도의 원격 증거다. Android run35881988613은 계속 실행 중.
 
 U08 #597와 A06 #598 생성 후 exact body read-back 완료. 13/64개 이슈 게시, 51개 생성 전. U08 홈 선행패치 구현 중(전체 매트릭스 완료 아님). A06 문답3개 및 OFF정책 정정 포함 준비 완료, A07 새 전담 grill 시작.
+
+A12 Android run35881988613 통과, artifact10760609601 및 synthetic merge1c8e60c3 identity read-back 완료. 상태 code_verified_device_pending. #591 본문에 최종 Flutter707/87.11%·APK 기록 추가 후 exact read-back 완료.

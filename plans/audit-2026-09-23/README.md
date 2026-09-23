@@ -22,7 +22,7 @@
 | A04 | [#587](https://github.com/DevKor-github/OnTime-front/issues/587) | partial update·transaction 회귀 및 통합 CI 통과, merge 대기 |
 | A05 | [#588](https://github.com/DevKor-github/OnTime-front/issues/588) | 전체617 tests/analyze·Android APK CI 통과, coverage84.98%, 기기·후속 통합 대기 |
 | A11 | [#589](https://github.com/DevKor-github/OnTime-front/issues/589) | 089afee5 원격636 tests/84.96%·APK 통과, 최신main 통합678 tests 통과, 기기 검증 대기 |
-| A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 콜드 탭·선택 준비 유지 구현, 최종 b9f959db 원격707 tests/analyze·coverage87.11% 통과, APK·기기 검증 대기 |
+| A12 | [#591](https://github.com/DevKor-github/OnTime-front/issues/591) | 콜드 탭·선택 준비 유지 구현, 최종 b9f959db 원격707 tests/analyze·coverage87.11%·APK 통과, 기기 검증 대기 |
 | A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 실제3문답·정확/근사 결과 정책 확정, 전담 구현 중 |
 | A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | 실제3문답·플랫폼별 관측/취소 기준 확정, A13 뒤 구현 |
 | A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 실제4문답·요청별 완료/실패 및 세대 직렬화 기준 확정, A14 뒤 구현 |
@@ -30,7 +30,7 @@
 | A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | 실제3문답·정정 포함, 신선한 실제 타이머 전환 알림 기준 확정 |
 | U08 | [#597](https://github.com/DevKor-github/OnTime-front/issues/597) | 실제3문답·전체 매트릭스 확정, 홈 overflow 선행 수정 중 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 13개를 게시하고 본문을 재확인했으며, 나머지 51개는 생성 전이다. A12는 최종 원격707 tests 통과 후 APK·기기 검증 대기, A13/A14/A15/D03는 문답 완료·구현 대기다. A12 화면 검증 중 U08 홈 카드 overflow가 추가 재현돼 전담 grill과 #597 게시 후 좁은 선행 수정을 진행한다. 최신 main 통합 커밋 `712b3708`의 원격 Flutter 678개 테스트와 analyze가 통과했고 coverage는 85.35%다. Android release APK/manifest CI도 통과했으며 artifact identity를 기록했다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 13개를 게시하고 본문을 재확인했으며, 나머지 51개는 생성 전이다. A12는 최종 원격707 tests·APK 통과 후 기기 검증 대기, A13/A14/A15/D03는 문답 완료·구현 대기다. A12 화면 검증 중 U08 홈 카드 overflow가 추가 재현돼 전담 grill과 #597 게시 후 좁은 선행 수정을 진행한다. 최신 main 통합 커밋 `712b3708`의 원격 Flutter 678개 테스트와 analyze가 통과했고 coverage는 85.35%다. Android release APK/manifest CI도 통과했으며 artifact identity를 기록했다. 이슈 개설·코드 검증·병합·실제 제품 완료는 서로 다른 상태다.
 
 ## 실행 순서
 

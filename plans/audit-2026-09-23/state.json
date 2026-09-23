@@ -227,7 +227,7 @@
         "`notification_service.dart:153-165`; `android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt:231-232`; 앱 전체 `getNotificationAppLaunchDetails` 호출 없음",
         "Android/iOS fallback 각각 종료→알림 탭→정확한 일정으로 한 번만 이동. DB/라우터 준비 지연 중에는 payload를 보존."
       ],
-      "status": "code_verified_ci_pending",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a12",
       "issue_number": 591,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/591",
@@ -237,14 +237,15 @@
       "verification": [
         "Latest source focused 107 tests passed, including 2 production router widgets; analyzer, formatting, local-only and generated policy passed.",
         "Source hashes: a12-validation.json. Latest full suite awaits remote CI; local ENOSPC. Earlier 707 tests predate final ownership fixes.",
-        "Final b9f959db remote Flutter run35881988783: 707 tests, analyze, coverage87.11% (11189/12844) passed; Android run35881988613 pending."
+        "Final b9f959db remote Flutter run35881988783: 707 tests, analyze, coverage87.11% (11189/12844) passed; Android run35881988613 pending.",
+        "Final b9f959db Android run35881988613 passed; artifact10760609601, synthetic merge1c8e60c3, SHA identity in a12-ci-validation.json."
       ],
       "blockers": [
         "Physical Android/iOS cold notification tap not executed."
       ],
       "sequence": 7,
       "readback_verified": true,
-      "body_sha256": "bdcab65775c6328ff5f7d806858398bfaef79d5a403163c9b4b8b0941c25c7c6"
+      "body_sha256": "8b2c2dc7fe7cdb75662208d589727a4dcbbb728da87095b700e454f660a56f54"
     },
     {
       "audit_id": "A13",

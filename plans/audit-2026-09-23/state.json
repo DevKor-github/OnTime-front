@@ -505,16 +505,18 @@
         "`local_data_recovery_screen.dart:45-63,96-99`; `docs/adr/0023-preserve-local-data-when-migration-fails.md:7`",
         "보존된 DB·키를 건드리지 않고 백업 검증→새 암호화 DB 복원→성공 후 교체. 초기화 실패 시 busy 해제와 재시도."
       ],
-      "status": "grilling",
+      "status": "ready",
       "agent": "/root/grill_d02",
-      "issue_number": null,
-      "issue_url": null,
+      "issue_number": 604,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/604",
       "decisions_file": "plans/audit-2026-09-23/issues/D02.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 18
+      "sequence": 18,
+      "readback_verified": true,
+      "body_sha256": "a4c5925fb022668a4ad869ac7f6faa3be8d3068de42ac69235132de9aba3af02"
     },
     {
       "audit_id": "D04",

@@ -104,3 +104,5 @@ A13 persistence후속 `edfff97c4806fb2d154c324edf8965b1feb218e0`: sanitizer필�
 - A14 전담이 최종 소스/전체 테스트/native SDK 검증 중이다. root는 unknown/unmapped 관측이 빈 ON/OFF에서 성공으로 사라지지 않게 리뷰했고 회귀가 추가됐다. 실제 OS 전달은 미실행이다.
 - D04 새 전담 생성은 agent thread limit으로 실패했다. 기존 전담을 재사용해 새 이슈 문답을 대신하지 않고 이후 재시도한다. 사용자 추가 승인 사항은 없다.
 - CONTEXT의 Installation Data Key는 정확히 하나의 active key라는 뜻으로 D02 문답에 맞춰 정정했다. 비활성 후보/retired 재료는 안전한 복구 정리까지 한시 보존한다.
+
+D02 #604도 실제 네 문답 및 보충 전체를 게시하고 exact body read-back했다. 현재 19/64개 게시, 45개 미생성. ADR0036은 e733c472에 기록했고 이슈에서 해당 commit permalink로 연결했다. A15 원래 전담 followup은 정상 접수되어 A14 commit 전 readonly 준비 중이다. D04 새 전담 생성 재시도는 여전히 thread limit이었다.

@@ -9,6 +9,9 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get notificationCleanupNeededStatus => '꺼짐 · 알림 취소 확인 필요';
+
+  @override
   String get calendarTitle => '캘린더';
 
   @override

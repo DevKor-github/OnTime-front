@@ -56,6 +56,8 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       scheduleNativeAlarm(call, result: result)
     case "cancelNativeAlarm":
       cancelNativeAlarm(call, result: result)
+    case "getPendingNativeAlarms":
+      getPendingNativeAlarms(call, result: result)
     case "sanitizeStoredLaunchPayload":
       let cleaned = AlarmLaunchPayload.sanitizeStored(
         in: .standard, key: onTimeAlarmLaunchPayloadDefaultsKey
@@ -260,13 +262,38 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     ))
   }
 
+  private func getPendingNativeAlarms(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    #if canImport(AlarmKit)
+    if #available(iOS 26.0, *) {
+      guard let args = call.arguments as? [String: Any],
+            let scheduleIds = args["scheduleIds"] as? [String] else {
+        result(FlutterError(code: "invalidArguments", message: "Missing schedule IDs", details: nil))
+        return
+      }
+      do {
+        // Do not invert UUID hashes or infer ownership from arbitrary UUIDs.
+        let known = Dictionary(scheduleIds.map { (deterministicAlarmUUID($0), $0) },
+                               uniquingKeysWith: { first, _ in first })
+        let alarms = try AlarmManager.shared.alarms
+        let matched = alarms.compactMap { known[$0.id] }
+        result(["source": "iosAlarmKit", "scheduleIds": matched,
+                "unmappedCount": alarms.count - matched.count])
+      } catch {
+        result(FlutterError(code: "observationFailed", message: "AlarmKit registrations could not be read.", details: nil))
+      }
+      return
+    }
+    #endif
+    result(FlutterError(code: "unsupported", message: "AlarmKit observation is unavailable.", details: nil))
+  }
+
   private func cancelNativeAlarm(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     #if canImport(AlarmKit)
     if #available(iOS 26.0, *) {
       guard let args = call.arguments as? [String: Any],
             let scheduleId = args["scheduleId"] as? String,
             !scheduleId.isEmpty else {
-        result(nil)
+        result(FlutterError(code: "invalidArguments", message: "Missing schedule ID", details: nil))
         return
       }
       do {

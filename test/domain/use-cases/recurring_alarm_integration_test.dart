@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
@@ -215,6 +216,16 @@ class _UnusedUser extends Fake implements UserRepository {}
 class _UnusedTimers extends Fake implements TimedPreparationRepository {}
 
 class _NativeAlarms extends Fake implements AlarmSchedulerService {
+  final pending = <String>{};
+  @override
+  Future<DeliveryObservation> observePendingNativeAlarms(
+    Iterable<String> ids,
+  ) async => DeliveryObservation(
+    source: DeliveryObservationSource.iosAlarmKit,
+    entries: pending
+        .map((id) => PendingDelivery(id: id, scheduleId: id))
+        .toList(),
+  );
   final scheduled = <ScheduledAlarmRecord>[];
   final canceled = <ScheduledAlarmRecord>[];
 
@@ -232,15 +243,23 @@ class _NativeAlarms extends Fake implements AlarmSchedulerService {
   @override
   Future<void> scheduleNativeAlarm(ScheduledAlarmRecord record) async {
     scheduled.add(record);
+    pending.add(record.scheduleId);
   }
 
   @override
   Future<void> cancelNativeAlarm(ScheduledAlarmRecord record) async {
     canceled.add(record);
+    pending.remove(record.scheduleId);
   }
 }
 
 class _Notifications extends Fake implements FallbackAlarmNotificationService {
+  @override
+  Future<DeliveryObservation> observePending() async =>
+      const DeliveryObservation(
+        source: DeliveryObservationSource.iosNotificationCenter,
+        entries: [],
+      );
   AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
   int timingRequestCount = 0;
 

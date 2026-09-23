@@ -33,6 +33,7 @@ enum AlarmFailureReason {
   preparationLoadFailed,
   scheduleInvalid,
   cancellationFailed,
+  observationFailed,
   platformError,
   unknown,
 }
@@ -126,6 +127,8 @@ extension AlarmFailureReasonWireValue on AlarmFailureReason {
         return 'preparationLoadFailed';
       case AlarmFailureReason.scheduleInvalid:
         return 'scheduleInvalid';
+      case AlarmFailureReason.observationFailed:
+        return 'observationFailed';
       case AlarmFailureReason.cancellationFailed:
         return 'cancellationFailed';
       case AlarmFailureReason.platformError:
@@ -143,6 +146,9 @@ extension AlarmFailureReasonWireValue on AlarmFailureReason {
       case 'scheduleInvalid':
       case 'SCHEDULE_INVALID':
         return AlarmFailureReason.scheduleInvalid;
+      case 'observationFailed':
+      case 'OBSERVATION_FAILED':
+        return AlarmFailureReason.observationFailed;
       case 'cancellationFailed':
       case 'CANCELLATION_FAILED':
         return AlarmFailureReason.cancellationFailed;

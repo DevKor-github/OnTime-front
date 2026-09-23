@@ -199,9 +199,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
       final fallbackService = getIt.get<FallbackAlarmNotificationService>();
 
       final settings = await alarmRepository.getAlarmSettings();
-      final result = settings.alarmsEnabled
-          ? await getIt<ReconcileAlarmsUseCase>()()
-          : null;
+      final result = await getIt<ReconcileAlarmsUseCase>()();
       final records = await registryRepository.loadAll();
       final timingPermission = await fallbackService
           .checkExactTimingPermission();
@@ -249,6 +247,8 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
         _timingPermission != AlarmPermissionState.unsupported,
   )) {
     ScheduleNotificationStatus.off => '꺼짐',
+    ScheduleNotificationStatus.cleanupNeeded =>
+      l10n.notificationCleanupNeededStatus,
     ScheduleNotificationStatus.permissionNeeded =>
       l10n.notificationPermissionNeededStatus,
     ScheduleNotificationStatus.empty => l10n.noScheduledNotificationStatus,

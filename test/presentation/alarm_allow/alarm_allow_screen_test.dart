@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -321,6 +322,9 @@ class _FakeAlarmRegistry implements AlarmRegistryRepository {
 
 class _FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
+  @override
+  Future<DeliveryObservation> observePending() async =>
+      const DeliveryObservation.unknown();
   AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
   int timingRequestCount = 0;
 

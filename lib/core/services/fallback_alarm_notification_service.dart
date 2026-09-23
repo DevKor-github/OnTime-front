@@ -1,6 +1,7 @@
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 
 abstract interface class FallbackAlarmNotificationService {
   Future<AlarmPermissionState> checkPermission();
@@ -14,6 +15,8 @@ abstract interface class FallbackAlarmNotificationService {
   Future<NotificationTiming> scheduleFallbackAlarm(ScheduledAlarmRecord record);
 
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record);
+
+  Future<DeliveryObservation> observePending();
 }
 
 @Singleton(as: FallbackAlarmNotificationService)
@@ -25,6 +28,10 @@ class FallbackAlarmNotificationServiceImpl
            notificationService ?? NotificationService.instance;
 
   final NotificationService _notificationService;
+
+  @override
+  Future<DeliveryObservation> observePending() =>
+      _notificationService.observePendingScheduleNotifications();
 
   @override
   Future<AlarmPermissionState> checkPermission() async {

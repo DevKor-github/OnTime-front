@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
@@ -368,6 +369,9 @@ class _FakeAlarmSchedulerService extends AlarmSchedulerService {
 
 class _FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
+  @override
+  Future<DeliveryObservation> observePending() async =>
+      const DeliveryObservation.unknown();
   AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
   int timingRequestCount = 0;
 

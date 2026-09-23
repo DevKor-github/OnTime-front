@@ -139,8 +139,11 @@ void main() {
     'targeted cancel uses the plugin API for pending and presented IDs, never cancelAll',
     () async {
       await service.cancelFallbackNotification(42);
-      expect(calls.map((call) => call.method), ['cancel']);
-      expect(calls.single.arguments, 42);
+      expect(calls.map((call) => call.method), [
+        'cancel',
+        'pendingNotificationRequests',
+      ]);
+      expect(calls.first.arguments, 42);
       // This verifies the plugin boundary. Device notification-center read-back
       // remains necessary to prove that an actual displayed item was removed.
     },

@@ -1,4 +1,5 @@
 {
+  "notificationCleanupNeededStatus": "Off · cancellation needs checking",
     "calendarTitle": "Calendar",
     "@calendarTitle": {
         "description": "The title of the calendar screen"

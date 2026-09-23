@@ -2,6 +2,7 @@ import 'package:on_time_front/domain/entities/alarm_entities.dart';
 
 enum ScheduleNotificationStatus {
   off,
+  cleanupNeeded,
   permissionNeeded,
   empty,
   alarm,
@@ -21,7 +22,13 @@ ScheduleNotificationStatus scheduleNotificationStatus({
   required DateTime now,
   bool requiresExactTimingEvidence = true,
 }) {
-  if (!enabled) return ScheduleNotificationStatus.off;
+  if (!enabled) {
+    return records.isNotEmpty ||
+            (result != null &&
+                result.status != AlarmReconciliationStatus.disabled)
+        ? ScheduleNotificationStatus.cleanupNeeded
+        : ScheduleNotificationStatus.off;
+  }
   if (!canDeliver) return ScheduleNotificationStatus.permissionNeeded;
   if (result == null ||
       result.status != AlarmReconciliationStatus.armed ||

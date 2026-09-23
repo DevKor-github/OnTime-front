@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/models/scheduled_alarm_record_model.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
@@ -57,6 +58,7 @@ class FakeAlarmRepository implements AlarmRepository {
 
 class FakeAlarmRegistryRepository implements AlarmRegistryRepository {
   List<ScheduledAlarmRecord> records = [];
+  void Function(List<ScheduledAlarmRecord>)? onReplace;
 
   @override
   Future<List<ScheduledAlarmRecord>> loadAll() async => List.of(records);
@@ -85,6 +87,7 @@ class FakeAlarmRegistryRepository implements AlarmRegistryRepository {
   @override
   Future<void> replaceAll(List<ScheduledAlarmRecord> records) async {
     this.records = List.of(records);
+    onReplace?.call(records);
   }
 }
 
@@ -95,6 +98,23 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
   );
   AlarmPermissionState nativePermission = AlarmPermissionState.granted;
   bool throwOnCheckPermission = false;
+  final pendingNative = <String>{};
+  bool nativeObservationFails = false;
+  int unmappedNativeCount = 0;
+  @override
+  Future<DeliveryObservation> observePendingNativeAlarms(
+    Iterable<String> ids,
+  ) async => nativeObservationFails
+      ? const DeliveryObservation.unknown(
+          source: DeliveryObservationSource.iosAlarmKit,
+        )
+      : DeliveryObservation(
+          source: DeliveryObservationSource.iosAlarmKit,
+          unmappedCount: unmappedNativeCount,
+          entries: pendingNative
+              .map((id) => PendingDelivery(id: id, scheduleId: id))
+              .toList(),
+        );
   final scheduledNative = <ScheduledAlarmRecord>[];
   final canceledNative = <ScheduledAlarmRecord>[];
   final throwOnScheduleIds = <String>{};
@@ -127,6 +147,7 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
       );
     }
     scheduledNative.add(record);
+    pendingNative.add(record.scheduleId);
   }
 
   @override
@@ -135,6 +156,7 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
       throw Exception('cancel failed');
     }
     canceledNative.add(record);
+    pendingNative.remove(record.scheduleId);
   }
 
   @override
@@ -169,6 +191,22 @@ class FakeFallbackAlarmNotificationService
 
   AlarmPermissionState permission = AlarmPermissionState.denied;
   bool throwOnCheckPermission = false;
+  final pendingFallback = <String, PendingDelivery>{};
+  bool observationFails = false;
+  bool forgetScheduled = false;
+  @override
+  Future<DeliveryObservation> observePending() async {
+    final source = timingPermission == AlarmPermissionState.unsupported
+        ? DeliveryObservationSource.iosNotificationCenter
+        : DeliveryObservationSource.androidPluginCache;
+    return observationFails
+        ? DeliveryObservation.unknown(source: source)
+        : DeliveryObservation(
+            source: source,
+            entries: pendingFallback.values.toList(),
+          );
+  }
+
   final scheduledFallback = <ScheduledAlarmRecord>[];
   final canceledFallback = <ScheduledAlarmRecord>[];
   final throwOnScheduleIds = <String>{};
@@ -208,6 +246,14 @@ class FakeFallbackAlarmNotificationService
       throw Exception('fallback channel failed');
     }
     scheduledFallback.add(record);
+    if (!forgetScheduled) {
+      final id =
+          '${record.fallbackNotificationId ?? stableAlarmId(record.scheduleId)}';
+      pendingFallback[id] = PendingDelivery(
+        id: id,
+        scheduleId: record.scheduleId,
+      );
+    }
     return actualTimingOverride ??
         (timingPermission == AlarmPermissionState.unsupported
             ? NotificationTiming.platformDefault
@@ -222,6 +268,9 @@ class FakeFallbackAlarmNotificationService
       throw Exception('fallback cancel failed');
     }
     canceledFallback.add(record);
+    pendingFallback.remove(
+      '${record.fallbackNotificationId ?? stableAlarmId(record.scheduleId)}',
+    );
   }
 }
 
@@ -286,7 +335,7 @@ void main() {
       );
       expect(fallbackService.scheduledFallback, hasLength(3));
       await useCase();
-      expect(fallbackService.scheduledFallback, hasLength(3));
+      expect(fallbackService.scheduledFallback, hasLength(4));
     },
   );
 
@@ -823,7 +872,7 @@ void main() {
       expect(failed.armedScheduleIds, isEmpty);
       expect(registryRepository.records, isEmpty);
       expect(fallbackService.scheduledFallback, hasLength(1));
-      expect(fallbackService.canceledFallback, hasLength(1));
+      expect(fallbackService.canceledFallback, hasLength(2));
       fallbackService.throwOnScheduleIds.clear();
       await useCase();
       expect(
@@ -1047,7 +1096,7 @@ void main() {
   );
 
   test(
-    'keeps matching fallback registry record when fallback provider is available',
+    'keeps matching iOS fallback only when OS pending confirms it',
     () async {
       schedulerService.capabilities = const AlarmSchedulerCapabilities(
         supportsNativeAlarm: false,
@@ -1066,6 +1115,11 @@ void main() {
         provider: AlarmProvider.localNotification,
       );
       registryRepository.records = [existing];
+      final pendingId = '${existing.fallbackNotificationId}';
+      fallbackService.pendingFallback[pendingId] = PendingDelivery(
+        id: pendingId,
+        scheduleId: existing.scheduleId,
+      );
       alarmRepository.schedules = [schedule];
 
       final result = await useCase();

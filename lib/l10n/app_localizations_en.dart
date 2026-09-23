@@ -9,6 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get notificationCleanupNeededStatus =>
+      'Off · cancellation needs checking';
+
+  @override
   String get calendarTitle => 'Calendar';
 
   @override

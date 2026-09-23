@@ -194,12 +194,15 @@ open class MainActivity : FlutterActivity() {
 
     private fun cancelNativeAlarm(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *>
-        if (args == null) {
-            NativeLog.d(TAG, "cancelNativeAlarm skipped: missing args")
-            result.success(null)
+        if (args == null || (args["scheduleId"] as? String).isNullOrBlank()) {
+            result.error("invalidArguments", "Missing cancellation identity", null)
             return
         }
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+        if (alarmManager == null) {
+            result.error("cancellationFailed", "AlarmManager is unavailable", null)
+            return
+        }
         val activityPendingIntent = NativeAlarmReceiver.activityPendingIntentForArgs(
             this,
             args,
@@ -210,7 +213,7 @@ open class MainActivity : FlutterActivity() {
             args,
             PendingIntent.FLAG_NO_CREATE,
         )
-        if (alarmManager != null && activityPendingIntent != null) {
+        if (activityPendingIntent != null) {
             NativeLog.d(
                 TAG,
                 "cancelNativeAlarm cancel activity operation scheduleId=${args["scheduleId"]} " +
@@ -219,7 +222,7 @@ open class MainActivity : FlutterActivity() {
             alarmManager.cancel(activityPendingIntent)
             activityPendingIntent.cancel()
         }
-        if (alarmManager != null && legacyBroadcastPendingIntent != null) {
+        if (legacyBroadcastPendingIntent != null) {
             NativeLog.d(
                 TAG,
                 "cancelNativeAlarm cancel legacy broadcast operation scheduleId=${args["scheduleId"]} " +
@@ -228,19 +231,22 @@ open class MainActivity : FlutterActivity() {
             alarmManager.cancel(legacyBroadcastPendingIntent)
             legacyBroadcastPendingIntent.cancel()
         }
-        if (alarmManager == null || (activityPendingIntent == null && legacyBroadcastPendingIntent == null)) {
+        if (activityPendingIntent == null && legacyBroadcastPendingIntent == null) {
             NativeLog.d(
                 TAG,
-                "cancelNativeAlarm no-op scheduleId=${args["scheduleId"]} " +
-                    "hasAlarmManager=${alarmManager != null} " +
-                    "hasActivityPendingIntent=${activityPendingIntent != null} " +
-                    "hasLegacyBroadcastPendingIntent=${legacyBroadcastPendingIntent != null}",
+                "cancelNativeAlarm no owned token scheduleId=${args["scheduleId"]}",
             )
         }
         val requestCode = (args["nativeAlarmId"] as? Number)?.toInt()
             ?: args["scheduleId"]?.toString()?.hashCode()
             ?: 1
         NativeAlarmReceiver.cancelAlarmNotification(this, requestCode)
+        // This confirms our cancellation boundary, not a global OS alarm list.
+        if (NativeAlarmReceiver.activityPendingIntentForArgs(this, args, PendingIntent.FLAG_NO_CREATE) != null ||
+            NativeAlarmReceiver.alarmPendingIntentForArgs(this, args, PendingIntent.FLAG_NO_CREATE) != null) {
+            result.error("cancellationFailed", "Owned cancellation tokens remain", null)
+            return
+        }
         result.success(null)
     }
 

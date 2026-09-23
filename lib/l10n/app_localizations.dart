@@ -98,6 +98,12 @@ abstract class AppLocalizations {
     Locale('ko'),
   ];
 
+  /// No description provided for @notificationCleanupNeededStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Off · cancellation needs checking'**
+  String get notificationCleanupNeededStatus;
+
   /// The title of the calendar screen
   ///
   /// In en, this message translates to:

@@ -14,6 +14,7 @@ import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/notification_content.dart';
 import 'package:on_time_front/core/services/notification_tap_router.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:permission_handler/permission_handler.dart'
     as permission_handler;
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -502,7 +503,49 @@ class NotificationService {
 
   Future<void> cancelFallbackNotification(int notificationId) async {
     await setupFlutterNotifications();
+    // Public cancel removes both pending and already presented items. Even an
+    // empty pending list must not skip cleanup of a delivered notification.
     await _localNotifications.cancel(id: notificationId);
+    final after = await observePendingScheduleNotifications();
+    if (!after.available ||
+        after.entries.any((entry) => entry.id == '$notificationId')) {
+      throw const AlarmSchedulingException(
+        reason: AlarmFailureReason.cancellationFailed,
+        message: 'Notification cancellation could not be confirmed',
+      );
+    }
+  }
+
+  Future<DeliveryObservation> observePendingScheduleNotifications() async {
+    final source = _isIOS
+        ? DeliveryObservationSource.iosNotificationCenter
+        : _isAndroid
+        ? DeliveryObservationSource.androidPluginCache
+        : DeliveryObservationSource.unavailable;
+    if (source == DeliveryObservationSource.unavailable) {
+      return const DeliveryObservation.unknown();
+    }
+    try {
+      await setupFlutterNotifications();
+      final requests = await _localNotifications.pendingNotificationRequests();
+      return DeliveryObservation(
+        source: source,
+        entries: requests.map((request) {
+          String? scheduleId;
+          try {
+            final decoded = jsonDecode(request.payload ?? '');
+            if (decoded is Map) {
+              scheduleId = minimalScheduleRoutePayload(decoded)['scheduleId'];
+            }
+          } catch (_) {
+            // Unknown ownership still participates in ID-based read-back.
+          }
+          return PendingDelivery(id: '${request.id}', scheduleId: scheduleId);
+        }).toList(),
+      );
+    } catch (_) {
+      return DeliveryObservation.unknown(source: source);
+    }
   }
 
   Future<void> cancelAll() async {

@@ -60,17 +60,25 @@ void main() {
     );
   });
 
-  test(
-    'off and denied display take precedence over stored exact registrations',
-    () {
-      final records = [_record('one', NotificationTiming.exact)];
-      expect(status(records, enabled: false), ScheduleNotificationStatus.off);
-      expect(
-        status(records, canDeliver: false),
-        ScheduleNotificationStatus.permissionNeeded,
-      );
-    },
-  );
+  test('off retains a cleanup warning and denial never becomes precise', () {
+    final records = [_record('one', NotificationTiming.exact)];
+    expect(
+      status(records, enabled: false),
+      ScheduleNotificationStatus.cleanupNeeded,
+    );
+    expect(
+      status(
+        [],
+        enabled: false,
+        resultStatus: AlarmReconciliationStatus.disabled,
+      ),
+      ScheduleNotificationStatus.off,
+    );
+    expect(
+      status(records, canDeliver: false),
+      ScheduleNotificationStatus.permissionNeeded,
+    );
+  });
 
   test('no future registrations never becomes precise from capability', () {
     expect(status([]), ScheduleNotificationStatus.empty);

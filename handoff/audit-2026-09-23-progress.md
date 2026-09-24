@@ -68,3 +68,20 @@ D03 다음: actual LocalResetActions(검증 가능한 marker/key/prefs/file/laun
 공식 Dart3.12.2 runtime/bin/file_macos.cc는 rename(), file_linux.cc는 renameat() 호출을 확인했다. 같은 디렉터리 temp→rename로 이전 committed 파일을 유지하는 설계이며 directory fsync/갑작스런 전원손실 보장은 주장하지 않는다. Dart 공개 File.rename 문서만으로 원자성을 입증한 것이 아니다. Android backup_rules/data_extraction_rules의 root/file 제외는 존재하고 iOS 기존 excludeFromBackup bridge를 호출하지만 실제 mobile read-back/backup 검증은 남아 있다.
 
 현재 sandbox는 workspace-write/auto-review로 바뀌었다. Flutter SDK 캐시, GitHub 네트워크, git index/ref 변경은 필요한 require_escalated 실행으로 자동검토를 받았다. 거절은 없었고 승인된 읽기/테스트는 완료했다. 기본 권한 Flutter 실행은 SDK telemetry/cache 경로로 실패했으며 제품 테스트 실패가 아니다.
+
+
+## 2026-09-24 D03 제품 연결 및 독립 리뷰 보완 중
+
+현재 pushed HEAD는 `0efdd3adb28293d3ff9f6b80bcd9091229384bd5`(A15 최종 CI 기록)이며 아래 D03 제품 변경은 아직 미커밋이다. 앞선 “제품 서비스 연결 전” 문단은 초기 milestone 기록이다.
+
+Root가 LocalDataResetService/LocalDataLifecycle bootstrap에 공통 reset protocol을 연결하고 DB/키/prefs/legacy credentials/native launch 각 단계의 read-back을 추가했다. pre-DI LocalStartupGate와 ResetAwareApp이 초기화 중 기존 앱을 폐기하고 KO/EN typed partial/retry/complete를 표시한다. 실제 알림 소유 기록은 preferences 삭제와 독립인 file journal에 먼저 기록한다. 실제 OS 호출이 반환되기 전에는 owner를 해제하지 않고 UI 10초 안내만 바꾼다. 손상된 legacy registry는 원문을 scrub하되 불명확한 취소 소유권 표시를 journal로 옮겨 보존한다. iOS 명시 fullreset의 app-scoped AlarmKit 전체 취소+조회는 별도 native call로 제한하고 ordinary OFF에서는 호출하지 않는다. Android는 잃어버린 legacy native ID의 부재를 확인할 수 없으므로 unknown을 거짓 완료로 바꾸지 않는다.
+
+중간 검증: shared production FileStore에 기대던 단위 테스트를 명시적 isolated owner로 정비한 뒤 full829 passed. 뒤이어 추가 reset boundary45 passed. 실제 별도 Flutter 프로세스 SIGKILL 6지점/새 프로세스 복구 통과(완성된 write checkpoint, fake provider/deletion adapters, 실제 모바일·부분write·전원손실 증거 아님). 실제 복구 위젯 KO/EN partial/complete 4 PNG를 430×932 logical /2x raster/200% text/번들 fonts로 생성해 root가 모두 열어 확인했다. Swift 실제 iOS26.5 SDK typecheck 및 Kotlin Android36+Flutter embedding compile 통과. `d03-journal-progress.json`과 `artifacts/d03/`에 중간 로그/이미지/해시 보관. 이 중간 결과를 이후 변경된 최종 소스의 전체 통과로 쓰지 않는다.
+
+원래 D03 에이전트가 사용량 제한 후 재개되어 독립 리뷰했다. P1: legacy reset marker만 있고 journal/registry가 비면 과거 취소 실패를 잃은 상태를 empty success로 처리한다는 결함. root가 marker-only unknown 보존 및 회귀 추가. 추가로 완료 service receipt를 캐시해 아주 늦은 progress mount/재호출에서 삭제를 새로 실행하지 않도록 수정했다. P2: malformed JSON/partial first pending의 영구 startup 차단. 원래 전담 `/root/grill_d03`가 실제 parse corruption과 I/O/unsupported/semantic-invalid를 구분하고 quarantine→최소 ownership 재구성→검증, reset 의도 없으면 데이터 삭제 금지 경로를 구현 중이다. 현재 Flutter 명령 소유자는 D03 전담이고 root는 제품 파일/Flutter 실행을 멈췄다. agent의 source freeze 보고 후 root가 최종 sourcehash/analyze/full/host-kill/UI·정책검사를 묶어 검증해야 한다.
+
+A10 원래 전담도 재개되어 실제 Q1~Q4/root 답변 완료. civil/instant 구분, device today vs original-zone calendar, unresolved zone/gap/overlap, timezone-neutral civil carrier, bundled tzdb 변경의 명시 확인과 restore staging 계약 확정. root가 ADR0021 보충 및 CONTEXT의 기존 rule-update 한 문장을 반영했다. A10 상세 문서는 agent가 작성 중이며 아직 GitHub 이슈 생성 전이다. U02 신규 전담 spawn은 agent thread limit으로 실패했으므로 생성/문답을 꾸미지 않는다. 다음 기회에 새 U02 전담을 생성한다. 이미 grill 완료한 A06 등은 D03 후 우선순위대로 구현 가능하다.
+
+## 2026-09-24 D03 최종 로컬 검증
+
+D03 원래 전담의 P2 구현과 root 연결이 완료됐다. 전체872/집중71,87.99%,analyze/generated/local-only 및 native SDK compile 통과.579파일 재해시에서제품/test소스 변경없음, QA 대역에 명시적unknown설정만추가 후 hostSIGKILL11 모두통과. d03-final-validation.json 및artifacts/d03/final 참조. 원격CI와실기기검증별도. U02#609 게시/readback23/64,41개생성전. C08 전담grill진행, glossary root반영. 다음구현A06#598.

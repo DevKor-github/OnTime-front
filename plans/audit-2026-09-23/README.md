@@ -26,7 +26,7 @@
 | A13 | [#592](https://github.com/DevKor-github/OnTime-front/issues/592) | 예약/안내·registry 후속 수정 원격740 tests/87.20%·APK 통과, 기기 대기 |
 | A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | provider 관측 구현282db21f, 원격772 tests/87.44%·APK 통과, A15 실제 ownership 후속 로컬795 통과·기기 대기 |
 | A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 요청별 후속 재조정/교체 직렬화 구현, 최종 원격795 tests/analyze·87.66%·APK 통과, 기기 대기 |
-| D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 실제4문답·취소 journal/중단 복구/부분 결과 기준 확정, A15 뒤 전담 구현 중 |
+| D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 독립 journal·초기화 복구 구현, 최종872 tests/87.99%·host kill11 통과, CI·기기 대기 |
 | A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | 실제3문답·정정 포함, 신선한 실제 타이머 전환 알림 기준 확정 |
 | A07 | [#599](https://github.com/DevKor-github/OnTime-front/issues/599) | 실제3문답·추가 정정 포함, DB 원자적 시작·run 시각·실패 재시도 기준 확정 |
 | C01 | [#600](https://github.com/DevKor-github/OnTime-front/issues/600) | 실제3문답·staging/gate 보충 포함, 구체 workflow·부분 결과·통합 의존성 확정 |
@@ -37,8 +37,11 @@
 | D04 | [#605](https://github.com/DevKor-github/OnTime-front/issues/605) | 실제4문답·migration 원자성/역사 schema/SQLCipher 확인·실패 보존 기준 확정 |
 | D05 | [#606](https://github.com/DevKor-github/OnTime-front/issues/606) | 실제4문답·bounded stream/자료 한도·시간대/그래프 검증 기준 확정 |
 | U08 | [#597](https://github.com/DevKor-github/OnTime-front/issues/597) | 홈 overflow 선행 수정18 tests/analyze 통과, 전체 매트릭스·기기 검증 미완료 |
+| A10 | [#608](https://github.com/DevKor-github/OnTime-front/issues/608) | 실제4문답·civil/instant·오늘/달력·DST·명시 zone 편집·tzdb 변경 확인 계약,32개 검증 시나리오 확정 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **21/64개**를 게시하고 원격 본문 동일성을 확인했으며 **43개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05까지 실제 문답과 백업·복구 검증 설계가 확정됐고 D03는 구현 대기다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
+| U02 | [#609](https://github.com/DevKor-github/OnTime-front/issues/609) | 실제3문답·오프라인 zone 선택/기기 환산·DST/변경 재검토,23개 검증 시나리오 확정 |
+
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **23/64개**를 게시하고 원격 본문 동일성을 확인했으며 **41개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05와 A10까지 실제 문답과 백업·복구·시간대 검증 설계가 확정됐으며 D03은 독립 리뷰 보완 후 최종872 tests/87.99% 및 host kill11 검증을 통과했고 CI·기기 확인을 진행한다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
 
 ## 실행 순서
 

@@ -1,0 +1,37 @@
+{
+  "scope": "host process death; fixture providers and deletion adapters",
+  "mobileOsVerified": false,
+  "powerLossVerified": false,
+  "results": [
+    {
+      "cut": "first-ownership-written",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true
+    },
+    {
+      "cut": "intent-renamed",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true
+    },
+    {
+      "cut": "database-deleted",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true
+    },
+    {
+      "cut": "completion-renamed",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true
+    },
+    {
+      "cut": "marker-removed",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true
+    },
+    {
+      "cut": "journal-unlinked",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true
+    }
+  ]
+}

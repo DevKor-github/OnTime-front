@@ -1,0 +1,33 @@
+android/app/src/main/kotlin/club/devkor/ontime/AlarmRingingActivity.kt:117:20: warning: 'fun setDecorFitsSystemWindows(p0: Boolean): Unit' is deprecated. Deprecated in Java.
+            window.setDecorFitsSystemWindows(false)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+android/app/src/main/kotlin/club/devkor/ontime/AlarmRingingActivity.kt:136:44: warning: 'static field FLAG_DISMISS_KEYGUARD: Int' is deprecated. Deprecated in Java.
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD,
+                                           ^^^^^^^^^^^^^^^^^^^^^
+android/app/src/main/kotlin/club/devkor/ontime/AlarmRingingActivity.kt:143:67: warning: 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+            rawExtras?.keySet()?.associateWith { key -> rawExtras.get(key) },
+                                                                  ^^^
+android/app/src/main/kotlin/club/devkor/ontime/AlarmRingingActivity.kt:337:23: warning: 'fun vibrate(p0: VibrationEffect!, p1: AudioAttributes!): Unit' is deprecated. Deprecated in Java.
+            vibrator?.vibrate(
+                      ^^^^^^^
+android/app/src/main/kotlin/club/devkor/ontime/AlarmRingingActivity.kt:463:58: warning: 'field scaledDensity: Float' is deprecated. Deprecated in Java.
+            val scaledDensity = resources.displayMetrics.scaledDensity
+                                                         ^^^^^^^^^^^^^
+android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt:267:59: warning: 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+            extras.keySet().associateWith { key -> extras.get(key) },
+                                                          ^^^
+android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmReceiver.kt:271:14: warning: 'fun setPriority(p0: Int): Notification.Builder!' is deprecated. Deprecated in Java.
+            .setPriority(Notification.PRIORITY_MAX)
+             ^^^^^^^^^^^
+android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmReceiver.kt:271:39: warning: 'static field PRIORITY_MAX: Int' is deprecated. Deprecated in Java.
+            .setPriority(Notification.PRIORITY_MAX)
+                                      ^^^^^^^^^^^^
+android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmReceiver.kt:277:37: warning: 'constructor(p0: Int, p1: CharSequence!, p2: PendingIntent?): Notification.Action.Builder' is deprecated. Deprecated in Java.
+                Notification.Action.Builder(
+                                    ^^^^^^^
+android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmReceiver.kt:321:59: warning: 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+            extras.keySet().associateWith { key -> extras.get(key) },
+                                                          ^^^
+android/app/src/main/kotlin/club/devkor/ontime/NativeLog.kt:37:59: warning: 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+            extras.keySet().associateWith { key -> extras.get(key) }
+                                                          ^^^

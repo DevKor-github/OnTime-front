@@ -1,0 +1,106 @@
+{
+  "audit_id": "D03",
+  "status": "work_in_progress_not_product_complete",
+  "base_head": "0efdd3adb28293d3ff9f6b80bcd9091229384bd5",
+  "root_continued_after": "Root continued the original four-question D03 agreement after agent usage limit; original agent later resumed independent review and corrupt-journal remediation.",
+  "limitations": [
+    "Current source is not yet frozen; intermediate full829 does not certify later changes.",
+    "Independent review P1 legacy marker-only false completion fixed locally; final regression pending.",
+    "Independent review P2 corrupt/partial journal recovery under implementation by original D03 agent.",
+    "Latest analyze had one unused import and two harness brace infos; root fixed them, clean rerun pending.",
+    "Actual mobile delivery, reset process-kill, backup exclusion/transfer, power-loss and device read-back remain unverified.",
+    "No D03 implementation commit or remote CI yet."
+  ],
+  "initial_milestone": {
+    "checks": [
+      {
+        "command": "flutter test test/core/services/alarm_ownership_journal_test.dart test/core/database/local_reset_protocol_test.dart --reporter expanded",
+        "passed": 23,
+        "exit_code": 0,
+        "log": "/tmp/d03-journal-tests.log"
+      },
+      {
+        "command": "flutter analyze",
+        "exit_code": 0,
+        "result": "No issues found",
+        "log": "/tmp/d03-wip-analyze.log"
+      }
+    ],
+    "source_sha256": {
+      "lib/core/services/alarm_journal_store.dart": "eeb1dfc3ccc31410904300f1c354dc79ae20a7995122e34eab19b4bd98e96f93",
+      "lib/core/services/alarm_journal_store_native.dart": "b480ab4756cc2c288ab1e462d6c4399d797e01e38455c7ab78b1c1d562e632d6",
+      "lib/core/services/alarm_journal_store_web.dart": "d2bf8aef8f0b81c40e400c080751e64c8991b0db7dc4b7bf7f52f702a129da75",
+      "lib/core/services/alarm_ownership_journal.dart": "520b650543549b445f4a39ff1f573faa457f85b0c68118e4459d1e2a5e85bb9a",
+      "lib/core/services/alarm_operation_coordinator.dart": "6a3ea664397adb76725f33be9fc7f205575da8985b24e522d3ff419e741ea536",
+      "lib/core/services/alarm_registration_cleanup.dart": "5383cf1546ceac95a3717238eb15830dd10d9646ba92651f5baf1ac1c6e5bd77",
+      "lib/core/database/local_reset_protocol.dart": "ef2b4bfd1476f751368fbe7d7ad96eb6906b53a9f04e30530a98ed31fb7f271e",
+      "lib/domain/use-cases/cancel_all_alarms_use_case.dart": "bdbdc24b3555a6ff5cb39fa145c8c18a0996f6450bf2d5d76294774a61652d2f",
+      "test/core/services/alarm_ownership_journal_test.dart": "1fc792c51ecb4e7d46864c7f48f21b239bea43e377d54d4c88e4b7082d485611",
+      "test/core/database/local_reset_protocol_test.dart": "be20bbcb4975557f5c15c0f831d076caedca28a3e62c8221d1222d92220bdfc8",
+      "test/helpers/noop_alarm_cleanup.dart": "3365248d587283bb83d7f5831b614e39bf6417e751127ae3c871810752eeb184"
+    },
+    "logs_sha256": {
+      "/tmp/d03-journal-tests.log": "047e82ca08cf2a93d6bdc7f0e6d76eaadf23651a9ad4987a50d73a5114face95",
+      "/tmp/d03-wip-analyze.log": "d61f9381961b251ab8a15328726ba2680a775c707c7e4060c465b74c5fe0b971"
+    }
+  },
+  "milestones": [
+    {
+      "name": "product wiring regression",
+      "passed": 829,
+      "log": "plans/audit-2026-09-23/artifacts/d03/intermediate-full-829.log",
+      "applies_to": "intermediate tree before later ownership, receipt-cache and corrupt-journal review fixes"
+    },
+    {
+      "name": "additional reset boundary tests",
+      "passed": 45,
+      "log": "plans/audit-2026-09-23/artifacts/d03/intermediate-boundary-45.log",
+      "applies_to": "intermediate tree before legacy marker-only and completed-service cache fixes"
+    },
+    {
+      "name": "host process SIGKILL recovery",
+      "cases": 6,
+      "receipt": "plans/audit-2026-09-23/artifacts/d03/host-process-kill/result.json",
+      "limitations": "completed-write checkpoints; fixture providers and deletion adapters; not partial-write, mobile OS or power-loss evidence"
+    },
+    {
+      "name": "widget raster review",
+      "count": 4,
+      "locales": [
+        "ko",
+        "en"
+      ],
+      "text_scale": 2,
+      "logical_size": [
+        430,
+        932
+      ],
+      "result": "root opened all four images; text and retry/complete distinction visible without clipping",
+      "limitations": "bundled fonts, actual widget, synthetic receipt; not mobile OS screenshots"
+    }
+  ],
+  "artifact_sha256": {
+    "plans/audit-2026-09-23/artifacts/d03/reset-pending-ko.png": "74ec2442a692aeef8f946390ad9df628e1322ee5f6afb240620a1bbb42b5eede",
+    "plans/audit-2026-09-23/artifacts/d03/swift-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "plans/audit-2026-09-23/artifacts/d03/kotlin-compile.log": "21fe55c87849059cb954e98dae4d78816fe4b1576f69fce0a7c994d6e865987e",
+    "plans/audit-2026-09-23/artifacts/d03/reset-complete-ko.png": "2ee3654d5101d075f0231e44e956a5cbd68411fc0911aa5fb05c1767cfd05e2a",
+    "plans/audit-2026-09-23/artifacts/d03/intermediate-full-829.log": "92d4fa7bad4aa7d89a1c8c6b3b9dd55450515055fd880bfcea27aa798950bb85",
+    "plans/audit-2026-09-23/artifacts/d03/ui-capture.log": "46db3ab2f2b5ba8b29c90c35a92f72e28f64c5db8238f07ab4826459039032cf",
+    "plans/audit-2026-09-23/artifacts/d03/intermediate-boundary-45.log": "8a95d8ca9e73844f1ce60818c20e53aa9fb9918193014cb488ea892734f30a78",
+    "plans/audit-2026-09-23/artifacts/d03/reset-pending-en.png": "b290dbdf38186a0362072aad9153e5ad3374e962a5b8c4f487423781fe093fde",
+    "plans/audit-2026-09-23/artifacts/d03/reset-complete-en.png": "ab4494a8f1e3d4a6d0152eedf1627db1e821b42dde2e05828ea530739ceff07a",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/completion-renamed-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/database-deleted-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/journal-unlinked-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/intent-renamed-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/result.json": "75986bf3fadcb7be30c5e40f8f4638d7d64d1bf6767b658ea95865fab8947740",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/intent-renamed-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/first-ownership-written-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/completion-renamed-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/marker-removed-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/first-ownership-written-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/database-deleted-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/marker-removed-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/host-process-kill/journal-unlinked-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a"
+  }
+}

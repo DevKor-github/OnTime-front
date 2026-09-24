@@ -408,7 +408,7 @@ _Avoid_: Loaded range, stream range, cached range
 - An **Ambiguous Schedule Time** requires the user to choose one of the two represented offsets before saving.
 - A Schedule and its OnTime Backup preserve the user's chosen occurrence of an **Ambiguous Schedule Time**.
 - Time-zone rules are updated only through an OnTime app release, not through a runtime network request.
-- After a time-zone rule update, a future Schedule keeps its intended civil date, time, and Schedule Time Zone while OnTime recalculates its absolute instant and Schedule Notification.
+- After a time-zone rule update, a future Schedule keeps its intended civil date, time, and Schedule Time Zone; a changed occurrence is proposed for explicit confirmation before its saved commitment and Schedule Notification are changed.
 - OnTime identifies future Schedules whose absolute notification time changed because of a time-zone rule update; completed and past Schedules remain unchanged.
 - The **Local Data Store** is the only authoritative persistence boundary for Durable OnTime Data.
 - All durable preferences belong to the Local Data Store together with the Local Profile and user content.

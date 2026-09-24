@@ -132,3 +132,7 @@ R01 상세 이슈 게시·readback 완료,33/64(미생성31). 기존 rule2100824
 C01 원격 최종: exactaa2fda68 Flutter35949254397 959/analyze/88.72%(13504/15221), Android35949254443 성공. artifact10787843483, testmerge e74e6c52d6b1c036f29ac828307a35c9ec04302b, APK a3d2858af8f52adea00b361da6511a8432e62bcdbedfb3bd2e045a86213ee38d. c01-ci-validation.json 보존, #600 통합/기기 미완료 OPEN. T02 no-network 표현은 receiver packaged계약 vs Dart source검사로 정정·#616 readback완료.
 
 R09#620 상세 이슈 게시·원문 readback 완료,34/64(미생성30). O01 /root/grill_o01 문답 착수. 관리 파일에서 A02/A14 본문 해시가 과거값인 것을 발견해 GitHub를 새로 읽었고 현재 local body와 remote가 정확히 같음을 확인, state hash만 갱신(게시내용 변경 없음). A08 actual 준비 INSERT fault로 partial schedule row가 남는 기존 결함 재현, 구현 진행 중.
+
+A08 진행 메모: root는 schema3/store+aggregate identity 외에 안정된 recurring rootSegmentId, template/definition/default 의존 version, 정확 정수분 input digest, create 보호 metadata 거부, pending delivery 이후 currentness, 같은Bloc 다른form callback ownership, Drift trigger의 watch invalidation을 추가 리뷰했다. 실제 전체 문답은 구현 담당이 /tmp/a08-review-transcript.md에 취합 중이다. 최초 negative test는 준비 INSERT 실패 후 schedule row 잔존을 실제 관찰(/tmp/a08-negative.log), 현재 소스/테스트/ARB는 WIP이며 커밋 금지, final sourcefreeze/full validation 아직 없음.
+
+O01#621 실제3문답·파일inventory/모바일실행·15개검증 기준 게시/readback완료,35/64(미생성29). O02 전담 /root/grill_o02 시작. A08 초기 analyzer compile error0, 경고14 정리 중; historical schema2는 baseline4529 실제DB DDL 추출, schema1 ccc6272와 차이 확인. 집중/전체 최종검증 아직 미완료. source freeze 전 WIP는 구현agent 소유, root Flutter금지. 마지막 검증된 원격 제품은 C01 aa2fda68이며 현재 로컬 docs HEAD9682c34e 이후 관리문서 추가 중.

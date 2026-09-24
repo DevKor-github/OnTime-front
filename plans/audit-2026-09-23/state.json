@@ -497,7 +497,7 @@
         "`create_schedule_form_submission_use_case.dart:16-23`; `update_schedule_form_submission_use_case.dart:28-35`; `create_schedule_with_place_use_case.dart:17-20`; `schedule_mutation_alarm_effects_coordinator.dart:41-52`",
         "일정·장소·준비·revision을 하나의 원자적 작업으로 commit 후 알림 effects 실행. 두 번째 write 실패 시 전체 rollback, 같은 입력 재시도 때 중복 일정 없음. 경쟁의 실제 발생은 별도 재현."
       ],
-      "status": "ready",
+      "status": "implementing",
       "agent": "/root/grill_a08",
       "issue_number": 601,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/601",
@@ -508,7 +508,9 @@
       "blockers": [],
       "sequence": 15,
       "readback_verified": true,
-      "body_sha256": "bd5f1b77a400c56f5fb1656412201f72d8288a0a63ed79a699a16f45e7cc1c76"
+      "body_sha256": "bd5f1b77a400c56f5fb1656412201f72d8288a0a63ed79a699a16f45e7cc1c76",
+      "implementation_agent": "/root/implement_a08",
+      "implementation_plan": "plans/audit-2026-09-23/a08-implementation-preflight.md"
     },
     {
       "audit_id": "A09",
@@ -940,16 +942,18 @@
         "README와 Architecture/Smoke Test/Monitoring 문서가 제거된 서버·로그인·FCM·Firebase를 현재 기능처럼 설명한다. Release-Checklist는 generated Dart를 commit하라는 문장도 남아 AGENTS와 충돌한다.",
         "`README.md:5,68-129`, `docs/Architecture.md:134-138,298`, `docs/Android-Release-Smoke-Test.md:57-60`, `docs/Release-Checklist.md:77-78` 정리. 깨끗한 checkout에서 새 문서만 따라 모바일 실행 가능. 과거 자료는 historical/superseded 표시."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_o01",
+      "issue_number": 621,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/621",
       "decisions_file": "plans/audit-2026-09-23/issues/O01.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 34
+      "sequence": 34,
+      "readback_verified": true,
+      "issue_body_sha256": "b044e206f9456258364168e13d501463bf7584bb655766bdffb8ed88ffa3fd81"
     },
     {
       "audit_id": "O02",

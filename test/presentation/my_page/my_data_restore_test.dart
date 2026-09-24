@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:on_time_front/domain/ports/local_data_ports.dart';
+import 'package:on_time_front/domain/use-cases/local_data_workflows.dart';
 import '../../helpers/noop_alarm_cleanup.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -19,35 +22,41 @@ class _Metadata implements AppMetadataProvider {
       const AppMetadata(version: '1.0.0', buildNumber: '1');
 }
 
-class _RestoreService extends Fake implements BackupService {
+class _RestoreService extends Fake implements BackupOperationsPort {
   _RestoreService(this.delegate, this.candidate);
   final BackupService delegate;
   BackupRestoreCandidate? candidate;
   Object? failure;
   int applied = 0;
+  final appliedDone = Completer<void>();
+  @override
+  int get generation => delegate.generation;
 
   @override
-  Future<BackupFreshnessStatus> getFreshness() => delegate.getFreshness();
+  Future<BackupFreshnessStatus> freshness() => delegate.getFreshness();
 
   @override
-  Future<BackupRestoreCandidate?> selectAndPreviewRestore(
-    String password,
-  ) async {
+  Future<BackupRestoreCandidate?> preview(String password) async {
     expect(password, 'synthetic backup password');
     if (failure != null) throw failure!;
     return candidate;
   }
 
   @override
-  Future<void> applyRestore(BackupRestoreCandidate candidate) async {
+  Future<int> apply(BackupRestoreInput candidate) async {
     applied++;
-    await delegate.applyRestore(candidate);
+    final generation = await delegate.applyRestoreWithReceipt(
+      candidate as BackupRestoreCandidate,
+    );
+    appliedDone.complete();
+    return generation;
   }
 }
 
 void main() {
   late AppDatabase database;
   late _RestoreService service;
+  late _Delivery delivery;
 
   setUp(() async {
     await getIt.reset();
@@ -73,7 +82,8 @@ void main() {
         .update(database.users)
         .write(const UsersCompanion(note: Value('current sentinel')));
     service = _RestoreService(delegate, candidate);
-    getIt.registerSingleton<BackupService>(service);
+    delivery = _Delivery();
+    getIt.registerSingleton<BackupWorkflow>(BackupWorkflow(service, delivery));
   });
 
   tearDown(() async {
@@ -155,4 +165,44 @@ void main() {
       );
     },
   );
+  testWidgets(
+    'committed restore reports partial then retry changes no durable data',
+    (tester) async {
+      delivery.succeeds = false;
+      await select(tester);
+      await tester.tap(find.text('복원'));
+      await tester.pump();
+      await tester.runAsync(() => service.appliedDone.future);
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('데이터는 복원됐지만 알림 처리가 완료되지 않았습니다.'),
+        findsWidgets,
+      );
+      expect(service.applied, 1);
+      final before = await tester.runAsync(
+        () => database.select(database.users).getSingle(),
+      );
+      expect(before!.note, 'synthetic backup');
+      delivery.succeeds = true;
+      await tester.tap(find.text('알림 처리만 다시 시도'));
+      await tester.pumpAndSettle();
+      expect(find.text('현재 데이터의 알림 처리를 완료했습니다.'), findsOneWidget);
+      expect(service.applied, 1);
+      final after = await tester.runAsync(
+        () => database.select(database.users).getSingle(),
+      );
+      expect(after!.dataRevision, before.dataRevision);
+      expect(delivery.calls, 2);
+    },
+  );
+}
+
+class _Delivery implements RestoreDeliveryPort {
+  bool succeeds = true;
+  int calls = 0;
+  @override
+  Future<bool> reconcile() async {
+    calls++;
+    return succeeds;
+  }
 }

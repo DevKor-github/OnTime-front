@@ -1,9 +1,10 @@
-import 'package:on_time_front/core/database/local_reset_protocol.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/domain/entities/local_reset_result.dart';
 import 'package:on_time_front/presentation/startup/screens/local_reset_progress_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:on_time_front/core/database/local_data_reset_service.dart';
+import 'package:on_time_front/domain/use-cases/local_data_workflows.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
@@ -34,7 +35,7 @@ class _LocalDataRecoveryScreenState extends State<LocalDataRecoveryScreen> {
     if (resetResult != null) {
       return LocalResetProgressScreen(
         initialResult: resetResult,
-        operation: widget.reset ?? getIt<LocalDataResetService>().reset,
+        operation: widget.reset ?? getIt<LocalResetWorkflow>().call,
       );
     }
     return PopScope(
@@ -178,8 +179,7 @@ class _LocalDataRecoveryScreenState extends State<LocalDataRecoveryScreen> {
       _error = null;
     });
     try {
-      final result =
-          await (widget.reset ?? getIt<LocalDataResetService>().reset)();
+      final result = await (widget.reset ?? getIt<LocalResetWorkflow>().call)();
       if (!mounted) return;
       if (result.isComplete && widget.onResetComplete != null) {
         widget.onResetComplete!();
@@ -190,7 +190,10 @@ class _LocalDataRecoveryScreenState extends State<LocalDataRecoveryScreen> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = '초기화하지 못했습니다. 다시 시도해 주세요.';
+          _error =
+              (AppLocalizations.of(context) ??
+                      lookupAppLocalizations(const Locale('ko')))
+                  .dataResetFailed;
         });
       }
     }

@@ -1,3 +1,6 @@
+export 'package:on_time_front/domain/entities/local_reset_result.dart'
+    show ResetStep;
+import 'package:on_time_front/domain/entities/local_reset_result.dart';
 import 'dart:convert';
 
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
@@ -45,8 +48,6 @@ abstract interface class RecoverableAlarmJournalStore
 }
 
 enum ResetPhase { none, pending, complete }
-
-enum ResetStep { deliveries, database, preferences, key, credentials, launch }
 
 /// This projection contains no title, timing, payload, fingerprint or key.
 final class AlarmOwnership {

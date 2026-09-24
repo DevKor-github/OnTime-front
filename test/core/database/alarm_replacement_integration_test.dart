@@ -106,7 +106,11 @@ void main() {
       r.fallback.throwOnCancelIds.add('old');
       await expectLater(
         service.applyRestore(restore),
-        throwsA(isA<AlarmCleanupIncomplete>()),
+        throwsA(
+          isA<DataOperationException>()
+              .having((e) => e.followUpPending, 'cleanup remains pending', true)
+              .having((e) => e.generation, 'actual claim generation', 1),
+        ),
       );
       expect(
         (await database.select(database.users).getSingle()).note,
@@ -185,9 +189,17 @@ void main() {
       final completed = await service.reset();
       expect(completed.isComplete, true);
       // A late progress-screen mount must not start a second destructive reset.
-      await (await SharedPreferences.getInstance()).setString('post-reset-sentinel', 'keep');
+      await (await SharedPreferences.getInstance()).setString(
+        'post-reset-sentinel',
+        'keep',
+      );
       expect(await service.reset(), same(completed));
-      expect((await SharedPreferences.getInstance()).getString('post-reset-sentinel'), 'keep');
+      expect(
+        (await SharedPreferences.getInstance()).getString(
+          'post-reset-sentinel',
+        ),
+        'keep',
+      );
       expect((await r.operations.journal.read()).ownership, isEmpty);
       // Even after cleanup succeeds, the old closed DB is not reopened for editing.
       expect(r.gate.isInvalidated, true);

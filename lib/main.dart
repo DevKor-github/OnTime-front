@@ -6,7 +6,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/database/local_data_lifecycle.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
-import 'package:on_time_front/core/database/local_data_reset_service.dart';
+import 'package:on_time_front/domain/use-cases/local_data_workflows.dart';
+import 'package:on_time_front/data/adapters/local_data_workflow_adapters.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/device_info_service/shared.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
@@ -30,7 +31,9 @@ void main() async {
           shouldCleanup: (error) => error is! LocalResetRecoveryRequired,
         );
       },
-      retryReset: LocalDataLifecycle.resumeReset,
+      retryReset: LocalResetWorkflow(
+        RecoveryResetAdapter(LocalDataLifecycle.resumeReset),
+      ).call,
       ready: () {
         configureDependencies();
         NotificationService.instance.configureDelegate(
@@ -41,7 +44,7 @@ void main() async {
         );
         return ResetAwareApp(
           gate: LocalDataOperationGate.shared,
-          reset: () => getIt<LocalDataResetService>().reset(),
+          reset: () => getIt<LocalResetWorkflow>()(),
           child: const App(),
         );
       },

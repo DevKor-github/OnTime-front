@@ -626,5 +626,67 @@
   "startupLoadingBody": "Checking the data stored on this device.",
   "startupWaitingBody": "Waiting for the device to respond. Please wait until the check finishes.",
   "preparationStartFailed": "Preparation could not be started. Try again.",
-  "preparationStartPartial": "Preparation has started. Some progress storage or alarm cleanup is incomplete."
+  "preparationStartPartial": "Preparation has started. Some progress storage or alarm cleanup is incomplete.",
+  "dataTitle": "My data",
+  "dataBackupStatus": "Backup status",
+  "dataReminder": "Some changes have not been backed up for at least 30 days.",
+  "dataExport": "Export encrypted backup",
+  "dataExportDescription": "Save only to the file location you choose.",
+  "dataRestore": "Restore from backup",
+  "dataRestoreDescription": "Review the backup before replacing all current data.",
+  "dataReset": "Reset local data",
+  "dataResetDescription": "Delete all OnTime data and alarms on this device.",
+  "dataChecking": "Checking",
+  "dataNeverExported": "No backup has been exported yet.",
+  "dataNoChanges": "No changes since the last backup.",
+  "dataUnexportedChanges": "Some changes have not been backed up.",
+  "dataFreshnessFailed": "Backup status could not be checked. Try again.",
+  "dataRetry": "Try again",
+  "dataRetryDelivery": "Retry notification processing only",
+  "dataRestorePartial": "Data was restored, but notification processing is incomplete. You can retry notification processing only.",
+  "dataUncommittedCleanup": "Data was not restored. Notification cleanup already began; retry notification processing for the current data.",
+  "dataExportSaved": "Encrypted backup saved.",
+  "dataExportMetadataFailed": "The file was saved, but backup status could not be updated. Retry checking backup status.",
+  "dataRestoreComplete": "Backup restored.",
+  "dataDeliveryUpdated": "Notification processing completed for the current data.",
+  "dataBusy": "Another data operation is in progress. Try again after it finishes.",
+  "dataUnavailable": "Local data is unavailable. Reopen the app.",
+  "dataStalePreview": "Data changed after the preview. Select and review the backup again.",
+  "dataInvalidBackup": "The operation could not be completed. Check the backup file and password.",
+  "dataOperationFailed": "The operation could not be completed. Try again.",
+  "dataRestorePreviewTitle": "Review restore",
+  "dataRestoreAction": "Restore",
+  "dataCancel": "Cancel",
+  "dataContinue": "Continue",
+  "dataCreatePassword": "Create backup password",
+  "dataEnterPassword": "Enter backup password",
+  "dataPassword": "Backup password",
+  "dataPasswordHelp": "15–128 characters. Case and spaces are preserved.",
+  "dataConfirmPassword": "Confirm backup password",
+  "dataPasswordMismatch": "Passwords do not match.",
+  "dataPasswordInvalid": "Enter a backup password of 15–128 characters.",
+  "dataRestorePreview": "Backup cutoff: {cutoff}\nApp version: {version}\nSource platform: {platform}\nSchedules: {schedules}\nPreparation templates: {templates}\nDefault preparation steps: {steps}\n\nAll current local data will be replaced.",
+  "@dataRestorePreview": {
+    "placeholders": {
+      "cutoff": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      },
+      "platform": {
+        "type": "String"
+      },
+      "schedules": {
+        "type": "int"
+      },
+      "templates": {
+        "type": "int"
+      },
+      "steps": {
+        "type": "int"
+      }
+    }
+  },
+  "dataResetFailed": "Local data could not be reset. Try again."
 }

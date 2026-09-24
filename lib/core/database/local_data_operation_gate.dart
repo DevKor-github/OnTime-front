@@ -18,14 +18,19 @@ final class LocalDataOperationGate extends ChangeNotifier {
   Future<T> run<T>(
     Future<T> Function() action, {
     bool replacesData = false,
+    Future<void> Function()? validateReplacement,
   }) async {
     if (_busy) throw const LocalDataOperationBusy();
     if (_unavailable) throw const LocalDataUnavailable();
     _busy = true;
-    _replacingData = replacesData;
-    if (replacesData) _generation++;
-    notifyListeners();
     try {
+      // The exclusive claim is held before validation, but its replacement
+      // generation is issued only after the old preview has been accepted.
+      if (validateReplacement != null) await validateReplacement();
+      if (_unavailable) throw const LocalDataUnavailable();
+      _replacingData = replacesData;
+      if (replacesData) _generation++;
+      notifyListeners();
       return await action();
     } finally {
       _busy = false;

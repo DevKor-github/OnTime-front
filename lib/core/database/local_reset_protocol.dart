@@ -1,27 +1,8 @@
+export 'package:on_time_front/domain/entities/local_reset_result.dart'
+    show LocalResetResult;
+import 'package:on_time_front/domain/entities/local_reset_result.dart';
 import 'package:on_time_front/core/services/alarm_ownership_journal.dart';
 import 'package:on_time_front/core/services/alarm_registration_cleanup.dart';
-
-/// A typed receipt says which facts were verified, never exposes raw errors.
-final class LocalResetResult {
-  const LocalResetResult({
-    required this.intentRecorded,
-    required this.completed,
-    this.isComplete = false,
-    this.waitingForPlatform = false,
-    this.recoveryRequired = true,
-  });
-  final bool intentRecorded;
-  final Set<ResetStep> completed;
-  final bool isComplete;
-  final bool waitingForPlatform;
-  final bool recoveryRequired;
-  bool get dataDeleted => completed.containsAll({
-    ResetStep.database,
-    ResetStep.preferences,
-    ResetStep.key,
-    ResetStep.credentials,
-  });
-}
 
 abstract interface class LocalResetActions {
   Future<bool> hasMarker();

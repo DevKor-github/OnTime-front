@@ -1,19 +1,26 @@
-import 'package:on_time_front/core/database/local_reset_protocol.dart';
+import 'package:on_time_front/domain/entities/local_reset_result.dart';
+import 'package:on_time_front/domain/entities/backup_operation.dart';
+import 'package:on_time_front/domain/use-cases/local_data_workflows.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/startup/screens/local_reset_progress_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/startup/screens/local_data_recovery_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/core/backup/backup_password.dart';
-import 'package:on_time_front/core/backup/backup_service.dart';
-import 'package:on_time_front/core/database/local_data_reset_service.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 
 class MyDataScreen extends StatefulWidget {
-  const MyDataScreen({super.key, this.initialAction});
+  const MyDataScreen({
+    super.key,
+    this.initialAction,
+    this.workflow,
+    this.resetWorkflow,
+  });
 
   final String? initialAction;
+  final BackupWorkflow? workflow;
+  final LocalResetWorkflow? resetWorkflow;
 
   @override
   State<MyDataScreen> createState() => _MyDataScreenState();
@@ -21,6 +28,19 @@ class MyDataScreen extends StatefulWidget {
 
 class _MyDataScreenState extends State<MyDataScreen> {
   bool _busy = false;
+  bool _working = false;
+  bool _freshnessFailed = false;
+  int _freshnessRequest = 0;
+  BackupRestoreReceipt? _restoreReceipt;
+  BackupWorkflow get _workflow => widget.workflow ?? getIt<BackupWorkflow>();
+  LocalResetWorkflow get _reset =>
+      widget.resetWorkflow ?? getIt<LocalResetWorkflow>();
+  AppLocalizations get l10n =>
+      AppLocalizations.of(context) ??
+      lookupAppLocalizations(const Locale('ko'));
+  bool get _routeCurrent =>
+      mounted && (ModalRoute.of(context)?.isCurrent ?? true);
+
   LocalResetResult? _resetResult;
   BackupFreshnessStatus? _freshness;
 
@@ -37,15 +57,32 @@ class _MyDataScreenState extends State<MyDataScreen> {
           case 'restore':
             _restore();
           case 'reset':
-            _reset();
+            _resetData();
         }
       });
     }
   }
 
   Future<void> _loadFreshness() async {
-    final value = await getIt<BackupService>().getFreshness();
-    if (mounted) setState(() => _freshness = value);
+    final request = ++_freshnessRequest;
+    final generation = _workflow.generation;
+    try {
+      final value = await _workflow.freshness();
+      if (mounted &&
+          request == _freshnessRequest &&
+          generation == _workflow.generation) {
+        setState(() {
+          _freshness = value;
+          _freshnessFailed = false;
+        });
+      }
+    } catch (_) {
+      if (mounted &&
+          request == _freshnessRequest &&
+          generation == _workflow.generation) {
+        setState(() => _freshnessFailed = true);
+      }
+    }
   }
 
   @override
@@ -54,12 +91,12 @@ class _MyDataScreenState extends State<MyDataScreen> {
     if (resetResult != null) {
       return LocalResetProgressScreen(
         initialResult: resetResult,
-        operation: getIt<LocalDataResetService>().reset,
+        operation: _reset.call,
       );
     }
     final freshness = _freshness;
     return Scaffold(
-      appBar: AppBar(title: const Text('내 데이터')),
+      appBar: AppBar(title: Text(l10n.dataTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -69,13 +106,25 @@ class _MyDataScreenState extends State<MyDataScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('백업 상태', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    l10n.dataBackupStatus,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 8),
-                  Text(_freshnessLabel(freshness)),
+                  Text(
+                    _freshnessFailed
+                        ? l10n.dataFreshnessFailed
+                        : _freshnessLabel(freshness),
+                  ),
+                  if (_freshnessFailed)
+                    TextButton(
+                      onPressed: _busy ? null : _loadFreshness,
+                      child: Text(l10n.dataRetry),
+                    ),
                   if (freshness?.reminderDue == true) ...[
                     const SizedBox(height: 8),
                     Text(
-                      '30일 이상 백업되지 않은 변경 사항이 있습니다.',
+                      l10n.dataReminder,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
                       ),
@@ -86,18 +135,38 @@ class _MyDataScreenState extends State<MyDataScreen> {
             ),
           ),
           const SizedBox(height: 12),
+          if (_restoreReceipt?.followUpPending == true)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _restoreReceipt!.committed
+                          ? l10n.dataRestorePartial
+                          : l10n.dataUncommittedCleanup,
+                    ),
+                    TextButton(
+                      onPressed: _busy ? null : _retryRestoreDelivery,
+                      child: Text(l10n.dataRetryDelivery),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ListTile(
             enabled: !_busy,
             leading: const Icon(Icons.lock_outline),
-            title: const Text('암호화 백업 내보내기'),
-            subtitle: const Text('선택한 파일 위치에만 저장합니다.'),
+            title: Text(l10n.dataExport),
+            subtitle: Text(l10n.dataExportDescription),
             onTap: _export,
           ),
           ListTile(
             enabled: !_busy,
             leading: const Icon(Icons.restore),
-            title: const Text('백업에서 복원'),
-            subtitle: const Text('미리 확인한 뒤 현재 데이터를 완전히 교체합니다.'),
+            title: Text(l10n.dataRestore),
+            subtitle: Text(l10n.dataRestoreDescription),
             onTap: _restore,
           ),
           const Divider(height: 32),
@@ -108,13 +177,13 @@ class _MyDataScreenState extends State<MyDataScreen> {
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(
-              '로컬 데이터 초기화',
+              l10n.dataReset,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
-            subtitle: const Text('이 기기의 OnTime 데이터와 알람을 모두 삭제합니다.'),
-            onTap: _reset,
+            subtitle: Text(l10n.dataResetDescription),
+            onTap: _resetData,
           ),
-          if (_busy)
+          if (_working)
             const Padding(
               padding: EdgeInsets.only(top: 24),
               child: Center(child: CircularProgressIndicator()),
@@ -125,92 +194,184 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   String _freshnessLabel(BackupFreshnessStatus? status) {
-    if (status == null) return '확인 중';
+    if (status == null) return l10n.dataChecking;
     return switch (status.freshness) {
-      BackupFreshness.neverExported => '아직 내보낸 백업이 없습니다.',
-      BackupFreshness.noChanges => '마지막 백업 이후 변경 사항이 없습니다.',
-      BackupFreshness.unexportedChanges => '백업되지 않은 변경 사항이 있습니다.',
+      BackupFreshness.neverExported => l10n.dataNeverExported,
+      BackupFreshness.noChanges => l10n.dataNoChanges,
+      BackupFreshness.unexportedChanges => l10n.dataUnexportedChanges,
     };
   }
 
   Future<void> _export() async {
-    final password = await _askPassword(confirm: true);
-    if (password == null) return;
-    await _run(() async {
-      final saved = await getIt<BackupService>().exportToUserSelectedFile(
-        password,
+    if (_busy) return;
+    setState(() => _busy = true);
+    final operationGeneration = _workflow.generation;
+    try {
+      final password = await _askPassword(confirm: true);
+      if (password == null ||
+          !_routeCurrent ||
+          operationGeneration != _workflow.generation) {
+        return;
+      }
+      final generation = _workflow.generation;
+      setState(() => _working = true);
+      final saved = await _workflow.export(password);
+      if (!_routeCurrent ||
+          generation != _workflow.generation ||
+          saved == BackupExportResult.cancelled) {
+        return;
+      }
+      _message(
+        saved == BackupExportResult.saved
+            ? l10n.dataExportSaved
+            : l10n.dataExportMetadataFailed,
       );
-      if (!mounted || saved == BackupExportResult.cancelled) return;
-      final message = saved == BackupExportResult.saved
-          ? '암호화 백업을 저장했습니다.'
-          : '파일은 저장됐지만 백업 상태를 갱신하지 못했습니다. 앱을 다시 열어 백업 상태를 확인하고 필요하면 다시 내보내주세요.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-      if (saved == BackupExportResult.saved) await _loadFreshness();
-    });
+      await _loadFreshness();
+    } catch (error) {
+      if (_routeCurrent && operationGeneration == _workflow.generation) {
+        _showError(error);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _working = false;
+        });
+      }
+    }
   }
 
   Future<void> _restore() async {
-    final password = await _askPassword(confirm: false);
-    if (password == null) return;
-    await _run(() async {
-      final candidate = await getIt<BackupService>().selectAndPreviewRestore(
-        password,
-      );
-      if (!mounted || candidate == null) return;
+    if (_busy) return;
+    setState(() => _busy = true);
+    final operationGeneration = _workflow.generation;
+    try {
+      final password = await _askPassword(confirm: false);
+      if (password == null ||
+          !_routeCurrent ||
+          operationGeneration != _workflow.generation) {
+        return;
+      }
+      final generation = _workflow.generation;
+      setState(() => _working = true);
+      final candidate = await _workflow.preview(password);
+      if (!_routeCurrent ||
+          generation != _workflow.generation ||
+          candidate == null) {
+        return;
+      }
+      setState(() => _working = false);
       final preview = candidate.preview;
+      if (!mounted) return;
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('복원 내용 확인'),
-          content: Text(
-            '백업 시점: ${preview.cutoff.toLocal()}\n'
-            '앱 버전: ${preview.sourceAppVersion}\n'
-            '원본 플랫폼: ${preview.sourcePlatform}\n'
-            '일정 ${preview.scheduleCount}개\n'
-            '준비 템플릿 ${preview.templateCount}개\n'
-            '기본 준비 단계 ${preview.defaultPreparationStepCount}개\n\n'
-            '현재 로컬 데이터는 모두 교체됩니다.',
+          title: Text(l10n.dataRestorePreviewTitle),
+          content: SingleChildScrollView(
+            child: Text(
+              l10n.dataRestorePreview(
+                '${preview.cutoff.toLocal()}',
+                preview.sourceAppVersion,
+                preview.sourcePlatform,
+                preview.scheduleCount,
+                preview.templateCount,
+                preview.defaultPreparationStepCount,
+              ),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('취소'),
+              child: Text(l10n.dataCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('복원'),
+              child: Text(l10n.dataRestoreAction),
             ),
           ],
         ),
       );
-      if (confirmed != true || !mounted) return;
-      await getIt<BackupService>().applyRestore(candidate);
-      await getIt<ReconcileAlarmsUseCase>()();
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('백업을 복원했습니다.')));
-      await _loadFreshness();
-    });
+      if (confirmed != true || !_routeCurrent) return;
+      setState(() => _working = true);
+      final receipt = await _workflow.restore(candidate);
+      if (!_routeCurrent || receipt.generation != _workflow.generation) return;
+      setState(() => _restoreReceipt = receipt);
+      if (receipt.committed) {
+        _message(
+          receipt.followUpPending
+              ? l10n.dataRestorePartial
+              : l10n.dataRestoreComplete,
+        );
+        await _loadFreshness();
+      } else {
+        _showError(
+          DataOperationException(
+            receipt.failure ?? DataOperationFailure.failed,
+          ),
+        );
+      }
+    } catch (error) {
+      if (_routeCurrent && operationGeneration == _workflow.generation) {
+        _showError(error);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _working = false;
+        });
+      }
+    }
   }
 
-  Future<void> _reset() async {
-    final confirmed = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => const LocalDataResetConfirmationScreen(),
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+  Future<void> _retryRestoreDelivery() async {
+    final receipt = _restoreReceipt;
+    if (_busy || receipt == null) return;
     setState(() => _busy = true);
     try {
-      final result = await getIt<LocalDataResetService>().reset();
-      if (mounted) setState(() => _resetResult = result);
+      final result = await _workflow.retryFollowUp(receipt);
+      if (!_routeCurrent || result.generation != _workflow.generation) return;
+      setState(() => _restoreReceipt = result);
+      if (!result.followUpPending) _message(l10n.dataDeliveryUpdated);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _working = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _resetData() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final generation = _workflow.generation;
+    try {
+      final confirmed = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => const LocalDataResetConfirmationScreen(),
+        ),
+      );
+      if (confirmed != true ||
+          !_routeCurrent ||
+          generation != _workflow.generation) {
+        return;
+      }
+      setState(() => _working = true);
+      final result = await _reset();
+      if (_routeCurrent) setState(() => _resetResult = result);
     } catch (error) {
-      if (!mounted) return;
-      setState(() => _busy = false);
-      _showError(error);
+      if (_routeCurrent && generation == _workflow.generation) {
+        _showError(error);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _working = false;
+        });
+      }
     }
   }
 
@@ -219,21 +380,23 @@ class _MyDataScreenState extends State<MyDataScreen> {
     builder: (context) => _BackupPasswordDialog(confirm: confirm),
   );
 
-  Future<void> _run(Future<void> Function() action) async {
-    setState(() => _busy = true);
-    try {
-      await action();
-    } catch (error) {
-      if (mounted) _showError(error);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  void _message(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showError(Object error) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('작업을 완료하지 못했습니다: $error')));
+    final code = error is DataOperationException
+        ? error.failure
+        : DataOperationFailure.failed;
+    _message(switch (code) {
+      DataOperationFailure.busy => l10n.dataBusy,
+      DataOperationFailure.unavailable => l10n.dataUnavailable,
+      DataOperationFailure.stalePreview => l10n.dataStalePreview,
+      DataOperationFailure.invalidBackup => l10n.dataInvalidBackup,
+      DataOperationFailure.failed => l10n.dataOperationFailed,
+    });
   }
 }
 
@@ -317,47 +480,56 @@ class _BackupPasswordDialogState extends State<_BackupPasswordDialog> {
     super.dispose();
   }
 
+  AppLocalizations get l10n =>
+      AppLocalizations.of(context) ??
+      lookupAppLocalizations(const Locale('ko'));
+
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.confirm ? '백업 비밀번호 만들기' : '백업 비밀번호 입력'),
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          controller: first,
-          obscureText: true,
-          enableSuggestions: false,
-          autocorrect: false,
-          autofillHints: null,
-          decoration: const InputDecoration(
-            labelText: '백업 비밀번호',
-            helperText: '15~128자, 대소문자와 공백을 그대로 구분합니다.',
-          ),
-        ),
-        if (widget.confirm) ...[
-          const SizedBox(height: 12),
+    title: Text(
+      widget.confirm ? l10n.dataCreatePassword : l10n.dataEnterPassword,
+    ),
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           TextField(
-            controller: second,
+            controller: first,
             obscureText: true,
             enableSuggestions: false,
             autocorrect: false,
             autofillHints: null,
-            decoration: const InputDecoration(labelText: '백업 비밀번호 확인'),
+            decoration: InputDecoration(
+              labelText: l10n.dataPassword,
+              helperText: l10n.dataPasswordHelp,
+              helperMaxLines: 4,
+            ),
           ),
+          if (widget.confirm) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: second,
+              obscureText: true,
+              enableSuggestions: false,
+              autocorrect: false,
+              autofillHints: null,
+              decoration: InputDecoration(labelText: l10n.dataConfirmPassword),
+            ),
+          ],
+          if (error != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
         ],
-        if (error != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ],
-      ],
+      ),
     ),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('취소'),
+        child: Text(l10n.dataCancel),
       ),
       FilledButton(
         onPressed: () {
@@ -366,18 +538,15 @@ class _BackupPasswordDialogState extends State<_BackupPasswordDialog> {
             if (widget.confirm &&
                 parsed.normalized !=
                     BackupPassword.parse(second.text).normalized) {
-              throw const FormatException('비밀번호가 서로 다릅니다.');
+              setState(() => error = l10n.dataPasswordMismatch);
+              return;
             }
             Navigator.pop(context, parsed.normalized);
-          } on FormatException catch (exception) {
-            setState(
-              () => error = exception.message == '비밀번호가 서로 다릅니다.'
-                  ? exception.message
-                  : '백업 비밀번호는 15~128자로 입력해주세요.',
-            );
+          } on FormatException {
+            setState(() => error = l10n.dataPasswordInvalid);
           }
         },
-        child: const Text('계속'),
+        child: Text(l10n.dataContinue),
       ),
     ],
   );

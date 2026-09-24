@@ -1075,6 +1075,253 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preparation has started. Some progress storage or alarm cleanup is incomplete.'**
   String get preparationStartPartial;
+
+  /// No description provided for @dataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My data'**
+  String get dataTitle;
+
+  /// No description provided for @dataBackupStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup status'**
+  String get dataBackupStatus;
+
+  /// No description provided for @dataReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Some changes have not been backed up for at least 30 days.'**
+  String get dataReminder;
+
+  /// No description provided for @dataExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export encrypted backup'**
+  String get dataExport;
+
+  /// No description provided for @dataExportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Save only to the file location you choose.'**
+  String get dataExportDescription;
+
+  /// No description provided for @dataRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup'**
+  String get dataRestore;
+
+  /// No description provided for @dataRestoreDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the backup before replacing all current data.'**
+  String get dataRestoreDescription;
+
+  /// No description provided for @dataReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local data'**
+  String get dataReset;
+
+  /// No description provided for @dataResetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all OnTime data and alarms on this device.'**
+  String get dataResetDescription;
+
+  /// No description provided for @dataChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking'**
+  String get dataChecking;
+
+  /// No description provided for @dataNeverExported.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup has been exported yet.'**
+  String get dataNeverExported;
+
+  /// No description provided for @dataNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes since the last backup.'**
+  String get dataNoChanges;
+
+  /// No description provided for @dataUnexportedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Some changes have not been backed up.'**
+  String get dataUnexportedChanges;
+
+  /// No description provided for @dataFreshnessFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup status could not be checked. Try again.'**
+  String get dataFreshnessFailed;
+
+  /// No description provided for @dataRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get dataRetry;
+
+  /// No description provided for @dataRetryDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry notification processing only'**
+  String get dataRetryDelivery;
+
+  /// No description provided for @dataRestorePartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was restored, but notification processing is incomplete. You can retry notification processing only.'**
+  String get dataRestorePartial;
+
+  /// No description provided for @dataUncommittedCleanup.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was not restored. Notification cleanup already began; retry notification processing for the current data.'**
+  String get dataUncommittedCleanup;
+
+  /// No description provided for @dataExportSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted backup saved.'**
+  String get dataExportSaved;
+
+  /// No description provided for @dataExportMetadataFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file was saved, but backup status could not be updated. Retry checking backup status.'**
+  String get dataExportMetadataFailed;
+
+  /// No description provided for @dataRestoreComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored.'**
+  String get dataRestoreComplete;
+
+  /// No description provided for @dataDeliveryUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification processing completed for the current data.'**
+  String get dataDeliveryUpdated;
+
+  /// No description provided for @dataBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Another data operation is in progress. Try again after it finishes.'**
+  String get dataBusy;
+
+  /// No description provided for @dataUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data is unavailable. Reopen the app.'**
+  String get dataUnavailable;
+
+  /// No description provided for @dataStalePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Data changed after the preview. Select and review the backup again.'**
+  String get dataStalePreview;
+
+  /// No description provided for @dataInvalidBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'The operation could not be completed. Check the backup file and password.'**
+  String get dataInvalidBackup;
+
+  /// No description provided for @dataOperationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The operation could not be completed. Try again.'**
+  String get dataOperationFailed;
+
+  /// No description provided for @dataRestorePreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review restore'**
+  String get dataRestorePreviewTitle;
+
+  /// No description provided for @dataRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get dataRestoreAction;
+
+  /// No description provided for @dataCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dataCancel;
+
+  /// No description provided for @dataContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get dataContinue;
+
+  /// No description provided for @dataCreatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create backup password'**
+  String get dataCreatePassword;
+
+  /// No description provided for @dataEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter backup password'**
+  String get dataEnterPassword;
+
+  /// No description provided for @dataPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get dataPassword;
+
+  /// No description provided for @dataPasswordHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'15–128 characters. Case and spaces are preserved.'**
+  String get dataPasswordHelp;
+
+  /// No description provided for @dataConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm backup password'**
+  String get dataConfirmPassword;
+
+  /// No description provided for @dataPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get dataPasswordMismatch;
+
+  /// No description provided for @dataPasswordInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a backup password of 15–128 characters.'**
+  String get dataPasswordInvalid;
+
+  /// No description provided for @dataRestorePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup cutoff: {cutoff}\nApp version: {version}\nSource platform: {platform}\nSchedules: {schedules}\nPreparation templates: {templates}\nDefault preparation steps: {steps}\n\nAll current local data will be replaced.'**
+  String dataRestorePreview(
+    String cutoff,
+    String version,
+    String platform,
+    int schedules,
+    int templates,
+    int steps,
+  );
+
+  /// No description provided for @dataResetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data could not be reset. Try again.'**
+  String get dataResetFailed;
 }
 
 class _AppLocalizationsDelegate

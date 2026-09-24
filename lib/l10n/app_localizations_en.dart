@@ -577,4 +577,148 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get preparationStartPartial =>
       'Preparation has started. Some progress storage or alarm cleanup is incomplete.';
+
+  @override
+  String get dataTitle => 'My data';
+
+  @override
+  String get dataBackupStatus => 'Backup status';
+
+  @override
+  String get dataReminder =>
+      'Some changes have not been backed up for at least 30 days.';
+
+  @override
+  String get dataExport => 'Export encrypted backup';
+
+  @override
+  String get dataExportDescription =>
+      'Save only to the file location you choose.';
+
+  @override
+  String get dataRestore => 'Restore from backup';
+
+  @override
+  String get dataRestoreDescription =>
+      'Review the backup before replacing all current data.';
+
+  @override
+  String get dataReset => 'Reset local data';
+
+  @override
+  String get dataResetDescription =>
+      'Delete all OnTime data and alarms on this device.';
+
+  @override
+  String get dataChecking => 'Checking';
+
+  @override
+  String get dataNeverExported => 'No backup has been exported yet.';
+
+  @override
+  String get dataNoChanges => 'No changes since the last backup.';
+
+  @override
+  String get dataUnexportedChanges => 'Some changes have not been backed up.';
+
+  @override
+  String get dataFreshnessFailed =>
+      'Backup status could not be checked. Try again.';
+
+  @override
+  String get dataRetry => 'Try again';
+
+  @override
+  String get dataRetryDelivery => 'Retry notification processing only';
+
+  @override
+  String get dataRestorePartial =>
+      'Data was restored, but notification processing is incomplete. You can retry notification processing only.';
+
+  @override
+  String get dataUncommittedCleanup =>
+      'Data was not restored. Notification cleanup already began; retry notification processing for the current data.';
+
+  @override
+  String get dataExportSaved => 'Encrypted backup saved.';
+
+  @override
+  String get dataExportMetadataFailed =>
+      'The file was saved, but backup status could not be updated. Retry checking backup status.';
+
+  @override
+  String get dataRestoreComplete => 'Backup restored.';
+
+  @override
+  String get dataDeliveryUpdated =>
+      'Notification processing completed for the current data.';
+
+  @override
+  String get dataBusy =>
+      'Another data operation is in progress. Try again after it finishes.';
+
+  @override
+  String get dataUnavailable => 'Local data is unavailable. Reopen the app.';
+
+  @override
+  String get dataStalePreview =>
+      'Data changed after the preview. Select and review the backup again.';
+
+  @override
+  String get dataInvalidBackup =>
+      'The operation could not be completed. Check the backup file and password.';
+
+  @override
+  String get dataOperationFailed =>
+      'The operation could not be completed. Try again.';
+
+  @override
+  String get dataRestorePreviewTitle => 'Review restore';
+
+  @override
+  String get dataRestoreAction => 'Restore';
+
+  @override
+  String get dataCancel => 'Cancel';
+
+  @override
+  String get dataContinue => 'Continue';
+
+  @override
+  String get dataCreatePassword => 'Create backup password';
+
+  @override
+  String get dataEnterPassword => 'Enter backup password';
+
+  @override
+  String get dataPassword => 'Backup password';
+
+  @override
+  String get dataPasswordHelp =>
+      '15–128 characters. Case and spaces are preserved.';
+
+  @override
+  String get dataConfirmPassword => 'Confirm backup password';
+
+  @override
+  String get dataPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get dataPasswordInvalid =>
+      'Enter a backup password of 15–128 characters.';
+
+  @override
+  String dataRestorePreview(
+    String cutoff,
+    String version,
+    String platform,
+    int schedules,
+    int templates,
+    int steps,
+  ) {
+    return 'Backup cutoff: $cutoff\nApp version: $version\nSource platform: $platform\nSchedules: $schedules\nPreparation templates: $templates\nDefault preparation steps: $steps\n\nAll current local data will be replaced.';
+  }
+
+  @override
+  String get dataResetFailed => 'Local data could not be reset. Try again.';
 }

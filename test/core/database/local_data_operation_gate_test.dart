@@ -42,4 +42,29 @@ void main() {
       );
     },
   );
+  test(
+    'exclusive validation does not invalidate writers until accepted',
+    () async {
+      final gate = LocalDataOperationGate();
+      final validation = Completer<void>();
+      var invoked = false;
+      final pending = gate.run(
+        () async {
+          invoked = true;
+        },
+        replacesData: true,
+        validateReplacement: () => validation.future,
+      );
+      expect(gate.isAvailable, false);
+      expect(gate.isReplacingData, false);
+      expect(gate.generation, 0);
+      final failure = expectLater(pending, throwsStateError);
+      validation.completeError(StateError('stale'));
+      await failure;
+      expect(invoked, false);
+      expect(gate.isAvailable, true);
+      expect(gate.generation, 0);
+      gate.dispose();
+    },
+  );
 }

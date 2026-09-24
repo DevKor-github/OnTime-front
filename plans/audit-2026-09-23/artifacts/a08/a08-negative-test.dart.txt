@@ -1,0 +1,41 @@
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/data/repositories/schedule_repository_impl.dart';
+import 'package:on_time_front/data/repositories/preparation_repository_impl.dart';
+import 'package:on_time_front/data/data_sources/preparation_local_data_source.dart';
+import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
+import 'package:on_time_front/domain/repositories/user_repository.dart';
+import 'package:on_time_front/domain/entities/user_entity.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
+import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
+import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
+import 'package:on_time_front/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart';
+import '../../helpers/noop_alarm_reconciliation.dart';
+class Runtime extends Fake implements TimedPreparationRepository {}
+class Profile extends Fake implements UserRepository {}
+class Effects extends Fake implements ScheduleMutationAlarmEffectsCoordinator {
+ @override Future<void> call({required ScheduleMutationAlarmOperation operation, required String scheduleId}) async {}
+}
+void main() {
+ test('preparation insert failure leaves no partial schedule, place or revision', () async {
+ final db=AppDatabase.forTesting(NativeDatabase.memory());
+ final schedules=ScheduleRepositoryImpl(database:db,timedPreparationRepository:Runtime());
+ final preparations=PreparationRepositoryImpl(preparationLocalDataSource:PreparationLocalDataSourceImpl(appDatabase:db),userRepository:Profile(),database:db);
+ addTearDown(() async {await schedules.dispose();await preparations.dispose();await db.close();});
+ await db.userDao.putUser(const UserEntity(id:'local-profile',spareTime:Duration.zero,note:''));
+ final before=(await db.select(db.users).getSingle()).dataRevision;
+ await db.customStatement("CREATE TRIGGER reject_step BEFORE INSERT ON preparation_schedules BEGIN SELECT RAISE(ABORT, 'step failed'); END");
+ final command=CreateScheduleFormSubmissionUseCase(CreateScheduleWithPlaceUseCase(schedules,Effects()),CreateCustomPreparationUseCase(preparations,NoopAlarmReconciliation()));
+ final draft=ScheduleFormSubmission(schedule:ScheduleEntity(id:'one',place:const PlaceEntity(id:'place',placeName:'Office'),scheduleName:'Meeting',scheduleTime:DateTime.utc(2030,1,1,10),moveTime:Duration.zero,isChanged:true,isStarted:false,scheduleSpareTime:Duration.zero,scheduleNote:''),preparation:PreparationEntity(preparationStepList:const [PreparationStepEntity(id:'step',preparationName:'Prepare',preparationTime:Duration(minutes:10))]),preparationChanged:true);
+ await expectLater(command(draft),throwsA(anything));
+ expect(await db.select(db.schedules).get(),isEmpty,reason:'A failed aggregate must not leave its schedule committed');
+ expect(await db.select(db.places).get(),isEmpty);
+ expect((await db.select(db.users).getSingle()).dataRevision,before);
+ });
+}

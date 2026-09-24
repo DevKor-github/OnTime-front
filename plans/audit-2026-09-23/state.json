@@ -480,10 +480,10 @@
         "Actual stale-preview baseline failure and Drift race/rollback/receipt regressions verified",
         "KO/EN 200% eight widget captures reviewed; source24/commit hashes match",
         "Generated/local-only/manifest and Python11 passed",
-        "Exact aa2fda68 remote959 tests/analyze, coverage88.72% (13504/15221), Android APK/notification manifest success; artifact10787843483 identity read back"
+        "Exact aa2fda68 remote959 tests/analyze, coverage88.72% (13504/15221), Android APK/notification manifest success; artifact10787843483 identity read back",
+        "A08 aggregate FormSubmission/workflow integrated at126161da with full1018 identical product source and final focused41; A09/D02 remain pending"
       ],
       "blockers": [
-        "A08 schedule aggregate FormSubmission integration is pending; no atomic aggregate completion claim.",
         "A09 staging Local Data Store, runtime/session replacement and all-writer fencing are pending. Candidate remains authenticated parsed memory data, not verified staging.",
         "Revision is checked before OS cleanup and again inside DB transaction; a racing edit during cleanup prevents DB overwrite but may leave OS cleanup pending. Receipt exposes this and retry reconciles current data only.",
         "D02 damaged-database restore integration is pending.",
@@ -491,8 +491,8 @@
       ],
       "sequence": 14,
       "readback_verified": true,
-      "body_sha256": "2fb0876dfbbef2ee14038ab85bf1fb4e9bb724197551a76889309c93a19d8c1b",
-      "issue_body_sha256": "34d437455542e2abd79d7b7abfb7cb735f5a714fab8b15b0bce25e053e0f1139"
+      "body_sha256": "c72747d9b2647b2b67e6b5b8677461eb5986a0e0e970598fc962b0c12be217d1",
+      "issue_body_sha256": "c72747d9b2647b2b67e6b5b8677461eb5986a0e0e970598fc962b0c12be217d1"
     },
     {
       "audit_id": "A08",
@@ -505,21 +505,30 @@
         "`create_schedule_form_submission_use_case.dart:16-23`; `update_schedule_form_submission_use_case.dart:28-35`; `create_schedule_with_place_use_case.dart:17-20`; `schedule_mutation_alarm_effects_coordinator.dart:41-52`",
         "일정·장소·준비·revision을 하나의 원자적 작업으로 commit 후 알림 effects 실행. 두 번째 write 실패 시 전체 rollback, 같은 입력 재시도 때 중복 일정 없음. 경쟁의 실제 발생은 별도 재현."
       ],
-      "status": "implementing",
+      "status": "code_verified_ci_device_pending",
       "agent": "/root/grill_a08",
       "issue_number": 601,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/601",
       "decisions_file": "plans/audit-2026-09-23/issues/A08.md",
-      "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "implementation_commit": "126161dab042365c89983934b1673d860c27d8d3",
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "49 source paths and committed blobs match final freeze",
+        "Full1018 on identical product source, coverage88.96% (14113/15864); final test-only strengthening focused41 + actual probe1; analyzer clean",
+        "Actual baseline partial-write failure, atomic rollback/ABA/file reopen/dependency/watch/materialization tests passed",
+        "KO/EN 200% four synthetic widget captures reviewed; policies and Python11 passed"
+      ],
+      "blockers": [
+        "Remote CI on final committed source pending",
+        "A09/D02 must rotate store incarnation for all replacement; staging/runtime and damaged store integration pending",
+        "Mobile SQLCipher migration and native delivery/file-provider/device checks pending"
+      ],
       "sequence": 15,
       "readback_verified": true,
-      "body_sha256": "bd5f1b77a400c56f5fb1656412201f72d8288a0a63ed79a699a16f45e7cc1c76",
+      "body_sha256": "9aeefce75f0f68a1a284cccf6ed09683c6d2b89306f5e0f777ad0a5adbfc82cf",
       "implementation_agent": "/root/implement_a08",
       "implementation_plan": "plans/audit-2026-09-23/a08-implementation-preflight.md",
-      "issue_body_sha256": "bd5f1b77a400c56f5fb1656412201f72d8288a0a63ed79a699a16f45e7cc1c76"
+      "issue_body_sha256": "9aeefce75f0f68a1a284cccf6ed09683c6d2b89306f5e0f777ad0a5adbfc82cf"
     },
     {
       "audit_id": "A09",
@@ -532,7 +541,7 @@
         "`backup_service.dart:146-196`; `my_data_screen.dart:159-165`; `preparation_with_time_local_data_source.dart`; `early_start_session_local_data_source.dart`; session use case의 restore 경로",
         "복원 orchestration에서 활동 중 세션/구독/알림을 정리하고 DB 교체 후 재시작. 같은 ID의 진행 중 일정 복원 후 진행 이력이 되살아나지 않아야 함. 실패 시 기존 DB 보존."
       ],
-      "status": "ready",
+      "status": "implementing",
       "agent": "/root/grill_a09",
       "issue_number": 602,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/602",
@@ -544,7 +553,8 @@
       "sequence": 16,
       "readback_verified": true,
       "body_sha256": "97c77e8e911aa351002e7979674507f4586ef0fabd96ad3cf91343e902f2638a",
-      "issue_body_sha256": "97c77e8e911aa351002e7979674507f4586ef0fabd96ad3cf91343e902f2638a"
+      "issue_body_sha256": "97c77e8e911aa351002e7979674507f4586ef0fabd96ad3cf91343e902f2638a",
+      "implementation_agent": "/root/implement_a09"
     },
     {
       "audit_id": "D01",
@@ -1073,16 +1083,18 @@
         "영어 locale에서 한국어가 섞이는 설정·준비·결과·백업·오류 문구를 정리한다.",
         "앱은 EN/KO 지원(`app.dart:203-204`), 여러 화면과 time_format은 한국어 고정. ARB와 locale-aware 시간 단위/12·24시간 표기로 통일."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_u05",
+      "issue_number": 626,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/626",
       "decisions_file": "plans/audit-2026-09-23/issues/U05.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 39
+      "sequence": 39,
+      "readback_verified": true,
+      "issue_body_sha256": "b2f454c66106c34520c96bada18b9dc74b47f74b82aab9a68a474bc6c9309cbb"
     },
     {
       "audit_id": "U06",

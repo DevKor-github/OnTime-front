@@ -146,3 +146,8 @@ D06#623 전담실제4문답·27개검증·10개AC 게시/readback완료,37/64(�
 D07#624 실제3문답+Drift버전정정·18검증·10AC 게시/readback완료,38/64(미생성26). template restore전용createdAt/updatedAt보존·template-onlyUTCexport·id동률정렬·legacyoffsetless한계·nonzero subsecond사전거부/공유validator·A09/D02/양플랫폼통합검증확정. U04 새전담 /root/grill_u04 착수. A08최종analyzer정리중이고sourcefreeze대기.
 
 U04#625 실제3문답/보충·21검증·8AC 게시/readback완료,39/64(미생성25). 결과기간만기존locale-awareformatter재사용,abs/초버림/기존suffix·outcome·점수유지,realheadline음성회귀및KOEN/200%표본;U05새전담 /root/grill_u05 착수. A08첫freeze47개(e7e9cfb8...)의첫full=1008pass/7fail로구freeze를보존후보완중. DAOmetadataequality5개와startwidgetlatch2개를분리확인; legacyDAO가oldrowconcurrencymetadata덮지않도록제외하고AFTERtrigger후sameTXreadback,watch단일SQLsnapshot으로변경해집중63통과. root가watch기존scheduleTimeASC유실도찾아정렬복구/회귀요청, 새freeze/전체재검증대기. 첫full실패를최종성공으로표시금지.
+
+
+## 2026-09-24 A08 구현 커밋·A09 착수
+
+A08 source126161dab042365c89983934b1673d860c27d8d3: 49파일/commitblob 일치, 전체1018/88.96%(14113/15864) 제품바이트와 최종 동일. 이후 테스트만 실제60→65 materialization으로 보강하여 focused41/probe1/analyzer 통과. a08-final-validation.json 및 artifacts/a08에33개 원본/정규화 증거, 실패full7건·중단로그·실제 전체 추가문답 보존. #601/600 실제 전체문답/결과 갱신 후 exact read-back 완료, CI/device pending. A09 /root/implement_a09가 제품/Flutter 독점. U05#626 실제3문답·24matrix·11AC 게시/readback,40/64(24생성전). U06 새전담 grill 시작. PR본문 동결 승인 질문 미응답이며 재시도/우회하지 않는다.

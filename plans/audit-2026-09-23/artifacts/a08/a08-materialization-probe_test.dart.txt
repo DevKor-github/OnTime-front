@@ -1,0 +1,32 @@
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
+import 'package:on_time_front/data/repositories/recurring_schedule_repository_impl.dart';
+import 'package:on_time_front/data/repositories/schedule_aggregate_repository_impl.dart';
+import 'package:on_time_front/domain/entities/user_entity.dart';
+import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
+import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
+import 'file:///Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart' show schedule, prep;
+void main() {
+ test('new occurrences materialized after receipt preserve its aggregate version and revision',()async{
+  final db=AppDatabase.forTesting(NativeDatabase.memory());
+  final recurring=RecurringScheduleRepositoryImpl(db,now:()=>DateTime.utc(2029));
+  final repo=ScheduleAggregateRepositoryImpl(db,recurring,gate:LocalDataOperationGate(),now:()=>DateTime.utc(2029));
+  try {
+   await db.userDao.putUser(const UserEntity(id:'local-profile',spareTime:Duration.zero,note:''));
+   final intent=ScheduleFormSubmission(schedule:schedule(),preparation:prep(),preparationChanged:true,mutationId:'create',baseline:await repo.newBaseline(),recurrenceRule:RecurrenceRule(frequency:RecurrenceFrequency.daily,start:DateTime.utc(2030,1,1,10),timeZoneId:'UTC',count:65));
+   await repo.save(intent,editing:false);
+   expect(await db.select(db.schedules).get(),hasLength(60));
+   final root=await db.select(db.recurringScheduleSegments).getSingle();
+   final revision=(await db.select(db.users).getSingle()).dataRevision;
+   await recurring.materialize(DateTime.utc(2030),DateTime.utc(2031));
+   expect(await db.select(db.schedules).get(),hasLength(65));
+   final after=await db.select(db.recurringScheduleSegments).getSingle();
+   expect(after.aggregateVersion,root.aggregateVersion);
+   expect(after.lastMutationVersion,root.lastMutationVersion);
+   expect((await repo.save(intent,editing:false)).changed,isFalse);
+   expect((await db.select(db.users).getSingle()).dataRevision,revision);
+  } finally {await db.close();}
+ });
+}

@@ -29,9 +29,9 @@
 | D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 독립 journal·복구/host kill11, main통합 원격882 tests/88.50%·APK 통과,기기 대기 |
 | A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | d06474d4 실제 타이머 전환 구현,47경계 및 원격929전체·88.79%·APK 통과,기기 대기 |
 | A07 | [#599](https://github.com/DevKor-github/OnTime-front/issues/599) | d73c7863 원자적 시작·partial retry 구현,원격944 tests/88.70%·APK 및 KOEN200% 검증,기기 대기 |
-| C01 | [#600](https://github.com/DevKor-github/OnTime-front/issues/600) | 4529d9f8 백업/reset workflow 구현,원격959 tests·88.72%·APK 및 KOEN200% 통과,A08/A09/D02 통합 대기 |
-| A08 | [#601](https://github.com/DevKor-github/OnTime-front/issues/601) | 구현 중: 원자 저장/조회·schema3 최소 receipt·충돌/멱등, 실제 partial-write 결함 재현 |
-| A09 | [#602](https://github.com/DevKor-github/OnTime-front/issues/602) | 실제4문답·staging/runtime 세대·복원 후 정리 기준 확정 |
+| C01 | [#600](https://github.com/DevKor-github/OnTime-front/issues/600) | 4529d9f8 workflow·A08 aggregate 통합,원격959 및 로컬1018 검증,A09/D02 대기 |
+| A08 | [#601](https://github.com/DevKor-github/OnTime-front/issues/601) | 126161da 원자 저장·schema3 receipt,전체1018/88.96%·최종집중41/KOEN200% 검증,CI·기기 대기 |
+| A09 | [#602](https://github.com/DevKor-github/OnTime-front/issues/602) | 구현 중: 암호화 staging/runtime 세대·복원 후 정리·durable 기록 보존 |
 | D01 | [#603](https://github.com/DevKor-github/OnTime-front/issues/603) | 실제4문답·DB 비의존 시작 복구·키/파일 보존 기준 확정 |
 | D02 | [#604](https://github.com/DevKor-github/OnTime-front/issues/604) | 실제4문답·손상 DB 후보 검증/활성 쌍 교체·중단 복구 기준 확정 |
 | D04 | [#605](https://github.com/DevKor-github/OnTime-front/issues/605) | 실제4문답·migration 원자성/역사 schema/SQLCipher 확인·실패 보존 기준 확정 |
@@ -55,8 +55,9 @@
 | D06 | [#623](https://github.com/DevKor-github/OnTime-front/issues/623) | 실제 4문답·최초 미백업 age/동시 export/7일 숨김·27개 검증 기준 확정 |
 | D07 | [#624](https://github.com/DevKor-github/OnTime-front/issues/624) | 실제 3문답·템플릿 두 시각/UTC·legacy/안정 정렬·18개 검증 기준 확정 |
 | U04 | [#625](https://github.com/DevKor-github/OnTime-front/issues/625) | 실제 3문답·1시간/2시간 표시·기존 현지화 formatter 재사용·21개 검증 기준 확정 |
+| U05 | [#626](https://github.com/DevKor-github/OnTime-front/issues/626) | KO/EN 문구·locale 해석·시각 표시·native 활성 경로의 일관성과 작업 중 언어 변경을 보장한다. |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **39/64개**를 게시하고 원격 본문 동일성을 확인했으며 **25개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05와 A10까지 실제 문답과 백업·복구·시간대 검증 설계가 확정됐으며 D03은 독립 리뷰 보완 및 host kill11 후 최신 main 통합 원격882 tests/88.50%·APK를 통과했고 기기 검증이 남았다. A06은d06474d4로 구현해 최종929 tests/88.74%·신규47경계를 통과했고 원격929 tests/88.79%·APK도 통과했다. A07은d73c7863로 구현해 실제 DB 회귀/전체944 tests·88.67%·KOEN200% 및 원격944/88.70%·APK를 통과했다. C01은4529d9f8로 구현해 최종 원격959 tests·88.72%·APK를 통과했고 A08 구현 중이다. A08의 현재 부분 검증은 집중52개와 역사 migration5개이며 최종 전체 검증은 남아 있다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **40/64개**를 게시하고 원격 본문 동일성을 확인했으며 **24개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05와 A10까지 실제 문답과 백업·복구·시간대 검증 설계가 확정됐으며 D03은 독립 리뷰 보완 및 host kill11 후 최신 main 통합 원격882 tests/88.50%·APK를 통과했고 기기 검증이 남았다. A06은d06474d4로 구현해 최종929 tests/88.74%·신규47경계를 통과했고 원격929 tests/88.79%·APK도 통과했다. A07은d73c7863로 구현해 실제 DB 회귀/전체944 tests·88.67%·KOEN200% 및 원격944/88.70%·APK를 통과했다. C01은4529d9f8로 구현해 최종 원격959 tests·88.72%·APK를 통과했고 A08은126161da에 구현해 최종 제품 전체1018 tests/88.96%, 최종 테스트 보강41개/analyzer 및KOEN200%를 검증했고 원격CI·기기검증은 대기 중이다. A09 구현을 이어간다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
 
 ## 실행 순서
 

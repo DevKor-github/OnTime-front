@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_engine.dart';
@@ -5,7 +6,6 @@ import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
-import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 
 class RecurrenceReviewSheet extends StatefulWidget {
   const RecurrenceReviewSheet({
@@ -42,75 +42,71 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
               _excluded.contains(c.otherSlotKey),
         ) &&
         (remaining.isNotEmpty || review.detached.isNotEmpty);
+    final title = review.persistentConflict
+        ? recurrenceText(context, '반복 시간 조정', 'Adjust recurrence')
+        : byKey.isNotEmpty
+        ? recurrenceText(context, '겹치는 일정 확인', 'Conflicting occurrences')
+        : review.detached.isNotEmpty
+        ? recurrenceText(context, '변경 내용 확인', 'Review changes')
+        : recurrenceText(context, '반복 일정 확인', 'Review recurrence');
     return RecurrenceSheet(
-      title: recurrenceText(context, '반복 일정 확인', 'Review recurrence'),
-      action: recurrenceText(context, '저장', 'Save'),
-      onAction: canSave
+      title: title,
+      action: review.persistentConflict
+          ? recurrenceText(context, '반복 설정 수정', 'Change settings')
+          : recurrenceText(
+              context,
+              review.detached.isNotEmpty
+                  ? '단독 일정으로 남기고 저장'
+                  : byKey.isNotEmpty
+                  ? '저장하기 (${remaining.length}개)'
+                  : '저장하기',
+              'Save',
+            ),
+      onAction: review.persistentConflict
+          ? () => Navigator.of(context).pop()
+          : canSave
           ? () => Navigator.of(context).pop(Set<String>.from(_excluded))
           : null,
       children: [
-        Text(
-          form.scheduleName ?? '',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        if (form.recurrenceRule != null)
-          RecurrenceValue(
-            label: recurrenceText(context, '반복', 'Repeat'),
-            value: recurrenceLabel(context, form.recurrenceRule!),
-          ),
-        if (review.totalOccurrences != null)
-          Text(
-            recurrenceText(
-              context,
-              '반복 ${review.totalOccurrences! - _excluded.length}회'
-                  '${review.detached.isEmpty ? '' : ' + 독립 일정 ${review.detached.length}회'}',
-              '${review.totalOccurrences! - _excluded.length} recurring occurrences'
-                  '${review.detached.isEmpty ? '' : ' + ${review.detached.length} standalone schedules'}',
-            ),
-          ),
-        if (remaining.isNotEmpty)
-          Text(
-            '${recurrenceText(context, '첫 일정', 'First occurrence')} · ${recurrenceDate(context, _time(remaining.first))}',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        if (remaining.isNotEmpty)
-          RecurrenceValue(
-            label: recurrenceText(context, '예정된 일정', 'Upcoming occurrences'),
-            value: remaining
-                .take(3)
-                .map((s) => recurrenceDate(context, _time(s)))
-                .join('\n'),
-          ),
-        if (remaining.isNotEmpty &&
-            review.occurrences[remaining.first.key] != null)
-          Text(
-            '${recurrenceText(context, '준비 시작', 'Preparation starts')} · ${recurrenceDate(context, CivilTimeResolver.civilTimeAt(review.occurrences[remaining.first.key]!.preparationStartUtc, review.occurrences[remaining.first.key]!.schedule.timeZoneId))}',
-          ),
-        Text(
-          recurrenceText(
-            context,
-            '준비 ${form.totalPreparationTime.inMinutes}분 + 이동 ${form.moveTime?.inMinutes ?? 0}분 + 여유 ${form.scheduleSpareTime?.inMinutes ?? 0}분',
-            'Preparation ${form.totalPreparationTime.inMinutes} min + travel ${form.moveTime?.inMinutes ?? 0} min + buffer ${form.scheduleSpareTime?.inMinutes ?? 0} min',
-          ),
-        ),
         if (review.persistentConflict) ...[
-          Text(
-            recurrenceText(
-              context,
-              '반복 시간이나 요일이 계속 겹쳐요. 반복 설정을 조정해 주세요.',
-              'These recurring rules keep overlapping. Change the time or repeat pattern.',
+          RecurrencePanel(
+            highlighted: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  recurrenceText(
+                    context,
+                    '반복 일정이 계속 겹쳐요',
+                    'These recurring rules keep overlapping',
+                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  recurrenceText(
+                    context,
+                    '시간이나 요일을 수정해야 저장할 수 있어요.',
+                    'Change the time or repeat pattern before saving.',
+                  ),
+                ),
+              ],
             ),
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
-          ModalWideButton(
-            text: recurrenceText(context, '설정 바꾸기', 'Change settings'),
-            variant: ModalWideButtonVariant.primary,
-            layout: ModalWideButtonLayout.full,
-            height: 52,
-            onPressed: () => Navigator.of(context).pop(),
+          if (form.recurrenceRule != null)
+            RecurrenceValue(
+              label: recurrenceText(context, '반복 요일', 'Repeat pattern'),
+              value: recurrenceLabel(context, form.recurrenceRule!),
+            ),
+          RecurrenceValue(
+            label: form.scheduleName ?? '',
+            value: recurrenceDate(context, form.scheduleTime!),
           ),
+          for (final conflict in review.conflicts.take(3))
+            RecurrenceValue(
+              label: conflict.other.scheduleName,
+              value: recurrenceDate(context, conflict.other.scheduleTime),
+            ),
         ] else if (byKey.isNotEmpty) ...[
           Text(
             recurrenceText(
@@ -123,67 +119,223 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
                   : 'This overlaps another schedule. Adjust the time or preparation.',
             ),
           ),
-          for (final entry in byKey.entries)
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _excluded.contains(entry.key),
-              onChanged: canExclude
-                  ? (v) => setState(
-                      () => v == true
-                          ? _excluded.add(entry.key)
-                          : _excluded.remove(entry.key),
-                    )
-                  : null,
-              title: Text(
-                recurrenceDate(
-                  context,
-                  review.occurrences[entry.key]?.schedule.scheduleTime ??
-                      DateTime.parse(entry.key),
+          RecurrencePanel(
+            highlighted: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final entry in byKey.entries)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      '${recurrenceDate(context, review.occurrences[entry.key]?.schedule.scheduleTime ?? DateTime.parse(entry.key))} · ${entry.value.map((c) => c.other.scheduleName).toSet().join(' · ')}',
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Text(
+            recurrenceText(
+              context,
+              '전체 ${review.slots.length}회차 · 선택 ${_excluded.length}개 제외',
+              '${review.slots.length} occurrences · ${_excluded.length} excluded',
+            ),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          for (final slot in review.slots)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: RecurrencePanel(
+                padding: EdgeInsets.zero,
+                highlighted: _excluded.contains(slot.key),
+                child: CheckboxListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  dense: true,
+                  value: _excluded.contains(slot.key),
+                  onChanged: canExclude
+                      ? (v) => setState(
+                          () => v == true
+                              ? _excluded.add(slot.key)
+                              : _excluded.remove(slot.key),
+                        )
+                      : null,
+                  title: Text(
+                    recurrenceDate(context, _time(slot)),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  subtitle: byKey.containsKey(slot.key)
+                      ? Text(
+                          byKey[slot.key]!
+                              .map((c) => c.other.scheduleName)
+                              .toSet()
+                              .join(' · '),
+                        )
+                      : null,
                 ),
               ),
-              subtitle: Text(
-                entry.value
-                    .map((c) => c.other.scheduleName)
-                    .toSet()
-                    .join(' · '),
-              ),
             ),
-          if (canExclude)
+          RecurrencePanel(
+            child: Text(
+              recurrenceText(
+                context,
+                '모든 회차를 제외하면 저장할 수 없습니다. 제외한 회차는 총횟수에서 차감되며 다른 날짜로 채우지 않아요.',
+                'At least one occurrence must remain. Excluded occurrences consume the count and are not replaced.',
+              ),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ] else ...[
+          if (review.detached.isEmpty) ...[
             Text(
               recurrenceText(
                 context,
-                '제외한 회차는 총횟수에서 차감되며 다른 날짜로 채우지 않아요.',
-                'Excluded occurrences consume the count and are not replaced.',
+                '아래 내용으로 반복 일정을 저장할까요?',
+                'Save this recurring schedule?',
+              ),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            RecurrencePanel(
+              highlighted: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    form.scheduleName ?? '',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(fontSize: 24),
+                  ),
+                  const SizedBox(height: 8),
+                  if (form.recurrenceRule != null)
+                    Text(
+                      recurrenceLabel(context, form.recurrenceRule!),
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  if (remaining.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        '${recurrenceText(context, '첫 일정', 'First occurrence')}: ${recurrenceDate(context, _time(remaining.first))}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  const Divider(height: 28),
+                  Text(
+                    recurrenceText(
+                      context,
+                      '준비 ${form.totalPreparationTime.inMinutes}분 · 이동 ${form.moveTime?.inMinutes ?? 0}분 · 여유 ${form.scheduleSpareTime?.inMinutes ?? 0}분',
+                      'Preparation ${form.totalPreparationTime.inMinutes} min · travel ${form.moveTime?.inMinutes ?? 0} min · buffer ${form.scheduleSpareTime?.inMinutes ?? 0} min',
+                    ),
+                  ),
+                  if (remaining.isNotEmpty &&
+                      review.occurrences[remaining.first.key] != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        '${recurrenceText(context, '준비 시작', 'Preparation starts')} ${recurrenceDate(context, CivilTimeResolver.civilTimeAt(review.occurrences[remaining.first.key]!.preparationStartUtc, review.occurrences[remaining.first.key]!.schedule.timeZoneId))}',
+                      ),
+                    ),
+                ],
               ),
             ),
-        ],
-        if (review.detached.isNotEmpty) ...[
-          Text(
-            recurrenceText(
-              context,
-              '개별 수정한 일정은 독립 일정으로 유지해요.',
-              'Individually edited occurrences remain as standalone schedules.',
-            ),
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          for (final value in review.detached)
+            if (remaining.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                recurrenceText(context, '예정된 날짜', 'Upcoming occurrences'),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              RecurrencePanel(
+                child: Column(
+                  children: [
+                    for (final slot in remaining.take(3)) ...[
+                      if (slot != remaining.first) const Divider(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                DateFormat(
+                                  'M/d (E)',
+                                  Localizations.localeOf(context).toString(),
+                                ).format(_time(slot)),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              DateFormat.jm(
+                                Localizations.localeOf(context).toString(),
+                              ).format(_time(slot)),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ],
+          if (review.detached.isNotEmpty) ...[
             Text(
-              '${value.scheduleName}\n${recurrenceDate(context, value.scheduleTime)}',
+              recurrenceText(
+                context,
+                '규칙 변경으로 기존과 다른 일정이 발생하는 회차가 있습니다. 아래 일정을 단독 일정으로 유지하고 저장할까요?',
+                'Individually edited occurrences differ from the new rule. Keep these as standalone schedules?',
+              ),
             ),
-          Text(
-            recurrenceText(
-              context,
-              '분리되는 일정도 남은 횟수에 포함돼요. 현재 시간과 준비과정을 유지합니다.',
-              'Detached schedules count toward the remaining total and keep their time and preparation.',
+            for (final value in review.detached)
+              RecurrenceValue(
+                label: value.scheduleName,
+                value: recurrenceDate(context, value.scheduleTime),
+              ),
+            RecurrencePanel(
+              highlighted: true,
+              child: Text(
+                recurrenceText(
+                  context,
+                  '개별 수정한 일정은 기존 시간과 준비과정을 그대로 유지합니다. 분리되는 일정도 남은 횟수에 포함돼요.',
+                  'Detached schedules count toward the remaining total and keep their time and preparation.',
+                ),
+              ),
             ),
-          ),
+          ],
+          if (review.totalOccurrences != null)
+            Text(
+              recurrenceText(
+                context,
+                '반복 ${review.totalOccurrences! - _excluded.length}회${review.detached.isEmpty ? '' : ' + 독립 일정 ${review.detached.length}회'}',
+                '${review.totalOccurrences! - _excluded.length} recurring occurrences',
+              ),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
         ],
         if (review.skipped.isNotEmpty) ...[
-          Text(
-            recurrenceText(context, '건너뛴 날짜', 'Skipped dates'),
-            style: Theme.of(context).textTheme.titleSmall,
+          RecurrencePanel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  recurrenceText(context, '건너뛴 날짜', 'Skipped dates'),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                for (final skip in review.skipped.take(5))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      _skip(context, skip),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+              ],
+            ),
           ),
-          for (final skip in review.skipped.take(5)) Text(_skip(context, skip)),
           if (review.skipped.length > 5)
             TextButton(
               onPressed: () => showModalBottomSheet<void>(
@@ -191,13 +343,13 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
                 isScrollControlled: true,
                 useSafeArea: true,
                 builder: (context) => SizedBox(
-                  height: MediaQuery.sizeOf(context).height * .8,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: review.skipped.length,
-                    itemBuilder: (context, i) => ListTile(
-                      title: Text(_skip(context, review.skipped[i])),
-                    ),
+                  height: MediaQuery.sizeOf(context).height * .9,
+                  child: RecurrenceSheet(
+                    title: recurrenceText(context, '건너뛴 날짜', 'Skipped dates'),
+                    children: [
+                      for (final skip in review.skipped)
+                        Text(_skip(context, skip)),
+                    ],
                   ),
                 ),
               ),

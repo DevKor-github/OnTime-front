@@ -140,8 +140,12 @@ GoRouter goRouterConfig(
       ),
       GoRoute(
         path: '/myData',
-        pageBuilder: (context, state) =>
-            _buildAppRoutePage(state: state, child: const MyDataScreen()),
+        pageBuilder: (context, state) => _buildAppRoutePage(
+          state: state,
+          child: MyDataScreen(
+            initialAction: state.uri.queryParameters['action'],
+          ),
+        ),
       ),
       GoRoute(
         path: '/privacyPolicy',

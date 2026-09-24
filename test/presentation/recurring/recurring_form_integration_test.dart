@@ -1,4 +1,5 @@
 import '../../helpers/noop_alarm_reconciliation.dart';
+import '../../helpers/refresh_capture.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -42,6 +43,7 @@ import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 
 void main() {
+  setUpAll(loadRefreshFonts);
   late AppDatabase db;
   late PreparationRepositoryImpl preparations;
   late ScheduleRepositoryImpl schedules;
@@ -190,6 +192,7 @@ void main() {
       bool? saved;
       await tester.pumpWidget(
         MaterialApp(
+          debugShowCheckedModeBanner: false,
           theme: themeData,
           locale: const Locale('ko'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -235,19 +238,16 @@ void main() {
           isTrue,
           reason: 'Step $step: ${bloc.state}',
         );
-        await tester.tap(
-          find.descendant(
-            of: find.byType(TopBar),
-            matching: find.byType(TextButton),
-          ),
-        );
+        await tester.tap(find.text('다음'));
         await tester.pumpAndSettle();
+        if (step == 0) await captureRefresh(tester, 'date-time');
+        if (step == 2) await captureRefresh(tester, 'preparation');
       }
-      expect(find.text('확인'), findsOneWidget);
+      expect(find.text('검토하기'), findsOneWidget);
       final reviewed = bloc.stream.firstWhere(
         (s) => s.submissionStatus == ScheduleFormSubmissionStatus.review,
       );
-      await tester.tap(find.text('확인'));
+      await tester.tap(find.text('검토하기'));
       await tester.runAsync(() => reviewed);
       await tester.pumpAndSettle();
       expect(find.text('반복 일정 확인'), findsOneWidget);
@@ -259,7 +259,7 @@ void main() {
       final success = bloc.stream.firstWhere(
         (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
       );
-      await tester.tap(find.text('저장'));
+      await tester.tap(find.text('저장하기'));
       await tester.runAsync(() => success);
       await tester.pumpAndSettle();
       expect(saved, isTrue);

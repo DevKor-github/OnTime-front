@@ -5,6 +5,8 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:on_time_front/presentation/shared/components/notification_timing_education.dart';
 import 'package:on_time_front/domain/entities/scheduled_notification_content.dart';
+import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
+import '../../helpers/refresh_capture.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,6 +31,7 @@ import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadRefreshFonts);
 
   late AppDatabase database;
   late _FakeAlarmRepository alarmRepository;
@@ -77,11 +80,21 @@ void main() {
     await getIt.reset();
   });
 
+  testWidgets('Korean settings match the phone layout', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pumpMyPage(tester, locale: const Locale('ko'));
+    await captureRefresh(tester, 'mypage-entry');
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('shows only local data and device settings', (tester) async {
     await _pumpMyPage(tester);
 
     expect(find.text('My Page'), findsOneWidget);
-    expect(find.text('백업, 복원 및 로컬 데이터 초기화'), findsOneWidget);
+    expect(find.text('Back up my data'), findsOneWidget);
     expect(find.text('알림에 일정 이름 표시'), findsOneWidget);
     expect(find.text('Sign in'), findsNothing);
     expect(find.textContaining('email'), findsNothing);
@@ -420,7 +433,8 @@ void main() {
   ) async {
     await _pumpMyPage(tester);
 
-    await tester.tap(find.text('백업, 복원 및 로컬 데이터 초기화'));
+    await tester.ensureVisible(find.text('Back up my data'));
+    await tester.tap(find.text('Back up my data'));
     await tester.pumpAndSettle();
     expect(find.text('my data destination'), findsOneWidget);
 
@@ -439,14 +453,18 @@ void main() {
 Future<void> _pumpMyPage(
   WidgetTester tester, {
   NotificationService? notificationService,
+  Locale locale = const Locale('en'),
 }) async {
   final router = GoRouter(
     initialLocation: '/myPage',
     routes: [
       GoRoute(
         path: '/myPage',
-        builder: (_, _) =>
-            MyPageScreen(notificationService: notificationService),
+        builder: (_, _) => locale.languageCode == 'ko'
+            ? BottomNavBarScaffold(
+                child: MyPageScreen(notificationService: notificationService),
+              )
+            : MyPageScreen(notificationService: notificationService),
       ),
       GoRoute(
         path: '/myData',
@@ -467,7 +485,14 @@ Future<void> _pumpMyPage(
   await tester.pumpWidget(
     MaterialApp.router(
       theme: themeData,
-      locale: const Locale('en'),
+      debugShowCheckedModeBanner: false,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(padding: const EdgeInsets.only(top: 44, bottom: 34)),
+        child: child!,
+      ),
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,

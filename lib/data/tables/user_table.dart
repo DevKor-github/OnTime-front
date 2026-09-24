@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 class Users extends Table {
+  TextColumn get storeIncarnation => text().nullable()();
   TextColumn get id => text().clientDefault(() => Uuid().v7())();
   IntColumn get spareTime => integer()();
   TextColumn get note => text()();

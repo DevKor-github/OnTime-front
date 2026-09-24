@@ -29,8 +29,23 @@ class RecurringBackupData {
   Map<String, Object?> toJson() => {
     'definitions': definitions.map((r) => r.toJson()).toList(),
     'steps': steps.map((r) => r.toJson()).toList(),
-    'segments': segments.map((r) => r.toJson()).toList(),
+    'segments': segments.map((r) => _portableSegment(r.toJson())).toList(),
     'exclusions': exclusions.map((r) => r.toJson()).toList(),
+  };
+
+  static Map<String, dynamic> _portableSegment(Map<String, dynamic> source) => {
+    for (final key in [
+      'id',
+      'seriesId',
+      'ruleJson',
+      'scheduleJson',
+      'preparationId',
+      'fromSlot',
+      'beforeSlot',
+      'createdAt',
+      'preparationNotBefore',
+    ])
+      key: source[key],
   };
 
   factory RecurringBackupData.fromJson(Object? value) {
@@ -43,7 +58,10 @@ class RecurringBackupData {
       return RecurringBackupData(
         definitions: rows('definitions', PreparationDefinition.fromJson),
         steps: rows('steps', PreparationDefinitionStep.fromJson),
-        segments: rows('segments', RecurringScheduleSegment.fromJson),
+        segments: rows(
+          'segments',
+          (json) => RecurringScheduleSegment.fromJson(_portableSegment(json)),
+        ),
         exclusions: rows('exclusions', RecurringScheduleExclusion.fromJson),
       );
     } catch (_) {

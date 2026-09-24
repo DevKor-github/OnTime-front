@@ -6,6 +6,13 @@ import 'package:uuid/uuid.dart';
 @TableIndex(name: 'schedules_schedule_time_idx', columns: {#scheduleTime})
 @TableIndex(name: 'schedules_place_id_idx', columns: {#placeId})
 class Schedules extends Table {
+  // Installation-local concurrency metadata; excluded from portable backups.
+  TextColumn get aggregateIncarnation => text().nullable()();
+  IntColumn get aggregateVersion => integer().nullable()();
+  TextColumn get lastMutationId => text().nullable()();
+  TextColumn get lastMutationDigest => text().nullable()();
+  IntColumn get lastMutationVersion => integer().nullable()();
+
   TextColumn get id => text().clientDefault(() => Uuid().v7())();
   TextColumn get placeId => text().references(Places, #id)();
   TextColumn get scheduleName => text()();

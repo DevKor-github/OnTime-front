@@ -1,80 +1,53 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:on_time_front/domain/entities/place_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_entity.dart';
-import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
-import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_save_workflow.dart';
 import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
+import '../../data/repositories/schedule_aggregate_repository_test.dart'
+    show schedule, prep;
 
-class SpyCreateScheduleWithPlaceUseCase
-    implements CreateScheduleWithPlaceUseCase {
-  final createdSchedules = <ScheduleEntity>[];
-
+class Workflow extends Fake implements ScheduleSaveWorkflow {
+  bool? editing;
+  int saves = 0;
+  int retries = 0;
   @override
-  Future<void> call(ScheduleEntity schedule) async {
-    createdSchedules.add(schedule);
+  Future<ScheduleSaveReceipt> save(
+    ScheduleFormSubmission value, {
+    required bool editing,
+  }) async {
+    this.editing = editing;
+    saves++;
+    return ScheduleSaveReceipt(
+      scheduleId: value.schedule.id,
+      mutationId: 'intent',
+      generation: 0,
+      changed: true,
+      deliveryPending: true,
+    );
   }
-}
-
-class SpyCreateCustomPreparationUseCase
-    implements CreateCustomPreparationUseCase {
-  final createdPreparations = <({PreparationEntity preparation, String id})>[];
 
   @override
-  Future<void> call(
-    PreparationEntity preparationEntity,
-    String scheduleId,
-  ) async {
-    createdPreparations.add((preparation: preparationEntity, id: scheduleId));
+  Future<ScheduleSaveReceipt> retryDelivery(ScheduleSaveReceipt receipt) async {
+    retries++;
+    return receipt.withDeliveryPending(false);
   }
 }
 
 void main() {
-  test(
-    'changed preparation creates schedule and saves custom preparation locally',
-    () async {
-      final createScheduleUseCase = SpyCreateScheduleWithPlaceUseCase();
-      final createCustomPreparationUseCase =
-          SpyCreateCustomPreparationUseCase();
-      final useCase = CreateScheduleFormSubmissionUseCase(
-        createScheduleUseCase,
-        createCustomPreparationUseCase,
-      );
-      final schedule = ScheduleEntity(
-        id: 'schedule-1',
-        place: PlaceEntity(id: 'place-1', placeName: 'Office'),
-        scheduleName: 'Meeting',
-        scheduleTime: DateTime(2027, 3, 20, 9),
-        moveTime: const Duration(minutes: 30),
-        isChanged: true,
-        isStarted: false,
-        scheduleSpareTime: const Duration(minutes: 10),
-        scheduleNote: '',
-      );
-      final preparation = PreparationEntity(
-        preparationStepList: const [
-          PreparationStepEntity(
-            id: 'prep-1',
-            preparationName: 'Shower',
-            preparationTime: Duration(minutes: 10),
-          ),
-        ],
-      );
-
-      await useCase(
-        ScheduleFormSubmission(
-          schedule: schedule,
-          preparation: preparation,
-          preparationChanged: true,
-        ),
-      );
-
-      expect(createScheduleUseCase.createdSchedules, [schedule]);
-      expect(createCustomPreparationUseCase.createdPreparations, [
-        (preparation: preparation, id: 'schedule-1'),
-      ]);
-    },
-  );
+  test('create preserves committed result and retries delivery only', () async {
+    final workflow = Workflow();
+    final useCase = CreateScheduleFormSubmissionUseCase(workflow);
+    final receipt = await useCase(
+      ScheduleFormSubmission(
+        schedule: schedule(),
+        preparation: prep(),
+        preparationChanged: true,
+      ),
+    );
+    expect(workflow.editing, false);
+    expect(receipt.deliveryPending, isTrue);
+    expect((await useCase.retryDelivery(receipt)).deliveryPending, isFalse);
+    expect(workflow.saves, 1);
+    expect(workflow.retries, 1);
+  });
 }

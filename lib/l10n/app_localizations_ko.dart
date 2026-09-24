@@ -668,4 +668,37 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get dataResetFailed => '초기화하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get scheduleSavedPending => '일정은 저장됐어요';
+
+  @override
+  String get scheduleDeliveryPendingBody =>
+      '알림 업데이트를 완료하지 못했어요. 다시 시도하면 저장한 일정은 그대로 두고 알림만 업데이트합니다.';
+
+  @override
+  String get scheduleSaveConflict => '저장 전에 변경 사항을 확인해 주세요';
+
+  @override
+  String get scheduleSaveConflictBody =>
+      '화면을 연 뒤 로컬 데이터가 바뀌었어요. 입력은 유지됩니다. 새 일정은 다른 데이터가 바뀌어도 다시 확인해야 합니다.';
+
+  @override
+  String get scheduleReviewCurrent => '현재 데이터 확인';
+
+  @override
+  String get scheduleCreateReview =>
+      '현재 로컬 데이터를 기준으로 새 저장을 준비합니다. 입력 내용을 확인한 뒤 저장 버튼을 다시 눌러 주세요.';
+
+  @override
+  String get scheduleDraftPreserved =>
+      '위 내용은 현재 저장된 일정입니다. 확인하면 입력한 초안을 유지하며 새 저장을 준비합니다. 변경 내용을 검토한 뒤 저장을 다시 눌러 주세요.';
+
+  @override
+  String get scheduleSaveProtected =>
+      '이미 시작됐거나 준비 시간이 지난 일정은 수정할 수 없어요. 입력 내용은 유지됩니다.';
+
+  @override
+  String get scheduleSaveUnavailable =>
+      '저장할 수 없어요. 입력을 유지했으니 현재 상태와 준비 단계를 확인해 주세요.';
 }

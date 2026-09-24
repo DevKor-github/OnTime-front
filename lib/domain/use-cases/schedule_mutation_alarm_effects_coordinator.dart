@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'dart:async';
 
 import 'package:injectable/injectable.dart';
@@ -18,6 +19,15 @@ class ScheduleMutationAlarmEffectsCoordinator {
     this._cancelScheduleAlarmUseCase,
     this._reconcileAlarmsUseCase,
   );
+
+  /// Await the accepted current-data reconciliation after an aggregate commit.
+  /// A failed projection never changes the durable commit fact.
+  Future<bool> afterCommit() async {
+    final result = await _reconcileAlarmsUseCase();
+    return result.failures.isEmpty &&
+        (result.status == AlarmReconciliationStatus.armed ||
+            result.status == AlarmReconciliationStatus.disabled);
+  }
 
   Future<void> call({
     required ScheduleMutationAlarmOperation operation,

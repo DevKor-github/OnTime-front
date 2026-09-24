@@ -22,13 +22,12 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
       await into(
         db.places,
       ).insertOnConflictUpdate(scheduleWithPlace.place.toCompanion(false));
-      final scheduleModel = await into(
-        db.schedules,
-      ).insertReturning(scheduleWithPlace.schedule.toCompanion(false));
-      return ScheduleWithPlace(
-        schedule: scheduleModel,
-        place: scheduleWithPlace.place,
+      await into(db.schedules).insert(
+        _withoutConcurrencyMetadata(
+          scheduleWithPlace.schedule.toCompanion(false),
+        ),
       );
+      return getScheduleById(scheduleWithPlace.schedule.id);
     });
   }
 
@@ -53,14 +52,26 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
     }
   }
 
-  Future<Schedule> updateSchedule(Schedule scheduleModel) async {
-    final scheduleList =
-        await (update(db.schedules)
-              ..where((tbl) => tbl.id.equals(scheduleModel.id)))
-            .writeReturning(scheduleModel.toCompanion(true));
-    assert(scheduleList.length == 1);
-    return scheduleList.first;
-  }
+  SchedulesCompanion _withoutConcurrencyMetadata(SchedulesCompanion values) =>
+      values.copyWith(
+        aggregateIncarnation: const Value.absent(),
+        aggregateVersion: const Value.absent(),
+        lastMutationId: const Value.absent(),
+        lastMutationDigest: const Value.absent(),
+        lastMutationVersion: const Value.absent(),
+      );
+
+  Future<Schedule> updateSchedule(Schedule scheduleModel) =>
+      transaction(() async {
+        final changed =
+            await (update(
+              db.schedules,
+            )..where((t) => t.id.equals(scheduleModel.id))).write(
+              _withoutConcurrencyMetadata(scheduleModel.toCompanion(true)),
+            );
+        if (changed != 1) throw ScheduleNotFound(scheduleModel.id);
+        return (await getScheduleById(scheduleModel.id)).schedule;
+      });
 
   Future<ScheduleWithPlace> updateScheduleWithPlace(
     ScheduleWithPlace value,
@@ -71,7 +82,7 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
       ).insertOnConflictUpdate(value.place.toCompanion(false));
       await (update(db.schedules)
             ..where((table) => table.id.equals(value.schedule.id)))
-          .write(value.schedule.toCompanion(true));
+          .write(_withoutConcurrencyMetadata(value.schedule.toCompanion(true)));
       return getScheduleById(value.schedule.id);
     });
   }
@@ -129,17 +140,37 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Stream<List<ScheduleWithPlace>> watchScheduleList() {
-    final query = select(db.schedules).join([
-      leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),
-    ])..orderBy([OrderingTerm.asc(db.schedules.scheduleTime)]);
-    return query.watch().map(
-      (rows) => [
-        for (final row in rows)
-          ScheduleWithPlace(
-            schedule: row.readTable(db.schedules),
-            place: row.readTable(db.places),
-          ),
-      ],
-    );
+    // Trigger-written versions also change when a preparation dependency changes.
+    // Drift needs those dependencies explicitly; notifications remain commit-bound.
+    return db
+        .customSelect(
+          'SELECT s.*, p.id AS joined_place_id, p.place_name AS joined_place_name FROM schedules s JOIN places p ON p.id=s.place_id ORDER BY s.schedule_time ASC',
+          readsFrom: {
+            db.schedules,
+            db.places,
+            db.preparationSchedules,
+            db.preparationUsers,
+            db.preparationTemplates,
+            db.preparationTemplateSteps,
+            db.preparationDefinitions,
+            db.preparationDefinitionSteps,
+            db.recurringScheduleSegments,
+            db.recurringScheduleExclusions,
+          },
+        )
+        .watch()
+        .map(
+          (rows) => rows
+              .map(
+                (row) => ScheduleWithPlace(
+                  schedule: db.schedules.map(row.data),
+                  place: Place(
+                    id: row.read<String>('joined_place_id'),
+                    placeName: row.read<String>('joined_place_name'),
+                  ),
+                ),
+              )
+              .toList(growable: false),
+        );
   }
 }

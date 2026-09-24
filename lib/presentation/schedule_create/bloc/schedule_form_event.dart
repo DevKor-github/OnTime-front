@@ -155,3 +155,12 @@ final class ScheduleFormRepeatedTimeChosen extends ScheduleFormEvent {
   @override
   List<Object> get props => [choice];
 }
+
+final class ScheduleFormBaselineAccepted extends ScheduleFormEvent {
+  const ScheduleFormBaselineAccepted(this.owner, this.baseline, this.current);
+  final Object owner;
+  final ScheduleEditBaseline baseline;
+  final ScheduleEntity? current;
+  @override
+  List<Object> get props => [owner, baseline, ?current];
+}

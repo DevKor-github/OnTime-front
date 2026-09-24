@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_time_choice_sheet.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
@@ -64,8 +65,17 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
       listenWhen: (previous, current) =>
           previous.submissionStatus != current.submissionStatus,
       listener: (context, state) async {
+        final bloc = context.read<ScheduleFormBloc>();
+        final owner = bloc.formOwner;
+        final mutation = state.mutationId;
+        bool ownsCurrentForm() =>
+            mounted &&
+            context.mounted &&
+            bloc.ownsForm(owner) &&
+            bloc.state.mutationId == mutation &&
+            (ModalRoute.of(context)?.isCurrent ?? false);
+        if (!context.mounted || !ownsCurrentForm()) return;
         if (state.submissionStatus == ScheduleFormSubmissionStatus.review) {
-          final bloc = context.read<ScheduleFormBloc>();
           final selected = await showModalBottomSheet<Set<String>>(
             context: context,
             isScrollControlled: true,
@@ -78,7 +88,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               ),
             ),
           );
-          if (bloc.isClosed) return;
+          if (!context.mounted || !ownsCurrentForm()) return;
           if (selected == null) {
             bloc.add(const ScheduleFormReviewDismissed());
           } else if (state.originalSchedule == null) {
@@ -92,7 +102,6 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
           }
         } else if (state.submissionStatus ==
             ScheduleFormSubmissionStatus.timeChoice) {
-          final bloc = context.read<ScheduleFormBloc>();
           final choice = await showModalBottomSheet<RepeatedCivilTime>(
             context: context,
             isScrollControlled: true,
@@ -105,7 +114,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               ),
             ),
           );
-          if (bloc.isClosed) return;
+          if (!context.mounted || !ownsCurrentForm()) return;
           if (choice == null) {
             bloc.add(const ScheduleFormReviewDismissed());
           } else {
@@ -115,7 +124,100 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             ScheduleFormSubmissionStatus.success) {
           Navigator.of(context).pop(true);
         } else if (state.submissionStatus ==
+            ScheduleFormSubmissionStatus.deliveryPending) {
+          final l = AppLocalizations.of(context)!;
+          final retry = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(l.scheduleSavedPending),
+              content: Text(l.scheduleDeliveryPendingBody),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(l.ok),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(l.dataRetry),
+                ),
+              ],
+            ),
+          );
+          if (!context.mounted || !ownsCurrentForm()) return;
+          if (retry == true) {
+            widget.onSaved?.call();
+          } else {
+            Navigator.of(context).pop(true);
+          }
+        } else if (state.submissionStatus ==
             ScheduleFormSubmissionStatus.failure) {
+          if (state.saveFailure == ScheduleSaveFailure.conflict) {
+            final l = AppLocalizations.of(context)!;
+            final review = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(l.scheduleSaveConflict),
+                content: Text(l.scheduleSaveConflictBody),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text(l.cancel),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(l.scheduleReviewCurrent),
+                  ),
+                ],
+              ),
+            );
+            if (!context.mounted || !ownsCurrentForm() || review != true) {
+              return;
+            }
+            try {
+              final current = await context
+                  .read<ScheduleFormBloc>()
+                  .reviewCurrent();
+              if (!context.mounted || !ownsCurrentForm()) return;
+              final accept = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(l.scheduleReviewCurrent),
+                  content: SingleChildScrollView(
+                    child: Text(
+                      current.current == null
+                          ? l.scheduleCreateReview
+                          : '${current.current!.schedule.scheduleName}\n${current.current!.schedule.place.placeName}\n${current.current!.schedule.scheduleTime}\n${current.current!.preparation.ordered.preparationStepList.map((s) => '${s.preparationName}: ${s.preparationTime.inMinutes}').join('\n')}\n\n${l.scheduleDraftPreserved}',
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(l.cancel),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(l.ok),
+                    ),
+                  ],
+                ),
+              );
+              if (context.mounted && ownsCurrentForm() && accept == true) {
+                context.read<ScheduleFormBloc>().acceptReviewedBaseline(
+                  current.owner,
+                  current.baseline,
+                  current.current?.schedule,
+                );
+              }
+            } catch (_) {
+              if (context.mounted && ownsCurrentForm()) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l.scheduleSaveUnavailable)),
+                );
+              }
+            }
+            return;
+          }
+
           final retry = await showModalBottomSheet<bool>(
             context: context,
             isScrollControlled: true,
@@ -123,13 +225,16 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             builder: (context) => SizedBox(
               height: MediaQuery.sizeOf(context).height * .94,
               child: RecurrenceSaveErrorSheet(
-                message:
-                    state.submissionError ??
-                    AppLocalizations.of(context)!.error,
+                message: state.saveFailure == null
+                    ? state.submissionError ??
+                          AppLocalizations.of(context)!.error
+                    : state.saveFailure == ScheduleSaveFailure.protected
+                    ? AppLocalizations.of(context)!.scheduleSaveProtected
+                    : AppLocalizations.of(context)!.scheduleSaveUnavailable,
               ),
             ),
           );
-          if (mounted && retry == true) widget.onSaved?.call();
+          if (ownsCurrentForm() && retry == true) widget.onSaved?.call();
         }
       },
       child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(

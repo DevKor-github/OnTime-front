@@ -688,5 +688,14 @@
       }
     }
   },
-  "dataResetFailed": "Local data could not be reset. Try again."
+  "dataResetFailed": "Local data could not be reset. Try again.",
+  "scheduleSavedPending": "Schedule saved",
+  "scheduleDeliveryPendingBody": "Notifications could not be updated. Retry updates notifications without saving the schedule again.",
+  "scheduleSaveConflict": "Review changes before saving",
+  "scheduleSaveConflictBody": "Local data changed after this form was opened. Your draft is preserved. A new schedule also requires review when other data changes.",
+  "scheduleReviewCurrent": "Review current data",
+  "scheduleCreateReview": "Prepare a new save using the current local data. Review your draft, then press Save again.",
+  "scheduleDraftPreserved": "This is the currently saved schedule. Confirm to preserve your draft and prepare a new save. Review the changes, then press Save again.",
+  "scheduleSaveProtected": "Schedules that have started or reached preparation time cannot be edited. Your draft is preserved.",
+  "scheduleSaveUnavailable": "Unable to save. Your draft is preserved. Check the current state and preparation steps."
 }

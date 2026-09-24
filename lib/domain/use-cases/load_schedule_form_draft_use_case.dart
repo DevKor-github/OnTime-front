@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
+import 'package:on_time_front/domain/entities/schedule_save.dart';
+import 'package:on_time_front/domain/repositories/schedule_aggregate_repository.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
@@ -11,6 +14,8 @@ import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_u
 import 'package:uuid/uuid.dart';
 
 class ScheduleFormDraft extends Equatable {
+  final RecurringSegment? segment;
+  final ScheduleEditBaseline? baseline;
   final String id;
   final String? placeId;
   final String? placeName;
@@ -27,6 +32,8 @@ class ScheduleFormDraft extends Equatable {
   final ScheduleEntity? originalSchedule;
 
   const ScheduleFormDraft({
+    this.segment,
+    this.baseline,
     required this.id,
     required this.placeId,
     required this.placeName,
@@ -45,6 +52,7 @@ class ScheduleFormDraft extends Equatable {
 
   @override
   List<Object?> get props => [
+    baseline,
     id,
     placeId,
     placeName,
@@ -68,6 +76,7 @@ class LoadScheduleFormDraftUseCase {
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
   final GetDefaultPreparationUseCase _getDefaultPreparationUseCase;
   final GetScheduleByIdUseCase _getScheduleByIdUseCase;
+  final ScheduleAggregateRepository? _aggregate;
   final DateTime Function() _now;
   final String Function() _newId;
   final Future<String> Function() _timeZoneId;
@@ -77,7 +86,9 @@ class LoadScheduleFormDraftUseCase {
     this._getPreparationByScheduleIdUseCase,
     this._getDefaultPreparationUseCase,
     this._getScheduleByIdUseCase,
-  ) : _now = DateTime.now,
+    ScheduleAggregateRepository aggregate,
+  ) : _aggregate = aggregate,
+      _now = DateTime.now,
       _newId = const Uuid().v7,
       _timeZoneId = LocalTimeZoneService.current;
 
@@ -89,7 +100,9 @@ class LoadScheduleFormDraftUseCase {
     required DateTime Function() now,
     required String Function() newId,
     Future<String> Function()? timeZoneId,
-  }) : _now = now,
+    ScheduleAggregateRepository? aggregate,
+  }) : _aggregate = aggregate,
+       _now = now,
        _newId = newId,
        _timeZoneId = timeZoneId ?? LocalTimeZoneService.current;
 
@@ -97,9 +110,12 @@ class LoadScheduleFormDraftUseCase {
     DateTime? initialDate,
     Duration? currentUserSpareTime,
   }) async {
-    final defaultPreparation = await _getDefaultPreparationUseCase();
+    final snapshot = await _aggregate?.newDraft();
+    final defaultPreparation =
+        snapshot?.preparation ?? await _getDefaultPreparationUseCase();
 
     return ScheduleFormDraft(
+      baseline: snapshot?.baseline,
       id: _newId(),
       placeId: _newId(),
       placeName: null,
@@ -119,11 +135,17 @@ class LoadScheduleFormDraftUseCase {
   }
 
   Future<ScheduleFormDraft> edit(String scheduleId) async {
-    await _loadPreparationByScheduleIdUseCase(scheduleId);
-    final preparation = await _getPreparationByScheduleIdUseCase(scheduleId);
-    final schedule = await _getScheduleByIdUseCase(scheduleId);
+    final snapshot = await _aggregate?.readForEdit(scheduleId);
+    if (snapshot == null) await _loadPreparationByScheduleIdUseCase(scheduleId);
+    final preparation =
+        snapshot?.preparation ??
+        await _getPreparationByScheduleIdUseCase(scheduleId);
+    final schedule =
+        snapshot?.schedule ?? await _getScheduleByIdUseCase(scheduleId);
 
     return ScheduleFormDraft(
+      segment: snapshot?.segment,
+      baseline: snapshot?.baseline,
       id: schedule.id,
       placeId: schedule.place.id,
       placeName: schedule.place.placeName,

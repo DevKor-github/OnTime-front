@@ -78,6 +78,7 @@ dependencies:
 
 
 dev_dependencies:
+  sqlite3: ^2.9.4
   flutter_test:
     sdk: flutter
   # Exercise the locked iOS picker contract without replacing its UTI logic.

@@ -1322,6 +1322,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local data could not be reset. Try again.'**
   String get dataResetFailed;
+
+  /// No description provided for @scheduleSavedPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule saved'**
+  String get scheduleSavedPending;
+
+  /// No description provided for @scheduleDeliveryPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications could not be updated. Retry updates notifications without saving the schedule again.'**
+  String get scheduleDeliveryPendingBody;
+
+  /// No description provided for @scheduleSaveConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Review changes before saving'**
+  String get scheduleSaveConflict;
+
+  /// No description provided for @scheduleSaveConflictBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data changed after this form was opened. Your draft is preserved. A new schedule also requires review when other data changes.'**
+  String get scheduleSaveConflictBody;
+
+  /// No description provided for @scheduleReviewCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Review current data'**
+  String get scheduleReviewCurrent;
+
+  /// No description provided for @scheduleCreateReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare a new save using the current local data. Review your draft, then press Save again.'**
+  String get scheduleCreateReview;
+
+  /// No description provided for @scheduleDraftPreserved.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the currently saved schedule. Confirm to preserve your draft and prepare a new save. Review the changes, then press Save again.'**
+  String get scheduleDraftPreserved;
+
+  /// No description provided for @scheduleSaveProtected.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedules that have started or reached preparation time cannot be edited. Your draft is preserved.'**
+  String get scheduleSaveProtected;
+
+  /// No description provided for @scheduleSaveUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save. Your draft is preserved. Check the current state and preparation steps.'**
+  String get scheduleSaveUnavailable;
 }
 
 class _AppLocalizationsDelegate

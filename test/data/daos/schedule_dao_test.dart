@@ -1,3 +1,4 @@
+import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,10 +69,37 @@ void main() async {
       );
     },
   );
+  test(
+    'watch preserves ascending schedule time for reverse insertion order',
+    () async {
+      for (final hour in [15, 10, 8]) {
+        await scheduleDao.createSchedule(
+          ScheduleWithPlace(
+            schedule: scheduleModel.copyWith(
+              id: 'at-$hour',
+              scheduleTime: DateTime(2030, 1, 1, hour),
+            ),
+            place: placeModel,
+          ),
+        );
+      }
+      final rows = await scheduleDao.watchScheduleList().first;
+      expect(rows.map((r) => r.schedule.scheduleTime.hour), [8, 10, 15]);
+      expect(
+        rows.map((r) => r.schedule.aggregateIncarnation).toSet(),
+        hasLength(3),
+      );
+    },
+  );
   group('createSchedule', () {
     test('should insert a schedule into the database', () async {
       final result = await scheduleDao.createSchedule(scheduleWithPlaceModel);
-      expect(result, equals(scheduleWithPlaceModel));
+      expect(
+        result.toScheduleEntity(),
+        scheduleWithPlaceModel.toScheduleEntity(),
+      );
+      expect(result.schedule.aggregateIncarnation, hasLength(32));
+      expect(result.schedule.aggregateVersion, 0);
     });
   });
 
@@ -93,7 +121,19 @@ void main() async {
       final result = await scheduleDao.updateSchedule(updatedScheduleModel);
 
       //assert
-      expect(result, equals(updatedScheduleModel));
+      expect(
+        ScheduleWithPlace(
+          schedule: result,
+          place: placeModel,
+        ).toScheduleEntity(),
+        ScheduleWithPlace(
+          schedule: updatedScheduleModel,
+          place: placeModel,
+        ).toScheduleEntity(),
+      );
+      expect(result.aggregateIncarnation, hasLength(32));
+      expect(result.aggregateVersion, 1);
+      expect(result, (await scheduleDao.getScheduleById(result.id)).schedule);
     });
   });
   group('deleteSchedule', () {
@@ -133,7 +173,12 @@ void main() async {
       final result = await scheduleDao.getScheduleById(scheduleModel.id);
 
       //
-      expect(result, equals(scheduleWithPlaceModel));
+      expect(
+        result.toScheduleEntity(),
+        scheduleWithPlaceModel.toScheduleEntity(),
+      );
+      expect(result.schedule.aggregateIncarnation, hasLength(32));
+      expect(result.schedule.aggregateVersion, 0);
     });
   });
 
@@ -199,7 +244,11 @@ void main() async {
         final result = await scheduleDao.getSchedulesByDate(startDate, endDate);
 
         //assert
-        expect(result, equals([scheduleWithPlaceModel]));
+        expect(result.map((row) => row.toScheduleEntity()), [
+          scheduleWithPlaceModel.toScheduleEntity(),
+        ]);
+        expect(result.single.schedule.aggregateIncarnation, hasLength(32));
+        expect(result.single.schedule.aggregateVersion, 0);
       },
     );
 
@@ -231,10 +280,10 @@ void main() async {
         final result = await scheduleDao.getSchedulesByDate(startDate, null);
 
         //assert
-        expect(
-          result,
-          equals([scheduleWithPlaceModel, laterScheduleWithPlaceModel]),
-        );
+        expect(result.map((row) => row.toScheduleEntity()), [
+          scheduleWithPlaceModel.toScheduleEntity(),
+          laterScheduleWithPlaceModel.toScheduleEntity(),
+        ]);
       },
     );
   });

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
@@ -46,10 +48,19 @@ class SpyCreateScheduleFormSubmissionUseCase
   final submissions = <ScheduleFormSubmission>[];
 
   @override
-  Future<void> call(ScheduleFormSubmission submission) async {
+  Future<ScheduleSaveReceipt> call(ScheduleFormSubmission submission) async {
     submissions.add(submission);
     await handler?.call(submission);
+    return ScheduleSaveReceipt(
+      scheduleId: submission.schedule.id,
+      mutationId: submission.mutationId ?? 'test',
+      generation: 0,
+      changed: true,
+    );
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class SpyUpdateScheduleFormSubmissionUseCase
@@ -58,10 +69,19 @@ class SpyUpdateScheduleFormSubmissionUseCase
   final submissions = <ScheduleFormSubmission>[];
 
   @override
-  Future<void> call(ScheduleFormSubmission submission) async {
+  Future<ScheduleSaveReceipt> call(ScheduleFormSubmission submission) async {
     submissions.add(submission);
     await handler?.call(submission);
+    return ScheduleSaveReceipt(
+      scheduleId: submission.schedule.id,
+      mutationId: submission.mutationId ?? 'test',
+      generation: 0,
+      changed: true,
+    );
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -371,4 +391,60 @@ void main() {
 
     expect(bloc.state.isChanged, IsPreparationChanged.unchanged);
   });
+  test(
+    'old pending save completion cannot replace a newly loaded form',
+    () async {
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+      await primeEditState(bloc);
+      final entered = Completer<void>();
+      final release = Completer<void>();
+      updateScheduleFormSubmissionUseCase.handler = (_) {
+        entered.complete();
+        return release.future;
+      };
+      bloc.add(const ScheduleFormUpdated());
+      await entered.future;
+      final ready = bloc.stream.firstWhere(
+        (s) =>
+            s.status == ScheduleFormStatus.success &&
+            s.submissionStatus == ScheduleFormSubmissionStatus.idle,
+      );
+      bloc.add(const ScheduleFormCreateRequested());
+      await ready;
+      final newMutation = bloc.state.mutationId;
+      release.complete();
+      await pumpEventQueue();
+      expect(bloc.state.mutationId, newMutation);
+      expect(bloc.state.submissionStatus, ScheduleFormSubmissionStatus.idle);
+    },
+  );
+  test(
+    'pending save ignores input and repeated submit until actual completion',
+    () async {
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+      await primeEditState(bloc);
+      final entered = Completer<void>();
+      final release = Completer<void>();
+      updateScheduleFormSubmissionUseCase.handler = (_) {
+        entered.complete();
+        return release.future;
+      };
+      final name = bloc.state.scheduleName;
+      bloc.add(const ScheduleFormUpdated());
+      await entered.future;
+      bloc.add(
+        const ScheduleFormScheduleNameChanged(scheduleName: 'Late input'),
+      );
+      bloc.add(const ScheduleFormReviewDismissed());
+      bloc.add(const ScheduleFormUpdated());
+      await pumpEventQueue();
+      expect(bloc.state.scheduleName, name);
+      expect(updateScheduleFormSubmissionUseCase.submissions, hasLength(1));
+      release.complete();
+      await pumpEventQueue();
+      expect(bloc.state.submissionStatus, ScheduleFormSubmissionStatus.success);
+    },
+  );
 }

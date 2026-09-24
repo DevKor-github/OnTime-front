@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:equatable/equatable.dart';
@@ -6,6 +7,8 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 
 class ScheduleFormSubmission extends Equatable {
+  final String? mutationId;
+  final ScheduleEditBaseline? baseline;
   final ScheduleEntity schedule;
   final PreparationEntity preparation;
   final bool preparationChanged;
@@ -19,6 +22,8 @@ class ScheduleFormSubmission extends Equatable {
   final String? reviewedFirstSlotKey;
 
   const ScheduleFormSubmission({
+    this.mutationId,
+    this.baseline,
     required this.schedule,
     required this.preparation,
     required this.preparationChanged,
@@ -34,6 +39,8 @@ class ScheduleFormSubmission extends Equatable {
 
   @override
   List<Object?> get props => [
+    mutationId,
+    baseline,
     schedule,
     preparation,
     preparationChanged,

@@ -721,4 +721,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataResetFailed => 'Local data could not be reset. Try again.';
+
+  @override
+  String get scheduleSavedPending => 'Schedule saved';
+
+  @override
+  String get scheduleDeliveryPendingBody =>
+      'Notifications could not be updated. Retry updates notifications without saving the schedule again.';
+
+  @override
+  String get scheduleSaveConflict => 'Review changes before saving';
+
+  @override
+  String get scheduleSaveConflictBody =>
+      'Local data changed after this form was opened. Your draft is preserved. A new schedule also requires review when other data changes.';
+
+  @override
+  String get scheduleReviewCurrent => 'Review current data';
+
+  @override
+  String get scheduleCreateReview =>
+      'Prepare a new save using the current local data. Review your draft, then press Save again.';
+
+  @override
+  String get scheduleDraftPreserved =>
+      'This is the currently saved schedule. Confirm to preserve your draft and prepare a new save. Review the changes, then press Save again.';
+
+  @override
+  String get scheduleSaveProtected =>
+      'Schedules that have started or reached preparation time cannot be edited. Your draft is preserved.';
+
+  @override
+  String get scheduleSaveUnavailable =>
+      'Unable to save. Your draft is preserved. Check the current state and preparation steps.';
 }

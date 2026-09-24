@@ -268,12 +268,45 @@ void main() {
           .toList();
       final deleted = generated[1];
       await recurring.delete(deleted, RecurringEditScope.occurrence);
+      final oldStore =
+          (await database.select(database.users).getSingle()).storeIncarnation;
+      final oldSegments = await database
+          .select(database.recurringScheduleSegments)
+          .get();
       final encrypted = await service.createEncryptedBackup(password);
+      final plaintext = utf8.decode(
+        await BackupCrypto(
+          sodiumLoader: loadSodiumForTest,
+        ).decrypt(container: encrypted, password: password),
+      );
+      for (final internal in [
+        'storeIncarnation',
+        'aggregateIncarnation',
+        'aggregateVersion',
+        'lastMutationId',
+        'lastMutationDigest',
+        'lastMutationVersion',
+        'rootSegmentId',
+      ]) {
+        expect(plaintext, isNot(contains(internal)));
+      }
       final candidate = await service.previewEncryptedBackup(
         encrypted,
         password,
       );
       await service.applyRestore(candidate);
+      expect(
+        (await database.select(database.users).getSingle()).storeIncarnation,
+        isNot(oldStore),
+      );
+      final newSegments = await database
+          .select(database.recurringScheduleSegments)
+          .get();
+      expect(
+        newSegments.first.aggregateIncarnation,
+        isNot(oldSegments.first.aggregateIncarnation),
+      );
+      expect(newSegments.first.lastMutationId, isNull);
       await recurring.materialize(DateTime.utc(2030), DateTime.utc(2031));
       final restored = (await database.scheduleDao.getScheduleList())
           .map((r) => r.toScheduleEntity())

@@ -1,3 +1,5 @@
+import 'package:on_time_front/domain/entities/schedule_save.dart';
+import 'package:on_time_front/domain/repositories/schedule_aggregate_repository.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_engine.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
@@ -25,8 +27,22 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     this._createScheduleFormSubmissionUseCase,
     this._updateScheduleFormSubmissionUseCase, {
     RecurringSchedulesUseCase? recurringSchedules,
-  }) : _recurring = recurringSchedules,
+    ScheduleAggregateRepository? aggregate,
+  }) : _aggregate = aggregate,
+       _recurring = recurringSchedules,
        super(ScheduleFormState()) {
+    on<ScheduleFormBaselineAccepted>((event, emit) {
+      if (!_owns(event.owner) || _saving) return;
+      emit(
+        state.copyWith(
+          baseline: event.baseline,
+          mutationId: const Uuid().v7(),
+          originalSchedule: event.current,
+          saveFailure: null,
+          submissionStatus: ScheduleFormSubmissionStatus.idle,
+        ),
+      );
+    });
     on<ScheduleFormEditRequested>(_onEditRequested);
     on<ScheduleFormCreateRequested>(_onCreateRequested);
     on<ScheduleFormScheduleNameChanged>(_onScheduleNameChanged);
@@ -39,22 +55,29 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     on<ScheduleFormCreated>(_onCreated);
     on<ScheduleFormValidated>(_onValidated);
     on<ScheduleFormRecurringChanged>(
-      (event, emit) => emit(
-        state.copyWith(
-          recurrenceRule: event.rule,
-          recurrenceCountChanged:
-              state.recurrenceCountChanged || event.countChanged,
-          submissionStatus: ScheduleFormSubmissionStatus.idle,
-          recurrenceReview: null,
-        ),
-      ),
+      (event, emit) => _saving
+          ? null
+          : emit(
+              state.copyWith(
+                recurrenceRule: event.rule,
+                recurrenceCountChanged:
+                    state.recurrenceCountChanged || event.countChanged,
+                submissionStatus: ScheduleFormSubmissionStatus.idle,
+                recurrenceReview: null,
+              ),
+            ),
     );
     on<ScheduleFormReviewDismissed>(
-      (event, emit) => emit(
-        state.copyWith(submissionStatus: ScheduleFormSubmissionStatus.idle),
-      ),
+      (event, emit) => _saving
+          ? null
+          : emit(
+              state.copyWith(
+                submissionStatus: ScheduleFormSubmissionStatus.idle,
+              ),
+            ),
     );
     on<ScheduleFormRepeatedTimeChosen>((event, emit) async {
+      if (_saving) return;
       final rule = state.recurrenceRule!;
       emit(
         state.copyWith(
@@ -75,6 +98,42 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
   }
 
   final RecurringSchedulesUseCase? _recurring;
+  final ScheduleAggregateRepository? _aggregate;
+  Object _formOwner = Object();
+  final _pendingOwners = <Object>{};
+  Object get formOwner => _formOwner;
+  bool ownsForm(Object owner) => _owns(owner);
+  bool _owns(Object owner) => !isClosed && identical(owner, _formOwner);
+  bool get _saving => _pendingOwners.contains(_formOwner);
+
+  Future<
+    ({
+      Object owner,
+      ScheduleEditBaseline baseline,
+      ScheduleEditSnapshot? current,
+    })
+  >
+  reviewCurrent() async {
+    final owner = _formOwner;
+    final current = state.originalSchedule == null
+        ? null
+        : await _aggregate!.readForEdit(state.id);
+    final baseline = current?.baseline ?? await _aggregate!.newBaseline();
+    if (!_owns(owner)) {
+      throw const ScheduleSaveRejected(ScheduleSaveFailure.unavailable);
+    }
+    return (owner: owner, baseline: baseline, current: current);
+  }
+
+  void acceptReviewedBaseline(
+    Object owner,
+    ScheduleEditBaseline baseline,
+    ScheduleEntity? current,
+  ) {
+    if (!_owns(owner) || _saving) return;
+    add(ScheduleFormBaselineAccepted(owner, baseline, current));
+  }
+
   final LoadScheduleFormDraftUseCase _loadScheduleFormDraftUseCase;
   final CreateScheduleFormSubmissionUseCase
   _createScheduleFormSubmissionUseCase;
@@ -85,6 +144,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormEditRequested event,
     Emitter<ScheduleFormState> emit,
   ) async {
+    final owner = _formOwner = Object();
     emit(
       state.copyWith(
         status: ScheduleFormStatus.loading,
@@ -94,17 +154,19 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     );
 
     final draft = await _loadScheduleFormDraftUseCase.edit(event.scheduleId);
+    if (!_owns(owner)) return;
     final original = draft.originalSchedule;
     final following =
         (original?.isRecurring ?? false) &&
         event.scope == RecurringEditScope.following;
     _emitLoadedDraft(draft, emit, ready: !following);
     if (following) {
-      final segment = await _recurring!.getSegment(
-        original!.recurringSegmentId!,
-      );
+      final segment =
+          draft.segment ??
+          await _recurring!.getSegment(original!.recurringSegmentId!);
+      if (!_owns(owner)) return;
       if (event.scope == RecurringEditScope.following) {
-        final day = DateTime.parse(original.recurringSlotKey!);
+        final day = DateTime.parse(original!.recurringSlotKey!);
         final start = DateTime(
           day.year,
           day.month,
@@ -140,6 +202,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormCreateRequested event,
     Emitter<ScheduleFormState> emit,
   ) async {
+    final owner = _formOwner = Object();
     emit(
       state.copyWith(
         status: ScheduleFormStatus.loading,
@@ -152,6 +215,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       initialDate: event.initialDate,
       currentUserSpareTime: event.currentUserSpareTime,
     );
+    if (!_owns(owner)) return;
     _emitLoadedDraft(draft, emit);
   }
 
@@ -159,6 +223,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormScheduleNameChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
+    if (_saving) return;
     emit(state.copyWith(scheduleName: event.scheduleName));
   }
 
@@ -166,6 +231,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormScheduleDateTimeChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
+    if (_saving) return;
     emit(
       state.copyWith(
         scheduleTime: DateTime(
@@ -186,6 +252,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormPlaceNameChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
+    if (_saving) return;
     emit(state.copyWith(placeName: event.placeName));
   }
 
@@ -193,6 +260,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormMoveTimeChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
+    if (_saving) return;
     emit(state.copyWith(moveTime: event.moveTime));
   }
 
@@ -200,6 +268,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormScheduleSpareTimeChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
+    if (_saving) return;
     emit(state.copyWith(scheduleSpareTime: event.scheduleSpareTime));
   }
 
@@ -207,6 +276,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormPreparationChanged event,
     Emitter<ScheduleFormState> emit,
   ) {
+    if (_saving) return;
     final IsPreparationChanged isChagned;
     if (state.preparation == event.preparation) {
       // not changed
@@ -243,9 +313,12 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     required bool confirmed,
     required Set<String> excludedSlots,
   }) async {
-    if (state.submissionStatus == ScheduleFormSubmissionStatus.submitting) {
+    if (_saving ||
+        state.submissionStatus == ScheduleFormSubmissionStatus.submitting) {
       return;
     }
+    final owner = _formOwner;
+    _pendingOwners.add(owner);
     emit(
       state.copyWith(
         submissionStatus: ScheduleFormSubmissionStatus.submitting,
@@ -260,6 +333,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
       );
       if (value.recurrenceRule != null && !confirmed) {
         final review = await _recurring!.review(value);
+        if (!_owns(owner)) return;
         if (review != null) {
           emit(
             state.copyWith(
@@ -270,18 +344,36 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
           return;
         }
       }
-      if (editing) {
-        await _updateScheduleFormSubmissionUseCase(value);
-      } else {
-        await _createScheduleFormSubmissionUseCase(value);
+      final receipt = state.saveReceipt?.deliveryPending == true
+          ? await _createScheduleFormSubmissionUseCase.retryDelivery(
+              state.saveReceipt!,
+            )
+          : editing
+          ? await _updateScheduleFormSubmissionUseCase(value)
+          : await _createScheduleFormSubmissionUseCase(value);
+      if (!_owns(owner) ||
+          (_aggregate != null && !_aggregate.isCurrent(receipt))) {
+        return;
       }
       emit(
         state.copyWith(
-          submissionStatus: ScheduleFormSubmissionStatus.success,
+          submissionStatus: receipt.deliveryPending
+              ? ScheduleFormSubmissionStatus.deliveryPending
+              : ScheduleFormSubmissionStatus.success,
+          saveReceipt: receipt,
           submissionError: null,
         ),
       );
+    } on ScheduleSaveRejected catch (e) {
+      if (!_owns(owner)) return;
+      emit(
+        state.copyWith(
+          submissionStatus: ScheduleFormSubmissionStatus.failure,
+          saveFailure: e.failure,
+        ),
+      );
     } on RepeatedTimeChoiceRequired catch (e) {
+      if (!_owns(owner)) return;
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.timeChoice,
@@ -289,6 +381,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         ),
       );
     } on RecurrenceNeedsReview catch (e) {
+      if (!_owns(owner)) return;
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.review,
@@ -296,9 +389,16 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
         ),
       );
     } catch (e) {
+      if (!_owns(owner)) return;
       emit(
         state.copyWith(
           submissionStatus: ScheduleFormSubmissionStatus.failure,
+          saveFailure:
+              e is RecurrenceValidationException ||
+                  e is RecurrenceSearchLimit ||
+                  e is ArgumentError
+              ? null
+              : ScheduleSaveFailure.unavailable,
           submissionError: e is RecurrenceValidationException
               ? e.message
               : e is RecurrenceSearchLimit
@@ -308,6 +408,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
               : '저장하지 못했어요. 입력 내용은 유지되며 다시 시도할 수 있어요.',
         ),
       );
+    } finally {
+      _pendingOwners.remove(owner);
     }
   }
 
@@ -315,6 +417,7 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     ScheduleFormValidated event,
     Emitter<ScheduleFormState> emit,
   ) {
+    if (_saving) return;
     emit(state.copyWith(isValid: event.isValid));
   }
 
@@ -324,10 +427,12 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     bool ready = true,
   }) {
     emit(
-      state.copyWith(
+      ScheduleFormState(
         status: ready ? ScheduleFormStatus.success : ScheduleFormStatus.loading,
         submissionStatus: ScheduleFormSubmissionStatus.idle,
         submissionError: null,
+        baseline: draft.baseline,
+        mutationId: const Uuid().v7(),
         id: draft.id,
         placeId: draft.placeId,
         placeName: draft.placeName,
@@ -357,6 +462,8 @@ class ScheduleFormBloc extends Bloc<ScheduleFormEvent, ScheduleFormState> {
     return ScheduleFormSubmission(
       schedule: scheduleEntity,
       preparation: state.preparation!,
+      baseline: state.baseline,
+      mutationId: state.mutationId,
       preparationChanged:
           state.originalSchedule?.preparationDefinitionId != null
           ? state.preparation != state.originalPreparation

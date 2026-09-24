@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,10 +46,13 @@ void main() {
   tearDown(() => db.close());
 
   test(
-    'series owns reusable preparation and create retries are idempotent',
+    'series owns reusable preparation and direct duplicate create rejects missing intent receipt',
     () async {
       await repository.create(_schedule('a', start), _prep(), daily(count: 3));
-      await repository.create(_schedule('a', start), _prep(), daily(count: 3));
+      await expectLater(
+        repository.create(_schedule('a', start), _prep(), daily(count: 3)),
+        throwsA(isA<ScheduleSaveRejected>()),
+      );
       await repository.create(
         _schedule('b', start.add(const Duration(hours: 2))),
         _prep(),

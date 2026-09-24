@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/constants/local_profile.dart';
 import 'package:on_time_front/core/database/database.dart';
@@ -17,8 +18,39 @@ class PreparationRepositoryImpl implements PreparationRepository {
   }) : _localDataSource = preparationLocalDataSource,
        _userRepository = userRepository,
        _userDao = database.userDao,
-       _database = database;
+       _database = database {
+    _subscription = database
+        .customSelect(
+          'SELECT count(*) AS n FROM schedules',
+          readsFrom: {
+            database.schedules,
+            database.preparationSchedules,
+            database.preparationDefinitions,
+            database.preparationDefinitionSteps,
+            database.preparationUsers,
+            database.preparationTemplates,
+            database.preparationTemplateSteps,
+          },
+        )
+        .watch()
+        .asyncMap(
+          (_) => database.transaction(() async {
+            final schedules = await database.select(database.schedules).get();
+            return {
+              for (final schedule in schedules)
+                schedule.id: await _localDataSource.getPreparationByScheduleId(
+                  schedule.id,
+                ),
+            };
+          }),
+        )
+        .listen(
+          _preparationStreamController.add,
+          onError: _preparationStreamController.addError,
+        );
+  }
 
+  late final StreamSubscription<Map<String, PreparationEntity>> _subscription;
   final PreparationLocalDataSource _localDataSource;
   final UserRepository _userRepository;
   final UserDao _userDao;
@@ -62,12 +94,14 @@ class PreparationRepositoryImpl implements PreparationRepository {
     PreparationEntity preparationEntity,
     String scheduleId,
   ) async {
-    await _localDataSource.createCustomPreparation(
-      preparationEntity,
-      scheduleId,
-    );
+    await _database.transaction(() async {
+      await _localDataSource.createCustomPreparation(
+        preparationEntity,
+        scheduleId,
+      );
+      await _userDao.markDurableDataChanged(localProfileId);
+    });
     _emitSchedulePreparation(scheduleId, preparationEntity);
-    await _userDao.markDurableDataChanged(localProfileId);
   }
 
   @override
@@ -99,12 +133,14 @@ class PreparationRepositoryImpl implements PreparationRepository {
     PreparationEntity preparationEntity,
     String scheduleId,
   ) async {
-    await _localDataSource.replaceSchedulePreparation(
-      preparationEntity,
-      scheduleId: scheduleId,
-    );
+    await _database.transaction(() async {
+      await _localDataSource.replaceSchedulePreparation(
+        preparationEntity,
+        scheduleId: scheduleId,
+      );
+      await _userDao.markDurableDataChanged(localProfileId);
+    });
     _emitSchedulePreparation(scheduleId, preparationEntity);
-    await _userDao.markDurableDataChanged(localProfileId);
   }
 
   @override
@@ -136,5 +172,8 @@ class PreparationRepositoryImpl implements PreparationRepository {
     });
   }
 
-  Future<void> dispose() => _preparationStreamController.close();
+  Future<void> dispose() async {
+    await _subscription.cancel();
+    await _preparationStreamController.close();
+  }
 }

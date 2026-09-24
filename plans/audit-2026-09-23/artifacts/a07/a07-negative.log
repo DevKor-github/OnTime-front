@@ -1,0 +1,38 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_start_transaction_test.dart
+00:00 +0: a failed revision write rolls back the schedule transition and retry succeeds
+00:00 +0 -1: a failed revision write rolls back the schedule transition and retry succeeds [E]
+  Expected: false
+    Actual: <true>
+
+  package:matcher                                                   expect
+  package:flutter_test/src/widget_tester.dart 473:18                expect
+  test/data/repositories/schedule_start_transaction_test.dart 27:5  main.<fn>
+
+00:00 +0 -1: concurrent and repeated starts preserve first timestamp and one revision
+00:00 +0 -2: concurrent and repeated starts preserve first timestamp and one revision [E]
+  Expected: <2>
+    Actual: <4>
+
+  package:matcher                                                   expect
+  package:flutter_test/src/widget_tester.dart 473:18                expect
+  test/data/repositories/schedule_start_transaction_test.dart 43:5  main.<fn>
+
+00:00 +0 -2: completed and deleted occurrences cannot restart
+00:00 +0 -3: completed and deleted occurrences cannot restart [E]
+  Expected: throws anything
+    Actual: <Instance of 'Future<void>'>
+     Which: emitted <null>
+
+  package:matcher                                                    expectLater
+  package:flutter_test/src/widget_tester.dart 507:8                  expectLater
+  test/data/repositories/schedule_start_transaction_test.dart 50:11  main.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                                         _CustomZone.registerUnaryCallback
+  test/data/repositories/schedule_start_transaction_test.dart 48:5   main.<fn>
+
+00:00 +0 -3: Some tests failed.
+
+Failing tests:
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_start_transaction_test.dart: a failed revision write rolls back the schedule transition and retry succeeds
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_start_transaction_test.dart: completed and deleted occurrences cannot restart
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_start_transaction_test.dart: concurrent and repeated starts preserve first timestamp and one revision

@@ -428,18 +428,27 @@
         "`lib/domain/use-cases/schedule_preparation_session_use_case.dart:84-87`",
         "실패 시 재시도 가능, 성공 중복 호출은 멱등. 첫 write 실패→두 번째 성공과 동시 호출을 실제 repository 경계에서 검사."
       ],
-      "status": "ready",
+      "status": "code_verified_ci_device_pending",
       "agent": "/root/grill_a07",
       "issue_number": 599,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/599",
       "decisions_file": "plans/audit-2026-09-23/issues/A07.md",
-      "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "implementation_commit": "d73c7863a01343004ccadcd72064b563c464dd0d",
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Actual Drift pre-fix three failure cases confirmed; focused56 passed",
+        "Full944 tests/analyze clean; coverage88.67% (13289/14987); Python11/manifest/generated/local-only pass",
+        "29 source/test/QA file freeze and committed blobs independently hash-verified",
+        "KO/EN 200% error/partial screenshots; list scroll/skip/next-step hit test pass; synthetic receipt screenshots distinct from real SQLite button regression"
+      ],
+      "blockers": [
+        "Remote CI for this implementation pending",
+        "Physical Android/iOS lifecycle and delivery acceptance pending"
+      ],
       "sequence": 13,
       "readback_verified": true,
-      "body_sha256": "6d58178bbc4ffcfe52875c46537bb8eb3250cd4f9a1f13356bb7a44475065b20"
+      "body_sha256": "6d58178bbc4ffcfe52875c46537bb8eb3250cd4f9a1f13356bb7a44475065b20",
+      "issue_body_sha256": "3a5af2d11207eb219ce324b55367fcf5270204bac6c59df67f2fdbe7c1d7d7c7"
     },
     {
       "audit_id": "C01",
@@ -803,16 +812,18 @@
         "네이티브 계약 테스트와 실기기 매트릭스를 분리한다.",
         "method channel 성공 mock에 그치지 않고 receiver/merged manifest/file picker/keychain/SQLCipher/AlarmKit·fallback을 검사. OS 권한·잠금 화면은 native UI 자동화 또는 수동 기기 절차로 검증."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_t02",
+      "issue_number": 616,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/616",
       "decisions_file": "plans/audit-2026-09-23/issues/T02.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 29
+      "sequence": 29,
+      "readback_verified": true,
+      "issue_body_sha256": "e44eecda9ac22ab41a5068261b0e86acdf7325081cdb4fa0ef3cd4ad467ab31b"
     },
     {
       "audit_id": "R02",
@@ -1087,14 +1098,16 @@
       "pr_url": null,
       "verification": [
         "Home prerequisite patch: actual-font430x932 14px overflow red->green; 18 focused tests (home14/router4) and targeted analyzer passed.",
-        "Root visually inspected scheduled-home PNG; widget render only. u08-home-validation.json source/image/log hashes matched."
+        "Root visually inspected scheduled-home PNG; widget render only. u08-home-validation.json source/image/log hashes matched.",
+        "A07 d73c7863 scoped graph/tile/start-button 200% overflow fix; KO/EN capture/scroll/skip hit tests pass; full944/analyze 88.67%; full U08 matrix remains pending"
       ],
       "blockers": [
         "Remaining full U08 viewport/locale/scale/safe-area matrix and Android/iOS OS large-font validation."
       ],
       "sequence": 42,
       "readback_verified": true,
-      "body_sha256": "ff5cd4c85fbe77fe189f19b2ab322c8d54da3c1f2f9f087362316b2fb4de4705"
+      "body_sha256": "ff5cd4c85fbe77fe189f19b2ab322c8d54da3c1f2f9f087362316b2fb4de4705",
+      "issue_body_sha256": "256176cc0df5447b4b93ff0f7bf8cfa2483fe014c3a8a9862fac6366192cb119"
     },
     {
       "audit_id": "U09",

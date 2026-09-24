@@ -511,6 +511,7 @@ TimedPreparationSnapshotEntity buildSnapshot({
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('ScheduleBloc preparation runtime flow', () {
     late StreamController<ScheduleWithPreparationEntity?> controller;
     late SpyNavigationService navigationService;
@@ -582,6 +583,7 @@ void main() {
               required preparationName,
               required scheduleId,
               required stepId,
+              required isCurrent,
             }) {
               notifiedStepIds.add(stepId);
             },
@@ -840,7 +842,7 @@ void main() {
     );
 
     test(
-      'entering ongoing applies catch-up tick and accepts later ticks',
+      'entering ongoing and legacy refresh derive elapsed from wall clock',
       () async {
         final schedule = buildSchedule(
           id: 'tick',
@@ -863,6 +865,7 @@ void main() {
         final caughtUpElapsed = bloc.state.schedule!.preparation.elapsedTime;
         expect(caughtUpElapsed, const Duration(seconds: 2));
 
+        now = now.add(const Duration(seconds: 1));
         bloc.add(const ScheduleTick(Duration(seconds: 1)));
         await Future<void>.delayed(Duration.zero);
         expect(
@@ -1173,7 +1176,7 @@ void main() {
     });
 
     test(
-      'step change notification fires for non-first transitions only once',
+      'legacy Tick does not invent elapsed progress or replay notifications',
       () async {
         final schedule = buildSchedule(
           id: 'notify',
@@ -1200,11 +1203,11 @@ void main() {
         expect(notifiedStepIds, isEmpty);
         bloc.add(const ScheduleTick(Duration(minutes: 10)));
         await Future<void>.delayed(Duration.zero);
-        expect(notifiedStepIds, ['s2']);
+        expect(notifiedStepIds, isEmpty);
 
         bloc.add(const ScheduleTick(Duration(minutes: 1)));
         await Future<void>.delayed(Duration.zero);
-        expect(notifiedStepIds, ['s2']);
+        expect(notifiedStepIds, isEmpty);
       },
     );
 

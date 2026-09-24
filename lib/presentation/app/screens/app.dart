@@ -151,10 +151,13 @@ class _AppRouterViewState extends State<_AppRouterView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     AppLogger.debug('$_logTag lifecycle state=$state');
+    context.read<ScheduleBloc>().observeLifecycleState(state);
     if (state != AppLifecycleState.resumed) return;
     unawaited(HardwareKeyboard.instance.syncKeyboardState().catchError((_) {}));
     context.read<ScheduleBloc>().add(
-      const SchedulePreparationTimeRefreshRequested(),
+      const SchedulePreparationTimeRefreshRequested(
+        origin: PreparationRefreshOrigin.resume,
+      ),
     );
     unawaited(
       getIt.get<AlarmSchedulerService>().dispatchPendingLaunchPayload(),

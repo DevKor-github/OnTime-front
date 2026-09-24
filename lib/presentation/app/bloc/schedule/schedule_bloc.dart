@@ -2,7 +2,7 @@ import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
@@ -22,24 +22,27 @@ part 'schedule_state.dart';
 
 typedef NowProvider = DateTime Function();
 typedef NotifyPreparationStep =
-    void Function({
+    FutureOr<void> Function({
       required String scheduleName,
       required String preparationName,
       required String scheduleId,
       required String stepId,
+      required bool Function() isCurrent,
     });
 
-void _defaultNotifyPreparationStep({
+Future<void> _defaultNotifyPreparationStep({
   required String scheduleName,
   required String preparationName,
   required String scheduleId,
   required String stepId,
+  required bool Function() isCurrent,
 }) {
-  NotificationService.instance.showPreparationStepNotification(
+  return NotificationService.instance.showPreparationStepNotification(
     scheduleName: scheduleName,
     preparationName: preparationName,
     scheduleId: scheduleId,
     stepId: stepId,
+    isCurrent: isCurrent,
   );
 }
 
@@ -62,10 +65,14 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     this._schedulePreparationSessionUseCase, {
     NowProvider? nowProvider,
     NotifyPreparationStep? notifyPreparationStep,
+    Duration Function()? monotonicNow,
+    AppLifecycleState? Function()? lifecycleState,
   }) : _nowProvider = nowProvider ?? DateTime.now,
        _notifyPreparationStep =
            notifyPreparationStep ?? _defaultNotifyPreparationStep,
        super(const ScheduleState.initial()) {
+    _monotonicOverride = monotonicNow;
+    _lifecycleOverride = lifecycleState;
     _registerHandlers();
   }
 
@@ -116,8 +123,30 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   DateTime? _lastSnapshotSavedAt;
   DateTime? _activePreparationRunStartedAt;
   List<PreparationActionEventEntity> _activePreparationActionEvents = const [];
-  bool _suppressNextCatchUpStepNotification = false;
-  final Map<String, Set<String>> _notifiedStepIdsByScheduleId = {};
+  // One delayed 1-second tick is tolerated; longer gaps are silent catch-up.
+  static const stepNotificationFreshness = Duration(seconds: 2);
+  // Normal wall/monotonic reads differ by tiny scheduling jitter. A 250 ms
+  // discontinuity is conservatively treated as a clock adjustment, not delivery.
+  static const stepClockTolerance = Duration(milliseconds: 250);
+  final Stopwatch _monotonicClock = Stopwatch()..start();
+  Duration Function()? _monotonicOverride;
+  AppLifecycleState? Function()? _lifecycleOverride;
+  Duration get _monotonicNow =>
+      _monotonicOverride?.call() ?? _monotonicClock.elapsed;
+  AppLifecycleState? get _lifecycle => _lifecycleOverride == null
+      ? WidgetsBinding.instance.lifecycleState
+      : _lifecycleOverride!();
+  (Duration, DateTime, AppLifecycleState?)? _stepObservation;
+  int _stepRevision = 0;
+  (int, String, DateTime)? _stepRun;
+  final Set<String> _attemptedSteps = {};
+
+  /// Called synchronously for every phase so paused -> inactive -> paused
+  /// between two timer callbacks cannot masquerade as continuous background.
+  void observeLifecycleState(AppLifecycleState phase) {
+    _stepObservation = null;
+    _stepRevision++;
+  }
 
   Object? _notificationPreparationOwner;
   Object? _notificationPreparationViewOwner;
@@ -236,6 +265,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (notificationPreparationId != null) return;
     final current = _captureBackgroundValidity();
     if (!current()) return;
+    _stepRevision++;
+    _stepObservation = null;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
     final now = _nowProvider();
@@ -253,7 +284,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _activeEarlyStartScheduleId = null;
       _lastSnapshotSavedAt = null;
       _clearActivePreparationRun();
-      _notifiedStepIdsByScheduleId.clear();
+      _attemptedSteps.clear();
       return;
     }
 
@@ -261,7 +292,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     if (_currentScheduleId != null && _currentScheduleId != incoming.id) {
       await _clearPersistedState(_currentScheduleId!);
       if (!current()) return;
-      _notifiedStepIdsByScheduleId.remove(_currentScheduleId);
+
       _clearActivePreparationRun();
     }
     _currentScheduleId = incoming.id;
@@ -285,7 +316,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _clearActivePreparationRun();
     }
     if (!current()) return;
-    _initializeNotificationTracking(resolvedSchedule);
     if (_snapshotInvalidated) {
       _activeEarlyStartScheduleId = null;
       _clearActivePreparationRun();
@@ -360,7 +390,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       await _startScheduleLocally(state.schedule!.id);
       if (!current()) return;
       emit(ScheduleState.started(state.schedule!));
-      _initializeNotificationTracking(state.schedule!);
       _navigationService.push('/scheduleStart');
       _activePreparationRunStartedAt ??= state.schedule!.preparationStartTime;
       _startPreparationTimer();
@@ -456,7 +485,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
     _stopPreparationTimer();
-    _initializeNotificationTracking(schedule);
     await _restoreFromSnapshotIfValid(schedule, isCurrent: isCurrent);
     if (!isCurrent()) return;
     if (_snapshotInvalidated) {
@@ -512,46 +540,29 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _startPreparationTimer();
   }
 
-  Future<void> _onTick(ScheduleTick event, Emitter<ScheduleState> emit) async {
-    if (_notificationPromptOwner != null) return;
-    if (state.schedule == null) return;
-    final oldStepId = state.schedule!.preparation.currentStep?.id;
-    final updatedPreparation = state.schedule!.preparation.timeElapsed(
-      event.elapsed,
-    );
-    AppLogger.debug('elapsedTime: ${updatedPreparation.elapsedTime}');
-
-    final newSchedule =
-        ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-          state.schedule!,
-          updatedPreparation,
-        );
-
-    final shouldSuppressStepNotification = _suppressNextCatchUpStepNotification;
-    _suppressNextCatchUpStepNotification = false;
-    if (!shouldSuppressStepNotification) {
-      _checkAndNotifyStepChange(state.schedule!, newSchedule);
-    }
-
-    emit(state.copyWith(schedule: newSchedule));
-    final stepChanged = oldStepId != newSchedule.preparation.currentStep?.id;
-    await _saveTimedPreparationSnapshot(newSchedule, force: stepChanged);
-  }
+  Future<void> _onTick(ScheduleTick event, Emitter<ScheduleState> emit) =>
+      _onPreparationTimeRefreshRequested(
+        const SchedulePreparationTimeRefreshRequested(),
+        emit,
+      );
 
   Future<void> _onPreparationTimeRefreshRequested(
     SchedulePreparationTimeRefreshRequested event,
     Emitter<ScheduleState> emit,
   ) async {
     if (_notificationPromptOwner != null || state.schedule == null) return;
+    if (event.origin != PreparationRefreshOrigin.periodic) _stepRevision++;
     if (state.schedule!.preparation.isAllStepsDone) return;
     final startedAt = _activePreparationRunStartedAt;
     if (startedAt == null) return;
 
+    final previous = state.schedule!;
+    final observedAt = _nowProvider();
     final refreshedPreparation = _derivePreparationRun(
       state.schedule!.preparation,
       startedAt: startedAt,
       actionEvents: _activePreparationActionEvents,
-      now: _nowProvider(),
+      now: observedAt,
     );
     final refreshedSchedule =
         ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
@@ -559,6 +570,12 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
           refreshedPreparation,
         );
     emit(state.copyWith(schedule: refreshedSchedule));
+    _observeStepTransition(
+      previous,
+      refreshedSchedule,
+      event.origin,
+      observedAt,
+    );
     await _saveTimedPreparationSnapshot(refreshedSchedule);
   }
 
@@ -568,6 +585,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   ) async {
     if (_notificationPromptOwner != null || state.schedule == null) return;
     if (state.schedule!.preparation.isAllStepsDone) return;
+    _stepObservation = null;
+    _stepRevision++;
     final now = _nowProvider();
     _activePreparationRunStartedAt ??= state.isEarlyStarted
         ? now.subtract(state.schedule!.preparation.elapsedTime)
@@ -595,6 +614,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
           updated,
         );
     emit(state.copyWith(schedule: newSchedule));
+    _stepObservation = (_monotonicNow, now, _lifecycle);
     await _saveTimedPreparationSnapshot(newSchedule, force: true);
   }
 
@@ -605,6 +625,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final current = _captureBackgroundValidity();
     if (!current() || state.schedule == null) return;
     final scheduleId = state.schedule!.id;
+    _stepObservation = null;
+    _stepRevision++;
     try {
       await _schedulePreparationSessionUseCase.finishSchedulePreparation(
         scheduleId,
@@ -623,6 +645,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _activeEarlyStartScheduleId = null;
       _lastSnapshotSavedAt = null;
       _clearActivePreparationRun();
+      _attemptedSteps.clear();
+      _stepRun = null;
       emit(const ScheduleState.notExists());
       if (restoreNearest) add(const ScheduleSubscriptionRequested());
     } catch (error) {
@@ -660,19 +684,21 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _activePreparationRunStartedAt ??= state.isEarlyStarted
         ? _nowProvider().subtract(state.schedule!.preparation.elapsedTime)
         : state.schedule!.preparationStartTime;
-    final elapsedTimeAfterLastTick = state.isEarlyStarted
-        ? Duration.zero
-        : _nowProvider().difference(state.schedule!.preparationStartTime) -
-              state.schedule!.preparation.elapsedTime;
-    if (elapsedTimeAfterLastTick > Duration.zero) {
-      AppLogger.debug('elapsedTimeAfterLastTick: $elapsedTimeAfterLastTick');
+    _stepObservation = null;
+    _stepRevision++;
+    add(
+      const SchedulePreparationTimeRefreshRequested(
+        origin: PreparationRefreshOrigin.restore,
+      ),
+    );
+    _preparationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!isClosed) {
-        _suppressNextCatchUpStepNotification = true;
-        add(ScheduleTick(elapsedTimeAfterLastTick));
+        add(
+          const SchedulePreparationTimeRefreshRequested(
+            origin: PreparationRefreshOrigin.periodic,
+          ),
+        );
       }
-    }
-    _preparationTimer = Timer.periodic(Duration(seconds: 1), (_) {
-      if (!isClosed) add(const SchedulePreparationTimeRefreshRequested());
     });
   }
 
@@ -687,6 +713,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _upcomingScheduleSubscription?.cancel();
     _scheduleStartTimer?.cancel();
     _stopPreparationTimer();
+    _stepRevision++;
+    _attemptedSteps.clear();
+    _stepRun = null;
     return super.close();
   }
 
@@ -816,6 +845,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   void _clearActivePreparationRun() {
+    _stepObservation = null;
+    _stepRevision++;
     _activePreparationRunStartedAt = null;
     _activePreparationActionEvents = const [];
   }
@@ -841,54 +872,86 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         doneStatus == ScheduleDoneStatus.abnormalEnd;
   }
 
-  void _initializeNotificationTracking(ScheduleWithPreparationEntity schedule) {
-    final scheduleId = schedule.id;
-    if (!_notifiedStepIdsByScheduleId.containsKey(scheduleId)) {
-      _notifiedStepIdsByScheduleId[scheduleId] = {};
+  void _observeStepTransition(
+    ScheduleWithPreparationEntity before,
+    ScheduleWithPreparationEntity after,
+    PreparationRefreshOrigin origin,
+    DateTime wall,
+  ) {
+    final mono = _monotonicNow;
+    final phase = _lifecycle;
+    final previous = _stepObservation;
+    final run = (
+      LocalDataOperationGate.shared.generation,
+      after.id,
+      _activePreparationRunStartedAt!,
+    );
+    if (_stepRun != run) {
+      _stepRun = run;
+      _attemptedSteps.clear();
     }
+    _stepObservation = (mono, wall, phase);
+    if (origin != PreparationRefreshOrigin.periodic ||
+        previous == null ||
+        phase != AppLifecycleState.paused ||
+        previous.$3 != phase) {
+      return;
+    }
+    final delta = mono - previous.$1;
+    if (delta < Duration.zero ||
+        delta > stepNotificationFreshness ||
+        (wall.difference(previous.$2) - delta).abs() > stepClockTolerance) {
+      return;
+    }
+    final steps = after.preparation.preparationStepList;
+    final oldIndex = steps.indexWhere(
+      (s) => s.id == before.preparation.currentStep?.id,
+    );
+    final step = after.preparation.currentStep;
+    if (step == null ||
+        oldIndex < 0 ||
+        steps.indexWhere((s) => s.id == step.id) != oldIndex + 1) {
+      return;
+    }
+    // Consume before the first await; failure is not an invitation to replay.
+    if (!_attemptedSteps.add(step.id)) return;
+    final revision = _stepRevision;
+    final backgroundCurrent = _captureBackgroundValidity();
+    bool current() =>
+        backgroundCurrent() &&
+        !LocalDataOperationGate.shared.isInvalidated &&
+        !LocalDataOperationGate.shared.isReplacingData &&
+        revision == _stepRevision &&
+        _stepRun == run &&
+        state.schedule?.id == after.id &&
+        _activePreparationRunStartedAt == run.$3 &&
+        state.schedule?.preparation.currentStep?.id == step.id &&
+        _lifecycle == AppLifecycleState.paused &&
+        _monotonicNow - mono <= stepNotificationFreshness &&
+        _monotonicNow >= mono &&
+        (_nowProvider().difference(wall) - (_monotonicNow - mono)).abs() <=
+            stepClockTolerance;
+    unawaited(_submitStep(after, step.id, current));
   }
 
-  void _checkAndNotifyStepChange(
-    ScheduleWithPreparationEntity oldSchedule,
-    ScheduleWithPreparationEntity newSchedule,
-  ) {
-    if (newSchedule.preparation.isAllStepsDone) {
-      return;
+  Future<void> _submitStep(
+    ScheduleWithPreparationEntity schedule,
+    String stepId,
+    bool Function() current,
+  ) async {
+    if (!current()) return;
+    try {
+      await _notifyPreparationStep(
+        scheduleName: schedule.scheduleName,
+        preparationName: '',
+        scheduleId: schedule.id,
+        stepId: stepId,
+        isCurrent: current,
+      );
+    } catch (error) {
+      AppLogger.debug(
+        '[ScheduleBloc] step delivery failed: ${error.runtimeType}',
+      );
     }
-
-    final scheduleId = newSchedule.id;
-    final oldCurrentStep = oldSchedule.preparation.currentStep;
-    final newCurrentStep = newSchedule.preparation.currentStep;
-
-    if (oldCurrentStep?.id == newCurrentStep?.id || newCurrentStep == null) {
-      return;
-    }
-
-    final firstStep = newSchedule.preparation.preparationStepList.isNotEmpty
-        ? newSchedule.preparation.preparationStepList.first
-        : null;
-    if (firstStep != null && newCurrentStep.id == firstStep.id) {
-      return;
-    }
-
-    final notifiedStepIds = _notifiedStepIdsByScheduleId[scheduleId] ?? {};
-    if (notifiedStepIds.contains(newCurrentStep.id)) {
-      return;
-    }
-
-    _notifyPreparationStep(
-      scheduleName: newSchedule.scheduleName,
-      preparationName: newCurrentStep.preparationName,
-      scheduleId: scheduleId,
-      stepId: newCurrentStep.id,
-    );
-
-    notifiedStepIds.add(newCurrentStep.id);
-    _notifiedStepIdsByScheduleId[scheduleId] = notifiedStepIds;
-
-    AppLogger.debug(
-      '[ScheduleBloc] preparation step notification shown '
-      'scheduleId=$scheduleId stepId=${newCurrentStep.id}',
-    );
   }
 }

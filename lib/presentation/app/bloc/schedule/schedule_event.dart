@@ -67,11 +67,17 @@ final class ScheduleTick extends ScheduleEvent {
   List<Object?> get props => [elapsed];
 }
 
+enum PreparationRefreshOrigin { periodic, resume, restore, manual }
+
 final class SchedulePreparationTimeRefreshRequested extends ScheduleEvent {
-  const SchedulePreparationTimeRefreshRequested();
+  const SchedulePreparationTimeRefreshRequested({
+    this.origin = PreparationRefreshOrigin.manual,
+  });
+
+  final PreparationRefreshOrigin origin;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [origin];
 }
 
 final class ScheduleStepSkipped extends ScheduleEvent {

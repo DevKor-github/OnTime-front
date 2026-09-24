@@ -1,4 +1,5 @@
 import 'package:on_time_front/core/services/notification_routing.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:convert';
 import 'package:on_time_front/domain/entities/notification_route_payload.dart';
@@ -29,11 +30,13 @@ class NotificationService {
     String Function()? localeProvider,
     bool? isIOSOverride,
     bool? isAndroidOverride,
+    AlarmOperationCoordinator? alarmOwner,
   }) : _localNotifications =
            localNotifications ?? FlutterLocalNotificationsPlugin(),
        _notificationTapRouter =
            notificationTapRouter ?? const NoopNotificationTapRouter(),
        _localeProvider = localeProvider,
+       _alarmOwner = alarmOwner ?? AlarmOperationCoordinator.shared,
        _isAndroidOverride = isAndroidOverride,
        _isIOSOverride = isIOSOverride;
 
@@ -46,10 +49,12 @@ class NotificationService {
     bool isTimezoneInitialized = false,
     bool? isIOSOverride,
     bool? isAndroidOverride,
+    AlarmOperationCoordinator? alarmOwner,
   }) : _localNotifications = localNotifications,
        _notificationTapRouter =
            notificationTapRouter ?? const NoopNotificationTapRouter(),
        _localeProvider = localeProvider,
+       _alarmOwner = alarmOwner ?? AlarmOperationCoordinator.shared,
        _isAndroidOverride = isAndroidOverride,
        _isIOSOverride = isIOSOverride,
        _isFlutterLocalNotificationsInitialized =
@@ -61,6 +66,7 @@ class NotificationService {
     'on_time_front/native_alarm',
   );
 
+  final AlarmOperationCoordinator _alarmOwner;
   final FlutterLocalNotificationsPlugin _localNotifications;
   NotificationTapRouter _notificationTapRouter;
   final String Function()? _localeProvider;
@@ -343,12 +349,14 @@ class NotificationService {
     _isFlutterLocalNotificationsInitialized = true;
   }
 
-  Future<void> showLocalNotification({
+  Future<bool> showLocalNotification({
     required String title,
     required String body,
     Map<String, dynamic>? payload,
+    bool Function()? isCurrent,
   }) async {
     await setupFlutterNotifications();
+    if (!(isCurrent?.call() ?? true)) return false;
     await _localNotifications.show(
       id: Object.hash(title, body, DateTime.now().microsecondsSinceEpoch),
       title: title,
@@ -370,6 +378,7 @@ class NotificationService {
       ),
       payload: encodeLocalNotificationPayload(payload),
     );
+    return true;
   }
 
   Future<void> showPreparationStepNotification({
@@ -377,20 +386,40 @@ class NotificationService {
     required String preparationName,
     required String scheduleId,
     required String stepId,
+    required bool Function() isCurrent,
   }) async {
-    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-      return;
-    }
-    await showLocalNotification(
-      title: _locale == 'ko' ? '준비 단계가 바뀌었어요' : 'Preparation updated',
-      body: _locale == 'ko'
-          ? 'OnTime을 열어 다음 단계를 확인하세요.'
-          : 'Open OnTime to see the next step.',
-      payload: preparationStepNotificationPayload(
-        scheduleId: scheduleId,
-        stepId: stepId,
-      ),
-    );
+    bool current() =>
+        isCurrent() &&
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.paused;
+    if (!current() || !_alarmOwner.canSchedule) return;
+    final lease = _alarmOwner.capture();
+    await _alarmOwner.run(lease, () async {
+      if (!current()) return;
+      // Upcoming preparation-start preferences do not control an active run.
+      // This read never requests permission or opens a system prompt.
+      if (!await hasNotificationPermission()) {
+        AppLogger.debug(
+          '[NotificationService] step delivery skipped: permission',
+        );
+        return;
+      }
+      if (!lease.isCurrent || !current()) return;
+      final submitted = await showLocalNotification(
+        title: _locale == 'ko' ? '준비 단계가 바뀌었어요' : 'Preparation updated',
+        body: _locale == 'ko'
+            ? 'OnTime을 열어 다음 단계를 확인하세요.'
+            : 'Open OnTime to see the next step.',
+        payload: preparationStepNotificationPayload(
+          scheduleId: scheduleId,
+          stepId: stepId,
+        ),
+        isCurrent: () => lease.isCurrent && current(),
+      );
+      // Plugin completion is only submission, never proof the user saw it.
+      AppLogger.debug(
+        '[NotificationService] step delivery: ${submitted ? 'submitted' : 'skipped stale'}',
+      );
+    });
   }
 
   Future<bool> hasNotificationPermission() async {

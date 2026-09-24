@@ -652,16 +652,18 @@
         "가장 가까운 일정의 조회 범위를 날짜 변경·resume에 맞춰 갱신한다.",
         "`get_nearest_upcoming_schedule_use_case.dart:27-34`는 구독 시작의 now와 2일 범위를 고정하고 `app.dart:94-113` resume은 시간 refresh만 한다. clock 주입 후 프로세스가 수일 살아 있는 상황에서 새 날짜 일정이 선택되는지 테스트."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_c08",
+      "issue_number": 610,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/610",
       "decisions_file": "plans/audit-2026-09-23/issues/C08.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 23
+      "sequence": 23,
+      "readback_verified": true,
+      "issue_body_sha256": "28231dd1e26e59c01a8ee52ac151d22ac6a6af05fd3c58f12d518f7cec2da254"
     },
     {
       "audit_id": "U01",

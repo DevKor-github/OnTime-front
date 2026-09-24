@@ -21,6 +21,10 @@ _Avoid_: Server result, analytics event, transient completion screen
 Past and completed Schedule details retained locally until the user explicitly deletes the Schedule.
 _Avoid_: Server archive, analytics history, automatic retention window, score aggregate
 
+**Nearest Upcoming Schedule**:
+The unfinished Schedule whose resolved occurrence instant is the earliest at or after the current instant.
+_Avoid_: Today's Schedule, active Schedule Preparation Session
+
 **Local Punctuality Score**:
 The percentage of eligible Schedule Outcomes completed On Time since the latest Punctuality Score Reset.
 _Avoid_: Server score, lifetime score, reward points, zero before first result

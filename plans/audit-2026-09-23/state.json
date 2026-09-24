@@ -460,18 +460,31 @@
         "저장/복원/초기화를 domain workflow와 data transaction으로 묶고 UI는 결과만 받도록 한다.",
         "MyDataScreen이 BackupService·ResetService·Reconcile을 직접 조합. A08/A09/D02처럼 DB·runtime·OS effect의 경계가 여러 계층에 흩어져 있음. 정상/부분 실패를 하나의 계약으로 테스트."
       ],
-      "status": "ready",
+      "status": "partially_implemented_integration_pending",
       "agent": "/root/grill_c01",
       "issue_number": 600,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/600",
       "decisions_file": "plans/audit-2026-09-23/issues/C01.md",
-      "implementation_commit": null,
+      "implementation_commit": "4529d9f84e911b1ee2fbb42af09698a0c27cc9f2",
       "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "verification": [
+        "Full Flutter 959 passed; app-owned coverage88.74% (13507/15221); analyzer clean",
+        "Actual stale-preview baseline failure and Drift race/rollback/receipt regressions verified",
+        "KO/EN 200% eight widget captures reviewed; source24/commit hashes match",
+        "Generated/local-only/manifest and Python11 passed"
+      ],
+      "blockers": [
+        "A08 schedule aggregate FormSubmission integration is pending; no atomic aggregate completion claim.",
+        "A09 staging Local Data Store, runtime/session replacement and all-writer fencing are pending. Candidate remains authenticated parsed memory data, not verified staging.",
+        "Revision is checked before OS cleanup and again inside DB transaction; a racing edit during cleanup prevents DB overwrite but may leave OS cleanup pending. Receipt exposes this and retry reconciles current data only.",
+        "D02 damaged-database restore integration is pending.",
+        "No actual Android/iOS picker, encrypted file roundtrip, provider delivery or reset device proof in this change.",
+        "Remote CI pending"
+      ],
       "sequence": 14,
       "readback_verified": true,
-      "body_sha256": "2fb0876dfbbef2ee14038ab85bf1fb4e9bb724197551a76889309c93a19d8c1b"
+      "body_sha256": "2fb0876dfbbef2ee14038ab85bf1fb4e9bb724197551a76889309c93a19d8c1b",
+      "issue_body_sha256": "e882ebf132325c47df8890eb51f5514af5fb23020e264bdddcc11a4bb9374650"
     },
     {
       "audit_id": "A08",

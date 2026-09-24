@@ -1,0 +1,29 @@
+{
+  "baseline": "3771615dd2b41089330ba74277d85451d4421c4f",
+  "files": {
+    "lib/core/backup/backup_service.dart": "b8afab53af794ad93b384d289fb41960e19ee9574bf28e8513a432e3687ef94f",
+    "lib/core/database/local_data_operation_gate.dart": "0237e006967fa462aee71056e5d8e184b20621d366a62ae4f6df7da7b80842e9",
+    "lib/core/database/local_reset_protocol.dart": "02a56f3897080b7599e0265f8c15e7c425031467dc0e93025fc7348101ed9e69",
+    "lib/core/services/alarm_ownership_journal.dart": "d73e238cca1def0492ecd74ba8b677214cc04baed2d3de790d64773ae61a3a1f",
+    "lib/data/adapters/local_data_workflow_adapters.dart": "10717c376a3cddfcf63abc2c9ff0b7b767f1737f44f2b259cefd42419c9cf837",
+    "lib/domain/entities/backup_operation.dart": "6720b667d4c67e2bf223d4540b296c176b1618ac67ccb7cb2b7bf2b27e9515e2",
+    "lib/domain/entities/local_reset_result.dart": "a2c87269003a16bad04ed3ce5f366e319e435c5ad2bb214376e6645f69282bd0",
+    "lib/domain/ports/local_data_ports.dart": "7b461658630fc11d72546bad76bce2a44ae53d1e1fe052138ac2c32a5f106ecb",
+    "lib/domain/use-cases/local_data_workflows.dart": "52c90760373f94fdd1e36b8bed48265695d2579dba1226a70092e754cfb60e88",
+    "lib/l10n/app_en.arb": "cd319e10f65a966611a41a26a0094a0688b5f980f6a229f1b75c45b6cde24bca",
+    "lib/l10n/app_ko.arb": "8786557fb72d98a19ab968a7d31d7daa030756b2c2b1d51cc75fd8f554645541",
+    "lib/l10n/app_localizations.dart": "1e5cdf4cd992b26a39f258a6308137f2e7ac22e3066d7f9161878afad192b84c",
+    "lib/l10n/app_localizations_en.dart": "bcfd79a0d176c7ba105a22e75e734dc6ad896c3255a10827cb52837c6b397d37",
+    "lib/l10n/app_localizations_ko.dart": "9d8fecc2eb47894cfa0fd619078a1aa5986745f80e6a966457bea85fa5b9859a",
+    "lib/main.dart": "0316ce499e1b67dbc9938e26bc1e7939582c6237b3cc94700a473ef4cd0f7c8d",
+    "lib/presentation/my_page/my_data_screen.dart": "5166b981ecf73a7da8278b541a8057da73453ec8784523994e35de1a8a4d4ce4",
+    "lib/presentation/startup/screens/local_data_recovery_screen.dart": "b2a791cca2339b0df1a8c58c71cdd56084459cb2506d59e196bdd5b135714f1e",
+    "test/core/backup/backup_restore_stale_contract_test.dart": "9de2084511f0750e70a63a4b51308062940699881f532f305c2fca979e99b328",
+    "test/core/database/alarm_replacement_integration_test.dart": "6a9bb66138ad8322f5f61d6d63b7efd72d6797c14a6956e252bc11a1b0c9f8b0",
+    "test/core/database/local_data_operation_gate_test.dart": "3e8d5b1e105a774364b48060abed94d5c2851f9c9b86e95d0d2758f593647ad8",
+    "test/domain/use-cases/local_data_workflows_test.dart": "8ea450f1479820e9431294fd1df1b8d717752257abf8b0d17369ab7d92b36b79",
+    "test/presentation/my_page/my_data_export_test.dart": "3f4c2a8090db0d8a4ef96b565a127ec8ca627cf02a1b24584412f3416cb27bb8",
+    "test/presentation/my_page/my_data_restore_test.dart": "d0f0058415fbc8323da9eaf071c2bba0a793a7cba5be7c135ca2bb2acbf07b2b",
+    "tool/qa/capture_local_data_workflows.dart": "9230da65ac4af641645da2d46172a39b8b63bc132d9e656c6955adc03009935d"
+  }
+}

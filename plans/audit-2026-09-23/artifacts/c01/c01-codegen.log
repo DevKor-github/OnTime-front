@@ -1,0 +1,36 @@
+W These options have been removed and were ignored: --delete-conflicting-outputs
+  0s freezed on 493 inputs; lib/core/backup/backup_crypto.dart
+  0s freezed on 493 inputs: 1 skipped; lib/core/backup/backup_file_export_port.dart
+W SDK language version 3.12.0 is newer than `analyzer` language version 3.10.0. Run `flutter packages upgrade`.
+  5s freezed on 493 inputs: 3 skipped, 1 no-op; spent 5s analyzing; lib/core/backup/recurring_backup_data.dart
+  6s freezed on 493 inputs: 288 skipped, 40 no-op; spent 5s analyzing; lib/presentation/shared/router/route_arguments.dart
+  6s freezed on 493 inputs: 446 skipped, 47 no-op; spent 5s analyzing
+  0s json_serializable on 986 inputs; lib/core/backup/backup_crypto.dart
+  1s json_serializable on 986 inputs: 794 skipped, 192 no-op
+  0s drift_dev on 3944 inputs; lib/core/backup/backup_crypto.dart
+  0s drift_dev on 3944 inputs: 1510 skipped, 20 output, 331 same, 2 no-op; test/presentation/home/screens/home_screen_tmp_test.freezed.dart
+  1s drift_dev on 3944 inputs: 3368 skipped, 20 output, 362 same, 194 no-op
+  0s source_gen:combining_builder on 1972 inputs; lib/core/backup/backup_crypto.dart
+  0s source_gen:combining_builder on 1972 inputs: 1967 skipped, 5 no-op
+  0s mockito:mockBuilder on 1144 inputs; test/core/backup/backup_crypto_test.dart
+  0s mockito:mockBuilder on 1144 inputs: 1065 skipped, 79 no-op
+  0s injectable_generator:injectable_builder on 5088 inputs; lib/core/backup/backup_crypto.dart
+  0s injectable_generator:injectable_builder on 5088 inputs: 2183 skipped, 2 output, 26 same, 62 no-op; lib/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_cubit.dart.types.temp.dart
+  0s injectable_generator:injectable_builder on 5088 inputs: 4896 skipped, 2 output, 26 same, 164 no-op
+  0s injectable_generator:injectable_config_builder on 5088 inputs; lib/core/backup/backup_crypto.dart
+W injectable_generator:injectable_config_builder on lib/core/di/di_setup.dart:
+  Missing dependencies in on_time_front/core/di/di_setup.dart
+
+  [AlarmRepositoryImpl] depends on unregistered type [RecurringScheduleRepository] from package:on_time_front/domain/repositories/recurring_schedule_repository.dart
+  [ScheduleRepositoryImpl] depends on unregistered type [RecurringScheduleRepository] from package:on_time_front/domain/repositories/recurring_schedule_repository.dart
+  [CreateScheduleFormSubmissionUseCase] depends on unregistered type [RecurringSchedulesUseCase] from package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart
+  [UpdateScheduleFormSubmissionUseCase] depends on unregistered type [RecurringSchedulesUseCase] from package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart
+  [AuthBloc] depends on unregistered type [RuntimePrivacyMigration] from package:on_time_front/core/services/runtime_privacy_migration.dart
+  [ScheduleFormBloc] depends on unregistered type [RecurringSchedulesUseCase] from package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart
+
+  Did you forget to annotate the above class(s) or their implementation with @injectable?
+  or add the right environment keys?
+  ------------------------------------------------------------------------
+
+  0s injectable_generator:injectable_config_builder on 5088 inputs: 5040 skipped, 1 output, 47 no-op
+  Built with build_runner/aot in 10s; wrote 411 outputs.

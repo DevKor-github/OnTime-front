@@ -1,0 +1,14 @@
+{
+  "baseline": "3771615dd2b41089330ba74277d85451d4421c4f",
+  "exit_code": 1,
+  "before": {
+    "lib/core/backup/backup_service.dart": "b8afab53af794ad93b384d289fb41960e19ee9574bf28e8513a432e3687ef94f",
+    "lib/core/database/local_data_operation_gate.dart": "e062fa4994138f825c0643a6831f7b171aba277d1b35d97549f27f50e4445dd4"
+  },
+  "after": {
+    "lib/core/backup/backup_service.dart": "b8afab53af794ad93b384d289fb41960e19ee9574bf28e8513a432e3687ef94f",
+    "lib/core/database/local_data_operation_gate.dart": "e062fa4994138f825c0643a6831f7b171aba277d1b35d97549f27f50e4445dd4"
+  },
+  "restored_exactly": true,
+  "observed": "Expected spareTime 17, actual 0: stale preview overwrote a later durable edit."
+}

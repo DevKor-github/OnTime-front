@@ -1,0 +1,55 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/local_data_workflows_test.dart
+00:00 +0: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/local_data_workflows_test.dart: preclaim durable edit rejects without cleanup or generation change
+00:00 +1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/local_data_workflows_test.dart: preclaim durable edit rejects without cleanup or generation change
+00:00 +2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/local_data_workflows_test.dart: preclaim durable edit rejects without cleanup or generation change
+00:00 +3: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/alarm_replacement_integration_test.dart: actual restore waits for late platform completion before replacing database
+00:00 +4: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:01 +5: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:01 +6: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:01 +7: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_restore_stale_contract_test.dart: preview followed by a durable edit never overwrites that edit
+00:01 +8: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_restore_stale_contract_test.dart: preview followed by a durable edit never overwrites that edit
+00:01 +9: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_restore_stale_contract_test.dart: preview followed by a durable edit never overwrites that edit
+00:01 +10: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_restore_stale_contract_test.dart: preview followed by a durable edit never overwrites that edit
+00:01 +11: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_export_test.dart: 암호화 백업 내보내기 password cancel disposes only after exit transition
+00:01 +12: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_export_test.dart: 암호화 백업 내보내기 password cancel disposes only after exit transition
+00:01 +13: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_export_test.dart: 암호화 백업 내보내기 password cancel disposes only after exit transition
+00:01 +14: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_export_test.dart: 암호화 백업 내보내기 password cancel disposes only after exit transition
+00:01 +15: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_export_test.dart: 암호화 백업 내보내기 password cancel disposes only after exit transition
+00:01 +16: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_export_test.dart: 암호화 백업 내보내기 password cancel disposes only after exit transition
+00:02 +17: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/domain/use-cases/local_data_workflows_test.dart: claim generation survives a later replacement before continuation
+00:02 +18: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +19: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +20: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +21: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +22: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +23: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +24: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +25: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +26: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +27: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +28: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +29: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +30: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +31: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +32: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:02 +33: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:03 +34: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:03 +35: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:03 +36: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:03 +37: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: validated preview cancellation never applies backup
+00:03 +38: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_export_test.dart: reset confirmation is one intent and rejects a changed installation
+00:03 +39: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: wrong password leaves current database unchanged
+00:03 +40: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: monthly and end-date controls preserve a valid edited rule
+00:03 +41: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: monthly and end-date controls preserve a valid edited rule
+00:03 +42: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: monthly and end-date controls preserve a valid edited rule
+00:04 +43: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: committed restore reports partial then retry changes no durable data
+00:04 +44: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_data_restore_test.dart: committed restore reports partial then retry changes no durable data
+00:04 +45: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: secondary recurrence states fit a small phone with large text
+00:04 +46: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: scope defaults to only this occurrence and supports following scope
+00:04 +47: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: recovery confirms before deleting and prevents duplicate resets
+00:04 +48: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: failed reset remains recoverable and never reports success
+00:04 +49: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: partial reset opens recovery instead of reporting completion
+00:05 +50: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: privacy keeps all six policy sections scrollable
+00:05 +51: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: management detail and end confirmation keep independent preparation
+00:05 +52: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: (tearDownAll)
+00:05 +52: All tests passed!

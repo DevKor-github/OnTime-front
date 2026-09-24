@@ -29,7 +29,7 @@
 | D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 독립 journal·복구/host kill11, main통합 원격882 tests/88.50%·APK 통과,기기 대기 |
 | A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | d06474d4 실제 타이머 전환 구현,47경계 및 원격929전체·88.79%·APK 통과,기기 대기 |
 | A07 | [#599](https://github.com/DevKor-github/OnTime-front/issues/599) | d73c7863 원자적 시작·partial retry 구현,원격944 tests/88.70%·APK 및 KOEN200% 검증,기기 대기 |
-| C01 | [#600](https://github.com/DevKor-github/OnTime-front/issues/600) | 실제3문답·staging/gate 보충 포함, 구체 workflow·부분 결과·통합 의존성 확정 |
+| C01 | [#600](https://github.com/DevKor-github/OnTime-front/issues/600) | 4529d9f8 백업/reset workflow 구현,959 tests·88.74%·KOEN200% 통과,A08/A09/D02 통합 대기 |
 | A08 | [#601](https://github.com/DevKor-github/OnTime-front/issues/601) | 실제4문답·원자 저장/조회·충돌/멱등/소유권 기준 확정 |
 | A09 | [#602](https://github.com/DevKor-github/OnTime-front/issues/602) | 실제4문답·staging/runtime 세대·복원 후 정리 기준 확정 |
 | D01 | [#603](https://github.com/DevKor-github/OnTime-front/issues/603) | 실제4문답·DB 비의존 시작 복구·키/파일 보존 기준 확정 |

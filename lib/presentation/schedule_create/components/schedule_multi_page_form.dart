@@ -1,3 +1,5 @@
+import 'package:on_time_front/presentation/recurring/recurrence_time_choice_sheet.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_review_sheet.dart';
@@ -14,9 +16,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_place_moving
 import 'package:on_time_front/presentation/schedule_create/schedule_place_moving_time/screens/schedule_place_moving_time_form.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart';
-import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
-import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
@@ -71,7 +71,7 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             isScrollControlled: true,
             useSafeArea: true,
             builder: (context) => SizedBox(
-              height: MediaQuery.sizeOf(context).height * .9,
+              height: MediaQuery.sizeOf(context).height * .94,
               child: RecurrenceReviewSheet(
                 review: state.recurrenceReview!,
                 form: state,
@@ -93,39 +93,16 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
         } else if (state.submissionStatus ==
             ScheduleFormSubmissionStatus.timeChoice) {
           final bloc = context.read<ScheduleFormBloc>();
-          final choice = await showDialog<RepeatedCivilTime>(
+          final choice = await showModalBottomSheet<RepeatedCivilTime>(
             context: context,
-            builder: (context) => SimpleDialog(
-              title: Text(
-                recurrenceText(context, '두 번 발생하는 시각', 'Repeated time'),
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => SizedBox(
+              height: MediaQuery.sizeOf(context).height * .94,
+              child: RecurrenceTimeChoiceSheet(
+                date: state.repeatedTimeDate!,
+                timeZoneId: state.timeZoneId,
               ),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    recurrenceText(
-                      context,
-                      '${recurrenceDate(context, state.repeatedTimeDate!)}은 두 번 발생해요. 이후 같은 경우에도 선택한 순서를 적용합니다.',
-                      '${recurrenceDate(context, state.repeatedTimeDate!)} occurs twice. This choice also applies to future repeated times.',
-                    ),
-                  ),
-                ),
-                for (final choice in RepeatedCivilTime.values)
-                  SimpleDialogOption(
-                    onPressed: () => Navigator.of(context).pop(choice),
-                    child: Text(
-                      recurrenceText(
-                        context,
-                        choice == RepeatedCivilTime.first
-                            ? '첫 번째 시각'
-                            : '두 번째 시각',
-                        choice == RepeatedCivilTime.first
-                            ? 'First occurrence'
-                            : 'Second occurrence',
-                      ),
-                    ),
-                  ),
-              ],
             ),
           );
           if (bloc.isClosed) return;
@@ -139,17 +116,20 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
           Navigator.of(context).pop(true);
         } else if (state.submissionStatus ==
             ScheduleFormSubmissionStatus.failure) {
-          final l10n = AppLocalizations.of(context)!;
-          showTwoActionDialog(
-            context,
-            config: TwoActionDialogConfig(
-              title: state.submissionError ?? l10n.error,
-              primaryAction: DialogActionConfig(
-                label: l10n.ok,
-                variant: ModalWideButtonVariant.destructive,
+          final retry = await showModalBottomSheet<bool>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (context) => SizedBox(
+              height: MediaQuery.sizeOf(context).height * .94,
+              child: RecurrenceSaveErrorSheet(
+                message:
+                    state.submissionError ??
+                    AppLocalizations.of(context)!.error,
               ),
             ),
           );
+          if (mounted && retry == true) widget.onSaved?.call();
         }
       },
       child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
@@ -196,10 +176,11 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                   child: Column(
                     children: [
                       TopBar(
+                        showAction: false,
                         actionLabel: _tabController.index == 3
                             ? recurrenceText(
                                 context,
-                                state.recurrenceRule == null ? '저장' : '확인',
+                                state.recurrenceRule == null ? '저장' : '검토하기',
                                 state.recurrenceRule == null
                                     ? 'Save'
                                     : 'Review',
@@ -220,8 +201,14 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                         currentStep: _tabController.index,
                         totalSteps: _tabController.length,
                         singleLine: true,
+                        labels: [
+                          recurrenceText(context, '기본 정보', 'Details'),
+                          recurrenceText(context, '날짜와 시간', 'Date & time'),
+                          recurrenceText(context, '장소와 이동', 'Travel'),
+                          recurrenceText(context, '준비 과정', 'Preparation'),
+                        ],
                       ),
-                      SizedBox(height: 41),
+                      SizedBox(height: 24),
                       Expanded(
                         child: PageView(
                           physics: const NeverScrollableScrollPhysics(),
@@ -234,6 +221,25 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
                             ScheduleSpareAndPreparingTimeForm(),
                           ],
                         ),
+                      ),
+                      const SizedBox(height: 12),
+                      ScreenActions(
+                        action: _tabController.index == 3
+                            ? recurrenceText(
+                                context,
+                                state.recurrenceRule == null ? '저장' : '검토하기',
+                                state.recurrenceRule == null
+                                    ? 'Save'
+                                    : 'Review',
+                              )
+                            : AppLocalizations.of(context)!.next,
+                        onAction: state.isValid && !isSubmitting
+                            ? () => _onNextPageButtonClicked(context)
+                            : null,
+                        onBack: isSubmitting
+                            ? null
+                            : _onPreviousPageButtonClicked,
+                        loading: isSubmitting,
                       ),
                     ],
                   ),

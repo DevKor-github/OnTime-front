@@ -23,11 +23,11 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/components/schedule_multi_page_form.dart';
-import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_create_screen.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
-import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_time_choice_sheet.dart';
 
 const _unset = Object();
 
@@ -273,10 +273,12 @@ void main() {
   }
 
   Future<void> goToFinalStepAndSubmit(WidgetTester tester) async {
-    Finder nextButton() => find.descendant(
-      of: find.byType(TopBar),
-      matching: find.byType(TextButton),
-    );
+    Finder nextButton() => find
+        .descendant(
+          of: find.byType(ScreenActions),
+          matching: find.byType(TextButton),
+        )
+        .last;
 
     await tester.tap(nextButton());
     await tester.pumpAndSettle();
@@ -428,7 +430,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
-    expect(find.byType(TwoActionDialog), findsOneWidget);
+    expect(find.byType(RecurrenceSaveErrorSheet), findsOneWidget);
   });
 
   testWidgets('edited name and place are submitted from form steps', (
@@ -445,10 +447,12 @@ void main() {
     await primeEditState(bloc);
     await pumpSheet(tester, bloc);
 
-    Finder nextButton() => find.descendant(
-      of: find.byType(TopBar),
-      matching: find.byType(TextButton),
-    );
+    Finder nextButton() => find
+        .descendant(
+          of: find.byType(ScreenActions),
+          matching: find.byType(TextButton),
+        )
+        .last;
 
     await tester.enterText(find.byType(TextFormField).first, 'Edited Meeting');
     await tester.pump();
@@ -503,10 +507,12 @@ void main() {
     await primeEditState(bloc);
     await pumpSheet(tester, bloc);
 
-    Finder nextButton() => find.descendant(
-      of: find.byType(TopBar),
-      matching: find.byType(TextButton),
-    );
+    Finder nextButton() => find
+        .descendant(
+          of: find.byType(ScreenActions),
+          matching: find.byType(TextButton),
+        )
+        .last;
 
     await tester.tap(nextButton());
     await tester.pumpAndSettle();
@@ -524,10 +530,12 @@ void main() {
     await primeCreateState(bloc);
     await pumpSheet(tester, bloc);
 
-    Finder nextButton() => find.descendant(
-      of: find.byType(TopBar),
-      matching: find.byType(TextButton),
-    );
+    Finder nextButton() => find
+        .descendant(
+          of: find.byType(ScreenActions),
+          matching: find.byType(TextButton),
+        )
+        .last;
 
     await tester.enterText(find.byType(TextFormField).first, 'Meeting');
     await tester.pump();

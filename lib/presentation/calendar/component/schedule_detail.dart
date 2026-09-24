@@ -1,3 +1,4 @@
+import 'package:on_time_front/presentation/recurring/recurrence_occurrence_sheet.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -183,6 +184,19 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
                   schedule: widget.schedule,
                   placeName: widget.schedule.place.placeName,
                   preparationTime: widget.preparationTime,
+                  onEdit:
+                      widget.schedule.doneStatus ==
+                              ScheduleDoneStatus.notEnded &&
+                          !_hasPreparationStarted(DateTime.now()) &&
+                          !widget.schedule.occurrenceInstantUtc.isBefore(
+                            DateTime.now().toUtc(),
+                          )
+                      ? widget.onEdit
+                      : null,
+                  onDelete:
+                      widget.schedule.doneStatus == ScheduleDoneStatus.notEnded
+                      ? widget.onDeleted
+                      : null,
                 ),
               ),
             ],
@@ -229,8 +243,12 @@ class _ScheduleDetailsColumn extends StatelessWidget {
     required this.schedule,
     required this.placeName,
     required this.preparationTime,
+    this.onEdit,
+    this.onDelete,
   });
 
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
   final ScheduleEntity schedule;
   final String placeName;
   final Duration? preparationTime;
@@ -314,6 +332,25 @@ class _ScheduleDetailsColumn extends StatelessWidget {
               ),
             ),
             children: [
+              if (schedule.isRecurring)
+                TextButton(
+                  onPressed: () => showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (context) => SizedBox(
+                      height: MediaQuery.sizeOf(context).height * .94,
+                      child: RecurrenceOccurrenceSheet(
+                        schedule: schedule,
+                        onEdit: onEdit,
+                        onDelete: onDelete,
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    recurrenceText(context, '이번 회차 보기', 'View occurrence'),
+                  ),
+                ),
               Column(
                 children: [
                   _ScheduleInfoTile(

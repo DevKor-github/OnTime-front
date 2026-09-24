@@ -1,3 +1,5 @@
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
+import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +31,14 @@ class _ScheduleSpareAndPreparingTimeFormState
   Widget build(BuildContext context) {
     return BlocBuilder<ScheduleFormSpareTimeCubit, ScheduleFormSpareTimeState>(
       builder: (context, state) {
+        if (context
+                .read<ScheduleFormSpareTimeCubit>()
+                .scheduleFormBloc
+                .state
+                .recurrenceRule !=
+            null) {
+          return _recurringPreparation(context, state);
+        }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -143,6 +153,140 @@ class _ScheduleSpareAndPreparingTimeFormState
           ],
         );
       },
+    );
+  }
+
+  Future<void> _editPreparation(ScheduleFormSpareTimeState state) async {
+    final draft = getIt<PreparationEditDraftCubit>();
+    final cubit = context.read<ScheduleFormSpareTimeCubit>();
+    final before =
+        state.preparation ?? const PreparationEntity(preparationStepList: []);
+    draft.setDraft(before);
+    await context.push('/preparationEdit');
+    if (!mounted) return;
+    final after = draft.state;
+    if (after != null && after != before) cubit.preparationChanged(after);
+    draft.clear();
+  }
+
+  Widget _recurringPreparation(
+    BuildContext context,
+    ScheduleFormSpareTimeState state,
+  ) {
+    final steps =
+        state.preparation?.ordered.preparationStepList ??
+        <PreparationStepEntity>[];
+    return ListView(
+      children: [
+        Text(
+          recurrenceText(
+            context,
+            '준비 과정을 확인하고\n필요한 항목을 수정하세요.',
+            'Review your preparation\nand edit as needed.',
+          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontSize: 23,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          recurrenceText(
+            context,
+            '이 약속의 반복에만 적용되는 준비 과정입니다.\n기본 준비과정의 복사본으로 생성되어\n이곳에서 수정해도 기존 설정에는 영향을 주지 않습니다.',
+            'This preparation belongs only to this series. Changes do not affect your default preparation.',
+          ),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.6),
+        ),
+        const SizedBox(height: 20),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          itemCount: steps.length,
+          onReorderItem: (oldIndex, newIndex) {
+            final reordered = [...steps];
+            reordered.insert(newIndex, reordered.removeAt(oldIndex));
+            context.read<ScheduleFormSpareTimeCubit>().preparationChanged(
+              PreparationEntity(
+                preparationStepList: [
+                  for (var i = 0; i < reordered.length; i++)
+                    PreparationStepEntity(
+                      id: reordered[i].id,
+                      preparationName: reordered[i].preparationName,
+                      preparationTime: reordered[i].preparationTime,
+                      nextPreparationId: i + 1 < reordered.length
+                          ? reordered[i + 1].id
+                          : null,
+                    ),
+                ],
+              ),
+            );
+          },
+          itemBuilder: (context, i) => Padding(
+            key: ValueKey(steps[i].id),
+            padding: const EdgeInsets.only(bottom: 8),
+            child: RecurrencePanel(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: ReorderableDragStartListener(
+                  index: i,
+                  child: const Icon(Icons.drag_handle),
+                ),
+                title: Text(steps[i].preparationName),
+                trailing: Text(
+                  formatDurationAsMinutes(context, steps[i].preparationTime),
+                ),
+                onTap: () => _editPreparation(state),
+              ),
+            ),
+          ),
+        ),
+        if (steps.isEmpty)
+          TextButton(
+            onPressed: () => _editPreparation(state),
+            child: Text(recurrenceText(context, '준비 과정 추가', 'Add preparation')),
+          ),
+        const SizedBox(height: 4),
+        RecurrenceValue(
+          label: recurrenceText(
+            context,
+            '여유 (준비 합계 제외)',
+            'Buffer (excluded from preparation total)',
+          ),
+          value: formatDurationAsMinutes(
+            context,
+            state.spareTime.value ?? Duration.zero,
+          ),
+          icon: Icons.timer_outlined,
+          onTap: () => context.showCupertinoMinutePickerModal(
+            title: AppLocalizations.of(context)!.enterTime,
+            initialValue: state.spareTime.value ?? Duration.zero,
+            onSaved: (value) => context
+                .read<ScheduleFormSpareTimeCubit>()
+                .spareTimeChanged(value),
+          ),
+        ),
+        const SizedBox(height: 16),
+        RecurrencePanel(
+          highlighted: true,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  recurrenceText(context, '총 준비 시간', 'Total preparation'),
+                ),
+              ),
+              Text(
+                formatDurationAsMinutes(context, state.totalPreparationTime),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

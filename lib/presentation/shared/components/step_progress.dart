@@ -7,8 +7,10 @@ class StepProgress extends StatelessWidget {
     required this.currentStep,
     required this.totalSteps,
     this.singleLine = false,
+    this.labels,
   });
 
+  final List<String>? labels;
   final int currentStep;
   final int totalSteps;
 
@@ -50,6 +52,62 @@ class StepProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    if (labels != null) {
+      final colors = Theme.of(context).colorScheme;
+      return Stack(
+        children: [
+          Positioned(
+            top: 12,
+            left: 24,
+            right: 24,
+            child: Container(height: 1, color: colors.primaryContainer),
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < totalSteps; i++)
+                Expanded(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: i <= currentStep
+                              ? colors.primary
+                              : colors.primaryContainer,
+                        ),
+                        child: Text(
+                          i < currentStep ? '✓' : '${i + 1}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: i <= currentStep
+                                ? colors.onPrimary
+                                : colors.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        labels![i],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: i == currentStep
+                              ? colors.primary
+                              : colors.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ],
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,

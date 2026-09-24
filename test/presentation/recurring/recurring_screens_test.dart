@@ -24,7 +24,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     final loader = FontLoader('Pretendard');
-    for (final weight in ['Regular', 'Medium', 'SemiBold']) {
+    for (final weight in ['Regular']) {
       loader.addFont(rootBundle.load('assets/fonts/Pretendard-$weight.ttf'));
     }
     await loader.load();
@@ -61,7 +61,11 @@ void main() {
       );
       await tester.tap(find.widgetWithText(TextButton, '화'));
       await tester.enterText(find.byType(TextFormField).first, '2');
+      await tester.tap(find.text('총 10회'));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField).last, '7');
+      await tester.tap(find.text('적용'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('적용'));
       await tester.pumpAndSettle();
       expect(result!.rule!.weekdays, {1, 2, 3, 5});
@@ -85,7 +89,11 @@ void main() {
       (_) => fail('Invalid rule must not be applied'),
     );
     for (final day in ['월', '수', '금']) {
-      await tester.tap(find.widgetWithText(TextButton, day));
+      await tester.tap(
+        find.byKey(
+          ValueKey('recurrence-weekday-${{'월': 1, '수': 3, '금': 5}[day]}'),
+        ),
+      );
     }
     await tester.tap(find.text('적용'));
     await tester.pumpAndSettle();
@@ -129,20 +137,20 @@ void main() {
       );
       expect(
         tester
-            .widget<TextButton>(find.widgetWithText(TextButton, '저장'))
+            .widget<TextButton>(find.widgetWithText(TextButton, '저장하기 (3개)'))
             .onPressed,
         isNull,
       );
-      await tester.ensureVisible(find.byType(CheckboxListTile));
-      await tester.tap(find.byType(CheckboxListTile));
+      await tester.ensureVisible(find.byType(CheckboxListTile).at(1));
+      await tester.tap(find.byType(CheckboxListTile).at(1));
       await tester.pumpAndSettle();
       expect(
         tester
-            .widget<TextButton>(find.widgetWithText(TextButton, '저장'))
+            .widget<TextButton>(find.widgetWithText(TextButton, '저장하기 (2개)'))
             .onPressed,
         isNotNull,
       );
-      await tester.tap(find.text('저장'));
+      await tester.tap(find.text('저장하기 (2개)'));
       await tester.pumpAndSettle();
       expect(result, {slots[1].key});
       expect(tester.takeException(), isNull);
@@ -177,7 +185,11 @@ void main() {
       await tester.tap(find.text('출근 준비'));
       await tester.pumpAndSettle();
       expect(find.text('가방 챙기기'), findsOneWidget);
-      await tester.ensureVisible(find.text('반복 종료'));
+      await tester.scrollUntilVisible(
+        find.text('반복 종료'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
       await tester.tap(find.text('반복 종료'));
       await tester.pumpAndSettle();
       expect(useCase.deleted, isNull);
@@ -288,9 +300,10 @@ Future<void> _pump(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+            padding: const EdgeInsets.only(top: 44, bottom: 34),
+          ),
           child: child!,
         ),
         home: Scaffold(body: screen),
@@ -331,7 +344,7 @@ Future<void> _capture(WidgetTester tester, GlobalKey key, String name) async {
             .toImage(pixelRatio: 2);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     final directory = Directory(
-      'docs/design/recurring-schedules/implementation',
+      'docs/design/redesign-20260923/flutter/screenshots',
     )..createSync(recursive: true);
     await File(
       '${directory.path}/$name.png',

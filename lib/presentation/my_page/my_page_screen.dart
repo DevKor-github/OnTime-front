@@ -1,3 +1,7 @@
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
+import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
+import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -8,7 +12,6 @@ import 'package:on_time_front/core/services/fallback_alarm_notification_service.
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
-import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
@@ -25,77 +28,234 @@ class MyPageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
-      appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(context)!.myPageTitle,
-          style: Theme.of(context).textTheme.titleLarge,
+    return RefreshTheme(
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            AppLocalizations.of(context)!.myPageTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          spacing: 12,
-          children: [
-            const _FrameView(title: '알람 설정', child: _AlarmStatusView()),
-            _FrameView(
-              title: '내 데이터',
-              child: Column(
-                spacing: 25,
-                children: [
-                  _SettingTile(
-                    title: '백업, 복원 및 로컬 데이터 초기화',
-                    onTap: () => context.push('/myData'),
-                  ),
-                ],
-              ),
-            ),
-            _FrameView(
-              title: AppLocalizations.of(context)!.appSettings,
-              child: Column(
-                spacing: 25,
-                children: [
-                  _SettingTile(
-                    title: recurrenceText(
-                      context,
-                      '반복 일정 관리',
-                      'Recurring schedules',
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              _FrameView(
+                title: recurrenceText(context, '알림 설정', 'Notifications'),
+                child: Column(
+                  children: [
+                    const _AlarmStatusView(),
+                    const _DetailedNotificationTile(),
+                    _AppNotificationTile(
+                      service:
+                          _notificationService ?? NotificationService.instance,
                     ),
-                    onTap: () => context.push('/recurringSchedules'),
-                  ),
-                  _SettingTile(
-                    title: AppLocalizations.of(context)!.editDefaultPreparation,
-                    onTap: () async {
-                      final PreparationEntity? updatedPreparation =
-                          await context.push(
-                            '/defaultPreparationSpareTimeEdit',
-                          );
-                      if (updatedPreparation != null) {}
-                    },
-                  ),
-                  const _DetailedNotificationTile(),
-                  _SettingTile(
-                    title: AppLocalizations.of(context)!.allowAppNotifications,
-                    onTap: () async {
-                      await _handleNotificationPermission(
-                        context,
-                        _notificationService ?? NotificationService.instance,
-                      );
-                    },
-                  ),
-                  _SettingTile(
-                    title: AppLocalizations.of(context)!.privacyPolicy,
-                    onTap: () => context.push('/privacyPolicy'),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              _FrameView(
+                title: recurrenceText(context, '시간 설정', 'Time settings'),
+                child: const _DefaultTimeTiles(),
+              ),
+              _FrameView(
+                title: recurrenceText(context, '일정 관리', 'Schedules'),
+                child: _SettingTile(
+                  icon: Icons.repeat,
+                  title: recurrenceText(
+                    context,
+                    '반복 일정 관리',
+                    'Recurring schedules',
+                  ),
+                  onTap: () => context.push('/recurringSchedules'),
+                ),
+              ),
+              _FrameView(
+                title: recurrenceText(context, '데이터 관리', 'Data'),
+                child: Column(
+                  children: [
+                    _SettingTile(
+                      icon: Icons.cloud_upload_outlined,
+                      title: recurrenceText(
+                        context,
+                        '내 데이터 백업',
+                        'Back up my data',
+                      ),
+                      onTap: () => context.push('/myData?action=backup'),
+                    ),
+                    _SettingTile(
+                      icon: Icons.cloud_download_outlined,
+                      title: recurrenceText(
+                        context,
+                        '내 데이터 복원',
+                        'Restore my data',
+                      ),
+                      onTap: () => context.push('/myData?action=restore'),
+                    ),
+                    _SettingTile(
+                      icon: Icons.delete_outline,
+                      title: recurrenceText(
+                        context,
+                        '내 데이터 초기화',
+                        'Reset local data',
+                      ),
+                      onTap: () => context.push('/myData?action=reset'),
+                    ),
+                  ],
+                ),
+              ),
+              _FrameView(
+                title: recurrenceText(context, '기타', 'Other'),
+                child: _SettingTile(
+                  icon: Icons.privacy_tip_outlined,
+                  title: AppLocalizations.of(context)!.privacyPolicy,
+                  onTap: () => context.push('/privacyPolicy'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _DefaultTimeTiles extends StatefulWidget {
+  const _DefaultTimeTiles();
+  @override
+  State<_DefaultTimeTiles> createState() => _DefaultTimeTilesState();
+}
+
+class _DefaultTimeTilesState extends State<_DefaultTimeTiles> {
+  Future<Duration>? _duration;
+  late final Stream<UserEntity>? _user = getIt.isRegistered<StreamUserUseCase>()
+      ? getIt<StreamUserUseCase>()()
+      : null;
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  void _load() {
+    _duration = getIt.isRegistered<GetDefaultPreparationUseCase>()
+        ? getIt<GetDefaultPreparationUseCase>()().then((p) => p.totalDuration)
+        : null;
+  }
+
+  Future<void> _edit() async {
+    await context.push('/defaultPreparationSpareTimeEdit');
+    if (mounted) setState(_load);
+  }
+
+  String? _minutes(Duration? value) => value == null
+      ? null
+      : recurrenceText(
+          context,
+          '${value.inMinutes} 분',
+          '${value.inMinutes} min',
+        );
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      FutureBuilder<Duration>(
+        future: _duration,
+        builder: (context, snapshot) => _SettingTile(
+          icon: Icons.timer_outlined,
+          title: recurrenceText(context, '기본 준비시간', 'Default preparation'),
+          value: _minutes(snapshot.data),
+          onTap: _edit,
+        ),
+      ),
+      StreamBuilder<UserEntity>(
+        stream: _user,
+        builder: (context, snapshot) => _SettingTile(
+          icon: Icons.timer_outlined,
+          title: recurrenceText(context, '기본 여유시간', 'Default buffer'),
+          value: _minutes(snapshot.data?.spareTimeOrNull),
+          onTap: _edit,
+        ),
+      ),
+    ],
+  );
+}
+
+class _AppNotificationTile extends StatefulWidget {
+  const _AppNotificationTile({required this.service});
+  final NotificationService service;
+  @override
+  State<_AppNotificationTile> createState() => _AppNotificationTileState();
+}
+
+class _AppNotificationTileState extends State<_AppNotificationTile>
+    with WidgetsBindingObserver {
+  bool? _enabled;
+  bool _busy = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refresh();
+  }
+
+  Future<void> _refresh() async {
+    try {
+      final status = await widget.service.checkNotificationPermission();
+      if (mounted) {
+        setState(() => _enabled = status == AuthorizationStatus.authorized);
+      }
+    } catch (_) {
+      // The permission row remains usable if the platform status is unavailable.
+    }
+  }
+
+  Future<void> _request({bool turnOff = false}) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      if (turnOff) {
+        await widget.service.openNotificationSettings();
+      } else {
+        await _handleNotificationPermission(context, widget.service);
+      }
+      await _refresh();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: _busy ? null : () => _request(),
+    child: Row(
+      children: [
+        const Icon(Icons.phone_iphone, size: 24),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Text(
+            AppLocalizations.of(context)!.allowAppNotifications,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        Switch(
+          value: _enabled ?? false,
+          onChanged: _busy || _enabled == null
+              ? null
+              : (value) => _request(turnOff: !value),
+        ),
+      ],
+    ),
+  );
 }
 
 class _DetailedNotificationTile extends StatefulWidget {
@@ -138,7 +298,9 @@ class _DetailedNotificationTileState extends State<_DetailedNotificationTile> {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       title: const Text('알림에 일정 이름 표시'),
-      subtitle: const Text('기본값은 잠금 화면에 상세 내용을 표시하지 않습니다.'),
+      secondary: const Icon(Icons.person_outline, size: 24),
+      dense: true,
+      activeThumbColor: Theme.of(context).colorScheme.primary,
       value: _enabled,
       onChanged: _loading ? null : _change,
     );
@@ -304,27 +466,48 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
           children: [
-            Text(
-              AppLocalizations.of(context)!.scheduleNotificationSetting,
-              style: textTheme.bodyLarge,
+            const Icon(Icons.notifications_none, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.scheduleNotificationSetting,
+                style: textTheme.bodyMedium,
+              ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              _isLoading ? '확인 중' : _statusLabel,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
+            Switch(
+              key: const Key('alarmSettingsSwitch'),
+              value: _alarmsEnabled,
+              onChanged: _isUpdating ? null : _toggle,
             ),
           ],
         ),
-        Switch(
-          key: const Key('alarmSettingsSwitch'),
-          value: _alarmsEnabled,
-          onChanged: _isUpdating ? null : _toggle,
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Icons.schedule, size: 24),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  recurrenceText(context, '예정 알림 상태', 'Notification status'),
+                  style: textTheme.bodyMedium,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  _isLoading ? '확인 중' : _statusLabel,
+                  textAlign: TextAlign.end,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -410,51 +593,74 @@ class _FrameView extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 19),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 25,
-          children: [
-            Text(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 6),
+            child: Text(
               title,
-              style: textTheme.bodyMedium!.copyWith(color: colorScheme.outline),
+              style: textTheme.bodySmall!.copyWith(
+                color: colorScheme.outline,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            child,
-          ],
-        ),
+          ),
+          RecurrencePanel(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: child,
+          ),
+        ],
       ),
     );
   }
 }
 
 class _SettingTile extends StatelessWidget {
-  const _SettingTile({required this.title, required this.onTap});
-
+  const _SettingTile({
+    required this.title,
+    required this.onTap,
+    required this.icon,
+    this.value,
+  });
   final String title;
   final VoidCallback onTap;
-
+  final IconData icon;
+  final String? value;
   @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    return InkWell(
-      onTap: onTap,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: textTheme.bodyLarge),
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: colorScheme.outlineVariant,
-          ),
-        ],
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 48),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(title, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            if (value != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  value!,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+          ],
+        ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 Future<void> _handleNotificationPermission(

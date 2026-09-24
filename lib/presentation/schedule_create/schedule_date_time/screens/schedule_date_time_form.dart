@@ -36,91 +36,130 @@ class ScheduleDateTimeForm extends StatelessWidget {
             .state;
         return ListView(
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.appointmentTime,
-                      hintText: _localizedDateString(context, DateTime.now()),
-                      hintStyle: fadedHintStyle,
-                    ),
-                    controller: TextEditingController(
-                      text: state.scheduleDate.value == null
-                          ? null
-                          : _localizedDateString(
-                              context,
-                              state.scheduleDate.value!,
-                            ),
-                    ),
-                    onTap: () {
-                      context.showCupertinoDatePickerModal(
-                        title: AppLocalizations.of(context)!.enterDate,
-                        mode: CupertinoDatePickerMode.date,
-                        initialValue:
-                            state.scheduleDate.value ?? DateTime.now(),
-                        onDisposed: () {
-                          context
-                              .read<ScheduleDateTimeCubit>()
-                              .validateCurrentSelection();
-                        },
-                        onSaved: (DateTime newDateTime) {
-                          context
-                              .read<ScheduleDateTimeCubit>()
-                              .scheduleDateChanged(newDateTime);
-                        },
-                      );
-                    },
-                  ),
+            Text(
+              recurrenceText(context, '날짜와 시간', 'Date and time'),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              recurrenceText(
+                context,
+                '약속이 언제 시작되는지, 반복할지 선택하세요.',
+                'Choose when the appointment starts and whether it repeats.',
+              ),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              readOnly: true,
+              decoration: InputDecoration(
+                filled: true,
+                labelStyle: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF545454),
                 ),
-                SizedBox(width: 30),
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: '',
-                      hintText: DateFormat.jm(
+                floatingLabelStyle: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF545454),
+                ),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                prefixIcon: const Icon(Icons.calendar_today_outlined, size: 24),
+                suffixIcon: const Icon(Icons.chevron_right, size: 20),
+                labelText: AppLocalizations.of(context)!.appointmentTime,
+                hintText: _localizedDateString(context, DateTime.now()),
+                hintStyle: fadedHintStyle,
+              ),
+              controller: TextEditingController(
+                text: state.scheduleDate.value == null
+                    ? null
+                    : _localizedDateString(context, state.scheduleDate.value!),
+              ),
+              onTap: () {
+                context.showCupertinoDatePickerModal(
+                  title: AppLocalizations.of(context)!.enterDate,
+                  mode: CupertinoDatePickerMode.date,
+                  initialValue: state.scheduleDate.value ?? DateTime.now(),
+                  onDisposed: () {
+                    context
+                        .read<ScheduleDateTimeCubit>()
+                        .validateCurrentSelection();
+                  },
+                  onSaved: (DateTime newDateTime) {
+                    context.read<ScheduleDateTimeCubit>().scheduleDateChanged(
+                      newDateTime,
+                    );
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              readOnly: true,
+              decoration: InputDecoration(
+                filled: true,
+                labelStyle: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF545454),
+                ),
+                floatingLabelStyle: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF545454),
+                ),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                prefixIcon: const Icon(Icons.schedule, size: 24),
+                suffixIcon: const Icon(Icons.chevron_right, size: 20),
+                labelText: recurrenceText(context, '시간', 'Time'),
+                hintText: DateFormat.jm(
+                  Localizations.localeOf(context).toString(),
+                ).format(DateTime.now()),
+                hintStyle: fadedHintStyle,
+              ),
+              controller: TextEditingController(
+                text: state.scheduleTime.value == null
+                    ? null
+                    : DateFormat.jm(
                         Localizations.localeOf(context).toString(),
-                      ).format(DateTime.now()),
-                      hintStyle: fadedHintStyle,
-                    ),
-                    controller: TextEditingController(
-                      text: state.scheduleTime.value == null
-                          ? null
-                          : DateFormat.jm(
-                              Localizations.localeOf(context).toString(),
-                            ).format(state.scheduleTime.value!),
-                    ),
-                    onTap: () {
-                      context.showCupertinoDatePickerModal(
-                        title: AppLocalizations.of(context)!.enterTime,
-                        mode: CupertinoDatePickerMode.time,
-                        initialValue:
-                            state.scheduleTime.value ?? DateTime.now(),
-                        onDisposed: () {
-                          context
-                              .read<ScheduleDateTimeCubit>()
-                              .validateCurrentSelection();
-                        },
-                        onSaved: (DateTime newDateTime) {
-                          context
-                              .read<ScheduleDateTimeCubit>()
-                              .scheduleTimeChanged(newDateTime);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
+                      ).format(state.scheduleTime.value!),
+              ),
+              onTap: () {
+                context.showCupertinoDatePickerModal(
+                  title: AppLocalizations.of(context)!.enterTime,
+                  mode: CupertinoDatePickerMode.time,
+                  initialValue: state.scheduleTime.value ?? DateTime.now(),
+                  onDisposed: () {
+                    context
+                        .read<ScheduleDateTimeCubit>()
+                        .validateCurrentSelection();
+                  },
+                  onSaved: (DateTime newDateTime) {
+                    context.read<ScheduleDateTimeCubit>().scheduleTimeChanged(
+                      newDateTime,
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 24),
             if (form.originalSchedule == null || form.recurrenceRule != null)
               RecurrenceValue(
-                label: recurrenceText(context, '반복', 'Repeat'),
+                label: recurrenceText(context, '반복 설정', 'Repeat'),
+                icon: Icons.repeat,
                 value: form.recurrenceRule == null
                     ? recurrenceText(context, '반복 안 함', 'Does not repeat')
                     : recurrenceLabel(context, form.recurrenceRule!),
@@ -137,7 +176,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                               isScrollControlled: true,
                               useSafeArea: true,
                               builder: (context) => SizedBox(
-                                height: MediaQuery.sizeOf(context).height * .9,
+                                height: MediaQuery.sizeOf(context).height * .94,
                                 child: RecurrenceSettingsSheet(
                                   start: state.selectedScheduleDateTime!,
                                   timeZoneId: form.timeZoneId,
@@ -165,14 +204,41 @@ class ScheduleDateTimeForm extends StatelessWidget {
                         }
                       },
               ),
-            if (state.isRecurring)
-              Text(
-                recurrenceText(
-                  context,
-                  '시작일 이후 조건에 맞는 날짜부터 반복해요. 실제 첫 일정은 준비시간을 반영해 저장 전에 확인합니다.',
-                  'Repeats from the first matching date. Review the actual first occurrence after setting preparation time.',
+            if (state.isRecurring && form.recurrenceRule != null) ...[
+              const SizedBox(height: 16),
+              RecurrencePanel(
+                highlighted: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      recurrenceText(context, '반복 요약', 'Recurrence summary'),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(recurrenceLabel(context, form.recurrenceRule!)),
+                    const SizedBox(height: 14),
+                    Text(
+                      recurrenceText(context, '첫 일정 날짜', 'First occurrence'),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      recurrenceText(
+                        context,
+                        '실제 첫 일정은 준비시간을 반영해 저장 전에 확인합니다.',
+                        'Review the first occurrence after setting preparation time.',
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
+            ],
             if (!state.isRecurring && state.hasPreviousOverlapMessage)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0, left: 16.0),
@@ -208,27 +274,24 @@ class ScheduleDateTimeForm extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
-                    Wrap(
+                    Column(
                       spacing: 8,
-                      runSpacing: 8,
                       children: [
                         for (
                           var index = 0;
                           index < state.occurrenceOffsetOptions.length;
                           index++
                         )
-                          ChoiceChip(
-                            label: Text(
-                              _occurrenceLabel(
-                                context,
-                                index,
-                                state.occurrenceOffsetOptions[index],
-                              ),
+                          RecurrenceChoice(
+                            label: _occurrenceLabel(
+                              context,
+                              index,
+                              state.occurrenceOffsetOptions[index],
                             ),
                             selected:
                                 state.selectedOccurrenceOffsetSeconds ==
                                 state.occurrenceOffsetOptions[index],
-                            onSelected: (_) => context
+                            onTap: () => context
                                 .read<ScheduleDateTimeCubit>()
                                 .occurrenceOffsetSelected(
                                   state.occurrenceOffsetOptions[index],

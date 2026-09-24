@@ -1,0 +1,12 @@
+2026-09-23
+
+flutter analyze --no-pub
+No issues found!
+
+flutter test --no-pub --concurrency=1 --dart-define=CAPTURE_RECURRING_SCREENSHOTS=true
+603 tests passed (1m52s).
+
+git diff --check
+passed
+
+26 Flutter widget renders saved. Privacy body text: 6/6 original paragraphs preserved.

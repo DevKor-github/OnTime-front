@@ -90,6 +90,16 @@ open class MainActivity : FlutterActivity() {
                     result.success(AlarmLaunchPayload.sanitize(launchPayload))
                     launchPayload = null
                 }
+                // AlarmManager has no app-wide registration read-back. Known
+                // legacy identities are cancelled by the common owner; false
+                // preserves unknown ownership rather than inventing absence.
+                "resetCancelAllNativeAlarms" -> result.success(false)
+                "clearStoredLaunchPayload" -> {
+                    launchPayload = null
+                    // Reset also invalidates notification-plugin launch extras.
+                    intent?.replaceExtras(Bundle())
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }

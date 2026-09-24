@@ -1,12 +1,10 @@
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/core/database/installation_key_store.dart';
-import 'package:on_time_front/core/database/local_data_files.dart';
-import 'package:on_time_front/core/database/local_data_lifecycle.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
-import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/core/database/local_reset_actions.dart';
+import 'package:on_time_front/core/database/local_reset_protocol.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 @lazySingleton
 class LocalDataResetService {
@@ -15,26 +13,52 @@ class LocalDataResetService {
     this._keyStore,
     this._cancelAllAlarms, {
     @ignoreParam LocalDataOperationGate? operationGate,
-  }) : _operationGate = operationGate ?? LocalDataOperationGate.shared;
+    @ignoreParam LocalResetActions? resetActions,
+  }) : _operationGate = operationGate ?? LocalDataOperationGate.shared,
+       _resetActions = resetActions;
 
   final AppDatabase _database;
   final InstallationKeyStore _keyStore;
   final CancelAllAlarmsUseCase _cancelAllAlarms;
   final LocalDataOperationGate _operationGate;
+  final LocalResetActions? _resetActions;
+  Future<LocalResetResult>? _running;
+  LocalResetResult? _completed;
+  bool _databaseClosed = false;
 
-  Future<void> reset() => _operationGate.run(_reset, replacesData: true);
+  /// Repeated taps share the actual operation. A UI timeout never releases it.
+  Future<LocalResetResult> reset() {
+    final completed = _completed;
+    if (completed != null) return Future.value(completed);
+    final current = _running;
+    if (current != null) return current;
+    final next = _operationGate.isInvalidated
+        ? _reset()
+        : _operationGate.run(_reset, replacesData: true);
+    _running = next.then((result) {
+      if (result.isComplete) _completed = result;
+      return result;
+    }).whenComplete(() => _running = null);
+    return _running!;
+  }
 
-  Future<void> _reset() async {
-    await LocalDataLifecycle.markResetPending();
-    // The durable reset intent is now irrevocable in this process. Even if
-    // cleanup fails, do not reopen normal writers; bootstrap resumes reset.
+  Future<LocalResetResult> _reset() {
     _operationGate.invalidate();
-    await _cancelAllAlarms.forDataReplacement();
-    await NotificationService.instance.cancelAll();
-    await _database.close();
-    await deleteLocalDatabaseFiles(includeLegacy: true);
-    await (await SharedPreferences.getInstance()).clear();
-    await _keyStore.delete();
-    // The pending marker is intentionally cleared by bootstrap on next launch.
+    return _cancelAllAlarms.withCleanupOwner(
+      (cleanup) => LocalResetProtocol(
+        _cancelAllAlarms.operations.journal,
+        cleanup,
+        _resetActions ??
+            DeviceLocalResetActions(
+              keyStore: _keyStore,
+              closeDatabase: () async {
+                if (!_databaseClosed) {
+                  await _database.close();
+                  _databaseClosed = true;
+                }
+              },
+            ),
+      ).run(begin: true),
+    );
   }
 }

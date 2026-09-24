@@ -10,10 +10,14 @@ class BootstrapPrivacyCleanupFailure implements Exception {
 Future<void> bootstrapWithPrivacyCleanup({
   required Future<void> Function() bootstrap,
   required Future<void> Function() cleanup,
+  bool Function(Object error)? shouldCleanup,
 }) async {
   try {
     await bootstrap();
   } catch (error, stack) {
+    if (shouldCleanup != null && !shouldCleanup(error)) {
+      Error.throwWithStackTrace(error, stack);
+    }
     try {
       await cleanup();
     } catch (cleanupError) {

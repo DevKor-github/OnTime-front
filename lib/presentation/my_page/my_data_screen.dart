@@ -1,5 +1,6 @@
+import 'package:on_time_front/core/database/local_reset_protocol.dart';
+import 'package:on_time_front/presentation/startup/screens/local_reset_progress_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/backup/backup_password.dart';
 import 'package:on_time_front/core/backup/backup_service.dart';
 import 'package:on_time_front/core/database/local_data_reset_service.dart';
@@ -15,6 +16,7 @@ class MyDataScreen extends StatefulWidget {
 
 class _MyDataScreenState extends State<MyDataScreen> {
   bool _busy = false;
+  LocalResetResult? _resetResult;
   BackupFreshnessStatus? _freshness;
 
   @override
@@ -30,6 +32,13 @@ class _MyDataScreenState extends State<MyDataScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final resetResult = _resetResult;
+    if (resetResult != null) {
+      return LocalResetProgressScreen(
+        initialResult: resetResult,
+        operation: getIt<LocalDataResetService>().reset,
+      );
+    }
     final freshness = _freshness;
     return Scaffold(
       appBar: AppBar(title: const Text('내 데이터')),
@@ -158,7 +167,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
           ],
         ),
       );
-      if (confirmed != true) return;
+      if (confirmed != true || !mounted) return;
       await getIt<BackupService>().applyRestore(candidate);
       await getIt<ReconcileAlarmsUseCase>()();
       if (!mounted) return;
@@ -193,11 +202,11 @@ class _MyDataScreenState extends State<MyDataScreen> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
     setState(() => _busy = true);
     try {
-      await getIt<LocalDataResetService>().reset();
-      if (mounted) context.go('/resetComplete');
+      final result = await getIt<LocalDataResetService>().reset();
+      if (mounted) setState(() => _resetResult = result);
     } catch (error) {
       if (!mounted) return;
       setState(() => _busy = false);

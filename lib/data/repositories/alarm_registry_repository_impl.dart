@@ -4,10 +4,30 @@ import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 
 @Singleton(as: AlarmRegistryRepository)
-class AlarmRegistryRepositoryImpl implements AlarmRegistryRepository {
+class AlarmRegistryRepositoryImpl
+    implements AlarmRegistryRepository, RecoverableAlarmOwnershipIntegrity {
   final AlarmRegistryLocalDataSource localDataSource;
 
   AlarmRegistryRepositoryImpl({required this.localDataSource});
+
+  @override
+  Future<bool> hasUnresolvedOwnership() async {
+    final source = localDataSource;
+    return source is AlarmOwnershipIntegrity
+        ? await (source as AlarmOwnershipIntegrity).hasUnresolvedOwnership()
+        : false;
+  }
+
+  @override
+  Future<void> clearResolvedOwnership() async {
+    final source = localDataSource;
+    if (source is RecoverableAlarmOwnershipIntegrity) {
+      await (source as RecoverableAlarmOwnershipIntegrity)
+          .clearResolvedOwnership();
+    } else if (await hasUnresolvedOwnership()) {
+      throw StateError('Registry cannot resolve ownership uncertainty');
+    }
+  }
 
   @override
   Future<List<ScheduledAlarmRecord>> loadAll() {

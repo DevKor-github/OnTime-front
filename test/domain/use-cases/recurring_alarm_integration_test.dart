@@ -1,3 +1,4 @@
+import '../../helpers/isolated_alarm_owner.dart';
 import 'dart:async';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
@@ -38,6 +39,10 @@ import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase database;
   late RecurringScheduleRepositoryImpl recurring;
@@ -58,6 +63,8 @@ void main() {
     native,
     _Notifications(),
     nowProvider: () => now,
+
+    operations: isolatedOwner,
   );
 
   Future<void> createSeries(

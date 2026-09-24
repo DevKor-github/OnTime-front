@@ -1,7 +1,30 @@
+import 'package:on_time_front/core/database/local_data_lifecycle.dart';
+import 'package:on_time_front/core/database/local_reset_protocol.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/bootstrap_privacy_boundary.dart';
 
 void main() {
+  test(
+    'pending reset preserves its ownership and bypasses unrelated privacy cleanup',
+    () async {
+      const failure = LocalResetRecoveryRequired(
+        LocalResetResult(intentRecorded: true, completed: {}),
+      );
+      var cleaned = false;
+      await expectLater(
+        bootstrapWithPrivacyCleanup(
+          bootstrap: () async => throw failure,
+          cleanup: () async {
+            cleaned = true;
+          },
+          shouldCleanup: (error) => error is! LocalResetRecoveryRequired,
+        ),
+        throwsA(same(failure)),
+      );
+      expect(cleaned, false);
+    },
+  );
+
   test('successful bootstrap does not remove runtime', () async {
     var cleaned = false;
     await bootstrapWithPrivacyCleanup(

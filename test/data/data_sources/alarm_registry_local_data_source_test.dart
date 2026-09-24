@@ -16,6 +16,40 @@ void main() {
   });
 
   test(
+    'scrubbing irrecoverable identities retains a content-free uncertainty marker',
+    () async {
+      for (final raw in <Object>[
+        'PRIVATE corrupt',
+        '',
+        '{}',
+        '[null]',
+        '[{"scheduleId":"a","provider":"unknown"}]',
+        ['PRIVATE'],
+      ]) {
+        SharedPreferences.setMockInitialValues({
+          'scheduled_alarm_registry': raw,
+        });
+        final source = AlarmRegistryLocalDataSourceImpl();
+        expect(await source.loadAll(), isEmpty);
+        expect(await source.hasUnresolvedOwnership(), true);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.get('scheduled_alarm_registry'), isNull);
+        expect(prefs.get('scheduled_alarm_ownership_unknown_v1'), true);
+        await source.replaceAll([]);
+        expect(
+          await AlarmRegistryLocalDataSourceImpl().hasUnresolvedOwnership(),
+          true,
+        );
+      }
+    },
+  );
+
+  test('missing registry is not mistaken for a corrupt registry', () async {
+    expect(await dataSource.loadAll(), isEmpty);
+    expect(await dataSource.hasUnresolvedOwnership(), false);
+  });
+
+  test(
     'wrong-typed known registry is removed instead of retaining raw text',
     () async {
       SharedPreferences.setMockInitialValues({

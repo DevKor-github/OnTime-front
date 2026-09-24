@@ -1,3 +1,6 @@
+import 'package:on_time_front/core/services/alarm_ownership_journal.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import '../../helpers/isolated_alarm_owner.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/delivery_observation.dart';
@@ -12,6 +15,10 @@ import 'reconcile_alarms_use_case_test.dart'
         scheduleWithAlarmAt;
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   final now = DateTime(2026, 5, 5, 9);
   late FakeAlarmRepository schedules;
   late FakeAlarmRegistryRepository registry;
@@ -44,8 +51,29 @@ void main() {
       nowProvider: () => now,
       languageCodeProvider: () => 'en',
       timeZoneProvider: () async => 'UTC',
+
+      operations: isolatedOwner,
     );
   });
+
+  for (final enabled in [true, false]) {
+    test(
+      'lost ownership is not reported as armed or disabled: enabled=$enabled',
+      () async {
+        schedules.settings = AlarmSettings(alarmsEnabled: enabled);
+        await isolatedOwner.journal.save(
+          AlarmJournalSnapshot(unknownOwnership: true),
+        );
+        final result = await reconcile();
+        expect(result.status, AlarmReconciliationStatus.partial);
+        expect(result.armedScheduleIds, isEmpty);
+        expect(result.failures, isNotEmpty);
+        expect(native.scheduledNative, isEmpty);
+        expect(notifications.scheduledFallback, isEmpty);
+        expect((await isolatedOwner.journal.read()).unknownOwnership, true);
+      },
+    );
+  }
 
   test(
     'write-ahead identity precedes native scheduling and a now-expired target is not replayed',
@@ -68,6 +96,8 @@ void main() {
         nowProvider: () => clock,
         languageCodeProvider: () => 'en',
         timeZoneProvider: () async => 'UTC',
+
+        operations: isolatedOwner,
       );
       final result = await delayed();
       expect(sawIntent, true);
@@ -88,9 +118,11 @@ void main() {
       );
       notifications.timingPermission = AlarmPermissionState.granted;
       await reconcile();
-      registry.records = [
-        registry.records.single.copyWith(fallbackNotificationId: 99),
-      ];
+      final previous = registry.records.single;
+      registry.records = [previous.copyWith(fallbackNotificationId: 99)];
+      // Seed migrated ownership consistently in both persistence projections.
+      await isolatedOwner.journal.confirmedCancelled(previous);
+      await isolatedOwner.journal.remember(registry.records, pending: false);
       notifications.pendingFallback
         ..clear()
         ..['99'] = const PendingDelivery(id: '99', scheduleId: 'one');

@@ -1,3 +1,4 @@
+import '../../helpers/isolated_alarm_owner.dart';
 import 'dart:async';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
@@ -39,6 +40,10 @@ class BlockingAlarmRepository extends fixtures.FakeAlarmRepository {
 }
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   test(
     'each cutoff finishes without waiting for later edits to become quiet',
     () async {
@@ -314,6 +319,8 @@ void main() {
         fallback,
         nowProvider: () => now,
         timeZoneProvider: () async => 'UTC',
+
+        operations: isolatedOwner,
       );
       final first = reconcile();
       await repository.snapshots[1]!.future;

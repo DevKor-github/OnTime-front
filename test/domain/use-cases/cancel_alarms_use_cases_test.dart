@@ -1,3 +1,4 @@
+import '../../helpers/isolated_alarm_owner.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
@@ -8,6 +9,10 @@ import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 import 'package:on_time_front/domain/use-cases/cancel_schedule_alarm_use_case.dart';
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   test(
     'CancelScheduleAlarmUseCase cancels matching native and fallback records',
     () async {
@@ -19,7 +24,12 @@ void main() {
       ]);
       final scheduler = _FakeAlarmSchedulerService();
       final fallback = _FakeFallbackAlarmNotificationService();
-      final useCase = CancelScheduleAlarmUseCase(registry, scheduler, fallback);
+      final useCase = CancelScheduleAlarmUseCase(
+        registry,
+        scheduler,
+        fallback,
+        operations: isolatedOwner,
+      );
 
       await useCase('schedule-1');
 
@@ -44,6 +54,8 @@ void main() {
         registry,
         scheduler,
         _FakeFallbackAlarmNotificationService(),
+
+        operations: isolatedOwner,
       );
 
       await expectLater(
@@ -66,7 +78,12 @@ void main() {
       ]);
       final scheduler = _FakeAlarmSchedulerService();
       final fallback = _FakeFallbackAlarmNotificationService();
-      final useCase = CancelAllAlarmsUseCase(registry, scheduler, fallback);
+      final useCase = CancelAllAlarmsUseCase(
+        registry,
+        scheduler,
+        fallback,
+        operations: isolatedOwner,
+      );
 
       await useCase();
 
@@ -86,6 +103,8 @@ void main() {
       registry,
       _FakeAlarmSchedulerService(),
       _FakeFallbackAlarmNotificationService(),
+
+      operations: isolatedOwner,
     );
 
     await useCase();

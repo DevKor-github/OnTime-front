@@ -56,6 +56,8 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       scheduleNativeAlarm(call, result: result)
     case "cancelNativeAlarm":
       cancelNativeAlarm(call, result: result)
+    case "resetCancelAllNativeAlarms":
+      resetCancelAllNativeAlarms(result: result)
     case "getPendingNativeAlarms":
       getPendingNativeAlarms(call, result: result)
     case "sanitizeStoredLaunchPayload":
@@ -68,6 +70,12 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       ))
     case "getLaunchPayload":
       result(takeStoredAlarmLaunchPayload())
+    case "clearStoredLaunchPayload":
+      let defaults = UserDefaults.standard
+      defaults.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+      result(defaults.object(forKey: onTimeAlarmLaunchPayloadDefaultsKey) == nil
+        ? nil : FlutterError(code: "cleanupUnconfirmed",
+          message: "Could not confirm launch cleanup.", details: nil))
     case "getLocalTimeZone":
       result(TimeZone.current.identifier)
     case "excludeFromBackup":
@@ -89,6 +97,12 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       var values = URLResourceValues()
       values.isExcludedFromBackup = true
       try url.setResourceValues(values)
+      guard try url.resourceValues(forKeys: [.isExcludedFromBackupKey])
+        .isExcludedFromBackup == true else {
+        result(FlutterError(code: "backupExclusionUnconfirmed",
+          message: "Could not confirm local backup exclusion.", details: nil))
+        return
+      }
       result(nil)
     } catch {
       result(FlutterError(
@@ -260,6 +274,39 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       message: "AlarmKit native scheduling is not available in this build or OS version.",
       details: nil
     ))
+  }
+
+  // Invoked only by explicit full local reset under the shared Dart owner.
+  // AlarmManager enumerates this app's alarms, including identities no longer
+  // mappable to a local schedule after registry corruption.
+  private func resetCancelAllNativeAlarms(result: @escaping FlutterResult) {
+    #if canImport(AlarmKit)
+    if #available(iOS 26.0, *) {
+      do {
+        let manager = AlarmManager.shared
+        for alarm in try manager.alarms {
+          try manager.cancel(id: alarm.id)
+        }
+        guard try manager.alarms.isEmpty else {
+          result(FlutterError(code: "cleanupUnconfirmed",
+            message: "Native alarm cleanup is unconfirmed.", details: nil))
+          return
+        }
+        result(true)
+      } catch {
+        result(FlutterError(code: "cleanupUnconfirmed",
+          message: "Native alarm cleanup is unconfirmed.", details: nil))
+      }
+      return
+    }
+    #endif
+    if #available(iOS 26.0, *) {
+      result(FlutterError(code: "unsupported",
+        message: "This build cannot confirm native alarm cleanup.", details: nil))
+      return
+    }
+    // AlarmKit cannot hold registrations on versions before its introduction.
+    result(true)
   }
 
   private func getPendingNativeAlarms(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

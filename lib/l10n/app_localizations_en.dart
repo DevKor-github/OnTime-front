@@ -9,6 +9,52 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get startupRecoveryTitle => 'Unable to start OnTime';
+
+  @override
+  String get startupRecoveryBody =>
+      'OnTime could not verify local data. Please try again shortly.';
+
+  @override
+  String get startupRetryAction => 'Try again';
+
+  @override
+  String get restartRequiredBody => 'Close the app completely, then reopen it.';
+
+  @override
+  String get resetInProgressTitle => 'Resetting local data';
+
+  @override
+  String get resetInProgressBody =>
+      'Checking notification and local data cleanup.';
+
+  @override
+  String get resetWaitingBody =>
+      'Waiting for the device to finish a notification operation. Reset is not complete. Reopening the app will resume cleanup.';
+
+  @override
+  String get resetDeletedPendingBody =>
+      'Local data was deleted, but some notification cleanup is still unconfirmed.';
+
+  @override
+  String get resetIncompleteBody =>
+      'Reset is not complete. Only unconfirmed cleanup steps will be retried.';
+
+  @override
+  String get resetNoIntentBody =>
+      'The reset record could not be verified. Reset has not been reported as complete. Please try again.';
+
+  @override
+  String get resetCompleteTitle => 'Local data reset complete';
+
+  @override
+  String get resetCompleteBody =>
+      'Local data and notification cleanup were verified. Close the app completely and reopen it to start again.';
+
+  @override
+  String get resetRetryAction => 'Retry cleanup';
+
+  @override
   String get notificationCleanupNeededStatus =>
       'Off · cancellation needs checking';
 
@@ -516,4 +562,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationTimingSettings => 'Timing settings';
+
+  @override
+  String get startupLoadingBody => 'Checking the data stored on this device.';
+
+  @override
+  String get startupWaitingBody =>
+      'Waiting for the device to respond. Please wait until the check finishes.';
 }

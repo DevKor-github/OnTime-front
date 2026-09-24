@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import '../../helpers/isolated_alarm_owner.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import '../../domain/use-cases/reconcile_alarms_use_case_test.dart' as fixtures;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +9,10 @@ import 'package:on_time_front/data/repositories/alarm_registry_repository_impl.d
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
   late _FakeAlarmRegistryLocalDataSource localDataSource;
   late AlarmRegistryRepositoryImpl repository;
@@ -104,6 +110,8 @@ void main() {
           nowProvider: () => now,
           timeZoneProvider: () async => 'UTC',
           languageCodeProvider: () => 'en',
+
+          operations: isolatedOwner,
         );
         final result = await reconcile();
         if (failDuplicateCancellation) {

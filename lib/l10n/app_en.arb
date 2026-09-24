@@ -1,4 +1,17 @@
 {
+  "startupRecoveryTitle": "Unable to start OnTime",
+  "startupRecoveryBody": "OnTime could not verify local data. Please try again shortly.",
+  "startupRetryAction": "Try again",
+  "restartRequiredBody": "Close the app completely, then reopen it.",
+  "resetInProgressTitle": "Resetting local data",
+  "resetInProgressBody": "Checking notification and local data cleanup.",
+  "resetWaitingBody": "Waiting for the device to finish a notification operation. Reset is not complete. Reopening the app will resume cleanup.",
+  "resetDeletedPendingBody": "Local data was deleted, but some notification cleanup is still unconfirmed.",
+  "resetIncompleteBody": "Reset is not complete. Only unconfirmed cleanup steps will be retried.",
+  "resetNoIntentBody": "The reset record could not be verified. Reset has not been reported as complete. Please try again.",
+  "resetCompleteTitle": "Local data reset complete",
+  "resetCompleteBody": "Local data and notification cleanup were verified. Close the app completely and reopen it to start again.",
+  "resetRetryAction": "Retry cleanup",
   "notificationCleanupNeededStatus": "Off · cancellation needs checking",
     "calendarTitle": "Calendar",
     "@calendarTitle": {
@@ -609,5 +622,7 @@
     "notificationApproximateStatus": "Notification · approximate timing",
     "notificationMixedTimingStatus": "Notification · some approximate timing",
     "notificationIncompleteStatus": "Notification scheduling incomplete or needs checking",
-    "notificationTimingSettings": "Timing settings"
+    "notificationTimingSettings": "Timing settings",
+  "startupLoadingBody": "Checking the data stored on this device.",
+  "startupWaitingBody": "Waiting for the device to respond. Please wait until the check finishes."
 }

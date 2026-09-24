@@ -175,6 +175,8 @@ class ReconcileAlarmsUseCase {
 
     if (!settings.alarmsEnabled) {
       final stored = await _operations.loadRecords(_registryRepository);
+      final unknownOwnership =
+          (await _operations.journal.read()).unknownOwnership;
       final observed = await _observeFallback();
       final records = [...stored, ..._fallbackOrphans(observed, stored)];
       final nativeObserved = await _observeNative(records, capabilities);
@@ -192,6 +194,7 @@ class ReconcileAlarmsUseCase {
       final result = _result(
         status:
             failedCancellations.isEmpty &&
+                !unknownOwnership &&
                 !nativeUncertain &&
                 (observed.available ||
                     capabilities.fallbackProvider !=
@@ -200,7 +203,7 @@ class ReconcileAlarmsUseCase {
             : AlarmReconciliationStatus.partial,
         failures: [
           ..._cancellationFailures(failedCancellations),
-          if (nativeUncertain) _observationFailure(),
+          if (nativeUncertain || unknownOwnership) _observationFailure(),
           if (!observed.available &&
               capabilities.fallbackProvider == AlarmProvider.localNotification)
             _observationFailure(),
@@ -279,6 +282,18 @@ class ReconcileAlarmsUseCase {
     );
 
     final storedRecords = await _operations.loadRecords(_registryRepository);
+    if ((await _operations.journal.read()).unknownOwnership) {
+      lease.check();
+      return _result(
+        status: AlarmReconciliationStatus.partial,
+        failures: [_observationFailure()],
+        capabilities: capabilities,
+        scheduleWindowStart: scheduleWindowStart,
+        scheduleWindowEnd: scheduleWindowEnd,
+        alarmCoverageStart: alarmCoverageStart,
+        alarmCoverageEnd: alarmCoverageEnd,
+      );
+    }
     final fallbackObservation = await _observeFallback();
     final existingRecords = [
       ...storedRecords,

@@ -23,6 +23,12 @@ class CancelAllAlarmsUseCase {
   final AlarmOperationCoordinator _operations;
   final AlarmRegistrationCleanup _cleanup;
 
+  AlarmOperationCoordinator get operations => _operations;
+
+  Future<T> withCleanupOwner<T>(
+    Future<T> Function(AlarmRegistrationCleanup) action,
+  ) => _operations.cleanup(() => action(_cleanup));
+
   Future<void> call() async {
     final lease = _operations.capture();
     await _operations.run(lease, _cleanup.cancelMatching);

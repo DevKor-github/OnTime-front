@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'dart:convert';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/models/scheduled_alarm_record_model.dart';
@@ -12,8 +13,58 @@ abstract interface class AlarmRegistryLocalDataSource {
 }
 
 @Injectable(as: AlarmRegistryLocalDataSource)
-class AlarmRegistryLocalDataSourceImpl implements AlarmRegistryLocalDataSource {
+class AlarmRegistryLocalDataSourceImpl
+    implements
+        AlarmRegistryLocalDataSource,
+        RecoverableAlarmOwnershipIntegrity {
   static const _prefsKey = 'scheduled_alarm_registry';
+  static const _unknownKey = 'scheduled_alarm_ownership_unknown_v1';
+
+  @override
+  Future<bool> hasUnresolvedOwnership() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Any value in this reserved marker means uncertainty, including corruption.
+    return prefs.containsKey(_unknownKey);
+  }
+
+  @override
+  Future<void> clearResolvedOwnership() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!await prefs.remove(_unknownKey)) {
+      throw StateError('Ownership uncertainty removal failed');
+    }
+    await prefs.reload();
+    if (prefs.containsKey(_unknownKey)) {
+      throw StateError('Ownership uncertainty removal was not persisted');
+    }
+  }
+
+  static Future<void> _markUnknown(SharedPreferences prefs) async {
+    if (!await prefs.setBool(_unknownKey, true)) {
+      throw StateError('Ownership uncertainty could not be preserved');
+    }
+    await prefs.reload();
+    if (prefs.getBool(_unknownKey) != true) {
+      throw StateError('Ownership uncertainty was not persisted');
+    }
+  }
+
+  static bool _validIdentity(Map<String, dynamic> item) {
+    final provider = item['provider'];
+    if (provider == AlarmProvider.none.wireValue) return true;
+    if (!AlarmProvider.values.any((value) => value.wireValue == provider) ||
+        item['scheduleId'] is! String ||
+        (item['scheduleId'] as String).isEmpty) {
+      return false;
+    }
+    final id =
+        item[provider == AlarmProvider.localNotification.wireValue
+            ? 'fallbackNotificationId'
+            : 'nativeAlarmId'];
+    return provider == AlarmProvider.iosAlarmKit.wireValue ||
+        id == null ||
+        id is int && id >= -2147483648 && id <= 2147483647;
+  }
 
   static ScheduledAlarmRecord _safe(ScheduledAlarmRecord record) {
     final current = ScheduleWithPreparationEntity.isCurrentIdentity(
@@ -64,18 +115,23 @@ class AlarmRegistryLocalDataSourceImpl implements AlarmRegistryLocalDataSource {
     try {
       raw = prefs.getString(_prefsKey);
     } catch (_) {
+      await _markUnknown(prefs);
       if (!await prefs.remove(_prefsKey)) {
         throw StateError('Corrupt registry privacy cleanup failed');
       }
       return const [];
     }
-    if (raw == null || raw.isEmpty) return const [];
+    if (raw == null) return const [];
+    var unknown = raw.isEmpty;
     final records = <ScheduledAlarmRecord>[];
     try {
       final decoded = jsonDecode(raw);
       if (decoded is List) {
         for (final item in decoded) {
-          if (item is! Map<String, dynamic>) continue;
+          if (item is! Map<String, dynamic> || !_validIdentity(item)) {
+            unknown = true;
+            continue;
+          }
           try {
             records.add(_safe(ScheduledAlarmRecordModel.fromJson(item).record));
           } catch (_) {
@@ -118,10 +174,15 @@ class AlarmRegistryLocalDataSourceImpl implements AlarmRegistryLocalDataSource {
             }
           }
         }
+      } else {
+        unknown = true;
       }
     } catch (_) {
-      /* Corrupt raw content is not retained as a second store. */
+      unknown = true;
     }
+    // Preserve only uncertainty before scrubbing raw content. Reset migrates
+    // this receipt into its independent journal before clearing preferences.
+    if (unknown) await _markUnknown(prefs);
     final encoded = jsonEncode(
       records
           .map((record) => ScheduledAlarmRecordModel(record).toJson())

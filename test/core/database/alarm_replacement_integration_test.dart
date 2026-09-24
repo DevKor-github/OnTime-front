@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/local_reset_actions.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -6,7 +7,6 @@ import 'package:on_time_front/core/backup/backup_crypto.dart';
 import 'package:on_time_front/core/backup/backup_service.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/core/database/installation_key_store.dart';
-import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/database/local_data_reset_service.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:on_time_front/core/services/app_metadata_service.dart';
@@ -124,7 +124,7 @@ void main() {
   );
 
   test(
-    'durable reset intent blocks writers after cancellation failure without deleting data',
+    'reset retains independent cancellation ownership after content deletion and retries only cleanup',
     () async {
       final native = concurrency.BlockingNative()..throwOnCancelIds.add('old');
       final r = concurrency.Rig(native: native);
@@ -135,6 +135,15 @@ void main() {
         keys,
         r.cancelAll,
         operationGate: r.gate,
+        resetActions: DeviceLocalResetActions(
+          keyStore: keys,
+          closeDatabase: database.close,
+          deleteFiles: () async {}, // In-memory Drift fixture owns no DB files.
+          clearDeliveries:
+              () async {}, // Provider cancellation is exercised by r.
+          clearLaunch: () async {},
+          clearNativeDeliveries: () async => false,
+        ),
       );
       r.repository.schedules = [r.schedule('old')];
       final invalidated = expectLater(
@@ -143,10 +152,6 @@ void main() {
       );
       await native.entered.future;
       final pending = service.reset();
-      final failed = expectLater(
-        pending,
-        throwsA(isA<AlarmCleanupIncomplete>()),
-      );
       await invalidated;
       await pumpEventQueue();
       expect(keys.deleted, false);
@@ -155,12 +160,14 @@ void main() {
         'backup value',
       );
       native.release.complete();
-      await failed;
+      final result = await pending;
+      expect(result.isComplete, false);
+      expect(result.dataDeleted, true);
       expect(r.gate.isInvalidated, true);
-      expect(keys.deleted, false);
+      expect(keys.deleted, true);
       expect(
         (await SharedPreferences.getInstance()).getString('sentinel'),
-        'keep',
+        null,
       );
       expect(
         await const FlutterSecureStorage().read(
@@ -173,9 +180,17 @@ void main() {
         r.reconcile(),
         throwsA(isA<AlarmOperationInvalidated>()),
       );
-      await expectLater(service.reset(), throwsA(isA<LocalDataUnavailable>()));
-      // Existing policy: restart resumes the pending reset; no ordinary retry or
-      // registry wipe can silently reopen this installation in the same process.
+      expect((await r.operations.journal.read()).ownership, hasLength(1));
+      native.throwOnCancelIds.clear();
+      final completed = await service.reset();
+      expect(completed.isComplete, true);
+      // A late progress-screen mount must not start a second destructive reset.
+      await (await SharedPreferences.getInstance()).setString('post-reset-sentinel', 'keep');
+      expect(await service.reset(), same(completed));
+      expect((await SharedPreferences.getInstance()).getString('post-reset-sentinel'), 'keep');
+      expect((await r.operations.journal.read()).ownership, isEmpty);
+      // Even after cleanup succeeds, the old closed DB is not reopened for editing.
+      expect(r.gate.isInvalidated, true);
     },
   );
 }

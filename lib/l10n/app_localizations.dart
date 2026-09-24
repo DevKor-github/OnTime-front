@@ -98,6 +98,84 @@ abstract class AppLocalizations {
     Locale('ko'),
   ];
 
+  /// No description provided for @startupRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to start OnTime'**
+  String get startupRecoveryTitle;
+
+  /// No description provided for @startupRecoveryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'OnTime could not verify local data. Please try again shortly.'**
+  String get startupRecoveryBody;
+
+  /// No description provided for @startupRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get startupRetryAction;
+
+  /// No description provided for @restartRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the app completely, then reopen it.'**
+  String get restartRequiredBody;
+
+  /// No description provided for @resetInProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resetting local data'**
+  String get resetInProgressTitle;
+
+  /// No description provided for @resetInProgressBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking notification and local data cleanup.'**
+  String get resetInProgressBody;
+
+  /// No description provided for @resetWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the device to finish a notification operation. Reset is not complete. Reopening the app will resume cleanup.'**
+  String get resetWaitingBody;
+
+  /// No description provided for @resetDeletedPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data was deleted, but some notification cleanup is still unconfirmed.'**
+  String get resetDeletedPendingBody;
+
+  /// No description provided for @resetIncompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset is not complete. Only unconfirmed cleanup steps will be retried.'**
+  String get resetIncompleteBody;
+
+  /// No description provided for @resetNoIntentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The reset record could not be verified. Reset has not been reported as complete. Please try again.'**
+  String get resetNoIntentBody;
+
+  /// No description provided for @resetCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data reset complete'**
+  String get resetCompleteTitle;
+
+  /// No description provided for @resetCompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data and notification cleanup were verified. Close the app completely and reopen it to start again.'**
+  String get resetCompleteBody;
+
+  /// No description provided for @resetRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry cleanup'**
+  String get resetRetryAction;
+
   /// No description provided for @notificationCleanupNeededStatus.
   ///
   /// In en, this message translates to:
@@ -973,6 +1051,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Timing settings'**
   String get notificationTimingSettings;
+
+  /// No description provided for @startupLoadingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the data stored on this device.'**
+  String get startupLoadingBody;
+
+  /// No description provided for @startupWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the device to respond. Please wait until the check finishes.'**
+  String get startupWaitingBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import '../../helpers/isolated_alarm_owner.dart';
 import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/data/models/scheduled_alarm_record_model.dart';
@@ -275,6 +277,10 @@ class FakeFallbackAlarmNotificationService
 }
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   late DateTime now;
   late FakeAlarmRepository alarmRepository;
   late FakeAlarmRegistryRepository registryRepository;
@@ -301,6 +307,8 @@ void main() {
       nowProvider: () => now,
       languageCodeProvider: () => language,
       timeZoneProvider: () async => deviceZone,
+
+      operations: isolatedOwner,
     );
   });
 

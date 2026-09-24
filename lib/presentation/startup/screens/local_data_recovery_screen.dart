@@ -1,6 +1,7 @@
+import 'package:on_time_front/core/database/local_reset_protocol.dart';
+import 'package:on_time_front/presentation/startup/screens/local_reset_progress_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/database/local_data_reset_service.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
@@ -15,9 +16,17 @@ class LocalDataRecoveryScreen extends StatefulWidget {
 
 class _LocalDataRecoveryScreenState extends State<LocalDataRecoveryScreen> {
   bool _busy = false;
+  LocalResetResult? _resetResult;
 
   @override
   Widget build(BuildContext context) {
+    final resetResult = _resetResult;
+    if (resetResult != null) {
+      return LocalResetProgressScreen(
+        initialResult: resetResult,
+        operation: getIt<LocalDataResetService>().reset,
+      );
+    }
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -93,9 +102,20 @@ class _LocalDataRecoveryScreenState extends State<LocalDataRecoveryScreen> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
     setState(() => _busy = true);
-    await getIt<LocalDataResetService>().reset();
-    if (mounted) context.go('/resetComplete');
+    try {
+      final result = await getIt<LocalDataResetService>().reset();
+      if (mounted) setState(() => _resetResult = result);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _resetResult = const LocalResetResult(
+          intentRecorded: false,
+          completed: {},
+        );
+      });
+    }
   }
 }

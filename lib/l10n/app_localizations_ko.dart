@@ -9,6 +9,49 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get startupRecoveryTitle => '앱을 시작할 수 없습니다';
+
+  @override
+  String get startupRecoveryBody =>
+      '로컬 데이터를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get startupRetryAction => '다시 시도';
+
+  @override
+  String get restartRequiredBody => '앱을 완전히 닫은 뒤 다시 열어 주세요.';
+
+  @override
+  String get resetInProgressTitle => '로컬 데이터 초기화 중';
+
+  @override
+  String get resetInProgressBody => '알림과 로컬 데이터의 정리 상태를 확인하고 있습니다.';
+
+  @override
+  String get resetWaitingBody =>
+      '기기의 알림 작업 응답을 기다리고 있습니다. 아직 초기화가 완료되지 않았습니다. 앱을 다시 열면 정리를 이어갑니다.';
+
+  @override
+  String get resetDeletedPendingBody =>
+      '기기 내 데이터는 삭제됐지만 일부 알림 정리는 아직 확인되지 않았습니다.';
+
+  @override
+  String get resetIncompleteBody => '초기화가 끝나지 않았습니다. 확인되지 않은 정리 단계만 다시 시도합니다.';
+
+  @override
+  String get resetNoIntentBody => '초기화 기록을 확인하지 못해 완료로 처리하지 않았습니다. 다시 시도해 주세요.';
+
+  @override
+  String get resetCompleteTitle => '로컬 데이터 초기화 완료';
+
+  @override
+  String get resetCompleteBody =>
+      '로컬 데이터와 알림 정리를 확인했습니다. 새로 시작하려면 앱을 완전히 닫고 다시 열어 주세요.';
+
+  @override
+  String get resetRetryAction => '정리 다시 시도';
+
+  @override
   String get notificationCleanupNeededStatus => '꺼짐 · 알림 취소 확인 필요';
 
   @override
@@ -480,4 +523,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get notificationTimingSettings => '정확한 시각 설정하기';
+
+  @override
+  String get startupLoadingBody => '기기에 저장된 데이터를 확인하고 있습니다.';
+
+  @override
+  String get startupWaitingBody => '기기의 응답을 기다리고 있습니다. 확인이 끝날 때까지 잠시 기다려 주세요.';
 }

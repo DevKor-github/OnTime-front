@@ -471,20 +471,20 @@
         "Full Flutter 959 passed; app-owned coverage88.74% (13507/15221); analyzer clean",
         "Actual stale-preview baseline failure and Drift race/rollback/receipt regressions verified",
         "KO/EN 200% eight widget captures reviewed; source24/commit hashes match",
-        "Generated/local-only/manifest and Python11 passed"
+        "Generated/local-only/manifest and Python11 passed",
+        "Exact aa2fda68 remote959 tests/analyze, coverage88.72% (13504/15221), Android APK/notification manifest success; artifact10787843483 identity read back"
       ],
       "blockers": [
         "A08 schedule aggregate FormSubmission integration is pending; no atomic aggregate completion claim.",
         "A09 staging Local Data Store, runtime/session replacement and all-writer fencing are pending. Candidate remains authenticated parsed memory data, not verified staging.",
         "Revision is checked before OS cleanup and again inside DB transaction; a racing edit during cleanup prevents DB overwrite but may leave OS cleanup pending. Receipt exposes this and retry reconciles current data only.",
         "D02 damaged-database restore integration is pending.",
-        "No actual Android/iOS picker, encrypted file roundtrip, provider delivery or reset device proof in this change.",
-        "Remote CI pending"
+        "No actual Android/iOS picker, encrypted file roundtrip, provider delivery or reset device proof in this change."
       ],
       "sequence": 14,
       "readback_verified": true,
       "body_sha256": "2fb0876dfbbef2ee14038ab85bf1fb4e9bb724197551a76889309c93a19d8c1b",
-      "issue_body_sha256": "e882ebf132325c47df8890eb51f5514af5fb23020e264bdddcc11a4bb9374650"
+      "issue_body_sha256": "34d437455542e2abd79d7b7abfb7cb735f5a714fab8b15b0bce25e053e0f1139"
     },
     {
       "audit_id": "A08",
@@ -836,7 +836,7 @@
       "blockers": [],
       "sequence": 29,
       "readback_verified": true,
-      "issue_body_sha256": "e44eecda9ac22ab41a5068261b0e86acdf7325081cdb4fa0ef3cd4ad467ab31b"
+      "issue_body_sha256": "4b97820ffb4043a4ea1af525c2d3d857aab7884b455be3b5351cc18cb2bf21f2"
     },
     {
       "audit_id": "R02",

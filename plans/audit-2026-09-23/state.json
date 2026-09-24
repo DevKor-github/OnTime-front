@@ -965,16 +965,18 @@
         "Data Safety 문서가 기존 계정·FCM·원격 analytics와 계정 삭제 URL을 설명한다. 현재 binary와 store 신고가 일치하는지는 확인해야 한다.",
         "`docs/Google-Play-Data-Safety.md:64-86,122-152`. final binary의 데이터 흐름 표를 기준으로 privacy policy·store metadata·screenshots 검토 후 store 화면 read-back. 이번 감사는 법률 적합성이나 스토어 위반을 판정하지 않음."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_o02",
+      "issue_number": 622,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/622",
       "decisions_file": "plans/audit-2026-09-23/issues/O02.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 35
+      "sequence": 35,
+      "readback_verified": true,
+      "issue_body_sha256": "fb8fbd7c55f2cba96f7d80b87d071da57a9458dfe55f651f0266339223500e4d"
     },
     {
       "audit_id": "D06",

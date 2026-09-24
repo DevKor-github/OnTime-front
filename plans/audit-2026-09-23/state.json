@@ -835,16 +835,18 @@
         "일반 PR CI는 Ubuntu의 Dart analyze/test뿐이다. Android build는 수동 deploy, iOS build workflow는 없다. Swift/Kotlin·plugin/manifest 결함을 일찍 잡기 어렵다.",
         "PR에서 Android assemble/release 구성 및 iOS simulator/no-sign build, 중요한 native 테스트. 릴리스 후보에서는 실제 signed artifact smoke."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_r02",
+      "issue_number": 617,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/617",
       "decisions_file": "plans/audit-2026-09-23/issues/R02.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 30
+      "sequence": 30,
+      "readback_verified": true,
+      "issue_body_sha256": "598d5655a13bf712411ea23e113cc93c02dc7b6be030ef0e06dd69b29178d2d9"
     },
     {
       "audit_id": "R04",

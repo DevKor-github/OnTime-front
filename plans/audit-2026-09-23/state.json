@@ -358,7 +358,7 @@
         "`local_data_reset_service.dart:19-25`; `local_data_lifecycle.dart:45-69`; `cancel_schedule_alarm_use_case.dart:25-37`; `cancel_all_alarms_use_case.dart:19-41`; `reconcile_alarms_use_case.dart:549-570`; 관련 테스트 `:951-975`",
         "이미 없음과 실제 취소 실패 구분, 실패 기록 보존·재시도·OS read-back. 중간 강제 종료 후 정리 완료. reset marker는 검증 가능한 종료 상태까지 유지."
       ],
-      "status": "code_verified_ci_device_pending",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_d03",
       "issue_number": 595,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/595",
@@ -368,18 +368,20 @@
       "verification": [
         "Final full872 and focused71 passed; coverage87.99% (12253/13926); analyze/generated/local-only passed",
         "Product/test freeze unchanged; QA-only explicit unknown fixture correction then all11 host SIGKILL cases passed",
-        "SDK Swift typecheck/Kotlin compile; Python11/manifest passed; KO/EN 200% four widget PNGs visually reviewed"
+        "SDK Swift typecheck/Kotlin compile; Python11/manifest passed; KO/EN 200% four widget PNGs visually reviewed",
+        "Remote074d5fd6 Flutter882/analyze/88.50% and Android APK/manifest success; artifact10786008849 identity read back"
       ],
       "blockers": [
-        "Actual Android/iOS delivery, process interruption recovery and backup-exclusion device read-back pending",
-        "Remote CI and merge pending"
+        "Actual Android/iOS delivery, interruption recovery and backup-exclusion device read-back pending",
+        "Merge and release pending"
       ],
       "sequence": 11,
-      "readback_verified": false,
-      "body_sha256": "0abd28107d757b22229532d9a9d6659b549252f8ec26b70da2ee4586101ae92f",
+      "readback_verified": true,
+      "body_sha256": "8c7ae3ed41f7d9f9c9d8622a7c62e2c5ae21486ef212b63d0ba34a5604647fbc",
       "progress_file": "plans/audit-2026-09-23/d03-journal-progress.json",
       "validation_file": "plans/audit-2026-09-23/d03-final-validation.json",
-      "integration_validation_file": "plans/audit-2026-09-23/d03-main-integration-validation.json"
+      "integration_validation_file": "plans/audit-2026-09-23/d03-main-integration-validation.json",
+      "ci_validation_file": "plans/audit-2026-09-23/d03-ci-validation.json"
     },
     {
       "audit_id": "A06",
@@ -392,18 +394,26 @@
         "`lib/presentation/app/bloc/schedule/schedule_bloc.dart:379,387-409,508-514`; `test/presentation/app/bloc/schedule/schedule_bloc_test.dart:1236-1243`",
         "실제 timer/clock을 전진시켜 단계 변경 알림 1회 검증. resume catch-up 시 중복/불필요 알림 정책도 함께 검증."
       ],
-      "status": "ready",
+      "status": "code_verified_ci_device_pending",
       "agent": "/root/grill_a06",
       "issue_number": 598,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/598",
       "decisions_file": "plans/audit-2026-09-23/issues/A06.md",
-      "implementation_commit": null,
-      "pr_url": null,
-      "verification": [],
-      "blockers": [],
+      "implementation_commit": "d06474d4c645794644075173f76afb9ff4445047",
+      "pr_url": "https://github.com/DevKor-github/OnTime-front/pull/585",
+      "verification": [
+        "Negative actual periodic regression reproduced before fix",
+        "Final47 boundary and full929 pass; coverage88.74% (13092/14753); analyze/generated/local-only/Python11/manifest pass",
+        "Seven committed source blobs match validated freeze"
+      ],
+      "blockers": [
+        "Remote CI pending",
+        "Actual Android/iOS background/lock/permission delivery pending"
+      ],
       "sequence": 12,
       "readback_verified": true,
-      "body_sha256": "bc112bdf7b3df15e50484b1813b2897b7ffe31ff5f25cb66872e7fc549528b11"
+      "body_sha256": "b96545e7bb2a44582be5a68be08798a8c782648d5498236d198335004f1160ec",
+      "validation_file": "plans/audit-2026-09-23/a06-final-validation.json"
     },
     {
       "audit_id": "A07",
@@ -699,16 +709,18 @@
         "상세 알림 토글의 로딩/저장/재등록 실패와 연속 조작을 처리한다.",
         "`my_page_screen.dart:110-134`: UI 선반영 후 저장, 잠금·rollback·오류 안내 없음. 실패 주입과 빠른 ON→OFF에서 UI/DB/OS가 일치해야 함. A05의 재등록 비교 수정과 함께 처리."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_u03",
+      "issue_number": 612,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/612",
       "decisions_file": "plans/audit-2026-09-23/issues/U03.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 25
+      "sequence": 25,
+      "readback_verified": true,
+      "issue_body_sha256": "c214b2323ca8151f2132e225c65a4d9bd3a679ffc1f90f5f4637747f50bddbe1"
     },
     {
       "audit_id": "T03",
@@ -1539,8 +1551,8 @@
       "sequence": 64
     }
   ],
-  "current_upstream_main": "c7184b2a",
-  "upstream_integration_status": "latest_figma_merge_ci_pending",
+  "current_upstream_main": "c7184b2ae477e6a24a47fd0b9da79d3ed52b8cf4",
+  "upstream_integration_status": "latest_figma_merge_flutter_and_android_passed",
   "upstream_integration_validation": {
     "full_tests": 678,
     "analyze": "no issues",
@@ -1554,5 +1566,6 @@
     "android_ci_run": 35829634224,
     "android_apk_identity_file": "plans/audit-2026-09-23/upstream-integration-apk-validation.json"
   },
-  "upstream_integration_commit": "712b37081f95ea30aa6d1c61072d167ddaec78de"
+  "upstream_integration_commit": "712b37081f95ea30aa6d1c61072d167ddaec78de",
+  "latest_figma_integration_validation": "plans/audit-2026-09-23/d03-ci-validation.json"
 }

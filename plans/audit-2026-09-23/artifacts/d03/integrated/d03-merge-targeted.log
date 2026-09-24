@@ -33,7 +33,7 @@ lib/presentation/startup/screens/local_reset_progress_screen.dart:9:9: Context: 
   dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
   dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
   dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
-  
+
 00:00 +0 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: (setUpAll)
 00:00 +0 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: Korean settings match the phone layout
 00:00 +1 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database

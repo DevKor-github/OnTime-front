@@ -7,7 +7,7 @@ reference:
   locale: ko
   viewport: 390x844
   text_scale: 1.0
-  flutter_commit: 44067d7ab26b6290c16cdb13b99f57387dec08f6
+  flutter_commit: c7184b2a
 
 # Each route status applies to its listed state only. Variants have separate
 # statuses. reviewed means the Figma image and Flutter capture were compared;
@@ -18,23 +18,23 @@ screens:
     figma_node: '1957:11762'
     flutter: lib/presentation/startup/screens/local_data_recovery_screen.dart
     state: default
-    status: reviewed
-    review_note: Default content compared against Figma at 390x844. Text rendering differs by a few pixels; 48px reset touch area is intentional.
-    figma_image: docs/design/review/figma/recovery-default.png
-    figma_sha256: 28cfabab83c134efd2665bd33e90cffbf6a85c80fd79d53c097e31ab0e733faf
+    status: in_progress
+    review_note: Main's refreshed recovery screen is behavior-tested and captured. The current Figma v3 card has an information icon absent in Flutter, and spacing still differs; visual parity needs another pass. Native chrome is excluded.
+    figma_image: docs/design/review/figma/recovery-v3.png
+    figma_sha256: 0458b76579f000c3ed4b40059836b04ed35e38797caddca79477b47a75c73ea4
     flutter_golden: test/goldens/goldens/recovery_default_390x844.png
     variants:
       - state: reset_confirmation
         figma_node: '2003:12059'
-        status: reviewed
-        review_note: Dialog card is 277px; buttons use 44px accessible touch targets versus 43px visible reference. Native chrome is excluded.
-        figma_image: docs/design/review/figma/recovery-reset-confirmation.png
-        figma_sha256: b573b5285d438a0ada585f4d82ff17d52c796706b7018068b4faff7fe1dccfb1
+        status: in_progress
+        review_note: Main replaced the dialog with a full confirmation screen. Cancel and reset behavior pass; Figma v3 has warning and information icons absent in Flutter, with different vertical spacing.
+        figma_image: docs/design/review/figma/recovery-confirm-v3.png
+        figma_sha256: ce978101bf343b568497e4c381a9e461abfbc767a50cda7268af28a7231db784
         flutter_golden: test/goldens/goldens/recovery_reset_confirmation_390x844.png
       - state: busy
         figma_node: '2005:12036'
-        status: reviewed
-        review_note: Disabled action opacity and 40px spinner at y585.5 compared. Figma PNG omits its storage glyph even though node context specifies it; Flutter preserves the default icon. Native chrome is excluded.
+        status: in_progress
+        review_note: Main's full-screen busy state and disabled actions are behavior-tested; the old exported Figma reference predates the v3 layout and requires a fresh comparison.
         figma_image: docs/design/review/figma/recovery-busy.png
         figma_sha256: 6fc99430c1cfde7196416cc8332c531d97f42873689a4b56d63fc8b1faaca4cf
         flutter_golden: test/goldens/goldens/recovery_busy_390x844.png
@@ -88,25 +88,32 @@ screens:
         figma_sha256: 7aa8f80ce1ff05847209828f49045bc8e1d0a09803fd1625534860ff4d746281
         flutter_golden: test/goldens/goldens/home_error_390x844.png
   - route: /myPage
-    figma_node: '965:4676'
+    figma_node: '2113:21761'
     flutter: lib/presentation/my_page/my_page_screen.dart
     state: default
-    status: in_progress
-    review_note: Original 390x844 alarm and data geometry, selection rings, bottom navigation, and touch/semantics were reviewed. Upstream f0877d1d added a recurring-management row; the current golden tracks it but the new MyPageEntry Figma state still needs a fresh capture and visual comparison. Native status bar and home indicator are excluded.
-    figma_image: docs/design/review/figma/my-page-default.png
-    figma_sha256: 5bce6547ebc2858f6cffa0a1993dad6a144d6ee864face8e818672e93bfc7607
+    status: reviewed
+    review_note: Current 390x844 recurring-entry source was compared with the Flutter golden; section coordinates, Figma SVGs, data routes, selection switches, large text, and accessibility checks pass. Native status bar and home indicator are excluded.
+    figma_image: docs/design/review/figma/my-page-recurring-entry.png
+    figma_sha256: a591d7b496760b05155125578eacfdbcd753d024e3d73c5a1ebb4cc7dad42e4a
     flutter_golden: test/goldens/goldens/my_page_default_390x844.png
-    variants:
-      - {state: recurring_entry, figma_node: '2113:21761', status: pending}
   - route: /recurringSchedules
     figma_node: '2112:21676'
     flutter: lib/presentation/recurring/recurring_management_screen.dart
     state: management
-    status: pending
-    review_note: Newly merged offline recurring-management flow has a dedicated Figma board and tests, but has not yet joined this 390x844 parity review.
+    status: reviewed
+    review_note: Matching two-active and one-ended 390x844 fixture was compared to Figma; section positions, counts, 99px active cards, 71px ended card, and detail/end behavior pass. Native chrome is excluded.
+    figma_image: docs/design/review/figma/recurring-management.png
+    figma_sha256: c0b41a0cc37879d73207caf9d369df7d05449d1997974179b12f5dadb56b1879
+    flutter_golden: test/goldens/goldens/recurring_management_390x844.png
     variants:
       - {state: detail, figma_node: '2112:21715', status: pending}
-      - {state: empty, figma_node: '2112:21756', status: pending}
+      - state: empty
+        figma_node: '2112:21756'
+        status: reviewed
+        review_note: 390x844 info, empty, and action cards match Figma coordinates; large-text and narrow-width layout tests pass. Native chrome is excluded.
+        figma_image: docs/design/review/figma/recurring-empty.png
+        figma_sha256: 168133393b3fbc76a76bf1ea2e36467ea4d92d098f94b1bfd8426cab1f64dfbc
+        flutter_golden: test/goldens/goldens/recurring_empty_390x844.png
       - {state: occurrence, figma_node: '2112:21768', status: pending}
   - route: /myData
     figma_node: '1948:12072'
@@ -119,44 +126,44 @@ screens:
     flutter_golden: test/goldens/goldens/my_data_default_390x844.png
     variants:
       - state: reset_confirmation
-        figma_node: '1977:11817'
-        status: reviewed
-        review_note: Dialog card is 277px; buttons use 44px accessible touch targets versus 43px visible reference. Native chrome is excluded.
-        figma_image: docs/design/review/figma/my-data-reset-confirmation.png
-        figma_sha256: 71fbec92ba42e5918e57db6e0941b46e10961657f698d5475d0af84446fece8a
+        figma_node: '2003:12059'
+        status: in_progress
+        review_note: My Data reset now opens the shared v3 full-screen confirmation. Cancel works; icon and spacing differences from the current Figma source remain.
+        figma_image: docs/design/review/figma/recovery-confirm-v3.png
+        figma_sha256: ce978101bf343b568497e4c381a9e461abfbc767a50cda7268af28a7231db784
         flutter_golden: test/goldens/goldens/my_data_reset_confirmation_390x844.png
       - state: restore_preview_confirmation
         figma_node: '1978:11791'
-        status: reviewed
-        review_note: 277px card, top 352px, sample metadata, cancel action, and 2x text compared. Native chrome is excluded.
+        status: in_progress
+        review_note: Sample metadata, cancel action, and 2x text remain tested; the modal button token changed in main and requires a fresh source comparison.
         figma_image: docs/design/review/figma/my-data-restore-preview.png
         figma_sha256: ffb62bd9764f8897e14d95f6f12334fd0be6f8ec0a30f31c615fd37ad68a5689
         flutter_golden: test/goldens/goldens/my_data_restore_preview_390x844.png
       - state: backup_password_create
         figma_node: '1979:11816'
-        status: reviewed
-        review_note: 277px card, top 352px, filled 15-character fixture, secure fields, and labeled 44px actions compared. Native chrome is excluded.
+        status: in_progress
+        review_note: Secure fields and action behavior pass; the refreshed modal button token changed this golden and needs a new Figma comparison.
         figma_image: docs/design/review/figma/my-data-password-create.png
         figma_sha256: 7e04e15b88d878162767d910c9d45f3703a2fbe6bf27d56522204cef66abb04b
         flutter_golden: test/goldens/goldens/my_data_password_create_390x844.png
       - state: backup_password_input
         figma_node: '1980:11841'
-        status: reviewed
-        review_note: Filled 15-character restore password fixture and cancel behavior compared. Native chrome is excluded.
+        status: in_progress
+        review_note: Restore password and cancel behavior pass; the refreshed modal button token needs a new Figma comparison.
         figma_image: docs/design/review/figma/my-data-password-input.png
         figma_sha256: 94dd76f87a6a7fe77bd9672bdb645f52aa91700e48b2eeab101fbf2f4507f0c1
         flutter_golden: test/goldens/goldens/my_data_password_input_390x844.png
       - state: backup_password_invalid_length
         figma_node: '1981:11866'
-        status: reviewed
-        review_note: Filled 9-character fixture and length error compared. Invalid password does not trigger export.
+        status: in_progress
+        review_note: Invalid 9-character input still blocks export; the refreshed modal button token needs a new Figma comparison.
         figma_image: docs/design/review/figma/my-data-password-invalid.png
         figma_sha256: de016130f45b290c63baddad21479e1ed2b65de2701be604bd8432c55d67ec9f
         flutter_golden: test/goldens/goldens/my_data_password_invalid_390x844.png
       - state: backup_password_mismatch
         figma_node: '1982:11891'
-        status: reviewed
-        review_note: Two different 15-character fixtures and mismatch error compared. Invalid password does not trigger export.
+        status: in_progress
+        review_note: Mismatched input still blocks export; the refreshed modal button token needs a new Figma comparison.
         figma_image: docs/design/review/figma/my-data-password-mismatch.png
         figma_sha256: 894f3c951dfcb852e4f42b96c40cd19586434ac3eecda4aad3f8b5211f7f4621
         flutter_golden: test/goldens/goldens/my_data_password_mismatch_390x844.png
@@ -220,19 +227,19 @@ screens:
     figma_node: '1950:11759'
     flutter: lib/presentation/my_page/privacy_policy_screen.dart
     state: default
-    status: reviewed
-    review_note: 350px text grid at x20/y122, 16px body with 24.8px line height, centered title, scrolling, and 2x text checked. Pretendard substitutes for the unbundled Figma Noto Sans KR; native chrome is excluded.
-    figma_image: docs/design/review/figma/privacy-policy-default.png
-    figma_sha256: b5ebab499f9dae67e7379b078e2b432d050d636078d6719c512a1dd80ca09632
+    status: in_progress
+    review_note: Main's six-section card layout, scrolling, and 2x text pass; current Figma v3 uses different card gutters and vertical spacing. The updated source and Flutter golden are retained for comparison.
+    figma_image: docs/design/review/figma/privacy-v3.png
+    figma_sha256: 88f84355c58e153300ccd4cce29c235c6fa3d05309fde7ba1eed99c04a6e94a5
     flutter_golden: test/goldens/goldens/privacy_policy_390x844.png
   - route: /resetComplete
     figma_node: '1963:11762'
     flutter: lib/presentation/my_page/my_data_screen.dart
     state: default
-    status: reviewed
-    review_note: Default icon and text positions compared against Figma at 390x844; native system chrome is outside the Flutter golden.
-    figma_image: docs/design/review/figma/reset-complete.png
-    figma_sha256: 010fd0e1b2a0bc99c38fdf0097d4cc3f4834b76d9bd4b8ec726810e1441d9d18
+    status: in_progress
+    review_note: Main's v3 success screen and restart guidance are behavior-tested. The current Figma action says Start and shows an information icon and different explanatory copy; product wording and spacing still need alignment.
+    figma_image: docs/design/review/figma/reset-complete-v3.png
+    figma_sha256: f98c8ab46909ad90ea9a602c8b768a7bd78fd819bb18f1bdc4f70a086230fd01
     flutter_golden: test/goldens/goldens/reset_complete_390x844.png
   - route: /defaultPreparationSpareTimeEdit
     figma_node: '600:35201'
@@ -257,8 +264,20 @@ screens:
       - {state: swipe_actions, figma_node: '882:464741', status: pending}
       - {state: expanded_actions, figma_node: '882:493347', status: pending}
       - {state: delete_confirm, figma_node: '882:512625', status: pending}
-      - {state: loading, figma_node: '1816:6728', status: pending}
-      - {state: error, figma_node: '1816:6984', status: pending}
+      - state: loading
+        figma_node: '1816:6728'
+        status: reviewed
+        review_note: Fixed 354x390 surface and centered spinner compared; the source export clips the selected-date heading, which Flutter renders in full. Native chrome is excluded.
+        figma_image: docs/design/review/figma/calendar-loading.png
+        figma_sha256: d96b113898d510c8e11a391d6dc2f05a8671680a6986ef989464f297556a2be7
+        flutter_golden: test/goldens/goldens/calendar_loading_390x852.png
+      - state: error
+        figma_node: '1816:6984'
+        status: reviewed
+        review_note: Fixed card, error title and 149x44 retry action compared to Figma. Retry resubscribes the focused month; source export clips the heading below the card. Native chrome is excluded.
+        figma_image: docs/design/review/figma/calendar-error.png
+        figma_sha256: a7d69eddcc876d99622541c561c0c81b55f24a3344af7bd72a505b34bd12f540
+        flutter_golden: test/goldens/goldens/calendar_error_390x852.png
   - route: /scheduleCreate
     figma_node: '2112:2394'
     state: date_time

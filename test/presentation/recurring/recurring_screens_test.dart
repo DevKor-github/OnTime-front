@@ -180,6 +180,13 @@ void main() {
         RecurringManagementScreen(useCase: useCase),
         boundary: boundary,
       );
+      final card = tester.getRect(
+        find.byKey(const Key('recurring_card_segment')),
+      );
+      expect(card.left, 16);
+      expect(card.top, inInclusiveRange(135, 139));
+      expect(card.width, 358);
+      expect(card.height, greaterThanOrEqualTo(99));
       await _capture(tester, boundary, 'management');
       await tester.pumpAndSettle();
       await tester.tap(find.text('출근 준비'));
@@ -196,10 +203,91 @@ void main() {
       await tester.tap(find.text('반복 종료').last);
       await tester.pumpAndSettle();
       expect(useCase.deleted, RecurringEditScope.following);
-      expect(find.text('예정된 회차 없음'), findsOneWidget);
+      expect(find.textContaining('종료됨'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('management groups two active and one ended Figma fixture', (
+    tester,
+  ) async {
+    RecurringScheduleSummary fixture(
+      String id,
+      RecurrenceRule rule,
+      DateTime? next, {
+      PreparationEntity preparation = _prep,
+    }) => RecurringScheduleSummary(
+      RecurringSegment(
+        id: id,
+        seriesId: id,
+        rule: rule,
+        schedule: _schedule(id, rule.start),
+        preparation: preparation,
+        preparationId: 'prep-$id',
+        fromSlot: rule.start,
+        createdAt: DateTime.utc(2024, 1),
+      ),
+      next == null ? null : _schedule(id, next),
+    );
+    final summaries = [
+      fixture(
+        '출근 준비',
+        RecurrenceRule(
+          frequency: RecurrenceFrequency.weekly,
+          start: DateTime.utc(2024, 9, 23, 9),
+          timeZoneId: 'UTC',
+          weekdays: {1, 3, 5},
+        ),
+        DateTime.utc(2024, 9, 25, 9),
+      ),
+      fixture(
+        '독서 모임',
+        RecurrenceRule(
+          frequency: RecurrenceFrequency.monthly,
+          start: DateTime.utc(2024, 1, 27, 14),
+          timeZoneId: 'UTC',
+          monthly: MonthlyRecurrence.nthWeekday,
+          ordinal: -1,
+          monthWeekday: 6,
+        ),
+        DateTime.utc(2024, 9, 26, 14),
+        preparation: const PreparationEntity(
+          preparationStepList: [
+            PreparationStepEntity(
+              id: 'book',
+              preparationName: '책 챙기기',
+              preparationTime: Duration(minutes: 15),
+            ),
+          ],
+        ),
+      ),
+      fixture(
+        '아침 운동',
+        RecurrenceRule(
+          frequency: RecurrenceFrequency.daily,
+          start: DateTime.utc(2024, 9, 1, 7),
+          timeZoneId: 'UTC',
+          until: DateTime.utc(2024, 9, 18),
+        ),
+        null,
+      ),
+    ];
+    await _pump(
+      tester,
+      RecurringManagementScreen(useCase: _Management(summaries)),
+    );
+    expect(find.text('출근 준비'), findsOneWidget);
+    expect(find.text('독서 모임'), findsOneWidget);
+    expect(find.text('아침 운동'), findsOneWidget);
+    expect(find.text('2개'), findsOneWidget);
+    expect(find.text('1개'), findsOneWidget);
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile(
+        '../../goldens/goldens/recurring_management_390x844.png',
+      ),
+    );
+  });
 
   testWidgets('settings and review render at phone width and large text', (
     tester,

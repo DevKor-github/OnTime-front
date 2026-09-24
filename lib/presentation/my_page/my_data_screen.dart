@@ -1,4 +1,3 @@
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/startup/screens/local_data_recovery_screen.dart';
 import 'package:flutter/material.dart';
@@ -202,7 +201,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
         builder: (_) => const LocalDataResetConfirmationScreen(),
       ),
     );
-    if (result != DialogActionResult.primary) return;
+    if (confirmed != true) return;
     setState(() => _busy = true);
     try {
       await getIt<LocalDataResetService>().reset();

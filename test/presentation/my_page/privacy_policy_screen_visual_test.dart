@@ -35,8 +35,8 @@ void main() {
   testWidgets('privacy policy uses the Figma text grid', (tester) async {
     await pumpScreen(tester);
     final content = find.textContaining('OnTime 로컬 전용 개인정보 처리방침');
-    expect(tester.getTopLeft(content), const Offset(20, 122));
-    expect(tester.getSize(content).width, 350);
+    expect(tester.getTopLeft(content), const Offset(24, 137));
+    expect(tester.getSize(content).width, 342);
     expect(find.text('개인정보 처리방침'), findsOneWidget);
   });
 
@@ -55,7 +55,7 @@ void main() {
   ) async {
     await pumpScreen(tester, textScale: 2);
     await tester.drag(
-      find.byType(SingleChildScrollView),
+      find.byType(ListView),
       const Offset(0, -600),
     );
     await tester.pumpAndSettle();

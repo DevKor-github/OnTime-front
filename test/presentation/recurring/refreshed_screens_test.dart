@@ -99,6 +99,32 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('recurring empty state keeps the Figma cards and add action', (
+    tester,
+  ) async {
+    await _pump(tester, RecurringManagementScreen(useCase: _Management([])));
+
+    final info = tester.getRect(find.byKey(const Key('recurring_empty_info')));
+    final card = tester.getRect(find.byKey(const Key('recurring_empty_card')));
+    final add = tester.getRect(find.byKey(const Key('recurring_empty_add')));
+    expect(info.left, 20);
+    expect(info.top, 98);
+    expect(info.width, 350);
+    expect(info.height, greaterThanOrEqualTo(115));
+    expect(card.left, 20);
+    expect(card.top, inInclusiveRange(269, 273));
+    expect(card.width, 350);
+    expect(card.height, greaterThanOrEqualTo(122));
+    expect(add.left, 20);
+    expect(add.top, 749);
+    expect(add.width, 350);
+    expect(add.height, 47);
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../../goldens/goldens/recurring_empty_390x844.png'),
+    );
+  });
+
   testWidgets('secondary recurrence states fit a small phone with large text', (
     tester,
   ) async {

@@ -1,7 +1,3 @@
-import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
-import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
-import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,176 +9,222 @@ import 'package:on_time_front/core/services/fallback_alarm_notification_service.
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/preparation_entity.dart';
+import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
 import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
+import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
+import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 class MyPageScreen extends StatelessWidget {
-  const MyPageScreen({super.key, NotificationService? notificationService})
-    : _notificationService = notificationService;
+  const MyPageScreen({
+    super.key,
+    NotificationService? notificationService,
+    this.referencePreparationMinutes,
+    this.referenceSpareMinutes,
+  }) : _notificationService = notificationService;
 
   final NotificationService? _notificationService;
+  final int? referencePreparationMinutes;
+  final int? referenceSpareMinutes;
 
   @override
   Widget build(BuildContext context) {
-    return RefreshTheme(
-      child: Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Padding(
+          padding: const EdgeInsets.only(top: 14),
+          child: Text(
             AppLocalizations.of(context)!.myPageTitle,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              _FrameView(
-                title: recurrenceText(context, '알림 설정', 'Notifications'),
-                child: Column(
-                  children: [
-                    const _AlarmStatusView(),
-                    const _DetailedNotificationTile(),
-                    _AppNotificationTile(
-                      service:
-                          _notificationService ?? NotificationService.instance,
-                    ),
-                  ],
-                ),
-              ),
-              _FrameView(
-                title: recurrenceText(context, '시간 설정', 'Time settings'),
-                child: const _DefaultTimeTiles(),
-              ),
-              _FrameView(
-                title: recurrenceText(context, '일정 관리', 'Schedules'),
-                child: _SettingTile(
-                  icon: Icons.repeat,
-                  title: recurrenceText(
-                    context,
-                    '반복 일정 관리',
-                    'Recurring schedules',
+        toolbarHeight: 47,
+        centerTitle: true,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _FrameView(
+              key: const Key('myPageAlarmSection'),
+              title: recurrenceText(context, '알림 설정', 'Notifications'),
+              child: Column(
+                children: [
+                  const _AlarmStatusView(),
+                  const _DetailedNotificationTile(),
+                  _AppNotificationTile(
+                    notificationService:
+                        _notificationService ?? NotificationService.instance,
                   ),
-                  onTap: () => context.push('/recurringSchedules'),
-                ),
+                ],
               ),
-              _FrameView(
-                title: recurrenceText(context, '데이터 관리', 'Data'),
-                child: Column(
-                  children: [
-                    _SettingTile(
-                      icon: Icons.cloud_upload_outlined,
-                      title: recurrenceText(
-                        context,
-                        '내 데이터 백업',
-                        'Back up my data',
-                      ),
-                      onTap: () => context.push('/myData?action=backup'),
-                    ),
-                    _SettingTile(
-                      icon: Icons.cloud_download_outlined,
-                      title: recurrenceText(
-                        context,
-                        '내 데이터 복원',
-                        'Restore my data',
-                      ),
-                      onTap: () => context.push('/myData?action=restore'),
-                    ),
-                    _SettingTile(
-                      icon: Icons.delete_outline,
-                      title: recurrenceText(
-                        context,
-                        '내 데이터 초기화',
-                        'Reset local data',
-                      ),
-                      onTap: () => context.push('/myData?action=reset'),
-                    ),
-                  ],
+            ),
+            const SizedBox(height: 18),
+            _TimeSettingsView(
+              referencePreparationMinutes: referencePreparationMinutes,
+              referenceSpareMinutes: referenceSpareMinutes,
+            ),
+            const SizedBox(height: 18),
+            _FrameView(
+              key: const Key('myPageAppSection'),
+              title: recurrenceText(context, '일정 관리', 'Schedules'),
+              child: _SettingTile(
+                icon: 'my_page_repeat.svg',
+                title: recurrenceText(
+                  context,
+                  '반복 일정 관리',
+                  'Recurring schedules',
                 ),
+                onTap: () => context.push('/recurringSchedules'),
               ),
-              _FrameView(
-                title: recurrenceText(context, '기타', 'Other'),
-                child: _SettingTile(
-                  icon: Icons.privacy_tip_outlined,
-                  title: AppLocalizations.of(context)!.privacyPolicy,
-                  onTap: () => context.push('/privacyPolicy'),
+            ),
+            const SizedBox(height: 18),
+            _FrameView(
+              key: const Key('myPageDataSection'),
+              title: recurrenceText(context, '데이터 관리', 'Data'),
+              child: Column(
+                children: [
+                  _SettingTile(
+                    icon: 'my_page_upload.svg',
+                    title: recurrenceText(
+                      context,
+                      '내 데이터 백업',
+                      'Back up my data',
+                    ),
+                    divider: true,
+                    onTap: () => context.push('/myData?action=backup'),
+                  ),
+                  _SettingTile(
+                    icon: 'my_page_download.svg',
+                    title: recurrenceText(
+                      context,
+                      '내 데이터 복원',
+                      'Restore my data',
+                    ),
+                    divider: true,
+                    onTap: () => context.push('/myData?action=restore'),
+                  ),
+                  _SettingTile(
+                    icon: 'my_page_trash.svg',
+                    title: recurrenceText(
+                      context,
+                      '내 데이터 초기화',
+                      'Reset local data',
+                    ),
+                    onTap: () => context.push('/myData?action=reset'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+            _FrameView(
+              title: recurrenceText(context, '기타', 'Other'),
+              child: _SettingTile(
+                icon: 'my_page_shield.svg',
+                title: recurrenceText(
+                  context,
+                  '개인정보',
+                  AppLocalizations.of(context)!.privacyPolicy,
                 ),
+                onTap: () => context.push('/privacyPolicy'),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );
   }
 }
 
-class _DefaultTimeTiles extends StatefulWidget {
-  const _DefaultTimeTiles();
+class _TimeSettingsView extends StatefulWidget {
+  const _TimeSettingsView({
+    this.referencePreparationMinutes,
+    this.referenceSpareMinutes,
+  });
+
+  final int? referencePreparationMinutes;
+  final int? referenceSpareMinutes;
+
   @override
-  State<_DefaultTimeTiles> createState() => _DefaultTimeTilesState();
+  State<_TimeSettingsView> createState() => _TimeSettingsViewState();
 }
 
-class _DefaultTimeTilesState extends State<_DefaultTimeTiles> {
-  Future<Duration>? _duration;
-  late final Stream<UserEntity>? _user = getIt.isRegistered<StreamUserUseCase>()
-      ? getIt<StreamUserUseCase>()()
-      : null;
+class _TimeSettingsViewState extends State<_TimeSettingsView> {
+  Future<PreparationEntity>? _preparation;
+  Stream<UserEntity>? _user;
+
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  void _load() {
-    _duration = getIt.isRegistered<GetDefaultPreparationUseCase>()
-        ? getIt<GetDefaultPreparationUseCase>()().then((p) => p.totalDuration)
-        : null;
+    if (getIt.isRegistered<GetDefaultPreparationUseCase>()) {
+      _preparation = getIt<GetDefaultPreparationUseCase>()();
+    }
+    if (getIt.isRegistered<StreamUserUseCase>()) {
+      _user = getIt<StreamUserUseCase>()();
+    }
   }
 
   Future<void> _edit() async {
     await context.push('/defaultPreparationSpareTimeEdit');
-    if (mounted) setState(_load);
+    if (mounted && getIt.isRegistered<GetDefaultPreparationUseCase>()) {
+      setState(() {
+        _preparation = getIt<GetDefaultPreparationUseCase>()();
+      });
+    }
   }
 
-  String? _minutes(Duration? value) => value == null
-      ? null
-      : recurrenceText(
-          context,
-          '${value.inMinutes} 분',
-          '${value.inMinutes} min',
-        );
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      FutureBuilder<Duration>(
-        future: _duration,
-        builder: (context, snapshot) => _SettingTile(
-          icon: Icons.timer_outlined,
-          title: recurrenceText(context, '기본 준비시간', 'Default preparation'),
-          value: _minutes(snapshot.data),
-          onTap: _edit,
+  Widget build(BuildContext context) => _FrameView(
+    title: recurrenceText(context, '시간 설정', 'Time settings'),
+    child: Column(
+      children: [
+        FutureBuilder<PreparationEntity>(
+          future: _preparation,
+          builder: (context, snapshot) => _SettingTile(
+            icon: 'my_page_stopwatch.svg',
+            title: recurrenceText(context, '기본 준비시간', 'Default preparation'),
+            value: _minuteLabel(
+              widget.referencePreparationMinutes ??
+                  snapshot.data?.totalDuration.inMinutes,
+            ),
+            divider: true,
+            onTap: _edit,
+          ),
         ),
-      ),
-      StreamBuilder<UserEntity>(
-        stream: _user,
-        builder: (context, snapshot) => _SettingTile(
-          icon: Icons.timer_outlined,
-          title: recurrenceText(context, '기본 여유시간', 'Default buffer'),
-          value: _minutes(snapshot.data?.spareTimeOrNull),
-          onTap: _edit,
+        StreamBuilder<UserEntity>(
+          stream: _user,
+          builder: (context, snapshot) => _SettingTile(
+            icon: 'my_page_stopwatch.svg',
+            title: recurrenceText(context, '기본 여유시간', 'Default buffer'),
+            value: _minuteLabel(
+              widget.referenceSpareMinutes ??
+                  snapshot.data?.spareTimeOrNull?.inMinutes,
+            ),
+            onTap: _edit,
+          ),
         ),
-      ),
-    ],
+      ],
+    ),
   );
+
+  String _minuteLabel(int? minutes) => minutes == null
+      ? '—'
+      : recurrenceText(context, '$minutes 분', '$minutes min');
 }
 
 class _AppNotificationTile extends StatefulWidget {
-  const _AppNotificationTile({required this.service});
-  final NotificationService service;
+  const _AppNotificationTile({required this.notificationService});
+
+  final NotificationService notificationService;
+
   @override
   State<_AppNotificationTile> createState() => _AppNotificationTileState();
 }
@@ -191,6 +233,7 @@ class _AppNotificationTileState extends State<_AppNotificationTile>
     with WidgetsBindingObserver {
   bool? _enabled;
   bool _busy = false;
+
   @override
   void initState() {
     super.initState();
@@ -211,12 +254,13 @@ class _AppNotificationTileState extends State<_AppNotificationTile>
 
   Future<void> _refresh() async {
     try {
-      final status = await widget.service.checkNotificationPermission();
+      final status = await widget.notificationService
+          .checkNotificationPermission();
       if (mounted) {
         setState(() => _enabled = status == AuthorizationStatus.authorized);
       }
     } catch (_) {
-      // The permission row remains usable if the platform status is unavailable.
+      // Platform permission status can be unavailable while resuming the app.
     }
   }
 
@@ -225,9 +269,12 @@ class _AppNotificationTileState extends State<_AppNotificationTile>
     setState(() => _busy = true);
     try {
       if (turnOff) {
-        await widget.service.openNotificationSettings();
+        await widget.notificationService.openNotificationSettings();
       } else {
-        await _handleNotificationPermission(context, widget.service);
+        await _handleNotificationPermission(
+          context,
+          widget.notificationService,
+        );
       }
       await _refresh();
     } finally {
@@ -236,25 +283,16 @@ class _AppNotificationTileState extends State<_AppNotificationTile>
   }
 
   @override
-  Widget build(BuildContext context) => InkWell(
+  Widget build(BuildContext context) => _SettingTile(
+    icon: 'my_page_phone.svg',
+    title: AppLocalizations.of(context)!.allowAppNotifications,
     onTap: _busy ? null : () => _request(),
-    child: Row(
-      children: [
-        const Icon(Icons.phone_iphone, size: 24),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            AppLocalizations.of(context)!.allowAppNotifications,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ),
-        Switch(
-          value: _enabled ?? false,
-          onChanged: _busy || _enabled == null
-              ? null
-              : (value) => _request(turnOff: !value),
-        ),
-      ],
+    trailing: _SelectionSwitch(
+      value: _enabled ?? false,
+      label: AppLocalizations.of(context)!.allowAppNotifications,
+      onChanged: _busy || _enabled == null
+          ? null
+          : (value) => _request(turnOff: !value),
     ),
   );
 }
@@ -296,14 +334,24 @@ class _DetailedNotificationTileState extends State<_DetailedNotificationTile> {
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile(
-      contentPadding: EdgeInsets.zero,
-      title: const Text('알림에 일정 이름 표시'),
-      secondary: const Icon(Icons.person_outline, size: 24),
-      dense: true,
-      activeThumbColor: Theme.of(context).colorScheme.primary,
-      value: _enabled,
-      onChanged: _loading ? null : _change,
+    return _SettingTile(
+      icon: 'my_page_person.svg',
+      title: recurrenceText(
+        context,
+        '알림에 일정 이름 표시',
+        'Show schedule name in notifications',
+      ),
+      onTap: _loading ? null : () => _change(!_enabled),
+      trailing: _SelectionSwitch(
+        key: const Key('detailedNotificationSwitch'),
+        value: _enabled,
+        label: recurrenceText(
+          context,
+          '알림에 일정 이름 표시',
+          'Show schedule name in notifications',
+        ),
+        onChanged: _loading ? null : _change,
+      ),
     );
   }
 }
@@ -465,49 +513,32 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Row(
-          children: [
-            const Icon(Icons.notifications_none, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                AppLocalizations.of(context)!.scheduleNotificationSetting,
-                style: textTheme.bodyMedium,
-              ),
-            ),
-            Switch(
-              key: const Key('alarmSettingsSwitch'),
-              value: _alarmsEnabled,
-              onChanged: _isUpdating ? null : _toggle,
-            ),
-          ],
+        _SettingTile(
+          key: const Key('alarmSettingsSwitch'),
+          icon: 'my_page_bell.svg',
+          title: recurrenceText(
+            context,
+            '일정 알림 설정',
+            AppLocalizations.of(context)!.scheduleNotificationSetting,
+          ),
+          divider: true,
+          onTap: _isUpdating ? null : () => _toggle(!_alarmsEnabled),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-              const Icon(Icons.schedule, size: 24),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  recurrenceText(context, '예정 알림 상태', 'Notification status'),
-                  style: textTheme.bodyMedium,
-                ),
-              ),
-              Flexible(
-                child: Text(
-                  _isLoading ? '확인 중' : _statusLabel,
-                  textAlign: TextAlign.end,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.primary,
-                  ),
-                ),
-              ),
-            ],
+        Semantics(
+          value: _isLoading ? '확인 중' : _statusLabel,
+          child: _SettingTile(
+            icon: 'my_page_clock.svg',
+            title: recurrenceText(context, '예정 알림 상태', 'Notification status'),
+            value: _isLoading
+                ? recurrenceText(context, '확인 중', 'Checking')
+                : _alarmsEnabled
+                ? recurrenceText(context, '켜짐', 'On')
+                : recurrenceText(context, '꺼짐', 'Off'),
+            valueIsStatus: true,
+            divider: true,
+            onTap: _load,
           ),
         ),
       ],
@@ -593,24 +624,32 @@ class _FrameView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 6),
-            child: Text(
-              title,
-              style: textTheme.bodySmall!.copyWith(
-                color: colorScheme.outline,
-                fontWeight: FontWeight.w600,
+          SizedBox(
+            height: 25,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: Text(
+                  title,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: const Color(0xff545454),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
               ),
             ),
           ),
-          RecurrencePanel(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+          Material(
+            color: const Color(0xfff6f6f6),
+            borderRadius: BorderRadius.circular(7),
+            clipBehavior: Clip.antiAlias,
             child: child,
           ),
         ],
@@ -621,47 +660,101 @@ class _FrameView extends StatelessWidget {
 
 class _SettingTile extends StatelessWidget {
   const _SettingTile({
+    super.key,
+    required this.icon,
     required this.title,
     required this.onTap,
-    required this.icon,
     this.value,
+    this.trailing,
+    this.divider = false,
+    this.valueIsStatus = false,
   });
+
+  final String icon;
   final String title;
-  final VoidCallback onTap;
-  final IconData icon;
+  final VoidCallback? onTap;
   final String? value;
+  final Widget? trailing;
+  final bool divider;
+  final bool valueIsStatus;
+
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 48),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: SizedBox(
+        height: 46,
+        child: Stack(
           children: [
-            Icon(icon, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(title, style: Theme.of(context).textTheme.bodyMedium),
+            Row(
+              children: [
+                const SizedBox(width: 14),
+                SvgPicture.asset(icon, package: 'assets'),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13.5, height: 1.4),
+                  ),
+                ),
+                if (value != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: valueIsStatus
+                            ? Colors.transparent
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        child: Text(
+                          value!,
+                          style: TextStyle(
+                            fontSize: valueIsStatus ? 12 : 16,
+                            color: valueIsStatus
+                                ? const Color(0xff4f69df)
+                                : const Color(0xff111111),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ?trailing,
+                if (trailing == null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 14),
+                    child: SvgPicture.asset(
+                      'my_page_chevron.svg',
+                      package: 'assets',
+                    ),
+                  )
+                else
+                  const SizedBox(width: 14),
+              ],
             ),
-            if (value != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  value!,
-                  style: Theme.of(context).textTheme.bodyMedium,
+            if (divider)
+              const Positioned(
+                left: 18,
+                right: 18,
+                bottom: 0,
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Color(0xffeeeeee),
                 ),
               ),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: Theme.of(context).colorScheme.outline,
-            ),
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _SelectionSwitch extends StatelessWidget {
@@ -684,37 +777,26 @@ class _SelectionSwitch extends StatelessWidget {
     label: label,
     child: InkWell(
       onTap: onChanged == null ? null : () => onChanged!(!value),
-      customBorder: const CircleBorder(),
       child: SizedBox(
         width: 44,
         height: 44,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 3),
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: value
-                    ? const Color(0xFF4F69DF)
-                    : const Color(0xFFE8E8E8),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
+        child: Center(
+          child: value
+              ? SvgPicture.asset('my_page_toggle_on.svg', package: 'assets')
+              : Container(
+                  width: 40,
+                  height: 24,
+                  padding: const EdgeInsets.all(2),
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    color: const Color(0xffd4d8e0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.white,
                   ),
                 ),
-              ),
-            ),
-          ),
         ),
       ),
     ),

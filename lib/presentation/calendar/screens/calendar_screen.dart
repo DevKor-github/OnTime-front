@@ -117,6 +117,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  void _retryVisibleMonth() {
+    _monthlySchedulesBloc.add(
+      MonthlySchedulesSubscriptionRequested(date: _selectedDate),
+    );
+  }
+
   void _returnHome() {
     if (!mounted) {
       return;
@@ -306,155 +312,225 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     ? 52
                                     : _calendarVerticalPadding,
                               ),
-                          child:
-                              BlocBuilder<
-                                MonthlySchedulesBloc,
-                                MonthlySchedulesState
-                              >(
-                                builder: (context, state) {
-                                  if (state.status ==
+                          child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
+                            builder: (context, state) {
+                              if (state.status ==
+                                      MonthlySchedulesStatus.loading ||
+                                  state.status ==
+                                      MonthlySchedulesStatus.initial ||
+                                  state.status ==
                                       MonthlySchedulesStatus.error) {
-                                    return Text(
-                                      AppLocalizations.of(context)!.error,
-                                    );
-                                  }
-
-                                  return TableCalendar(
-                                    locale: Localizations.localeOf(
-                                      context,
-                                    ).toString(),
-                                    daysOfWeekHeight: _calendarDaysOfWeekHeight,
-                                    rowHeight: _calendarRowHeight,
-                                    eventLoader: (day) {
-                                      day = DateTime(
-                                        day.year,
-                                        day.month,
-                                        day.day,
-                                      );
-                                      return state.schedules[day] ?? [];
-                                    },
-                                    focusedDay: _selectedDate,
-                                    selectedDayPredicate: (day) =>
-                                        isSameDay(_selectedDate, day),
-                                    firstDay: _firstDay,
-                                    lastDay: _lastDay,
-                                    calendarFormat: CalendarFormat.month,
-                                    headerStyle: calendarTheme.headerStyle,
-                                    daysOfWeekStyle:
-                                        calendarTheme.daysOfWeekStyle,
-                                    calendarStyle: calendarTheme.calendarStyle,
-                                    onDaySelected: (selectedDay, focusedDay) {
-                                      setState(() {
-                                        _selectedDate = _clampDay(
-                                          selectedDay,
-                                          _firstDay,
-                                          _lastDay,
-                                        );
-                                      });
-                                      _monthlySchedulesBloc.add(
-                                        MonthlySchedulesVisibleDateChanged(
-                                          date: _selectedDate,
-                                        ),
-                                      );
-                                    },
-                                    onPageChanged: (focusedDay) {
-                                      final clampedFocusedDay = _clampDay(
-                                        focusedDay,
-                                        _firstDay,
-                                        _lastDay,
-                                      );
-
-                                      setState(() {
-                                        _selectedDate = clampedFocusedDay;
-                                      });
-
-                                      _monthlySchedulesBloc.add(
-                                        MonthlySchedulesVisibleDateChanged(
-                                          date: _selectedDate,
-                                        ),
-                                      );
-
-                                      _monthlySchedulesBloc.add(
-                                        MonthlySchedulesMonthAdded(
-                                          date: DateTime(
-                                            clampedFocusedDay.year,
-                                            clampedFocusedDay.month,
-                                            clampedFocusedDay.day,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    calendarBuilders: CalendarBuilders(
-                                      headerTitleBuilder: (context, date) {
-                                        return Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: sourceLayout ? 15 : 0,
-                                          ),
-                                          child: CenteredCalendarHeader(
-                                            focusedMonth: date,
-                                            onLeftArrowTap: _onLeftArrowTap,
-                                            onRightArrowTap: _onRightArrowTap,
-                                            titleTextStyle: calendarTheme
-                                                .headerStyle
-                                                .titleTextStyle,
-                                            leftIcon: calendarTheme
-                                                .headerStyle
-                                                .leftChevronIcon,
-                                            rightIcon: calendarTheme
-                                                .headerStyle
-                                                .rightChevronIcon,
-                                          ),
-                                        );
-                                      },
-                                      markerBuilder: (context, day, events) {
-                                        return selectedDayScheduleMarkerBuilder(
-                                          selectedDay: _selectedDate,
-                                          day: day,
-                                          events: events,
-                                        );
-                                      },
-                                      selectedBuilder:
-                                          (context, day, focusedDay) {
-                                            return Container(
-                                              margin: const EdgeInsets.all(2.0),
-                                              alignment: Alignment.center,
-                                              decoration: calendarTheme
-                                                  .selectedDayDecoration,
-                                              child: Text(
-                                                DateFormat.d(
-                                                  Localizations.localeOf(
+                                return SizedBox(
+                                  height: sourceLayout ? 326 : 288,
+                                  child: Center(
+                                    child:
+                                        state.status ==
+                                            MonthlySchedulesStatus.error
+                                        ? Transform.translate(
+                                            offset: const Offset(0, 8),
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  AppLocalizations.of(
                                                     context,
-                                                  ).toString(),
-                                                ).format(day),
-                                                style: calendarTheme
-                                                    .selectedDayTextStyle,
+                                                  )!.error,
+                                                  style: textTheme.titleLarge
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                ElevatedButton(
+                                                  key: const Key(
+                                                    'calendar_month_retry',
+                                                  ),
+                                                  onPressed: _retryVisibleMonth,
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        const Color(0xff4f69df),
+                                                    minimumSize: const Size(
+                                                      149,
+                                                      44,
+                                                    ),
+                                                    maximumSize: const Size(
+                                                      149,
+                                                      44,
+                                                    ),
+                                                    fixedSize: const Size(
+                                                      149,
+                                                      44,
+                                                    ),
+                                                    padding: EdgeInsets.zero,
+                                                    tapTargetSize:
+                                                        MaterialTapTargetSize
+                                                            .shrinkWrap,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.retry,
+                                                    style: textTheme.bodyLarge
+                                                        ?.copyWith(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : Transform.translate(
+                                            offset: const Offset(0, 8),
+                                            child: const SizedBox(
+                                              key: Key(
+                                                'calendar_month_spinner',
                                               ),
-                                            );
-                                          },
-                                      todayBuilder:
-                                          (
-                                            context,
-                                            day,
-                                            focusedDay,
-                                          ) => Container(
-                                            margin: const EdgeInsets.all(2.0),
-                                            alignment: Alignment.center,
-                                            decoration:
-                                                calendarTheme.todayDecoration,
-                                            child: Text(
-                                              DateFormat.d(
-                                                Localizations.localeOf(
-                                                  context,
-                                                ).toString(),
-                                              ).format(day),
-                                              style:
-                                                  calendarTheme.todayTextStyle,
+                                              width: 28,
+                                              height: 28,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 3,
+                                                color: Color(0xff4f69df),
+                                              ),
                                             ),
                                           ),
+                                  ),
+                                );
+                              }
+
+                              return TableCalendar(
+                                locale: Localizations.localeOf(
+                                  context,
+                                ).toString(),
+                                daysOfWeekHeight: _calendarDaysOfWeekHeight,
+                                rowHeight: _calendarRowHeight,
+                                eventLoader: (day) {
+                                  day = DateTime(day.year, day.month, day.day);
+                                  return state.schedules[day] ?? [];
+                                },
+                                focusedDay: _selectedDate,
+                                selectedDayPredicate: (day) =>
+                                    isSameDay(_selectedDate, day),
+                                firstDay: _firstDay,
+                                lastDay: _lastDay,
+                                calendarFormat: CalendarFormat.month,
+                                headerStyle: calendarTheme.headerStyle,
+                                daysOfWeekStyle: calendarTheme.daysOfWeekStyle,
+                                calendarStyle: calendarTheme.calendarStyle,
+                                onDaySelected: (selectedDay, focusedDay) {
+                                  setState(() {
+                                    _selectedDate = _clampDay(
+                                      selectedDay,
+                                      _firstDay,
+                                      _lastDay,
+                                    );
+                                  });
+                                  _monthlySchedulesBloc.add(
+                                    MonthlySchedulesVisibleDateChanged(
+                                      date: _selectedDate,
                                     ),
                                   );
                                 },
-                              ),
+                                onPageChanged: (focusedDay) {
+                                  final clampedFocusedDay = _clampDay(
+                                    focusedDay,
+                                    _firstDay,
+                                    _lastDay,
+                                  );
+
+                                  setState(() {
+                                    _selectedDate = clampedFocusedDay;
+                                  });
+
+                                  _monthlySchedulesBloc.add(
+                                    MonthlySchedulesVisibleDateChanged(
+                                      date: _selectedDate,
+                                    ),
+                                  );
+
+                                  _monthlySchedulesBloc.add(
+                                    MonthlySchedulesMonthAdded(
+                                      date: DateTime(
+                                        clampedFocusedDay.year,
+                                        clampedFocusedDay.month,
+                                        clampedFocusedDay.day,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                calendarBuilders: CalendarBuilders(
+                                  headerTitleBuilder: (context, date) {
+                                    return Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: sourceLayout ? 15 : 0,
+                                      ),
+                                      child: CenteredCalendarHeader(
+                                        focusedMonth: date,
+                                        onLeftArrowTap: _onLeftArrowTap,
+                                        onRightArrowTap: _onRightArrowTap,
+                                        titleTextStyle: calendarTheme
+                                            .headerStyle
+                                            .titleTextStyle,
+                                        leftIcon: calendarTheme
+                                            .headerStyle
+                                            .leftChevronIcon,
+                                        rightIcon: calendarTheme
+                                            .headerStyle
+                                            .rightChevronIcon,
+                                      ),
+                                    );
+                                  },
+                                  markerBuilder: (context, day, events) {
+                                    return selectedDayScheduleMarkerBuilder(
+                                      selectedDay: _selectedDate,
+                                      day: day,
+                                      events: events,
+                                    );
+                                  },
+                                  selectedBuilder: (context, day, focusedDay) {
+                                    return Container(
+                                      margin: const EdgeInsets.all(2.0),
+                                      alignment: Alignment.center,
+                                      decoration:
+                                          calendarTheme.selectedDayDecoration,
+                                      child: Text(
+                                        DateFormat.d(
+                                          Localizations.localeOf(
+                                            context,
+                                          ).toString(),
+                                        ).format(day),
+                                        style:
+                                            calendarTheme.selectedDayTextStyle,
+                                      ),
+                                    );
+                                  },
+                                  todayBuilder: (context, day, focusedDay) =>
+                                      Container(
+                                        margin: const EdgeInsets.all(2.0),
+                                        alignment: Alignment.center,
+                                        decoration:
+                                            calendarTheme.todayDecoration,
+                                        child: Text(
+                                          DateFormat.d(
+                                            Localizations.localeOf(
+                                              context,
+                                            ).toString(),
+                                          ).format(day),
+                                          style: calendarTheme.todayTextStyle,
+                                        ),
+                                      ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                       SizedBox(height: detailGap),
@@ -574,7 +650,9 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
 
     if (schedules.isEmpty) {
       if (state.status == MonthlySchedulesStatus.loading) {
-        return const Center(child: CircularProgressIndicator());
+        return sourceLayout
+            ? const SizedBox.expand()
+            : const Center(child: CircularProgressIndicator());
       }
 
       if (state.status != MonthlySchedulesStatus.success) {

@@ -29,6 +29,7 @@ class ModalWideButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final (backgroundColor, foregroundColor) = switch (variant) {
       ModalWideButtonVariant.neutral => (
         colorScheme.surfaceContainerLow,
@@ -42,7 +43,6 @@ class ModalWideButton extends StatelessWidget {
         colorScheme.primary,
         colorScheme.onPrimary,
       ),
-      ModalWideButtonVariant.primary => (const Color(0xFF4F69DF), Colors.white),
       ModalWideButtonVariant.destructive => (
         const Color(0xFFBF2E22),
         Colors.white,

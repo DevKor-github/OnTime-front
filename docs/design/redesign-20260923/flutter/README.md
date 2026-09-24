@@ -15,10 +15,10 @@
 ## 검증과 시각 자료
 
 - `flutter analyze --no-pub`: 오류 없음.
-- 전체 테스트 **603개 통과**. 최종 명령과 결과는 [validation.txt](validation.txt)에 기록했다.
+- 이 디렉터리의 [validation.txt](validation.txt)는 2026-09-23 첫 반영 시점의 기록이다. 메인 화면 갱신을 병합한 뒤 최신 테스트와 비교 범위는 [QA handoff](../../../../handoff/ios-ui-quality-figma-parity.md)와 [화면 매핑](../../figma_code_map.yaml)을 확인한다.
 - 390×844 Flutter 위젯 렌더 26개를 아래에 저장했다. 실제 iOS/Android 기기 캡처가 아니다. 테스트의 날짜·준비 단계·설정값은 fixture이며 제품 기본값을 바꾸지 않는다.
 - 320px 너비와 글자 1.6배에서 반복·복구 관련 상태를 검사하고, 긴 하단 액션은 필요 시 세로 배치한다.
-- `comparison-*.png`: 왼쪽 Figma 원본, 오른쪽 Flutter 렌더. `contact-*.png`: Flutter 렌더 모음.
+- `comparison-*.png`와 `contact-*.png`는 첫 반영 시점의 비교/모음 이미지다. 갱신된 반복 관리·빈 상태 단일 캡처는 `screenshots/management.png`, `screenshots/empty.png`이며, 최신 상태별 참조/골든은 [화면 매핑](../../figma_code_map.yaml)을 기준으로 한다.
 
 ## 적용 시 유지한 차이
 

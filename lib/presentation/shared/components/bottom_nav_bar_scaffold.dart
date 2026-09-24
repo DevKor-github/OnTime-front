@@ -55,12 +55,15 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
     final colorScheme = Theme.of(context).colorScheme;
     final currentLocation = GoRouterState.of(context).uri.path;
     if (currentLocation == '/myPage') {
+      final scaledLabelHeight = MediaQuery.textScalerOf(context).scale(11);
+      final navigationHeight =
+          56.0 + (scaledLabelHeight - 11).clamp(0.0, 30.0).toDouble() * 2;
       return Scaffold(
         body: widget.child,
         bottomNavigationBar: SafeArea(
           top: false,
           child: SizedBox(
-            height: 56,
+            height: navigationHeight,
             child: Row(
               children: [
                 Expanded(

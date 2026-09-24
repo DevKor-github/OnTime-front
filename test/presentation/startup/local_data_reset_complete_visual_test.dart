@@ -46,7 +46,7 @@ void main() {
       ),
     );
 
-    expect(find.text('로컬 데이터를 삭제했습니다.'), findsOneWidget);
+    expect(find.text('로컬 데이터 초기화가\n완료되었습니다'), findsOneWidget);
     expect(find.textContaining('새 로컬 프로필로'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

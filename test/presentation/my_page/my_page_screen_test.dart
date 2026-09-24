@@ -1,4 +1,3 @@
-import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
 import '../../helpers/refresh_capture.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +21,6 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/my_page/my_page_screen.dart';
 import 'package:on_time_front/presentation/shared/components/bottom_nav_bar_scaffold.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
-
-import '../../helpers/visual_test_fonts.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -90,10 +87,10 @@ void main() {
 
     expect(find.text('My Page'), findsOneWidget);
     expect(find.text('Back up my data'), findsOneWidget);
-    expect(find.text('알림에 일정 이름 표시'), findsOneWidget);
+    expect(find.text('Show schedule name in notifications'), findsOneWidget);
     expect(find.text('Sign in'), findsNothing);
     expect(find.textContaining('email'), findsNothing);
-    expect(find.text('No scheduled notifications'), findsOneWidget);
+    expect(find.text('Notification status'), findsOneWidget);
   });
 
   testWidgets('detailed notification opt-in persists locally and reconciles', (
@@ -121,7 +118,7 @@ void main() {
     );
     expect(reconcile.callCount, 1);
 
-    await tester.tap(find.text('알림에 일정 이름 표시'));
+    await tester.tap(find.text('Show schedule name in notifications'));
     await tester.pumpAndSettle();
     expect(
       (await database.userDao.getAlarmSettings(
@@ -143,7 +140,7 @@ void main() {
     expect(alarmRepository.updatedSettings, [false]);
     expect(cancelAll.callCount, 1);
     expect(reconcile.callCount, 0);
-    expect(find.text('꺼짐'), findsOneWidget);
+    expect(find.text('Off'), findsOneWidget);
   });
 
   testWidgets('fallback permission enables local schedule notifications', (
@@ -180,7 +177,7 @@ void main() {
 
     await _pumpMyPage(tester);
 
-    expect(find.text('Notification'), findsOneWidget);
+    expect(find.text('On'), findsOneWidget);
   });
 
   testWidgets('authorized notification permission reports it is already on', (
@@ -258,6 +255,7 @@ void main() {
   });
 
   testWidgets('my page 390x844 current visual is tracked', (tester) async {
+    await getIt<DetailedNotificationPreferenceService>().setEnabled(true);
     final semantics = tester.ensureSemantics();
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
@@ -277,8 +275,10 @@ void main() {
               path: '/myPage',
               builder: (context, state) => MyPageScreen(
                 notificationService: _FakeNotificationService(
-                  currentStatus: AuthorizationStatus.denied,
+                  currentStatus: AuthorizationStatus.authorized,
                 ),
+                referencePreparationMinutes: 10,
+                referenceSpareMinutes: 5,
               ),
             ),
           ],
@@ -303,23 +303,19 @@ void main() {
     );
     expect(
       tester.getSize(find.byKey(const Key('myPageAlarmSection'))).height,
-      116,
+      209,
     );
     expect(
       tester.getTopLeft(find.byKey(const Key('myPageDataSection'))).dy,
-      219,
+      542,
     );
     expect(
       tester.getSize(find.byKey(const Key('myPageDataSection'))).height,
-      108,
+      163,
     );
     expect(
       tester.getTopLeft(find.byKey(const Key('myPageAppSection'))).dy,
-      339,
-    );
-    expect(
-      tester.getTopLeft(find.byKey(const Key('primaryAddButton'))),
-      const Offset(157, 735),
+      453,
     );
     await expectLater(
       find.byType(MaterialApp),
@@ -338,15 +334,15 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: const TextScaler.linear(2),
-          ),
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: const TextScaler.linear(2)),
           child: child!,
         ),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('백업, 복원 및 로컬 데이터 초기화'), findsOneWidget);
+    expect(find.text('내 데이터 백업'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

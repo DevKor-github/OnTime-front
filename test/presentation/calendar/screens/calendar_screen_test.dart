@@ -41,15 +41,17 @@ class _FakeSvgAssetBundle extends CachingAssetBundle {
 
 class _StubLoadSchedulesForMonthUseCase
     implements LoadSchedulesForMonthUseCase {
-  _StubLoadSchedulesForMonthUseCase({this.throwOnCall = false});
+  _StubLoadSchedulesForMonthUseCase({this.failuresRemaining = 0, this.hold});
 
-  final bool throwOnCall;
+  int failuresRemaining;
+  final Completer<void>? hold;
   final calls = <DateTime>[];
 
   @override
   Future<void> call(DateTime date) async {
     calls.add(date);
-    if (throwOnCall) {
+    await hold?.future;
+    if (failuresRemaining-- > 0) {
       throw Exception('month unavailable');
     }
   }
@@ -138,6 +140,7 @@ void main() {
     _StubLoadSchedulesForMonthUseCase? loadSchedulesForMonthUseCase,
     _StubDeleteScheduleUseCase? deleteScheduleUseCase,
     CalendarCreateSheetBuilder? createSheetBuilder,
+    bool settle = true,
   }) async {
     final loadUseCase =
         loadSchedulesForMonthUseCase ?? _StubLoadSchedulesForMonthUseCase();
@@ -190,7 +193,11 @@ void main() {
           ? app
           : DefaultAssetBundle(bundle: _FakeSvgAssetBundle(), child: app),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
   }
 
   testWidgets('calendar empty shell can be compared with Figma', (
@@ -402,17 +409,77 @@ void main() {
   });
 
   testWidgets('month load failures show calendar error state', (tester) async {
+    final load = _StubLoadSchedulesForMonthUseCase(failuresRemaining: 1);
     await pumpCalendarScreen(
       tester,
-      size: const Size(390, 844),
-      initialDate: DateTime(2026, 1, 15),
-      loadSchedulesForMonthUseCase: _StubLoadSchedulesForMonthUseCase(
-        throwOnCall: true,
-      ),
+      size: const Size(390, 852),
+      initialDate: DateTime(2024, 12, 21),
+      referenceDate: DateTime(2024, 12, 1),
+      locale: const Locale('ko'),
+      visual: true,
+      loadSchedulesForMonthUseCase: load,
     );
 
-    expect(find.text('Error'), findsOneWidget);
+    expect(find.text('오류'), findsOneWidget);
     expect(find.byType(TableCalendar), findsNothing);
+    expect(find.byKey(const Key('calendar_month_retry')), findsOneWidget);
+    expect(
+      tester.getRect(find.byKey(const Key('calendar_card'))),
+      const Rect.fromLTWH(18, 111, 354, 390),
+    );
+    expect(tester.getTopLeft(find.text('오류')).dy, inInclusiveRange(250, 265));
+    expect(
+      tester.getTopLeft(find.byKey(const Key('calendar_month_retry'))).dy,
+      inInclusiveRange(290, 305),
+    );
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../../../goldens/goldens/calendar_error_390x852.png'),
+    );
+
+    await tester.tap(find.byKey(const Key('calendar_month_retry')));
+    await tester.pumpAndSettle();
+    expect(load.calls, hasLength(2));
+    expect(find.byType(TableCalendar), findsOneWidget);
+    expect(find.byKey(const Key('calendar_month_retry')), findsNothing);
+  });
+
+  testWidgets('month loading keeps its fixed surface and blocks date actions', (
+    tester,
+  ) async {
+    final pending = Completer<void>();
+    addTearDown(() {
+      if (!pending.isCompleted) pending.complete();
+    });
+    await pumpCalendarScreen(
+      tester,
+      size: const Size(390, 852),
+      initialDate: DateTime(2024, 12, 21),
+      referenceDate: DateTime(2024, 12, 1),
+      locale: const Locale('ko'),
+      visual: true,
+      loadSchedulesForMonthUseCase: _StubLoadSchedulesForMonthUseCase(
+        hold: pending,
+      ),
+      settle: false,
+    );
+    expect(find.byType(TableCalendar), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('약속 추가하기'), findsNothing);
+    expect(
+      tester.getRect(find.byKey(const Key('calendar_card'))),
+      const Rect.fromLTWH(18, 111, 354, 390),
+    );
+    await tester.pump(const Duration(milliseconds: 250));
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile(
+        '../../../goldens/goldens/calendar_loading_390x852.png',
+      ),
+    );
+    pending.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(TableCalendar), findsOneWidget);
   });
 
   testWidgets('delete failure keeps calendar visible and shows error dialog', (

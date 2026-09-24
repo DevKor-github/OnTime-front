@@ -213,13 +213,13 @@ void main() {
 
     await tester.tap(find.byKey(const Key('localDataResetRow')));
     await tester.pumpAndSettle();
-    expect(find.text('모든 로컬 데이터를 삭제할까요?'), findsOneWidget);
+    expect(find.text('복구하지 않고 삭제하시겠습니까?'), findsOneWidget);
     await tester.tap(find.text('취소'));
     await tester.pumpAndSettle();
-    expect(find.text('모든 로컬 데이터를 삭제할까요?'), findsNothing);
+    expect(find.text('복구하지 않고 삭제하시겠습니까?'), findsNothing);
   });
 
-  testWidgets('reset confirmation uses the Figma-sized destructive dialog', (
+  testWidgets('reset confirmation shows the refreshed destructive screen', (
     tester,
   ) async {
     final semantics = tester.ensureSemantics();
@@ -227,19 +227,9 @@ void main() {
     await tester.tap(find.byKey(const Key('localDataResetRow')));
     await tester.pumpAndSettle();
 
-    expect(
-      tester
-          .getSize(
-            find
-                .descendant(
-                  of: find.byType(Dialog),
-                  matching: find.byType(Material),
-                )
-                .first,
-          )
-          .width,
-      277,
-    );
+    expect(find.text('복구하지 않고 삭제하시겠습니까?'), findsOneWidget);
+    expect(find.text('백업 파일은 직접 삭제해야 합니다.'), findsOneWidget);
+    expect(find.byType(Dialog), findsNothing);
     expect(find.text('모두 삭제'), findsOneWidget);
     await expectLater(
       find.byType(MaterialApp),

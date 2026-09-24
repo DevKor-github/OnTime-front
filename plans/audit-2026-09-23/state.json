@@ -894,16 +894,18 @@
         "main 보호와 effective rules가 없다. 검사 성공이 병합의 필수 조건이 아니다.",
         "PR·최신 커밋 필수 검사와 필요한 review를 ruleset으로 강제. 실패한 검사로 일반 변경이 main에 들어가지 않는지 확인. [GitHub status checks](https://docs.github.com/en/pull-requests/reference/status-checks)"
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_r01",
+      "issue_number": 619,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/619",
       "decisions_file": "plans/audit-2026-09-23/issues/R01.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 32
+      "sequence": 32,
+      "readback_verified": true,
+      "issue_body_sha256": "a6f999305b838cc8d2473a8da0731b0f193ac503293247a6501269a90189844a"
     },
     {
       "audit_id": "R09",

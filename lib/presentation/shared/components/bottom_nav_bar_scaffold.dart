@@ -54,6 +54,80 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final currentLocation = GoRouterState.of(context).uri.path;
+    if (currentLocation == '/myPage') {
+      return Scaffold(
+        body: widget.child,
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 56,
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () => onDestinationSelected(0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.home_outlined, size: 26),
+                        Text(
+                          AppLocalizations.of(context)!.home,
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => showModalBottomSheet(
+                      context: context,
+                      isDismissible: false,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const ScheduleCreateScreen(),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_circle,
+                          color: colorScheme.primary,
+                          size: 30,
+                        ),
+                        Text(
+                          AppLocalizations.of(context)!.addAppointment,
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => onDestinationSelected(1),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.person_outline,
+                          color: colorScheme.primary,
+                          size: 26,
+                        ),
+                        Text(
+                          AppLocalizations.of(context)!.myPage,
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       body: widget.child,
       backgroundColor: _getBackgroundColor(context),

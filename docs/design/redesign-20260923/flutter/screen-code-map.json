@@ -1,0 +1,158 @@
+[
+  {
+    "key": "date-time",
+    "figmaNode": "2112:2394",
+    "file": "lib/presentation/schedule_create/schedule_date_time/screens/schedule_date_time_form.dart",
+    "capture": "screenshots/date-time.png"
+  },
+  {
+    "key": "weekly",
+    "figmaNode": "2112:21323",
+    "file": "lib/presentation/recurring/recurrence_settings_sheet.dart",
+    "capture": "screenshots/weekly.png"
+  },
+  {
+    "key": "monthly",
+    "figmaNode": "2112:21352",
+    "file": "lib/presentation/recurring/recurrence_settings_sheet.dart",
+    "capture": "screenshots/monthly.png"
+  },
+  {
+    "key": "ending",
+    "figmaNode": "2112:21395",
+    "file": "lib/presentation/recurring/recurrence_settings_sheet.dart",
+    "capture": "screenshots/ending.png"
+  },
+  {
+    "key": "preparation",
+    "figmaNode": "2112:21456",
+    "file": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart",
+    "capture": "screenshots/preparation.png"
+  },
+  {
+    "key": "review",
+    "figmaNode": "2112:21500",
+    "file": "lib/presentation/recurring/recurrence_review_sheet.dart",
+    "capture": "screenshots/review.png"
+  },
+  {
+    "key": "conflicts",
+    "figmaNode": "2112:21531",
+    "file": "lib/presentation/recurring/recurrence_review_sheet.dart",
+    "capture": "screenshots/conflicts.png"
+  },
+  {
+    "key": "persistent-conflict",
+    "figmaNode": "2112:21557",
+    "file": "lib/presentation/recurring/recurrence_review_sheet.dart",
+    "capture": "screenshots/persistent-conflict.png"
+  },
+  {
+    "key": "scope",
+    "figmaNode": "2112:21588",
+    "file": "lib/presentation/recurring/recurrence_scope_sheet.dart",
+    "capture": "screenshots/scope.png"
+  },
+  {
+    "key": "detached",
+    "figmaNode": "2112:21613",
+    "file": "lib/presentation/recurring/recurrence_review_sheet.dart",
+    "capture": "screenshots/detached.png"
+  },
+  {
+    "key": "time-exceptions",
+    "figmaNode": "2112:21635",
+    "file": "lib/presentation/recurring/recurrence_time_choice_sheet.dart",
+    "capture": "screenshots/time-exceptions.png"
+  },
+  {
+    "key": "save-error",
+    "figmaNode": "2112:21659",
+    "file": "lib/presentation/recurring/recurrence_time_choice_sheet.dart",
+    "capture": "screenshots/save-error.png"
+  },
+  {
+    "key": "frequency",
+    "figmaNode": "2113:21627",
+    "file": "lib/presentation/recurring/recurrence_settings_sheet.dart",
+    "capture": "screenshots/frequency.png"
+  },
+  {
+    "key": "monthly-fields",
+    "figmaNode": "2113:21670",
+    "file": "lib/presentation/recurring/recurrence_settings_sheet.dart",
+    "capture": "screenshots/monthly-fields.png"
+  },
+  {
+    "key": "end-date",
+    "figmaNode": "2113:21708",
+    "file": "lib/presentation/recurring/recurrence_settings_sheet.dart",
+    "capture": "screenshots/end-date.png"
+  },
+  {
+    "key": "end-confirm",
+    "figmaNode": "2113:21745",
+    "file": "lib/presentation/recurring/recurring_management_screen.dart",
+    "capture": "screenshots/end-confirm.png"
+  },
+  {
+    "key": "management",
+    "figmaNode": "2112:21676",
+    "file": "lib/presentation/recurring/recurring_management_screen.dart",
+    "capture": "screenshots/management.png"
+  },
+  {
+    "key": "detail",
+    "figmaNode": "2112:21715",
+    "file": "lib/presentation/recurring/recurring_management_screen.dart",
+    "capture": "screenshots/detail.png"
+  },
+  {
+    "key": "empty",
+    "figmaNode": "2112:21756",
+    "file": "lib/presentation/recurring/recurring_management_screen.dart",
+    "capture": "screenshots/empty.png"
+  },
+  {
+    "key": "occurrence",
+    "figmaNode": "2112:21768",
+    "file": "lib/presentation/recurring/recurrence_occurrence_sheet.dart",
+    "capture": "screenshots/occurrence.png"
+  },
+  {
+    "key": "mypage-entry",
+    "figmaNode": "2113:21761",
+    "file": "lib/presentation/my_page/my_page_screen.dart",
+    "capture": "screenshots/mypage-entry.png"
+  },
+  {
+    "key": "recovery",
+    "figmaNode": "1957:11762",
+    "file": "lib/presentation/startup/screens/local_data_recovery_screen.dart",
+    "capture": "screenshots/recovery.png"
+  },
+  {
+    "key": "recovery-busy",
+    "figmaNode": "2005:12036",
+    "file": "lib/presentation/startup/screens/local_data_recovery_screen.dart",
+    "capture": "screenshots/recovery-busy.png"
+  },
+  {
+    "key": "recovery-confirm",
+    "figmaNode": "2003:12059",
+    "file": "lib/presentation/startup/screens/local_data_recovery_screen.dart",
+    "capture": "screenshots/recovery-confirm.png"
+  },
+  {
+    "key": "reset-complete",
+    "figmaNode": "1963:11762",
+    "file": "lib/presentation/my_page/my_data_screen.dart",
+    "capture": "screenshots/reset-complete.png"
+  },
+  {
+    "key": "privacy",
+    "figmaNode": "1950:11759",
+    "file": "lib/presentation/my_page/privacy_policy_screen.dart",
+    "capture": "screenshots/privacy.png"
+  }
+]

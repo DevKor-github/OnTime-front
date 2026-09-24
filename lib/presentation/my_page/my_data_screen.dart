@@ -1,3 +1,6 @@
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
+import 'package:on_time_front/presentation/startup/screens/local_data_recovery_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -12,7 +15,9 @@ import 'package:on_time_front/presentation/shared/components/modal_wide_button.d
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 class MyDataScreen extends StatefulWidget {
-  const MyDataScreen({super.key});
+  const MyDataScreen({super.key, this.initialAction});
+
+  final String? initialAction;
 
   @override
   State<MyDataScreen> createState() => _MyDataScreenState();
@@ -26,6 +31,19 @@ class _MyDataScreenState extends State<MyDataScreen> {
   void initState() {
     super.initState();
     _loadFreshness();
+    if (widget.initialAction != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        switch (widget.initialAction) {
+          case 'backup':
+            _export();
+          case 'restore':
+            _restore();
+          case 'reset':
+            _reset();
+        }
+      });
+    }
   }
 
   Future<void> _loadFreshness() async {
@@ -179,20 +197,9 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   Future<void> _reset() async {
-    final result = await showTwoActionDialog(
-      context,
-      config: const TwoActionDialogConfig(
-        title: '모든 로컬 데이터를 삭제할까요?',
-        description:
-            '일정, 준비 단계, 기록, 설정, 알람과 기기 암호화 키가 삭제됩니다. '
-            '이미 내보낸 백업 파일은 삭제되지 않습니다. 이 작업은 되돌릴 수 없습니다.',
-        secondaryAction: DialogActionConfig(label: '취소'),
-        primaryAction: DialogActionConfig(
-          label: '모두 삭제',
-          variant: ModalWideButtonVariant.destructive,
-        ),
-        barrierColor: Color(0x6B000000),
-        alignment: Alignment(0, 0.04),
+    final confirmed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => const LocalDataResetConfirmationScreen(),
       ),
     );
     if (result != DialogActionResult.primary) return;
@@ -540,57 +547,57 @@ class LocalDataResetCompleteScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 27),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      height: 77,
-                      child: Icon(
-                        Icons.check_circle_outline,
-                        size: 68,
-                        color: Color(0xFF111111),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      '로컬 데이터를 삭제했습니다.',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 20,
-                        height: 1.5,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 18),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 336),
-                      child: const Text(
-                        'OnTime을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로\n시작합니다.',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 14,
-                          height: 1.2,
-                          letterSpacing: -0.15,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
+    body: RecurrenceSheet(
+      title: '초기화 완료',
+      showBack: false,
+      footer: ScreenActions(
+        action: '다시 시작 안내',
+        onAction: () => showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('OnTime을 다시 열어 주세요'),
+            content: const Text('앱을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로 시작합니다.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('확인'),
               ),
-            ),
+            ],
           ),
         ),
       ),
+      children: [
+        const SizedBox(height: 40),
+        Center(
+          child: SvgPicture.asset(
+            'assets/design/reset_success.svg',
+            width: 69,
+            height: 69,
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          '로컬 데이터 초기화가\n완료되었습니다',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            height: 1.3,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const Text(
+          '이 기기에 저장된 모든 로컬 데이터가 삭제되었습니다.\nOnTime을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로 시작합니다.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, height: 1.5),
+        ),
+        const SizedBox(height: 8),
+        const RecurrencePanel(
+          child: Text(
+            '외부에 저장된 백업 파일은 삭제되지 않았습니다.\n필요한 경우 직접 삭제해 주세요.',
+            style: TextStyle(fontSize: 13, height: 1.6),
+          ),
+        ),
+      ],
     ),
   );
 }

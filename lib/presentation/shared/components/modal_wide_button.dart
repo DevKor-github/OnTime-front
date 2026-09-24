@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ModalWideButtonVariant { neutral, primary, destructive }
+enum ModalWideButtonVariant { neutral, primary, destructive, subtle }
 
 enum ModalWideButtonLayout { fixed, full, flex }
 
@@ -31,8 +31,16 @@ class ModalWideButton extends StatelessWidget {
     final theme = Theme.of(context);
     final (backgroundColor, foregroundColor) = switch (variant) {
       ModalWideButtonVariant.neutral => (
-        const Color(0xFFF0F0F0),
-        const Color(0xFF777777),
+        colorScheme.surfaceContainerLow,
+        colorScheme.outline,
+      ),
+      ModalWideButtonVariant.subtle => (
+        colorScheme.primaryContainer,
+        colorScheme.onPrimaryContainer,
+      ),
+      ModalWideButtonVariant.primary => (
+        colorScheme.primary,
+        colorScheme.onPrimary,
       ),
       ModalWideButtonVariant.primary => (const Color(0xFF4F69DF), Colors.white),
       ModalWideButtonVariant.destructive => (
@@ -49,10 +57,13 @@ class ModalWideButton extends StatelessWidget {
       color: foregroundColor,
     );
 
+    final scaledHeight = MediaQuery.textScalerOf(context).scale(16) * 1.4 + 20;
+    final effectiveHeight = scaledHeight > height ? scaledHeight : height;
+
     final minSize = switch (layout) {
       ModalWideButtonLayout.flex => Size.zero,
-      ModalWideButtonLayout.fixed => Size(fixedWidth, height),
-      ModalWideButtonLayout.full => Size(double.infinity, height),
+      ModalWideButtonLayout.fixed => Size(fixedWidth, effectiveHeight),
+      ModalWideButtonLayout.full => Size(double.infinity, effectiveHeight),
     };
 
     final button = SizedBox(
@@ -61,11 +72,15 @@ class ModalWideButton extends StatelessWidget {
         ModalWideButtonLayout.full => double.infinity,
         ModalWideButtonLayout.flex => null,
       },
-      height: height,
+      height: effectiveHeight,
       child: TextButton(
         onPressed: isLoading ? null : onPressed,
         style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(backgroundColor),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? colorScheme.surfaceDim
+                : backgroundColor,
+          ),
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),

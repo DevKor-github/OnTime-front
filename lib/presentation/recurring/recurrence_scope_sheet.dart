@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
-import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 
 Future<RecurringEditScope?> showRecurrenceScope(
   BuildContext context, {
@@ -11,8 +10,10 @@ Future<RecurringEditScope?> showRecurrenceScope(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
-  builder: (context) =>
-      SizedBox(height: 440, child: _ScopeSheet(deleting: deleting)),
+  builder: (context) => SizedBox(
+    height: MediaQuery.sizeOf(context).height * .94,
+    child: _ScopeSheet(deleting: deleting),
+  ),
 );
 
 class _ScopeSheet extends StatefulWidget {
@@ -31,9 +32,19 @@ class _ScopeSheetState extends State<_ScopeSheet> {
       widget.deleting ? '삭제 범위' : '변경 범위',
       widget.deleting ? 'Delete scope' : 'Edit scope',
     ),
+    footer: ScreenActions(
+      action: recurrenceText(
+        context,
+        widget.deleting ? '선택한 범위 삭제' : '선택한 범위로 수정',
+        widget.deleting ? 'Delete selected scope' : 'Edit selected scope',
+      ),
+      destructive: widget.deleting,
+      onBack: () => Navigator.of(context).pop(),
+      onAction: () => Navigator.of(context).pop(_scope),
+    ),
     children: [
       Text(
-        recurrenceText(context, '어떤 일정에 적용할까요?', 'Which occurrences?'),
+        recurrenceText(context, '어떤 일정까지 변경할지 선택해 주세요.', 'Which occurrences?'),
         style: Theme.of(context).textTheme.titleLarge,
       ),
       for (final scope in RecurringEditScope.values)
@@ -44,6 +55,15 @@ class _ScopeSheetState extends State<_ScopeSheet> {
             scope == RecurringEditScope.occurrence
                 ? 'This occurrence'
                 : 'This and following',
+          ),
+          description: recurrenceText(
+            context,
+            scope == RecurringEditScope.occurrence
+                ? '선택한 이번 일정만 수정하거나 삭제합니다.'
+                : '이번 일정부터 이후의 모든 일정을 수정하거나 삭제합니다.',
+            scope == RecurringEditScope.occurrence
+                ? 'Applies only to the selected occurrence.'
+                : 'Applies to this and all following occurrences.',
           ),
           selected: _scope == scope,
           onTap: () => setState(() => _scope = scope),
@@ -58,19 +78,6 @@ class _ScopeSheetState extends State<_ScopeSheet> {
               ? 'Following occurrences include individual edits. Active and historical occurrences are preserved.'
               : 'Individual overrides, active preparations and history are preserved.',
         ),
-      ),
-      ModalWideButton(
-        text: recurrenceText(
-          context,
-          widget.deleting ? '선택한 범위 삭제' : '선택한 범위로 수정',
-          widget.deleting ? 'Delete selected scope' : 'Edit selected scope',
-        ),
-        variant: widget.deleting
-            ? ModalWideButtonVariant.destructive
-            : ModalWideButtonVariant.primary,
-        layout: ModalWideButtonLayout.full,
-        height: 52,
-        onPressed: () => Navigator.of(context).pop(_scope),
       ),
     ],
   );

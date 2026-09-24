@@ -34,7 +34,7 @@ class _LocalDataRecoveryScreenState extends State<LocalDataRecoveryScreen> {
     if (resetResult != null) {
       return LocalResetProgressScreen(
         initialResult: resetResult,
-        retry: widget.reset ?? getIt<LocalDataResetService>().reset,
+        operation: widget.reset ?? getIt<LocalDataResetService>().reset,
       );
     }
     return PopScope(

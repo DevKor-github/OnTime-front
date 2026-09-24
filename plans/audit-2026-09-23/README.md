@@ -49,8 +49,9 @@
 | R02 | [#617](https://github.com/DevKor-github/OnTime-front/issues/617) | 실제3문답·동일 PR 소스 양모바일 build/native/smoke·최소권한/실패판정·12행 CI 검증 |
 | R04 | [#618](https://github.com/DevKor-github/OnTime-front/issues/618) | 동일 품질 재사용·검증 AAB와 전송 바이트 연결, 16개 검증 행렬과 실제 3문답 확정 |
 | R01 | [#619](https://github.com/DevKor-github/OnTime-front/issues/619) | 실제 3문답·비활성 ruleset 재사용/최신 소스 검사·독립 리뷰·15개 검증 행렬 확정 |
+| R09 | [#620](https://github.com/DevKor-github/OnTime-front/issues/620) | 실제 3문답·최종 APK/IPA 구성/오프라인/트래픽 귀속·20개 검증 행렬 확정 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **33/64개**를 게시하고 원격 본문 동일성을 확인했으며 **31개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05와 A10까지 실제 문답과 백업·복구·시간대 검증 설계가 확정됐으며 D03은 독립 리뷰 보완 및 host kill11 후 최신 main 통합 원격882 tests/88.50%·APK를 통과했고 기기 검증이 남았다. A06은d06474d4로 구현해 최종929 tests/88.74%·신규47경계를 통과했고 원격929 tests/88.79%·APK도 통과했다. A07은d73c7863로 구현해 실제 DB 회귀/전체944 tests·88.67%·KOEN200% 및 원격944/88.70%·APK를 통과했고 C01 구현을 시작했다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **34/64개**를 게시하고 원격 본문 동일성을 확인했으며 **30개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05와 A10까지 실제 문답과 백업·복구·시간대 검증 설계가 확정됐으며 D03은 독립 리뷰 보완 및 host kill11 후 최신 main 통합 원격882 tests/88.50%·APK를 통과했고 기기 검증이 남았다. A06은d06474d4로 구현해 최종929 tests/88.74%·신규47경계를 통과했고 원격929 tests/88.79%·APK도 통과했다. A07은d73c7863로 구현해 실제 DB 회귀/전체944 tests·88.67%·KOEN200% 및 원격944/88.70%·APK를 통과했고 C01 구현을 시작했다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
 
 ## 실행 순서
 

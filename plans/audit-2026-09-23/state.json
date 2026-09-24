@@ -68,7 +68,7 @@
         "Full iOS build and native test execution pending"
       ],
       "sequence": 2,
-      "issue_body_sha256": "e0b8fca33ca5913263230ae4c264a496eed9e745265475adb4063d8b04f0bfba",
+      "issue_body_sha256": "0fccad866304a88f2acdbb514d4983077e304c3964569841620dd6599eff8ed7",
       "readback_verified": true,
       "body_sha256": "0fccad866304a88f2acdbb514d4983077e304c3964569841620dd6599eff8ed7"
     },
@@ -308,7 +308,7 @@
         "Actual Android/iOS delivery and permission/Doze/reboot matrix not executed."
       ],
       "sequence": 9,
-      "issue_body_sha256": "23769c09503d629f813df5b93db7b2b6fce715dd15ea1571ea09fa06b9c1a5d4",
+      "issue_body_sha256": "61cd6d895147c01b682e9871307d355c4b2bf5847627f6f72a00c6909d97d495",
       "readback_verified": true,
       "body_sha256": "61cd6d895147c01b682e9871307d355c4b2bf5847627f6f72a00c6909d97d495"
     },
@@ -917,16 +917,18 @@
         "no-network 체크는 소스 문자열/일부 설정 검사다. 통과만으로 final APK/IPA의 전체 SDK·merged manifest·runtime traffic을 증명하지 못한다.",
         "final artifact 권한·SDK·entitlement 검사와 비행기 모드 cold start. 앱 자체 트래픽을 별도로 관찰. 사용자 명시적 외부 navigation은 제품 정책에 따라 구분."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_r09",
+      "issue_number": 620,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/620",
       "decisions_file": "plans/audit-2026-09-23/issues/R09.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 33
+      "sequence": 33,
+      "readback_verified": true,
+      "issue_body_sha256": "63d1d3871729e6945649398d5c843489ef750dc9be2602a6765f858400489704"
     },
     {
       "audit_id": "O01",

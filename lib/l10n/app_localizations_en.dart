@@ -569,4 +569,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get startupWaitingBody =>
       'Waiting for the device to respond. Please wait until the check finishes.';
+
+  @override
+  String get preparationStartFailed =>
+      'Preparation could not be started. Try again.';
+
+  @override
+  String get preparationStartPartial =>
+      'Preparation has started. Some progress storage or alarm cleanup is incomplete.';
 }

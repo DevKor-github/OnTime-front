@@ -311,11 +311,13 @@ class _Session implements SchedulePreparationSessionUseCase {
   final startedIds = <String>[];
   int get starts => startedIds.length;
   @override
-  Future<void> startEarlySession(
+  Future<PreparationStartReceipt> startEarlySession(
     ScheduleWithPreparationEntity schedule, {
     required DateTime startedAt,
+    bool Function()? isCurrent,
   }) async {
     startedIds.add(schedule.id);
+    return PreparationStartReceipt(startedAt: startedAt);
   }
 
   @override
@@ -336,6 +338,7 @@ class _Session implements SchedulePreparationSessionUseCase {
     DateTime? savedAt,
     DateTime? startedAt,
     List<PreparationActionEventEntity> actionEvents = const [],
+    bool persist = true,
   }) async {}
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

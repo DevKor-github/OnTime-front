@@ -205,6 +205,9 @@ class SpyClearEarlyStartSessionUseCase
 
 class FakeSchedulePreparationSessionUseCase
     implements SchedulePreparationSessionUseCase {
+  @override
+  void dispose() {}
+
   FakeSchedulePreparationSessionUseCase({
     required this.saveTimedPreparationUseCase,
     required this.getTimedPreparationSnapshotUseCase,
@@ -238,9 +241,10 @@ class FakeSchedulePreparationSessionUseCase
   final _startedScheduleIds = <String>{};
 
   @override
-  Future<void> startEarlySession(
+  Future<PreparationStartReceipt> startEarlySession(
     ScheduleWithPreparationEntity schedule, {
     required DateTime startedAt,
+    bool Function()? isCurrent,
   }) async {
     await markEarlyStartSessionUseCase(
       scheduleId: schedule.id,
@@ -254,6 +258,7 @@ class FakeSchedulePreparationSessionUseCase
       startedAt: startedAt,
       actionEvents: const [],
     );
+    return PreparationStartReceipt(startedAt: startedAt);
   }
 
   @override
@@ -278,6 +283,7 @@ class FakeSchedulePreparationSessionUseCase
     DateTime? savedAt,
     DateTime? startedAt,
     List<PreparationActionEventEntity> actionEvents = const [],
+    bool persist = true,
   }) {
     return saveTimedPreparationUseCase(
       schedule,

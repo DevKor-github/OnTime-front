@@ -89,8 +89,8 @@ class _AlarmGraphSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 190,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 190),
       child: Stack(
         alignment: Alignment.center,
         children: [

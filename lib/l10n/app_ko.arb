@@ -221,5 +221,7 @@
     "notificationIncompleteStatus": "알림 예약 일부 실패 또는 확인 필요",
     "notificationTimingSettings": "정확한 시각 설정하기",
   "startupLoadingBody": "기기에 저장된 데이터를 확인하고 있습니다.",
-  "startupWaitingBody": "기기의 응답을 기다리고 있습니다. 확인이 끝날 때까지 잠시 기다려 주세요."
+  "startupWaitingBody": "기기의 응답을 기다리고 있습니다. 확인이 끝날 때까지 잠시 기다려 주세요.",
+  "preparationStartFailed": "준비 시작을 저장하지 못했어요. 다시 시도해주세요.",
+  "preparationStartPartial": "준비는 시작했지만 진행 저장 또는 알림 정리가 일부 완료되지 않았어요."
 }

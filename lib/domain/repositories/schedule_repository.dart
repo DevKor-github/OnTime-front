@@ -39,7 +39,7 @@ abstract interface class ScheduleRepository {
   Future<void> deleteSchedule(ScheduleEntity schedule);
 
   /// Start a schedule preparation session
-  Future<void> startSchedule(String scheduleId);
+  Future<DateTime> startSchedule(String scheduleId, {DateTime? startedAt});
 
   /// Finish a schedule with lateness time
   Future<void> finishSchedule(String scheduleId, int latenessTime);

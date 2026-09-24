@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_start_rejected.dart';
 import 'dart:async';
 
 import 'package:collection/collection.dart';
@@ -87,17 +88,30 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<void> startSchedule(String scheduleId) async {
-    final existing = await _scheduleDao.getScheduleById(scheduleId);
+  Future<DateTime> startSchedule(
+    String scheduleId, {
+    DateTime? startedAt,
+  }) => _database.transaction(() async {
+    final existing = (await _scheduleDao.getScheduleById(scheduleId)).schedule;
+    if (existing.doneStatus != ScheduleDoneStatus.notEnded.name) {
+      throw ScheduleStartRejected(scheduleId);
+    }
+    final firstStartedAt = existing.startedAt ?? startedAt ?? DateTime.now();
+    if (existing.isStarted &&
+        existing.startedAt != null &&
+        existing.preparationFrozen) {
+      return firstStartedAt;
+    }
     await _scheduleDao.updateSchedule(
-      existing.schedule.copyWith(
+      existing.copyWith(
         isStarted: true,
-        startedAt: Value(DateTime.now()),
+        startedAt: Value(firstStartedAt),
         preparationFrozen: true,
       ),
     );
     await _userDao.markDurableDataChanged(localProfileId);
-  }
+    return firstStartedAt;
+  });
 
   @override
   Future<ScheduleEntity> getScheduleById(String id) async {

@@ -52,7 +52,9 @@ final class ScheduleStarted extends ScheduleEvent {
 }
 
 final class SchedulePreparationStarted extends ScheduleEvent {
-  const SchedulePreparationStarted();
+  const SchedulePreparationStarted({this.receipt, this.isCurrent});
+  final Completer<PreparationStartReceipt?>? receipt;
+  final bool Function()? isCurrent;
 
   @override
   List<Object?> get props => [];
@@ -100,4 +102,8 @@ final class _NotificationPromptPresented extends ScheduleEvent {
   final bool Function() isCurrent;
   @override
   List<Object?> get props => [schedule, owner];
+}
+
+final class SchedulePreparationRecoveryRequested extends ScheduleEvent {
+  const SchedulePreparationRecoveryRequested();
 }

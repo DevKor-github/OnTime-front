@@ -280,6 +280,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
     }
 
     final alarmTheme = _buildAlarmTheme(context, isLateContinueMode);
+    final startState = context.watch<ScheduleBloc>().state;
 
     return Theme(
       key: const ValueKey('alarm_screen_theme'),
@@ -288,6 +289,31 @@ class _AlarmScreenState extends State<AlarmScreen> {
         builder: (context) {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.primary,
+            bottomNavigationBar: startState.hasPendingStartRecovery
+                ? SafeArea(
+                    child: MaterialBanner(
+                      content: Text(l10n.preparationStartPartial),
+                      actions: [
+                        TextButton(
+                          onPressed: startState.isRecoveringStart
+                              ? null
+                              : () => context.read<ScheduleBloc>().add(
+                                  const SchedulePreparationRecoveryRequested(),
+                                ),
+                          child: startState.isRecoveringStart
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(l10n.startupRetryAction),
+                        ),
+                      ],
+                    ),
+                  )
+                : null,
             body: Stack(
               children: [
                 Column(

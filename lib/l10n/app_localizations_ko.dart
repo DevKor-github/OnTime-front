@@ -529,4 +529,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get startupWaitingBody => '기기의 응답을 기다리고 있습니다. 확인이 끝날 때까지 잠시 기다려 주세요.';
+
+  @override
+  String get preparationStartFailed => '준비 시작을 저장하지 못했어요. 다시 시도해주세요.';
+
+  @override
+  String get preparationStartPartial =>
+      '준비는 시작했지만 진행 저장 또는 알림 정리가 일부 완료되지 않았어요.';
 }

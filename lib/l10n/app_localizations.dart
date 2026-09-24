@@ -1063,6 +1063,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waiting for the device to respond. Please wait until the check finishes.'**
   String get startupWaitingBody;
+
+  /// No description provided for @preparationStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation could not be started. Try again.'**
+  String get preparationStartFailed;
+
+  /// No description provided for @preparationStartPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation has started. Some progress storage or alarm cleanup is incomplete.'**
+  String get preparationStartPartial;
 }
 
 class _AppLocalizationsDelegate

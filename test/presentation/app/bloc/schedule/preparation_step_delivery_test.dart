@@ -35,6 +35,7 @@ class _Session implements SchedulePreparationSessionUseCase {
     DateTime? savedAt,
     DateTime? startedAt,
     List<PreparationActionEventEntity> actionEvents = const [],
+    bool persist = true,
   }) async {}
   @override
   Future<void> clearPersistedState(String id) async {}

@@ -624,5 +624,7 @@
     "notificationIncompleteStatus": "Notification scheduling incomplete or needs checking",
     "notificationTimingSettings": "Timing settings",
   "startupLoadingBody": "Checking the data stored on this device.",
-  "startupWaitingBody": "Waiting for the device to respond. Please wait until the check finishes."
+  "startupWaitingBody": "Waiting for the device to respond. Please wait until the check finishes.",
+  "preparationStartFailed": "Preparation could not be started. Try again.",
+  "preparationStartPartial": "Preparation has started. Some progress storage or alarm cleanup is incomplete."
 }

@@ -101,6 +101,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     on<ScheduleAlarmPromptRequested>(_onAlarmPromptRequested);
     on<ScheduleStarted>(_onScheduleStarted);
     on<SchedulePreparationStarted>(_onPreparationStarted);
+    on<SchedulePreparationRecoveryRequested>(_onStartRecovery);
     on<ScheduleTick>(_onTick);
     on<SchedulePreparationTimeRefreshRequested>(
       _onPreparationTimeRefreshRequested,
@@ -119,6 +120,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   Timer? _scheduleStartTimer;
   String? _currentScheduleId;
   String? _activeEarlyStartScheduleId;
+  Object? _explicitStartPending;
+  bool _finishing = false;
   Timer? _preparationTimer;
   DateTime? _lastSnapshotSavedAt;
   DateTime? _activePreparationRunStartedAt;
@@ -262,7 +265,19 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleUpcomingReceived event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (notificationPreparationId != null) return;
+    if (notificationPreparationId != null || _explicitStartPending != null) {
+      return;
+    }
+    // A repository emission is not a successful recovery receipt. Preserve
+    // the live projection and pending warning for the same unchanged run.
+    if (state.hasPendingStartRecovery &&
+        event.upcomingSchedule?.id == state.schedule?.id &&
+        event.upcomingSchedule?.cacheFingerprint ==
+            state.schedule?.cacheFingerprint &&
+        event.upcomingSchedule != null &&
+        !_isEnded(event.upcomingSchedule!.doneStatus)) {
+      return;
+    }
     final current = _captureBackgroundValidity();
     if (!current()) return;
     _stepRevision++;
@@ -299,7 +314,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
     if (_notificationPromptOwner != null) return;
     final earlyStartSession = await _getEarlyStartSession(incoming.id);
-    final hasEarlyStartSession = earlyStartSession != null;
+    var hasEarlyStartSession = earlyStartSession != null;
     if (!current()) return;
 
     _snapshotInvalidated = false;
@@ -308,6 +323,12 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       isCurrent: current,
     );
     if (!current()) return;
+    hasEarlyStartSession =
+        hasEarlyStartSession ||
+        (_activePreparationRunStartedAt != null &&
+            !_activePreparationRunStartedAt!.isAtSameMomentAs(
+              incoming.preparationStartTime,
+            ));
     if (!_snapshotInvalidated &&
         !hasEarlyStartSession &&
         incoming.preparationStartTime.isAfter(now)) {
@@ -326,7 +347,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
 
     if (hasEarlyStartSession) {
       _activeEarlyStartScheduleId = resolvedSchedule.id;
-      _activePreparationRunStartedAt ??= earlyStartSession.startedAt;
+      _activePreparationRunStartedAt ??= earlyStartSession!.startedAt;
       if (resolvedSchedule.preparation.elapsedTime == Duration.zero &&
           _activePreparationActionEvents.isEmpty) {
         resolvedSchedule =
@@ -510,34 +531,127 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _startScheduleTimer(schedule);
   }
 
+  Future<PreparationStartReceipt?> requestPreparationStart({
+    required bool Function() isCurrent,
+  }) {
+    if (isClosed) return Future.value(null);
+    final receipt = Completer<PreparationStartReceipt?>();
+    add(SchedulePreparationStarted(receipt: receipt, isCurrent: isCurrent));
+    return receipt.future;
+  }
+
   Future<void> _onPreparationStarted(
     SchedulePreparationStarted event,
     Emitter<ScheduleState> emit,
   ) async {
-    final current = _captureBackgroundValidity();
-    if (!current()) return;
+    final generation = LocalDataOperationGate.shared.generation;
+    final revision = _notificationRevision;
     final schedule = state.schedule;
-    if (schedule == null) return;
-    if (_activeEarlyStartScheduleId == schedule.id) return;
-
+    bool current() =>
+        !isClosed &&
+        !emit.isDone &&
+        LocalDataOperationGate.shared.generation == generation &&
+        _notificationRevision == revision &&
+        state.schedule?.id == schedule?.id &&
+        (event.isCurrent?.call() ?? _notificationPromptOwner == null);
+    if (schedule == null || !current()) {
+      event.receipt?.complete(null);
+      return;
+    }
+    if (_activeEarlyStartScheduleId == schedule.id &&
+        _activePreparationRunStartedAt != null &&
+        event.receipt == null) {
+      return;
+    }
+    final pending = Object();
+    _explicitStartPending = pending;
     _currentScheduleId = schedule.id;
-    _activeEarlyStartScheduleId = schedule.id;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
+    try {
+      final result = await _schedulePreparationSessionUseCase.startEarlySession(
+        schedule,
+        startedAt: _activePreparationRunStartedAt ?? _nowProvider(),
+        isCurrent: current,
+      );
+      if (!current()) {
+        event.receipt?.complete(null);
+        return;
+      }
+      // The prompt remains owned through the DB failure boundary. The widget
+      // consumes that owner only after receiving this committed receipt.
+      _snapshotInvalidated = false;
+      _activeEarlyStartScheduleId = schedule.id;
+      _activePreparationRunStartedAt = result.startedAt;
+      _activePreparationActionEvents = result.actionEvents;
+      emit(
+        state.copyWith(
+          status: ScheduleStatus.started,
+          isEarlyStarted: true,
+          hasPendingStartRecovery: result.hasPendingRecovery,
+        ),
+      );
+      _lastSnapshotSavedAt = result.startedAt;
+      _startPreparationTimer();
+      event.receipt?.complete(result);
+    } catch (error, stack) {
+      if (event.receipt != null) {
+        if (current()) {
+          event.receipt!.completeError(error, stack);
+        } else {
+          event.receipt!.complete(null);
+        }
+      } else {
+        AppLogger.debug(
+          'Preparation start failed errorType=${error.runtimeType}',
+        );
+      }
+    } finally {
+      if (identical(_explicitStartPending, pending)) {
+        _explicitStartPending = null;
+      }
+    }
+  }
 
-    final startedAt = _nowProvider();
-    await _schedulePreparationSessionUseCase.startEarlySession(
-      schedule,
-      startedAt: startedAt,
-    );
-
+  Future<void> _onStartRecovery(
+    SchedulePreparationRecoveryRequested event,
+    Emitter<ScheduleState> emit,
+  ) async {
+    if (_finishing ||
+        !state.hasPendingStartRecovery ||
+        state.isRecoveringStart ||
+        state.schedule == null ||
+        _activePreparationRunStartedAt == null) {
+      return;
+    }
+    final valid = _captureBackgroundValidity();
+    final id = state.schedule!.id;
+    final startedAt = _activePreparationRunStartedAt!;
+    bool current() =>
+        valid() &&
+        !emit.isDone &&
+        !_finishing &&
+        state.schedule?.id == id &&
+        _activePreparationRunStartedAt == startedAt;
     if (!current()) return;
-    _snapshotInvalidated = false;
-    _activePreparationRunStartedAt = startedAt;
-    _activePreparationActionEvents = const [];
-    emit(ScheduleState.started(schedule, isEarlyStarted: true));
-    _lastSnapshotSavedAt = startedAt;
-    _startPreparationTimer();
+    emit(state.copyWith(isRecoveringStart: true));
+    try {
+      final result = await _schedulePreparationSessionUseCase.startEarlySession(
+        state.schedule!,
+        startedAt: startedAt,
+        isCurrent: current,
+      );
+      if (current()) {
+        emit(
+          state.copyWith(
+            hasPendingStartRecovery: result.hasPendingRecovery,
+            isRecoveringStart: false,
+          ),
+        );
+      }
+    } catch (_) {
+      if (current()) emit(state.copyWith(isRecoveringStart: false));
+    }
   }
 
   Future<void> _onTick(ScheduleTick event, Emitter<ScheduleState> emit) =>
@@ -550,7 +664,11 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     SchedulePreparationTimeRefreshRequested event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (_notificationPromptOwner != null || state.schedule == null) return;
+    if (_finishing ||
+        _notificationPromptOwner != null ||
+        state.schedule == null) {
+      return;
+    }
     if (event.origin != PreparationRefreshOrigin.periodic) _stepRevision++;
     if (state.schedule!.preparation.isAllStepsDone) return;
     final startedAt = _activePreparationRunStartedAt;
@@ -576,14 +694,21 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       event.origin,
       observedAt,
     );
-    await _saveTimedPreparationSnapshot(refreshedSchedule);
+    final saved = await _saveTimedPreparationSnapshot(refreshedSchedule);
+    if (!saved && !emit.isDone && state.schedule?.id == refreshedSchedule.id) {
+      emit(state.copyWith(hasPendingStartRecovery: true));
+    }
   }
 
   Future<void> _onStepSkipped(
     ScheduleStepSkipped event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (_notificationPromptOwner != null || state.schedule == null) return;
+    if (_finishing ||
+        _notificationPromptOwner != null ||
+        state.schedule == null) {
+      return;
+    }
     if (state.schedule!.preparation.isAllStepsDone) return;
     _stepObservation = null;
     _stepRevision++;
@@ -615,7 +740,10 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         );
     emit(state.copyWith(schedule: newSchedule));
     _stepObservation = (_monotonicNow, now, _lifecycle);
-    await _saveTimedPreparationSnapshot(newSchedule, force: true);
+    final saved = await _saveTimedPreparationSnapshot(newSchedule, force: true);
+    if (!saved && !emit.isDone && state.schedule?.id == newSchedule.id) {
+      emit(state.copyWith(hasPendingStartRecovery: true));
+    }
   }
 
   Future<void> _onFinished(
@@ -625,6 +753,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final current = _captureBackgroundValidity();
     if (!current() || state.schedule == null) return;
     final scheduleId = state.schedule!.id;
+    _finishing = true;
+    _stopPreparationTimer();
     _stepObservation = null;
     _stepRevision++;
     try {
@@ -651,6 +781,12 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       if (restoreNearest) add(const ScheduleSubscriptionRequested());
     } catch (error) {
       AppLogger.debug('error finishing schedule: $error');
+      if (current()) {
+        emit(state.copyWith(isRecoveringStart: false));
+        _startPreparationTimer();
+      }
+    } finally {
+      _finishing = false;
     }
   }
 
@@ -821,23 +957,30 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     return _schedulePreparationSessionUseCase.getEarlyStartSession(scheduleId);
   }
 
-  Future<void> _saveTimedPreparationSnapshot(
+  Future<bool> _saveTimedPreparationSnapshot(
     ScheduleWithPreparationEntity schedule, {
     bool force = false,
   }) async {
     final now = _nowProvider();
     if (!force &&
+        !state.hasPendingStartRecovery &&
         _lastSnapshotSavedAt != null &&
         now.difference(_lastSnapshotSavedAt!) < const Duration(seconds: 5)) {
-      return;
+      return true;
     }
-    await _schedulePreparationSessionUseCase.saveTimedPreparationSnapshot(
-      schedule,
-      savedAt: now,
-      startedAt: _activePreparationRunStartedAt,
-      actionEvents: _activePreparationActionEvents,
-    );
-    _lastSnapshotSavedAt = now;
+    try {
+      await _schedulePreparationSessionUseCase.saveTimedPreparationSnapshot(
+        schedule,
+        savedAt: now,
+        startedAt: _activePreparationRunStartedAt,
+        actionEvents: _activePreparationActionEvents,
+        persist: !state.hasPendingStartRecovery,
+      );
+      _lastSnapshotSavedAt = now;
+      return !state.hasPendingStartRecovery;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _clearPersistedState(String scheduleId) async {

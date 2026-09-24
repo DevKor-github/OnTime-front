@@ -375,10 +375,11 @@
         "Remote CI and merge pending"
       ],
       "sequence": 11,
-      "readback_verified": true,
-      "body_sha256": "290e625b9510c275e775bd8301b804ce2a57cae09716a6c7d469ec5b6dc0622f",
+      "readback_verified": false,
+      "body_sha256": "0abd28107d757b22229532d9a9d6659b549252f8ec26b70da2ee4586101ae92f",
       "progress_file": "plans/audit-2026-09-23/d03-journal-progress.json",
-      "validation_file": "plans/audit-2026-09-23/d03-final-validation.json"
+      "validation_file": "plans/audit-2026-09-23/d03-final-validation.json",
+      "integration_validation_file": "plans/audit-2026-09-23/d03-main-integration-validation.json"
     },
     {
       "audit_id": "A06",
@@ -675,16 +676,18 @@
         "완료 이력도 개별 삭제 가능하게 한다.",
         "`schedule_detail.dart:108-123`은 notEnded만 삭제 허용. `CONTEXT.md:411-413`과 상충. 완료/비정상 이력의 상세를 삭제해도 점수 집계 정책을 보존하고, 기존 삭제 숨김 테스트를 수정."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_u01",
+      "issue_number": 611,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/611",
       "decisions_file": "plans/audit-2026-09-23/issues/U01.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 24
+      "sequence": 24,
+      "readback_verified": true,
+      "issue_body_sha256": "5788a580428d73ebb9c21ee8d70c29299b824ba180e952f0aaf5b49b404eee7b"
     },
     {
       "audit_id": "U03",
@@ -1536,8 +1539,8 @@
       "sequence": 64
     }
   ],
-  "current_upstream_main": "2b02fb770324de291488f3c74fe503dc063e2459",
-  "upstream_integration_status": "flutter_and_android_ci_passed",
+  "current_upstream_main": "c7184b2a",
+  "upstream_integration_status": "latest_figma_merge_ci_pending",
   "upstream_integration_validation": {
     "full_tests": 678,
     "analyze": "no issues",

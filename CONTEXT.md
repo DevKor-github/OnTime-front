@@ -430,7 +430,7 @@ _Avoid_: Loaded range, stream range, cached range
 - A Punctuality Score Reset does not delete Schedules or Schedule Outcomes; Local Data Reset removes the complete score history.
 - An OnTime Backup preserves the Local Punctuality Score aggregation basis and its latest reset boundary.
 - **Schedule History** has no age-based or storage-based automatic expiration.
-- Deleting a Schedule removes its name, Place, note, Preparation, Schedule Outcome detail, delivery registrations, and appearance in current backup data.
+- Deleting a Schedule removes its details and its exclusively owned content; content still owned or referenced by another Schedule, Recurring Schedule, default Preparation, or Preparation template is retained for that independent purpose. The deleted Schedule is absent from later OnTime Backups. Only minimal content-free delivery ownership may remain while cancellation is unresolved, and it is removed after cancellation is confirmed.
 - After a completed Schedule is deleted, only its non-identifying On Time or Late aggregate contribution may remain for Local Punctuality Score continuity.
 - Restoring an OnTime Backup may reintroduce a Schedule deleted after that backup's Backup Cutoff, and Restore Preview warns about that replacement effect.
 - A **Schedule** has one effective **Preparation** for calculating preparation timing.

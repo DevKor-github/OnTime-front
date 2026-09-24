@@ -1,0 +1,6 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart
+00:00 +0: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: (setUpAll)
+00:00 +0: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: Korean settings match the phone layout
+00:00 +1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: recovery confirms before deleting and prevents duplicate resets
+00:00 +2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: (tearDownAll)
+00:00 +2: All tests passed!

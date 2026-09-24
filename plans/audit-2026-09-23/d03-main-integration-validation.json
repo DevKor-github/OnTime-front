@@ -1,0 +1,19 @@
+{
+  "merge_commit": "659a5fc485efe58da76145e6ead2655f8664f766",
+  "fix_commit": "074d5fd642a2890dc48933dafcbd038534f759a4",
+  "upstream_main": "c7184b2ae477e6a24a47fd0b9da79d3ed52b8cf4",
+  "targeted_tests": 36,
+  "capture_tests": 2,
+  "scope": "my page, recurring form, refreshed screens, startup recovery; local tree also contains uncommitted A06 dependencies, remote CI must verify committed source separately",
+  "initial_failure": "incorrect retry named argument introduced by merge; corrected to operation then36pass",
+  "visual_review": "root viewed actual widget captures: mypage, recovery, recovery-busy; no clipped content in these captured viewports",
+  "artifacts": {
+    "plans/audit-2026-09-23/artifacts/d03/integrated/recovery.png": "16e66a342fd6a330241b2cd0e191bda2c11082293fbea0a5b8e649fda1d31294",
+    "plans/audit-2026-09-23/artifacts/d03/integrated/d03-merge-ui-capture-v2.log": "af5babf3ccb0d3d28014589f1a1573bd6d4babfdbb3d1fe5a7a13eddb97709f0",
+    "plans/audit-2026-09-23/artifacts/d03/integrated/d03-merge-targeted.log": "c5311115364928fd5e275c709775f218183424cac4e097cf094572e34302d274",
+    "plans/audit-2026-09-23/artifacts/d03/integrated/d03-merge-targeted-v2.log": "5a4855e44988d76ca7cc60f2bce2adf5ea533e9a7d2d27315b129997ffc9fb14",
+    "plans/audit-2026-09-23/artifacts/d03/integrated/mypage-entry.png": "74229da8a4c532f5da307d98b40776041970d13ad13201bb9791b8d0c3c9a5f5",
+    "plans/audit-2026-09-23/artifacts/d03/integrated/recovery-confirm.png": "6dc0c6ea3fab24b5857f45353d10976590fcf9114d2bf82c10d22ef3a6cda073",
+    "plans/audit-2026-09-23/artifacts/d03/integrated/recovery-busy.png": "cb4615d5f87fa6bdd14a61d83b05bd9aab822c1214c53d5aec0f7a2864c8319d"
+  }
+}

@@ -140,3 +140,5 @@ O01#621 실제3문답·파일inventory/모바일실행·15개검증 기준 게�
 O02#622 실제3문답·데이터흐름11·검증22개 기준 게시/readback완료,36/64(미생성28). 공개URL/스토어 현재상태는 미조회 unknown이며 외부정책 변경 없음. 새 D06 전담 /root/grill_d06 문답 착수. A08 중간 focused52/migration5 통과, 새초안 stale saveReceipt 경계와 watch rollback 검증 보완 중. Q4 내부 recurring create의 조용한 중복성공을 typed conflict로 교체하고 미사용 save 우회 경로 제거 채택; 제품 중복성공은 aggregate durable receipt 경계로 한정. 최종 sourcefreeze/전체검증 전 제품 WIP 커밋 금지.
 
 D06#623 전담실제4문답·27개검증·10개AC 게시/readback완료,37/64(미생성27). 첫미백업commit/cutoff중편집/metadata-onlyretry/legacyunknown/restore시점/7일숨김·시계한계 확정. ADR0035보충안은이슈에준비,공유ADR아직미적용. D07 새전담 /root/grill_d07 착수. A08 추가root검토3건(create default+baseline혼합snapshot, 모달oldowner응답, place/template/default의recurring root receipt무효화)을담당이실제경계로확인해수정중. focused52/migration5외최종회귀·UI·full아직미완료. A09 구현preflight를da7e6e34에보존, A08freeze후이어갈예정.
+
+누락되어있던기존14개 issue_body_sha256을GitHub read-only재조회해현재local본문과모두exact일치확인후state에기록했다. 원격본문수정없음; legacy-issue-readback-20260924.json 보존. A08 추가집중45/UI+연관통합26 통과보고및로그확인. root는 /tmp/a08-ui KOEN200% rollback/deliverypending4PNG직접확인(새receipt본문/버튼접근가능,ENunderlay단계라벨/필드말줄임은U08전체레이아웃범위). 최종analyze/full/sourcefreeze는아직미완료,마지막원격검증제품C01과혼동금지.

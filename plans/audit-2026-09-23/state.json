@@ -428,7 +428,7 @@
         "`lib/domain/use-cases/schedule_preparation_session_use_case.dart:84-87`",
         "실패 시 재시도 가능, 성공 중복 호출은 멱등. 첫 write 실패→두 번째 성공과 동시 호출을 실제 repository 경계에서 검사."
       ],
-      "status": "code_verified_ci_device_pending",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a07",
       "issue_number": 599,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/599",
@@ -439,16 +439,16 @@
         "Actual Drift pre-fix three failure cases confirmed; focused56 passed",
         "Full944 tests/analyze clean; coverage88.67% (13289/14987); Python11/manifest/generated/local-only pass",
         "29 source/test/QA file freeze and committed blobs independently hash-verified",
-        "KO/EN 200% error/partial screenshots; list scroll/skip/next-step hit test pass; synthetic receipt screenshots distinct from real SQLite button regression"
+        "KO/EN 200% error/partial screenshots; list scroll/skip/next-step hit test pass; synthetic receipt screenshots distinct from real SQLite button regression",
+        "Remote28baf6c7 Flutter35947757749:944/analyze/88.70%(13294/14987); Android35947757745 success, artifact10786864301 digest read back"
       ],
       "blockers": [
-        "Remote CI for this implementation pending",
         "Physical Android/iOS lifecycle and delivery acceptance pending"
       ],
       "sequence": 13,
       "readback_verified": true,
       "body_sha256": "6d58178bbc4ffcfe52875c46537bb8eb3250cd4f9a1f13356bb7a44475065b20",
-      "issue_body_sha256": "3a5af2d11207eb219ce324b55367fcf5270204bac6c59df67f2fdbe7c1d7d7c7"
+      "issue_body_sha256": "fd59799ff5a323bedb9a41cb39efa3543aff5fac8f0540384105ad09b467b3ef"
     },
     {
       "audit_id": "C01",
@@ -858,16 +858,18 @@
         "Android deploy는 analyze/test를 다시 하지만 coverage gate는 없다. main 보호도 없어 검사 수준이 경로마다 다르다.",
         "동일 quality workflow 재사용, 같은 SHA의 coverage/native smoke 포함. 중복 테스트를 무작정 늘리지 말고 artifact/provenance를 연결."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_r04",
+      "issue_number": 618,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/618",
       "decisions_file": "plans/audit-2026-09-23/issues/R04.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 31
+      "sequence": 31,
+      "readback_verified": true,
+      "issue_body_sha256": "5341cfaee1a6c1027ae288c64e93fea0fedc937d725987445ee4de4b40186ce9"
     },
     {
       "audit_id": "R01",

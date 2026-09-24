@@ -113,3 +113,12 @@ A07 source d73c7863a01343004ccadcd72064b563c464dd0d: 동결29파일과commitblob
 T01#615,T02#616 게시하여30/64(34생성전). T02 P03의 schedule-start OS예약과A06 activeperiodic 전달범위를명확히분리하는후속문구검토중. C01#600 /root/implement_c01이workflow/typed결과/UI분리및previewclaim실제Drift회귀구현중이며Flutter독점. C01claim이후OS취소대기중일반writer변경은최종DBtransaction revision검사로overwrite방지하되기수행OS부작용을receipt에보존한다. 완전한writer fencing/staging/runtime전이는A09통합미완료로명시한다. /tmp/c01-review-transcript.md에실제문답기록.
 
 PR본문갱신은자동승인검토의거절로사용자승인대기중이며우회하지않는다. 로컬준비본문 /tmp/ontime-audit-pr.md. 해당한정승인대기와무관한승인된구현/상세이슈작업계속.
+
+
+PR 승인 대기 본문은 질문 당시 내용(A06원격CI+28개 이슈)으로 고정했다. `/tmp/ontime-audit-pr.md`와 `/tmp/ontime-audit-pr-approval-20260924.md` SHA256 `107246ced5bc0a88cff9f191ccdefcd5d89373c873fb28e92af46402d45d9d41`. 이후 A07/30개 반영 초안은 별도 `/tmp/ontime-audit-pr-next.md`에 두었다. 현재 승인 응답이 없으며 거절된 PR 본문 쓰기를 재시도/우회하지 않는다.
+
+현재 local HEAD3771615dd2b41089330ba74277d85451d4421c4f(R02문서),remote28baf6c7b91c00d2c6490f597375c1dad39fc2b6(A07증거). A07원격Flutter35947757749는944tests/analyze·88.70%(13294/14987)success,Android35947757745진행중. R02#617게시31/64;R04grill실제3Q답변후문서작성중.
+
+C01 수정전 음성검증: baseline3771615d에서 preview후17분으로편집한durable값이restore후0분으로덮여실패. agent가BackupService/gate두파일을본인WIP해시백업후일시교체/원복했고사전사후해시일치 /tmp/c01-negative-proof.json 보존. root소스검토재개가능. C01Flutter독점/확장focused/캡처진행중.
+
+A07원격최종28baf6c7 양CI성공: Flutter35947757749=944/analyze88.70%; Android35947757745 artifact10786864301 synthetic5d57fde334649f0d3cdc1036f54e00d3e6cca431/APKc060bad43f3d66d5337bfc8f934ba0f3f3070ab369361ab8c39df9ed1cf6db29. a07-ci-validation.json 및 #599본문갱신. 기기/merge미완료.

@@ -394,7 +394,7 @@
         "`lib/presentation/app/bloc/schedule/schedule_bloc.dart:379,387-409,508-514`; `test/presentation/app/bloc/schedule/schedule_bloc_test.dart:1236-1243`",
         "실제 timer/clock을 전진시켜 단계 변경 알림 1회 검증. resume catch-up 시 중복/불필요 알림 정책도 함께 검증."
       ],
-      "status": "code_verified_ci_device_pending",
+      "status": "code_verified_device_pending",
       "agent": "/root/grill_a06",
       "issue_number": 598,
       "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/598",
@@ -404,7 +404,8 @@
       "verification": [
         "Negative actual periodic regression reproduced before fix",
         "Final47 boundary and full929 pass; coverage88.74% (13092/14753); analyze/generated/local-only/Python11/manifest pass",
-        "Seven committed source blobs match validated freeze"
+        "Seven committed source blobs match validated freeze",
+        "Remote e6c1438e Flutter run35945420027: 929 tests/analyze, 88.79% (13099/14753); Android run35945419975 APK/manifest passed, artifact10786697671 identity read back"
       ],
       "blockers": [
         "Remote CI pending",
@@ -413,7 +414,8 @@
       "sequence": 12,
       "readback_verified": true,
       "body_sha256": "b96545e7bb2a44582be5a68be08798a8c782648d5498236d198335004f1160ec",
-      "validation_file": "plans/audit-2026-09-23/a06-final-validation.json"
+      "validation_file": "plans/audit-2026-09-23/a06-final-validation.json",
+      "issue_body_sha256": "9965d0c12791a842a4f5565c717efd87b843e1bb307a10004db452ddfbfc4450"
     },
     {
       "audit_id": "A07",
@@ -732,16 +734,18 @@
         "실패·복원·재시도 테스트를 우선한다.",
         "A04/A07/A08/A09와 D01-D05의 장애 주입, write 실패 후 재시도, concurrent operations, 중간 프로세스 종료, 복원 rollback. crypto tamper 검사는 header/frame 순서·잘림·final marker·다중 chunk도 포함."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_t03",
+      "issue_number": 613,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/613",
       "decisions_file": "plans/audit-2026-09-23/issues/T03.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 26
+      "sequence": 26,
+      "readback_verified": true,
+      "issue_body_sha256": "ef7daa335c6ce7c312c619b043f901b02e30fc012c61ea4469ec2b22cb537d7a"
     },
     {
       "audit_id": "T04",
@@ -753,16 +757,18 @@
         "실제 이벤트 경로를 테스트하고 잘못된 동작을 고정한 기대값을 수정한다.",
         "timer tick 직접 주입 대신 실제 scheduler; 상태만 검사하는 AuthBloc 테스트 보완; 완료 이력 삭제 숨김 기대 수정. mock 안에 생산 알고리즘을 복제하지 않음."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_t04",
+      "issue_number": 614,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/614",
       "decisions_file": "plans/audit-2026-09-23/issues/T04.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 27
+      "sequence": 27,
+      "readback_verified": true,
+      "issue_body_sha256": "c7a41147aa612595c4bf049d47ac63f1a525b7ecadfde52ce7de3796a32aad84"
     },
     {
       "audit_id": "T01",

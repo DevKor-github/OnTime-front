@@ -328,7 +328,7 @@ _Avoid_: Loaded range, stream range, cached range
 - Backup cryptography uses a reviewed library implementation and never a custom cipher or password-key-derivation construction.
 - A **Backup Restore** validates the complete OnTime Backup before changing active local data.
 - A successful **Backup Restore** replaces rather than merges the current Local Profile data.
-- A failed **Backup Restore** leaves the current Local Profile data unchanged.
+- A **Backup Restore** that fails before durable replacement preserves the current Local Profile data. Failure of cleanup after a committed replacement keeps the restored data active and exposes pending recovery; it does not claim rollback.
 - An **OnTime Backup** contains all **Durable OnTime Data**, including the Local Profile, onboarding state, Schedules, Places, Preparations, retained outcomes, and app preferences.
 - An **OnTime Backup** excludes an active Preparation Run, Early Start Session, device identifier, scheduled-notification registry, operating-system permission, cache, and log.
 - A successful **Backup Restore** recalculates Schedule Notifications from restored future Schedules instead of restoring device-specific registrations.

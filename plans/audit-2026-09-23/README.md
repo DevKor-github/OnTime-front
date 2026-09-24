@@ -27,7 +27,7 @@
 | A14 | [#593](https://github.com/DevKor-github/OnTime-front/issues/593) | provider 관측 구현282db21f, 원격772 tests/87.44%·APK 통과, A15 실제 ownership 후속 로컬795 통과·기기 대기 |
 | A15 | [#594](https://github.com/DevKor-github/OnTime-front/issues/594) | 요청별 후속 재조정/교체 직렬화 구현, 최종 원격795 tests/analyze·87.66%·APK 통과, 기기 대기 |
 | D03 | [#595](https://github.com/DevKor-github/OnTime-front/issues/595) | 독립 journal·복구/host kill11, main통합 원격882 tests/88.50%·APK 통과,기기 대기 |
-| A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | d06474d4 실제 타이머 전환 구현,47경계/929전체·88.74% 통과,CI·기기 대기 |
+| A06 | [#598](https://github.com/DevKor-github/OnTime-front/issues/598) | d06474d4 실제 타이머 전환 구현,47경계 및 원격929전체·88.79%·APK 통과,기기 대기 |
 | A07 | [#599](https://github.com/DevKor-github/OnTime-front/issues/599) | 실제3문답·추가 정정 포함, DB 원자적 시작·run 시각·실패 재시도 기준 확정 |
 | C01 | [#600](https://github.com/DevKor-github/OnTime-front/issues/600) | 실제3문답·staging/gate 보충 포함, 구체 workflow·부분 결과·통합 의존성 확정 |
 | A08 | [#601](https://github.com/DevKor-github/OnTime-front/issues/601) | 실제4문답·원자 저장/조회·충돌/멱등/소유권 기준 확정 |
@@ -47,7 +47,11 @@
 
 | U03 | [#612](https://github.com/DevKor-github/OnTime-front/issues/612) | 실제3문답·최신 토글의도/저장-OS반영 구분/화면이탈·세대 경계,28개 검증 시나리오 확정 |
 
-현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **26/64개**를 게시하고 원격 본문 동일성을 확인했으며 **38개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05와 A10까지 실제 문답과 백업·복구·시간대 검증 설계가 확정됐으며 D03은 독립 리뷰 보완 후 최종872 tests/87.99% 및 host kill11 검증을 통과했고 CI·기기 확인을 진행한다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
+| T03 | [#613](https://github.com/DevKor-github/OnTime-front/issues/613) | 실제3문답·실패경계22/암호문12행렬·기존증거 재사용/실제저장소·새프로세스 검증 계약 |
+
+| T04 | [#614](https://github.com/DevKor-github/OnTime-front/issues/614) | 실제3문답·실제 진입점/독립 oracle·Auth 복구/삭제/세션 연결30개 검증 계약 |
+
+현재 Draft PR은 [#585](https://github.com/DevKor-github/OnTime-front/pull/585)다. 상세 이슈 **28/64개**를 게시하고 원격 본문 동일성을 확인했으며 **36개는 생성 전**이다. A12 최종 원격707 tests·APK, A13 후속 수정 최종 원격740 tests·coverage87.20%·APK가 통과했다. A14는282db21f로 전달했다. A15는ecd04293로 커밋했고 최종 로컬795 tests/analyze 및 실제 ownership/lifecycle/mutation 회귀를 통과했다. 최종 원격795 tests/analyze·87.66% 및 APK를 확인했고 D03 구현을 시작했다. D05와 A10까지 실제 문답과 백업·복구·시간대 검증 설계가 확정됐으며 D03은 독립 리뷰 보완 및 host kill11 후 최신 main 통합 원격882 tests/88.50%·APK를 통과했고 기기 검증이 남았다. A06은d06474d4로 구현해 최종929 tests/88.74%·신규47경계를 통과했고 원격929 tests/88.79%·APK도 통과했다. A07 실제 DB 시작 결함3개를 재현해 다음 구현 중이다. U08 홈 overflow 선행 수정은 포함됐지만 전체 매트릭스와 기기 검증은 남아 있다. 자동 검증·이슈 개설·병합·실제 제품 완료를 구별하며 미실행 수용 조건이 있는 이슈는 열어 둔다.
 
 ## 실행 순서
 

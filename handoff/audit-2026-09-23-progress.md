@@ -12,7 +12,7 @@
 
 - DevKor-github/OnTime-front, fix/audit-20260923-stabilization, Draft PR #585 (attach 완료).
 - 감사 baseline44067d7a. main2b02fb77(PR590 recurring)을712b3708에서 통합했다. schema2/v1 migration, backupformat2/v1 호환, recurring ownership/frozen/exclusions, nearest60을 유지한다.
-- 상세 이슈 **21/64개** 게시·exact read-back 완료, **43개 생성 전**.
+- 상세 이슈 **28/64개** 게시·exact read-back 완료, **36개 생성 전**. 최신 현황은 아래 2026-09-24 갱신 절 참조.
 - A01#583 A02#584 A03#586 A04#587 A05#588 A11#589 A12#591 A13#592 A14#593 A15#594 D03#595 U08#597 A06#598 A07#599 C01#600 A08#601 A09#602 D01#603 D02#604 D04#605 D05#606.
 - A01–A05/A11/A12/A13 자동검증 통과, 기기/후속 통합 조건은 남음. U08 홈 overflow 선행 수정만 포함. A14 구현/CI 후 실제 registry ownership 보존 문제를 A15에서 후속 수정 중. A15는37파일 해시·795 tests/analyze 검증 뒤 ecd04293363fa79bd9cd1b140169619dfc083b96로 커밋했다.
 - D05까지 이슈별 설계가 확정됐으나 설계 게시와 구현 완료는 다르다.
@@ -44,7 +44,7 @@ D04#605: 현재v1→v2가 이미 있다는 사실로 baseline 정정. DDL/versio
 ## 환경과 주의
 
 - Flutter `/Users/ejunpark/Library/flutter/bin/flutter`, Dart `/Users/ejunpark/Library/flutter/bin/cache/dart-sdk/bin/dart`, gh `/Users/ejunpark/.local/bin/gh`.
-- shell은 login:false, sandbox_permissions를 넣지 않는다. Flutter 명령들은 ephemeral plugin 준비 경합을 피하도록 직렬 실행한다.
+- shell은 login:false. 네트워크/Git index·ref/Flutter SDK cache에 필요한 경우 승인된 require_escalated를 사용한다. Flutter 명령들은 ephemeral plugin 준비 경합을 피하도록 직렬 실행한다.
 - generated Dart `*.g.dart`/config/mocks/freezed는 ignored local outputs이며 커밋하지 않는다. 기존 tracked l10n 출력은 변경 ARB와 함께 관리한다. root npm test는 의도적 실패 placeholder이므로 사용하지 않는다.
 - 디스크 최근6.6GiB. 사용자 파일/다른 worktree를 정리하지 않는다. Android 연결기기 없고 물리iOS는 offline이었다.
 - 부팅된 iPhone17/iOS26.5 simulator OnTime Recurring QA 20260923 (C8BA159D-A97A-458B-A5FC-B04A8B6F2848)의 upstream QA 앱·데이터는 보존한다. 발견만으로 실제 전달·provider·양방향복원 검증을 통과 처리하지 않는다.
@@ -93,3 +93,15 @@ main c7184b2a Figma PR607 충돌을659a5fc4에서해결,복구operation인자오
 ## D03 원격 검증 완료 및 A06 전달
 
 D03최종main통합074d5fd6 원격Flutter882/analyze/88.50%,AndroidAPK/manifest통과 artifact10786008849(identity d03-ci-validation.json). A06d06474d4 실제periodic수정commit,47boundary/929full/88.74%,7blob검증완료(a06-final-validation.json),#598본문원격대조완료. U03#612 실제3문답+28case게시26/64,38개생성전. T03전담grill실제3문답확정문서작성중. A07전담구현시작,Flutter명령소유권A07. root는A06docs/push/CI후상위우선구현계속.
+
+## 2026-09-24 최신 상태 — A06 CI 완료 / A07 구현 중
+
+- 원격 HEAD `e6c1438ebcd641386081bb5aa5569e1b7da7ee15`; Draft PR #585 OPEN/MERGEABLE read-back. main `c7184b2ae477e6a24a47fd0b9da79d3ed52b8cf4`의 Figma #607을 통합했다.
+- 추가 상세 이슈: A10#608, U02#609, C08#610, U01#611, U03#612, T03#613, T04#614. 실제 전담 grill 문답 전체 및 원격 본문 동일성 확인. 총28/64;36개 생성 전.
+- D03 `5f3adf11` 구현, main 통합 후 `074d5fd6` 원격882 tests/analyze·88.50% 및 Android release APK/manifest 성공. 독립 journal, JSON/UTF8 손상 격리, unknown ownership, reset 단계 read-back, host SIGKILL11지점 검증. 기기 조건 미완료. d03-final/main-integration/ci-validation.json 참조.
+- A06 `d06474d4` 구현: 실제 periodic→Refresh→NotificationService→channel,47경계/929전체, local88.74%. HEAD e6c1438e 원격 run35945420027은929 tests/analyze·88.79%(13099/14753); Android35945419975 success, artifact10786697671, synthetic0896d865, APKd0f64d4e914bbeb6dcaf7f37e9c62fdaa8f9b35b9b5fc0df673f8fc561c51007. a06-ci-validation.json 참조. #598 OPEN, 기기 pending.
+- `/root/implement_a07`가 제품/테스트와 Flutter 실행을 독점하며 진행한다. 실제 DB 원자성/실패 재시도/중복 revision/완료 시작 거부 회귀, commit 전 화면 유지·commit 후 pending 배너, run 시각/유효 snapshot 복구를 구현 중이다. 미커밋 A07을 A06 검증 결과로 간주하지 않는다.
+- A07 root의 중간 'DB T0를 모든 새 run에 강제' 제안은 기존 Q2 보충/Q3에 맞지 않아 철회했다. DB 최초 T0는 invariant; 유효한 같은 run T1은 유지; 재확인 후 명시 새 run T2는 독립. owner 교체 자체는 새 run 의도가 아니다. 실제 리뷰/철회도 최종 A07 이슈에 보존할 것.
+- A07 root 리뷰 추가: 같은 run의 upcoming stream refresh가 새 ScheduleState.started를 만들 때 pending 배너 상태를 잃지 않아야 한다. 에이전트가 회귀 확인 중.
+- `/root/grill_t01` 신규 전담은 고정 e6c1438e 코드로 T01의 실제 문답을 시작했다. docs/T01만 소유하며 Flutter 실행 금지. T04는 문서 완료/게시, T03/T04와 CONTEXT 보완은 다음 docs 커밋 대상.
+- 다음 구현 C01→A08→A09→D01→D02→D04→D05→A10→U02→C08→U01→U03→T03→T04→T01→T02… 우선순위/의존성 계획 유지. 전부 완료되지 않았으며 active goal 계속.

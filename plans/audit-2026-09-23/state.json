@@ -989,16 +989,18 @@
         "`backup_service.dart:198-220`; `user_dao.dart:44-58`; `my_data_screen.dart:48-56`; ADR 0035",
         "첫 미백업 변경 시점 또는 미백업 revision의 age를 추적. 매일 변경해도 30일 지난 미백업 변경은 안내. 제품 규칙대로 비차단·닫기 가능."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_d06",
+      "issue_number": 623,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/623",
       "decisions_file": "plans/audit-2026-09-23/issues/D06.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 36
+      "sequence": 36,
+      "readback_verified": true,
+      "issue_body_sha256": "a8aeeabb4e52bdde142ad992d86182046f9a90d285c47710c4e7355332040a3c"
     },
     {
       "audit_id": "D07",

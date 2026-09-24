@@ -301,16 +301,16 @@
         "Frozen source24 SHA256 matched; focused100/full772, analyzer, native Swift SDK/Kotlin compile, generated/local-only checks passed. a14-validation.json.",
         "Root visually reviewed actual MyPage standalone KO/EN captures; fake receipts/in-memory DB, not physical OS screenshots.",
         "Remote b81259bf: Flutter772/analyze, coverage87.44% (11487/13137), Android APK/manifest passed. a14-ci-validation.json.",
-        "A15 followup local795/analyze and actual registry/data source ownership roundtrip passed; final remote CI separately pending"
+        "A15 followup local795/analyze and actual registry/data source ownership roundtrip passed; final remote CI separately pending",
+        "A15 final818e99c9: remote795/analyze, coverage87.66%(11668/13310), Android APK/manifest passed; a15-ci-validation.json"
       ],
       "blockers": [
-        "Actual Android/iOS delivery and permission/Doze/reboot matrix not executed.",
-        "A15 ownership followup local verification passed; final remote CI pending."
+        "Actual Android/iOS delivery and permission/Doze/reboot matrix not executed."
       ],
       "sequence": 9,
       "issue_body_sha256": "23769c09503d629f813df5b93db7b2b6fce715dd15ea1571ea09fa06b9c1a5d4",
       "readback_verified": true,
-      "body_sha256": "5efdc7fd7cc9debee0f5f7fed3f5146d346eb8ca52f9286b41960f750304b888"
+      "body_sha256": "61cd6d895147c01b682e9871307d355c4b2bf5847627f6f72a00c6909d97d495"
     },
     {
       "audit_id": "A15",
@@ -335,15 +335,17 @@
         "Final frozen source: 795 Flutter tests and analyzer passed; root independently compared 37 before/after/current source hashes",
         "Actual BackupService/Reset + Drift integration preserves replacement ordering and pending reset safety; fake OS and mock secure storage are not device evidence",
         "Actual CRUD/preparation/recurring usecases trigger trailing reconciliation without test-injected extra calls; nearest60 and no self-dirty loop checked",
-        "Actual registry repository/data source and SharedPreferences mock backend retain multiple platform ownerships and cancellation timing enum"
+        "Actual registry repository/data source and SharedPreferences mock backend retain multiple platform ownerships and cancellation timing enum",
+        "A15 final818e99c9: remote795/analyze, coverage87.66%(11668/13310), Android APK/manifest passed; a15-ci-validation.json"
       ],
       "blockers": [
         "Real Android/iOS concurrent edits, restore/reset and delivery verification pending",
-        "Remote CI for final A15 commit pending; D03 durable crash journal and A09 full restore runtime cleanup remain separate"
+        "Remote CI for final A15 commit pending; D03 durable crash journal and A09 full restore runtime cleanup remain separate",
+        "D03 durable crash journal and A09 full restore runtime cleanup remain separate follow-ups"
       ],
       "sequence": 10,
       "readback_verified": true,
-      "body_sha256": "4ce883db47e54c4605b2ede3d4cdccb1a0379e17778407452b7492c4409b2948"
+      "body_sha256": "ea30e4068c598fe9632e8a56e08a5bffc8eb661079e8eb2d74c6ed5acefba569"
     },
     {
       "audit_id": "D03",

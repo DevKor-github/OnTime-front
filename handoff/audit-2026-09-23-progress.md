@@ -50,3 +50,21 @@ D04#605: 현재v1→v2가 이미 있다는 사실로 baseline 정정. DDL/versio
 - 부팅된 iPhone17/iOS26.5 simulator OnTime Recurring QA 20260923 (C8BA159D-A97A-458B-A5FC-B04A8B6F2848)의 upstream QA 앱·데이터는 보존한다. 발견만으로 실제 전달·provider·양방향복원 검증을 통과 처리하지 않는다.
 - `/Users/ejunpark/.codex/worktrees/7b29/OnTime-front`는 다른 작업이다. 수정하지 않는다.
 - helper `/tmp/ontime-ci-audit.py`는 전체40자리 head SHA를 요구하며 해당 head의 Flutter와 Android 결과/작은 artifact identity를 기록한다. short SHA의 빈 결과를 근거로 쓰지 않는다.
+
+## 최신 push 및 진행 중 CI
+
+최신 pushed HEAD는818e99c99f9a3892fb2588bd471d2ea21a00f42c(A15 전달 추적)다. PR585 본문 exact read-back 및 Draft를 확인했다. Flutter run35891562919는 in_progress, Android35891562976은 pending, Widgetbook35891562910은 조건상 skipped다. 다음 실행은 같은 전체SHA의 최종 결과를 기록한다. source 구현 SHA는ecd04293363fa79bd9cd1b140169619dfc083b96다. D03 전담에 구현 권한이 전달됐으므로 source37 freeze 검증을 이후 D03 WIP와 혼동하지 않는다.
+
+## A15 최종 CI / D03 root 인계 / A10 사용량 제한
+
+818e99c99f9a3892fb2588bd471d2ea21a00f42c의 Flutter35891562919 전체795/analyze·coverage87.66%(11668/13310), Android35891562976 APK/manifest 모두 성공. artifact10765597396/synthetic1d3f41c0/APK02285d398344cff0b2ae7ebeadc30456c7622715df488fa862eacc2db29ed1ff. a15-ci-validation.json과 #594/#593/PR585 exact read-back 완료.
+
+A10 전담 `/root/grill_a10` 신규 생성은 성공했지만 실제 질문 전에 usage limit 오류로 종료됐다. A10 이슈/문답을 만들었다고 주장하지 않는다. 같은 agent 재개 가능 시 신규 다른 전담을 쓰지 않고 이어간다. D03도 usage limit으로 종료돼 root가 이미 확정된4문답에 따라 이어받았다. 이는 사용자가 승인하지 않은 작업이거나 목표 전체 blocker라는 뜻이 아니다.
+
+D03 WIP: 신규 alarm_journal_store{,_native,_web}, alarm_ownership_journal, local_reset_protocol 및 기존 owner/cleanup/CancelAll 변경. root는 staged-first-write를 빈 설치로 취급하지 않게 하고, journal 중복 실제ID/불가능한 완료상태 거부, intent write 응답 불명확 시 데이터삭제 금지·gate보호, pending ownership의 기존 timing enum 보존을 추가했다. 실제 임시파일 23개 focused 테스트와 analyze 통과. d03-journal-progress.json에 해당 파일/로그 해시와 한계를 기록했다. 현재 제품 서비스/bootstrap/UI에는 아직 프로토콜 연결 전이며 전체 regression/실제kill/device는 미실행이다. D03 WIP를 A15의795 전체검증 결과와 섞지 않는다.
+
+D03 다음: actual LocalResetActions(검증 가능한 marker/key/prefs/file/launch삭제), LocalDataResetService+bootstrap 공통 프로토콜, D01 최소 pre-DI 복구 shell/KO·EN partial·retry UI 연결. runtime shared owner가 이제 actual FileStore이므로 기존 test fixture가 path_provider 없는 shared singleton에 의존하던 부분을 명시적 격리 주입으로 정비하되 product에서 MemoryStore로 조용히 우회하지 않는다. actual file tests는 반드시 유지. registry decode 실패를 빈 성공으로 바꾸지 말고 orphan/unknown provider 관측과 독립 journal로 안전하게 연결. staged-only first-write가 영구막힘으로 끝나지 않도록 명시적 보존/복구 경로가 필요하다. 무응답 Future는 owner를 유지하고 UI만 제한 대기로 표시해야 한다.
+
+공식 Dart3.12.2 runtime/bin/file_macos.cc는 rename(), file_linux.cc는 renameat() 호출을 확인했다. 같은 디렉터리 temp→rename로 이전 committed 파일을 유지하는 설계이며 directory fsync/갑작스런 전원손실 보장은 주장하지 않는다. Dart 공개 File.rename 문서만으로 원자성을 입증한 것이 아니다. Android backup_rules/data_extraction_rules의 root/file 제외는 존재하고 iOS 기존 excludeFromBackup bridge를 호출하지만 실제 mobile read-back/backup 검증은 남아 있다.
+
+현재 sandbox는 workspace-write/auto-review로 바뀌었다. Flutter SDK 캐시, GitHub 네트워크, git index/ref 변경은 필요한 require_escalated 실행으로 자동검토를 받았다. 거절은 없었고 승인된 읽기/테스트는 완료했다. 기본 권한 Flutter 실행은 SDK telemetry/cache 경로로 실패했으며 제품 테스트 실패가 아니다.

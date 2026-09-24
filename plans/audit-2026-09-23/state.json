@@ -1050,16 +1050,18 @@
         "정확히 1시간·2시간의 결과가 0분으로 표시되는 오류를 수정한다.",
         "`shared/utils/time_format.dart:34-44`: hours와 minutes가 모두 양수일 때만 시간 출력. ±3600, ±7200, 0/59/60/3599/3601 경계 검증."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_u04",
+      "issue_number": 625,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/625",
       "decisions_file": "plans/audit-2026-09-23/issues/U04.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 38
+      "sequence": 38,
+      "readback_verified": true,
+      "issue_body_sha256": "dbb83e0747220adfac42234e4cd7c0f1e6b696456324f43888469e5c09114d41"
     },
     {
       "audit_id": "U05",

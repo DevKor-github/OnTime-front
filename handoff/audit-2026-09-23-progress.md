@@ -144,3 +144,5 @@ D06#623 전담실제4문답·27개검증·10개AC 게시/readback완료,37/64(�
 누락되어있던기존14개 issue_body_sha256을GitHub read-only재조회해현재local본문과모두exact일치확인후state에기록했다. 원격본문수정없음; legacy-issue-readback-20260924.json 보존. A08 추가집중45/UI+연관통합26 통과보고및로그확인. root는 /tmp/a08-ui KOEN200% rollback/deliverypending4PNG직접확인(새receipt본문/버튼접근가능,ENunderlay단계라벨/필드말줄임은U08전체레이아웃범위). 최종analyze/full/sourcefreeze는아직미완료,마지막원격검증제품C01과혼동금지.
 
 D07#624 실제3문답+Drift버전정정·18검증·10AC 게시/readback완료,38/64(미생성26). template restore전용createdAt/updatedAt보존·template-onlyUTCexport·id동률정렬·legacyoffsetless한계·nonzero subsecond사전거부/공유validator·A09/D02/양플랫폼통합검증확정. U04 새전담 /root/grill_u04 착수. A08최종analyzer정리중이고sourcefreeze대기.
+
+U04#625 실제3문답/보충·21검증·8AC 게시/readback완료,39/64(미생성25). 결과기간만기존locale-awareformatter재사용,abs/초버림/기존suffix·outcome·점수유지,realheadline음성회귀및KOEN/200%표본;U05새전담 /root/grill_u05 착수. A08첫freeze47개(e7e9cfb8...)의첫full=1008pass/7fail로구freeze를보존후보완중. DAOmetadataequality5개와startwidgetlatch2개를분리확인; legacyDAO가oldrowconcurrencymetadata덮지않도록제외하고AFTERtrigger후sameTXreadback,watch단일SQLsnapshot으로변경해집중63통과. root가watch기존scheduleTimeASC유실도찾아정렬복구/회귀요청, 새freeze/전체재검증대기. 첫full실패를최종성공으로표시금지.

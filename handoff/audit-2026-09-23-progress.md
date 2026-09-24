@@ -142,3 +142,5 @@ O02#622 실제3문답·데이터흐름11·검증22개 기준 게시/readback완�
 D06#623 전담실제4문답·27개검증·10개AC 게시/readback완료,37/64(미생성27). 첫미백업commit/cutoff중편집/metadata-onlyretry/legacyunknown/restore시점/7일숨김·시계한계 확정. ADR0035보충안은이슈에준비,공유ADR아직미적용. D07 새전담 /root/grill_d07 착수. A08 추가root검토3건(create default+baseline혼합snapshot, 모달oldowner응답, place/template/default의recurring root receipt무효화)을담당이실제경계로확인해수정중. focused52/migration5외최종회귀·UI·full아직미완료. A09 구현preflight를da7e6e34에보존, A08freeze후이어갈예정.
 
 누락되어있던기존14개 issue_body_sha256을GitHub read-only재조회해현재local본문과모두exact일치확인후state에기록했다. 원격본문수정없음; legacy-issue-readback-20260924.json 보존. A08 추가집중45/UI+연관통합26 통과보고및로그확인. root는 /tmp/a08-ui KOEN200% rollback/deliverypending4PNG직접확인(새receipt본문/버튼접근가능,ENunderlay단계라벨/필드말줄임은U08전체레이아웃범위). 최종analyze/full/sourcefreeze는아직미완료,마지막원격검증제품C01과혼동금지.
+
+D07#624 실제3문답+Drift버전정정·18검증·10AC 게시/readback완료,38/64(미생성26). template restore전용createdAt/updatedAt보존·template-onlyUTCexport·id동률정렬·legacyoffsetless한계·nonzero subsecond사전거부/공유validator·A09/D02/양플랫폼통합검증확정. U04 새전담 /root/grill_u04 착수. A08최종analyzer정리중이고sourcefreeze대기.

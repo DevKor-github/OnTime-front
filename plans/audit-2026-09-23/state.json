@@ -1027,16 +1027,18 @@
         "`backup_service.dart:187-193,397-405`; `preparation_template_dao.dart:40-45`",
         "createdAt/updatedAt을 별개로 저장하고 template 포함 round-trip 동등성 검사."
       ],
-      "status": "awaiting_grill",
-      "agent": null,
-      "issue_number": null,
-      "issue_url": null,
+      "status": "issue_created",
+      "agent": "/root/grill_d07",
+      "issue_number": 624,
+      "issue_url": "https://github.com/DevKor-github/OnTime-front/issues/624",
       "decisions_file": "plans/audit-2026-09-23/issues/D07.md",
       "implementation_commit": null,
       "pr_url": null,
       "verification": [],
       "blockers": [],
-      "sequence": 37
+      "sequence": 37,
+      "readback_verified": true,
+      "issue_body_sha256": "7665fd5ae43558d9a0bd8730d554babfec7528eee9e64f39455f6b0d87c53d2c"
     },
     {
       "audit_id": "U04",

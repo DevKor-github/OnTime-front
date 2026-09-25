@@ -1471,14 +1471,15 @@ void main() {
         controller.add(scheduleA);
         await Future<void>.delayed(const Duration(milliseconds: 20));
         controller.add(scheduleB);
+        final startedFuture = bloc.stream.firstWhere(
+          (s) => s.status == ScheduleStatus.started && s.schedule?.id == 'B',
+        );
         await Future<void>.delayed(const Duration(milliseconds: 220));
 
         expect(bloc.state.schedule?.id, 'B');
         expect(bloc.state.status, ScheduleStatus.upcoming);
 
-        final started = await bloc.stream.firstWhere(
-          (s) => s.status == ScheduleStatus.started,
-        );
+        final started = await startedFuture;
         expect(started.schedule?.id, 'B');
         expect(navigationService.pushedRoutes, ['/scheduleStart']);
       },

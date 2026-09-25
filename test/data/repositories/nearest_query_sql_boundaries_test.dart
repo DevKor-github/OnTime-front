@@ -297,6 +297,9 @@ void main() {
           await sub.cancel();
         }
       },
+      timeout: monthly && segments == 32
+          ? const Timeout(Duration(minutes: 2))
+          : null,
     );
   }
 }

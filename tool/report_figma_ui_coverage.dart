@@ -9,6 +9,7 @@ const statuses = {'pending', 'in_progress', 'reviewed', 'excluded'};
 
 void main(List<String> args) {
   final strict = args.contains('--strict');
+  final allowMissingGoldens = args.contains('--allow-missing-goldens');
   final manifest = loadYaml(File(manifestPath).readAsStringSync()) as YamlMap;
   final entries = manifest['screens'] as YamlList;
   final failures = <String>[];
@@ -56,7 +57,9 @@ void main(List<String> args) {
         failures.add('$route Figma image hash changed: $imagePath');
       }
     }
-    if (goldenPath != null && !File(goldenPath).existsSync()) {
+    if (goldenPath != null &&
+        !allowMissingGoldens &&
+        !File(goldenPath).existsSync()) {
       failures.add('$route is missing Flutter golden: $goldenPath');
     }
     if (status == 'reviewed' && (imagePath == null || goldenPath == null)) {
@@ -102,7 +105,9 @@ void main(List<String> args) {
           failures.add('$label Figma image hash changed: $variantImagePath');
         }
       }
-      if (variantGoldenPath != null && !File(variantGoldenPath).existsSync()) {
+      if (variantGoldenPath != null &&
+          !allowMissingGoldens &&
+          !File(variantGoldenPath).existsSync()) {
         failures.add('$label is missing Flutter golden: $variantGoldenPath');
       }
       if (variantStatus == 'reviewed' &&

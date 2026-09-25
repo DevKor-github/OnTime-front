@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="bell" clip-path="url(#clip0_0_392)">
+<path id="bell_2" d="M7.42857 17.4571C8.71429 19.5143 11.2857 19.5143 12.5714 17.4571M8.71429 1H11.2857M1 14.3714L3.57143 11.2857V6.14286C3.57143 1 16.4286 1 16.4286 6.14286V11.2857L19 14.3714H1Z" stroke="#111111" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip0_0_392">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>

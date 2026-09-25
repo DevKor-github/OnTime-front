@@ -45,3 +45,29 @@ String recurrenceEndLabel(BuildContext context, RecurrenceRule rule) =>
     : rule.until != null
     ? '${DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(rule.until!)}${recurrenceText(context, '까지', ' inclusive')}'
     : recurrenceText(context, '종료 없음', 'No end date');
+
+/// A compact recurrence label for the date/time and review cards.
+String recurrencePatternLabel(
+  BuildContext context,
+  RecurrenceRule rule, {
+  bool includeTime = false,
+}) {
+  if (Localizations.localeOf(context).languageCode != 'ko') {
+    return recurrenceLabel(context, rule);
+  }
+  final pattern = switch (rule.frequency) {
+    RecurrenceFrequency.daily =>
+      rule.interval == 1 ? '매일' : '${rule.interval}일마다',
+    RecurrenceFrequency.weekly =>
+      '${rule.interval == 1 ? '매주' : '${rule.interval}주마다'} ${(rule.weekdays.toList()..sort()).map((d) => weekdayLabel(context, d)).join(' · ')}',
+    RecurrenceFrequency.monthly =>
+      '${rule.interval == 1 ? '매월' : '${rule.interval}개월마다'} ${switch (rule.monthly) {
+        MonthlyRecurrence.dayOfMonth => '${rule.monthDay}일',
+        MonthlyRecurrence.lastDay => '마지막 날',
+        MonthlyRecurrence.nthWeekday => '${rule.ordinal == -1 ? '마지막' : '${rule.ordinal}번째'} ${weekdayLabel(context, rule.monthWeekday)}요일',
+      }}',
+  };
+  return includeTime
+      ? '$pattern ${DateFormat.jm('ko').format(rule.start)}'
+      : pattern;
+}

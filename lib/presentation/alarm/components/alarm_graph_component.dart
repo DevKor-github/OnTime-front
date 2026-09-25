@@ -18,22 +18,22 @@ class AlarmGraphComponent extends CustomPainter {
     final double sweepAngle = math.pi * 2;
 
     final rect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height),
-      width: size.width,
-      height: size.height * 2,
+      center: size.center(Offset.zero),
+      width: size.shortestSide - 14,
+      height: size.shortestSide - 14,
     );
 
     // 채워지기 전 색
     final Paint backgroundPaint = Paint()
       ..color = backgroundColor
-      ..strokeWidth = 12
+      ..strokeWidth = 14
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     // 채워진 후 색
     final Paint progressPaint = Paint()
       ..color = progressColor
-      ..strokeWidth = 12
+      ..strokeWidth = 14
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
@@ -47,7 +47,9 @@ class AlarmGraphComponent extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+  bool shouldRepaint(covariant AlarmGraphComponent oldDelegate) {
+    return progress != oldDelegate.progress ||
+        backgroundColor != oldDelegate.backgroundColor ||
+        progressColor != oldDelegate.progressColor;
   }
 }

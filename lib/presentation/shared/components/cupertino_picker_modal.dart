@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 
 extension ModalBottomSheetExtension on BuildContext {
   void showCupertinoTimerPickerModal({
@@ -10,73 +11,18 @@ extension ModalBottomSheetExtension on BuildContext {
     required Function(Duration value) onSaved,
     VoidCallback? onDisposed,
   }) {
-    showModalBottomSheet<void>(
-      isDismissible: true,
-      context: this,
-      builder: (BuildContext context) {
-        final textTheme = Theme.of(context).textTheme;
-        Duration duration = initialValue;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 28.0),
-          child: SizedBox(
-            height: 334,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: textTheme.titleMedium),
-                Expanded(
-                  child: Center(
-                    child: CupertinoTimerPicker(
-                      mode: mode,
-                      initialTimerDuration: initialValue,
-                      itemExtent: 32,
-                      onTimerDurationChanged: (value) => duration = value,
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          //calling order matters
-                          Navigator.pop(context);
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(
-                            Color.fromARGB(255, 220, 227, 255),
-                          ),
-                          foregroundColor: WidgetStatePropertyAll(
-                            Color.fromARGB(255, 92, 121, 251),
-                          ),
-                        ),
-                        child: Text(AppLocalizations.of(this)!.cancel),
-                      ),
-                    ),
-                    SizedBox(width: 20.0),
-                    Expanded(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          onSaved(duration);
-                        },
-                        child: Text(AppLocalizations.of(this)!.ok),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    ).whenComplete(() {
-      onDisposed?.call();
-    });
+    var duration = initialValue;
+    _showPicker(
+      title: title,
+      onSaved: () => onSaved(duration),
+      onDisposed: onDisposed,
+      picker: CupertinoTimerPicker(
+        mode: mode,
+        initialTimerDuration: initialValue,
+        itemExtent: 32,
+        onTimerDurationChanged: (value) => duration = value,
+      ),
+    );
   }
 
   void showCupertinoMinutePickerModal({
@@ -85,93 +31,29 @@ extension ModalBottomSheetExtension on BuildContext {
     required Function(Duration value) onSaved,
     VoidCallback? onDisposed,
   }) {
-    showModalBottomSheet<void>(
-      isDismissible: true,
-      context: this,
-      builder: (BuildContext context) {
-        final textTheme = Theme.of(context).textTheme;
-        int minutes = initialValue.inMinutes;
-        return ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-          child: Container(
-            color: Theme.of(context).colorScheme.surface,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 29.0,
-              vertical: 28.0,
-            ),
-            child: SizedBox(
-              height: 334,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: textTheme.titleMedium),
-                  Expanded(
-                    child: Center(
-                      child: SizedBox(
-                        width: 69.0,
-                        child: CupertinoPicker(
-                          scrollController: FixedExtentScrollController(
-                            initialItem: initialValue.inMinutes,
-                          ),
-                          looping: true,
-                          itemExtent: 32,
-                          onSelectedItemChanged: (int value) {
-                            minutes = value;
-                          },
-                          children: List.generate(
-                            60,
-                            (index) => Text(
-                              (index < 10 ? '0' : '') + index.toString(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            //calling order matters
-                            Navigator.pop(context);
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: WidgetStatePropertyAll(
-                              Color.fromARGB(255, 220, 227, 255),
-                            ),
-                            foregroundColor: WidgetStatePropertyAll(
-                              Color.fromARGB(255, 92, 121, 251),
-                            ),
-                          ),
-                          child: Text(AppLocalizations.of(this)!.cancel),
-                        ),
-                      ),
-                      SizedBox(width: 20.0),
-                      Expanded(
-                        flex: 1,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            onSaved(Duration(minutes: minutes));
-                          },
-                          child: Text(AppLocalizations.of(this)!.ok),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+    var minutes = initialValue.inMinutes;
+    final controller = FixedExtentScrollController(initialItem: minutes);
+    _showPicker(
+      title: title,
+      onSaved: () => onSaved(Duration(minutes: minutes)),
+      onDisposed: () {
+        controller.dispose();
+        onDisposed?.call();
       },
-    ).whenComplete(() {
-      onDisposed?.call();
-    });
+      picker: SizedBox(
+        width: 69,
+        child: CupertinoPicker(
+          scrollController: controller,
+          looping: true,
+          itemExtent: 32,
+          onSelectedItemChanged: (value) => minutes = value,
+          children: List.generate(
+            60,
+            (index) => Text(index.toString().padLeft(2, '0')),
+          ),
+        ),
+      ),
+    );
   }
 
   void showCupertinoDatePickerModal({
@@ -181,74 +63,108 @@ extension ModalBottomSheetExtension on BuildContext {
     required CupertinoDatePickerMode mode,
     VoidCallback? onDisposed,
   }) {
+    var dateTime = initialValue;
+    _showPicker(
+      title: title,
+      onSaved: () => onSaved(dateTime),
+      onDisposed: onDisposed,
+      picker: CupertinoDatePicker(
+        mode: mode,
+        initialDateTime: initialValue,
+        itemExtent: 32,
+        onDateTimeChanged: (value) => dateTime = value,
+      ),
+    );
+  }
+
+  void _showPicker({
+    required String title,
+    required Widget picker,
+    required VoidCallback onSaved,
+    VoidCallback? onDisposed,
+  }) {
     showModalBottomSheet<void>(
-      isDismissible: true,
       context: this,
-      builder: (BuildContext context) {
-        final textTheme = Theme.of(context).textTheme;
-        DateTime dateTime = initialValue;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 28.0),
-          child: SizedBox(
-            height: 334,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: textTheme.titleMedium),
-                Expanded(
-                  child: Center(
-                    child: CupertinoDatePicker(
-                      mode: mode,
-                      initialDateTime: initialValue,
-                      itemExtent: 32,
-                      onDateTimeChanged: (DateTime value) {
-                        dateTime = value;
-                      },
-                    ),
+      isScrollControlled: true,
+      barrierColor: const Color(0x6b000000),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _PickerSheet(
+        title: title,
+        picker: picker,
+        onSaved: () {
+          Navigator.pop(context);
+          onSaved();
+        },
+      ),
+    ).whenComplete(() => onDisposed?.call());
+  }
+}
+
+class _PickerSheet extends StatelessWidget {
+  const _PickerSheet({
+    required this.title,
+    required this.picker,
+    required this.onSaved,
+  });
+  final String title;
+  final Widget picker;
+  final VoidCallback onSaved;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: theme.colorScheme.copyWith(
+          primary: const Color(0xff4f69df),
+          primaryContainer: const Color(0xffdce3ff),
+          onPrimaryContainer: const Color(0xff23346b),
+        ),
+      ),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 24, 16, bottom < 21 ? 21 : bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontSize: 20,
+                  height: 1.4,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(height: 167, child: Center(child: picker)),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  ModalWideButton(
+                    layout: ModalWideButtonLayout.flex,
+                    text: l10n.cancel,
+                    variant: ModalWideButtonVariant.subtle,
+                    onPressed: () => Navigator.pop(context),
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          //calling order matters
-                          Navigator.pop(context);
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll(
-                            Color.fromARGB(255, 220, 227, 255),
-                          ),
-                          foregroundColor: WidgetStatePropertyAll(
-                            Color.fromARGB(255, 92, 121, 251),
-                          ),
-                        ),
-                        child: Text(AppLocalizations.of(this)!.cancel),
-                      ),
-                    ),
-                    SizedBox(width: 20.0),
-                    Expanded(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          onSaved(dateTime);
-                        },
-                        child: Text(AppLocalizations.of(this)!.ok),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  const SizedBox(width: 16),
+                  ModalWideButton(
+                    layout: ModalWideButtonLayout.flex,
+                    text: l10n.localeName.startsWith('ko') ? '입력' : l10n.ok,
+                    variant: ModalWideButtonVariant.primary,
+                    onPressed: onSaved,
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
-    ).whenComplete(() {
-      onDisposed?.call();
-    });
+        ),
+      ),
+    );
   }
 }

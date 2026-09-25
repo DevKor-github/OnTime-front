@@ -60,7 +60,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).first, 'Morning shower');
-    await tester.tap(find.text('10'));
+    await tester.tap(find.text('10 min'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();

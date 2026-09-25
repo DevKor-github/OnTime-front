@@ -30,6 +30,7 @@ class CustomAlertDialog extends StatelessWidget {
     this.contentActionsSpacing,
     this.titleTextAlign = TextAlign.start,
     this.contentTextAlign = TextAlign.start,
+    this.constraints,
   });
 
   final Widget? title;
@@ -78,6 +79,7 @@ class CustomAlertDialog extends StatelessWidget {
   final double? contentActionsSpacing;
   final TextAlign titleTextAlign;
   final TextAlign contentTextAlign;
+  final BoxConstraints? constraints;
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +209,7 @@ class CustomAlertDialog extends StatelessWidget {
       clipBehavior: clipBehavior,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       alignment: alignment,
+      constraints: constraints,
       child: dialogChild,
     );
   }

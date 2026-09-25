@@ -23,10 +23,14 @@ class TwoActionDialogConfig {
     required this.primaryAction,
     this.secondaryAction,
     this.barrierDismissible = true,
+    this.useSafeArea = true,
     this.maxWidth = TwoActionDialogTokens.maxDialogWidth,
     this.innerPadding = TwoActionDialogTokens.innerPadding,
     this.titleContentSpacing = TwoActionDialogTokens.titleContentSpacing,
     this.contentActionsSpacing = TwoActionDialogTokens.contentActionsSpacing,
+    this.barrierColor,
+    this.alignment = Alignment.center,
+    this.insetPadding,
   });
 
   final String title;
@@ -34,10 +38,14 @@ class TwoActionDialogConfig {
   final DialogActionConfig primaryAction;
   final DialogActionConfig? secondaryAction;
   final bool barrierDismissible;
+  final bool useSafeArea;
   final double maxWidth;
   final EdgeInsets innerPadding;
   final double titleContentSpacing;
   final double contentActionsSpacing;
+  final Color? barrierColor;
+  final AlignmentGeometry alignment;
+  final EdgeInsets? insetPadding;
 }
 
 abstract final class TwoActionDialogTokens {
@@ -45,7 +53,7 @@ abstract final class TwoActionDialogTokens {
   static const EdgeInsets innerPadding = EdgeInsets.fromLTRB(16, 18, 16, 18);
   static const double titleContentSpacing = 8;
   static const double contentActionsSpacing = 16;
-  static const double actionButtonHeight = 43;
+  static const double actionButtonHeight = 44;
   static const double actionSpacing = 8;
 
   const TwoActionDialogTokens._();
@@ -59,6 +67,8 @@ Future<DialogActionResult> showTwoActionDialog(
   final result = await showDialog<DialogActionResult>(
     context: context,
     barrierDismissible: config.barrierDismissible,
+    useSafeArea: config.useSafeArea,
+    barrierColor: config.barrierColor,
     builder: (dialogContext) {
       return TwoActionDialog(
         config: config,
@@ -98,15 +108,23 @@ class TwoActionDialog extends StatelessWidget {
 
     final screenWidth = MediaQuery.sizeOf(context).width;
     final dialogWidth = (screenWidth - 32).clamp(0.0, config.maxWidth);
+    final actionsWidth = (dialogWidth - config.innerPadding.horizontal).clamp(
+      0.0,
+      dialogWidth,
+    );
 
-    final titleText = Text(
-      config.title,
-      style: textTheme.titleMedium?.copyWith(
-        fontFamily: 'Pretendard',
-        fontWeight: FontWeight.w600,
-        fontSize: 18,
-        height: 1.4,
-        color: colorScheme.onSurface,
+    final titleText = SizedBox(
+      width: actionsWidth,
+      child: Text(
+        config.title,
+        style: textTheme.titleMedium?.copyWith(
+          fontFamily: 'Pretendard',
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+          height: 1.4,
+          color: colorScheme.onSurface,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
 
@@ -114,14 +132,19 @@ class TwoActionDialog extends StatelessWidget {
         customContent ??
         (config.description == null
             ? null
-            : Text(
-                config.description!,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontFamily: 'Pretendard',
-                  fontWeight: FontWeight.w400,
-                  fontSize: 14,
-                  height: 1.4,
-                  color: colorScheme.outline,
+            : SizedBox(
+                width: actionsWidth,
+                child: Text(
+                  config.description!,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontFamily: 'Pretendard',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 13,
+                    height: 1.4,
+                    letterSpacing: -0.4,
+                    color: colorScheme.outline,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ));
 
@@ -130,7 +153,7 @@ class TwoActionDialog extends StatelessWidget {
       content: bodyContent,
       actions: [
         SizedBox(
-          width: dialogWidth,
+          width: actionsWidth,
           child: Row(
             children: [
               if (config.secondaryAction != null) ...[
@@ -158,11 +181,13 @@ class TwoActionDialog extends StatelessWidget {
       ],
       actionsAlignment: MainAxisAlignment.center,
       innerPadding: config.innerPadding,
-      alignment: Alignment.center,
+      alignment: config.alignment,
+      insetPadding: config.insetPadding,
       titleTextAlign: TextAlign.center,
       contentTextAlign: TextAlign.center,
       titleContentSpacing: config.titleContentSpacing,
       contentActionsSpacing: config.contentActionsSpacing,
+      constraints: BoxConstraints.tightFor(width: dialogWidth),
     );
   }
 }

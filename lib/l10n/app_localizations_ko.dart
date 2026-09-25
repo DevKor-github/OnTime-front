@@ -132,6 +132,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get error => '오류';
 
   @override
+  String get retry => '다시 시도';
+
+  @override
+  String get preparationInProgress => '준비 진행 중';
+
+  @override
   String get noSchedules => '약속이 없어요';
 
   @override
@@ -217,6 +223,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get finishPreparation => '준비 종료';
 
   @override
+  String get finishPreparationConfirmTitle => '준비가 모두 끝나셨나요?';
+
+  @override
+  String get finishPreparationConfirmDescription =>
+      '준비 종료를 누르면\n준비를 마치고 결과를 확인할 수 있어요.';
+
+  @override
   String get preparationReadyToGo => '출발 준비 완료';
 
   @override
@@ -239,16 +252,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get start => '시작하기';
 
   @override
-  String get preparationOrderTitle => '앞에서 고른 준비 과정의 순서를\n알려주세요';
+  String get preparationOrderTitle => '앞에서 고른 준비 과정의 순서를\n설정해주세요';
 
   @override
-  String get preparationNameTitle => '주로 하는 준비 과정을\n선택해주세요 ';
+  String get preparationNameTitle => '약속에 나가기 위한 준비 과정을\n선택해주세요 ';
 
   @override
   String get multipleSelection => '(복수 선택)';
 
   @override
-  String get preparationTimeTitle => '준비 시간';
+  String get preparationTimeTitle => '과정별로 소요되는 시간을\n알려주세요';
 
   @override
   String get addAppointment => '약속 추가하기';
@@ -396,6 +409,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editDefaultPreparation => '기본 준비과정 / 여유시간 수정';
 
   @override
+  String get editPreparationSpareTimeHeader => '여유시간/준비과정 수정';
+
+  @override
+  String get done => '완료';
+
+  @override
+  String get addPreparationStep => '준비 과정 추가';
+
+  @override
   String get allowAppNotifications => '앱 알림 허용';
 
   @override
@@ -417,7 +439,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get editSpareTime => '여유시간 수정';
 
   @override
-  String get editPreparationTime => '준비시간 수정';
+  String get editPreparationTime => '준비 과정 및 시간 수정';
 
   @override
   String get totalTime => '총 시간: ';

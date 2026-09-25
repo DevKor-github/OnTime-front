@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/components/preparation_time_tile.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart';
 
@@ -23,7 +22,9 @@ class _PreparationTimeInputFieldListState
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 16),
       child: ListView.builder(
+        padding: EdgeInsets.zero,
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemCount: widget.preparationTimeList.length,

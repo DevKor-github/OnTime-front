@@ -1,0 +1,11 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="74" height="11" viewBox="0 0 74 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="segment/2" clip-path="url(#clip0_0_223)">
+<circle id="dot/todo" cx="5.5" cy="5.5" r="5.5" fill="#949494"/>
+<line id="line/todo" x1="17" y1="5" x2="74" y2="5" stroke="#949494"/>
+</g>
+<defs>
+<clipPath id="clip0_0_223">
+<rect width="74" height="11" fill="white"/>
+</clipPath>
+</defs>
+</svg>

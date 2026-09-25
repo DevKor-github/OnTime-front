@@ -55,7 +55,11 @@ class _PreparationNameSelectFieldState
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Tile(
         key: ValueKey<String>(widget.preparationStep.preparationId),
-        style: TileStyle(padding: EdgeInsets.all(16.0)),
+        style: TileStyle(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          borderRadius: BorderRadius.circular(9999),
+          backgroundColor: const Color(0xFFF6F6F6),
+        ),
         leading: SizedBox(
           width: 30,
           height: 30,
@@ -66,7 +70,7 @@ class _PreparationNameSelectFieldState
         ),
         child: Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Container(
               constraints: BoxConstraints(minHeight: 30),
               child: Center(
@@ -83,7 +87,12 @@ class _PreparationNameSelectFieldState
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(3.0),
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
                   ),
                   style: textTheme.bodyLarge,
                   focusNode: focusNode,

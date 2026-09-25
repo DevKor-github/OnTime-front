@@ -1,0 +1,768 @@
+# Reviewed means source and Flutter captures compared, with documented exceptions.
+# Native verification and unmapped designs are reported separately.
+---
+schema_version: 1
+figma_file_key: FIdR6bUMHScn9FWbwqrBsA
+figma_page: '1:25'
+figma_board: '285:5'
+reference:
+  platform: ios
+  locale: ko
+  viewport: 390x844
+  text_scale: 1.0
+  flutter_commit: c7184b2a
+screens:
+- route: "/recovery"
+  figma_node: 1957:11762
+  flutter: lib/presentation/startup/screens/local_data_recovery_screen.dart
+  state: default
+  status: reviewed
+  review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+    font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+  figma_image: docs/design/review/figma/recovery-v3.png
+  figma_sha256: '0458b76579f000c3ed4b40059836b04ed35e38797caddca79477b47a75c73ea4'
+  flutter_golden: test/goldens/goldens/recovery_default_390x844.png
+  variants:
+  - state: reset_confirmation
+    figma_node: 2003:12059
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/recovery-confirm-v3.png
+    figma_sha256: ce978101bf343b568497e4c381a9e461abfbc767a50cda7268af28a7231db784
+    flutter_golden: test/goldens/goldens/recovery_reset_confirmation_390x844.png
+  - state: busy
+    figma_node: 2005:12036
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/recovery-busy.png
+    figma_sha256: 93b54f8e6116d4d793d98106eb180ba920109a8f09046804a0fe2bdc2e7083d3
+    flutter_golden: test/goldens/goldens/recovery_busy_390x844.png
+- route: "/startup"
+  figma_node:
+  flutter: lib/presentation/startup/screens/startup_screen.dart
+  status: excluded
+  reason: No corresponding current full-screen reference after the Screen Shells and
+    Permission Onboarding/Alarm Timer page audit. Native permission dialogs are platform-owned.
+    App route behavior remains tested.
+- route: "/allowNotification"
+  figma_node: 246:230
+  flutter: lib/presentation/notification_allow/screens/notification_allow_screen.dart
+  status: reviewed
+  figma_image: docs/design/review/figma/onboarding-10-20260925.png
+  figma_sha256: ceba9ea9bb5429e33ac8bd38332f90c93ca65878c60ae3d707e8a12a3e2e1b5e
+  review_note: Source and Flutter compared, with documented product, source-data,
+    fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+  flutter_golden: test/goldens/goldens/notification_permission_390x844.png
+  state: request
+  variants:
+  - figma_node: 246:238
+    status: excluded
+    figma_image: docs/design/review/figma/onboarding-11-20260925.png
+    figma_sha256: 12bd9bd4f0c706eb1ac9de5202595e20aa746ace1ee4bc84bf98743fa1565d2d
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    state: system_prompt
+    reason: OS-owned notification permission alert. Actual iOS request and denial
+      were exercised; app rationale is reviewed separately.
+- route: "/allowAlarm"
+  figma_node:
+  flutter: lib/presentation/alarm_allow/screens/alarm_allow_screen.dart
+  status: excluded
+  reason: No corresponding current full-screen reference after the Screen Shells and
+    Permission Onboarding/Alarm Timer page audit. Native permission dialogs are platform-owned.
+    App route behavior remains tested.
+- route: "/onboarding"
+  figma_node: '246:53'
+  flutter: lib/presentation/onboarding/screens/onboarding_screen.dart
+  status: reviewed
+  figma_image: docs/design/review/figma/onboarding-1-20260925.png
+  figma_sha256: a7cbab4c426baf609e2ce0b919a415cece70d0387199a1260e82ce1c8352c6d4
+  review_note: Source and Flutter compared, with documented product, source-data,
+    fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+  flutter_golden: test/goldens/goldens/onboarding_select_390x844.png
+  state: select
+  variants:
+  - figma_node: 246:90
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-2-20260925.png
+    figma_sha256: 51f0d329717347fd0df91b6b6756fa40112c2809da65511fb1fe688d4522d1c1
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_add_390x844.png
+    state: add
+  - figma_node: 246:113
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-3-20260925.png
+    figma_sha256: d89d8e494229a0e62ed43054028b7f1a46ac23017cc646dac83088456e18cdca
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_selected_390x844.png
+    state: selected
+  - figma_node: 246:150
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-4-20260925.png
+    figma_sha256: 79514dd77bc8bcf081cf8dfd3e813baf92e256c00715fdba94c85d2a26055f81
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_order_390x844.png
+    state: order
+  - figma_node: 246:180
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-5-20260925.png
+    figma_sha256: 681613261674d17d72260f67bc17f63574bebe11ac3bf9b8747d190b84fbc489
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_time_390x844.png
+    state: time
+  - figma_node: 246:212
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-6-20260925.png
+    figma_sha256: 0b148e6e8b357f3b41e298e508148176b183a7956b3acfc7b7135a242d81ed87
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_buffer_390x844.png
+    state: buffer
+  - figma_node: 278:100
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-7-20260925.png
+    figma_sha256: 389a73aa5b3fc1a3efec3077fd94695009a2f5ce5d00ec14469614a377bed3a8
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_time_focused_390x844.png
+    state: time_focused
+  - figma_node: 278:187
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-8-20260925.png
+    figma_sha256: 9a9ec8a31e93b79045623e66c7a01622bde52dcd0ddc89b15b2dd9ce3df7390b
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_time_short_390x844.png
+    state: time_short
+  - figma_node: 278:274
+    status: reviewed
+    figma_image: docs/design/review/figma/onboarding-9-20260925.png
+    figma_sha256: bdceb130364cf9a585bc47426462460e408f24319290c131dfbce0b5637d9222
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/onboarding_time_long_390x844.png
+    state: time_long
+- route: "/onboarding/start"
+  figma_node: '246:42'
+  flutter: lib/presentation/onboarding/screens/onboarding_start_screen.dart
+  status: reviewed
+  figma_image: docs/design/review/figma/onboarding-0-20260925.png
+  figma_sha256: b4e365b2ebe04c028c77f6b47af4d71cd1eaf3601e67ef427652e6614f167a2d
+  review_note: Source and Flutter compared, with documented product, source-data,
+    fonts and native exceptions. See docs/design/review/onboarding-parity-20260925.md.
+  flutter_golden: test/goldens/goldens/onboarding_welcome_390x844.png
+  state: welcome
+- route: "/home"
+  figma_node: 600:34301
+  flutter: lib/presentation/home/screens/home_screen_tmp.dart
+  state: default
+  status: reviewed
+  review_note: Compared with fresh source; keeps mathematically correct calendar dates
+    and actual model values. Exact geometry, interactions, font/native exceptions
+    and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+  figma_image: docs/design/review/figma/home-default.png
+  figma_sha256: 87d9c1e3ed1a5a556f2fbb8081abaacdbeb41fbbf19f4d1cf998e015fac70d40
+  flutter_golden: test/goldens/goldens/home_default_390x844.png
+  variants:
+  - state: loading
+    figma_node: '1824:2'
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/home-loading.png
+    figma_sha256: 52362c7a344d8e4cf788b4ce9ac5bb89631e813a3a7f7e08ce9eb80cf041c6a7
+    flutter_golden: test/goldens/goldens/home_loading_390x844.png
+  - state: error
+    figma_node: 1824:694
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/home-error.png
+    figma_sha256: 7aa8f80ce1ff05847209828f49045bc8e1d0a09803fd1625534860ff4d746281
+    flutter_golden: test/goldens/goldens/home_error_390x844.png
+- route: "/myPage"
+  figma_node: 2113:21761
+  flutter: lib/presentation/my_page/my_page_screen.dart
+  state: default
+  status: reviewed
+  review_note: Current 390x844 recurring-entry source was compared with the Flutter
+    golden; section coordinates, Figma SVGs, data routes, selection switches, large
+    text, and accessibility checks pass. Native status bar and home indicator are
+    excluded.
+  figma_image: docs/design/review/figma/my-page-recurring-entry.png
+  figma_sha256: a591d7b496760b05155125578eacfdbcd753d024e3d73c5a1ebb4cc7dad42e4a
+  flutter_golden: test/goldens/goldens/my_page_default_390x844.png
+- route: "/recurringSchedules"
+  figma_node: 2112:21676
+  flutter: lib/presentation/recurring/recurring_management_screen.dart
+  state: management
+  status: reviewed
+  review_note: Matching two-active and one-ended 390x844 fixture was compared to Figma;
+    section positions, counts, 99px active cards, 71px ended card, and detail/end
+    behavior pass. Native chrome is excluded.
+  figma_image: docs/design/review/figma/recurring-management.png
+  figma_sha256: c0b41a0cc37879d73207caf9d369df7d05449d1997974179b12f5dadb56b1879
+  flutter_golden: test/goldens/goldens/recurring_management_390x844.png
+  variants:
+  - state: detail
+    figma_node: 2112:21715
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-detail-20260925.png
+    figma_sha256: 2d2dce2fd2043e9d091cab354aa346604a8d52db71eb131e075814a15d6de87e
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_detail_390x844.png
+  - state: empty
+    figma_node: 2112:21756
+    status: reviewed
+    review_note: 390x844 info, empty, and action cards match Figma coordinates; large-text
+      and narrow-width layout tests pass. Native chrome is excluded.
+    figma_image: docs/design/review/figma/recurring-empty.png
+    figma_sha256: 168133393b3fbc76a76bf1ea2e36467ea4d92d098f94b1bfd8426cab1f64dfbc
+    flutter_golden: test/goldens/goldens/recurring_empty_390x844.png
+  - state: occurrence
+    figma_node: 2112:21768
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-occurrence-20260925.png
+    figma_sha256: 31f7f534b0b8ccf5cde3c58b5027b85d40175bdce29d6939b0cfbd4a3c9c6d26
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_occurrence_390x844.png
+- route: "/myData"
+  figma_node: 1948:12072
+  flutter: lib/presentation/my_page/my_data_screen.dart
+  state: default
+  status: reviewed
+  review_note: App-owned content, 358x68 rows, and 18px row spacing checked against
+    node metadata. Native status bar and home indicator are excluded from Flutter
+    golden.
+  figma_image: docs/design/review/figma/my-data-default.png
+  figma_sha256: 5f2a48998edfd1b3b47d4bff0022f941626ea94fbe3cae36799260a23aa41ed7
+  flutter_golden: test/goldens/goldens/my_data_default_390x844.png
+  variants:
+  - state: reset_confirmation
+    figma_node: 2003:12059
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/recovery-confirm-v3.png
+    figma_sha256: ce978101bf343b568497e4c381a9e461abfbc767a50cda7268af28a7231db784
+    flutter_golden: test/goldens/goldens/my_data_reset_confirmation_390x844.png
+  - state: restore_preview_confirmation
+    figma_node: 1978:11791
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/my-data-restore-preview.png
+    figma_sha256: ffb62bd9764f8897e14d95f6f12334fd0be6f8ec0a30f31c615fd37ad68a5689
+    flutter_golden: test/goldens/goldens/my_data_restore_preview_390x844.png
+  - state: backup_password_create
+    figma_node: 1979:11816
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/my-data-password-create.png
+    figma_sha256: 7e04e15b88d878162767d910c9d45f3703a2fbe6bf27d56522204cef66abb04b
+    flutter_golden: test/goldens/goldens/my_data_password_create_390x844.png
+  - state: backup_password_input
+    figma_node: 1980:11841
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/my-data-password-input.png
+    figma_sha256: 94dd76f87a6a7fe77bd9672bdb645f52aa91700e48b2eeab101fbf2f4507f0c1
+    flutter_golden: test/goldens/goldens/my_data_password_input_390x844.png
+  - state: backup_password_invalid_length
+    figma_node: 1981:11866
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/my-data-password-invalid.png
+    figma_sha256: de016130f45b290c63baddad21479e1ed2b65de2701be604bd8432c55d67ec9f
+    flutter_golden: test/goldens/goldens/my_data_password_invalid_390x844.png
+  - state: backup_password_mismatch
+    figma_node: 1982:11891
+    status: reviewed
+    review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+      font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+    figma_image: docs/design/review/figma/my-data-password-mismatch.png
+    figma_sha256: 894f3c951dfcb852e4f42b96c40cd19586434ac3eecda4aad3f8b5211f7f4621
+    flutter_golden: test/goldens/goldens/my_data_password_mismatch_390x844.png
+  - state: freshness_checking
+    figma_node: 1985:11908
+    status: reviewed
+    review_note: Pending asynchronous freshness lookup, 68px status card, and action
+      spacing compared. Native chrome is excluded.
+    figma_image: docs/design/review/figma/my-data-freshness-checking.png
+    figma_sha256: cd98356ebc2cfed2ec369acf4acbb1ae81d16bbd761ee1fba5228e0aad9689ea
+    flutter_golden: test/goldens/goldens/my_data_freshness_checking_390x844.png
+  - state: freshness_no_changes
+    figma_node: 1987:11925
+    status: reviewed
+    review_note: No-changes text and status card compared. Native chrome is excluded.
+    figma_image: docs/design/review/figma/my-data-freshness-no-changes.png
+    figma_sha256: 42972adfb56946596e963d3bfa5311f6cdf5eace2fb6f914db203c4e8c1bea3d
+    flutter_golden: test/goldens/goldens/my_data_freshness_no_changes_390x844.png
+  - state: freshness_unexported_changes
+    figma_node: 1989:11942
+    status: reviewed
+    review_note: Unexported-changes text and status card compared. Native chrome is
+      excluded.
+    figma_image: docs/design/review/figma/my-data-freshness-unexported.png
+    figma_sha256: bd2307f8dcf8fa3aa3b846d8bac6a4eb586f1fb5464fffb05c930d0a1631c91a
+    flutter_golden: test/goldens/goldens/my_data_freshness_unexported_390x844.png
+  - state: freshness_reminder_due
+    figma_node: 1991:11959
+    status: reviewed
+    review_note: Two-line 30-day reminder grows the card without hiding actions; color
+      and 18px row spacing compared. Native chrome is excluded.
+    figma_image: docs/design/review/figma/my-data-freshness-reminder.png
+    figma_sha256: e36b489f777f60d72099d5a888b8f07108314eb344796c7b5ab2d335208f076c
+    flutter_golden: test/goldens/goldens/my_data_freshness_reminder_390x844.png
+  - state: busy
+    figma_node: 1996:11977
+    status: reviewed
+    review_note: Disabled row opacity, exported 40px spinner at y466, and no concurrent
+      restore action compared. Native chrome is excluded.
+    figma_image: docs/design/review/figma/my-data-busy.png
+    figma_sha256: d70f19ee78f45d98b1e228997ac4e2baf68e1efd177821402bbd80fa2c544b33
+    flutter_golden: test/goldens/goldens/my_data_busy_390x844.png
+  - state: export_success_snackbar
+    figma_node: 1999:11994
+    status: reviewed
+    review_note: 358x44 result bar at y752 after successful export compared. Native
+      chrome is excluded.
+    figma_image: docs/design/review/figma/my-data-export-success.png
+    figma_sha256: edab25e7b2f4c5541cd01e1a2242e0aba01c4d1a341d481e86fddac5057a5aac
+    flutter_golden: test/goldens/goldens/my_data_export_success_390x844.png
+  - state: restore_success_snackbar
+    figma_node: 2000:12010
+    status: reviewed
+    review_note: Result-bar visual compared through the shared UI helper; end-to-end
+      native restore remains pending.
+    figma_image: docs/design/review/figma/my-data-restore-success.png
+    figma_sha256: 86c4162179792464efd9da6cf615b2aa9f45100a342f83a59aa28a904b437d29
+    flutter_golden: test/goldens/goldens/my_data_restore_success_390x844.png
+  - state: operation_failure_snackbar
+    figma_node: 2001:12027
+    status: reviewed
+    review_note: Result-bar visual compared; failed export clears the busy state and
+      displays its error. Native chrome is excluded.
+    figma_image: docs/design/review/figma/my-data-operation-failure.png
+    figma_sha256: '0390e8213191266798c61e773409b6b0f3861027fbc1f94e28b1be6e0cc32e00'
+    flutter_golden: test/goldens/goldens/my_data_operation_failure_390x844.png
+- route: "/privacyPolicy"
+  figma_node: 1950:11759
+  flutter: lib/presentation/my_page/privacy_policy_screen.dart
+  state: default
+  status: reviewed
+  review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+    font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+  figma_image: docs/design/review/figma/privacy-v3.png
+  figma_sha256: 88f84355c58e153300ccd4cce29c235c6fa3d05309fde7ba1eed99c04a6e94a5
+  flutter_golden: test/goldens/goldens/privacy_policy_390x844.png
+- route: "/resetComplete"
+  figma_node: 1963:11762
+  flutter: lib/presentation/my_page/my_data_screen.dart
+  state: default
+  status: reviewed
+  review_note: Compared with fresh source; lifecycle, accessible tap targets, bundled
+    font, native chrome, and source-copy exceptions are recorded in docs/design/review/recovery-parity-20260925.md.
+  figma_image: docs/design/review/figma/reset-complete-v3.png
+  figma_sha256: f98c8ab46909ad90ea9a602c8b768a7bd78fd819bb18f1bdc4f70a086230fd01
+  flutter_golden: test/goldens/goldens/reset_complete_390x844.png
+- route: "/defaultPreparationSpareTimeEdit"
+  figma_node: 600:35201
+  flutter: lib/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen.dart
+  state: six_step_fixture
+  status: reviewed
+  review_note: Korean 390x844 header, stepper, summary, 358x62 list rows, duration
+    inputs, and add action compared with Figma. Six linked steps are a reference fixture,
+    not a product maximum; a seventh can be added. Pretendard substitutes for Figma
+    Noto Sans KR and IBM Plex Sans KR; native chrome is excluded.
+  figma_image: docs/design/review/figma/preparation-spare-time-edit-default.png
+  figma_sha256: bcd3b05ab6da3335d054e26910d8fe60183a2ef65ae2b0908c89e1fd84672569
+  flutter_golden: test/goldens/goldens/preparation_spare_time_edit_390x844.png
+- route: "/calendar"
+  figma_node: 868:146599
+  state: empty
+  status: reviewed
+  review_note: Compared with fresh source; keeps mathematically correct calendar dates
+    and actual model values. Exact geometry, interactions, font/native exceptions
+    and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+  figma_image: docs/design/review/figma/calendar-empty.png
+  figma_sha256: 0a1bd7f2eb3afcc6c6809c8d9f7d05a904fcfcde6f13570188a97cc9bf242e8b
+  flutter_golden: test/goldens/goldens/calendar_empty_390x852.png
+  variants:
+  - state: expanded
+    figma_node: 868:146600
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/calendar-expanded.png
+    figma_sha256: 1583f6db767d15b1a7aea64dac8f51dba795d9c8d64339baeb42d6f747bae69d
+    flutter_golden: test/goldens/goldens/calendar_expanded_390x852.png
+  - state: list
+    figma_node: 882:426235
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/calendar-list.png
+    figma_sha256: 422d779410182dec6a1c5050d3b9c76c4a4de0116c16c946d0bfd400a091e3da
+    flutter_golden: test/goldens/goldens/calendar_list_390x852.png
+  - state: swipe_actions
+    figma_node: 882:464741
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/calendar-swipe-actions.png
+    figma_sha256: f9687add5e58cad41b146a3a448fe67e402a471d3b8d83277440be05e6983fee
+    flutter_golden: test/goldens/goldens/calendar_swipe_actions_390x852.png
+  - state: expanded_actions
+    figma_node: 882:493347
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/calendar-expanded-actions.png
+    figma_sha256: b475c56020d23f555bb07c44bf7dc3e201ffa170ef9473eccdf27ba370ec6aec
+    flutter_golden: test/goldens/goldens/calendar_expanded_actions_390x852.png
+  - state: delete_confirm
+    figma_node: 882:512625
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/calendar-delete-confirm.png
+    figma_sha256: a00d9ca5a8ad5a693f59da83cdfbcf72e8b34095fc9c101cc9aba9c4f77091c0
+    flutter_golden: test/goldens/goldens/calendar_delete_confirm_390x852.png
+  - state: loading
+    figma_node: 1816:6728
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/calendar-loading.png
+    figma_sha256: d96b113898d510c8e11a391d6dc2f05a8671680a6986ef989464f297556a2be7
+    flutter_golden: test/goldens/goldens/calendar_loading_390x852.png
+  - state: error
+    figma_node: 1816:6984
+    status: reviewed
+    review_note: Compared with fresh source; keeps mathematically correct calendar
+      dates and actual model values. Exact geometry, interactions, font/native exceptions
+      and source defects are recorded in docs/design/review/calendar-parity-20260925.md.
+    figma_image: docs/design/review/figma/calendar-error.png
+    figma_sha256: a7d69eddcc876d99622541c561c0c81b55f24a3344af7bd72a505b34bd12f540
+    flutter_golden: test/goldens/goldens/calendar_error_390x852.png
+- route: "/scheduleCreate"
+  figma_node: 2112:2394
+  state: date_time
+  status: reviewed
+  review_note: Source and Flutter compared, with documented product, source-data,
+    fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+  variants:
+  - state: weekly
+    figma_node: 2112:21323
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-weekly-20260925.png
+    figma_sha256: 343688b5181b27e682b857de98fe8a907e6900521acaceb97f2e9c6e5891c82f
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_weekly_390x844.png
+  - state: monthly
+    figma_node: 2112:21352
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-monthly-20260925.png
+    figma_sha256: b69b5931f22f8893e31338cfac15eb2c15b37be6c06b2864d787113e480e974b
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_monthly_390x844.png
+  - state: ending
+    figma_node: 2112:21395
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-ending-20260925.png
+    figma_sha256: 22c1608681bd101b922d4deb4a1c1a0469cd15465a98d4d76d552a68be9b3688
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_ending_390x844.png
+  - state: preparation
+    figma_node: 2112:21456
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-preparation-20260925.png
+    figma_sha256: ecb0df74ebe0e54067514f16be2d2a25a1dd1ccdec5bdc4b0073fd0107b59fe3
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_preparation_390x844.png
+  - state: review
+    figma_node: 2112:21500
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-review-20260925.png
+    figma_sha256: 29a84cd7e21f2b9369967d8f26b9fcf1c25f20329ce584242b3db911cbe004fe
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_review_390x844.png
+  - state: conflicts
+    figma_node: 2112:21531
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-conflicts-20260925.png
+    figma_sha256: c4d4be1b26f8f51628b55660a7eaa3f2cb9847d4b23b7f39658e9a52bb72f7fe
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_conflicts_390x844.png
+  - state: persistent_conflict
+    figma_node: 2112:21557
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-persistent-conflict-20260925.png
+    figma_sha256: eed0e8720e4242851e2f518eb43ed98f44d0a991e15287aecd0ae6dd60474a00
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_persistent_conflict_390x844.png
+  - state: scope
+    figma_node: 2112:21588
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-scope-20260925.png
+    figma_sha256: 6361ec89504c0d9deea00e69b22bdde1dd2ec6f7b10f816381e7ea8c55b245e5
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_scope_390x844.png
+  - state: detached
+    figma_node: 2112:21613
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-detached-20260925.png
+    figma_sha256: d74e3d7294dbc3553fea3d445c7b1082a38a65eb1aab22f1a3d3cea136c1e5f1
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_detached_390x844.png
+  - state: time_exceptions
+    figma_node: 2112:21635
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-time-exceptions-20260925.png
+    figma_sha256: 44c32c26792c5a4838587e221c1287eca2f3aaa1ecfd5f7b41462f198b13dabe
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_time_exceptions_390x844.png
+  - state: save_error
+    figma_node: 2112:21659
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-save-error-20260925.png
+    figma_sha256: 19ceb72970e68136567e80473a5439485cab149f89d8f7d81b4043eafd1bd067
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_save_error_390x844.png
+  - state: frequency
+    figma_node: 2113:21627
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-frequency-20260925.png
+    figma_sha256: b9e75a77c132f8b8e7995878160f1c329e655e40262617c9ef91b4096cac1357
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_frequency_390x844.png
+  - state: monthly_fields
+    figma_node: 2113:21670
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-monthly-fields-20260925.png
+    figma_sha256: 657b3d1316485837fa641d87754d571060845e240c353a3ee9cf37ae4a2d405b
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_monthly_fields_390x844.png
+  - state: end_date
+    figma_node: 2113:21708
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-end-date-20260925.png
+    figma_sha256: 5ec407e1334d1e0b012647fb172fbf30e249b606f8600c1c486c8ad857af9ae7
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_end_date_390x844.png
+  - state: end_confirm
+    figma_node: 2113:21745
+    status: reviewed
+    figma_image: docs/design/review/figma/recurring-end-confirm-20260925.png
+    figma_sha256: 17fe56d97a952bcec836cd2fb6c9451eebdf10d2961819c1f729366979cec970
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/recurring-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/recurring_end_confirm_390x844.png
+  - figma_node: '251:42'
+    status: reviewed
+    figma_image: docs/design/review/figma/form-name.png
+    figma_sha256: 912f174f618dfd88e6bdec1ad0f1aca2ae403377e51fcbb9ddb234c8f6642965
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/original-form-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/form_name_390x844.png
+    state: name
+  - figma_node: 251:75
+    status: reviewed
+    figma_image: docs/design/review/figma/form-date.png
+    figma_sha256: 147cc7d396469cb4e11af53b1dca3c25c1d7da57cf75c2e5a315143eb6bdb616
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/original-form-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/form_date_picker_390x844.png
+    state: date_picker
+  - figma_node: 251:119
+    status: reviewed
+    figma_image: docs/design/review/figma/form-time.png
+    figma_sha256: 50aacc58ce78d7ed1c2e1ccb027260cf1cca8e7e17bd1e8e2f17feb638b64995
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/original-form-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/form_time_picker_390x844.png
+    state: time_picker
+  - figma_node: 251:162
+    status: reviewed
+    figma_image: docs/design/review/figma/form-place.png
+    figma_sha256: 2bb089c948342412305999ccc5303fecf43c751b3ccd0dcd7caa88acfd40996e
+    review_note: Source and Flutter compared, with documented product, source-data,
+      fonts and native exceptions. See docs/design/review/original-form-parity-20260925.md.
+    flutter_golden: test/goldens/goldens/form_place_390x844.png
+    state: place_travel
+  figma_image: docs/design/review/figma/recurring-date-time-20260925.png
+  figma_sha256: e81a92bc149ec372cf5440f1a15992a70af63509f97c01b6f009df2bb2c7bbdd
+  flutter_golden: test/goldens/goldens/recurring_date_time_390x844.png
+- route: "/scheduleEdit/:scheduleId"
+  figma_node: '251:42'
+  status: reviewed
+  figma_image: docs/design/review/figma/form-name.png
+  figma_sha256: 912f174f618dfd88e6bdec1ad0f1aca2ae403377e51fcbb9ddb234c8f6642965
+  review_note: Edit directly reuses the reviewed ScheduleMultiPageForm and KeyboardBackedBottomSheet;
+    this image covers that shared form body, not a separate edit-only Figma design.
+    Original values, following-edit scope and individual overrides are verified by
+    database integration tests. See original-form-parity-20260925.md and recurring-parity-20260925.md.
+  flutter_golden: test/goldens/goldens/form_name_390x844.png
+  state: shared_form
+  flutter: lib/presentation/schedule_create/screens/schedule_edit_screen.dart
+- route: "/preparationEdit"
+  figma_node: 1334:2023
+  status: reviewed
+  figma_image: docs/design/review/figma/form-preparation.png
+  figma_sha256: 0ea7a3def11759115f924c88cc93b9f4176c52a09a40876c4d2bd4ded1f30684
+  review_note: Source and Flutter compared, with documented product, source-data,
+    fonts and native exceptions. See docs/design/review/original-form-parity-20260925.md.
+  flutter_golden: test/goldens/goldens/preparation_edit_390x844.png
+  state: default
+  flutter: lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/screens/preparation_edit_form.dart
+- route: "/scheduleStart"
+  figma_node:
+  status: excluded
+  reason: App runtime route has no corresponding full-screen reference in the audited
+    current Screen Shells, Form Flows, Preparation, Alarm Timer and Permission Onboarding
+    pages. Behavior is covered by preparation flow widget tests; source absence is
+    not visual approval.
+- route: "/alarmScreen"
+  figma_node: '118:2'
+  status: reviewed
+  flutter: lib/presentation/alarm/screens/alarm_screen.dart
+  state: on_time
+  figma_image: docs/design/review/figma/runtime-on-time.png
+  figma_sha256: c3505d61f25faefd8e715fdc37a42c41e079b65ad4ca25c4e7120d14844304ff
+  flutter_golden: test/goldens/goldens/runtime_on_time_390x844.png
+  review_note: Fresh source and live-state fixture compared. Keeps consistent model
+    values, real progress and finish-result navigation; accessibility, fonts, source-data
+    and native exceptions are documented in docs/design/review/runtime-parity-20260925.md.
+  variants:
+  - figma_node: '118:58'
+    state: late
+    status: reviewed
+    figma_image: docs/design/review/figma/runtime-late.png
+    figma_sha256: 62f98401c1dee4fff78c0e2ea38e8d6ed020ec3ca0df1723e6fdd075ab1d3b8d
+    flutter_golden: test/goldens/goldens/runtime_late_390x844.png
+    review_note: Fresh source and live-state fixture compared. Keeps consistent model
+      values, real progress and finish-result navigation; accessibility, fonts, source-data
+      and native exceptions are documented in docs/design/review/runtime-parity-20260925.md.
+  - figma_node: 118:114
+    state: finish_confirm
+    status: reviewed
+    figma_image: docs/design/review/figma/runtime-finish-confirm.png
+    figma_sha256: d9eb91b1ea9a9e1e7a6cc124435f057ca4fd7cba5e07749d9f8733630680edcb
+    flutter_golden: test/goldens/goldens/runtime_finish_confirm_390x844.png
+    review_note: Fresh source and live-state fixture compared. Keeps consistent model
+      values, real progress and finish-result navigation; accessibility, fonts, source-data
+      and native exceptions are documented in docs/design/review/runtime-parity-20260925.md.
+- route: "/earlyLate"
+  figma_node:
+  status: excluded
+  reason: App runtime route has no corresponding full-screen reference in the audited
+    current Screen Shells, Form Flows, Preparation, Alarm Timer and Permission Onboarding
+    pages. Behavior is covered by preparation flow widget tests; source absence is
+    not visual approval.
+- route: "/moving"
+  figma_node:
+  status: excluded
+  reason: App runtime route has no corresponding full-screen reference in the audited
+    current Screen Shells, Form Flows, Preparation, Alarm Timer and Permission Onboarding
+    pages. Behavior is covered by preparation flow widget tests; source absence is
+    not visual approval.
+hidden_historical_nodes:
+- 466:6517
+- 600:36265
+- 600:36353
+source_pages:
+  '1:25': Screen Shells
+  '1:26': Form Flows
+  '1:21': Preparation
+  '1:23': Permission Onboarding
+reviewed_at: '2026-09-25'
+design_only_nodes:
+- figma_node: 1756:8930
+  state: ScheduleDetail/Upcoming
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1775:9192
+  state: ScheduleDetail/PreparationDue
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1775:9197
+  state: ScheduleDetail/Preparing
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1775:9202
+  state: ScheduleDetail/CompletedOnTime
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1775:9207
+  state: ScheduleDetail/CompletedLate
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1775:9212
+  state: ScheduleDetail/CompletedUnknown
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1775:9217
+  state: ScheduleDetail/PastUnrecorded
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1913:11757
+  state: ScheduleDetail/Loading
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1913:12081
+  state: ScheduleDetail/Refreshing
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1913:11857
+  state: ScheduleDetail/NotFound
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.
+- figma_node: 1913:11969
+  state: ScheduleDetail/Failure
+  status: unmapped
+  reason: Standalone Schedule Detail design has no app route/implementation. Calendar
+    expandable cards are a different component. See docs/design/review/calendar-parity-20260925.md.

@@ -53,11 +53,11 @@ class PreparationFormCreateList extends StatelessWidget {
                   ),
                 ),
           ),
-          SizedBox(height: 28.0),
+          const SizedBox(height: 8),
           Center(
             child: SizedBox(
-              height: 30,
-              width: 30,
+              height: 44,
+              width: 44,
               child: CreateIconButton(onCreationRequested: onCreationRequested),
             ),
           ),

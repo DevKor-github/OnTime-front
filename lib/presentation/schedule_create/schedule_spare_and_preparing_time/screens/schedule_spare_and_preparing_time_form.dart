@@ -2,6 +2,7 @@ import 'package:on_time_front/presentation/recurring/recurrence_components.dart'
 import 'package:on_time_front/domain/entities/preparation_step_entity.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
@@ -185,7 +186,8 @@ class _ScheduleSpareAndPreparingTimeFormState
             'Review your preparation\nand edit as needed.',
           ),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontSize: 23,
+            fontSize: 21,
+            height: 30 / 21,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -196,7 +198,11 @@ class _ScheduleSpareAndPreparingTimeFormState
             '이 약속의 반복에만 적용되는 준비 과정입니다.\n기본 준비과정의 복사본으로 생성되어\n이곳에서 수정해도 기존 설정에는 영향을 주지 않습니다.',
             'This preparation belongs only to this series. Changes do not affect your default preparation.',
           ),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.6),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontSize: 13.5,
+            height: 21 / 13.5,
+            color: const Color(0xff545454),
+          ),
         ),
         const SizedBox(height: 20),
         ReorderableListView.builder(
@@ -229,13 +235,61 @@ class _ScheduleSpareAndPreparingTimeFormState
             child: RecurrencePanel(
               padding: EdgeInsets.zero,
               child: ListTile(
+                minTileHeight: 63,
+                horizontalTitleGap: 24,
                 leading: ReorderableDragStartListener(
                   index: i,
-                  child: const Icon(Icons.drag_handle),
+                  child: SvgPicture.asset(
+                    'recurrence_preparation_drag.svg',
+                    package: 'assets',
+                  ),
                 ),
-                title: Text(steps[i].preparationName),
-                trailing: Text(
-                  formatDurationAsMinutes(context, steps[i].preparationTime),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      steps[i].preparationName,
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    const SizedBox(height: 7),
+                    ClipRect(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: SvgPicture.asset(
+                            'recurrence_preparation_underline.svg',
+                            package: 'assets',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      child: Text(
+                        formatDurationAsMinutes(
+                          context,
+                          steps[i].preparationTime,
+                        ),
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SvgPicture.asset(
+                      'recurrence_preparation_chevron.svg',
+                      package: 'assets',
+                    ),
+                  ],
                 ),
                 onTap: () => _editPreparation(state),
               ),
@@ -248,23 +302,54 @@ class _ScheduleSpareAndPreparingTimeFormState
             child: Text(recurrenceText(context, '준비 과정 추가', 'Add preparation')),
           ),
         const SizedBox(height: 4),
-        RecurrenceValue(
-          label: recurrenceText(
-            context,
-            '여유 (준비 합계 제외)',
-            'Buffer (excluded from preparation total)',
-          ),
-          value: formatDurationAsMinutes(
-            context,
-            state.spareTime.value ?? Duration.zero,
-          ),
-          icon: Icons.timer_outlined,
-          onTap: () => context.showCupertinoMinutePickerModal(
-            title: AppLocalizations.of(context)!.enterTime,
-            initialValue: state.spareTime.value ?? Duration.zero,
-            onSaved: (value) => context
-                .read<ScheduleFormSpareTimeCubit>()
-                .spareTimeChanged(value),
+        RecurrencePanel(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            minTileHeight: 63,
+            horizontalTitleGap: 24,
+            leading: SvgPicture.asset(
+              'recurrence_preparation_drag.svg',
+              package: 'assets',
+            ),
+            title: Text(
+              recurrenceText(
+                context,
+                '여유 (준비 합계 제외)',
+                'Buffer (excluded from preparation total)',
+              ),
+              style: const TextStyle(fontSize: 18),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  child: Text(
+                    formatDurationAsMinutes(
+                      context,
+                      state.spareTime.value ?? Duration.zero,
+                    ),
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SvgPicture.asset(
+                  'recurrence_preparation_chevron.svg',
+                  package: 'assets',
+                ),
+              ],
+            ),
+            onTap: () => context.showCupertinoMinutePickerModal(
+              title: AppLocalizations.of(context)!.enterTime,
+              initialValue: state.spareTime.value ?? Duration.zero,
+              onSaved: (value) => context
+                  .read<ScheduleFormSpareTimeCubit>()
+                  .spareTimeChanged(value),
+            ),
           ),
         ),
         const SizedBox(height: 16),

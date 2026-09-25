@@ -41,6 +41,14 @@ jobs:
         run: dart run tool/check_local_only_boundary.dart
       - name: Analyze
         run: flutter analyze
+      - name: Check Figma UI inventory and reference images
+        # Flutter goldens are generated review evidence and are intentionally
+        # not committed. CI still validates every route/state, tracked Figma
+        # reference hash, and the declared golden path.
+        run: >-
+          dart run tool/report_figma_ui_coverage.dart
+          --strict
+          --allow-missing-goldens
       - name: Run test with coverage
         run: flutter test --coverage
       - name: Check coverage

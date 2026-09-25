@@ -31,10 +31,8 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
       duration: const Duration(milliseconds: 300),
     );
 
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    previousProgress = widget.progress.clamp(0.0, 1.0);
+    _progressAnimation = AlwaysStoppedAnimation(previousProgress);
   }
 
   @override
@@ -53,8 +51,8 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
 
   void _animateToNewProgress(double newProgress) {
     _progressAnimation = Tween<double>(
-      begin: previousProgress,
-      end: newProgress,
+      begin: _progressAnimation.value,
+      end: newProgress.clamp(0.0, 1.0),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward(from: 0);
@@ -67,7 +65,7 @@ class _AlarmGraphAnimatorState extends State<AlarmGraphAnimator>
       animation: _progressAnimation,
       builder: (context, child) {
         return CustomPaint(
-          size: const Size(230, 115),
+          size: const Size.square(268),
           painter: AlarmGraphComponent(
             progress: _progressAnimation.value,
             backgroundColor: widget.backgroundColor,

@@ -16,7 +16,11 @@ permissions:
   contents: read
 
 jobs:
+  quality:
+    uses: ./.github/workflows/flutter_test.yml
+
   deploy_internal:
+    needs: quality
     name: Build and upload internal testing draft
     runs-on: ubuntu-latest
     environment: staging
@@ -101,9 +105,6 @@ jobs:
 
       - name: Analyze
         run: flutter analyze
-
-      - name: Test
-        run: flutter test
 
       - name: Derive Android build name
         run: |

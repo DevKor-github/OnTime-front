@@ -69,7 +69,7 @@ void main() {
         expect(target.extra, {
           'type': 'schedule_notification',
           'scheduleId': 'schedule-1',
-          'alarmLaunchPayloadVersion': '9',
+          'alarmLaunchPayloadVersion': '10',
           'promptVariant': 'notification',
         });
       },
@@ -148,7 +148,7 @@ void main() {
           extra: {
             'type': 'schedule_notification',
             'scheduleId': 'schedule-2',
-            'alarmLaunchPayloadVersion': '9',
+            'alarmLaunchPayloadVersion': '10',
             'promptVariant': 'notification',
           },
         ),

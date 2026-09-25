@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'dart:convert';
 
 import 'package:on_time_front/core/services/notification_routing.dart';
@@ -28,6 +29,9 @@ Map<String, String> preparationStepNotificationPayload({
 }) {
   return {
     'type': 'preparation_step',
+    if (RestoreRuntimeIdentity.shared.storeIncarnation
+        case final String identity)
+      'storeIncarnation': identity,
     'scheduleId': scheduleId,
     'stepId': stepId,
   };

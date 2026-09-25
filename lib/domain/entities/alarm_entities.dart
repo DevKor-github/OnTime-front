@@ -4,7 +4,7 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 
 const alarmDefaultOffset = Duration(minutes: 5);
-const alarmLaunchPayloadVersion = '9';
+const alarmLaunchPayloadVersion = '10';
 
 enum AlarmProvider { androidAlarmManager, iosAlarmKit, localNotification, none }
 
@@ -34,6 +34,7 @@ enum AlarmFailureReason {
   scheduleInvalid,
   cancellationFailed,
   observationFailed,
+  contentDeferred,
   platformError,
   unknown,
 }
@@ -129,6 +130,8 @@ extension AlarmFailureReasonWireValue on AlarmFailureReason {
         return 'scheduleInvalid';
       case AlarmFailureReason.observationFailed:
         return 'observationFailed';
+      case AlarmFailureReason.contentDeferred:
+        return 'contentDeferred';
       case AlarmFailureReason.cancellationFailed:
         return 'cancellationFailed';
       case AlarmFailureReason.platformError:
@@ -146,6 +149,8 @@ extension AlarmFailureReasonWireValue on AlarmFailureReason {
       case 'scheduleInvalid':
       case 'SCHEDULE_INVALID':
         return AlarmFailureReason.scheduleInvalid;
+      case 'contentDeferred':
+        return AlarmFailureReason.contentDeferred;
       case 'observationFailed':
       case 'OBSERVATION_FAILED':
         return AlarmFailureReason.observationFailed;
@@ -451,6 +456,7 @@ class AlarmReconciliationResult extends Equatable {
 }
 
 bool isAlarmEligibleSchedule(ScheduleWithPreparationEntity schedule) {
+  if (schedule.retainedRecurringReference) return false;
   return schedule.doneStatus == ScheduleDoneStatus.notEnded;
 }
 
@@ -483,6 +489,7 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
   bool detailedNotificationContent = false,
   String? currentTimeZoneId,
   String languageCode = 'en',
+  String? storeIncarnation,
 }) {
   final alarmTime = computeAlarmTime(schedule, offset: alarmOffset);
   final id = stableAlarmId(schedule.id);
@@ -491,8 +498,7 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
     scheduleTitle: schedule.scheduleName,
     detailed: detailedNotificationContent,
     languageCode: languageCode,
-    displayTimeZone:
-        currentTimeZoneId != null && currentTimeZoneId != schedule.timeZoneId
+    displayTimeZone: currentTimeZoneId != schedule.timeZoneId
         ? schedule.timeZoneId
         : null,
   );
@@ -513,10 +519,10 @@ ScheduledAlarmRecord buildScheduledAlarmRecord(
       'type': 'schedule_notification',
       'alarmLaunchPayloadVersion': alarmLaunchPayloadVersion,
       'scheduleId': schedule.id,
+      'storeIncarnation': ?storeIncarnation,
       'promptVariant': 'notification',
       'detailedNotificationContent': detailedNotificationContent.toString(),
       if (detailedNotificationContent &&
-          currentTimeZoneId != null &&
           currentTimeZoneId != schedule.timeZoneId)
         'notificationTimeZone': schedule.timeZoneId,
     },

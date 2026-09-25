@@ -2,6 +2,10 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 class Users extends Table {
+  BoolColumn get restoreCleanupPending =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get rejectLegacyDelivery =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get storeIncarnation => text().nullable()();
   TextColumn get id => text().clientDefault(() => Uuid().v7())();
   IntColumn get spareTime => integer()();

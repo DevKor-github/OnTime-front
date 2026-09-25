@@ -1,4 +1,7 @@
+import 'package:on_time_front/presentation/shared/time/date_basis_info.dart';
 import 'dart:math' as math;
+import 'package:on_time_front/presentation/home/components/device_day_refresh.dart';
+import 'package:on_time_front/presentation/home/utils/home_schedule_card_selection.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -8,6 +11,7 @@ import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.dart';
 import 'package:on_time_front/presentation/home/components/todays_schedule_tile.dart';
+import 'package:on_time_front/presentation/home/components/nearest_schedule_query_status.dart';
 import 'package:on_time_front/presentation/home/utils/today_tile_navigation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
@@ -21,34 +25,35 @@ class HomeScreenTmp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateOfToday = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-      0,
-      0,
-      0,
-    );
-
-    return BlocProvider(
-      create: (context) =>
-          getIt.get<MonthlySchedulesBloc>()
-            ..add(MonthlySchedulesSubscriptionRequested(date: dateOfToday)),
-      child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
-        builder: (context, state) {
-          return HomeScreenContent(state: state);
-        },
-      ),
+    return DeviceDayRefresh(
+      builder: (context, now) {
+        final dateOfToday = DateTime(now.year, now.month, now.day);
+        return BlocProvider(
+          create: (context) =>
+              getIt.get<MonthlySchedulesBloc>()
+                ..add(MonthlySchedulesSubscriptionRequested(date: dateOfToday)),
+          child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
+            builder: (context, state) =>
+                HomeScreenContent(state: state, now: now),
+          ),
+        );
+      },
     );
   }
 }
 
 /// The actual home screen content that can be tested independently
 class HomeScreenContent extends StatelessWidget {
-  const HomeScreenContent({super.key, required this.state, this.userScore});
+  const HomeScreenContent({
+    super.key,
+    required this.state,
+    this.userScore,
+    this.now,
+  });
 
   final MonthlySchedulesState state;
   final double? userScore;
+  final DateTime? now;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +65,8 @@ class HomeScreenContent extends StatelessWidget {
     return BlocListener<ScheduleBloc, ScheduleState>(
       listenWhen: (previous, current) {
         return previous.status != ScheduleStatus.started &&
-            current.status == ScheduleStatus.started;
+            current.status == ScheduleStatus.started &&
+            !current.isResumedPreparation;
       },
       listener: (context, scheduleState) {
         context.go('/scheduleStart');
@@ -73,34 +79,54 @@ class HomeScreenContent extends StatelessWidget {
             safeAreaTop: MediaQuery.paddingOf(context).top,
           );
 
-          return Column(
-            children: [
-              ColoredBox(
-                color: colorScheme.primary,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(height: metrics.safeAreaGap),
-                    SizedBox(height: metrics.heroTopPadding),
-                    _CharacterSection(
-                      score: score,
-                      height: metrics.bannerHeight,
-                      topPadding: 8,
-                    ),
-                    _TodaysScheduleOverlay(metrics: metrics),
-                  ],
+          return CustomScrollView(
+            key: const Key('home-content-scroll'),
+            slivers: [
+              SliverToBoxAdapter(
+                child: ColoredBox(
+                  color: colorScheme.primary,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: metrics.safeAreaGap),
+                      SizedBox(height: metrics.heroTopPadding),
+                      _CharacterSection(
+                        score: score,
+                        height: metrics.bannerHeight,
+                        topPadding: 8,
+                      ),
+                      _TodaysScheduleOverlay(
+                        metrics: metrics,
+                        now: now ?? DateTime.now(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.only(
-                    left: metrics.sectionHorizontalPadding,
-                    right: metrics.sectionHorizontalPadding,
-                  ),
-                  decoration: BoxDecoration(color: colorScheme.surface),
-                  child: _MonthlySchedule(
-                    monthlySchedulesState: state,
-                    metrics: metrics,
+              SliverLayoutBuilder(
+                builder: (context, sliverConstraints) => SliverToBoxAdapter(
+                  child: SizedBox(
+                    // Keep all six calendar rows reachable when a retry notice
+                    // or larger text expands the naturally sized appointment.
+                    // This uses total preceding extent, not the changing scroll
+                    // offset, so scrolling cannot resize the calendar itself.
+                    height: math.max(
+                      metrics.minimumMonthlyHeight,
+                      sliverConstraints.viewportMainAxisExtent -
+                          sliverConstraints.precedingScrollExtent,
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.only(
+                        left: metrics.sectionHorizontalPadding,
+                        right: metrics.sectionHorizontalPadding,
+                      ),
+                      decoration: BoxDecoration(color: colorScheme.surface),
+                      child: _MonthlySchedule(
+                        monthlySchedulesState: state,
+                        metrics: metrics,
+                        today: now,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -113,9 +139,10 @@ class HomeScreenContent extends StatelessWidget {
 }
 
 class _TodaysScheduleOverlay extends StatelessWidget {
-  const _TodaysScheduleOverlay({required this.metrics});
+  const _TodaysScheduleOverlay({required this.metrics, required this.now});
 
   final _HomeLayoutMetrics metrics;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
@@ -124,14 +151,16 @@ class _TodaysScheduleOverlay extends StatelessWidget {
 
     return BlocBuilder<ScheduleBloc, ScheduleState>(
       builder: (context, scheduleState) {
-        final todaySchedule =
-            scheduleState.status == ScheduleStatus.notExists ||
-                scheduleState.status == ScheduleStatus.initial
-            ? null
-            : scheduleState.schedule;
+        final selection = HomeScheduleCardSelection.at(scheduleState, now);
+        final todaySchedule = selection.schedule;
         final hasSchedule = todaySchedule != null;
+        final l10n = AppLocalizations.of(context)!;
         final target = resolveTodayTileNavigationTarget(
-          scheduleStatus: scheduleState.status,
+          scheduleStatus:
+              selection.kind == HomeScheduleCardKind.today ||
+                  selection.kind == HomeScheduleCardKind.next
+              ? ScheduleStatus.upcoming
+              : scheduleState.status,
           hasSchedule: hasSchedule,
         );
 
@@ -178,7 +207,17 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocalizations.of(context)!.todaysAppointments,
+                          switch (selection.kind) {
+                            HomeScheduleCardKind.active =>
+                              l10n.homePreparationInProgress,
+                            HomeScheduleCardKind.prompt =>
+                              l10n.homePreparationPrompt,
+                            HomeScheduleCardKind.next =>
+                              l10n.homeNextAppointment,
+                            HomeScheduleCardKind.stale =>
+                              l10n.homePreviouslyCheckedAppointment,
+                            _ => l10n.todaysAppointments,
+                          },
                           style:
                               (metrics.compact
                                       ? theme.textTheme.titleSmall
@@ -186,21 +225,31 @@ class _TodaysScheduleOverlay extends StatelessWidget {
                                   ?.copyWith(
                                     height: metrics.compact ? 22 / 16 : 22 / 18,
                                   ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (selection.kind == HomeScheduleCardKind.today)
+                          const DateBasisInfo(home: true),
+                        NearestScheduleQueryStatus(
+                          query: scheduleState.nearestQuery,
+                          showStaleNotice:
+                              selection.kind == HomeScheduleCardKind.stale,
                         ),
                         SizedBox(height: metrics.todayTitleGap),
-                        TodaysScheduleTile(
-                          key: const Key('today_schedule_tile'),
-                          schedule: todaySchedule,
-                          compact: metrics.compact,
-                          onTap: target == null
-                              ? null
-                              : () => context.go(
-                                  target.path,
-                                  extra: target.extra,
-                                ),
-                        ),
+                        if (todaySchedule != null ||
+                            scheduleState.nearestQuery is NearestQueryEmpty)
+                          TodaysScheduleTile(
+                            key: const Key('today_schedule_tile'),
+                            schedule: todaySchedule,
+                            compact: metrics.compact,
+                            resolution: selection.resolution,
+                            emptyLabel: l10n.homeNoUpcomingAppointments,
+                            onTap:
+                                target == null || !selection.canOpenPreparation
+                                ? null
+                                : () => context.go(
+                                    target.path,
+                                    extra: target.extra,
+                                  ),
+                          ),
                       ],
                     ),
                   ),
@@ -218,10 +267,12 @@ class _MonthlySchedule extends StatelessWidget {
   const _MonthlySchedule({
     required this.monthlySchedulesState,
     required this.metrics,
+    this.today,
   });
 
   final MonthlySchedulesState monthlySchedulesState;
   final _HomeLayoutMetrics metrics;
+  final DateTime? today;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +287,7 @@ class _MonthlySchedule extends StatelessWidget {
               child: MonthCalendar(
                 key: const Key('home_month_calendar'),
                 monthlySchedulesState: monthlySchedulesState,
+                today: today,
                 rowHeight: metrics.calendarRowHeightFor(constraints.maxHeight),
                 daysOfWeekHeight: metrics.calendarDaysOfWeekHeight,
                 contentPadding: EdgeInsets.only(
@@ -389,6 +441,15 @@ class _HomeLayoutMetrics {
   final double calendarDaysOfWeekHeight;
   final double calendarPadding;
   final double calendarFabClearance;
+
+  double get minimumMonthlyHeight =>
+      monthlyHeaderHeight +
+      72 +
+      calendarDaysOfWeekHeight +
+      6 * 28 +
+      calendarPadding * 2 +
+      calendarFabClearance +
+      sectionBottomPadding;
 
   // Measure the space left after the naturally sized hero/card and header,
   // rather than subtracting a fixed card height from the whole viewport.

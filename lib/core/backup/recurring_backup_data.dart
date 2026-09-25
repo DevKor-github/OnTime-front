@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'dart:convert';
 
 import 'package:on_time_front/core/database/database.dart';
@@ -115,10 +116,10 @@ class RecurringBackupData {
         final schedule = RecurrenceCodec.scheduleFromJson(
           jsonDecode(segment.scheduleJson),
         );
-        final from = DateTime.parse(segment.fromSlot);
+        final from = _civilSlot(segment.fromSlot);
         final before = segment.beforeSlot == null
             ? null
-            : DateTime.parse(segment.beforeSlot!);
+            : _civilSlot(segment.beforeSlot!);
         if (from.isBefore(rule.start) ||
             (before?.isBefore(from) ?? false) ||
             schedule.timeZoneId != rule.timeZoneId ||
@@ -201,3 +202,5 @@ class RecurringBackupData {
     }
   }
 }
+
+DateTime _civilSlot(String value) => CivilDateTime.parse(value).toUtcCarrier();

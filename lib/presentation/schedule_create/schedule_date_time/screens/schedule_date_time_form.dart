@@ -1,15 +1,19 @@
+import 'package:on_time_front/core/time/time_zone_rules.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
+import 'package:on_time_front/domain/entities/schedule_time_resolution.dart';
+import 'package:on_time_front/presentation/shared/time/schedule_zoned_time.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_settings_sheet.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart';
-import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
+import 'package:on_time_front/presentation/shared/components/civil_date_time_picker.dart';
+import 'schedule_time_zone_picker.dart';
 import 'package:on_time_front/presentation/schedule_create/components/message_bubble.dart';
 
 //TODO: Format DateTime string
@@ -82,22 +86,21 @@ class ScheduleDateTimeForm extends StatelessWidget {
                     ? null
                     : _localizedDateString(context, state.scheduleDate.value!),
               ),
-              onTap: () {
-                context.showCupertinoDatePickerModal(
+              onTap: () async {
+                final cubit = context.read<ScheduleDateTimeCubit>();
+                final owns = _captureFormOwner(context, cubit);
+                final value = await showCivilDateTimePicker(
+                  context: context,
                   title: AppLocalizations.of(context)!.enterDate,
-                  mode: CupertinoDatePickerMode.date,
-                  initialValue: state.scheduleDate.value ?? DateTime.now(),
-                  onDisposed: () {
-                    context
-                        .read<ScheduleDateTimeCubit>()
-                        .validateCurrentSelection();
-                  },
-                  onSaved: (DateTime newDateTime) {
-                    context.read<ScheduleDateTimeCubit>().scheduleDateChanged(
-                      newDateTime,
-                    );
-                  },
+                  dateOnly: true,
+                  initialCivil:
+                      state.selectedScheduleDateTime ??
+                      state.scheduleDate.value ??
+                      DateTime.now(),
                 );
+                if (!owns()) return;
+                if (value != null) await cubit.scheduleDateChanged(value);
+                if (owns()) cubit.validateCurrentSelection();
               },
             ),
             const SizedBox(height: 8),
@@ -125,36 +128,84 @@ class ScheduleDateTimeForm extends StatelessWidget {
                 prefixIcon: const Icon(Icons.schedule, size: 24),
                 suffixIcon: const Icon(Icons.chevron_right, size: 20),
                 labelText: recurrenceText(context, '시간', 'Time'),
-                hintText: DateFormat.jm(
-                  Localizations.localeOf(context).toString(),
-                ).format(DateTime.now()),
+                hintText: TimeOfDay.now().format(context),
                 hintStyle: fadedHintStyle,
               ),
               controller: TextEditingController(
                 text: state.scheduleTime.value == null
                     ? null
-                    : DateFormat.jm(
-                        Localizations.localeOf(context).toString(),
-                      ).format(state.scheduleTime.value!),
+                    : TimeOfDay.fromDateTime(
+                        state.scheduleTime.value!,
+                      ).format(context),
               ),
-              onTap: () {
-                context.showCupertinoDatePickerModal(
+              onTap: () async {
+                final cubit = context.read<ScheduleDateTimeCubit>();
+                final owns = _captureFormOwner(context, cubit);
+                final value = await showCivilDateTimePicker(
+                  context: context,
                   title: AppLocalizations.of(context)!.enterTime,
-                  mode: CupertinoDatePickerMode.time,
-                  initialValue: state.scheduleTime.value ?? DateTime.now(),
-                  onDisposed: () {
-                    context
-                        .read<ScheduleDateTimeCubit>()
-                        .validateCurrentSelection();
-                  },
-                  onSaved: (DateTime newDateTime) {
-                    context.read<ScheduleDateTimeCubit>().scheduleTimeChanged(
-                      newDateTime,
-                    );
-                  },
+                  dateOnly: false,
+                  initialCivil:
+                      state.selectedScheduleDateTime ??
+                      state.scheduleTime.value ??
+                      DateTime.now(),
                 );
+                if (!owns()) return;
+                if (value != null) await cubit.scheduleTimeChanged(value);
+                if (owns()) cubit.validateCurrentSelection();
               },
             ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.public),
+              title: Text(
+                state.timeZoneId.isEmpty
+                    ? AppLocalizations.of(context)!.zonedTimeChooseZone
+                    : state.timeZoneId,
+              ),
+              subtitle: Text(
+                state.timeZoneExplicitlySelected
+                    ? AppLocalizations.of(context)!.zonedTimeSelectedZone
+                    : form.originalSchedule != null
+                    ? AppLocalizations.of(context)!.zonedTimeSavedZone
+                    : state.timeZoneId.isEmpty
+                    ? AppLocalizations.of(
+                        context,
+                      )!.zonedTimeSelectUnavailableZone
+                    : AppLocalizations.of(context)!.zonedTimeDetectedZone,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final cubit = context.read<ScheduleDateTimeCubit>();
+                final owns = _captureFormOwner(context, cubit);
+                final zone = await showScheduleTimeZonePicker(
+                  context: context,
+                  currentZone: state.timeZoneId,
+                  civil: state.selectedScheduleDateTime,
+                  offsetSeconds: state.selectedOccurrenceOffsetSeconds,
+                  isCurrent: owns,
+                );
+                if (zone != null && owns()) {
+                  await cubit.timeZoneSelected(zone);
+                }
+              },
+            ),
+            if (state.selectedScheduleDateTime != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ScheduleZonedTime(
+                  civil: CivilDateTime.fromFields(
+                    state.selectedScheduleDateTime!,
+                  ),
+                  timeZoneId: state.timeZoneId,
+                  resolution: _selectionResolution(state),
+                  showResolutionStatus:
+                      state.isRecurring ||
+                      !(state.isNonexistentCivilTime ||
+                          state.hasAmbiguousCivilTime ||
+                          state.requiresOccurrenceChoice),
+                ),
+              ),
             const SizedBox(height: 24),
             if (form.originalSchedule == null || form.recurrenceRule != null)
               RecurrenceValue(
@@ -168,6 +219,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                     : () async {
                         final bloc = context.read<ScheduleFormBloc>();
                         final cubit = context.read<ScheduleDateTimeCubit>();
+                        final owns = _captureFormOwner(context, cubit);
                         final selected =
                             await showModalBottomSheet<
                               RecurrenceSettingsResult
@@ -179,7 +231,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                                 height: MediaQuery.sizeOf(context).height * .94,
                                 child: RecurrenceSettingsSheet(
                                   start: state.selectedScheduleDateTime!,
-                                  timeZoneId: form.timeZoneId,
+                                  timeZoneId: state.timeZoneId,
                                   initial: form.recurrenceRule,
                                   allowNone: form.originalSchedule == null,
                                   leadTime:
@@ -189,9 +241,7 @@ class ScheduleDateTimeForm extends StatelessWidget {
                                 ),
                               ),
                             );
-                        if (selected != null &&
-                            !bloc.isClosed &&
-                            !cubit.isClosed) {
+                        if (selected != null && owns()) {
                           bloc.add(
                             ScheduleFormRecurringChanged(
                               selected.rule,
@@ -263,14 +313,72 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   type: MessageBubbleType.error,
                 ),
               ),
-            if (!state.isRecurring && state.hasAmbiguousCivilTime)
+            if (!state.isRecurring && state.isNonexistentCivilTime)
+              TextButton(
+                onPressed: () async {
+                  final cubit = context.read<ScheduleDateTimeCubit>();
+                  final owns = _captureFormOwner(context, cubit);
+                  final civil = state.selectedScheduleDateTime;
+                  if (civil == null) return;
+                  final suggested = CivilTimeResolver.nextValidCivilTime(
+                    civil,
+                    state.timeZoneId,
+                  );
+                  if (suggested == null) return;
+                  final occurrences = CivilTimeResolver.resolve(
+                    suggested,
+                    state.timeZoneId,
+                  );
+                  final accepted = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      scrollable: true,
+                      title: Text(
+                        AppLocalizations.of(context)!.zonedTimeNextValid,
+                      ),
+                      content: ScheduleZonedTime(
+                        civil: CivilDateTime.fromFields(suggested),
+                        timeZoneId: state.timeZoneId,
+                        resolution: ScheduleTimeResolution(
+                          status: occurrences.length == 1
+                              ? ScheduleTimeResolutionStatus.resolved
+                              : ScheduleTimeResolutionStatus.ambiguous,
+                          instantUtc: occurrences.length == 1
+                              ? occurrences.single.instantUtc
+                              : null,
+                          occurrences: occurrences,
+                        ),
+                        showInstant: true,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text(AppLocalizations.of(context)!.cancel),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(AppLocalizations.of(context)!.ok),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (accepted != true || !owns()) return;
+                  await cubit.scheduleDateChanged(suggested);
+                  if (owns()) await cubit.scheduleTimeChanged(suggested);
+                },
+                child: Text(AppLocalizations.of(context)!.zonedTimeNextValid),
+              ),
+            if (!state.isRecurring &&
+                (state.hasAmbiguousCivilTime || state.requiresOccurrenceChoice))
               Padding(
                 padding: const EdgeInsets.only(top: 12.0, left: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _dstOverlapMessage(context),
+                      state.hasAmbiguousCivilTime
+                          ? _dstOverlapMessage(context)
+                          : AppLocalizations.of(context)!.zonedTimeRulesChanged,
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 8),
@@ -296,6 +404,22 @@ class ScheduleDateTimeForm extends StatelessWidget {
                                 .occurrenceOffsetSelected(
                                   state.occurrenceOffsetOptions[index],
                                 ),
+                            child: ScheduleZonedTime(
+                              showInstant: true,
+                              civil: CivilDateTime.fromFields(
+                                state.selectedScheduleDateTime!,
+                              ),
+                              timeZoneId: state.timeZoneId,
+                              resolution: ScheduleTimeResolution(
+                                status: ScheduleTimeResolutionStatus.resolved,
+                                instantUtc:
+                                    CivilDateTime.fromFields(
+                                      state.selectedScheduleDateTime!,
+                                    ).atOffset(
+                                      state.occurrenceOffsetOptions[index],
+                                    ),
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -317,22 +441,17 @@ class ScheduleDateTimeForm extends StatelessWidget {
   }
 }
 
-String _dstGapMessage(BuildContext context) {
-  return Localizations.localeOf(context).languageCode == 'ko'
-      ? '일광절약시간 변경으로 존재하지 않는 시각이에요. 다른 시간을 선택해주세요.'
-      : 'This time does not exist because of a daylight-saving change. Choose another time.';
-}
+String _dstGapMessage(BuildContext context) =>
+    AppLocalizations.of(context)!.zonedTimeNonexistent;
 
-String _dstOverlapMessage(BuildContext context) {
-  return Localizations.localeOf(context).languageCode == 'ko'
-      ? '이 시각은 두 번 발생해요. 사용할 시각을 선택해주세요.'
-      : 'This time occurs twice. Choose which occurrence to use.';
-}
+String _dstOverlapMessage(BuildContext context) =>
+    AppLocalizations.of(context)!.zonedTimeAmbiguous;
 
 String _occurrenceLabel(BuildContext context, int index, int offsetSeconds) {
-  final occurrence = Localizations.localeOf(context).languageCode == 'ko'
-      ? (index == 0 ? '첫 번째' : '두 번째')
-      : (index == 0 ? 'First' : 'Second');
+  final l = AppLocalizations.of(context)!;
+  final occurrence = index == 0
+      ? l.zonedTimeFirstOccurrence
+      : l.zonedTimeSecondOccurrence;
   return '$occurrence (${CivilTimeResolver.formatUtcOffset(offsetSeconds)})';
 }
 
@@ -346,4 +465,42 @@ String _localizedDateString(BuildContext context, DateTime date) {
       Localizations.localeOf(context).toString(),
     ).format(date);
   }
+}
+
+bool Function() _captureFormOwner(
+  BuildContext context,
+  ScheduleDateTimeCubit cubit,
+) {
+  final bloc = cubit.scheduleFormBloc;
+  final owner = bloc.formOwner;
+  final mutation = bloc.state.mutationId;
+  return () =>
+      context.mounted &&
+      !cubit.isClosed &&
+      bloc.ownsForm(owner) &&
+      bloc.state.mutationId == mutation;
+}
+
+ScheduleTimeResolution _selectionResolution(ScheduleDateTimeState state) {
+  final civil = state.selectedScheduleDateTime;
+  if (civil == null || !TimeZoneRules.contains(state.timeZoneId)) {
+    return ScheduleTimeResolution(
+      status: ScheduleTimeResolutionStatus.unknownZone,
+    );
+  }
+  final candidates = CivilTimeResolver.resolve(civil, state.timeZoneId);
+  final selected = candidates
+      .where((c) => c.offsetSeconds == state.selectedOccurrenceOffsetSeconds)
+      .firstOrNull;
+  return ScheduleTimeResolution(
+    status: candidates.isEmpty
+        ? ScheduleTimeResolutionStatus.nonexistent
+        : selected != null
+        ? ScheduleTimeResolutionStatus.resolved
+        : candidates.length > 1
+        ? ScheduleTimeResolutionStatus.ambiguous
+        : ScheduleTimeResolutionStatus.changed,
+    instantUtc: selected?.instantUtc,
+    occurrences: candidates,
+  );
 }

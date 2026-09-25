@@ -22,13 +22,22 @@ struct AlarmLaunchPayloadTest {
       "alarmLaunchPayloadVersion": "8", "type": "start-command"
     ]
     let expected = ["scheduleId": "fixture-schedule", "type": "schedule_alarm",
-                    "alarmLaunchPayloadVersion": "9", "promptVariant": "alarm"]
+                    "alarmLaunchPayloadVersion": "10", "promptVariant": "alarm"]
     precondition(AlarmLaunchPayload.sanitize(old) == expected)
     precondition(AlarmLaunchPayload.sanitize(expected) == expected)
     for id: Any in [123, ["id"], "", "  ", "x\ny", "x\u{7f}y", String(repeating: "x", count: 513)] {
       precondition(AlarmLaunchPayload.sanitize(["scheduleId": id]) == nil)
     }
     precondition(AlarmLaunchPayload.sanitize(["scheduleId": "한글-🙂"]) != nil)
+    let identity = "11111111-1111-1111-1111-111111111111"
+    var issued = old
+    issued["storeIncarnation"] = identity
+    precondition(AlarmLaunchPayload.sanitize(issued)?["storeIncarnation"] == identity)
+    precondition(AlarmLaunchPayload.sanitize(expected)?["storeIncarnation"] == nil)
+    for bad: Any in [42, "", "private-value", String(repeating: "g", count: 36)] {
+      issued["storeIncarnation"] = bad
+      precondition(AlarmLaunchPayload.sanitize(issued) == nil)
+    }
     let suite = "ontime-a11-test-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suite)!
     defer { defaults.removePersistentDomain(forName: suite) }

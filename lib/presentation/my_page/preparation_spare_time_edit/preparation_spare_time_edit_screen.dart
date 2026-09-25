@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
-import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
+import 'package:on_time_front/domain/entities/default_preferences.dart';
 import 'package:on_time_front/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_bloc.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_create_list.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
-import 'package:on_time_front/presentation/shared/components/time_stepper.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 
 class PreparationSpareTimeEditScreen extends StatelessWidget {
@@ -20,11 +19,8 @@ class PreparationSpareTimeEditScreen extends StatelessWidget {
       providers: [
         BlocProvider<DefaultPreparationSpareTimeFormBloc>(
           create: (context) {
-            final spareTime =
-                context.read<AuthBloc>().state.user.spareTimeOrNull ??
-                Duration.zero;
             return getIt.get<DefaultPreparationSpareTimeFormBloc>()
-              ..add(FormEditRequested(spareTime: spareTime));
+              ..add(const FormEditRequested());
           },
         ),
         BlocProvider<PreparationFormBloc>(
@@ -49,21 +45,11 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
         >(
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
-            if (state.status == DefaultPreparationSpareTimeStatus.submitted) {
+            final bloc = context.read<DefaultPreparationSpareTimeFormBloc>();
+            if (state.status == DefaultPreparationSpareTimeStatus.submitted &&
+                bloc.current &&
+                (ModalRoute.of(context)?.isCurrent ?? false)) {
               Navigator.of(context).pop();
-            } else if (state.status ==
-                DefaultPreparationSpareTimeStatus.error) {
-              final l10n = AppLocalizations.of(context)!;
-              showTwoActionDialog(
-                context,
-                config: TwoActionDialogConfig(
-                  title: state.errorMessage ?? l10n.error,
-                  primaryAction: DialogActionConfig(
-                    label: l10n.ok,
-                    variant: ModalWideButtonVariant.destructive,
-                  ),
-                ),
-              );
             }
           },
         ),
@@ -74,7 +60,7 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
           listenWhen: (previous, current) =>
               current.status == DefaultPreparationSpareTimeStatus.success &&
               current.preparation != null &&
-              previous.preparation != current.preparation,
+              previous.editorVersion != current.editorVersion,
           listener: (context, state) {
             context.read<PreparationFormBloc>().add(
               PreparationFormEditRequested(
@@ -124,7 +110,6 @@ class _PreparationSpareTimeEditView extends StatelessWidget {
                                   .read<DefaultPreparationSpareTimeFormBloc>()
                                   .add(
                                     FormSubmitted(
-                                      note: '',
                                       preparation: currentPreparationState
                                           .toPreparationEntity(),
                                     ),
@@ -161,20 +146,41 @@ class _PreparationSpareTimeEditBody extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.status != current.status ||
           previous.spareTime != current.spareTime ||
-          previous.preparation != current.preparation,
+          previous.editorVersion != current.editorVersion,
       builder: (context, state) {
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 180),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          child: state.hasEditableData
-              ? _PreparationSpareTimeEditContent(
-                  key: const ValueKey('preparation_spare_time_form'),
-                  spareTime: state.spareTime!,
-                )
-              : const _PreparationSpareTimeEditLoading(
-                  key: ValueKey('preparation_spare_time_loading'),
+        if (!state.hasEditableData) {
+          if (state.status == DefaultPreparationSpareTimeStatus.error) {
+            return _PreferencesNotice(state: state);
+          }
+          return const _PreparationSpareTimeEditLoading();
+        }
+        return LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: Column(
+              children: [
+                if (state.status == DefaultPreparationSpareTimeStatus.error ||
+                    state.status ==
+                        DefaultPreparationSpareTimeStatus.followUpPending)
+                  _PreferencesNotice(state: state),
+                if (state.status == DefaultPreparationSpareTimeStatus.loading ||
+                    state.status ==
+                        DefaultPreparationSpareTimeStatus.submitting)
+                  const LinearProgressIndicator(),
+                SizedBox(
+                  height: constraints.maxHeight < 620
+                      ? 620
+                      : constraints.maxHeight,
+                  child: AbsorbPointer(
+                    absorbing: !state.canEdit,
+                    child: _PreparationSpareTimeEditContent(
+                      key: const ValueKey('preparation_spare_time_form'),
+                      spareTime: state.spareTime!,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -182,7 +188,7 @@ class _PreparationSpareTimeEditBody extends StatelessWidget {
 }
 
 class _PreparationSpareTimeEditLoading extends StatelessWidget {
-  const _PreparationSpareTimeEditLoading({super.key});
+  const _PreparationSpareTimeEditLoading();
 
   @override
   Widget build(BuildContext context) {
@@ -238,38 +244,36 @@ class _SpareTimeSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: 24.0),
-        TimeStepper(
-          onSpareTimeIncreased: () {
-            context.read<DefaultPreparationSpareTimeFormBloc>().add(
-              const SpareTimeIncreased(),
-            );
-          },
-          onSpareTimeDecreased: () {
-            context.read<DefaultPreparationSpareTimeFormBloc>().add(
-              const SpareTimeDecreased(),
-            );
-          },
-          lowerBound: Duration(minutes: 10),
-          value: spareTime,
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 20,
+          children: [
+            IconButton(
+              onPressed: spareTime.inMinutes >= 5
+                  ? () => context
+                        .read<DefaultPreparationSpareTimeFormBloc>()
+                        .add(const SpareTimeDecreased())
+                  : null,
+              icon: const Icon(Icons.remove),
+            ),
+            Text(
+              AppLocalizations.of(
+                context,
+              )!.defaultPreferencesMinutes(spareTime.inMinutes),
+            ),
+            IconButton(
+              onPressed: spareTime.inMinutes <= 1435
+                  ? () => context
+                        .read<DefaultPreparationSpareTimeFormBloc>()
+                        .add(const SpareTimeIncreased())
+                  : null,
+              icon: const Icon(Icons.add),
+            ),
+          ],
         ),
       ],
     );
   }
-}
-
-extension on DefaultPreparationSpareTimeFormState {
-  bool get hasEditableData =>
-      (status == DefaultPreparationSpareTimeStatus.success ||
-          status == DefaultPreparationSpareTimeStatus.submitting ||
-          status == DefaultPreparationSpareTimeStatus.error) &&
-      spareTime != null &&
-      preparation != null;
-
-  bool get canSubmit =>
-      (status == DefaultPreparationSpareTimeStatus.success ||
-          status == DefaultPreparationSpareTimeStatus.error) &&
-      spareTime != null &&
-      preparation != null;
 }
 
 class _PreparationSection extends StatelessWidget {
@@ -304,7 +308,7 @@ class _PreparationSection extends StatelessWidget {
                       (prev, step) => prev + step.preparationTime.value,
                     );
                 return Text(
-                  '${AppLocalizations.of(context)!.totalTime}${totalDuration.inMinutes}분',
+                  '${AppLocalizations.of(context)!.totalTime}${AppLocalizations.of(context)!.defaultPreferencesMinutes(totalDuration.inMinutes)}',
                   textAlign: TextAlign.end,
                 );
               },
@@ -330,6 +334,78 @@ class _PreparationSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PreferencesNotice extends StatelessWidget {
+  const _PreferencesNotice({required this.state});
+  final DefaultPreparationSpareTimeFormState state;
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final bloc = context.read<DefaultPreparationSpareTimeFormBloc>();
+    final receipt = state.receipt;
+    final String message;
+    if (receipt != null) {
+      message = receipt.authorityPending
+          ? l10n.defaultPreferencesAuthorityPending
+          : state.needsReload
+          ? l10n.defaultPreferencesSavedStoreChanged
+          : receipt.reloadPending && receipt.deliveryPending
+          ? l10n.defaultPreferencesBothPending
+          : receipt.reloadPending
+          ? l10n.defaultPreferencesReloadPending
+          : l10n.defaultPreferencesDeliveryPending;
+    } else if (state.needsReload) {
+      message = l10n.defaultPreferencesConflict;
+    } else if (!state.hasEditableData) {
+      message = l10n.defaultPreferencesLoadFailed;
+    } else if (state.failure == DefaultPreferencesFailure.invalid) {
+      message = l10n.defaultPreferencesInvalid;
+    } else {
+      message = l10n.defaultPreferencesSaveFailed;
+    }
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(message, key: const ValueKey('default_preferences_notice')),
+          if (receipt != null && !state.needsReload)
+            TextButton(
+              onPressed: () => bloc.add(const FormFollowUpRetried()),
+              child: Text(l10n.defaultPreferencesRetryFollowUp),
+            )
+          else if (receipt == null &&
+              (state.needsReload || !state.hasEditableData))
+            TextButton(
+              onPressed: () async {
+                final owner = bloc.formOwner;
+                if (state.hasEditableData) {
+                  final decision = await showTwoActionDialog(
+                    context,
+                    config: TwoActionDialogConfig(
+                      title: l10n.defaultPreferencesDiscardTitle,
+                      description: l10n.defaultPreferencesDiscardDescription,
+                      primaryAction: DialogActionConfig(
+                        label: l10n.defaultPreferencesLoadLatest,
+                        variant: ModalWideButtonVariant.destructive,
+                      ),
+                      secondaryAction: DialogActionConfig(label: l10n.cancel),
+                    ),
+                  );
+                  if (decision != DialogActionResult.primary) return;
+                }
+                if (context.mounted && bloc.ownsForm(owner)) {
+                  bloc.add(const FormEditRequested());
+                }
+              },
+              child: Text(l10n.defaultPreferencesLoadLatest),
+            ),
+        ],
+      ),
     );
   }
 }

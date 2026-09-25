@@ -98,6 +98,132 @@ abstract class AppLocalizations {
     Locale('ko'),
   ];
 
+  /// No description provided for @detailedNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show schedule names in notifications'**
+  String get detailedNotificationTitle;
+
+  /// No description provided for @detailedNotificationPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows the schedule name and a differing time zone on the lock screen. Places, notes and preparation details stay private.'**
+  String get detailedNotificationPrivacy;
+
+  /// No description provided for @detailedNotificationLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking setting'**
+  String get detailedNotificationLoading;
+
+  /// No description provided for @detailedNotificationReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read the setting. Check the saved value again.'**
+  String get detailedNotificationReadFailed;
+
+  /// No description provided for @detailedNotificationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the setting again after the local data operation finishes.'**
+  String get detailedNotificationUnavailable;
+
+  /// No description provided for @detailedNotificationRequestOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On requested · not saved yet'**
+  String get detailedNotificationRequestOn;
+
+  /// No description provided for @detailedNotificationRequestOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off requested · not saved yet'**
+  String get detailedNotificationRequestOff;
+
+  /// No description provided for @detailedNotificationSavedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved: on'**
+  String get detailedNotificationSavedOn;
+
+  /// No description provided for @detailedNotificationSavedOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved: off'**
+  String get detailedNotificationSavedOff;
+
+  /// No description provided for @detailedNotificationSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested change could not be saved and has not been applied.'**
+  String get detailedNotificationSaveFailed;
+
+  /// No description provided for @detailedNotificationApplying.
+  ///
+  /// In en, this message translates to:
+  /// **'Applying the saved setting to notifications'**
+  String get detailedNotificationApplying;
+
+  /// No description provided for @detailedNotificationDelayed.
+  ///
+  /// In en, this message translates to:
+  /// **'The device is taking longer to respond. Notification changes are still being checked.'**
+  String get detailedNotificationDelayed;
+
+  /// No description provided for @detailedNotificationApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied to current notification registrations'**
+  String get detailedNotificationApplied;
+
+  /// No description provided for @detailedNotificationOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule notifications are off.'**
+  String get detailedNotificationOff;
+
+  /// No description provided for @detailedNotificationEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no upcoming notifications to update.'**
+  String get detailedNotificationEmpty;
+
+  /// No description provided for @detailedNotificationPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Check notification permission. The saved setting is kept.'**
+  String get detailedNotificationPermission;
+
+  /// No description provided for @detailedNotificationCancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing notifications may still show a schedule name. Check notification cleanup again.'**
+  String get detailedNotificationCancellation;
+
+  /// No description provided for @detailedNotificationSchedulingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some notifications could not be scheduled. Apply notifications again.'**
+  String get detailedNotificationSchedulingFailed;
+
+  /// No description provided for @detailedNotificationNeedsCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification changes could not be confirmed. Check again.'**
+  String get detailedNotificationNeedsCheck;
+
+  /// No description provided for @detailedNotificationHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'New detailed notifications are on hold until the off request is resolved. Existing notifications may remain.'**
+  String get detailedNotificationHeld;
+
+  /// No description provided for @detailedNotificationRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Check or apply again'**
+  String get detailedNotificationRetry;
+
   /// No description provided for @startupRecoveryTitle.
   ///
   /// In en, this message translates to:
@@ -1172,6 +1298,18 @@ abstract class AppLocalizations {
   /// **'Retry notification processing only'**
   String get dataRetryDelivery;
 
+  /// No description provided for @dataRestoreCleanupPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was restored, but remaining cleanup and notification processing are incomplete. Retry the remaining work without restoring data again.'**
+  String get dataRestoreCleanupPending;
+
+  /// No description provided for @dataRetryCleanup.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry remaining work'**
+  String get dataRetryCleanup;
+
   /// No description provided for @dataRestorePartial.
   ///
   /// In en, this message translates to:
@@ -1231,6 +1369,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The operation could not be completed. Check the backup file and password.'**
   String get dataInvalidBackup;
+
+  /// No description provided for @dataStagingCleanupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was not restored, and temporary file cleanup is incomplete. Reopen the app to retry cleanup.'**
+  String get dataStagingCleanupFailed;
 
   /// No description provided for @dataOperationFailed.
   ///
@@ -1376,6 +1520,720 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to save. Your draft is preserved. Check the current state and preparation steps.'**
   String get scheduleSaveUnavailable;
+
+  /// No description provided for @defaultPreferencesLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your settings. Please try again.'**
+  String get defaultPreferencesLoadFailed;
+
+  /// No description provided for @defaultPreferencesSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings were not saved. Your edits are still here. Please try again.'**
+  String get defaultPreferencesSaveFailed;
+
+  /// No description provided for @defaultPreferencesInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the preparation names, durations and spare time. Settings were not saved.'**
+  String get defaultPreferencesInvalid;
+
+  /// No description provided for @defaultPreferencesConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedules or settings changed while you were editing. Your edits are still here and have not been saved. Reload the latest settings to review them.'**
+  String get defaultPreferencesConflict;
+
+  /// No description provided for @defaultPreferencesReloadPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings are saved, but refreshing the displayed data is incomplete. Retry the refresh without saving again.'**
+  String get defaultPreferencesReloadPending;
+
+  /// No description provided for @defaultPreferencesDeliveryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings are saved, but notification setup is incomplete. Retry notification setup without saving again.'**
+  String get defaultPreferencesDeliveryPending;
+
+  /// No description provided for @defaultPreferencesBothPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings are saved, but refreshing the displayed data and notification setup are incomplete. Retry only the remaining work without saving again.'**
+  String get defaultPreferencesBothPending;
+
+  /// No description provided for @defaultPreferencesSavedStoreChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The local operation state changed after these settings were saved. This screen will not repeat the operation. Close it and review the current settings.'**
+  String get defaultPreferencesSavedStoreChanged;
+
+  /// No description provided for @defaultPreferencesRetryFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry remaining work'**
+  String get defaultPreferencesRetryFollowUp;
+
+  /// No description provided for @defaultPreferencesLoadLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload latest settings'**
+  String get defaultPreferencesLoadLatest;
+
+  /// No description provided for @defaultPreferencesDiscardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard edits and reload?'**
+  String get defaultPreferencesDiscardTitle;
+
+  /// No description provided for @defaultPreferencesDiscardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading the latest settings replaces your unsaved edits on this screen. If loading fails, your edits stay here.'**
+  String get defaultPreferencesDiscardDescription;
+
+  /// No description provided for @defaultPreferencesMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String defaultPreferencesMinutes(int minutes);
+
+  /// No description provided for @defaultPreferencesAuthorityPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings are saved, but the current local data could not be checked. Retry the remaining work without saving again.'**
+  String get defaultPreferencesAuthorityPending;
+
+  /// No description provided for @zonedTimeOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Commitment time'**
+  String get zonedTimeOriginal;
+
+  /// No description provided for @zonedTimeDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device time'**
+  String get zonedTimeDevice;
+
+  /// No description provided for @zonedTimeDeviceLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the device time zone.'**
+  String get zonedTimeDeviceLoading;
+
+  /// No description provided for @zonedTimeDeviceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The device time zone is unavailable, so its equivalent time cannot be shown.'**
+  String get zonedTimeDeviceUnavailable;
+
+  /// No description provided for @zonedTimeDeviceOutOfRange.
+  ///
+  /// In en, this message translates to:
+  /// **'The equivalent device date is outside the supported range. The original commitment is preserved.'**
+  String get zonedTimeDeviceOutOfRange;
+
+  /// No description provided for @zonedTimeUnknownZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the time zone.'**
+  String get zonedTimeUnknownZone;
+
+  /// No description provided for @zonedTimeHistoricalUnknownZone.
+  ///
+  /// In en, this message translates to:
+  /// **'The time zone rules for this historical record are unavailable. The stored commitment is preserved.'**
+  String get zonedTimeHistoricalUnknownZone;
+
+  /// No description provided for @zonedTimeHistoricalUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'The occurrence of this historical record is uncertain. The stored time is preserved.'**
+  String get zonedTimeHistoricalUncertain;
+
+  /// No description provided for @zonedTimeNonexistent.
+  ///
+  /// In en, this message translates to:
+  /// **'This time does not exist in this time zone. Choose another time.'**
+  String get zonedTimeNonexistent;
+
+  /// No description provided for @zonedTimeAmbiguous.
+  ///
+  /// In en, this message translates to:
+  /// **'This time occurs twice. Choose which occurrence to use.'**
+  String get zonedTimeAmbiguous;
+
+  /// No description provided for @zonedTimeRulesChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Time zone rules have changed. Review the new occurrence.'**
+  String get zonedTimeRulesChanged;
+
+  /// No description provided for @zonedTimeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the commitment time.'**
+  String get zonedTimeInvalid;
+
+  /// No description provided for @zonedTimeInstant.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant (UTC)'**
+  String get zonedTimeInstant;
+
+  /// No description provided for @zonedTimeChooseZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a time zone'**
+  String get zonedTimeChooseZone;
+
+  /// No description provided for @zonedTimeSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search city or time zone'**
+  String get zonedTimeSearch;
+
+  /// No description provided for @zonedTimeClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get zonedTimeClearSearch;
+
+  /// No description provided for @zonedTimeCurrentDeviceZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Current device time zone'**
+  String get zonedTimeCurrentDeviceZone;
+
+  /// No description provided for @zonedTimeCurrentSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Current schedule time zone'**
+  String get zonedTimeCurrentSelection;
+
+  /// No description provided for @zonedTimeDraftPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection preview'**
+  String get zonedTimeDraftPreview;
+
+  /// No description provided for @zonedTimeKeepCivil.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the wall date and time while changing the time zone. Review the commitment before saving.'**
+  String get zonedTimeKeepCivil;
+
+  /// No description provided for @zonedTimeNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching time zones. Try a city name or IANA identifier.'**
+  String get zonedTimeNoMatches;
+
+  /// No description provided for @zonedTimeApplyDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply selection'**
+  String get zonedTimeApplyDraft;
+
+  /// No description provided for @zonedTimeReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review commitment time'**
+  String get zonedTimeReviewTitle;
+
+  /// No description provided for @zonedTimeReviewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the commitment and its time on this device before saving.'**
+  String get zonedTimeReviewDescription;
+
+  /// No description provided for @zonedTimeBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before change'**
+  String get zonedTimeBefore;
+
+  /// No description provided for @zonedTimeAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Commitment to save'**
+  String get zonedTimeAfter;
+
+  /// No description provided for @zonedTimeConfirmSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and save'**
+  String get zonedTimeConfirmSave;
+
+  /// No description provided for @zonedTimeFirstOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'First occurrence'**
+  String get zonedTimeFirstOccurrence;
+
+  /// No description provided for @zonedTimeSecondOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Second occurrence'**
+  String get zonedTimeSecondOccurrence;
+
+  /// No description provided for @zonedTimeDetectedZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected device time zone'**
+  String get zonedTimeDetectedZone;
+
+  /// No description provided for @zonedTimeSelectedZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected by you'**
+  String get zonedTimeSelectedZone;
+
+  /// No description provided for @zonedTimeSavedZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved schedule time zone'**
+  String get zonedTimeSavedZone;
+
+  /// No description provided for @zonedTimeSelectUnavailableZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Device time zone unavailable. Select one to continue.'**
+  String get zonedTimeSelectUnavailableZone;
+
+  /// No description provided for @zonedTimeNextValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Review next valid time'**
+  String get zonedTimeNextValid;
+
+  /// No description provided for @zonedTimePreparationStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation starts'**
+  String get zonedTimePreparationStart;
+
+  /// No description provided for @zonedCityAsiaSeoul.
+  ///
+  /// In en, this message translates to:
+  /// **'Seoul'**
+  String get zonedCityAsiaSeoul;
+
+  /// No description provided for @zonedCityAsiaTokyo.
+  ///
+  /// In en, this message translates to:
+  /// **'Tokyo'**
+  String get zonedCityAsiaTokyo;
+
+  /// No description provided for @zonedCityAsiaShanghai.
+  ///
+  /// In en, this message translates to:
+  /// **'Shanghai'**
+  String get zonedCityAsiaShanghai;
+
+  /// No description provided for @zonedCityAsiaHongKong.
+  ///
+  /// In en, this message translates to:
+  /// **'Hong Kong'**
+  String get zonedCityAsiaHongKong;
+
+  /// No description provided for @zonedCityAsiaTaipei.
+  ///
+  /// In en, this message translates to:
+  /// **'Taipei'**
+  String get zonedCityAsiaTaipei;
+
+  /// No description provided for @zonedCityAsiaSingapore.
+  ///
+  /// In en, this message translates to:
+  /// **'Singapore'**
+  String get zonedCityAsiaSingapore;
+
+  /// No description provided for @zonedCityAsiaBangkok.
+  ///
+  /// In en, this message translates to:
+  /// **'Bangkok'**
+  String get zonedCityAsiaBangkok;
+
+  /// No description provided for @zonedCityAsiaDubai.
+  ///
+  /// In en, this message translates to:
+  /// **'Dubai'**
+  String get zonedCityAsiaDubai;
+
+  /// No description provided for @zonedCityAsiaKolkata.
+  ///
+  /// In en, this message translates to:
+  /// **'Kolkata'**
+  String get zonedCityAsiaKolkata;
+
+  /// No description provided for @zonedCityAsiaKathmandu.
+  ///
+  /// In en, this message translates to:
+  /// **'Kathmandu'**
+  String get zonedCityAsiaKathmandu;
+
+  /// No description provided for @zonedCityEuropeLondon.
+  ///
+  /// In en, this message translates to:
+  /// **'London'**
+  String get zonedCityEuropeLondon;
+
+  /// No description provided for @zonedCityEuropeParis.
+  ///
+  /// In en, this message translates to:
+  /// **'Paris'**
+  String get zonedCityEuropeParis;
+
+  /// No description provided for @zonedCityEuropeBerlin.
+  ///
+  /// In en, this message translates to:
+  /// **'Berlin'**
+  String get zonedCityEuropeBerlin;
+
+  /// No description provided for @zonedCityEuropeRome.
+  ///
+  /// In en, this message translates to:
+  /// **'Rome'**
+  String get zonedCityEuropeRome;
+
+  /// No description provided for @zonedCityEuropeMadrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Madrid'**
+  String get zonedCityEuropeMadrid;
+
+  /// No description provided for @zonedCityEuropeMoscow.
+  ///
+  /// In en, this message translates to:
+  /// **'Moscow'**
+  String get zonedCityEuropeMoscow;
+
+  /// No description provided for @zonedCityAmericaNewYork.
+  ///
+  /// In en, this message translates to:
+  /// **'New York'**
+  String get zonedCityAmericaNewYork;
+
+  /// No description provided for @zonedCityAmericaLosAngeles.
+  ///
+  /// In en, this message translates to:
+  /// **'Los Angeles'**
+  String get zonedCityAmericaLosAngeles;
+
+  /// No description provided for @zonedCityAmericaChicago.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicago'**
+  String get zonedCityAmericaChicago;
+
+  /// No description provided for @zonedCityAmericaDenver.
+  ///
+  /// In en, this message translates to:
+  /// **'Denver'**
+  String get zonedCityAmericaDenver;
+
+  /// No description provided for @zonedCityAmericaToronto.
+  ///
+  /// In en, this message translates to:
+  /// **'Toronto'**
+  String get zonedCityAmericaToronto;
+
+  /// No description provided for @zonedCityAmericaVancouver.
+  ///
+  /// In en, this message translates to:
+  /// **'Vancouver'**
+  String get zonedCityAmericaVancouver;
+
+  /// No description provided for @zonedCityAmericaSaoPaulo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sao Paulo'**
+  String get zonedCityAmericaSaoPaulo;
+
+  /// No description provided for @zonedCityAustraliaSydney.
+  ///
+  /// In en, this message translates to:
+  /// **'Sydney'**
+  String get zonedCityAustraliaSydney;
+
+  /// No description provided for @zonedCityAustraliaMelbourne.
+  ///
+  /// In en, this message translates to:
+  /// **'Melbourne'**
+  String get zonedCityAustraliaMelbourne;
+
+  /// No description provided for @zonedCityAustraliaPerth.
+  ///
+  /// In en, this message translates to:
+  /// **'Perth'**
+  String get zonedCityAustraliaPerth;
+
+  /// No description provided for @zonedCityAustraliaLordHowe.
+  ///
+  /// In en, this message translates to:
+  /// **'Lord Howe'**
+  String get zonedCityAustraliaLordHowe;
+
+  /// No description provided for @zonedCityPacificAuckland.
+  ///
+  /// In en, this message translates to:
+  /// **'Auckland'**
+  String get zonedCityPacificAuckland;
+
+  /// No description provided for @zonedCityPacificHonolulu.
+  ///
+  /// In en, this message translates to:
+  /// **'Honolulu'**
+  String get zonedCityPacificHonolulu;
+
+  /// No description provided for @zonedCityPacificApia.
+  ///
+  /// In en, this message translates to:
+  /// **'Apia'**
+  String get zonedCityPacificApia;
+
+  /// No description provided for @zonedCityAfricaCairo.
+  ///
+  /// In en, this message translates to:
+  /// **'Cairo'**
+  String get zonedCityAfricaCairo;
+
+  /// No description provided for @zonedCityAfricaJohannesburg.
+  ///
+  /// In en, this message translates to:
+  /// **'Johannesburg'**
+  String get zonedCityAfricaJohannesburg;
+
+  /// No description provided for @zonedCityUtc.
+  ///
+  /// In en, this message translates to:
+  /// **'UTC'**
+  String get zonedCityUtc;
+
+  /// No description provided for @zonedTimeHomeDateBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Today · device date'**
+  String get zonedTimeHomeDateBasis;
+
+  /// No description provided for @zonedTimeCalendarDateBasis.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar · commitment date'**
+  String get zonedTimeCalendarDateBasis;
+
+  /// No description provided for @zonedTimeDateBasisTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why dates can differ'**
+  String get zonedTimeDateBasisTitle;
+
+  /// No description provided for @zonedTimeDateBasisDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Today on Home groups appointments by the current device date. The month calendar places each appointment on its original commitment date and time zone. The same instant can fall on different dates, so both dates and zones are shown when they differ.'**
+  String get zonedTimeDateBasisDescription;
+
+  /// No description provided for @zonedTimeAllReviewedOccurrences.
+  ///
+  /// In en, this message translates to:
+  /// **'View all reviewed occurrences'**
+  String get zonedTimeAllReviewedOccurrences;
+
+  /// No description provided for @zonedTimeReviewScopeOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes: this occurrence'**
+  String get zonedTimeReviewScopeOccurrence;
+
+  /// No description provided for @zonedTimeReviewScopeFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes: this and following occurrences'**
+  String get zonedTimeReviewScopeFollowing;
+
+  /// No description provided for @zonedTimeReviewScopeNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New recurring schedule'**
+  String get zonedTimeReviewScopeNew;
+
+  /// No description provided for @zonedTimePreparationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The preparation start cannot be displayed with the available time zone rules. Review it again before saving.'**
+  String get zonedTimePreparationUnavailable;
+
+  /// No description provided for @homeNextAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Next appointment'**
+  String get homeNextAppointment;
+
+  /// No description provided for @homePreparationInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation in progress'**
+  String get homePreparationInProgress;
+
+  /// No description provided for @homePreparationPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment to prepare for'**
+  String get homePreparationPrompt;
+
+  /// No description provided for @homePreviouslyCheckedAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Previously checked appointment'**
+  String get homePreviouslyCheckedAppointment;
+
+  /// No description provided for @homeCheckingAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking upcoming appointments.'**
+  String get homeCheckingAppointments;
+
+  /// No description provided for @homeNoUpcomingAppointments.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming appointments.'**
+  String get homeNoUpcomingAppointments;
+
+  /// No description provided for @homeQueryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check appointments. Please try again.'**
+  String get homeQueryFailed;
+
+  /// No description provided for @homeQueryCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment checking was cancelled. You can review your appointments in the calendar.'**
+  String get homeQueryCancelled;
+
+  /// No description provided for @homeQueryInterrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment checking was interrupted. Continue checking when you are ready.'**
+  String get homeQueryInterrupted;
+
+  /// No description provided for @homeQueryLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check all appointments. Review your appointments or repeat settings in the calendar.'**
+  String get homeQueryLimited;
+
+  /// No description provided for @homeQueryStale.
+  ///
+  /// In en, this message translates to:
+  /// **'These are previously checked details. Recheck them before starting preparation from this card.'**
+  String get homeQueryStale;
+
+  /// No description provided for @homeRetryQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get homeRetryQuery;
+
+  /// No description provided for @homeContinueQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue checking'**
+  String get homeContinueQuery;
+
+  /// No description provided for @homeCancelQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel checking'**
+  String get homeCancelQuery;
+
+  /// No description provided for @homeTimeIssues.
+  ///
+  /// In en, this message translates to:
+  /// **'Some appointment times need review. Check their dates and time zones in the calendar.'**
+  String get homeTimeIssues;
+
+  /// No description provided for @homeReviewCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Review calendar'**
+  String get homeReviewCalendar;
+
+  /// No description provided for @scheduleDeletionRemovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule history removed'**
+  String get scheduleDeletionRemovedTitle;
+
+  /// No description provided for @scheduleDeletionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'The schedule history and its delivery registrations have been removed.'**
+  String get scheduleDeletionComplete;
+
+  /// No description provided for @scheduleDeletionCleaning.
+  ///
+  /// In en, this message translates to:
+  /// **'History has been removed. Delivery cleanup is in progress.'**
+  String get scheduleDeletionCleaning;
+
+  /// No description provided for @scheduleDeletionPending.
+  ///
+  /// In en, this message translates to:
+  /// **'History has been removed, but delivery cleanup is not yet confirmed. You can retry when the current operation finishes.'**
+  String get scheduleDeletionPending;
+
+  /// No description provided for @scheduleDeletionPreparationActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation is in progress. Finish it on the preparation screen before deleting this schedule.'**
+  String get scheduleDeletionPreparationActive;
+
+  /// No description provided for @scheduleDeletionConsequences.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected schedule’s details, private preparation and outcome will be removed. Other schedules, shared content and existing punctuality totals are preserved. There is no undo in the app. Restoring an older exported backup can bring this history back.'**
+  String get scheduleDeletionConsequences;
+
+  /// No description provided for @scheduleDeletionFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this and later unstarted occurrences.'**
+  String get scheduleDeletionFollowing;
+
+  /// No description provided for @scheduleDeletionOnlySelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete only the selected schedule. Other schedules and recurrence rules are preserved.'**
+  String get scheduleDeletionOnlySelected;
+
+  /// No description provided for @scheduleDeletionAlreadyAbsent.
+  ///
+  /// In en, this message translates to:
+  /// **'This schedule is already absent from the current data. No additional data was deleted.'**
+  String get scheduleDeletionAlreadyAbsent;
+
+  /// No description provided for @scheduleDeletionRetryCleanup.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry delivery cleanup'**
+  String get scheduleDeletionRetryCleanup;
+
+  /// No description provided for @scheduleDeletionAbsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule already absent'**
+  String get scheduleDeletionAbsentTitle;
+
+  /// No description provided for @scheduleDeletionFollowingConsequences.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this and following upcoming, unstarted occurrences in this series and stop generating later occurrences. Individually edited following occurrences are also included. Their names, notes and preparation content that no other schedule shares will be removed. Past history, active or preparation-frozen occurrences, other series, shared content and existing punctuality totals are preserved. There is no undo in the app. Existing exported backup files are unchanged; restoring an older backup can bring back deleted occurrences and their recurrence.'**
+  String get scheduleDeletionFollowingConsequences;
 }
 
 class _AppLocalizationsDelegate

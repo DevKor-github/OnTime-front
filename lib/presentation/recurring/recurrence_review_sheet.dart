@@ -1,4 +1,10 @@
-import 'package:intl/intl.dart';
+import 'package:on_time_front/domain/entities/place_entity.dart';
+import 'package:on_time_front/core/time/time_zone_rules.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/presentation/shared/time/schedule_zoned_time.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_engine.dart';
@@ -21,8 +27,11 @@ class RecurrenceReviewSheet extends StatefulWidget {
 
 class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
   final _excluded = <String>{};
+  late DateTime _displayNowUtc;
   @override
   Widget build(BuildContext context) {
+    _displayNowUtc = DateTime.now().toUtc();
+    final l = AppLocalizations.of(context)!;
     final review = widget.review;
     final form = widget.form;
     final byKey = <String, List<RecurrenceConflict>>{};
@@ -68,6 +77,28 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
           ? () => Navigator.of(context).pop(Set<String>.from(_excluded))
           : null,
       children: [
+        Text(
+          form.originalSchedule == null
+              ? l.zonedTimeReviewScopeNew
+              : form.recurringScope == RecurringEditScope.following
+              ? l.zonedTimeReviewScopeFollowing
+              : l.zonedTimeReviewScopeOccurrence,
+        ),
+        if (!review.persistentConflict && remaining.isNotEmpty)
+          RecurrencePanel(
+            highlighted: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l.zonedTimeFirstOccurrence),
+                _slotPresentation(remaining.first),
+                if (review.occurrences[remaining.first.key] != null) ...[
+                  const SizedBox(height: 12),
+                  _preparationPresentation(remaining.first),
+                ],
+              ],
+            ),
+          ),
         if (review.persistentConflict) ...[
           RecurrencePanel(
             highlighted: true,
@@ -98,14 +129,17 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
               label: recurrenceText(context, '반복 요일', 'Repeat pattern'),
               value: recurrenceLabel(context, form.recurrenceRule!),
             ),
-          RecurrenceValue(
-            label: form.scheduleName ?? '',
-            value: recurrenceDate(context, form.scheduleTime!),
-          ),
-          for (final conflict in review.conflicts.take(3))
-            RecurrenceValue(
-              label: conflict.other.scheduleName,
-              value: recurrenceDate(context, conflict.other.scheduleTime),
+          Text(form.scheduleName ?? ''),
+          _draftPresentation(),
+          for (final conflict in review.conflicts)
+            RecurrencePanel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(conflict.other.scheduleName),
+                  _schedulePresentation(conflict.other),
+                ],
+              ),
             ),
         ] else if (byKey.isNotEmpty) ...[
           Text(
@@ -149,6 +183,7 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
                 padding: EdgeInsets.zero,
                 highlighted: _excluded.contains(slot.key),
                 child: CheckboxListTile(
+                  key: ValueKey('review-occurrence-${slot.key}'),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   dense: true,
                   value: _excluded.contains(slot.key),
@@ -159,10 +194,7 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
                               : _excluded.remove(slot.key),
                         )
                       : null,
-                  title: Text(
-                    recurrenceDate(context, _time(slot)),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  title: _slotPresentation(slot),
                   subtitle: byKey.containsKey(slot.key)
                       ? Text(
                           byKey[slot.key]!
@@ -212,14 +244,6 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
                       recurrenceLabel(context, form.recurrenceRule!),
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
-                  if (remaining.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        '${recurrenceText(context, '첫 일정', 'First occurrence')}: ${recurrenceDate(context, _time(remaining.first))}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
                   const Divider(height: 28),
                   Text(
                     recurrenceText(
@@ -228,58 +252,9 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
                       'Preparation ${form.totalPreparationTime.inMinutes} min · travel ${form.moveTime?.inMinutes ?? 0} min · buffer ${form.scheduleSpareTime?.inMinutes ?? 0} min',
                     ),
                   ),
-                  if (remaining.isNotEmpty &&
-                      review.occurrences[remaining.first.key] != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        '${recurrenceText(context, '준비 시작', 'Preparation starts')} ${recurrenceDate(context, CivilTimeResolver.civilTimeAt(review.occurrences[remaining.first.key]!.preparationStartUtc, review.occurrences[remaining.first.key]!.schedule.timeZoneId))}',
-                      ),
-                    ),
                 ],
               ),
             ),
-            if (remaining.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                recurrenceText(context, '예정된 날짜', 'Upcoming occurrences'),
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              RecurrencePanel(
-                child: Column(
-                  children: [
-                    for (final slot in remaining.take(3)) ...[
-                      if (slot != remaining.first) const Divider(height: 16),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                DateFormat(
-                                  'M/d (E)',
-                                  Localizations.localeOf(context).toString(),
-                                ).format(_time(slot)),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              DateFormat.jm(
-                                Localizations.localeOf(context).toString(),
-                              ).format(_time(slot)),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
           ],
           if (review.detached.isNotEmpty) ...[
             Text(
@@ -290,9 +265,14 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
               ),
             ),
             for (final value in review.detached)
-              RecurrenceValue(
-                label: value.scheduleName,
-                value: recurrenceDate(context, value.scheduleTime),
+              RecurrencePanel(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(value.scheduleName),
+                    _schedulePresentation(value),
+                  ],
+                ),
               ),
             RecurrencePanel(
               highlighted: true,
@@ -315,6 +295,21 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
         ],
+        if (!review.persistentConflict && remaining.isNotEmpty)
+          ExpansionTile(
+            key: const ValueKey('all-reviewed-occurrences'),
+            title: Text(l.zonedTimeAllReviewedOccurrences),
+            children: [
+              for (final slot in remaining)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: _slotPresentation(slot),
+                ),
+            ],
+          ),
         if (review.skipped.isNotEmpty) ...[
           RecurrencePanel(
             child: Column(
@@ -366,9 +361,93 @@ class _RecurrenceReviewSheetState extends State<RecurrenceReviewSheet> {
     );
   }
 
-  DateTime _time(RecurrenceSlot slot) =>
-      widget.review.occurrences[slot.key]?.schedule.scheduleTime ??
-      slot.civilTime;
+  Widget _draftPresentation() {
+    final form = widget.form;
+    // This is a presentation-only snapshot. Reuse the common resolver so an
+    // obsolete explicit offset remains changed rather than selecting a new one.
+    final preview = ScheduleEntity(
+      id: form.id,
+      place: PlaceEntity(
+        id: form.placeId ?? '',
+        placeName: form.placeName ?? '',
+      ),
+      scheduleName: form.scheduleName ?? '',
+      scheduleTime: form.scheduleTime!,
+      timeZoneId: form.timeZoneId,
+      occurrenceOffsetSeconds: form.occurrenceOffsetSeconds,
+      moveTime: form.moveTime ?? Duration.zero,
+      isChanged: false,
+      isStarted: false,
+      scheduleSpareTime: form.scheduleSpareTime,
+      scheduleNote: '',
+    );
+    return _schedulePresentation(preview);
+  }
+
+  Widget _schedulePresentation(ScheduleEntity schedule) => ScheduleZonedTime(
+    civil: CivilDateTime.fromFields(schedule.scheduleTime),
+    timeZoneId: schedule.timeZoneId,
+    resolution: ScheduleTimeResolver.resolve(schedule, nowUtc: _displayNowUtc),
+    showInstant: true,
+  );
+
+  Widget _slotPresentation(RecurrenceSlot slot) {
+    final schedule = widget.review.occurrences[slot.key]?.schedule;
+    return ScheduleZonedTime(
+      showInstant: true,
+      civil: CivilDateTime.fromFields(schedule?.scheduleTime ?? slot.civilTime),
+      timeZoneId: schedule?.timeZoneId ?? widget.form.timeZoneId,
+      resolution: schedule == null
+          ? ScheduleTimeResolution(
+              status: ScheduleTimeResolutionStatus.resolved,
+              instantUtc: slot.instantUtc,
+            )
+          : ScheduleTimeResolver.resolve(schedule, nowUtc: _displayNowUtc),
+    );
+  }
+
+  Widget _preparationPresentation(RecurrenceSlot slot) {
+    final l = AppLocalizations.of(context)!;
+    final occurrence = widget.review.occurrences[slot.key]!;
+    final zone = occurrence.schedule.timeZoneId;
+    CivilDateTime? civil;
+    final resolution = ScheduleTimeResolver.resolve(
+      occurrence.schedule,
+      nowUtc: _displayNowUtc,
+    );
+    if (resolution.status == ScheduleTimeResolutionStatus.resolved &&
+        TimeZoneRules.contains(zone)) {
+      try {
+        civil = CivilDateTime.fromFields(
+          CivilTimeResolver.civilTimeAt(occurrence.preparationStartUtc, zone),
+        );
+      } on Exception {
+        // The reviewed instant remains meaningful even if a rule reload or
+        // the supported civil range now prevents a safe named-zone display.
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l.zonedTimePreparationStart),
+        if (civil == null) ...[
+          Text(l.zonedTimePreparationUnavailable),
+          Text(
+            '$zone · ${l.zonedTimeInstant}: ${occurrence.preparationStartUtc.toIso8601String()}',
+          ),
+        ] else
+          ScheduleZonedTime(
+            civil: civil,
+            timeZoneId: zone,
+            resolution: ScheduleTimeResolution(
+              status: ScheduleTimeResolutionStatus.resolved,
+              instantUtc: occurrence.preparationStartUtc,
+            ),
+            showInstant: true,
+          ),
+      ],
+    );
+  }
 
   String _skip(BuildContext context, RecurrenceSkip skip) =>
       '${recurrenceDate(context, skip.date)} · ${switch (skip.reason) {

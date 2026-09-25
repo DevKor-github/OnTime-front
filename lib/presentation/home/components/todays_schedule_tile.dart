@@ -1,5 +1,7 @@
+import 'package:on_time_front/presentation/shared/time/schedule_zoned_time.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,11 +13,15 @@ class TodaysScheduleTile extends StatelessWidget {
     this.schedule,
     this.onTap,
     this.compact = false,
+    this.resolution,
+    this.emptyLabel,
   });
 
   final ScheduleEntity? schedule;
   final VoidCallback? onTap;
   final bool compact;
+  final ScheduleTimeResolution? resolution;
+  final String? emptyLabel;
 
   Widget _noSchedule(BuildContext context) {
     final theme = Theme.of(context);
@@ -25,13 +31,11 @@ class TodaysScheduleTile extends StatelessWidget {
         vertical: compact ? 10.0 : 16.0,
       ),
       child: Text(
-        AppLocalizations.of(context)!.noAppointments,
+        emptyLabel ?? AppLocalizations.of(context)!.noAppointments,
         style: theme.textTheme.bodyLarge?.copyWith(
           color: theme.colorScheme.outlineVariant,
           height: 22 / 16,
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -39,34 +43,57 @@ class TodaysScheduleTile extends StatelessWidget {
   Widget _scheduleExists(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final resolution =
+        this.resolution ??
+        ScheduleTimeResolver.resolve(schedule!, nowUtc: DateTime.now());
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: compact ? 10.0 : 16.0),
-            child: _ScheduleLeftTimeColumn(
-              scheduleTime: schedule!.scheduleTime,
+    final countdown = Padding(
+      padding: EdgeInsets.symmetric(horizontal: compact ? 10.0 : 16.0),
+      child: resolution.instantUtc == null
+          ? const Icon(Icons.schedule_outlined)
+          : _ScheduleLeftTimeColumn(
+              key: ValueKey(resolution.instantUtc),
+              scheduleTime: resolution.instantUtc!,
               compact: compact,
             ),
-          ),
-          VerticalDivider(width: 1, color: colorScheme.primary),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: compact ? 12.0 : 21.0,
-                vertical: compact ? 8.0 : 11.0,
-              ),
-              child: _ScheduleDetailsColumn(
-                schedule: schedule!,
-                compact: compact,
-              ),
-            ),
-          ),
-        ],
+    );
+    final details = Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 12.0 : 21.0,
+        vertical: compact ? 8.0 : 11.0,
       ),
+      child: _ScheduleDetailsColumn(
+        schedule: schedule!,
+        resolution: resolution,
+        compact: compact,
+      ),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stacked =
+            constraints.maxWidth < 400 ||
+            MediaQuery.textScalerOf(context).scale(16) > 20;
+        if (stacked) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(padding: const EdgeInsets.only(top: 8), child: countdown),
+              Divider(height: 16, color: colorScheme.primary),
+              details,
+            ],
+          );
+        }
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              countdown,
+              VerticalDivider(width: 1, color: colorScheme.primary),
+              Expanded(child: details),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -95,9 +122,14 @@ class TodaysScheduleTile extends StatelessWidget {
 }
 
 class _ScheduleDetailsColumn extends StatelessWidget {
-  const _ScheduleDetailsColumn({required this.schedule, required this.compact});
+  const _ScheduleDetailsColumn({
+    required this.schedule,
+    required this.resolution,
+    required this.compact,
+  });
 
   final ScheduleEntity schedule;
+  final ScheduleTimeResolution resolution;
   final bool compact;
 
   @override
@@ -105,10 +137,6 @@ class _ScheduleDetailsColumn extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final formattedTime = DateFormat.jm(
-      AppLocalizations.of(context)!.localeName,
-    ).format(schedule.scheduleTime);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -119,12 +147,12 @@ class _ScheduleDetailsColumn extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        //time PM H:MM
-        Text(
-          formattedTime,
+
+        ScheduleZonedTime(
+          civil: CivilDateTime.fromFields(schedule.scheduleTime),
+          timeZoneId: schedule.timeZoneId,
+          resolution: resolution,
           style: textTheme.bodySmall?.copyWith(color: colorScheme.primary),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -133,6 +161,7 @@ class _ScheduleDetailsColumn extends StatelessWidget {
 
 class _ScheduleLeftTimeColumn extends StatelessWidget {
   const _ScheduleLeftTimeColumn({
+    super.key,
     required this.scheduleTime,
     required this.compact,
   });

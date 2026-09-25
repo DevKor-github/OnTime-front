@@ -22,6 +22,10 @@ Future<void> deleteLocalDatabaseFiles({required bool includeLegacy}) async {
   await _deleteSqliteFamily(current.path);
   if (!includeLegacy) return;
 
+  await deleteLegacyDatabaseFiles();
+}
+
+Future<void> deleteLegacyDatabaseFiles() async {
   final documents = await getApplicationDocumentsDirectory();
   for (final name in const ['my_database.sqlite', 'my_database']) {
     await _deleteSqliteFamily(p.join(documents.path, name));

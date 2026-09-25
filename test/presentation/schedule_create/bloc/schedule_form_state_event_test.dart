@@ -35,7 +35,15 @@ void main() {
         maxAvailableTime: const Duration(minutes: 20),
         previousScheduleName: 'Previous',
       ).props,
-      [date, time, 9 * 60 * 60, const Duration(minutes: 20), 'Previous'],
+      [
+        '',
+        false,
+        date,
+        time,
+        9 * 60 * 60,
+        const Duration(minutes: 20),
+        'Previous',
+      ],
     );
     expect(const ScheduleFormPlaceNameChanged(placeName: 'Office').props, [
       'Office',
@@ -86,6 +94,25 @@ void main() {
     expect(updated.placeName, 'Office');
     expect(updated.totalPreparationTime, const Duration(minutes: 15));
     expect(updated.isValid, isTrue);
+  });
+
+  test('offset omission preserves selection and explicit null clears it', () {
+    final state = ScheduleFormState(
+      id: 'draft',
+      occurrenceOffsetSeconds: 32400,
+    );
+    expect(
+      state.copyWith(scheduleName: 'Rename').occurrenceOffsetSeconds,
+      32400,
+    );
+    expect(
+      state.copyWith(occurrenceOffsetSeconds: null).occurrenceOffsetSeconds,
+      isNull,
+    );
+    expect(
+      state.copyWith(occurrenceOffsetSeconds: -18000).occurrenceOffsetSeconds,
+      -18000,
+    );
   });
 
   test('ScheduleFormState creates schedule entity from valid form fields', () {

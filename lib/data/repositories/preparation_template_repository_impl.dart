@@ -11,9 +11,11 @@ import 'package:on_time_front/domain/repositories/preparation_template_repositor
 class PreparationTemplateRepositoryImpl
     implements PreparationTemplateRepository {
   PreparationTemplateRepositoryImpl(AppDatabase database)
-    : _dao = database.preparationTemplateDao,
+    : _database = database,
+      _dao = database.preparationTemplateDao,
       _userDao = database.userDao;
 
+  final AppDatabase _database;
   final PreparationTemplateDao _dao;
   final UserDao _userDao;
 
@@ -31,13 +33,15 @@ class PreparationTemplateRepositoryImpl
     required String templateName,
     required PreparationEntity preparation,
   }) async {
-    await _dao.put(
-      id: templateId,
-      name: templateName,
-      preparation: preparation,
-      now: DateTime.now(),
-    );
-    await _userDao.markDurableDataChanged(localProfileId);
+    await _database.writeTransaction(() async {
+      await _dao.put(
+        id: templateId,
+        name: templateName,
+        preparation: preparation,
+        now: DateTime.now(),
+      );
+      await _userDao.markDurableDataChanged(localProfileId);
+    });
   }
 
   @override
@@ -53,7 +57,9 @@ class PreparationTemplateRepositoryImpl
 
   @override
   Future<void> deletePreparationTemplate(String templateId) async {
-    await _dao.deleteById(templateId);
-    await _userDao.markDurableDataChanged(localProfileId);
+    await _database.writeTransaction(() async {
+      await _dao.deleteById(templateId);
+      await _userDao.markDurableDataChanged(localProfileId);
+    });
   }
 }

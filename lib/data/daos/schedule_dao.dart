@@ -1,3 +1,5 @@
+import 'schedule_owned_content_cleanup.dart';
+import 'package:on_time_front/domain/recurrence/recurrence_reference_policy.dart';
 import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'package:drift/drift.dart';
 import 'package:on_time_front/data/tables/places_table.dart';
@@ -32,21 +34,22 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> deleteSchedule(Schedule scheduleModel) async {
-    await (delete(
-      db.schedules,
-    )..where((tbl) => tbl.id.equals(scheduleModel.id))).go();
+    await transaction(() => removeScheduleOwnedContent(db, scheduleModel.id));
   }
 
   Future<ScheduleWithPlace> getScheduleById(String id) async {
     try {
       final query = await (select(db.schedules).join([
         leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),
+        leftOuterJoin(
+          db.recurringScheduleSegments,
+          db.recurringScheduleSegments.id.equalsExp(
+            db.schedules.recurringSegmentId,
+          ),
+        ),
       ])..where(db.schedules.id.equals(id))).getSingleOrNull();
       if (query == null) throw ScheduleNotFound(id);
-      return ScheduleWithPlace(
-        schedule: query.readTable(db.schedules),
-        place: query.readTable(db.places),
-      );
+      return _readJoined(query);
     } catch (e) {
       rethrow;
     }
@@ -54,6 +57,7 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
 
   SchedulesCompanion _withoutConcurrencyMetadata(SchedulesCompanion values) =>
       values.copyWith(
+        requiresStartConfirmation: const Value.absent(),
         aggregateIncarnation: const Value.absent(),
         aggregateVersion: const Value.absent(),
         lastMutationId: const Value.absent(),
@@ -97,6 +101,12 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
             db.places,
             db.places.id.equalsExp(db.schedules.placeId),
           ),
+          leftOuterJoin(
+            db.recurringScheduleSegments,
+            db.recurringScheduleSegments.id.equalsExp(
+              db.schedules.recurringSegmentId,
+            ),
+          ),
         ])..where(
           db.schedules.scheduleTime.isBiggerOrEqualValue(
                 const CivilDateTimeSqlConverter().toSql(startDate),
@@ -111,32 +121,76 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
     final List<ScheduleWithPlace> scheduleList = [];
 
     await Future.forEach(result, (schedule) async {
-      scheduleList.add(
-        ScheduleWithPlace(
-          schedule: schedule.readTable(db.schedules),
-          place: schedule.readTable(db.places),
-        ),
-      );
+      scheduleList.add(_readJoined(schedule));
     });
     return scheduleList;
   }
 
-  Future<List<ScheduleWithPlace>> getScheduleList() async {
+  Future<List<ScheduleWithPlace>> getScheduleList({int? limit}) async {
     final query = select(db.schedules).join([
       leftOuterJoin(db.places, db.places.id.equalsExp(db.schedules.placeId)),
+      leftOuterJoin(
+        db.recurringScheduleSegments,
+        db.recurringScheduleSegments.id.equalsExp(
+          db.schedules.recurringSegmentId,
+        ),
+      ),
     ]);
+    if (limit != null) query.limit(limit);
     final result = await query.get();
     final List<ScheduleWithPlace> scheduleList = [];
 
     await Future.forEach(result, (schedule) async {
-      scheduleList.add(
-        ScheduleWithPlace(
-          schedule: schedule.readTable(db.schedules),
-          place: schedule.readTable(db.places),
-        ),
-      );
+      scheduleList.add(_readJoined(schedule));
     });
     return scheduleList;
+  }
+
+  /// Finite materialized references only; this query never expands a rule.
+  Future<List<ScheduleWithPlace>> getSeriesReferences(
+    String seriesId, {
+    required int limit,
+  }) async {
+    final query =
+        select(db.schedules).join([
+            leftOuterJoin(
+              db.places,
+              db.places.id.equalsExp(db.schedules.placeId),
+            ),
+            innerJoin(
+              db.recurringScheduleSegments,
+              db.recurringScheduleSegments.id.equalsExp(
+                db.schedules.recurringSegmentId,
+              ),
+            ),
+          ])
+          ..where(db.recurringScheduleSegments.seriesId.equals(seriesId))
+          ..orderBy([OrderingTerm.asc(db.schedules.id)])
+          ..limit(limit);
+    return (await query.get()).map(_readJoined).toList();
+  }
+
+  ScheduleWithPlace _readJoined(TypedResult row) {
+    final schedule = row.readTable(db.schedules);
+    final segment = row.readTableOrNull(db.recurringScheduleSegments);
+    return ScheduleWithPlace(
+      schedule: schedule,
+      place: row.readTable(db.places),
+      retainedRecurringReference: _retained(
+        schedule,
+        segment?.id,
+        segment?.beforeSlot,
+      ),
+    );
+  }
+
+  bool _retained(Schedule schedule, String? segmentId, String? before) {
+    if (schedule.recurringSegmentId == null) return false;
+    if (segmentId == null || schedule.recurringSlotKey == null) return true;
+    return RecurrenceReferencePolicy.isClosedTail(
+      schedule.recurringSlotKey!,
+      before,
+    );
   }
 
   Stream<List<ScheduleWithPlace>> watchScheduleList() {
@@ -144,7 +198,7 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
     // Drift needs those dependencies explicitly; notifications remain commit-bound.
     return db
         .customSelect(
-          'SELECT s.*, p.id AS joined_place_id, p.place_name AS joined_place_name FROM schedules s JOIN places p ON p.id=s.place_id ORDER BY s.schedule_time ASC',
+          'SELECT s.*, p.id AS joined_place_id, p.place_name AS joined_place_name, r.id AS joined_segment_id, r.before_slot AS joined_segment_before FROM schedules s JOIN places p ON p.id=s.place_id LEFT JOIN recurring_schedule_segments r ON r.id=s.recurring_segment_id ORDER BY s.schedule_time ASC',
           readsFrom: {
             db.schedules,
             db.places,
@@ -164,6 +218,11 @@ class ScheduleDao extends DatabaseAccessor<AppDatabase>
               .map(
                 (row) => ScheduleWithPlace(
                   schedule: db.schedules.map(row.data),
+                  retainedRecurringReference: _retained(
+                    db.schedules.map(row.data),
+                    row.readNullable<String>('joined_segment_id'),
+                    row.readNullable<String>('joined_segment_before'),
+                  ),
                   place: Place(
                     id: row.read<String>('joined_place_id'),
                     placeName: row.read<String>('joined_place_name'),

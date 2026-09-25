@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
 import '../../helpers/isolated_alarm_owner.dart';
 import 'dart:async';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
@@ -128,6 +130,7 @@ void main() {
       database: database,
       timedPreparationRepository: _UnusedTimers(),
       recurringScheduleRepository: recurring,
+      now: () => now,
     );
     alarms = AlarmRepositoryImpl(
       database: database,
@@ -144,6 +147,114 @@ void main() {
     await preparations.dispose();
     await database.close();
   });
+
+  test(
+    'null occurrence resolves without saving, survives missing device zone, and freezes atomically at first start',
+    () async {
+      final value = ScheduleEntity(
+        id: 'null-offset',
+        place: const PlaceEntity(id: 'null-place', placeName: 'Place'),
+        scheduleName: 'Seoul',
+        scheduleTime: DateTime.utc(2030, 1, 1, 15),
+        timeZoneId: 'Asia/Seoul',
+        moveTime: Duration.zero,
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: Duration.zero,
+        scheduleNote: '',
+      );
+      await schedules.createSchedule(value);
+      await preparations.createCustomPreparation(_preparation(90), value.id);
+      final before = (await database.scheduleDao.getScheduleById(
+        value.id,
+      )).schedule;
+      final initialRevision =
+          (await database
+                  .customSelect('SELECT data_revision FROM users')
+                  .getSingle())
+              .read<int>('data_revision');
+      final useCase = ReconcileAlarmsUseCase.test(
+        alarms,
+        registry,
+        native,
+        _Notifications(),
+        operations: isolatedOwner,
+        nowProvider: () => now,
+        timeZoneProvider: () async =>
+            throw StateError('device lookup unavailable'),
+      );
+      await useCase();
+      final record = (await registry.loadAll()).single;
+      // This fixture's persisted profile alarm offset is zero.
+      expect(record.alarmTime, DateTime.utc(2030, 1, 1, 4, 30));
+      final reloaded = await schedules.getScheduleById(value.id);
+      expect(reloaded.occurrenceOffsetSeconds, isNull);
+      await preparations.getPreparationByScheduleId(value.id);
+      final preparation = (await preparations.preparationStream.firstWhere(
+        (values) => values.containsKey(value.id),
+      ))[value.id]!;
+      final combined =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            reloaded,
+            PreparationWithTimeEntity.fromPreparation(preparation),
+            timeResolution: ScheduleTimeResolver.resolve(reloaded, nowUtc: now),
+          );
+      expect(record.scheduleFingerprint, combined.cacheFingerprint);
+      expect(
+        (await database
+                .customSelect('SELECT data_revision FROM users')
+                .getSingle())
+            .read<int>('data_revision'),
+        initialRevision,
+      );
+      now = DateTime.utc(2030, 1, 1, 4, 30);
+      final firstStart = await schedules.startSchedule(
+        value.id,
+        startedAt: now,
+      );
+      final started = await schedules.getScheduleById(value.id);
+      final startedRow = (await database.scheduleDao.getScheduleById(
+        value.id,
+      )).schedule;
+      expect(started.occurrenceOffsetSeconds, 32400);
+      expect(started.preparationFrozen, isTrue);
+      expect(started.startedAt?.toUtc(), firstStart.toUtc());
+      expect(startedRow.aggregateVersion, before.aggregateVersion! + 1);
+      final afterFingerprint =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            started,
+            PreparationWithTimeEntity.fromPreparation(preparation),
+            timeResolution: ScheduleTimeResolver.resolve(started, nowUtc: now),
+          ).cacheFingerprint;
+      expect(afterFingerprint, record.scheduleFingerprint);
+      final committedRevision =
+          (await database
+                  .customSelect('SELECT data_revision FROM users')
+                  .getSingle())
+              .read<int>('data_revision');
+      expect(committedRevision, initialRevision + 1);
+      now = DateTime.utc(2030, 1, 2);
+      expect(
+        await schedules.startSchedule(value.id, startedAt: now),
+        firstStart,
+      );
+      expect(
+        (await schedules.getScheduleById(value.id)).occurrenceInstantUtc,
+        DateTime.utc(2030, 1, 1, 6),
+      );
+      expect(
+        (await database
+                .customSelect('SELECT data_revision FROM users')
+                .getSingle())
+            .read<int>('data_revision'),
+        committedRevision,
+      );
+      await useCase();
+      expect(await registry.loadAll(), isEmpty);
+      expect(native.scheduled, hasLength(1));
+      expect(native.canceled.single.scheduleId, value.id);
+    },
+  );
 
   test(
     'actual create/update entrypoints rerun after snapshot and retain nearest 60 without materialize loop',

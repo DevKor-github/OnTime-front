@@ -8,6 +8,7 @@ import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
@@ -28,7 +29,16 @@ class _Session implements SchedulePreparationSessionUseCase {
     required DateTime now,
     RestoredSessionCallback? onRestoredSession,
     void Function()? onInvalidated,
-  }) async => schedule;
+  }) async {
+    final startedAt = schedule.startedAt!;
+    onRestoredSession?.call(startedAt: startedAt, actionEvents: const []);
+    return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+      schedule,
+      schedule.preparation.timeElapsed(now.difference(startedAt)),
+      timeResolution: ScheduleTimeResolver.resolve(schedule, nowUtc: now),
+    );
+  }
+
   @override
   Future<void> saveTimedPreparationSnapshot(
     ScheduleWithPreparationEntity schedule, {
@@ -45,14 +55,24 @@ class _Session implements SchedulePreparationSessionUseCase {
     required int latenessTime,
   }) async {}
   @override
-  Future<void> startSchedulePreparation(String id) async {}
+  Future<DateTime> startSchedulePreparation(
+    String id, {
+    bool Function()? isCurrent,
+    String? expectedFingerprint,
+  }) async {
+    return DateTime.now().toUtc();
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _Nearest implements GetNearestUpcomingScheduleUseCase {
   @override
-  Stream<ScheduleWithPreparationEntity?> call() => const Stream.empty();
+  Stream<NearestScheduleQuery> call({required NearestQueryKey key}) =>
+      const Stream.empty();
+  @override
+  Future<ScheduleWithPreparationEntity?> readActive() async => null;
 }
 
 class _Navigation extends NavigationService {
@@ -116,17 +136,27 @@ class _Harness {
           nextPreparationId: i == count ? null : 's${i + 1}',
         ),
     ];
-    bloc.add(
-      ScheduleUpcomingReceived(
-        buildSchedule(
-          id: id,
-          scheduleTime: wall.add(Duration(seconds: count * 3 - elapsed)),
-          moveTime: Duration.zero,
-          scheduleSpareTime: Duration.zero,
-          steps: steps,
-        ),
-      ),
+    final planned = buildSchedule(
+      id: id,
+      scheduleTime: wall.add(Duration(seconds: count * 3 - elapsed)),
+      moveTime: Duration.zero,
+      scheduleSpareTime: Duration.zero,
+      steps: steps,
     );
+    // This harness exercises delivery during an existing durable run, not a
+    // recommendation's ability to start one merely by being read.
+    final startedAt = wall.subtract(Duration(seconds: elapsed)).toUtc();
+    final active =
+        ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+          planned.copyWith(
+            isStarted: true,
+            startedAt: startedAt,
+            preparationFrozen: true,
+          ),
+          planned.preparation,
+          timeResolution: ScheduleTimeResolver.resolve(planned, nowUtc: wall),
+        );
+    bloc.add(ScheduleUpcomingReceived(active));
     await tester.pump();
   }
 

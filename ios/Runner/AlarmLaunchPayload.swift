@@ -9,12 +9,18 @@ enum AlarmLaunchPayload {
           !id.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }) else {
       return nil
     }
-    return [
+    let identity = source?["storeIncarnation"] as? String
+    if source?["storeIncarnation"] != nil {
+      guard let identity, identity.range(of: "^[a-fA-F0-9-]{32,36}$", options: .regularExpression) != nil else { return nil }
+    }
+    var result = [
       "type": "schedule_alarm",
       "scheduleId": id,
-      "alarmLaunchPayloadVersion": "9",
+      "alarmLaunchPayloadVersion": "10",
       "promptVariant": "alarm"
     ]
+    if let identity { result["storeIncarnation"] = identity }
+    return result
   }
 
   /// Rewrites old app-owned pending data even when DB startup subsequently fails.

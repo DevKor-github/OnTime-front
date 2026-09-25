@@ -13,6 +13,8 @@ analyzer:
   exclude:
     - build/**
     - widgetbook/**
+    # Frozen before-change manifests are evidence, not a runnable package.
+    - plans/audit-2026-09-23/artifacts/d05/q8-validation/dependency-before/**
 
 linter:
   # The lint rules applied to this project can be customized in the

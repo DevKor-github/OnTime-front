@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/time/time_zone_rules.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,7 +32,22 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   final GetAdjacentSchedulesWithPreparationUseCase
   _getNextScheduleWithPreparationUseCase;
 
+  int _selectionVersion = 0;
+
+  bool Function() _captureSelection({bool advance = false}) {
+    if (advance) _selectionVersion++;
+    final revision = _selectionVersion;
+    final owner = scheduleFormBloc.formOwner;
+    final mutation = scheduleFormBloc.state.mutationId;
+    return () =>
+        !isClosed &&
+        revision == _selectionVersion &&
+        scheduleFormBloc.ownsForm(owner) &&
+        scheduleFormBloc.state.mutationId == mutation;
+  }
+
   void initialize() {
+    final current = _captureSelection(advance: true);
     final scheduleDateTimeState = ScheduleDateTimeState.fromScheduleFormState(
       scheduleFormBloc.state,
     );
@@ -40,6 +57,8 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         scheduleDate: scheduleDateTimeState.scheduleDate,
         scheduleTime: scheduleDateTimeState.scheduleTime,
         timeZoneId: scheduleDateTimeState.timeZoneId,
+        timeZoneExplicitlySelected:
+            scheduleDateTimeState.timeZoneExplicitlySelected,
         selectedOccurrenceOffsetSeconds:
             scheduleDateTimeState.selectedOccurrenceOffsetSeconds,
       ),
@@ -51,15 +70,18 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         scheduleDateTimeState.scheduleTime.isValid) {
       scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
       // Load adjacent schedules first, then check overlap
-      _loadAdjacentSchedules(
-        scheduleDateTimeState.scheduleDate.value!,
-      ).then((_) => checkScheduleOverlap());
+      _loadAdjacentSchedules(scheduleDateTimeState.scheduleDate.value!).then((
+        _,
+      ) {
+        if (current()) checkScheduleOverlap();
+      });
     } else {
       scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
     }
   }
 
   Future<void> scheduleDateChanged(DateTime scheduleDate) async {
+    final current = _captureSelection(advance: true);
     final ScheduleDateInputModel scheduleDateInputModel =
         ScheduleDateInputModel.dirty(scheduleDate);
     emit(
@@ -76,16 +98,19 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     if (scheduleDateInputModel.isValid) {
       scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
       await _loadAdjacentSchedules(scheduleDate);
+      if (!current()) return;
     }
 
     // Check for schedule overlap if time is already set
     if (scheduleDateInputModel.isValid && state.scheduleTime.isValid) {
       await checkScheduleOverlap();
+      if (!current()) return;
     }
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   Future<void> scheduleTimeChanged(DateTime scheduleTime) async {
+    final current = _captureSelection(advance: true);
     final ScheduleTimeInputModel scheduleTimeInputModel =
         ScheduleTimeInputModel.dirty(scheduleTime);
     emit(
@@ -102,11 +127,13 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     if (state.scheduleDate.isValid && scheduleTimeInputModel.isValid) {
       scheduleFormBloc.add(ScheduleFormValidated(isValid: false));
       await checkScheduleOverlap();
+      if (!current()) return;
     }
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
   }
 
   void setRecurring(bool enabled) {
+    _selectionVersion++;
     emit(
       state.copyWith(
         isRecurring: enabled,
@@ -126,13 +153,34 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
   void occurrenceOffsetSelected(int offsetSeconds) {
     if (!state.occurrenceOffsetOptions.contains(offsetSeconds)) return;
+    _selectionVersion++;
     emit(state.copyWith(selectedOccurrenceOffsetSeconds: offsetSeconds));
+    checkScheduleOverlap();
     scheduleFormBloc.add(ScheduleFormValidated(isValid: state.isValid));
+  }
+
+  Future<void> timeZoneSelected(String zone) async {
+    if (!TimeZoneRules.contains(zone)) return;
+    final current = _captureSelection(advance: true);
+    emit(
+      state.copyWith(
+        timeZoneId: zone,
+        timeZoneExplicitlySelected: true,
+        selectedOccurrenceOffsetSeconds: null,
+        civilTimeResolved: false,
+        occurrenceOffsetOptions: const [],
+        clearOverlap: true,
+        clearPreviousOverlap: true,
+      ),
+    );
+    _resolveCivilTime();
+    await checkScheduleOverlap();
+    if (current()) validateCurrentSelection();
   }
 
   void _resolveCivilTime() {
     final selected = state.selectedScheduleDateTime;
-    if (selected == null) {
+    if (selected == null || !TimeZoneRules.contains(state.timeZoneId)) {
       emit(
         state.copyWith(
           civilTimeResolved: false,
@@ -148,9 +196,9 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
       state.timeZoneId,
     ).map((occurrence) => occurrence.offsetSeconds).toList();
     final existing = state.selectedOccurrenceOffsetSeconds;
-    final selectedOffset = options.length == 1
-        ? options.single
-        : (options.contains(existing) ? existing : null);
+    final selectedOffset = options.contains(existing)
+        ? existing
+        : (existing == null && options.length == 1 ? options.single : null);
     emit(
       state.copyWith(
         civilTimeResolved: true,
@@ -179,6 +227,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   }
 
   Future<void> checkScheduleOverlap() async {
+    final current = _captureSelection();
     if (state.isRecurring) {
       emit(state.copyWith(clearOverlap: true, clearPreviousOverlap: true));
       validateCurrentSelection();
@@ -194,14 +243,14 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
     try {
       // Combine date and time
       final selectedDate = state.scheduleDate.value!;
-      final selectedTime = state.scheduleTime.value!;
-      final selectedDateTime = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        selectedTime.hour,
-        selectedTime.minute,
-      );
+      final offset = state.selectedOccurrenceOffsetSeconds;
+      if (offset == null) {
+        validateCurrentSelection();
+        return;
+      }
+      final selectedDateTime = CivilDateTime.fromFields(
+        state.selectedScheduleDateTime!,
+      ).atOffset(offset);
 
       // Get the current schedule form state to check if editing
       final formState = scheduleFormBloc.state;
@@ -224,6 +273,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
             startDate: startDate,
             endDate: endDate,
           );
+      if (!current()) return;
 
       AppLogger.debug(
         'Previous schedule found: ${adjacentSchedules.hasPrevious}, Next schedule found: ${adjacentSchedules.hasNext}',
@@ -285,7 +335,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
         // Calculate when previous schedule ends
         // Previous schedule ends at: scheduleTime (since preparation is before schedule time)
-        final previousScheduleEndTime = previousSchedule.scheduleTime;
+        final previousScheduleEndTime = previousSchedule.occurrenceInstantUtc;
 
         // Calculate time difference
         // If negative, selected time is before previous schedule ends (overlapping)
@@ -364,7 +414,8 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
         emit(state.copyWith(clearPreviousOverlap: true));
       }
     } catch (e) {
-      // On error, clear both overlaps
+      if (!current()) return;
+      // Only the current selection can change its overlap state.
       AppLogger.debug('Error checking schedule overlap: $e');
       emit(state.copyWith(clearOverlap: true, clearPreviousOverlap: true));
     }
@@ -383,6 +434,8 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
 
       scheduleFormBloc.add(
         ScheduleFormScheduleDateTimeChanged(
+          timeZoneId: state.timeZoneId,
+          timeZoneExplicitlySelected: state.timeZoneExplicitlySelected,
           scheduleDate: state.scheduleDate.value!,
           scheduleTime: state.scheduleTime.value!,
           occurrenceOffsetSeconds: state.selectedOccurrenceOffsetSeconds ?? 0,
@@ -402,7 +455,7 @@ class ScheduleDateTimeCubit extends Cubit<ScheduleDateTimeState> {
   }
 
   ({DateTime startDate, DateTime endDate}) _getDateRange(DateTime date) {
-    final baseDate = DateTime(date.year, date.month, date.day);
+    final baseDate = DateTime.utc(date.year, date.month, date.day);
     return (
       startDate: baseDate.subtract(const Duration(days: 1)),
       endDate: baseDate.add(const Duration(days: 2)),

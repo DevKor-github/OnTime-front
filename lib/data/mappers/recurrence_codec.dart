@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
@@ -5,7 +6,7 @@ import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 abstract final class RecurrenceCodec {
   static Map<String, dynamic> ruleToJson(RecurrenceRule r) => {
     'frequency': r.frequency.name,
-    'start': r.start.toIso8601String(),
+    'start': CivilDateTime.fromFields(r.start).toCivilIso8601String(),
     'zone': r.timeZoneId,
     'interval': r.interval,
     'weekdays': r.weekdays.toList()..sort(),
@@ -13,13 +14,15 @@ abstract final class RecurrenceCodec {
     'monthDay': r.monthDay,
     'ordinal': r.ordinal,
     'monthWeekday': r.monthWeekday,
-    'until': r.until?.toIso8601String(),
+    'until': r.until == null
+        ? null
+        : CivilDateTime.fromFields(r.until!).toCivilIso8601String(),
     'count': r.count,
     'repeatedTime': r.repeatedTime?.name,
   };
   static RecurrenceRule ruleFromJson(Map<String, dynamic> j) => RecurrenceRule(
     frequency: RecurrenceFrequency.values.byName(j['frequency'] as String),
-    start: DateTime.parse(j['start'] as String),
+    start: CivilDateTime.parse(j['start'] as String).toUtcCarrier(),
     timeZoneId: j['zone'] as String,
     interval: j['interval'] as int,
     weekdays: (j['weekdays'] as List).cast<int>().toSet(),
@@ -28,7 +31,9 @@ abstract final class RecurrenceCodec {
     ordinal: j['ordinal'] as int,
     monthWeekday: j['monthWeekday'] as int,
     count: j['count'] as int?,
-    until: j['until'] == null ? null : DateTime.parse(j['until'] as String),
+    until: j['until'] == null
+        ? null
+        : CivilDateTime.parse(j['until'] as String).toUtcCarrier(),
     repeatedTime: j['repeatedTime'] == null
         ? null
         : RepeatedCivilTime.values.byName(j['repeatedTime'] as String),
@@ -38,7 +43,7 @@ abstract final class RecurrenceCodec {
     'placeId': s.place.id,
     'place': s.place.placeName,
     'name': s.scheduleName,
-    'time': s.scheduleTime.toIso8601String(),
+    'time': CivilDateTime.fromFields(s.scheduleTime).toCivilIso8601String(),
     'zone': s.timeZoneId,
     'offset': s.occurrenceOffsetSeconds,
     'move': s.moveTime.inMinutes,
@@ -53,7 +58,7 @@ abstract final class RecurrenceCodec {
           placeName: j['place'] as String,
         ),
         scheduleName: j['name'] as String,
-        scheduleTime: DateTime.parse(j['time'] as String),
+        scheduleTime: CivilDateTime.parse(j['time'] as String).toUtcCarrier(),
         timeZoneId: j['zone'] as String,
         occurrenceOffsetSeconds: j['offset'] as int?,
         moveTime: Duration(minutes: j['move'] as int),

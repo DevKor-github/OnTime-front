@@ -1,3 +1,6 @@
+import 'package:on_time_front/core/time/device_civil_day.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,7 +30,14 @@ class WeeklySchedulesBloc
       }
 
       await emit.forEach(
-        _getSchedulesByDateUseCase(event.startDate, event.endDate),
+        _getSchedulesByDateUseCase(
+          CivilDateTime.fromFields(
+            event.startDate,
+          ).toUtcCarrier().subtract(const Duration(days: 2)),
+          CivilDateTime.fromFields(
+            event.endDate,
+          ).toUtcCarrier().add(const Duration(days: 2)),
+        ),
         onData: (schedules) => state.copyWith(
           status: () => WeeklySchedulesStatus.success,
           schedules: () => schedules,

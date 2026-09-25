@@ -184,7 +184,9 @@ void main() {
     id: 'schedule-1',
     place: PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Meeting',
-    scheduleTime: DateTime(2027, 3, 20, 9, 0),
+    scheduleTime: DateTime.utc(2027, 3, 20, 9, 0),
+    timeZoneId: 'UTC',
+    occurrenceOffsetSeconds: 0,
     moveTime: const Duration(minutes: 30),
     isChanged: false,
     isStarted: false,
@@ -197,16 +199,21 @@ void main() {
       loadScheduleFormDraftUseCase,
       createScheduleFormSubmissionUseCase,
       updateScheduleFormSubmissionUseCase,
+      now: () => DateTime.utc(2026, 9, 25),
     );
   }
 
   ScheduleFormDraft draftFromSchedule({
+    bool editing = false,
     bool preparationChanged = false,
     Duration? spareTime = const Duration(minutes: 10),
     Object? scheduleTime = _unset,
   }) {
     return ScheduleFormDraft(
       id: schedule.id,
+      originalSchedule: editing ? schedule : null,
+      timeZoneId: schedule.timeZoneId,
+      occurrenceOffsetSeconds: schedule.occurrenceOffsetSeconds,
       placeId: schedule.place.id,
       placeName: schedule.place.placeName,
       scheduleName: schedule.scheduleName,
@@ -321,7 +328,7 @@ void main() {
               scheduleTime: initialDate,
             );
           },
-      editHandler: (_) async => draftFromSchedule(),
+      editHandler: (_) async => draftFromSchedule(editing: true),
     );
     createScheduleFormSubmissionUseCase =
         SpyCreateScheduleFormSubmissionUseCase();
@@ -373,6 +380,119 @@ void main() {
   tearDown(() async {
     await getIt.reset();
   });
+
+  Future<void> openActualReview(
+    WidgetTester tester,
+    ScheduleFormBloc bloc,
+  ) async {
+    await primeEditState(bloc);
+    final civil = DateTime.utc(2027, 3, 20, 9);
+    bloc.add(
+      ScheduleFormScheduleDateTimeChanged(
+        scheduleDate: civil,
+        scheduleTime: civil,
+        timeZoneId: 'Asia/Seoul',
+        timeZoneExplicitlySelected: true,
+        occurrenceOffsetSeconds: 32400,
+      ),
+    );
+    await tester.pump();
+    await pumpSheet(tester, bloc);
+    bloc.add(const ScheduleFormUpdated());
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('schedule-time-review-confirm')),
+      findsOneWidget,
+    );
+    expect(
+      bloc.state.submissionStatus,
+      ScheduleFormSubmissionStatus.timeReview,
+    );
+  }
+
+  testWidgets(
+    'actual form listener cancels final time review while retaining the edited draft',
+    (tester) async {
+      var writes = 0;
+      updateScheduleFormSubmissionUseCase.handler = (_) async {
+        writes++;
+      };
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+      await openActualReview(tester, bloc);
+      final before = bloc.state;
+      expect(writes, 0);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
+      expect(bloc.state.submissionStatus, ScheduleFormSubmissionStatus.idle);
+      expect(bloc.state.scheduleTime, before.scheduleTime);
+      expect(bloc.state.timeZoneId, before.timeZoneId);
+      expect(
+        bloc.state.occurrenceOffsetSeconds,
+        before.occurrenceOffsetSeconds,
+      );
+      expect(bloc.state.mutationId, before.mutationId);
+      expect(writes, 0);
+    },
+  );
+
+  testWidgets(
+    'actual form listener confirms once and closes only after save receipt',
+    (tester) async {
+      var writes = 0;
+      final committed = Completer<void>();
+      updateScheduleFormSubmissionUseCase.handler = (_) async {
+        writes++;
+        await committed.future;
+      };
+      final bloc = buildBloc();
+      addTearDown(() async {
+        if (!committed.isCompleted) {
+          committed.complete();
+        }
+        await bloc.close();
+      });
+      await openActualReview(tester, bloc);
+      expect(writes, 0);
+      await tester.tap(
+        find.byKey(const ValueKey('schedule-time-review-confirm')),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(writes, 1);
+      expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
+      committed.complete();
+      await tester.pumpAndSettle();
+      expect(find.byType(ScheduleMultiPageForm), findsNothing);
+      expect(writes, 1);
+    },
+  );
+
+  testWidgets(
+    'old final review dialog cannot submit a replacement form owner',
+    (tester) async {
+      var writes = 0;
+      updateScheduleFormSubmissionUseCase.handler = (_) async {
+        writes++;
+      };
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+      await openActualReview(tester, bloc);
+      final oldOwner = bloc.formOwner;
+      bloc.add(const ScheduleFormCreateRequested());
+      await tester.pumpAndSettle();
+      expect(identical(oldOwner, bloc.formOwner), isFalse);
+      final replacementMutation = bloc.state.mutationId;
+      await tester.tap(
+        find.byKey(const ValueKey('schedule-time-review-confirm')),
+      );
+      await tester.pumpAndSettle();
+      expect(writes, 0);
+      expect(bloc.state.mutationId, replacementMutation);
+      expect(bloc.state.submissionStatus, ScheduleFormSubmissionStatus.idle);
+      expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
+    },
+  );
 
   testWidgets(
     'final submit does not close sheet immediately while submitting',
@@ -507,7 +627,8 @@ void main() {
               id: 'schedule-2',
               place: const PlaceEntity(id: 'place-2', placeName: 'Next Office'),
               scheduleName: 'Next Meeting',
-              scheduleTime: DateTime(2027, 3, 20, 9, 20),
+              scheduleTime: DateTime.utc(2027, 3, 20, 9, 20),
+              occurrenceOffsetSeconds: 0,
               moveTime: const Duration(minutes: 10),
               isChanged: false,
               isStarted: false,
@@ -564,12 +685,12 @@ void main() {
     for (var i = 0; i < 3; i++) {
       await tester.tap(find.byType(TextField).first);
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
+      await tester.tap(find.byKey(const ValueKey('civil-picker-cancel')));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(TextField).at(1));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
+      await tester.tap(find.byKey(const ValueKey('civil-picker-cancel')));
       await tester.pumpAndSettle();
     }
 

@@ -52,22 +52,22 @@ class RecurrenceSheet extends StatelessWidget {
             ),
             child: Column(
               children: [
-                SizedBox(
-                  height: 44,
-                  child: TopBar(
-                    title: title,
-                    showAction: false,
-                    onPreviousPageButtonClicked: showBack
-                        ? onBack ?? () => Navigator.of(context).maybePop()
-                        : null,
-                    onNextPageButtonClicked: null,
-                    isNextButtonEnabled: false,
-                  ),
-                ),
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                     children: [
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 44),
+                        child: TopBar(
+                          title: title,
+                          showAction: false,
+                          onPreviousPageButtonClicked: showBack
+                              ? onBack ?? () => Navigator.of(context).maybePop()
+                              : null,
+                          onNextPageButtonClicked: null,
+                          isNextButtonEnabled: false,
+                        ),
+                      ),
                       for (final child in children)
                         Padding(
                           padding: EdgeInsets.only(bottom: spacing),

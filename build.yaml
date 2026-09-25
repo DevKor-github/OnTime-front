@@ -1,0 +1,10 @@
+builders:
+  database_schema_contracts:
+    import: "tool/database_schema_builder.dart"
+    builder_factories: ["databaseSchemaContracts"]
+    build_extensions: {".schema.json": [".g.dart"]}
+    auto_apply: root_package
+    build_to: source
+    defaults:
+      generate_for:
+        - lib/core/database/schema_contracts.schema.json

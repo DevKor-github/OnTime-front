@@ -1,3 +1,5 @@
+import 'recovery/pair_files.dart';
+import 'package:on_time_front/core/database/initial_store_guard.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:on_time_front/core/database/installation_key_store.dart';
@@ -16,13 +18,24 @@ final class DeviceLocalResetActions
     InstallationKeyStore? keyStore,
     this.closeDatabase,
     Future<void> Function()? deleteFiles,
+    Future<void> Function()? removeCreationReceipt,
+    Future<void> Function()? removePairKeys,
     Future<void> Function()? clearDeliveries,
     Future<bool> Function()? clearNativeDeliveries,
     Future<void> Function()? clearLaunch,
   }) : storage = storage ?? const FlutterSecureStorage(),
        keyStore = keyStore ?? InstallationKeyStore(),
        deleteFiles =
-           deleteFiles ?? (() => deleteLocalDatabaseFiles(includeLegacy: true)),
+           deleteFiles ??
+           (() async {
+             await (await PairFiles.device()).resetFiles();
+             await deleteLocalDatabaseFiles(includeLegacy: true);
+           }),
+       removePairKeys =
+           removePairKeys ??
+           (() async => (await PairFiles.device()).resetKeysAndMetadata()),
+       removeCreationReceipt =
+           removeCreationReceipt ?? InitialStoreGuard.removeDeviceReceipt,
        clearDeliveries = clearDeliveries ?? _clearDeliveries,
        clearNativeDeliveries = clearNativeDeliveries ?? _clearNativeDeliveries,
        clearLaunch = clearLaunch ?? _clearLaunch;
@@ -36,6 +49,8 @@ final class DeviceLocalResetActions
   final InstallationKeyStore keyStore;
   final Future<void> Function()? closeDatabase;
   final Future<void> Function() deleteFiles;
+  final Future<void> Function() removeCreationReceipt;
+  final Future<void> Function() removePairKeys;
   final Future<void> Function() clearDeliveries;
   final Future<bool> Function() clearNativeDeliveries;
   bool _allProvidersConfirmedEmpty = false;
@@ -69,12 +84,14 @@ final class DeviceLocalResetActions
       case ResetStep.database:
         await closeDatabase?.call();
         await deleteFiles();
+        await removeCreationReceipt();
       case ResetStep.preferences:
         final prefs = await SharedPreferences.getInstance();
         if (!await prefs.clear()) throw const AlarmJournalUnavailable();
         await prefs.reload();
         if (prefs.getKeys().isNotEmpty) throw const AlarmJournalUnavailable();
       case ResetStep.key:
+        await removePairKeys();
         await keyStore.delete();
         if (await keyStore.exists()) throw const AlarmJournalUnavailable();
       case ResetStep.credentials:

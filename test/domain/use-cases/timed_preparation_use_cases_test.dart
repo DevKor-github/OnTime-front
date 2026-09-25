@@ -17,7 +17,6 @@ import 'package:on_time_front/domain/repositories/early_start_session_repository
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:on_time_front/domain/use-cases/clear_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/clear_timed_preparation_use_case.dart';
-import 'package:on_time_front/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_schedules_by_date_use_case.dart';
@@ -27,7 +26,6 @@ import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.
 import 'package:on_time_front/domain/use-cases/load_adjacent_schedule_with_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/load_schedules_by_date_use_case.dart';
-import 'package:on_time_front/domain/use-cases/load_schedules_for_week_use_case.dart';
 import 'package:on_time_front/domain/use-cases/mark_early_start_session_use_case.dart';
 import 'package:on_time_front/domain/use-cases/save_timed_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/stream_preparations_use_case.dart';
@@ -237,55 +235,6 @@ void main() {
       });
     },
   );
-
-  test(
-    'GetNearestUpcomingScheduleUseCase loads prep for nearest active schedule',
-    () async {
-      final now = DateTime.now();
-      final nearest = _schedule('nearest', now.add(const Duration(hours: 1)));
-      final ended = _schedule(
-        'ended',
-        now.add(const Duration(minutes: 30)),
-      ).copyWith(doneStatus: ScheduleDoneStatus.normalEnd);
-      final later = _schedule('later', now.add(const Duration(hours: 2)));
-      final scheduleRepository = _FakeScheduleRepository({
-        later,
-        ended,
-        nearest,
-      });
-      final preparationRepository = _FakePreparationRepository()
-        ..emit({
-          'nearest': const PreparationEntity(
-            preparationStepList: [
-              PreparationStepEntity(
-                id: 'prep-1',
-                preparationName: 'Pack',
-                preparationTime: Duration(minutes: 5),
-              ),
-            ],
-          ),
-        });
-      final loadSchedulesByDate = LoadSchedulesByDateUseCase(
-        scheduleRepository,
-      );
-      final useCase = GetNearestUpcomingScheduleUseCase(
-        GetSchedulesByDateUseCase(scheduleRepository),
-        LoadPreparationByScheduleIdUseCase(preparationRepository),
-        GetPreparationByScheduleIdUseCase(preparationRepository),
-        LoadSchedulesForWeekUseCase(loadSchedulesByDate),
-      );
-
-      final schedule = await useCase().first;
-
-      expect(schedule!.id, 'nearest');
-      expect(preparationRepository.loadedScheduleIds, ['nearest']);
-      expect(schedule.preparation.preparationStepList.single.id, 'prep-1');
-      expect(
-        scheduleRepository.requestedRanges.length,
-        greaterThanOrEqualTo(1),
-      );
-    },
-  );
 }
 
 class _FakeTimedPreparationRepository implements TimedPreparationRepository {
@@ -387,6 +336,8 @@ class _FakeScheduleRepository implements ScheduleRepository {
   Future<DateTime> startSchedule(
     String scheduleId, {
     DateTime? startedAt,
+    bool Function()? isCurrent,
+    String? expectedFingerprint,
   }) async => startedAt ?? DateTime.utc(2026);
 
   @override
@@ -494,7 +445,8 @@ ScheduleEntity _schedule(String id, DateTime scheduleTime) {
     id: id,
     place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Meeting',
-    scheduleTime: scheduleTime,
+    scheduleTime: scheduleTime.toUtc(),
+    occurrenceOffsetSeconds: 0,
     moveTime: const Duration(minutes: 10),
     isChanged: false,
     isStarted: false,
@@ -510,6 +462,7 @@ ScheduleWithPreparationEntity _scheduleWithPreparation(String id) {
     place: schedule.place,
     scheduleName: schedule.scheduleName,
     scheduleTime: schedule.scheduleTime,
+    occurrenceOffsetSeconds: schedule.occurrenceOffsetSeconds,
     moveTime: schedule.moveTime,
     isChanged: schedule.isChanged,
     isStarted: schedule.isStarted,

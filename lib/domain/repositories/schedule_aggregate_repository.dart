@@ -1,3 +1,5 @@
+import 'package:on_time_front/domain/entities/schedule_deletion.dart';
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:on_time_front/domain/use-cases/schedule_form_submission.dart';
@@ -12,4 +14,10 @@ abstract interface class ScheduleAggregateRepository {
     required bool editing,
   });
   bool isCurrent(ScheduleSaveReceipt receipt);
+  Future<ScheduleDeletionIntent> readForDeletion(
+    String id, {
+    RecurringEditScope scope = RecurringEditScope.occurrence,
+  });
+  Future<ScheduleDeletionCommit> delete(ScheduleDeletionIntent intent);
+  Future<bool> isDeletionCurrent(ScheduleDeletionCommit commit);
 }

@@ -1,4 +1,9 @@
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/domain/use-cases/schedule_time_correction_workflow.dart';
+import 'schedule_time_correction_screen.dart';
+import 'package:on_time_front/domain/use-cases/recurring_time_correction_workflow.dart';
+import 'package:on_time_front/presentation/recurring/recurring_time_correction_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -26,6 +31,36 @@ class ScheduleEditScreen extends StatelessWidget {
           ),
         child: BlocBuilder<ScheduleFormBloc, ScheduleFormState>(
           builder: (context, state) {
+            final original = state.originalSchedule;
+            if (state.status == ScheduleFormStatus.success &&
+                original != null &&
+                ScheduleTimeResolver.resolve(
+                      original,
+                      nowUtc: DateTime.now().toUtc(),
+                    ).instantUtc ==
+                    null) {
+              if (scope == RecurringEditScope.following &&
+                  original.isRecurring) {
+                return Material(
+                  type: MaterialType.transparency,
+                  child: RecurringTimeCorrectionScreen(
+                    key: ValueKey((original.id, state.mutationId)),
+                    scheduleId: original.id,
+                    workflow: getIt.get<RecurringTimeCorrectionWorkflow>(),
+                    individualWorkflow: getIt
+                        .get<ScheduleTimeCorrectionWorkflow>(),
+                  ),
+                );
+              }
+              return Material(
+                type: MaterialType.transparency,
+                child: ScheduleTimeCorrectionScreen(
+                  key: ValueKey((original.id, state.mutationId)),
+                  scheduleId: original.id,
+                  workflow: getIt.get<ScheduleTimeCorrectionWorkflow>(),
+                ),
+              );
+            }
             return ScheduleMultiPageForm(
               onSaved: () => context.read<ScheduleFormBloc>().add(
                 const ScheduleFormUpdated(),

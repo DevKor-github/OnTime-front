@@ -6,6 +6,8 @@ import 'package:uuid/uuid.dart';
 @TableIndex(name: 'schedules_schedule_time_idx', columns: {#scheduleTime})
 @TableIndex(name: 'schedules_place_id_idx', columns: {#placeId})
 class Schedules extends Table {
+  BoolColumn get requiresStartConfirmation =>
+      boolean().withDefault(const Constant(false))();
   // Installation-local concurrency metadata; excluded from portable backups.
   TextColumn get aggregateIncarnation => text().nullable()();
   IntColumn get aggregateVersion => integer().nullable()();

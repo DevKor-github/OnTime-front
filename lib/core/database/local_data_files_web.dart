@@ -12,3 +12,5 @@ Future<void> excludeLocalDatabaseFromPlatformBackup(
 ) async {}
 
 Future<void> deleteLocalDatabaseFiles({required bool includeLegacy}) async {}
+
+Future<void> deleteLegacyDatabaseFiles() async {}

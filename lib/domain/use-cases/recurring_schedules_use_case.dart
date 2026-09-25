@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
+import 'package:on_time_front/domain/entities/schedule_deletion.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
@@ -14,10 +17,15 @@ class RecurringScheduleSummary {
 
 @Injectable()
 class RecurringSchedulesUseCase {
-  RecurringSchedulesUseCase(this._recurring, this._schedules, this._alarms);
+  RecurringSchedulesUseCase(
+    this._recurring,
+    this._schedules,
+    ScheduleMutationAlarmEffectsCoordinator alarms,
+    this.deletions,
+  );
+  final DeleteScheduleUseCase deletions;
   final RecurringScheduleRepository _recurring;
   final ScheduleRepository _schedules;
-  final ScheduleMutationAlarmEffectsCoordinator _alarms;
 
   Future<RecurringSegment> getSegment(String id) => _recurring.getSegment(id);
 
@@ -27,6 +35,10 @@ class RecurringSchedulesUseCase {
       now.subtract(const Duration(days: 2)),
       null,
     );
+    final instants = {
+      for (final value in occurrences)
+        value.id: ScheduleTimeResolver.resolve(value, nowUtc: now).instantUtc,
+    };
     final segments = await _recurring.getSegments();
     final result = <RecurringScheduleSummary>[];
     for (final series in segments.map((s) => s.seriesId).toSet()) {
@@ -45,13 +57,10 @@ class RecurringSchedulesUseCase {
                     !s.isStarted &&
                     !s.preparationFrozen &&
                     s.doneStatus == ScheduleDoneStatus.notEnded &&
-                    s.occurrenceInstantUtc.isAfter(now.toUtc()),
+                    (instants[s.id]?.isAfter(now.toUtc()) ?? false),
               )
               .toList()
-            ..sort(
-              (a, b) =>
-                  a.occurrenceInstantUtc.compareTo(b.occurrenceInstantUtc),
-            );
+            ..sort((a, b) => instants[a.id]!.compareTo(instants[b.id]!));
       result.add(
         RecurringScheduleSummary(
           own.last,
@@ -78,14 +87,14 @@ class RecurringSchedulesUseCase {
     return _recurring.review(value.schedule, value.preparation, rule);
   }
 
-  Future<void> delete(
+  Future<ScheduleDeletionResult> delete(
     ScheduleEntity occurrence,
     RecurringEditScope scope,
   ) async {
-    await _recurring.delete(occurrence, scope);
-    await _alarms(
-      operation: ScheduleMutationAlarmOperation.deleted,
-      scheduleId: occurrence.id,
-    );
+    final intent = await deletions.prepare(occurrence.id, scope: scope);
+    if (intent.snapshot.schedule != occurrence) {
+      throw const ScheduleDeletionRejected(ScheduleDeletionFailure.conflict);
+    }
+    return deletions.confirm(intent);
   }
 }

@@ -1,3 +1,6 @@
+import 'package:on_time_front/core/startup/startup_dependency_scope.dart';
+import 'package:on_time_front/core/startup/subscription_cleanup.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:async';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/constants/local_profile.dart';
@@ -9,7 +12,13 @@ import 'package:on_time_front/domain/repositories/preparation_repository.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
 import 'package:rxdart/subjects.dart';
 
-@Singleton(as: PreparationRepository)
+Future<void> disposePreparationRepository(PreparationRepository resource) =>
+    StartupDependencyScope.release(
+      resource,
+      (resource as PreparationRepositoryImpl).dispose,
+    );
+
+@Singleton(as: PreparationRepository, dispose: disposePreparationRepository)
 class PreparationRepositoryImpl implements PreparationRepository {
   PreparationRepositoryImpl({
     required PreparationLocalDataSource preparationLocalDataSource,
@@ -19,23 +28,69 @@ class PreparationRepositoryImpl implements PreparationRepository {
        _userRepository = userRepository,
        _userDao = database.userDao,
        _database = database {
-    _subscription = database
+    StartupDependencyScope.own(this, dispose);
+    LocalDataOperationGate.shared.addListener(_observeCurrentGeneration);
+    _observeCurrentGeneration();
+  }
+
+  StreamSubscription<Map<String, PreparationEntity>>? _subscription;
+  int _watchGeneration = -1;
+  Object? _subscriptionOwner;
+
+  bool _isCurrentWatch(Object owner, int generation) {
+    final gate = LocalDataOperationGate.shared;
+    return identical(owner, _subscriptionOwner) &&
+        generation == gate.generation &&
+        !gate.isReplacingData &&
+        !gate.isRecoveryPending &&
+        !gate.isInvalidated;
+  }
+
+  final _retiredWatches = SubscriptionCleanup();
+  bool _disposed = false;
+  Future<void>? _subjectClose;
+  Future<void>? _disposeFlight;
+  void _observeCurrentGeneration() {
+    if (_disposed) return;
+    final gate = LocalDataOperationGate.shared;
+    if (_watchGeneration != gate.generation ||
+        gate.isReplacingData ||
+        gate.isRecoveryPending ||
+        gate.isInvalidated) {
+      // Retire the token before cancellation finishes: old reads and errors
+      // cannot publish into the replacement installation.
+      _subscriptionOwner = null;
+      _retiredWatches.retire(_subscription);
+      _subscription = null;
+      _preparationStreamController.add(const {});
+    }
+    if (_subscription != null ||
+        gate.isReplacingData ||
+        gate.isRecoveryPending ||
+        gate.isInvalidated) {
+      return;
+    }
+    final generation = gate.generation;
+    final owner = Object();
+    _watchGeneration = generation;
+    _subscriptionOwner = owner;
+    _subscription = _database
         .customSelect(
           'SELECT count(*) AS n FROM schedules',
           readsFrom: {
-            database.schedules,
-            database.preparationSchedules,
-            database.preparationDefinitions,
-            database.preparationDefinitionSteps,
-            database.preparationUsers,
-            database.preparationTemplates,
-            database.preparationTemplateSteps,
+            _database.schedules,
+            _database.preparationSchedules,
+            _database.preparationDefinitions,
+            _database.preparationDefinitionSteps,
+            _database.preparationUsers,
+            _database.preparationTemplates,
+            _database.preparationTemplateSteps,
           },
         )
         .watch()
         .asyncMap(
-          (_) => database.transaction(() async {
-            final schedules = await database.select(database.schedules).get();
+          (_) => _database.transaction(() async {
+            final schedules = await _database.select(_database.schedules).get();
             return {
               for (final schedule in schedules)
                 schedule.id: await _localDataSource.getPreparationByScheduleId(
@@ -45,12 +100,19 @@ class PreparationRepositoryImpl implements PreparationRepository {
           }),
         )
         .listen(
-          _preparationStreamController.add,
-          onError: _preparationStreamController.addError,
+          (value) {
+            if (_isCurrentWatch(owner, generation)) {
+              _preparationStreamController.add(value);
+            }
+          },
+          onError: (Object error, StackTrace stack) {
+            if (_isCurrentWatch(owner, generation)) {
+              _preparationStreamController.addError(error, stack);
+            }
+          },
         );
   }
 
-  late final StreamSubscription<Map<String, PreparationEntity>> _subscription;
   final PreparationLocalDataSource _localDataSource;
   final UserRepository _userRepository;
   final UserDao _userDao;
@@ -68,8 +130,8 @@ class PreparationRepositoryImpl implements PreparationRepository {
     required Duration spareTime,
     required String note,
   }) async {
-    await _userRepository.getUser();
-    await _database.transaction(() async {
+    await _database.writeTransaction(() async {
+      await _userRepository.getUser();
       final existing = await _localDataSource.getDefaultPreparation(
         localProfileId,
       );
@@ -94,22 +156,28 @@ class PreparationRepositoryImpl implements PreparationRepository {
     PreparationEntity preparationEntity,
     String scheduleId,
   ) async {
-    await _database.transaction(() async {
+    final generation = LocalDataOperationGate.shared.generation;
+    await _database.writeTransaction(() async {
       await _localDataSource.createCustomPreparation(
         preparationEntity,
         scheduleId,
       );
       await _userDao.markDurableDataChanged(localProfileId);
     });
-    _emitSchedulePreparation(scheduleId, preparationEntity);
+    if (generation == LocalDataOperationGate.shared.generation) {
+      _emitSchedulePreparation(scheduleId, preparationEntity);
+    }
   }
 
   @override
   Future<void> getPreparationByScheduleId(String scheduleId) async {
+    final generation = LocalDataOperationGate.shared.generation;
     final preparation = await _localDataSource.getPreparationByScheduleId(
       scheduleId,
     );
-    _emitSchedulePreparation(scheduleId, preparation);
+    if (generation == LocalDataOperationGate.shared.generation) {
+      _emitSchedulePreparation(scheduleId, preparation);
+    }
   }
 
   @override
@@ -121,11 +189,13 @@ class PreparationRepositoryImpl implements PreparationRepository {
   Future<void> updateDefaultPreparation(
     PreparationEntity preparationEntity,
   ) async {
-    await _localDataSource.replaceDefaultPreparation(
-      preparationEntity,
-      userId: localProfileId,
-    );
-    await _userDao.markDurableDataChanged(localProfileId);
+    await _database.writeTransaction(() async {
+      await _localDataSource.replaceDefaultPreparation(
+        preparationEntity,
+        userId: localProfileId,
+      );
+      await _userDao.markDurableDataChanged(localProfileId);
+    });
   }
 
   @override
@@ -133,14 +203,17 @@ class PreparationRepositoryImpl implements PreparationRepository {
     PreparationEntity preparationEntity,
     String scheduleId,
   ) async {
-    await _database.transaction(() async {
+    final generation = LocalDataOperationGate.shared.generation;
+    await _database.writeTransaction(() async {
       await _localDataSource.replaceSchedulePreparation(
         preparationEntity,
         scheduleId: scheduleId,
       );
       await _userDao.markDurableDataChanged(localProfileId);
     });
-    _emitSchedulePreparation(scheduleId, preparationEntity);
+    if (generation == LocalDataOperationGate.shared.generation) {
+      _emitSchedulePreparation(scheduleId, preparationEntity);
+    }
   }
 
   @override
@@ -166,14 +239,24 @@ class PreparationRepositoryImpl implements PreparationRepository {
     String scheduleId,
     PreparationEntity preparation,
   ) {
+    if (_disposed) return;
     _preparationStreamController.add({
       ..._preparationStreamController.value,
       scheduleId: preparation,
     });
   }
 
-  Future<void> dispose() async {
-    await _subscription.cancel();
-    await _preparationStreamController.close();
+  Future<void> dispose() =>
+      _disposeFlight ??= _dispose().whenComplete(() => _disposeFlight = null);
+  Future<void> _dispose() async {
+    _disposed = true;
+    LocalDataOperationGate.shared.removeListener(_observeCurrentGeneration);
+    _subscriptionOwner = null;
+    _retiredWatches.retire(_subscription);
+    _subscription = null;
+    await Future.wait([
+      _retiredWatches.close(),
+      _subjectClose ??= _preparationStreamController.close(),
+    ]);
   }
 }

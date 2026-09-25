@@ -24,6 +24,7 @@ open class MainActivity : FlutterActivity() {
         private const val CHANNEL_NAME = "on_time_front/native_alarm"
         const val ACTION_SCHEDULE_ALARM = "on_time_front.SCHEDULE_ALARM"
         private var launchPayload: Map<String, String>? = null
+        private val processIdentity = java.util.UUID.randomUUID().toString()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +40,9 @@ open class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        if (!flutterEngine.plugins.has(BackupImportPlugin::class.java)) {
+            flutterEngine.plugins.add(BackupImportPlugin())
+        }
         if (!flutterEngine.plugins.has(BackupExportPlugin::class.java)) {
             flutterEngine.plugins.add(BackupExportPlugin())
         }
@@ -49,6 +53,7 @@ open class MainActivity : FlutterActivity() {
         )
         methodChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
+                "getProcessIdentity" -> result.success(processIdentity)
                 "getCapabilities" -> {
                     val nativeAlarmApproved =
                         NativeAlarmPolicy.isAndroidFullScreenAlarmApproved()

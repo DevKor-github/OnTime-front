@@ -1,3 +1,7 @@
+import 'package:on_time_front/domain/entities/schedule_deletion.dart';
+import 'package:on_time_front/data/daos/schedule_owned_content_cleanup.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
@@ -108,6 +112,154 @@ class ScheduleAggregateRepositoryImpl implements ScheduleAggregateRepository {
               : await recurring.getSegment(schedule.recurringSegmentId!),
         );
       });
+  @override
+  Future<ScheduleDeletionIntent> readForDeletion(
+    String id, {
+    RecurringEditScope scope = RecurringEditScope.occurrence,
+  }) => db.transaction(() async {
+    final generation = gate.captureWrite();
+    final snapshot = await readForEdit(id);
+    final targets = await _deletionTargets(snapshot, scope);
+    gate.checkWrite(generation);
+    return ScheduleDeletionIntent(
+      intentId: uuid.v7(),
+      snapshot: snapshot,
+      scope: scope,
+      targets: targets,
+    );
+  });
+
+  Future<List<ScheduleDeletionTarget>> _deletionTargets(
+    ScheduleEditSnapshot snapshot,
+    RecurringEditScope scope,
+  ) async {
+    final selected = snapshot.schedule;
+    if (selected.isStarted) {
+      throw const ScheduleDeletionRejected(ScheduleDeletionFailure.protected);
+    }
+    final selectedTarget = ScheduleDeletionTarget(
+      id: selected.id,
+      incarnation: snapshot.baseline.incarnation!,
+      version: snapshot.baseline.version!,
+    );
+    if (scope == RecurringEditScope.occurrence) return [selectedTarget];
+    final evaluationNow = now().toUtc();
+    bool protected(ScheduleEntity value) =>
+        value.isStarted ||
+        value.preparationFrozen ||
+        value.doneStatus != ScheduleDoneStatus.notEnded ||
+        !(ScheduleTimeResolver.resolve(
+              value,
+              nowUtc: evaluationNow,
+            ).instantUtc?.isAfter(evaluationNow) ??
+            false);
+    if (!selected.isRecurring || protected(selected)) {
+      throw const ScheduleDeletionRejected(ScheduleDeletionFailure.protected);
+    }
+    final segment = snapshot.segment!;
+    final seriesIds = (await recurring.getSegments())
+        .where((value) => value.seriesId == segment.seriesId)
+        .map((value) => value.id)
+        .toSet();
+    final anchor = _civilSlot(selected.recurringSlotKey!);
+    final targets = <ScheduleDeletionTarget>[];
+    for (final row in await db.scheduleDao.getScheduleList()) {
+      final value = row.toScheduleEntity();
+      if (seriesIds.contains(value.recurringSegmentId) &&
+          value.recurringSlotKey != null &&
+          !_civilSlot(value.recurringSlotKey!).isBefore(anchor) &&
+          !protected(value)) {
+        targets.add(
+          ScheduleDeletionTarget(
+            id: value.id,
+            incarnation: row.schedule.aggregateIncarnation!,
+            version: row.schedule.aggregateVersion!,
+          ),
+        );
+      }
+    }
+    return targets..sort((a, b) => a.id.compareTo(b.id));
+  }
+
+  @override
+  Future<ScheduleDeletionCommit> delete(
+    ScheduleDeletionIntent intent,
+  ) => db.writeTransaction(() async {
+    final baseline = intent.snapshot.baseline;
+    final profile = await _profile();
+    if (profile.storeIncarnation != baseline.store ||
+        gate.generation != baseline.generation) {
+      throw const ScheduleDeletionRejected(ScheduleDeletionFailure.conflict);
+    }
+    final id = intent.snapshot.schedule.id;
+    final row = await (db.select(
+      db.schedules,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (row == null) {
+      return ScheduleDeletionCommit(
+        scheduleId: id,
+        store: baseline.store,
+        generation: baseline.generation,
+        removedIds: const {},
+        changed: false,
+        alreadyAbsent: true,
+      );
+    }
+    final latest = await readForEdit(id);
+    if (latest.baseline.incarnation != baseline.incarnation ||
+        latest.baseline.version != baseline.version ||
+        latest.baseline.rootIncarnation != baseline.rootIncarnation ||
+        (intent.scope == RecurringEditScope.following &&
+            latest.baseline.rootVersion != baseline.rootVersion)) {
+      throw const ScheduleDeletionRejected(ScheduleDeletionFailure.conflict);
+    }
+    final targets = await _deletionTargets(latest, intent.scope);
+    if (targets.length != intent.targets.length ||
+        List.generate(
+          targets.length,
+          (i) => targets[i] != intent.targets[i],
+        ).any((different) => different)) {
+      throw const ScheduleDeletionRejected(ScheduleDeletionFailure.conflict);
+    }
+    if (latest.schedule.isRecurring) {
+      // This nested transaction owns the single durable revision change.
+      await recurring.delete(latest.schedule, intent.scope);
+    } else {
+      await removeScheduleOwnedContent(db, id);
+      await db.userDao.markDurableDataChanged(localProfileId);
+    }
+    return ScheduleDeletionCommit(
+      scheduleId: id,
+      store: baseline.store,
+      generation: baseline.generation,
+      removedIds: targets.map((value) => value.id).toSet(),
+      changed: true,
+      alreadyAbsent: false,
+    );
+  }, gate: gate);
+
+  @override
+  Future<bool> isDeletionCurrent(ScheduleDeletionCommit commit) =>
+      db.transaction(() async {
+        if (gate.isInvalidated ||
+            gate.isReplacingData ||
+            gate.isRecoveryPending ||
+            gate.generation != commit.generation) {
+          return false;
+        }
+        final profile = await _profile();
+        if (profile.storeIncarnation != commit.store) return false;
+        final ids = {...commit.removedIds, commit.scheduleId};
+        final rows = await (db.select(
+          db.schedules,
+        )..where((t) => t.id.isIn(ids))).get();
+        return rows.isEmpty &&
+            gate.generation == commit.generation &&
+            !gate.isInvalidated &&
+            !gate.isReplacingData &&
+            !gate.isRecoveryPending;
+      });
+
   Never _reject(ScheduleSaveFailure value) => throw ScheduleSaveRejected(value);
   List<Object?> _steps(PreparationEntity p) => p.ordered.preparationStepList
       .map((s) => <Object?>[s.preparationName, s.preparationTime.inMinutes])
@@ -224,7 +376,7 @@ class ScheduleAggregateRepositoryImpl implements ScheduleAggregateRepository {
     if (baseline == null || mutation == null || mutation.isEmpty) {
       _reject(ScheduleSaveFailure.invalid);
     }
-    if (gate.isInvalidated || gate.isReplacingData) {
+    if (gate.isInvalidated || gate.isReplacingData || gate.isRecoveryPending) {
       _reject(ScheduleSaveFailure.unavailable);
     }
     final profile = await _profile();
@@ -302,6 +454,17 @@ class ScheduleAggregateRepositoryImpl implements ScheduleAggregateRepository {
         changed: false,
       );
     }
+    if (v.validateTimeReview != null &&
+        profile.dataRevision != baseline.revision) {
+      _reject(ScheduleSaveFailure.conflict);
+    }
+    v.validateTimeReview?.call();
+    if ((row?.lastMutationId == mutation &&
+            row?.lastMutationDigest != digest) ||
+        (root?.lastMutationId == mutation &&
+            root?.lastMutationDigest != digest)) {
+      _reject(ScheduleSaveFailure.conflict);
+    }
     if (editing) {
       if (row == null ||
           row.aggregateIncarnation != baseline.incarnation ||
@@ -318,10 +481,15 @@ class ScheduleAggregateRepositoryImpl implements ScheduleAggregateRepository {
           prep.totalDuration +
           current.moveTime +
           (current.scheduleSpareTime ?? Duration.zero);
-      if (current.isStarted ||
+      final currentInstant = ScheduleTimeResolver.resolve(
+        current,
+        nowUtc: now(),
+      ).instantUtc;
+      if (currentInstant == null ||
+          current.isStarted ||
           current.preparationFrozen ||
           current.doneStatus != ScheduleDoneStatus.notEnded ||
-          !current.occurrenceInstantUtc.subtract(lead).isAfter(now().toUtc())) {
+          !currentInstant.subtract(lead).isAfter(now().toUtc())) {
         _reject(ScheduleSaveFailure.protected);
       }
     } else if (row != null ||
@@ -431,6 +599,7 @@ class ScheduleAggregateRepositoryImpl implements ScheduleAggregateRepository {
         ),
       );
     }
+    v.validateTimeReview?.call();
     return ScheduleSaveReceipt(
       scheduleId: v.schedule.id,
       mutationId: mutation,
@@ -456,7 +625,7 @@ class ScheduleAggregateRepositoryImpl implements ScheduleAggregateRepository {
         parts.any(
           (p) =>
               p.id != segment.id &&
-              DateTime.parse(p.fromSlot).compareTo(segment.fromSlot) > 0,
+              _civilSlot(p.fromSlot).compareTo(segment.fromSlot) > 0,
         )) {
       return false;
     }
@@ -469,21 +638,8 @@ class ScheduleAggregateRepositoryImpl implements ScheduleAggregateRepository {
         jsonEncode(RecurrenceCodec.ruleToJson(v.recurrenceRule!));
   }
 
-  Future<void> _collectUnusedOwnedDefinition(String candidate) async {
-    final unused = await db
-        .customSelect(
-          "SELECT id FROM preparation_definitions d WHERE id=? AND scope IN ('recurring','occurrence') AND NOT EXISTS(SELECT 1 FROM schedules s WHERE s.preparation_definition_id=d.id) AND NOT EXISTS(SELECT 1 FROM recurring_schedule_segments r WHERE r.preparation_id=d.id)",
-          variables: [Variable(candidate)],
-        )
-        .get();
-    if (unused.isEmpty) return;
-    await (db.delete(
-      db.preparationDefinitionSteps,
-    )..where((t) => t.definitionId.equals(candidate))).go();
-    await (db.delete(
-      db.preparationDefinitions,
-    )..where((t) => t.id.equals(candidate))).go();
-  }
+  Future<void> _collectUnusedOwnedDefinition(String candidate) =>
+      collectUnusedScheduleDefinition(db, candidate);
 
   Future<bool> _saveOrdinary(
     ScheduleFormSubmission v, {
@@ -630,3 +786,5 @@ Future<PreparationEntity> readSchedulePreparation(
   if (custom.preparationStepList.isNotEmpty) return custom;
   return db.preparationUserDao.getPreparationUsersByUserId(localProfileId);
 }
+
+DateTime _civilSlot(String value) => CivilDateTime.parse(value).toUtcCarrier();

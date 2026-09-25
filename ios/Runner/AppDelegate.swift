@@ -13,6 +13,7 @@ private let onTimeAlarmLaunchURLHost = "alarm"
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private static weak var current: AppDelegate?
+  private static let processIdentity = UUID().uuidString.lowercased()
   private var nativeAlarmChannel: FlutterMethodChannel?
 
   override func application(
@@ -31,6 +32,9 @@ private let onTimeAlarmLaunchURLHost = "alarm"
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OnTimeBackupImport") {
+      BackupImportPlugin.register(with: registrar)
+    }
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OnTimeBackupExport") {
       BackupExportPlugin.register(with: registrar)
     }
@@ -46,6 +50,8 @@ private let onTimeAlarmLaunchURLHost = "alarm"
 
   private func handleNativeAlarmCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
+    case "getProcessIdentity":
+      result(Self.processIdentity)
     case "getCapabilities":
       result(nativeAlarmCapabilities())
     case "checkPermission":
@@ -380,6 +386,9 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       // Duplicate identity parameters are ambiguous, not last-value-wins.
       let identities = (components.queryItems ?? []).filter { $0.name == "scheduleId" }
       if identities.count == 1 { values["scheduleId"] = identities.first?.value }
+      let incarnations = (components.queryItems ?? []).filter { $0.name == "storeIncarnation" }
+      if incarnations.count > 1 { return true }
+      if incarnations.count == 1 { values["storeIncarnation"] = incarnations.first?.value }
     }
     guard let payload = AlarmLaunchPayload.sanitize(values) else {
       UserDefaults.standard.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)

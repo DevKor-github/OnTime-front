@@ -1,3 +1,8 @@
+import 'package:on_time_front/data/daos/schedule_owned_content_cleanup.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/core/time/time_zone_rules.dart';
+import 'package:on_time_front/domain/recurrence/recurrence_reference_policy.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/core/time/civil_time_resolver.dart';
@@ -51,8 +56,8 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
         schedule: RecurrenceCodec.scheduleFromJson(jsonDecode(r.scheduleJson)),
         preparation: await getPreparation(r.preparationId),
         preparationId: r.preparationId,
-        fromSlot: DateTime.parse(r.fromSlot),
-        beforeSlot: r.beforeSlot == null ? null : DateTime.parse(r.beforeSlot!),
+        fromSlot: _civilSlot(r.fromSlot),
+        beforeSlot: r.beforeSlot == null ? null : _civilSlot(r.beforeSlot!),
         createdAt: r.createdAt,
         preparationNotBefore: r.preparationNotBefore,
       );
@@ -132,7 +137,11 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       s.isStarted ||
       s.preparationFrozen ||
       s.doneStatus != ScheduleDoneStatus.notEnded ||
-      s.occurrenceInstantUtc.isBefore(_now().toUtc());
+      (ScheduleTimeResolver.resolve(
+            s,
+            nowUtc: _now(),
+          ).instantUtc?.isBefore(_now().toUtc()) ??
+          true);
   Future<Set<String>> _excluded(String id) async => (await (db.select(
     db.recurringScheduleExclusions,
   )..where((t) => t.segmentId.equals(id))).get()).map((e) => e.slotKey).toSet();
@@ -184,6 +193,36 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
         isStarted: false,
       );
 
+  @override
+  ScheduleEntity candidateFor(RecurringSegment segment, RecurrenceSlot slot) =>
+      _occurrence(segment, slot);
+
+  @override
+  Future<ScheduleEntity> materializeCandidate(
+    RecurringSegment segment,
+    RecurrenceSlot slot,
+  ) async {
+    if (!segment.includes(slot) ||
+        (await _excluded(segment.id)).contains(slot.key)) {
+      throw const RecurrenceSearchLimit();
+    }
+    final candidate = _occurrence(segment, slot);
+    final existing =
+        await (db.select(db.schedules)..where(
+              (row) =>
+                  row.id.equals(candidate.id) |
+                  (row.recurringSegmentId.equals(segment.id) &
+                      row.recurringSlotKey.equals(slot.key)),
+            ))
+            .getSingleOrNull();
+    if (existing == null) {
+      await db.scheduleDao.createSchedule(candidate.toScheduleWithPlaceRow());
+    }
+    return (await db.scheduleDao.getScheduleById(
+      existing?.id ?? candidate.id,
+    )).toScheduleEntity();
+  }
+
   // The Gregorian weekday/month calendar repeats after 146097 days. Combine
   // that cycle with both interval periods; never claim a partial scan proves an
   // unbounded rule is conflict-free. Oversized scans fail explicitly.
@@ -227,7 +266,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       ...exceptionDates,
       for (final s in stored) ...[
         s.scheduleTime,
-        if (s.recurringSlotKey != null) DateTime.parse(s.recurringSlotKey!),
+        if (s.recurringSlotKey != null) _civilSlot(s.recurringSlotKey!),
       ],
     ]) {
       final after = date.add(const Duration(days: 2));
@@ -264,6 +303,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     DateTime? cutoff,
   }) async {
     _validatePreparation(preparation);
+    final evaluationNow = cutoff ?? _now();
     // Validate/initialize bundled zones before computing the calendar proof.
     _engine.expand(rule, through: rule.start, limit: 1);
     final allSegments = await getSegments();
@@ -296,7 +336,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       rule,
       segments,
       [...relevant, ...detached, ...overrides.values],
-      exclusionsBySegment.values.expand((keys) => keys).map(DateTime.parse),
+      exclusionsBySegment.values.expand((keys) => keys).map(_civilSlot),
     );
     final candidate = _engine.expand(
       rule,
@@ -333,13 +373,21 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       final prep = value.preparationDefinitionId == null
           ? preparation.totalDuration
           : await definitionTime(value.preparationDefinitionId!);
+      final instant = ScheduleTimeResolver.resolve(
+        value,
+        nowUtc: evaluationNow,
+      ).instantUtc;
+      if (instant == null) {
+        throw const RecurrenceValidationException('일정 시간대와 발생 시각을 확인해 주세요.');
+      }
       proposed.add((
         slot: slot,
         interval: _BusyInterval(
           value,
-          value.occurrenceInstantUtc.subtract(
+          instant.subtract(
             prep + value.moveTime + (value.scheduleSpareTime ?? Duration.zero),
           ),
+          instant,
         ),
       ));
     }
@@ -358,9 +406,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       for (
         var j = i + 1;
         j < proposed.length &&
-            !proposed[j].interval.start.isAfter(
-              a.interval.schedule.occurrenceInstantUtc,
-            );
+            !proposed[j].interval.start.isAfter(a.interval.instant);
         j++
       ) {
         final b = proposed[j];
@@ -388,7 +434,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     if (proposed.isNotEmpty && !persistent) {
       final firstInstant = proposed.first.interval.start;
       final lastInstant = proposed
-          .map((p) => p.interval.schedule.occurrenceInstantUtc)
+          .map((p) => p.interval.instant)
           .reduce((a, b) => a.isAfter(b) ? a : b);
       for (final segment in segments) {
         preparationTimes[segment.preparationId] =
@@ -415,6 +461,11 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
           .getPreparationUsersByUserId(localProfileId);
       final intervals = <_BusyInterval>[];
       for (final value in byId.values) {
+        final instant = ScheduleTimeResolver.resolve(
+          value,
+          nowUtc: evaluationNow,
+        ).instantUtc;
+        if (instant == null) continue;
         Duration prep;
         if (value.preparationDefinitionId != null) {
           prep = await definitionTime(value.preparationDefinitionId!);
@@ -428,11 +479,12 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
         intervals.add(
           _BusyInterval(
             value,
-            value.occurrenceInstantUtc.subtract(
+            instant.subtract(
               prep +
                   value.moveTime +
                   (value.scheduleSpareTime ?? Duration.zero),
             ),
+            instant,
           ),
         );
       }
@@ -441,17 +493,13 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       for (final proposedValue in proposed) {
         final value = proposedValue.interval;
         while (index < intervals.length &&
-            !intervals[index].schedule.occurrenceInstantUtc.isAfter(
-              value.start,
-            ) &&
-            intervals[index].schedule.occurrenceInstantUtc !=
-                value.schedule.occurrenceInstantUtc) {
+            !intervals[index].instant.isAfter(value.start) &&
+            intervals[index].instant != value.instant) {
           index++;
         }
         for (
           var j = index;
-          j < intervals.length &&
-              !intervals[j].start.isAfter(value.schedule.occurrenceInstantUtc);
+          j < intervals.length && !intervals[j].start.isAfter(value.instant);
           j++
         ) {
           final other = intervals[j];
@@ -476,11 +524,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     }
     // Keep the complete proof local; the form only needs previews and every
     // conflict key that can be explicitly excluded.
-    proposed.sort(
-      (a, b) => a.interval.schedule.occurrenceInstantUtc.compareTo(
-        b.interval.schedule.occurrenceInstantUtc,
-      ),
-    );
+    proposed.sort((a, b) => a.interval.instant.compareTo(b.interval.instant));
     final conflictKeys = conflicts
         .expand(
           (c) => [c.slot.key, if (c.otherSlotKey != null) c.otherSlotKey!],
@@ -552,7 +596,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     Set<String> excludedSlots = const {},
     String? reviewedFirstSlotKey,
   }) async {
-    await db.transaction(() async {
+    await db.writeTransaction(() async {
       final existing = await (db.select(
         db.recurringScheduleSegments,
       )..where((t) => t.seriesId.equals(schedule.id))).get();
@@ -654,7 +698,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     DateTime through, {
     int? perSeriesLimit,
   }) async {
-    await db.transaction(() async {
+    await db.writeTransaction(() async {
       for (final segment in await getSegments()) {
         if (segment.beforeSlot != null &&
             !segment.beforeSlot!.isAfter(RecurrenceRule.civilTime(from))) {
@@ -677,6 +721,17 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     int? limit,
     Map<String, ScheduleEntity> overrides = const {},
   }) async {
+    // Retained unknown-zone history is not a request to regenerate its past.
+    // Do this before engine lookup, including explicit historical queries.
+    if (!TimeZoneRules.contains(s.rule.timeZoneId) &&
+        RecurrenceReferencePolicy.hasNoFutureGeneration(
+          rule: s.rule,
+          fromSlot: s.fromSlot,
+          beforeSlot: s.beforeSlot,
+          nowUtc: _now().toUtc(),
+        )) {
+      return;
+    }
     final slots = _expandSegment(
       s,
       through,
@@ -686,9 +741,14 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     );
     for (final slot in slots) {
       var schedule = _occurrence(s, slot);
-      final existing = await (db.select(
-        db.schedules,
-      )..where((t) => t.id.equals(schedule.id))).getSingleOrNull();
+      final existing =
+          await (db.select(db.schedules)..where(
+                (t) =>
+                    t.id.equals(schedule.id) |
+                    (t.recurringSegmentId.equals(s.id) &
+                        t.recurringSlotKey.equals(slot.key)),
+              ))
+              .getSingleOrNull();
       if (existing != null) continue;
       final old = overrides[_day(slot.civilTime)];
       if (old != null) schedule = _mergeOverrides(schedule, old);
@@ -701,6 +761,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     return base.copyWith(
       scheduleName: mask.contains('name') ? old.scheduleName : null,
       scheduleTime: mask.contains('time') ? old.scheduleTime : null,
+      timeZoneId: mask.contains('time') ? old.timeZoneId : null,
       occurrenceOffsetSeconds: mask.contains('time')
           ? old.occurrenceOffsetSeconds
           : null,
@@ -722,7 +783,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     PreparationEntity preparation, {
     required bool preparationChanged,
   }) async {
-    await db.transaction(() async {
+    await db.writeTransaction(() async {
       final current = (await db.scheduleDao.getScheduleById(
         original.id,
       )).toScheduleEntity();
@@ -758,6 +819,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
           .toSet();
       if (current.scheduleName != updated.scheduleName) mask.add('name');
       if (current.scheduleTime != updated.scheduleTime ||
+          current.timeZoneId != updated.timeZoneId ||
           current.occurrenceOffsetSeconds != updated.occurrenceOffsetSeconds) {
         mask.add('time');
       }
@@ -807,7 +869,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       original.id,
     )).toScheduleEntity();
     final segment = await getSegment(current.recurringSegmentId!);
-    final anchor = DateTime.parse(current.recurringSlotKey!);
+    final anchor = _civilSlot(current.recurringSlotKey!);
     if (RecurrenceRule.civilDate(
       requested.start,
     ).isBefore(RecurrenceRule.civilDate(anchor))) {
@@ -823,7 +885,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
           (s) =>
               segmentIds.contains(s.recurringSegmentId) &&
               s.recurringSlotKey != null &&
-              !DateTime.parse(s.recurringSlotKey!).isBefore(anchor),
+              !_civilSlot(s.recurringSlotKey!).isBefore(anchor),
         )
         .toList();
     final protected = stored.where(_protected).toList();
@@ -851,7 +913,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       for (final e in await (db.select(
         db.recurringScheduleExclusions,
       )..where((t) => t.segmentId.equals(s.id))).get()) {
-        final civil = DateTime.parse(e.slotKey);
+        final civil = _civilSlot(e.slotKey);
         if (!civil.isBefore(anchor) &&
             s.includes(
               RecurrenceSlot(
@@ -868,7 +930,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     // Protected slots consume their place just like explicit exclusions. If a
     // new rule no longer matches their day, reserve that part of the budget.
     for (final value in protected) {
-      exclusions[_day(DateTime.parse(value.recurringSlotKey!))] =
+      exclusions[_day(_civilSlot(value.recurringSlotKey!))] =
           value.recurringOrdinal!;
     }
     final target = remaining;
@@ -911,9 +973,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       }
       final days = candidate.map((s) => _day(s.civilTime)).toSet();
       final nextDetached = overrides
-          .where(
-            (s) => !days.contains(_day(DateTime.parse(s.recurringSlotKey!))),
-          )
+          .where((s) => !days.contains(_day(_civilSlot(s.recurringSlotKey!))))
           .toList();
       final nextUnmatched = exclusions.keys
           .where((d) => !days.contains(d))
@@ -943,7 +1003,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       anchor,
       rule,
       detached,
-      {for (final s in overrides) _day(DateTime.parse(s.recurringSlotKey!)): s},
+      {for (final s in overrides) _day(_civilSlot(s.recurringSlotKey!)): s},
       exclusions.keys.toSet(),
       protected,
       candidate,
@@ -999,7 +1059,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     String? reviewedFirstSlotKey,
     bool confirmDetached = false,
   }) async {
-    await db.transaction(() async {
+    await db.writeTransaction(() async {
       final plan = await _followingPlan(
         original,
         updated,
@@ -1028,7 +1088,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       for (final s in rows) {
         if (!segmentIds.contains(s.recurringSegmentId) ||
             s.recurringSlotKey == null ||
-            DateTime.parse(s.recurringSlotKey!).isBefore(plan.anchor) ||
+            _civilSlot(s.recurringSlotKey!).isBefore(plan.anchor) ||
             _protected(s)) {
           continue;
         }
@@ -1119,15 +1179,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
   }
 
   Future<void> _removeRow(String id) async {
-    await (db.update(
-      db.preparationSchedules,
-    )..where((t) => t.scheduleId.equals(id))).write(
-      const PreparationSchedulesCompanion(nextPreparationId: Value(null)),
-    );
-    await (db.delete(
-      db.preparationSchedules,
-    )..where((t) => t.scheduleId.equals(id))).go();
-    await (db.delete(db.schedules)..where((t) => t.id.equals(id))).go();
+    await removeScheduleRow(db, id);
   }
 
   @override
@@ -1135,7 +1187,7 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
     ScheduleEntity occurrence,
     RecurringEditScope scope,
   ) async {
-    await db.transaction(() async {
+    await db.writeTransaction(() async {
       final current = (await db.scheduleDao.getScheduleById(
         occurrence.id,
       )).toScheduleEntity();
@@ -1148,22 +1200,22 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
           current.recurringSlotKey!,
           current.recurringOrdinal!,
         );
-        await _removeRow(current.id);
+        await removeScheduleOwnedContent(db, current.id);
       } else {
         final segment = await getSegment(current.recurringSegmentId!);
         final series = (await getSegments())
             .where((s) => s.seriesId == segment.seriesId)
             .toList();
-        final anchor = DateTime.parse(current.recurringSlotKey!);
+        final anchor = _civilSlot(current.recurringSlotKey!);
         await _closeFollowing(series, anchor);
         final ids = series.map((s) => s.id).toSet();
         for (final r in await db.scheduleDao.getScheduleList()) {
           final s = r.toScheduleEntity();
           if (ids.contains(s.recurringSegmentId) &&
               s.recurringSlotKey != null &&
-              !DateTime.parse(s.recurringSlotKey!).isBefore(anchor) &&
+              !_civilSlot(s.recurringSlotKey!).isBefore(anchor) &&
               !_protected(s)) {
-            await _removeRow(s.id);
+            await removeScheduleOwnedContent(db, s.id);
           }
         }
       }
@@ -1173,14 +1225,14 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
 }
 
 bool _overlaps(_BusyInterval a, _BusyInterval b) =>
-    a.schedule.occurrenceInstantUtc == b.schedule.occurrenceInstantUtc ||
-    (a.start.isBefore(b.schedule.occurrenceInstantUtc) &&
-        b.start.isBefore(a.schedule.occurrenceInstantUtc));
+    a.instant == b.instant ||
+    (a.start.isBefore(b.instant) && b.start.isBefore(a.instant));
 
 class _BusyInterval {
-  const _BusyInterval(this.schedule, this.start);
+  const _BusyInterval(this.schedule, this.start, this.instant);
   final ScheduleEntity schedule;
   final DateTime start;
+  final DateTime instant;
 }
 
 class _FollowingPlan {
@@ -1205,3 +1257,5 @@ class _FollowingPlan {
   final List<ScheduleEntity> protected;
   final List<RecurrenceSlot> candidates;
 }
+
+DateTime _civilSlot(String value) => CivilDateTime.parse(value).toUtcCarrier();

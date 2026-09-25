@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'package:on_time_front/domain/entities/preparation_step_with_time_entity.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -18,7 +19,8 @@ ScheduleWithPreparationEntity tapSchedule(String id) =>
       id: id,
       place: const PlaceEntity(id: 'place', placeName: 'Office'),
       scheduleName: 'Schedule $id',
-      scheduleTime: _scheduleTime,
+      scheduleTime: _scheduleTime.toUtc(),
+      occurrenceOffsetSeconds: 0,
       moveTime: Duration.zero,
       isChanged: false,
       isStarted: false,
@@ -64,6 +66,43 @@ void main() {
     gate.dispose();
   });
 
+  test(
+    'cold same-ID old and legacy payloads are rejected without attaching current identity',
+    () async {
+      final authority = RestoreRuntimeIdentity.shared;
+      final oldIdentity = authority.storeIncarnation,
+          oldReject = authority.rejectLegacy,
+          oldPending = authority.pending;
+      addTearDown(() {
+        authority.storeIncarnation = oldIdentity;
+        authority.rejectLegacy = oldReject;
+        authority.pending = oldPending;
+      });
+      authority.storeIncarnation = '22222222-2222-2222-2222-222222222222';
+      authority.rejectLegacy = true;
+      authority.pending = false;
+      ready = true;
+      router.routeLocalNotificationTap(tapPayload('same'));
+      router.routeNativeNotificationTap({
+        'type': 'schedule_alarm',
+        'scheduleId': 'same',
+        'storeIncarnation': '11111111-1111-1111-1111-111111111111',
+      });
+      await pumpEventQueue();
+      expect(resolved, isEmpty);
+      expect(navigation.data, isEmpty);
+      router.routeLocalNotificationTap(
+        jsonEncode({
+          'type': 'schedule_notification',
+          'scheduleId': 'same',
+          'storeIncarnation': authority.storeIncarnation,
+        }),
+      );
+      await pumpEventQueue();
+      expect(resolved, ['same']);
+      expect(navigation.data.single.schedule.id, 'same');
+    },
+  );
   test(
     'last valid tap survives delayed readiness and malformed input',
     () async {

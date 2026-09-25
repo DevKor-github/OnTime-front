@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:on_time_front/presentation/my_page/cubit/detailed_notification_settings_cubit.dart';
 import 'package:on_time_front/domain/entities/schedule_notification_status.dart';
 import 'package:on_time_front/presentation/shared/components/notification_timing_education.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
@@ -10,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
-import 'package:on_time_front/core/services/detailed_notification_preference_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
@@ -269,62 +270,140 @@ class _DetailedNotificationTile extends StatefulWidget {
       _DetailedNotificationTileState();
 }
 
-class _DetailedNotificationTileState extends State<_DetailedNotificationTile> {
-  bool _enabled = false;
-  bool _loading = true;
+class _DetailedNotificationTileState extends State<_DetailedNotificationTile>
+    with WidgetsBindingObserver {
+  late final _controller = getIt<DetailedNotificationSettingsCubit>();
 
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final enabled = await getIt<DetailedNotificationPreferenceService>()
-        .getEnabled();
-    if (mounted) {
-      setState(() {
-        _enabled = enabled;
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _change(bool enabled) async {
-    setState(() => _enabled = enabled);
-    await getIt<DetailedNotificationPreferenceService>().setEnabled(enabled);
-    var incomplete = false;
-    try {
-      final result = await getIt<ReconcileAlarmsUseCase>()();
-      incomplete =
-          result.status == AlarmReconciliationStatus.partial ||
-          result.status == AlarmReconciliationStatus.settingsUnavailable;
-    } catch (_) {
-      incomplete = true;
-    }
-    if (incomplete && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.notificationIncompleteStatus,
-          ),
-        ),
-      );
-    }
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_controller.refresh());
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SwitchListTile(
-      contentPadding: EdgeInsets.zero,
-      title: const Text('알림에 일정 이름 표시'),
-      secondary: const Icon(Icons.person_outline, size: 24),
-      dense: true,
-      activeThumbColor: Theme.of(context).colorScheme.primary,
-      value: _enabled,
-      onChanged: _loading ? null : _change,
-    );
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_controller.refresh());
   }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // The installation, not this route, owns accepted privacy choices.
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<
+        DetailedNotificationSettingsCubit,
+        DetailedNotificationSettingsState
+      >(
+        bloc: _controller,
+        builder: (context, state) {
+          final l10n = AppLocalizations.of(context)!;
+          final lines = <String>[];
+          if (state.load != DetailedPreferenceLoad.ready) {
+            lines.add(switch (state.load) {
+              DetailedPreferenceLoad.loading =>
+                l10n.detailedNotificationLoading,
+              DetailedPreferenceLoad.failed =>
+                l10n.detailedNotificationReadFailed,
+              DetailedPreferenceLoad.unavailable =>
+                l10n.detailedNotificationUnavailable,
+              DetailedPreferenceLoad.ready => '',
+            });
+          }
+          if (state.confirmedEnabled != null) {
+            lines.add(
+              state.confirmedEnabled!
+                  ? l10n.detailedNotificationSavedOn
+                  : l10n.detailedNotificationSavedOff,
+            );
+          }
+          if (state.requestedEnabled != null) {
+            lines.add(
+              state.requestedEnabled!
+                  ? l10n.detailedNotificationRequestOn
+                  : l10n.detailedNotificationRequestOff,
+            );
+          }
+          if (state.save == DetailedPreferenceSave.failed) {
+            lines.add(l10n.detailedNotificationSaveFailed);
+          }
+          final delivery = switch (state.delivery) {
+            DetailedPreferenceDelivery.unknown => '',
+            DetailedPreferenceDelivery.applying =>
+              l10n.detailedNotificationApplying,
+            DetailedPreferenceDelivery.delayed =>
+              l10n.detailedNotificationDelayed,
+            DetailedPreferenceDelivery.applied =>
+              l10n.detailedNotificationApplied,
+            DetailedPreferenceDelivery.off => l10n.detailedNotificationOff,
+            DetailedPreferenceDelivery.noUpcoming =>
+              l10n.detailedNotificationEmpty,
+            DetailedPreferenceDelivery.permissionNeeded =>
+              l10n.detailedNotificationPermission,
+            DetailedPreferenceDelivery.cancellationUnconfirmed =>
+              l10n.detailedNotificationCancellation,
+            DetailedPreferenceDelivery.schedulingFailed =>
+              l10n.detailedNotificationSchedulingFailed,
+            DetailedPreferenceDelivery.needsCheck =>
+              l10n.detailedNotificationNeedsCheck,
+            DetailedPreferenceDelivery.contentDeferred =>
+              l10n.detailedNotificationHeld,
+          };
+          if (delivery.isNotEmpty) lines.add(delivery);
+          final status = lines.join('\n');
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (state.displayedEnabled == null)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.person_outline, size: 24),
+                  title: Text(l10n.detailedNotificationTitle),
+                  subtitle: Text(l10n.detailedNotificationPrivacy),
+                )
+              else
+                SwitchListTile(
+                  key: const Key('detailedNotificationSwitch'),
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.detailedNotificationTitle),
+                  subtitle: Text(l10n.detailedNotificationPrivacy),
+                  secondary: const Icon(Icons.person_outline, size: 24),
+                  dense: true,
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
+                  value: state.displayedEnabled!,
+                  onChanged: state.canRequest ? _controller.request : null,
+                ),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  status,
+                  key: const Key('detailedNotificationStatus'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              if (state.load == DetailedPreferenceLoad.failed ||
+                  state.save == DetailedPreferenceSave.failed ||
+                  const {
+                    DetailedPreferenceDelivery.cancellationUnconfirmed,
+                    DetailedPreferenceDelivery.schedulingFailed,
+                    DetailedPreferenceDelivery.needsCheck,
+                    DetailedPreferenceDelivery.contentDeferred,
+                  }.contains(state.delivery))
+                TextButton(
+                  key: const Key('detailedNotificationRetry'),
+                  onPressed: state.canRetry
+                      ? () => unawaited(_controller.retry())
+                      : null,
+                  child: Text(l10n.detailedNotificationRetry),
+                ),
+            ],
+          );
+        },
+      );
 }
 
 class _AlarmStatusView extends StatefulWidget {
@@ -342,16 +421,23 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
   String _statusLabel = '확인 중';
   AlarmPermissionState _timingPermission = AlarmPermissionState.unsupported;
   Future<void>? _loading;
+  late final _details = getIt<DetailedNotificationSettingsCubit>();
+  StreamSubscription<DetailedNotificationSettingsState>? _detailSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _detailSubscription = _details.stream.listen((_) {
+      if (!mounted) return;
+      unawaited(_load(reconcile: false));
+    });
     _load();
   }
 
   @override
   void dispose() {
+    _detailSubscription?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -361,10 +447,10 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
     if (state == AppLifecycleState.resumed && !_isUpdating) unawaited(_load());
   }
 
-  Future<void> _load() =>
-      _loading ??= _loadStatus().whenComplete(() => _loading = null);
+  Future<void> _load({bool reconcile = true}) =>
+      _loading ??= _loadStatus(reconcile).whenComplete(() => _loading = null);
 
-  Future<void> _loadStatus() async {
+  Future<void> _loadStatus(bool reconcile) async {
     setState(() {
       _isLoading = true;
     });
@@ -374,8 +460,8 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
       final schedulerService = getIt.get<AlarmSchedulerService>();
       final fallbackService = getIt.get<FallbackAlarmNotificationService>();
 
+      if (reconcile) await _details.refresh();
       final settings = await alarmRepository.getAlarmSettings();
-      final result = await getIt<ReconcileAlarmsUseCase>()();
       final records = await registryRepository.loadAll();
       final timingPermission = await fallbackService
           .checkExactTimingPermission();
@@ -394,7 +480,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
           settings: settings,
           records: records,
           delivery: delivery.policy,
-          result: result,
+          result: _details.lastReconciliationResult,
         );
         _isLoading = false;
       });
@@ -413,29 +499,49 @@ class _AlarmStatusViewState extends State<_AlarmStatusView>
     required List<ScheduledAlarmRecord> records,
     required AlarmDeliveryPolicy delivery,
     required AlarmReconciliationResult? result,
-  }) => switch (scheduleNotificationStatus(
-    enabled: settings.alarmsEnabled,
-    canDeliver: delivery.canDeliver,
-    records: records,
-    result: result,
-    now: DateTime.now(),
-    requiresExactTimingEvidence:
-        _timingPermission != AlarmPermissionState.unsupported,
-  )) {
-    ScheduleNotificationStatus.off => '꺼짐',
-    ScheduleNotificationStatus.cleanupNeeded =>
-      l10n.notificationCleanupNeededStatus,
-    ScheduleNotificationStatus.permissionNeeded =>
-      l10n.notificationPermissionNeededStatus,
-    ScheduleNotificationStatus.empty => l10n.noScheduledNotificationStatus,
-    ScheduleNotificationStatus.alarm => l10n.alarmStatus,
-    ScheduleNotificationStatus.notification => l10n.notificationStatus,
-    ScheduleNotificationStatus.precise => l10n.preciseNotificationStatus,
-    ScheduleNotificationStatus.approximate =>
-      l10n.notificationApproximateStatus,
-    ScheduleNotificationStatus.mixed => l10n.notificationMixedTimingStatus,
-    ScheduleNotificationStatus.incomplete => l10n.notificationIncompleteStatus,
-  };
+  }) {
+    var status = scheduleNotificationStatus(
+      enabled: settings.alarmsEnabled,
+      canDeliver: delivery.canDeliver,
+      records: records,
+      result: result,
+      now: DateTime.now(),
+      requiresExactTimingEvidence:
+          _timingPermission != AlarmPermissionState.unsupported,
+    );
+    // Current OFF, cleanup and permission evidence remains meaningful even
+    // while a content preference is unresolved. Only delivery success claims
+    // depend on the latest content request having finished.
+    if (status != ScheduleNotificationStatus.off &&
+        status != ScheduleNotificationStatus.cleanupNeeded &&
+        status != ScheduleNotificationStatus.permissionNeeded &&
+        (_details.state.save != DetailedPreferenceSave.idle ||
+            const {
+              DetailedPreferenceDelivery.unknown,
+              DetailedPreferenceDelivery.applying,
+              DetailedPreferenceDelivery.delayed,
+              DetailedPreferenceDelivery.needsCheck,
+              DetailedPreferenceDelivery.contentDeferred,
+            }.contains(_details.state.delivery))) {
+      status = ScheduleNotificationStatus.incomplete;
+    }
+    return switch (status) {
+      ScheduleNotificationStatus.off => '꺼짐',
+      ScheduleNotificationStatus.cleanupNeeded =>
+        l10n.notificationCleanupNeededStatus,
+      ScheduleNotificationStatus.permissionNeeded =>
+        l10n.notificationPermissionNeededStatus,
+      ScheduleNotificationStatus.empty => l10n.noScheduledNotificationStatus,
+      ScheduleNotificationStatus.alarm => l10n.alarmStatus,
+      ScheduleNotificationStatus.notification => l10n.notificationStatus,
+      ScheduleNotificationStatus.precise => l10n.preciseNotificationStatus,
+      ScheduleNotificationStatus.approximate =>
+        l10n.notificationApproximateStatus,
+      ScheduleNotificationStatus.mixed => l10n.notificationMixedTimingStatus,
+      ScheduleNotificationStatus.incomplete =>
+        l10n.notificationIncompleteStatus,
+    };
+  }
 
   Future<void> _openTimingSettings() async {
     if (_isUpdating || _isLoading) return;

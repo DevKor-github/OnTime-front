@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'dart:async';
 import 'dart:ui' as ui;
 
@@ -130,6 +132,7 @@ class ReconcileAlarmsUseCase {
 
   Future<AlarmReconciliationResult> _run(AlarmOperationLease lease) async {
     lease.check();
+    final contentPermit = _operations.captureContentPermit();
     final now = _nowProvider();
     final scheduleWindowStart = now;
     final scheduleWindowEnd = DateTime(now.year + 50, 1, 1);
@@ -251,13 +254,20 @@ class ReconcileAlarmsUseCase {
       );
       return result;
     }
+    String? deviceZone;
+    try {
+      deviceZone = await _timeZoneProvider();
+    } catch (_) {
+      // Display-zone discovery does not revoke resolved schedule instants or
+      // the authority to clean up requests already owned by this installation.
+    }
     final allDesiredRecords = _desiredRecords(
       schedules: schedules,
       now: now,
       alarmCoverageEnd: alarmCoverageEnd,
       alarmOffset: settings.alarmOffset,
       detailedNotificationContent: settings.detailedNotificationContent,
-      currentTimeZoneId: await _timeZoneProvider(),
+      currentTimeZoneId: deviceZone,
       languageCode: _languageCodeProvider(),
     );
     final desiredRecords = allDesiredRecords
@@ -351,8 +361,24 @@ class ReconcileAlarmsUseCase {
       }
     }
 
+    bool preservePrivate(ScheduledAlarmRecord record) {
+      final desired = desiredByScheduleId[record.scheduleId];
+      return desired != null &&
+          desired.deliveryContent.detailed &&
+          !_operations.allowsDetailed(contentPermit) &&
+          record.hasCurrentContent &&
+          !record.deliveryContent.detailed &&
+          _timingAndRoutingMatch(record, desired) &&
+          record.provider == deliveryPolicy.activeProvider &&
+          _recordProviderMatchesCapabilities(record, capabilities) &&
+          timingMatches(record) &&
+          deliveryPolicy.canDeliver &&
+          !_fallbackIdentityConflict(record, fallbackObservation);
+    }
+
     lease.check();
     final staleRecords = existingRecords.where((record) {
+      if (preservePrivate(record)) return false;
       final desired = desiredByScheduleId[record.scheduleId];
       return !identical(record, existingByScheduleId[record.scheduleId]) ||
           !deliveryPolicy.canDeliver ||
@@ -367,7 +393,28 @@ class ReconcileAlarmsUseCase {
       '$_logTag staleRecords=${staleRecords.length} '
       'stale=${_recordSummary(staleRecords)}',
     );
-    final failedCancellations = await _cancelRecords(staleRecords);
+    final failedCancellations = <ScheduledAlarmRecord>[];
+    final deferredPrivate = <ScheduledAlarmRecord>[];
+    for (final record in List<ScheduledAlarmRecord>.of(staleRecords)) {
+      if (preservePrivate(record)) {
+        deferredPrivate.add(record);
+        continue;
+      }
+      try {
+        failedCancellations.addAll(
+          await _cleanup.cancelRecords([
+            record,
+          ], isCurrent: () => lease.isCurrent && !preservePrivate(record)),
+        );
+      } on AlarmOperationInvalidated {
+        lease.check();
+        if (!preservePrivate(record)) rethrow;
+        // A privacy request arrived while ownership was being persisted. Keep
+        // the existing ID; no caller may mistake this for confirmed delivery.
+        deferredPrivate.add(record);
+      }
+    }
+    staleRecords.removeWhere(deferredPrivate.contains);
     lease.check();
     final blockedScheduleIds = failedCancellations
         .map((record) => record.scheduleId)
@@ -401,6 +448,19 @@ class ReconcileAlarmsUseCase {
       if (blockedScheduleIds.contains(desired.scheduleId)) continue;
       if (!desired.alarmTime.isAfter(_nowProvider())) continue;
       final existing = existingByScheduleId[desired.scheduleId];
+      if (desired.deliveryContent.detailed &&
+          !_operations.allowsDetailed(contentPermit)) {
+        if (existing != null && !staleRecords.contains(existing)) {
+          retainedRecords.add(existing);
+        }
+        failures.add(
+          AlarmFailure(
+            scheduleId: desired.scheduleId,
+            reason: AlarmFailureReason.contentDeferred,
+          ),
+        );
+        continue;
+      }
       if (existing != null &&
           !staleRecords.contains(existing) &&
           existing.provider == deliveryPolicy.activeProvider &&
@@ -438,6 +498,7 @@ class ReconcileAlarmsUseCase {
           : desired;
       final scheduled = await _scheduleRecord(
         reapplied,
+        contentPermit: contentPermit,
         lease: lease,
         capabilities: capabilities,
         deliveryPolicy: deliveryPolicy,
@@ -550,10 +611,22 @@ class ReconcileAlarmsUseCase {
     required DateTime alarmCoverageEnd,
     required Duration alarmOffset,
     required bool detailedNotificationContent,
-    required String currentTimeZoneId,
+    required String? currentTimeZoneId,
     required String languageCode,
   }) {
-    final records = schedules
+    final resolved = <ScheduleWithPreparationEntity>[];
+    for (final schedule in schedules) {
+      final time = ScheduleTimeResolver.resolve(schedule, nowUtc: now);
+      if (time.instantUtc == null) continue;
+      resolved.add(
+        ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+          schedule,
+          schedule.preparation,
+          timeResolution: time,
+        ),
+      );
+    }
+    final records = resolved
         .where(
           (schedule) =>
               _isDesired(schedule, now, alarmCoverageEnd, alarmOffset),
@@ -566,6 +639,7 @@ class ReconcileAlarmsUseCase {
             detailedNotificationContent: detailedNotificationContent,
             currentTimeZoneId: currentTimeZoneId,
             languageCode: languageCode,
+            storeIncarnation: RestoreRuntimeIdentity.shared.storeIncarnation,
           ),
         )
         .toList();
@@ -581,7 +655,12 @@ class ReconcileAlarmsUseCase {
   ) {
     if (!isAlarmEligibleSchedule(schedule) || schedule.isStarted) return false;
     if (schedule.id.isEmpty) return false;
-    final alarmTime = computeAlarmTime(schedule, offset: alarmOffset);
+    final time = ScheduleTimeResolver.resolve(schedule, nowUtc: now);
+    final instant = time.instantUtc;
+    if (instant == null) return false;
+    final alarmTime = instant
+        .subtract(schedule.totalDuration)
+        .subtract(alarmOffset);
     return alarmTime.isAfter(now) &&
         (alarmTime.isBefore(alarmCoverageEnd) ||
             alarmTime.isAtSameMomentAs(alarmCoverageEnd));
@@ -611,11 +690,20 @@ class ReconcileAlarmsUseCase {
 
   Future<_ScheduleAttempt> _scheduleRecord(
     ScheduledAlarmRecord desired, {
+    required AlarmContentPermit contentPermit,
     required AlarmOperationLease lease,
     required AlarmSchedulerCapabilities capabilities,
     required AlarmDeliveryPolicy deliveryPolicy,
     required AlarmPermissionState fallbackPermission,
   }) async {
+    bool held() =>
+        desired.deliveryContent.detailed &&
+        !_operations.allowsDetailed(contentPermit);
+    if (held()) {
+      return const _ScheduleAttempt(
+        failureReason: AlarmFailureReason.contentDeferred,
+      );
+    }
     if (deliveryPolicy.mode == AlarmDeliveryMode.nativeAlarm) {
       final record = desired.copyWith(
         provider: capabilities.nativeAlarmProvider,
@@ -627,6 +715,12 @@ class ReconcileAlarmsUseCase {
         if (!record.alarmTime.isAfter(_nowProvider())) {
           return const _ScheduleAttempt(
             failureReason: AlarmFailureReason.scheduleInvalid,
+          );
+        }
+        if (held()) {
+          return _ScheduleAttempt(
+            pendingRecord: AlarmOperationCoordinator.ownershipOnly(record),
+            failureReason: AlarmFailureReason.contentDeferred,
           );
         }
         await _schedulerService.scheduleNativeAlarm(record);
@@ -662,6 +756,11 @@ class ReconcileAlarmsUseCase {
 
     if (capabilities.fallbackProvider == AlarmProvider.localNotification &&
         fallbackPermission == AlarmPermissionState.granted) {
+      if (held()) {
+        return const _ScheduleAttempt(
+          failureReason: AlarmFailureReason.contentDeferred,
+        );
+      }
       final record = desired.copyWith(
         provider: AlarmProvider.localNotification,
       );
@@ -672,6 +771,12 @@ class ReconcileAlarmsUseCase {
         if (!record.alarmTime.isAfter(_nowProvider())) {
           return const _ScheduleAttempt(
             failureReason: AlarmFailureReason.scheduleInvalid,
+          );
+        }
+        if (held()) {
+          return _ScheduleAttempt(
+            pendingRecord: AlarmOperationCoordinator.ownershipOnly(record),
+            failureReason: AlarmFailureReason.contentDeferred,
           );
         }
         final timing = await _fallbackNotificationService.scheduleFallbackAlarm(
@@ -775,14 +880,22 @@ class ReconcileAlarmsUseCase {
     return existing.hasCurrentContent &&
         existing.contentVersion == desired.contentVersion &&
         existing.contentDigest == desired.contentDigest &&
-        existing.scheduleFingerprint == desired.scheduleFingerprint &&
-        existing.payload['alarmLaunchPayloadVersion'] ==
-            desired.payload['alarmLaunchPayloadVersion'] &&
-        existing.alarmTime.isAtSameMomentAs(desired.alarmTime) &&
-        existing.preparationStartTime.isAtSameMomentAs(
-          desired.preparationStartTime,
-        );
+        _timingAndRoutingMatch(existing, desired);
   }
+
+  bool _timingAndRoutingMatch(
+    ScheduledAlarmRecord existing,
+    ScheduledAlarmRecord desired,
+  ) =>
+      existing.scheduleFingerprint == desired.scheduleFingerprint &&
+      existing.payload['storeIncarnation'] ==
+          desired.payload['storeIncarnation'] &&
+      existing.payload['alarmLaunchPayloadVersion'] ==
+          desired.payload['alarmLaunchPayloadVersion'] &&
+      existing.alarmTime.isAtSameMomentAs(desired.alarmTime) &&
+      existing.preparationStartTime.isAtSameMomentAs(
+        desired.preparationStartTime,
+      );
 
   bool _recordProviderMatchesCapabilities(
     ScheduledAlarmRecord record,

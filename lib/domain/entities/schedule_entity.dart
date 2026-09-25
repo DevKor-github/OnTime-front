@@ -1,3 +1,5 @@
+import 'schedule_time_resolution.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:equatable/equatable.dart';
 
 import 'package:on_time_front/domain/entities/place_entity.dart';
@@ -25,6 +27,10 @@ class ScheduleEntity extends Equatable {
   final String? preparationTemplateName;
   final bool preparationTemplateDeleted;
   final bool preparationFrozen;
+  final bool requiresStartConfirmation;
+
+  /// Derived from the owning segment; never portable or stored on the row.
+  final bool retainedRecurringReference;
   final bool scoreContributionRecorded;
   final PreparationEntity? customPreparations;
 
@@ -55,6 +61,8 @@ class ScheduleEntity extends Equatable {
     this.preparationTemplateName,
     this.preparationTemplateDeleted = false,
     this.preparationFrozen = false,
+    this.requiresStartConfirmation = false,
+    this.retainedRecurringReference = false,
     this.scoreContributionRecorded = false,
     this.customPreparations,
     this.recurringSegmentId,
@@ -73,19 +81,21 @@ class ScheduleEntity extends Equatable {
   /// to reinterpret the occurrence in the device's current time zone.
   DateTime get occurrenceInstantUtc {
     final offset = occurrenceOffsetSeconds;
-    if (offset == null) return scheduleTime.toUtc();
-    final civilAsUtc = DateTime.utc(
-      scheduleTime.year,
-      scheduleTime.month,
-      scheduleTime.day,
-      scheduleTime.hour,
-      scheduleTime.minute,
-      scheduleTime.second,
-      scheduleTime.millisecond,
-      scheduleTime.microsecond,
-    );
-    return civilAsUtc.subtract(Duration(seconds: offset));
+    if (offset == null) {
+      throw const ScheduleTimeUnresolved(
+        ScheduleTimeResolutionStatus.historicalUncertain,
+      );
+    }
+    return CivilDateTime.fromFields(scheduleTime).atOffset(offset);
   }
+
+  /// Canonical occurrence choice for in-memory identity. Merely reading this
+  /// value does not change the nullable stored offset.
+  int get resolvedOccurrenceOffsetSeconds =>
+      occurrenceOffsetSeconds ??
+      CivilDateTime.fromFields(
+        scheduleTime,
+      ).toUtcCarrier().difference(occurrenceInstantUtc).inSeconds;
 
   ScheduleEntity copyWith({
     String? id,
@@ -110,6 +120,8 @@ class ScheduleEntity extends Equatable {
     String? preparationTemplateName,
     bool? preparationTemplateDeleted,
     bool? preparationFrozen,
+    bool? requiresStartConfirmation,
+    bool? retainedRecurringReference,
     bool? scoreContributionRecorded,
     PreparationEntity? customPreparations,
     String? recurringSegmentId,
@@ -143,6 +155,11 @@ class ScheduleEntity extends Equatable {
       preparationTemplateDeleted:
           preparationTemplateDeleted ?? this.preparationTemplateDeleted,
       preparationFrozen: preparationFrozen ?? this.preparationFrozen,
+      requiresStartConfirmation:
+          requiresStartConfirmation ?? this.requiresStartConfirmation,
+      retainedRecurringReference: clearRecurring
+          ? false
+          : retainedRecurringReference ?? this.retainedRecurringReference,
       scoreContributionRecorded:
           scoreContributionRecorded ?? this.scoreContributionRecorded,
       customPreparations: customPreparations ?? this.customPreparations,
@@ -174,7 +191,7 @@ class ScheduleEntity extends Equatable {
     scheduleName,
     timeZoneId,
     occurrenceOffsetSeconds,
-    scheduleTime,
+    CivilDateTime.fromFields(scheduleTime),
     moveTime,
     isChanged,
     isStarted,
@@ -189,6 +206,8 @@ class ScheduleEntity extends Equatable {
     preparationTemplateName,
     preparationTemplateDeleted,
     preparationFrozen,
+    requiresStartConfirmation,
+    retainedRecurringReference,
     scoreContributionRecorded,
     customPreparations,
     recurringSegmentId,

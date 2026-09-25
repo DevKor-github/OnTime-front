@@ -1,3 +1,4 @@
+import 'package:on_time_front/presentation/calendar/component/schedule_deletion_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
@@ -188,7 +189,6 @@ class _SeriesDetail extends StatefulWidget {
 
 class _SeriesDetailState extends State<_SeriesDetail> {
   bool _busy = false;
-  String? _error;
   Future<void> _edit() async {
     final saved = await showModalBottomSheet<bool>(
       context: context,
@@ -202,88 +202,18 @@ class _SeriesDetailState extends State<_SeriesDetail> {
   }
 
   Future<void> _end() async {
-    final next = widget.summary.next!;
-    final confirmed = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => SizedBox(
-        height: MediaQuery.sizeOf(context).height * .94,
-        child: RecurrenceSheet(
-          title: recurrenceText(context, '반복 종료', 'End series'),
-          footer: ScreenActions(
-            action: recurrenceText(context, '반복 종료', 'End series'),
-            destructive: true,
-            backLabel: recurrenceText(context, '취소', 'Cancel'),
-            onBack: () => Navigator.pop(context, false),
-            onAction: () => Navigator.pop(context, true),
-          ),
-          children: [
-            const SizedBox(height: 16),
-            Text(
-              recurrenceText(
-                context,
-                '${recurrenceDay(context, next.scheduleTime)}부터 이후 회차의 반복을 종료할까요?',
-                'End the series from ${recurrenceDay(context, next.scheduleTime)}?',
-              ),
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Text(
-              recurrenceText(
-                context,
-                '아직 시작하지 않은 이후 회차는 모두 삭제됩니다. 이미 진행 중이거나 완료된 기록은 그대로 유지됩니다.',
-                'Deletes upcoming occurrences. Active preparations and history are preserved.',
-              ),
-            ),
-            RecurrencePanel(
-              highlighted: true,
-              child: Text(
-                recurrenceText(
-                  context,
-                  '개별로 수정한 이후 회차도 삭제 대상에 포함됩니다.',
-                  'Individually edited following occurrences are also deleted.',
-                ),
-              ),
-            ),
-            RecurrenceValue(
-              label: recurrenceText(context, '종료되는 범위', 'Deleted occurrences'),
-              value: recurrenceText(
-                context,
-                '다음 회차부터 이후의 모든 회차',
-                'The next and all following occurrences',
-              ),
-            ),
-            RecurrenceValue(
-              label: recurrenceText(context, '계속 유지되는 항목', 'Preserved'),
-              value: recurrenceText(
-                context,
-                '지난 기록과 현재 진행 중인 준비',
-                'History and active preparations',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (confirmed != true || !mounted) return;
+    if (_busy) return;
     setState(() => _busy = true);
     try {
-      await widget.useCase.delete(
-        widget.summary.next!,
-        RecurringEditScope.following,
+      final changed = await showScheduleDeletionDialog(
+        context,
+        schedule: widget.summary.next!,
+        deletions: widget.useCase.deletions,
+        scope: RecurringEditScope.following,
       );
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _busy = false;
-          _error = recurrenceText(
-            context,
-            '종료하지 못했어요. 다시 시도해 주세요.',
-            'Could not end this series. Please retry.',
-          );
-        });
-      }
+      if (changed && mounted) Navigator.of(context).pop(true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -379,14 +309,8 @@ class _SeriesDetailState extends State<_SeriesDetail> {
             layout: ModalWideButtonLayout.full,
             height: 48,
             onPressed: _busy ? null : _end,
-            isLoading: _busy,
           ),
         ],
-        if (_error != null)
-          Text(
-            _error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
       ],
     );
   }

@@ -23,6 +23,9 @@ ScheduleWithPreparationEntity fixture({
   scheduleNote: 'private note',
   scheduleTime: DateTime.utc(2026, 9, 23, 10, minute),
   timeZoneId: zone,
+  // This fixture represents a known running instant. Legacy null history is
+  // separately covered by civil_legacy_runtime_migration_test.
+  occurrenceOffsetSeconds: zone == 'Asia/Seoul' ? 32400 : 0,
   moveTime: Duration(minutes: move),
   scheduleSpareTime: Duration(minutes: spare),
   isChanged: false,
@@ -155,7 +158,7 @@ void main() {
         {
           'type': 'schedule_alarm',
           'scheduleId': 'schedule',
-          'alarmLaunchPayloadVersion': '9',
+          'alarmLaunchPayloadVersion': '10',
           'promptVariant': 'alarm',
         },
       );

@@ -16,13 +16,15 @@ final class ScheduleSubscriptionRequested extends ScheduleEvent {
 
 final class ScheduleUpcomingReceived extends ScheduleEvent {
   final ScheduleWithPreparationEntity? upcomingSchedule;
+  final int? generation;
 
   const ScheduleUpcomingReceived(
-    ScheduleWithPreparationEntity? upcomingScheduleWithPreparation,
-  ) : upcomingSchedule = upcomingScheduleWithPreparation;
+    ScheduleWithPreparationEntity? upcomingScheduleWithPreparation, {
+    this.generation,
+  }) : upcomingSchedule = upcomingScheduleWithPreparation;
 
   @override
-  List<Object?> get props => [upcomingSchedule];
+  List<Object?> get props => [upcomingSchedule, generation];
 }
 
 final class ScheduleAlarmPromptRequested extends ScheduleEvent {
@@ -45,7 +47,9 @@ final class ScheduleAlarmPromptRequested extends ScheduleEvent {
 }
 
 final class ScheduleStarted extends ScheduleEvent {
-  const ScheduleStarted();
+  const ScheduleStarted() : _boundaryIntent = null;
+  const ScheduleStarted._owned(this._boundaryIntent);
+  final _BoundaryStartIntent? _boundaryIntent;
 
   @override
   List<Object?> get props => [];
@@ -106,4 +110,83 @@ final class _NotificationPromptPresented extends ScheduleEvent {
 
 final class SchedulePreparationRecoveryRequested extends ScheduleEvent {
   const SchedulePreparationRecoveryRequested();
+}
+
+// Internal subscription authority does not alter the public event contract.
+final class _OwnedScheduleUpcomingReceived extends ScheduleUpcomingReceived {
+  const _OwnedScheduleUpcomingReceived(
+    super.upcomingScheduleWithPreparation,
+    int generation,
+    this.subscriptionRevision,
+  ) : super(generation: generation);
+  final int subscriptionRevision;
+
+  @override
+  List<Object?> get props => [...super.props, subscriptionRevision];
+}
+
+final class _OwnedScheduleUpcomingReadFailed extends ScheduleEvent {
+  const _OwnedScheduleUpcomingReadFailed(
+    this.generation,
+    this.subscriptionRevision,
+  );
+  final int generation;
+  final int subscriptionRevision;
+  @override
+  List<Object?> get props => [generation, subscriptionRevision];
+}
+
+final class ScheduleNearestQueryRetryRequested extends ScheduleEvent {
+  const ScheduleNearestQueryRetryRequested(this.queryKey);
+  final NearestQueryKey queryKey;
+  @override
+  List<Object?> get props => [queryKey];
+}
+
+final class ScheduleNearestQueryContinueRequested extends ScheduleEvent {
+  const ScheduleNearestQueryContinueRequested(this.queryKey);
+  final NearestQueryKey queryKey;
+  @override
+  List<Object?> get props => [queryKey];
+}
+
+final class ScheduleNearestQueryCancelRequested extends ScheduleEvent {
+  const ScheduleNearestQueryCancelRequested(this.queryKey);
+  final NearestQueryKey queryKey;
+  @override
+  List<Object?> get props => [queryKey];
+}
+
+final class _NearestQueryReceived extends ScheduleEvent {
+  const _NearestQueryReceived(this.query, this.subscriptionRevision);
+  final NearestScheduleQuery query;
+  final int subscriptionRevision;
+  @override
+  List<Object?> get props => [query, subscriptionRevision];
+}
+
+final class _NearestProjectionInvalidated extends ScheduleEvent {
+  const _NearestProjectionInvalidated({this.replaced = false});
+  final bool replaced;
+}
+
+final class _NotificationPreparationOwnershipChanged extends ScheduleEvent {
+  const _NotificationPreparationOwnershipChanged();
+}
+
+class _BoundaryStartIntent {
+  const _BoundaryStartIntent(
+    this.key,
+    this.scheduleId,
+    this.fingerprint,
+    this.target,
+    this.observedWall,
+    this.observedMonotonic,
+  );
+  final NearestQueryKey key;
+  final String scheduleId;
+  final String fingerprint;
+  final DateTime target;
+  final DateTime observedWall;
+  final Duration observedMonotonic;
 }

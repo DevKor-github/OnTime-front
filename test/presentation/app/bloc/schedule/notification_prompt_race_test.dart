@@ -34,7 +34,8 @@ void main() {
             id: past.id,
             place: past.place,
             scheduleName: past.scheduleName,
-            scheduleTime: DateTime(2000),
+            scheduleTime: DateTime.utc(2000),
+            occurrenceOffsetSeconds: 0,
             moveTime: past.moveTime,
             isChanged: false,
             isStarted: false,
@@ -67,7 +68,10 @@ void main() {
 
 class _Nearest implements GetNearestUpcomingScheduleUseCase {
   @override
-  Stream<ScheduleWithPreparationEntity?> call() => const Stream.empty();
+  Stream<NearestScheduleQuery> call({required NearestQueryKey key}) =>
+      const Stream.empty();
+  @override
+  Future<ScheduleWithPreparationEntity?> readActive() async => null;
 }
 
 class _Navigation extends NavigationService {
@@ -116,8 +120,14 @@ class _Session implements SchedulePreparationSessionUseCase {
   }
 
   @override
-  Future<void> startSchedulePreparation(String id) async {
+  Future<DateTime> startSchedulePreparation(
+    String id, {
+    bool Function()? isCurrent,
+    String? expectedFingerprint,
+  }) async {
     starts++;
+
+    return DateTime.now().toUtc();
   }
 
   @override

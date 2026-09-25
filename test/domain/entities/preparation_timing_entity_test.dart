@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
@@ -65,7 +66,8 @@ void main() {
       id: 'schedule-1',
       place: PlaceEntity(id: 'p1', placeName: 'Office'),
       scheduleName: 'Meeting',
-      scheduleTime: DateTime(2026, 3, 20, 10, 0),
+      scheduleTime: DateTime.utc(2026, 3, 20, 10, 0),
+      occurrenceOffsetSeconds: 0,
       moveTime: const Duration(minutes: 20),
       isChanged: false,
       isStarted: false,
@@ -75,7 +77,7 @@ void main() {
     );
 
     test('calculates left time before leave with explicit now', () {
-      final now = DateTime(2026, 3, 20, 9, 20);
+      final now = DateTime.utc(2026, 3, 20, 9, 20);
       expect(
         schedule.timeRemainingBeforeLeavingAt(now),
         const Duration(minutes: 10),
@@ -83,10 +85,10 @@ void main() {
     });
 
     test('reports late status after leave time has passed', () {
-      final now = DateTime(2026, 3, 20, 9, 20);
+      final now = DateTime.utc(2026, 3, 20, 9, 20);
       expect(schedule.isLateAt(now), isFalse);
 
-      final lateNow = DateTime(2026, 3, 20, 9, 31);
+      final lateNow = DateTime.utc(2026, 3, 20, 9, 31);
       expect(schedule.timeRemainingBeforeLeavingAt(lateNow).isNegative, isTrue);
       expect(schedule.isLateAt(lateNow), isTrue);
     });
@@ -190,7 +192,8 @@ void main() {
         id: 'schedule-cache',
         place: PlaceEntity(id: 'p1', placeName: 'Office'),
         scheduleName: 'Meeting',
-        scheduleTime: DateTime(2026, 3, 20, 10, 0),
+        scheduleTime: DateTime.utc(2026, 3, 20, 10, 0),
+        occurrenceOffsetSeconds: 0,
         moveTime: const Duration(minutes: 20),
         isChanged: false,
         isStarted: false,
@@ -211,7 +214,8 @@ void main() {
         id: 'schedule-cache',
         place: PlaceEntity(id: 'p1', placeName: 'Office'),
         scheduleName: 'Meeting',
-        scheduleTime: DateTime(2026, 3, 20, 10, 0),
+        scheduleTime: DateTime.utc(2026, 3, 20, 10, 0),
+        occurrenceOffsetSeconds: 0,
         moveTime: const Duration(minutes: 20),
         isChanged: false,
         isStarted: false,
@@ -239,7 +243,7 @@ void main() {
       expect(schedule.totalDuration, const Duration(minutes: 50));
       expect(
         schedule.preparationStartTime,
-        DateTime(2026, 3, 20, 9, 10).toUtc(),
+        DateTime.utc(2026, 3, 20, 9, 10).toUtc(),
       );
       expect(schedule.timeRemainingBeforeLeaving.inMinutes, isA<int>());
       expect(schedule.isLate, isA<bool>());
@@ -256,7 +260,8 @@ void main() {
           id: 'schedule-combine',
           place: const PlaceEntity(id: 'p2', placeName: 'Gym'),
           scheduleName: 'Workout',
-          scheduleTime: DateTime(2026, 3, 21, 8),
+          scheduleTime: DateTime.utc(2026, 3, 21, 8),
+          occurrenceOffsetSeconds: 0,
           moveTime: const Duration(minutes: 15),
           isChanged: true,
           isStarted: true,
@@ -270,6 +275,10 @@ void main() {
             ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
               base,
               preparation,
+              timeResolution: ScheduleTimeResolver.resolve(
+                base,
+                nowUtc: DateTime.now().toUtc(),
+              ),
             );
 
         expect(combined.id, base.id);
@@ -296,7 +305,8 @@ void main() {
           id: 'schedule-log',
           place: const PlaceEntity(id: 'p1', placeName: 'Office'),
           scheduleName: 'Meeting',
-          scheduleTime: DateTime(2026, 5, 1, 9),
+          scheduleTime: DateTime.utc(2026, 5, 1, 9),
+          occurrenceOffsetSeconds: 0,
           moveTime: const Duration(minutes: 10),
           isChanged: false,
           isStarted: false,
@@ -328,7 +338,8 @@ void main() {
           id: 'schedule-2',
           place: PlaceEntity(id: 'p1', placeName: 'Office'),
           scheduleName: 'Meeting',
-          scheduleTime: DateTime(2026, 3, 20, 10, 0),
+          scheduleTime: DateTime.utc(2026, 3, 20, 10, 0),
+          occurrenceOffsetSeconds: 0,
           moveTime: const Duration(minutes: 20),
           isChanged: false,
           isStarted: false,
@@ -338,7 +349,7 @@ void main() {
         );
         final state = ScheduleState.upcoming(schedule);
 
-        final now = DateTime(2026, 3, 20, 9, 15);
+        final now = DateTime.utc(2026, 3, 20, 9, 15);
         expect(
           state.durationUntilPreparationStartAt(now),
           const Duration(minutes: 5),

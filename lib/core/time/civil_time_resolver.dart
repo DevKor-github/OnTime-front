@@ -1,23 +1,10 @@
-import 'package:equatable/equatable.dart';
-import 'package:timezone/data/latest.dart' as tz_data;
+import '../../domain/entities/civil_time_occurrence.dart';
+export '../../domain/entities/civil_time_occurrence.dart';
+import 'time_zone_rules.dart';
+import '../../domain/entities/civil_date_time.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-class CivilTimeOccurrence extends Equatable {
-  const CivilTimeOccurrence({
-    required this.offsetSeconds,
-    required this.instantUtc,
-  });
-
-  final int offsetSeconds;
-  final DateTime instantUtc;
-
-  @override
-  List<Object> get props => [offsetSeconds, instantUtc];
-}
-
 abstract final class CivilTimeResolver {
-  static bool _initialized = false;
-
   /// Resolves a wall-clock selection in [timeZoneId] to every valid instant.
   ///
   /// A normal civil time has one occurrence, a spring-forward gap has none,
@@ -28,17 +15,8 @@ abstract final class CivilTimeResolver {
     String timeZoneId,
   ) {
     _ensureInitialized();
-    final location = _locationOrUtc(timeZoneId);
-    final civilAsUtc = DateTime.utc(
-      civilTime.year,
-      civilTime.month,
-      civilTime.day,
-      civilTime.hour,
-      civilTime.minute,
-      civilTime.second,
-      civilTime.millisecond,
-      civilTime.microsecond,
-    );
+    final location = _location(timeZoneId);
+    final civil = CivilDateTime.fromFields(civilTime);
 
     // Enumerate actual zone offsets and round-trip each candidate. This also
     // preserves historical second-level offsets without 73 lookups per slot.
@@ -48,7 +26,12 @@ abstract final class CivilTimeResolver {
 
     final occurrences = <CivilTimeOccurrence>[];
     for (final offsetSeconds in candidateOffsets) {
-      final instant = civilAsUtc.subtract(Duration(seconds: offsetSeconds));
+      DateTime instant;
+      try {
+        instant = civil.atOffset(offsetSeconds);
+      } on FormatException {
+        continue; // Outside the persisted year range is not a valid occurrence.
+      }
       final roundTrip = tz.TZDateTime.from(instant, location);
       if (_hasSameCivilFields(civilTime, roundTrip)) {
         occurrences.add(
@@ -65,32 +48,49 @@ abstract final class CivilTimeResolver {
     return occurrences;
   }
 
+  /// A proposal only. The caller must obtain an explicit user selection before
+  /// modifying a schedule; no gap is silently normalized or persisted.
+  static DateTime? nextValidCivilTime(DateTime civilTime, String timeZoneId) {
+    if (!TimeZoneRules.contains(timeZoneId)) return null;
+    final carrier = CivilDateTime.fromFields(civilTime).toUtcCarrier();
+    final minute = DateTime.utc(
+      carrier.year,
+      carrier.month,
+      carrier.day,
+      carrier.hour,
+      carrier.minute,
+    );
+    for (var distance = 1; distance <= 2880; distance++) {
+      final candidate = minute.add(Duration(minutes: distance));
+      if (candidate.year > 9999) return null;
+      if (resolve(candidate, timeZoneId).isNotEmpty) return candidate;
+    }
+    return null;
+  }
+
   static DateTime civilTimeAt(DateTime instant, String timeZoneId) {
     _ensureInitialized();
-    return tz.TZDateTime.from(instant.toUtc(), _locationOrUtc(timeZoneId));
+    return tz.TZDateTime.from(instant.toUtc(), _location(timeZoneId));
   }
 
   static String formatUtcOffset(int offsetSeconds) {
+    if (offsetSeconds < -86400 || offsetSeconds > 86400) {
+      throw const FormatException('Occurrence offset is out of range');
+    }
     final sign = offsetSeconds < 0 ? '-' : '+';
     final totalMinutes = offsetSeconds.abs() ~/ 60;
     final hours = (totalMinutes ~/ 60).toString().padLeft(2, '0');
     final minutes = (totalMinutes % 60).toString().padLeft(2, '0');
-    return 'UTC$sign$hours:$minutes';
+    final seconds = offsetSeconds.abs() % 60;
+    return 'UTC$sign$hours:$minutes${seconds == 0 ? '' : ':${seconds.toString().padLeft(2, '0')}'}';
   }
 
   static void _ensureInitialized() {
-    if (_initialized) return;
-    tz_data.initializeTimeZones();
-    _initialized = true;
+    TimeZoneRules.ensureInitialized();
   }
 
-  static tz.Location _locationOrUtc(String timeZoneId) {
-    try {
-      return tz.getLocation(timeZoneId);
-    } catch (_) {
-      return tz.UTC;
-    }
-  }
+  static tz.Location _location(String timeZoneId) =>
+      TimeZoneRules.location(timeZoneId);
 
   static bool _hasSameCivilFields(DateTime source, DateTime candidate) {
     return source.year == candidate.year &&

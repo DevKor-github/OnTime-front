@@ -46,6 +46,8 @@ final class ScheduleFormScheduleNameChanged extends ScheduleFormEvent {
 }
 
 final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
+  final String? timeZoneId;
+  final bool timeZoneExplicitlySelected;
   final DateTime scheduleDate;
   final DateTime scheduleTime;
   final int occurrenceOffsetSeconds;
@@ -53,6 +55,8 @@ final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
   final String? previousScheduleName;
 
   const ScheduleFormScheduleDateTimeChanged({
+    this.timeZoneId,
+    this.timeZoneExplicitlySelected = false,
     required this.scheduleDate,
     required this.scheduleTime,
     required this.occurrenceOffsetSeconds,
@@ -62,6 +66,8 @@ final class ScheduleFormScheduleDateTimeChanged extends ScheduleFormEvent {
 
   @override
   List<Object> get props => [
+    timeZoneId ?? '',
+    timeZoneExplicitlySelected,
     scheduleDate,
     scheduleTime,
     occurrenceOffsetSeconds,
@@ -107,25 +113,26 @@ final class ScheduleFormPreparationChanged extends ScheduleFormEvent {
 }
 
 final class ScheduleFormUpdated extends ScheduleFormEvent {
-  final bool confirmed;
-  final Set<String> excludedSlots;
-  const ScheduleFormUpdated({
-    this.confirmed = false,
-    this.excludedSlots = const {},
-  });
+  const ScheduleFormUpdated();
   @override
-  List<Object> get props => [confirmed, excludedSlots];
+  List<Object> get props => [];
 }
 
 final class ScheduleFormCreated extends ScheduleFormEvent {
-  final bool confirmed;
-  final Set<String> excludedSlots;
-  const ScheduleFormCreated({
-    this.confirmed = false,
-    this.excludedSlots = const {},
-  });
+  const ScheduleFormCreated();
   @override
-  List<Object> get props => [confirmed, excludedSlots];
+  List<Object> get props => [];
+}
+
+final class ScheduleFormRecurrenceReviewConfirmed extends ScheduleFormEvent {
+  ScheduleFormRecurrenceReviewConfirmed(
+    this.review, {
+    Set<String> excludedSlots = const {},
+  }) : excludedSlots = Set.unmodifiable(excludedSlots);
+  final RecurrenceReview review;
+  final Set<String> excludedSlots;
+  @override
+  List<Object> get props => [review, excludedSlots];
 }
 
 final class ScheduleFormValidated extends ScheduleFormEvent {
@@ -135,6 +142,13 @@ final class ScheduleFormValidated extends ScheduleFormEvent {
 
   @override
   List<Object> get props => [isValid];
+}
+
+final class ScheduleFormTimeReviewConfirmed extends ScheduleFormEvent {
+  const ScheduleFormTimeReviewConfirmed(this.review);
+  final ScheduleTimeSaveReview review;
+  @override
+  List<Object> get props => [review];
 }
 
 final class ScheduleFormRecurringChanged extends ScheduleFormEvent {

@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:on_time_front/core/backup/backup_password.dart';
+import 'package:on_time_front/domain/entities/backup_processing.dart';
 import 'package:sodium/sodium_sumo.dart';
+import 'backup_limits.dart';
+import 'backup_json_reader.dart';
 
 class BackupCrypto {
   BackupCrypto({Future<SodiumSumo> Function()? sodiumLoader})
     : _sodiumLoader = sodiumLoader ?? (() async => SodiumSumoInit.init());
-
   static const _magic = 'ONTIMEBK';
   static const formatVersion = 1;
   static const opsLimit = 3;
@@ -19,126 +20,278 @@ class BackupCrypto {
   static const _maxFrameBytes = chunkSize + 1024;
   final Future<SodiumSumo> Function() _sodiumLoader;
 
+  /// Explicit memory-input compatibility adapter. Mobile picker/export paths
+  /// use the streams and never join a whole container here.
   Future<Uint8List> encrypt({
     required Uint8List plaintext,
     required String password,
   }) async {
-    final normalizedPassword = BackupPassword.parse(password);
-    final sodium = await _sodiumLoader();
-    final salt = sodium.randombytes.buf(16);
-    final header = utf8.encode(
-      jsonEncode({
-        'formatVersion': formatVersion,
-        'suite': 'argon2id13+xchacha20poly1305-secretstream',
-        'opsLimit': opsLimit,
-        'memLimit': memLimit,
-        'salt': base64UrlEncode(salt),
-        'chunkSize': chunkSize,
-      }),
-    );
-    final key = await _deriveKey(sodium, normalizedPassword, salt);
-    try {
-      final chunks = <Uint8List>[
-        for (var offset = 0; offset < plaintext.length; offset += chunkSize)
-          Uint8List.sublistView(
-            plaintext,
-            offset,
-            (offset + chunkSize).clamp(0, plaintext.length),
-          ),
-      ];
-      if (chunks.isEmpty) chunks.add(Uint8List(0));
-      final encrypted = await sodium.crypto.secretStream
-          .pushEx(
-            key: key,
-            messageStream: Stream.fromIterable([
-              for (final (index, chunk) in chunks.indexed)
-                SecretStreamPlainMessage(
-                  chunk,
-                  additionalData: Uint8List.fromList(header),
-                  tag: index == chunks.length - 1
-                      ? SecretStreamMessageTag.finalPush
-                      : SecretStreamMessageTag.message,
-                ),
-            ]),
-          )
-          .toList();
-
-      final builder = BytesBuilder(copy: false)
-        ..add(ascii.encode(_magic))
-        ..add(_uint32(header.length))
-        ..add(header)
-        ..add(_uint32(encrypted.length));
-      for (final frame in encrypted) {
-        builder
-          ..add(_uint32(frame.message.length))
-          ..add(frame.message);
-      }
-      return builder.takeBytes();
-    } finally {
-      key.dispose();
-      salt.fillRange(0, salt.length, 0);
+    final output = BytesBuilder(copy: false);
+    await for (final bytes in encryptStream(
+      plaintext: Stream.value(plaintext),
+      plaintextLength: plaintext.length,
+      password: password,
+    )) {
+      output.add(bytes);
     }
+    return output.takeBytes();
   }
 
   Future<Uint8List> decrypt({
     required Uint8List container,
     required String password,
   }) async {
-    final normalizedPassword = BackupPassword.parse(password);
-    final reader = _ByteReader(container);
-    if (ascii.decode(reader.read(_magic.length)) != _magic) {
-      throw const FormatException('Not an OnTime backup file.');
+    final output = BytesBuilder(copy: false);
+    await for (final bytes in decryptStream(
+      container: Stream.value(container),
+      password: password,
+    )) {
+      output.add(bytes);
     }
-    final headerLength = reader.readUint32();
-    if (headerLength <= 0 || headerLength > _maxHeaderBytes) {
-      throw const FormatException('Unsafe backup header length.');
-    }
-    final header = reader.read(headerLength);
-    final metadata = jsonDecode(utf8.decode(header));
-    if (metadata is! Map<String, dynamic>) {
-      throw const FormatException('Invalid backup header.');
-    }
-    _validateHeader(metadata);
-    final salt = Uint8List.fromList(
-      base64Url.decode(metadata['salt'] as String),
-    );
-    if (salt.length != 16) throw const FormatException('Invalid backup salt.');
+    return output.takeBytes();
+  }
 
-    final frameCount = reader.readUint32();
-    if (frameCount < 2 || frameCount > _maxFrameCount) {
-      throw const FormatException('Unsafe backup frame count.');
+  Stream<Uint8List> encryptStream({
+    required Stream<List<int>> plaintext,
+    required int plaintextLength,
+    required String password,
+    BackupBudget? budget,
+  }) async* {
+    budget ??= BackupBudget();
+    budget.lease?.check();
+    if (plaintextLength < 0 || plaintextLength > BackupLimits.plainBytes) {
+      BackupLimits.exceeded('plainBytes');
     }
-    final frames = <Uint8List>[];
-    for (var index = 0; index < frameCount; index++) {
-      final length = reader.readUint32();
-      if (length <= 0 || length > _maxFrameBytes) {
-        throw const FormatException('Unsafe backup frame length.');
-      }
-      frames.add(reader.read(length));
-    }
-    if (!reader.isAtEnd) throw const FormatException('Unexpected backup data.');
-
+    final prepared = BackupPassword.parse(password);
     final sodium = await _sodiumLoader();
-    final key = await _deriveKey(sodium, normalizedPassword, salt);
+    final salt = sodium.randombytes.buf(16);
+    final header = Uint8List.fromList(
+      utf8.encode(
+        jsonEncode({
+          'formatVersion': formatVersion,
+          'suite': 'argon2id13+xchacha20poly1305-secretstream',
+          'opsLimit': opsLimit,
+          'memLimit': memLimit,
+          'salt': base64UrlEncode(salt),
+          'chunkSize': chunkSize,
+        }),
+      ),
+    );
+    SecureKey? key;
     try {
-      final decrypted = await sodium.crypto.secretStream
-          .pullEx(
-            key: key,
-            cipherStream: Stream.fromIterable([
-              SecretStreamCipherMessage(frames.first),
-              for (final frame in frames.skip(1))
-                SecretStreamCipherMessage(frame, additionalData: header),
-            ]),
-          )
-          .toList();
-      return Uint8List.fromList([
-        for (final message in decrypted) ...message.message,
-      ]);
-    } catch (_) {
-      throw const FormatException('Wrong password or damaged backup file.');
+      key = await _deriveKey(sodium, prepared, salt);
+      budget.lease?.check();
+      final chunks = plaintextLength == 0
+          ? 1
+          : (plaintextLength + chunkSize - 1) ~/ chunkSize;
+      final frameCount = chunks + 1; // secretstream header is the first frame.
+      final prefix = BytesBuilder(copy: false)
+        ..add(ascii.encode(_magic))
+        ..add(_uint32(header.length))
+        ..add(header)
+        ..add(_uint32(frameCount));
+      final prefixBytes = prefix.takeBytes();
+      budget.ciphertext(prefixBytes.length);
+      yield prefixBytes;
+      var actualFrames = 0;
+      await for (final frame in sodium.crypto.secretStream.pushEx(
+        key: key,
+        messageStream: _messages(plaintext, plaintextLength, header, budget),
+      )) {
+        if (++actualFrames > frameCount ||
+            frame.message.length > _maxFrameBytes) {
+          BackupLimits.invalid();
+        }
+        budget.ciphertext(4 + frame.message.length);
+        budget.buffer(frame.message.length);
+        yield _uint32(frame.message.length);
+        yield frame.message;
+      }
+      if (actualFrames != frameCount) BackupLimits.invalid();
     } finally {
-      key.dispose();
-      salt.fillRange(0, salt.length, 0);
+      try {
+        key?.dispose();
+      } finally {
+        salt.fillRange(0, salt.length, 0);
+      }
+    }
+  }
+
+  Stream<SecretStreamPlainMessage> _messages(
+    Stream<List<int>> source,
+    int expected,
+    Uint8List header,
+    BackupBudget budget,
+  ) async* {
+    final iterator = StreamIterator(_chunks(source, budget));
+    try {
+      var has = await iterator.moveNext();
+      if (!has) {
+        if (expected != 0) BackupLimits.invalid();
+        yield SecretStreamPlainMessage(
+          Uint8List(0),
+          additionalData: header,
+          tag: SecretStreamMessageTag.finalPush,
+        );
+        return;
+      }
+      var seen = 0;
+      while (has) {
+        final current = iterator.current;
+        seen += current.length;
+        if (seen > expected) BackupLimits.invalid();
+        // Look ahead before emitting the final tag; no tail can be hidden by a
+        // crypto transformer cancelling its source after finalPush.
+        has = await iterator.moveNext();
+        if (!has && seen != expected) BackupLimits.invalid();
+        yield SecretStreamPlainMessage(
+          current,
+          additionalData: header,
+          tag: has
+              ? SecretStreamMessageTag.message
+              : SecretStreamMessageTag.finalPush,
+        );
+      }
+    } finally {
+      await iterator.cancel();
+    }
+  }
+
+  Stream<Uint8List> _chunks(
+    Stream<List<int>> source,
+    BackupBudget budget,
+  ) async* {
+    var pending = Uint8List(chunkSize);
+    var used = 0;
+    await for (final bytes in source) {
+      budget.plaintext(bytes.length);
+      var offset = 0;
+      while (offset < bytes.length) {
+        final count = (bytes.length - offset).clamp(0, chunkSize - used);
+        pending.setRange(used, used + count, bytes, offset);
+        used += count;
+        offset += count;
+        if (used == chunkSize) {
+          budget.buffer(chunkSize * 2);
+          yield pending;
+          pending = Uint8List(chunkSize);
+          used = 0;
+        }
+      }
+    }
+    if (used != 0) yield Uint8List.sublistView(pending, 0, used);
+  }
+
+  Stream<Uint8List> decryptStream({
+    required Stream<List<int>> container,
+    required String password,
+    BackupBudget? budget,
+  }) async* {
+    budget ??= BackupBudget();
+    final normalizedPassword = BackupPassword.parse(password);
+    final reader = _BackupStreamReader(container, budget);
+    SecureKey? key;
+    Uint8List? salt;
+    Object? originalError;
+    try {
+      if (ascii.decode(await reader.read(_magic.length)) != _magic) {
+        BackupLimits.invalid();
+      }
+      final length = await reader.uint32();
+      if (length <= 0 || length > _maxHeaderBytes) BackupLimits.invalid();
+      final header = await reader.read(length);
+      // The envelope header is small (at most 4 KiB), but still untrusted JSON:
+      // reject duplicate keys/deep nesting before KDF just like portable input.
+      final headerSink = _HeaderSink();
+      final headerNode = await BackupJsonReader(
+        headerSink,
+        budget,
+      ).read(Stream.value(header));
+      final metadata = headerSink.nodes[headerNode];
+      if (metadata is! Map<String, dynamic>) BackupLimits.invalid();
+      _validateHeader(metadata);
+      salt = Uint8List.fromList(base64Url.decode(metadata['salt'] as String));
+      if (salt.length != 16) BackupLimits.invalid();
+      final frameCount = await reader.uint32();
+      if (frameCount < 2 || frameCount > _maxFrameCount) BackupLimits.invalid();
+      final sodium = await _sodiumLoader();
+      key = await _deriveKey(sodium, normalizedPassword, salt);
+      budget.lease?.check();
+      var consumed = 0;
+      var finalized = false;
+      Stream<SecretStreamCipherMessage> frames() async* {
+        for (var i = 0; i < frameCount; i++) {
+          if (finalized) {
+            throw const BackupProcessingFailure(
+              BackupFailureKind.authentication,
+            );
+          }
+          final size = await reader.uint32();
+          if (size <= 0 || size > _maxFrameBytes) BackupLimits.invalid();
+          final bytes = await reader.read(size);
+          consumed++;
+          yield SecretStreamCipherMessage(
+            bytes,
+            additionalData: i == 0 ? null : header,
+          );
+        }
+      }
+
+      try {
+        await for (final message in sodium.crypto.secretStream.pullEx(
+          key: key,
+          cipherStream: frames(),
+        )) {
+          budget.plaintext(message.message.length);
+          finalized = message.tag == SecretStreamMessageTag.finalPush;
+          // An authenticated final must also be the declared last frame.
+          // Reject here before sodium receives another frame after finalPush
+          // and exposes a transformer StateError for an untrusted container.
+          if (finalized && consumed != frameCount) {
+            throw const BackupProcessingFailure(
+              BackupFailureKind.authentication,
+            );
+          }
+          yield message.message;
+        }
+      } catch (error) {
+        if (error is SodiumException ||
+            error is StreamClosedEarlyException ||
+            error is InvalidHeaderException) {
+          throw const BackupProcessingFailure(BackupFailureKind.authentication);
+        }
+        rethrow;
+      }
+      if (!finalized || consumed != frameCount) {
+        throw const BackupProcessingFailure(BackupFailureKind.authentication);
+      }
+      await reader.requireEnd();
+    } on FormatException catch (error) {
+      if (error is BackupProcessingFailure) {
+        originalError = error;
+        rethrow;
+      }
+      const typed = BackupProcessingFailure(BackupFailureKind.dataInvariant);
+      originalError = typed;
+      throw typed;
+    } catch (error) {
+      originalError = error;
+      rethrow;
+    } finally {
+      try {
+        await reader.close();
+      } catch (cleanup) {
+        throw BackupProcessingCleanupFailure(
+          originalError: originalError,
+          cleanupError: cleanup,
+        );
+      } finally {
+        try {
+          key?.dispose();
+        } finally {
+          salt?.fillRange(0, salt.length, 0);
+        }
+      }
     }
   }
 
@@ -163,15 +316,23 @@ class BackupCrypto {
   }
 
   void _validateHeader(Map<String, dynamic> header) {
-    if (header['formatVersion'] != formatVersion) {
-      throw const FormatException('Unsupported backup format version.');
+    if (header['formatVersion'] is! int ||
+        header['formatVersion'] != formatVersion) {
+      throw const BackupProcessingFailure(
+        BackupFailureKind.unsupportedRepresentation,
+      );
     }
-    if (header['suite'] != 'argon2id13+xchacha20poly1305-secretstream' ||
+    if (header['opsLimit'] is! int ||
+        header['memLimit'] is! int ||
+        header['chunkSize'] is! int ||
+        header['suite'] != 'argon2id13+xchacha20poly1305-secretstream' ||
         header['opsLimit'] != opsLimit ||
         header['memLimit'] != memLimit ||
         header['chunkSize'] != chunkSize ||
         header['salt'] is! String) {
-      throw const FormatException('Unsupported or unsafe backup crypto suite.');
+      throw const BackupProcessingFailure(
+        BackupFailureKind.unsupportedRepresentation,
+      );
     }
   }
 
@@ -181,25 +342,79 @@ class BackupCrypto {
   }
 }
 
-class _ByteReader {
-  _ByteReader(this._bytes);
-
-  final Uint8List _bytes;
+class _BackupStreamReader {
+  _BackupStreamReader(Stream<List<int>> source, this.budget)
+    : _input = StreamIterator(source);
+  final StreamIterator<List<int>> _input;
+  final BackupBudget budget;
+  List<int> _chunk = const [];
   int _offset = 0;
+  bool _done = false;
 
-  bool get isAtEnd => _offset == _bytes.length;
-
-  Uint8List read(int length) {
-    if (length < 0 || _offset + length > _bytes.length) {
-      throw const FormatException('Truncated backup file.');
+  Future<bool> _available() async {
+    while (_offset == _chunk.length && !_done) {
+      budget.lease?.check();
+      if (!await _input.moveNext()) {
+        _done = true;
+        break;
+      }
+      _chunk = _input.current;
+      _offset = 0;
+      budget.ciphertext(_chunk.length);
     }
-    final result = Uint8List.sublistView(_bytes, _offset, _offset + length);
-    _offset += length;
+    return _offset < _chunk.length;
+  }
+
+  Future<Uint8List> read(int size) async {
+    if (size < 0 || size > BackupCrypto._maxFrameBytes) BackupLimits.invalid();
+    final result = Uint8List(size);
+    budget.buffer(size);
+    var filled = 0;
+    while (filled < size) {
+      if (!await _available()) {
+        throw const BackupProcessingFailure(BackupFailureKind.authentication);
+      }
+      final count = (_chunk.length - _offset).clamp(0, size - filled);
+      result.setRange(filled, filled + count, _chunk, _offset);
+      _offset += count;
+      filled += count;
+    }
     return result;
   }
 
-  int readUint32() {
-    final value = ByteData.sublistView(read(4)).getUint32(0, Endian.big);
-    return value;
+  Future<int> uint32() async =>
+      ByteData.sublistView(await read(4)).getUint32(0, Endian.big);
+  Future<void> requireEnd() async {
+    if (await _available()) {
+      throw const BackupProcessingFailure(BackupFailureKind.authentication);
+    }
+  }
+
+  Future<void> close() => _input.cancel();
+}
+
+// The entire header is already bounded to 4096 bytes before this sink exists.
+// This adapter must never be used for the portable payload.
+class _HeaderSink implements BackupJsonSink {
+  final nodes = <int, dynamic>{};
+  @override
+  int writeNode(int? parent, String? key, String kind, Object? scalar) {
+    final dynamic value = kind == 'object'
+        ? <String, dynamic>{}
+        : kind == 'array'
+        ? <dynamic>[]
+        : scalar;
+    final id = nodes.length + 1;
+    if (parent != null) {
+      final target = nodes[parent];
+      if (target is Map<String, dynamic>) {
+        if (target.containsKey(key)) BackupLimits.invalid();
+        target[key!] = value;
+      } else {
+        (target as List).add(value);
+      }
+    }
+    nodes[id] = value;
+    return id;
   }
 }

@@ -105,7 +105,9 @@ void main() {
     id: 'schedule-1',
     place: PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Meeting',
-    scheduleTime: DateTime(2027, 3, 20, 9, 0),
+    scheduleTime: DateTime.utc(2027, 3, 20, 9, 0),
+    timeZoneId: 'Asia/Seoul',
+    occurrenceOffsetSeconds: 9 * 60 * 60,
     moveTime: const Duration(minutes: 30),
     isChanged: false,
     isStarted: false,
@@ -115,12 +117,16 @@ void main() {
 
   ScheduleFormDraft draftFromSchedule({
     bool preparationChanged = false,
+    bool editing = false,
     Duration? spareTime = const Duration(minutes: 10),
     Object? scheduleTime = _unset,
     SchedulePreparationMode? originalPreparationMode,
   }) {
     return ScheduleFormDraft(
       id: schedule.id,
+      timeZoneId: schedule.timeZoneId,
+      occurrenceOffsetSeconds: schedule.occurrenceOffsetSeconds,
+      originalSchedule: editing ? schedule : null,
       placeId: schedule.place.id,
       placeName: schedule.place.placeName,
       scheduleName: schedule.scheduleName,
@@ -136,11 +142,12 @@ void main() {
     );
   }
 
-  ScheduleFormBloc buildBloc() {
+  ScheduleFormBloc buildBloc({DateTime Function()? now}) {
     return ScheduleFormBloc(
       loadScheduleFormDraftUseCase,
       createScheduleFormSubmissionUseCase,
       updateScheduleFormSubmissionUseCase,
+      now: now ?? () => DateTime.utc(2026, 9, 25),
     );
   }
 
@@ -173,13 +180,138 @@ void main() {
               scheduleTime: initialDate,
             );
           },
-      editHandler: (_) async => draftFromSchedule(),
+      editHandler: (_) async => draftFromSchedule(editing: true),
     );
     createScheduleFormSubmissionUseCase =
         SpyCreateScheduleFormSubmissionUseCase();
     updateScheduleFormSubmissionUseCase =
         SpyUpdateScheduleFormSubmissionUseCase();
   });
+
+  Future<ScheduleFormState> requestCreateReview(ScheduleFormBloc bloc) async {
+    final ready = bloc.stream.firstWhere(
+      (s) => s.submissionStatus == ScheduleFormSubmissionStatus.timeReview,
+    );
+    bloc.add(const ScheduleFormCreated());
+    return ready;
+  }
+
+  Future<void> readyCreate(ScheduleFormBloc bloc) async {
+    loadScheduleFormDraftUseCase.createHandler =
+        ({initialDate, currentUserSpareTime}) async => draftFromSchedule();
+    await primeCreateState(bloc);
+  }
+
+  test(
+    'cancelled and superseded review never writes and preserves draft input',
+    () async {
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+      await readyCreate(bloc);
+      final first = (await requestCreateReview(bloc)).timeReview!;
+      final idle = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.idle,
+      );
+      bloc.add(const ScheduleFormReviewDismissed());
+      await idle;
+      expect(bloc.state.scheduleName, 'Meeting');
+      expect(createScheduleFormSubmissionUseCase.submissions, isEmpty);
+      final second = (await requestCreateReview(bloc)).timeReview!;
+      expect(identical(first, second), isFalse);
+      final edited = bloc.stream.firstWhere(
+        (s) => s.scheduleName == 'Latest input',
+      );
+      bloc.add(
+        const ScheduleFormScheduleNameChanged(scheduleName: 'Latest input'),
+      );
+      await edited;
+      bloc.add(ScheduleFormTimeReviewConfirmed(second));
+      await Future<void>.delayed(Duration.zero);
+      expect(createScheduleFormSubmissionUseCase.submissions, isEmpty);
+      expect(bloc.state.scheduleName, 'Latest input');
+    },
+  );
+
+  test(
+    'known transaction rejection requests a fresh review before retry',
+    () async {
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+      await readyCreate(bloc);
+      createScheduleFormSubmissionUseCase.handler = (_) async =>
+          throw const ScheduleSaveRejected(ScheduleSaveFailure.conflict);
+      final first = (await requestCreateReview(bloc)).timeReview!;
+      final failed = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.failure,
+      );
+      bloc.add(ScheduleFormTimeReviewConfirmed(first));
+      await failed;
+      createScheduleFormSubmissionUseCase.handler = null;
+      final next = (await requestCreateReview(bloc)).timeReview!;
+      expect(identical(first, next), isFalse);
+      expect(createScheduleFormSubmissionUseCase.submissions, hasLength(1));
+      final saved = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
+      );
+      bloc.add(ScheduleFormTimeReviewConfirmed(next));
+      await saved;
+      expect(createScheduleFormSubmissionUseCase.submissions, hasLength(2));
+    },
+  );
+
+  test(
+    'unclassified response loss retains the same accepted mutation for replay',
+    () async {
+      final bloc = buildBloc();
+      addTearDown(bloc.close);
+      await readyCreate(bloc);
+      createScheduleFormSubmissionUseCase.handler = (_) async =>
+          throw StateError('response lost');
+      final review = (await requestCreateReview(bloc)).timeReview!;
+      final failed = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.failure,
+      );
+      bloc.add(ScheduleFormTimeReviewConfirmed(review));
+      await failed;
+      final first = createScheduleFormSubmissionUseCase.submissions.single;
+      createScheduleFormSubmissionUseCase.handler = null;
+      final states = <ScheduleFormSubmissionStatus>[];
+      final subscription = bloc.stream.listen(
+        (s) => states.add(s.submissionStatus),
+      );
+      addTearDown(subscription.cancel);
+      final saved = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
+      );
+      bloc.add(const ScheduleFormCreated());
+      await saved;
+      expect(states, isNot(contains(ScheduleFormSubmissionStatus.timeReview)));
+      expect(
+        createScheduleFormSubmissionUseCase.submissions.last.mutationId,
+        first.mutationId,
+      );
+      expect(createScheduleFormSubmissionUseCase.submissions.last, first);
+    },
+  );
+
+  test(
+    'rewound clock invalidates uncommitted review without entering writer',
+    () async {
+      var now = DateTime.utc(2026, 9, 25);
+      final bloc = buildBloc(now: () => now);
+      addTearDown(bloc.close);
+      await readyCreate(bloc);
+      final review = (await requestCreateReview(bloc)).timeReview!;
+      now = now.subtract(const Duration(minutes: 1));
+      final failed = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.failure,
+      );
+      bloc.add(ScheduleFormTimeReviewConfirmed(review));
+      await failed;
+      expect(bloc.state.saveFailure, ScheduleSaveFailure.conflict);
+      expect(createScheduleFormSubmissionUseCase.submissions, isEmpty);
+    },
+  );
 
   test('ScheduleFormCreateRequested maps loaded draft into state', () async {
     DateTime? requestedInitialDate;
@@ -281,7 +413,13 @@ void main() {
         (state) =>
             state.submissionStatus == ScheduleFormSubmissionStatus.success,
       );
+      final reviewReady = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.timeReview,
+      );
       bloc.add(const ScheduleFormUpdated());
+      final review = (await reviewReady).timeReview!;
+      expect(updateScheduleFormSubmissionUseCase.submissions, isEmpty);
+      bloc.add(ScheduleFormTimeReviewConfirmed(review));
       await submitDone;
 
       final submission = updateScheduleFormSubmissionUseCase.submissions.single;
@@ -289,7 +427,10 @@ void main() {
       expect(submission.schedule.place.id, 'place-1');
       expect(submission.schedule.place.placeName, 'New Office');
       expect(submission.schedule.scheduleName, 'Edited Meeting');
-      expect(submission.schedule.scheduleTime, DateTime(2027, 3, 21, 10, 30));
+      expect(
+        submission.schedule.scheduleTime,
+        DateTime.utc(2027, 3, 21, 10, 30),
+      );
       expect(submission.schedule.moveTime, const Duration(minutes: 45));
       expect(
         submission.schedule.scheduleSpareTime,
@@ -370,7 +511,13 @@ void main() {
         (state) =>
             state.submissionStatus == ScheduleFormSubmissionStatus.success,
       );
+      final reviewReady = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.timeReview,
+      );
       bloc.add(const ScheduleFormCreated());
+      final review = (await reviewReady).timeReview!;
+      expect(createScheduleFormSubmissionUseCase.submissions, isEmpty);
+      bloc.add(ScheduleFormTimeReviewConfirmed(review));
       await submitDone;
 
       final submission = createScheduleFormSubmissionUseCase.submissions.single;

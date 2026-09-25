@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
@@ -18,7 +19,10 @@ class RecurrenceOccurrenceSheet extends StatelessWidget {
     final unrecorded =
         !schedule.isStarted &&
         schedule.doneStatus == ScheduleDoneStatus.notEnded &&
-        schedule.occurrenceInstantUtc.isBefore(DateTime.now().toUtc());
+        ScheduleTimeResolver.resolve(
+          schedule,
+          nowUtc: DateTime.now(),
+        ).isHistorical;
     return RecurrenceSheet(
       title: schedule.scheduleName,
       footer: ScreenActions(

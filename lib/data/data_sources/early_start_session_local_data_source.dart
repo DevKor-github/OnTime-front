@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'dart:convert';
 
 import 'package:injectable/injectable.dart';
@@ -24,9 +25,15 @@ class EarlyStartSessionLocalDataSourceImpl
     required String scheduleId,
     required DateTime startedAt,
   }) async {
+    final identity = RestoreRuntimeIdentity.shared;
+    final incarnation = identity.storeIncarnation;
     final prefs = await SharedPreferences.getInstance();
     final key = '$_prefsKeyPrefix$scheduleId';
-    final payload = jsonEncode({'startedAt': startedAt.millisecondsSinceEpoch});
+    final payload = jsonEncode({
+      'startedAt': startedAt.millisecondsSinceEpoch,
+      'storeIncarnation': ?incarnation,
+    });
+    if (!identity.accepts(incarnation)) throw StateError('Old runtime owner');
     if (!await prefs.setString(key, payload)) {
       throw StateError('Early preparation start was not saved');
     }
@@ -41,6 +48,9 @@ class EarlyStartSessionLocalDataSourceImpl
 
     try {
       final map = jsonDecode(payload) as Map<String, dynamic>;
+      if (!RestoreRuntimeIdentity.shared.accepts(map['storeIncarnation'])) {
+        return null;
+      }
       final startedAtMillis = (map['startedAt'] as num?)?.toInt();
       if (startedAtMillis == null) return null;
       return DateTime.fromMillisecondsSinceEpoch(startedAtMillis);
@@ -53,6 +63,8 @@ class EarlyStartSessionLocalDataSourceImpl
   Future<void> clearSession(String scheduleId) async {
     final prefs = await SharedPreferences.getInstance();
     final key = '$_prefsKeyPrefix$scheduleId';
-    await prefs.remove(key);
+    if (!await prefs.remove(key)) {
+      throw StateError('Early start cleanup pending');
+    }
   }
 }

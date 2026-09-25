@@ -1,3 +1,4 @@
+import '../../../helpers/c08_home_query_fixture.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -28,6 +29,9 @@ import 'package:on_time_front/presentation/calendar/bloc/monthly_schedules_bloc.
 import 'package:on_time_front/presentation/home/screens/home_screen_tmp.dart';
 import 'package:on_time_front/presentation/shared/components/arc_indicator.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+
+// Explicit local observation and absolute commitments keep 'today' deterministic.
+final _homeNow = DateTime(2030, 1, 2, 9);
 
 class StubAuthBloc extends Mock implements AuthBloc {
   StubAuthBloc(this._state);
@@ -147,6 +151,7 @@ void main() {
             width: size.width,
             height: size.height,
             child: HomeScreenContent(
+              now: _homeNow,
               state: const MonthlySchedulesState(
                 status: MonthlySchedulesStatus.success,
               ),
@@ -170,8 +175,8 @@ void main() {
         buildSubject(
           size: const Size(430, 932),
           scheduleState: hasSchedule
-              ? ScheduleState.upcoming(_shortSchedule())
-              : const ScheduleState.notExists(),
+              ? homeReadyState(_shortSchedule())
+              : homeEmptyState(),
         ),
       );
       await tester.pump();
@@ -203,7 +208,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final scheduleBloc = StreamingScheduleBloc(
-      ScheduleState.upcoming(_shortSchedule()),
+      homeReadyState(_shortSchedule()),
     );
     addTearDown(scheduleBloc.close);
     await tester.pumpWidget(
@@ -214,7 +219,7 @@ void main() {
     );
     await tester.pump();
     final router = GoRouter.of(tester.element(find.byType(HomeScreenContent)));
-    final now = DateTime.now();
+    final now = _homeNow;
     final lastDay = DateTime(now.year, now.month + 1, 0);
     final day = find
         .descendant(
@@ -264,7 +269,7 @@ void main() {
       buildSubject(
         size: const Size(360, 640),
         textScale: 1.3,
-        scheduleState: const ScheduleState.notExists(),
+        scheduleState: homeEmptyState(),
       ),
     );
     await tester.pump();
@@ -317,7 +322,7 @@ void main() {
         ),
       ),
     );
-    final scheduleBloc = StubScheduleBloc(const ScheduleState.notExists());
+    final scheduleBloc = StubScheduleBloc(homeEmptyState());
 
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -335,6 +340,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // This mounts the actual DeviceDayRefresh wrapper, which owns its clock.
     final today = DateTime.now();
     expect(loadUseCase.calls, hasLength(1));
     expect(
@@ -356,7 +362,7 @@ void main() {
       buildSubject(
         size: const Size(360, 640),
         textScale: 1.3,
-        scheduleState: ScheduleState.upcoming(_scheduleWithLongName()),
+        scheduleState: homeReadyState(_scheduleWithLongName()),
       ),
     );
     await tester.pump();
@@ -378,10 +384,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      buildSubject(
-        size: const Size(390, 844),
-        scheduleState: const ScheduleState.notExists(),
-      ),
+      buildSubject(size: const Size(390, 844), scheduleState: homeEmptyState()),
     );
     await tester.pump();
 
@@ -412,7 +415,7 @@ void main() {
       buildSubject(
         size: const Size(390, 844),
         padding: const EdgeInsets.only(top: 59),
-        scheduleState: const ScheduleState.notExists(),
+        scheduleState: homeEmptyState(),
       ),
     );
     await tester.pump();
@@ -495,7 +498,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final scheduleBloc = StreamingScheduleBloc(const ScheduleState.notExists());
+    final scheduleBloc = StreamingScheduleBloc(homeEmptyState());
     addTearDown(scheduleBloc.close);
 
     await tester.pumpWidget(
@@ -521,7 +524,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final scheduleBloc = StreamingScheduleBloc(
-      ScheduleState.upcoming(_shortSchedule()),
+      homeReadyState(_shortSchedule()),
     );
     addTearDown(scheduleBloc.close);
 
@@ -539,14 +542,18 @@ void main() {
     expect(find.text('Schedule Start:earlyStart'), findsOneWidget);
   });
 
-  testWidgets('today ongoing tile opens active alarm route', (tester) async {
+  testWidgets('explicitly owned ongoing preparation opens its alarm route', (
+    tester,
+  ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(360, 640);
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final scheduleBloc = StreamingScheduleBloc(
-      ScheduleState.ongoing(_shortSchedule()),
+      ScheduleState.ongoing(
+        _shortSchedule(),
+      ).copyWith(hasNotificationPreparationOwner: true),
     );
     addTearDown(scheduleBloc.close);
 
@@ -611,6 +618,8 @@ class _StubGetSchedulesByDateUseCase implements GetSchedulesByDateUseCase {
 
 class _StubDeleteScheduleUseCase implements DeleteScheduleUseCase {
   @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
   Future<void> call(ScheduleEntity schedule) async {}
 }
 
@@ -664,6 +673,7 @@ Widget _buildRoutedSubject({
               width: size.width,
               height: size.height,
               child: HomeScreenContent(
+                now: _homeNow,
                 state: const MonthlySchedulesState(
                   status: MonthlySchedulesStatus.success,
                 ),
@@ -737,7 +747,9 @@ ScheduleWithPreparationEntity _scheduleWithLongName() {
     place: PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName:
         'Very long appointment name that should never force the home screen to scroll',
-    scheduleTime: DateTime.now().add(const Duration(hours: 3)),
+    scheduleTime: _homeNow.toUtc().add(const Duration(hours: 3)),
+    timeZoneId: 'UTC',
+    occurrenceOffsetSeconds: 0,
     moveTime: const Duration(minutes: 20),
     isChanged: false,
     isStarted: false,
@@ -761,7 +773,9 @@ ScheduleWithPreparationEntity _shortSchedule() {
     id: 'schedule-short',
     place: PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Standup',
-    scheduleTime: DateTime.now().add(const Duration(hours: 3)),
+    scheduleTime: _homeNow.toUtc().add(const Duration(hours: 3)),
+    timeZoneId: 'UTC',
+    occurrenceOffsetSeconds: 0,
     moveTime: const Duration(minutes: 20),
     isChanged: false,
     isStarted: false,

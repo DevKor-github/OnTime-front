@@ -1,3 +1,7 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:on_time_front/domain/entities/backup_processing.dart';
+import '../../helpers/restore_staging_fixture.dart';
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import '../../helpers/noop_alarm_cleanup.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -25,6 +29,8 @@ import 'package:on_time_front/domain/entities/user_entity.dart';
 import '../../helpers/sodium_test_loader.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   const password = 'portable backup password';
   late AppDatabase database;
   late BackupService service;
@@ -39,6 +45,11 @@ void main() {
       database,
       _MetadataProvider(),
       NoopAlarmCleanup(),
+      ingestionFactory: memoryBackupIngestion,
+      processingOwner: testBackupProcessingOwner(),
+      stagingFactory: memoryRestoreStaging,
+      runtimeIdentity: RestoreRuntimeIdentity(),
+      cleanupPlatform: noPlatformRestoreCleanup,
       crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
       exportPort: exportPort,
       operationGate: gate,
@@ -83,11 +94,16 @@ void main() {
           (await database.select(database.users).getSingle()).dataRevision;
       final pending = service.exportToUserSelectedFile(password);
       await exportPort.opened.future;
-      final candidate = await service.previewEncryptedBackup(
-        exportPort.bytes!,
-        password,
-      );
-      expect(candidate.preview.scheduleCount, 1);
+      final decoded =
+          jsonDecode(
+                utf8.decode(
+                  await BackupCrypto(
+                    sodiumLoader: loadSodiumForTest,
+                  ).decrypt(container: exportPort.bytes!, password: password),
+                ),
+              )
+              as Map;
+      expect((decoded['schedules'] as List).length, 1);
       expect(exportPort.name, endsWith('.ontimebackup'));
       await database.userDao.updateSpareTime(
         'local-profile',
@@ -141,32 +157,34 @@ void main() {
   );
 
   test(
-    'second export, restore, and destructive operation reject while picker is open',
+    'backup resource lease rejects another backup while ordinary DB writes continue',
     () async {
-      final candidate = await service.previewEncryptedBackup(
-        await service.createEncryptedBackup(password),
-        password,
-      );
+      final bytes = await service.createEncryptedBackup(password);
       final pending = service.exportToUserSelectedFile(password);
       await exportPort.opened.future;
       await expectLater(
-        service.exportToUserSelectedFile('different backup password'),
-        throwsA(isA<LocalDataOperationBusy>()),
+        service.exportToUserSelectedFile(password),
+        throwsA(isA<DataOperationException>()),
       );
       await expectLater(
-        service.applyRestore(candidate),
-        throwsA(isA<LocalDataOperationBusy>()),
+        service.previewEncryptedBackup(bytes, password),
+        throwsA(isA<DataOperationException>()),
       );
-      await expectLater(
-        gate.run(() async {
-          fail('destructive operation entered');
-        }, replacesData: true),
-        throwsA(isA<LocalDataOperationBusy>()),
-      );
+      await gate.run(() async {
+        await database.userDao.updateSpareTime(
+          'local-profile',
+          const Duration(minutes: 12),
+        );
+      });
       expect(exportPort.calls, 1);
       exportPort.completion.complete(BackupFileExportReceipt.cancelled);
       await pending;
-      await service.applyRestore(candidate);
+      final candidate = await service.previewEncryptedBackup(bytes, password);
+      await expectLater(
+        service.createEncryptedBackup(password),
+        throwsA(isA<DataOperationException>()),
+      );
+      await candidate.dispose();
     },
   );
 
@@ -266,6 +284,15 @@ void main() {
           .map((r) => r.toScheduleEntity())
           .where((s) => s.isRecurring)
           .toList();
+      final frozen = generated.first;
+      final frozenAt = DateTime.utc(2030, 1, 1, 23);
+      final ownedBefore = await recurring.getPreparation(
+        frozen.preparationDefinitionId!,
+      );
+      await database.customStatement(
+        'UPDATE schedules SET started_at=?, preparation_frozen=1, is_started=1 WHERE id=?',
+        [frozenAt.millisecondsSinceEpoch ~/ 1000, frozen.id],
+      );
       final deleted = generated[1];
       await recurring.delete(deleted, RecurringEditScope.occurrence);
       final oldStore =
@@ -314,6 +341,16 @@ void main() {
           .toList();
       expect(restored, hasLength(2));
       expect(restored.any((s) => s.id == deleted.id), isFalse);
+      final frozenAfter = restored.singleWhere((s) => s.id == frozen.id);
+      expect(frozenAfter.startedAt!.toUtc(), frozenAt);
+      expect(frozenAfter.preparationFrozen, isTrue);
+      expect(frozenAfter.isStarted, isFalse);
+      expect(frozenAfter.requiresStartConfirmation, isTrue);
+      expect(
+        await recurring.getPreparation(frozenAfter.preparationDefinitionId!),
+        ownedBefore,
+      );
+
       expect(
         (await recurring.getPreparation(
           restored.first.preparationDefinitionId!,
@@ -429,12 +466,17 @@ class _ExportPort implements BackupFileExportPort {
   int calls = 0;
 
   @override
-  Future<BackupFileExportReceipt> export({
-    required Uint8List encryptedBytes,
+  Future<BackupFileExportReceipt> exportStream({
+    required Stream<List<int>> encrypted,
     required String suggestedName,
-  }) {
+    BackupProcessingLease? lease,
+  }) async {
     calls++;
-    bytes = encryptedBytes;
+    final output = BytesBuilder(copy: false);
+    await for (final chunk in encrypted) {
+      output.add(chunk);
+    }
+    bytes = output.takeBytes();
     name = suggestedName;
     opened.complete();
     return completion.future;

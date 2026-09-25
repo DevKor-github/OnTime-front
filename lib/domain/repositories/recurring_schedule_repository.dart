@@ -1,6 +1,7 @@
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
+import 'package:on_time_front/domain/recurrence/recurrence_engine.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 
 abstract interface class RecurringScheduleRepository {
@@ -49,4 +50,9 @@ abstract interface class RecurringScheduleRepository {
     int? perSeriesLimit,
   });
   Future<PreparationEntity> getPreparation(String definitionId);
+  ScheduleEntity candidateFor(RecurringSegment segment, RecurrenceSlot slot);
+  Future<ScheduleEntity> materializeCandidate(
+    RecurringSegment segment,
+    RecurrenceSlot slot,
+  );
 }

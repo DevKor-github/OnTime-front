@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/domain/entities/adjacent_schedules_with_preparation_entity.dart';
@@ -15,6 +16,116 @@ import 'package:on_time_front/presentation/schedule_create/schedule_date_time/in
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
 
 void main() {
+  for (final failOld in [false, true]) {
+    test(
+      'obsolete adjacent ${failOld ? "failure" : "success"} cannot replace a newer selection',
+      () async {
+        final form = _FakeScheduleFormBloc();
+        final adjacent = _FakeGetAdjacentSchedulesWithPreparationUseCase();
+        final pending = <Completer<AdjacentSchedulesWithPreparationEntity>>[];
+        adjacent.respond = () {
+          final response = Completer<AdjacentSchedulesWithPreparationEntity>();
+          pending.add(response);
+          return response.future;
+        };
+        final cubit = ScheduleDateTimeCubit(
+          form,
+          _FakeLoadAdjacentScheduleWithPreparationUseCase(),
+          adjacent,
+        );
+        addTearDown(cubit.close);
+        await cubit.scheduleDateChanged(DateTime.utc(2030, 1, 2));
+        final oldRequest = cubit.scheduleTimeChanged(
+          DateTime.utc(2030, 1, 2, 10),
+        );
+        final newRequest = cubit.scheduleTimeChanged(
+          DateTime.utc(2030, 1, 2, 11),
+        );
+        expect(pending.length, 2);
+        pending.last.complete(
+          AdjacentSchedulesWithPreparationEntity(
+            nextSchedule: _scheduleWithPreparation(
+              id: 'latest',
+              name: 'Latest conflict',
+              scheduleTime: DateTime.utc(2030, 1, 2, 11, 15),
+              preparationMinutes: 30,
+            ),
+          ),
+        );
+        await newRequest;
+        expect(cubit.state.isOverlapping, isTrue);
+        final stableState = cubit.state;
+        final eventCount = form.addedEvents.length;
+        if (failOld) {
+          pending.first.completeError(StateError('old query failed'));
+        } else {
+          pending.first.complete(
+            const AdjacentSchedulesWithPreparationEntity(),
+          );
+        }
+        await oldRequest;
+        expect(cubit.state, stableState);
+        expect(cubit.state.nextScheduleName, 'Latest conflict');
+        expect(form.addedEvents.length, eventCount);
+      },
+    );
+  }
+
+  test(
+    'same bloc changing form owner ignores an old adjacent result and validation',
+    () async {
+      final form = _FakeScheduleFormBloc();
+      final adjacent = _FakeGetAdjacentSchedulesWithPreparationUseCase();
+      final pending = Completer<AdjacentSchedulesWithPreparationEntity>();
+      adjacent.respond = () => pending.future;
+      final cubit = ScheduleDateTimeCubit(
+        form,
+        _FakeLoadAdjacentScheduleWithPreparationUseCase(),
+        adjacent,
+      );
+      addTearDown(cubit.close);
+      await cubit.scheduleDateChanged(DateTime.utc(2030, 1, 2));
+      final oldRequest = cubit.scheduleTimeChanged(
+        DateTime.utc(2030, 1, 2, 10),
+      );
+      form.replaceOwner(ScheduleFormState(id: 'different-draft'));
+      cubit.initialize();
+      final stableState = cubit.state;
+      final eventCount = form.addedEvents.length;
+      pending.complete(
+        AdjacentSchedulesWithPreparationEntity(
+          nextSchedule: _scheduleWithPreparation(
+            id: 'old',
+            name: 'Old conflict',
+            scheduleTime: DateTime.utc(2030, 1, 2, 10, 15),
+            preparationMinutes: 30,
+          ),
+        ),
+      );
+      await oldRequest;
+      expect(cubit.state, stableState);
+      expect(form.addedEvents.length, eventCount);
+    },
+  );
+
+  test('civil seconds and microseconds decide the exact past boundary', () {
+    final value = DateTime.utc(2030, 1, 1, 12, 0, 59, 123, 456);
+    final state = ScheduleDateTimeState(
+      scheduleDate: ScheduleDateInputModel.dirty(value),
+      scheduleTime: ScheduleTimeInputModel.dirty(value),
+      selectedOccurrenceOffsetSeconds: 0,
+    );
+    expect(
+      state.isPastScheduleTimeAt(DateTime.utc(2030, 1, 1, 12, 0, 30)),
+      isFalse,
+    );
+    expect(state.isPastScheduleTimeAt(value), isFalse);
+    expect(
+      state.isPastScheduleTimeAt(value.add(const Duration(microseconds: 1))),
+      isTrue,
+    );
+  });
+
   test('state combines selected date and time and clears overlap fields', () {
     final date = DateTime.now().add(const Duration(days: 3));
     final time = DateTime(2026, 1, 1, 9, 30);
@@ -30,7 +141,7 @@ void main() {
 
     expect(
       state.selectedScheduleDateTime,
-      DateTime(date.year, date.month, date.day, 9, 30),
+      DateTime.utc(date.year, date.month, date.day, 9, 30),
     );
     expect(state.hasAnyOverlapMessage, isTrue);
 
@@ -66,6 +177,7 @@ void main() {
 
     final past = DateTime.now().subtract(const Duration(days: 1));
     final state = ScheduleDateTimeState(
+      selectedOccurrenceOffsetSeconds: 0,
       scheduleDate: ScheduleDateInputModel.dirty(past),
       scheduleTime: ScheduleTimeInputModel.dirty(past),
       isOverlapping: true,
@@ -99,12 +211,12 @@ void main() {
 
       expect(loader.calls, [
         (
-          DateTime(
+          DateTime.utc(
             date.year,
             date.month,
             date.day,
           ).subtract(const Duration(days: 1)),
-          DateTime(
+          DateTime.utc(
             date.year,
             date.month,
             date.day,
@@ -113,7 +225,7 @@ void main() {
       ]);
       expect(
         adjacent.calls.single.selectedDateTime,
-        DateTime(date.year, date.month, date.day, 9, 30),
+        DateTime.utc(date.year, date.month, date.day, 9, 30),
       );
       expect(
         formBloc.addedEvents.whereType<ScheduleFormValidated>().map(
@@ -164,12 +276,12 @@ void main() {
 
       expect(loader.calls, [
         (
-          DateTime(
+          DateTime.utc(
             scheduledAt.year,
             scheduledAt.month,
             scheduledAt.day,
           ).subtract(const Duration(days: 1)),
-          DateTime(
+          DateTime.utc(
             scheduledAt.year,
             scheduledAt.month,
             scheduledAt.day,
@@ -389,6 +501,8 @@ ScheduleWithPreparationEntity _scheduleWithPreparation({
     place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: name,
     scheduleTime: scheduleTime,
+    timeZoneId: 'UTC',
+    occurrenceOffsetSeconds: 0,
     moveTime: Duration.zero,
     isChanged: false,
     isStarted: false,
@@ -412,7 +526,17 @@ class _FakeScheduleFormBloc implements ScheduleFormBloc {
     : _state = state ?? ScheduleFormState(id: 'current-schedule');
 
   final addedEvents = <ScheduleFormEvent>[];
-  final ScheduleFormState _state;
+  ScheduleFormState _state;
+  Object _owner = Object();
+  void replaceOwner(ScheduleFormState value) {
+    _state = value;
+    _owner = Object();
+  }
+
+  @override
+  Object get formOwner => _owner;
+  @override
+  bool ownsForm(Object owner) => identical(owner, _owner);
 
   @override
   ScheduleFormState get state => _state;
@@ -462,6 +586,7 @@ class _FakeGetAdjacentSchedulesWithPreparationUseCase
       const AdjacentSchedulesWithPreparationEntity();
   final calls = <_AdjacentCall>[];
   bool throwsOnCall = false;
+  Future<AdjacentSchedulesWithPreparationEntity> Function()? respond;
 
   @override
   Future<AdjacentSchedulesWithPreparationEntity> call({
@@ -481,7 +606,7 @@ class _FakeGetAdjacentSchedulesWithPreparationUseCase
     if (throwsOnCall) {
       throw Exception('adjacent schedules unavailable');
     }
-    return result;
+    return respond == null ? result : await respond!();
   }
 
   @override

@@ -9,6 +9,7 @@ enum ScheduleFormSubmissionStatus {
   failure,
   review,
   timeChoice,
+  timeReview,
   deliveryPending,
 }
 
@@ -30,6 +31,7 @@ final class ScheduleFormState extends Equatable {
   final String? scheduleName;
   final DateTime? scheduleTime;
   final String timeZoneId;
+  final bool timeZoneExplicitlySelected;
   final int? occurrenceOffsetSeconds;
   final Duration? moveTime;
   final IsPreparationChanged isChanged;
@@ -43,6 +45,7 @@ final class ScheduleFormState extends Equatable {
   final RecurringEditScope recurringScope;
   final bool recurrenceCountChanged;
   final RecurrenceReview? recurrenceReview;
+  final ScheduleTimeSaveReview? timeReview;
   final DateTime? repeatedTimeDate;
   final bool isValid;
   final Duration? maxAvailableTime;
@@ -62,6 +65,7 @@ final class ScheduleFormState extends Equatable {
     this.scheduleName,
     this.scheduleTime,
     this.timeZoneId = 'UTC',
+    this.timeZoneExplicitlySelected = false,
     this.occurrenceOffsetSeconds,
     this.moveTime,
     this.isChanged = IsPreparationChanged.unchanged,
@@ -75,6 +79,7 @@ final class ScheduleFormState extends Equatable {
     this.recurringScope = RecurringEditScope.occurrence,
     this.recurrenceCountChanged = false,
     this.recurrenceReview,
+    this.timeReview,
     this.repeatedTimeDate,
     this.isValid = false,
     this.maxAvailableTime,
@@ -96,7 +101,8 @@ final class ScheduleFormState extends Equatable {
     String? scheduleName,
     DateTime? scheduleTime,
     String? timeZoneId,
-    int? occurrenceOffsetSeconds,
+    bool? timeZoneExplicitlySelected,
+    Object? occurrenceOffsetSeconds = _unset,
     Duration? moveTime,
     IsPreparationChanged? isChanged,
     Duration? scheduleSpareTime,
@@ -109,6 +115,7 @@ final class ScheduleFormState extends Equatable {
     RecurringEditScope? recurringScope,
     bool? recurrenceCountChanged,
     Object? recurrenceReview = _unset,
+    Object? timeReview = _unset,
     DateTime? repeatedTimeDate,
     bool? isValid,
     Object? maxAvailableTime = _unset,
@@ -132,8 +139,11 @@ final class ScheduleFormState extends Equatable {
       scheduleName: scheduleName ?? this.scheduleName,
       scheduleTime: scheduleTime ?? this.scheduleTime,
       timeZoneId: timeZoneId ?? this.timeZoneId,
-      occurrenceOffsetSeconds:
-          occurrenceOffsetSeconds ?? this.occurrenceOffsetSeconds,
+      timeZoneExplicitlySelected:
+          timeZoneExplicitlySelected ?? this.timeZoneExplicitlySelected,
+      occurrenceOffsetSeconds: identical(occurrenceOffsetSeconds, _unset)
+          ? this.occurrenceOffsetSeconds
+          : occurrenceOffsetSeconds as int?,
       moveTime: moveTime ?? this.moveTime,
       isChanged: isChanged ?? this.isChanged,
       scheduleSpareTime: scheduleSpareTime ?? this.scheduleSpareTime,
@@ -152,6 +162,9 @@ final class ScheduleFormState extends Equatable {
       recurrenceReview: identical(recurrenceReview, _unset)
           ? this.recurrenceReview
           : recurrenceReview as RecurrenceReview?,
+      timeReview: identical(timeReview, _unset)
+          ? this.timeReview
+          : timeReview as ScheduleTimeSaveReview?,
       repeatedTimeDate: repeatedTimeDate ?? this.repeatedTimeDate,
       isValid: isValid ?? this.isValid,
       maxAvailableTime: identical(maxAvailableTime, _unset)
@@ -176,9 +189,7 @@ final class ScheduleFormState extends Equatable {
       scheduleName: state.scheduleName!,
       scheduleTime: state.scheduleTime!,
       timeZoneId: state.timeZoneId,
-      occurrenceOffsetSeconds:
-          state.occurrenceOffsetSeconds ??
-          state.scheduleTime!.timeZoneOffset.inSeconds,
+      occurrenceOffsetSeconds: state.occurrenceOffsetSeconds,
       moveTime: state.moveTime!,
       isChanged: !(state.isChanged == IsPreparationChanged.unchanged),
       scheduleSpareTime: state.scheduleSpareTime,
@@ -217,6 +228,7 @@ final class ScheduleFormState extends Equatable {
     scheduleName,
     scheduleTime,
     timeZoneId,
+    timeZoneExplicitlySelected,
     occurrenceOffsetSeconds,
     moveTime,
     isChanged,
@@ -230,6 +242,7 @@ final class ScheduleFormState extends Equatable {
     recurringScope,
     recurrenceCountChanged,
     recurrenceReview,
+    timeReview,
     repeatedTimeDate,
     isValid,
     maxAvailableTime,

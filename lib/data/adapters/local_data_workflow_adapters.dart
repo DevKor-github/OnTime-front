@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/ports/backup_time_review_port.dart';
+import 'package:on_time_front/domain/entities/backup_restore_selection.dart';
+import 'package:on_time_front/domain/entities/backup_processing.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/backup/backup_service.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
@@ -8,7 +11,7 @@ import 'package:on_time_front/domain/ports/local_data_ports.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 
 @LazySingleton(as: BackupOperationsPort)
-class LocalBackupAdapter implements BackupOperationsPort {
+class LocalBackupAdapter implements BackupOperationsPort, BackupTimeReviewPort {
   LocalBackupAdapter(this._backup);
   final BackupService _backup;
   @override
@@ -21,6 +24,12 @@ class LocalBackupAdapter implements BackupOperationsPort {
     } on LocalDataUnavailable {
       throw const DataOperationException(DataOperationFailure.unavailable);
     } on DataOperationException {
+      rethrow;
+    } on BackupRestoreCommitUncertain {
+      rethrow;
+    } on BackupProcessingFailure {
+      rethrow;
+    } on BackupProcessingCleanupFailure {
       rethrow;
     } on FormatException {
       throw const DataOperationException(DataOperationFailure.invalidBackup);
@@ -38,6 +47,9 @@ class LocalBackupAdapter implements BackupOperationsPort {
   Future<BackupRestoreInput?> preview(String password) =>
       _safe(() => _backup.selectAndPreviewRestore(password));
   @override
+  Future<BackupRestoreSelection?> selectForRestore(String password) =>
+      _safe(() => _backup.selectAndReviewRestore(password));
+  @override
   Future<int> apply(BackupRestoreInput input) => _safe(
     () => _backup.applyRestoreWithReceipt(input as BackupRestoreCandidate),
   );
@@ -45,10 +57,12 @@ class LocalBackupAdapter implements BackupOperationsPort {
 
 @LazySingleton(as: RestoreDeliveryPort)
 class LocalRestoreDeliveryAdapter implements RestoreDeliveryPort {
-  LocalRestoreDeliveryAdapter(this._reconcile);
+  LocalRestoreDeliveryAdapter(this._reconcile, this._backup);
+  final BackupService _backup;
   final ReconcileAlarmsUseCase _reconcile;
   @override
   Future<bool> reconcile() async {
+    await _backup.finishRestoreCleanup();
     final result = await _reconcile();
     return (result.status == AlarmReconciliationStatus.armed ||
             result.status == AlarmReconciliationStatus.disabled) &&

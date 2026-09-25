@@ -32,6 +32,8 @@ class StubGetSchedulesByDateUseCase implements GetSchedulesByDateUseCase {
 }
 
 class StubDeleteScheduleUseCase implements DeleteScheduleUseCase {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
   StubDeleteScheduleUseCase(this.handler);
   final Future<void> Function(ScheduleEntity schedule) handler;
 

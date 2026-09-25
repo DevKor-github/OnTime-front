@@ -72,7 +72,7 @@ void main() {
 
       expect(draft.id, 'schedule-id');
       expect(draft.placeId, 'place-id');
-      expect(draft.scheduleTime, DateTime(2027, 4, 5, 8, 31));
+      expect(draft.scheduleTime, DateTime.utc(2027, 4, 5, 8, 31));
       expect(draft.scheduleSpareTime, const Duration(minutes: 5));
       expect(draft.preparation, defaultPreparation);
       expect(draft.preparationChanged, isFalse);

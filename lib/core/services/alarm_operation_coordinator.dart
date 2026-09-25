@@ -12,7 +12,7 @@ import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart
 final class AlarmOperationCoordinator extends ChangeNotifier {
   AlarmOperationCoordinator(this.gate, {AlarmOwnershipJournal? journal})
     : journal = journal ?? AlarmOwnershipJournal(MemoryAlarmJournalStore()) {
-    gate.addListener(notifyListeners);
+    gate.addListener(_gateChanged);
   }
 
   static final shared = AlarmOperationCoordinator(
@@ -24,8 +24,70 @@ final class AlarmOperationCoordinator extends ChangeNotifier {
   Future<void> _tail = Future<void>.value();
   final _unpersisted = Expando<Map<String, ScheduledAlarmRecord>>();
 
+  int _contentGeneration = -1;
+  int _contentRevision = 0;
+  bool _unresolvedPrivateIntent = false;
+  bool? _confirmedDetailed;
+
+  void _syncContentGeneration() {
+    if (_contentGeneration == generation) return;
+    _contentGeneration = generation;
+    _contentRevision = 0;
+    _unresolvedPrivateIntent = false;
+    _confirmedDetailed = null;
+  }
+
+  void _gateChanged() {
+    _syncContentGeneration();
+    notifyListeners();
+  }
+
+  /// Synchronous acceptance fences every reconciliation entry point. This is
+  /// ephemeral content authority, not a new installation generation or journal.
+  AlarmContentPermit acceptContentIntent(
+    bool enabled, {
+    required int expectedGeneration,
+  }) {
+    gate.checkWrite(expectedGeneration);
+    _syncContentGeneration();
+    _contentRevision++;
+    _unresolvedPrivateIntent = !enabled;
+    final permit = captureContentPermit();
+    notifyListeners();
+    return permit;
+  }
+
+  void confirmContentIntent(
+    AlarmContentPermit permit, {
+    required bool committedEnabled,
+  }) {
+    if (!isCurrentContentPermit(permit)) return;
+    _confirmedDetailed = committedEnabled;
+    // A failed OFF write followed by an ON read-back must retain the hold.
+    if (!committedEnabled) _unresolvedPrivateIntent = false;
+  }
+
+  /// Capture BEFORE reading the settings/content snapshot, never afterwards.
+  AlarmContentPermit captureContentPermit() {
+    _syncContentGeneration();
+    return AlarmContentPermit._(generation, _contentRevision);
+  }
+
+  bool isCurrentContentPermit(AlarmContentPermit permit) {
+    _syncContentGeneration();
+    return permit.generation == generation &&
+        permit.revision == _contentRevision &&
+        canSchedule;
+  }
+
+  bool allowsDetailed(AlarmContentPermit permit) =>
+      isCurrentContentPermit(permit) &&
+      !_unresolvedPrivateIntent &&
+      _confirmedDetailed != false;
+
   int get generation => gate.generation;
-  bool get canSchedule => !gate.isReplacingData && !gate.isInvalidated;
+  bool get canSchedule =>
+      !gate.isReplacingData && !gate.isInvalidated && !gate.isRecoveryPending;
 
   AlarmOperationLease capture() {
     final lease = AlarmOperationLease._(this, generation);
@@ -138,9 +200,16 @@ final class AlarmOperationCoordinator extends ChangeNotifier {
 
   @override
   void dispose() {
-    gate.removeListener(notifyListeners);
+    gate.removeListener(_gateChanged);
     super.dispose();
   }
+}
+
+/// A pass cannot regain authority after a newer OFF/ON intent completes.
+final class AlarmContentPermit {
+  const AlarmContentPermit._(this.generation, this.revision);
+  final int generation;
+  final int revision;
 }
 
 final class AlarmOperationLease {

@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'dart:convert';
 
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
@@ -27,6 +28,8 @@ class PreparationWithTimeLocalDataSourceImpl
     String scheduleId,
     TimedPreparationSnapshotEntity snapshot,
   ) async {
+    final identity = RestoreRuntimeIdentity.shared;
+    final incarnation = identity.storeIncarnation;
     final prefs = await SharedPreferences.getInstance();
     final key = '$_prefsKeyPrefix$scheduleId';
 
@@ -37,6 +40,7 @@ class PreparationWithTimeLocalDataSourceImpl
     }
     final jsonMap = {
       'schemaVersion': 2,
+      'storeIncarnation': ?incarnation,
       if (snapshot.requiresConfirmation) 'requiresConfirmation': true,
       'savedAt': snapshot.savedAt.millisecondsSinceEpoch,
       'startedAt': snapshot.startedAt?.millisecondsSinceEpoch,
@@ -61,6 +65,7 @@ class PreparationWithTimeLocalDataSourceImpl
           .toList(),
     };
 
+    if (!identity.accepts(incarnation)) throw StateError('Old runtime owner');
     if (!await prefs.setString(key, jsonEncode(jsonMap))) {
       throw StateError('Preparation snapshot was not saved');
     }
@@ -77,6 +82,9 @@ class PreparationWithTimeLocalDataSourceImpl
 
     try {
       final Map<String, dynamic> map = jsonDecode(jsonString);
+      if (!RestoreRuntimeIdentity.shared.accepts(map['storeIncarnation'])) {
+        return null;
+      }
       final minimal = map['schemaVersion'] == 2;
       if (map['schemaVersion'] != null && !minimal) return null;
       final List<dynamic> steps = map['steps'] as List<dynamic>;

@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
 import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
@@ -500,6 +501,10 @@ void main() {
           ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
             schedule,
             PreparationWithTimeEntity.fromPreparation(preparation),
+            timeResolution: ScheduleTimeResolver.resolve(
+              schedule,
+              nowUtc: DateTime.now().toUtc(),
+            ),
           );
       scheduleRepository.schedulesById[schedule.id] = schedule;
       preparationRepository.preparationsById[schedule.id] = preparation;
@@ -665,6 +670,10 @@ ScheduleWithPreparationEntity _scheduleWithPreparation(String id) {
         ),
       ],
     ),
+    timeResolution: ScheduleTimeResolver.resolve(
+      schedule,
+      nowUtc: DateTime.now().toUtc(),
+    ),
   );
 }
 
@@ -678,6 +687,7 @@ ScheduleEntity _scheduleEntity(
     place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Meeting',
     scheduleTime: DateTime.utc(2026, 6, 28, 9),
+    occurrenceOffsetSeconds: 0,
     moveTime: const Duration(minutes: 10),
     isChanged: false,
     isStarted: false,
@@ -723,6 +733,8 @@ class _FakeScheduleRepository implements ScheduleRepository {
   Future<DateTime> startSchedule(
     String scheduleId, {
     DateTime? startedAt,
+    bool Function()? isCurrent,
+    String? expectedFingerprint,
   }) async {
     startedScheduleIds.add(scheduleId);
     requestedTimes.add(startedAt);

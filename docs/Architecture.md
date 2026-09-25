@@ -219,18 +219,11 @@ class GetUserResponseModel {
 
 ### 5. Database Layer with Drift
 
-```dart
-@DriftDatabase(tables: [Users, Schedules, Places], daos: [UserDao, ScheduleDao])
-class AppDatabase extends _$AppDatabase {
-  @override
-  int get schemaVersion => 3;
+`AppDatabase` uses encrypted local schema 4 and eleven owned tables. The checked-in historical contracts independently describe schemas 1–4; the shared current-version and supported-lineage declaration lives in `lib/core/database/schema_contracts.schema.json`. `build_runner` embeds that input in an ignored generated Dart file, and CI validates its digest and the executable DDL.
 
-  @override
-  MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (Migrator m) async => await m.createAll(),
-  );
-}
-```
+Normal legacy startup may migrate supported schemas 1/2/3 to 4. Active replacement pairs start with schema 4; candidate validation never implicitly migrates. Before writes, openers require SQLCipher, the existing key, and a matching historical schema. Unknown, partial, future, and nonempty version-zero stores remain preserved for Recovery. Creation requires the initial-store guard or explicit owned candidate authority.
+
+Migration DDL, backfill, schema/foreign-key checks and `user_version` commit in one SQLite transaction. The later Drift version acknowledgement can still fail after a complete commit, so response errors alone do not prove rollback. Foreign-key connection settings remain outside the transaction. See ADR 0023 and the D04 historical fixtures for invariants and evidence scope.
 
 ## 🔄 Data Flow
 

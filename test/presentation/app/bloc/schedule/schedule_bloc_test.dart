@@ -1,3 +1,8 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/domain/entities/schedule_save.dart';
+import '../../../../helpers/nearest_query_fixture.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:async';
 import 'package:on_time_front/domain/entities/preparation_snapshot_validation.dart';
 
@@ -36,7 +41,20 @@ class StubGetNearestUpcomingScheduleUseCase
   final Stream<ScheduleWithPreparationEntity?> Function() streamFactory;
 
   @override
-  Stream<ScheduleWithPreparationEntity?> call() => streamFactory();
+  Stream<NearestScheduleQuery> call({required NearestQueryKey key}) =>
+      streamFactory().map((value) {
+        _last = value;
+        return nearestQueryFixture(value, key);
+      });
+  ScheduleWithPreparationEntity? _last;
+  @override
+  Future<ScheduleWithPreparationEntity?> readActive() async =>
+      _last != null &&
+          _last!.isStarted &&
+          _last!.startedAt != null &&
+          _last!.preparationFrozen
+      ? _last
+      : null;
 }
 
 class SpyNavigationService extends NavigationService {
@@ -206,6 +224,20 @@ class SpyClearEarlyStartSessionUseCase
 class FakeSchedulePreparationSessionUseCase
     implements SchedulePreparationSessionUseCase {
   @override
+  Future<void> assertDeletionAllowed(
+    ScheduleEditSnapshot snapshot, {
+    required AlarmOperationLease lease,
+  }) =>
+      throw UnimplementedError('Deletion is outside this preparation fixture');
+  @override
+  Future<void> clearDeletedStateUnderOwner(
+    String scheduleId, {
+    required AlarmOperationLease lease,
+    required Future<bool> Function() isCurrent,
+  }) =>
+      throw UnimplementedError('Deletion is outside this preparation fixture');
+
+  @override
   void dispose() {}
 
   FakeSchedulePreparationSessionUseCase({
@@ -262,9 +294,15 @@ class FakeSchedulePreparationSessionUseCase
   }
 
   @override
-  Future<void> startSchedulePreparation(String scheduleId) async {
-    if (!_startedScheduleIds.add(scheduleId)) return;
+  Future<DateTime> startSchedulePreparation(
+    String scheduleId, {
+    bool Function()? isCurrent,
+    String? expectedFingerprint,
+  }) async {
+    if (!_startedScheduleIds.add(scheduleId)) return DateTime.now().toUtc();
     await startScheduleUseCase(scheduleId);
+
+    return DateTime.now().toUtc();
   }
 
   @override
@@ -326,6 +364,10 @@ class FakeSchedulePreparationSessionUseCase
     return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
       schedule,
       restoredPreparation,
+      timeResolution: ScheduleTimeResolver.resolve(
+        schedule,
+        nowUtc: DateTime.now().toUtc(),
+      ),
     );
   }
 
@@ -369,6 +411,10 @@ class FakeSchedulePreparationSessionUseCase
           ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
             schedule,
             PreparationWithTimeEntity.fromPreparation(preparation),
+            timeResolution: ScheduleTimeResolver.resolve(
+              schedule,
+              nowUtc: DateTime.now().toUtc(),
+            ),
           );
       if (scheduleFingerprint != null &&
           scheduleFingerprint != scheduleWithPreparation.cacheFingerprint &&
@@ -490,7 +536,10 @@ ScheduleWithPreparationEntity buildSchedule({
     id: id,
     place: PlaceEntity(id: 'p1', placeName: 'Office'),
     scheduleName: 'Meeting',
-    scheduleTime: scheduleTime,
+    // Caller supplies an instant; this fixture stores explicit UTC wall fields.
+    scheduleTime: scheduleTime.toUtc(),
+    timeZoneId: 'UTC',
+    occurrenceOffsetSeconds: 0,
     moveTime: moveTime,
     isChanged: false,
     isStarted: false,
@@ -596,10 +645,172 @@ void main() {
       );
     });
 
+    // Runtime behavior tests begin with persisted start authority and a
+    // matching reconstructible snapshot. A recommendation alone cannot start.
+    void receiveDurableRun(ScheduleWithPreparationEntity schedule) {
+      final prior = getSnapshotUseCase.snapshots[schedule.id];
+      final startedAt =
+          prior?.startedAt ??
+          (schedule.preparation.isAllStepsDone
+              ? now.subtract(schedule.preparation.elapsedTime)
+              : schedule.preparationStartTime);
+      final active =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            schedule.copyWith(
+              isStarted: true,
+              startedAt: startedAt,
+              preparationFrozen: true,
+            ),
+            schedule.preparation,
+            timeResolution: ScheduleTimeResolver.resolve(schedule, nowUtc: now),
+          );
+      getSnapshotUseCase.snapshots.putIfAbsent(
+        schedule.id,
+        () => buildSnapshot(
+          preparation: schedule.preparation,
+          savedAt: startedAt,
+          fingerprint: active.cacheFingerprint,
+          startedAt: startedAt,
+        ),
+      );
+      expect(
+        getSnapshotUseCase.snapshots[schedule.id]!.scheduleFingerprint,
+        active.cacheFingerprint,
+      );
+      bloc.add(ScheduleUpcomingReceived(active));
+    }
+
+    Future<void> followQueryWithLiveClock() async {
+      await bloc.close();
+      final base = now;
+      final clock = Stopwatch()..start();
+      bloc = ScheduleBloc.test(
+        StubGetNearestUpcomingScheduleUseCase(() => controller.stream),
+        navigationService,
+        sessionUseCase,
+        nowProvider: () => base.add(clock.elapsed),
+        monotonicNow: () => clock.elapsed,
+      );
+      bloc.add(const ScheduleSubscriptionRequested());
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+    }
+
     tearDown(() async {
       await bloc.close();
       await controller.close();
     });
+
+    test(
+      'unresolved time blocks automation without blocking the next valid appointment',
+      () async {
+        final good = buildSchedule(
+          id: 'good',
+          scheduleTime: now.add(const Duration(hours: 2)),
+          steps: const [],
+        );
+        for (final raw in [
+          good.copyWith(timeZoneId: 'Missing/Zone'),
+          ScheduleEntity(
+            id: 'legacy-null',
+            place: good.place,
+            scheduleName: 'Legacy',
+            scheduleTime: DateTime.utc(2000),
+            timeZoneId: 'UTC',
+            occurrenceOffsetSeconds: null,
+            moveTime: Duration.zero,
+            isChanged: false,
+            isStarted: false,
+            scheduleSpareTime: Duration.zero,
+            scheduleNote: '',
+          ),
+          good.copyWith(occurrenceOffsetSeconds: 3600),
+        ]) {
+          final problem =
+              ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+                raw,
+                good.preparation,
+                timeResolution: ScheduleTimeResolver.resolve(raw, nowUtc: now),
+              );
+          expect(problem.timeResolution!.instantUtc, isNull);
+          bloc.add(ScheduleUpcomingReceived(problem));
+          await pumpEventQueue();
+          expect(bloc.state.status, ScheduleStatus.notExists);
+          expect(startUseCase.calls, isEmpty);
+          expect(finishUseCase.calls, isEmpty);
+          expect(notifiedStepIds, isEmpty);
+        }
+        bloc.add(ScheduleUpcomingReceived(good));
+        await pumpEventQueue();
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.schedule!.id, 'good');
+      },
+    );
+
+    test(
+      'restored past-due preparation stays upcoming without run, actions, or timer',
+      () async {
+        final source = buildSchedule(
+          id: 'restored',
+          scheduleTime: now.add(const Duration(minutes: 5)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'step',
+              preparationName: 'step',
+              preparationTime: Duration(minutes: 20),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        final restored =
+            ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+              source.copyWith(
+                requiresStartConfirmation: true,
+                startedAt: now.subtract(const Duration(days: 1)),
+                preparationFrozen: true,
+              ),
+              source.preparation,
+              timeResolution: ScheduleTimeResolver.resolve(
+                source.copyWith(
+                  requiresStartConfirmation: true,
+                  startedAt: now.subtract(const Duration(days: 1)),
+                  preparationFrozen: true,
+                ),
+                nowUtc: DateTime.now().toUtc(),
+              ),
+            );
+        bloc.add(ScheduleUpcomingReceived(restored));
+        await pumpEventQueue();
+        bloc.add(const ScheduleStarted());
+        bloc.add(const ScheduleTick(Duration(minutes: 10)));
+        await pumpEventQueue();
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.schedule!.preparation.elapsedTime, Duration.zero);
+        expect(startUseCase.calls, isEmpty);
+        expect(saveUseCase.calls, isEmpty);
+        expect(finishUseCase.calls, isEmpty);
+      },
+    );
+
+    test(
+      'queued old repository event cannot repopulate the replaced generation',
+      () async {
+        final old = LocalDataOperationGate.shared.generation;
+        await LocalDataOperationGate.shared.run(
+          () async {},
+          replacesData: true,
+        );
+        final source = buildSchedule(
+          id: 'old',
+          scheduleTime: now.add(const Duration(hours: 1)),
+          steps: const [],
+        );
+        bloc.add(ScheduleUpcomingReceived(source, generation: old));
+        await pumpEventQueue();
+        expect(bloc.state.schedule?.id, isNot('old'));
+        expect(startUseCase.calls, isEmpty);
+      },
+    );
 
     test('emits notExists when there is no upcoming schedule', () async {
       bloc.add(const ScheduleUpcomingReceived(null));
@@ -702,25 +913,30 @@ void main() {
       expect(bloc.state.schedule?.id, 'upcoming');
     });
 
-    test('emits ongoing when now is inside preparation window', () async {
-      final schedule = buildSchedule(
-        id: 'ongoing',
-        scheduleTime: now.add(const Duration(minutes: 30)),
-        steps: const [
-          PreparationStepWithTimeEntity(
-            id: 'a',
-            preparationName: 'a',
-            preparationTime: Duration(minutes: 10),
-            nextPreparationId: null,
-          ),
-        ],
-      );
+    test(
+      'reading a past preparation boundary stays upcoming without a start',
+      () async {
+        final schedule = buildSchedule(
+          id: 'ongoing',
+          scheduleTime: now.add(const Duration(minutes: 30)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'a',
+              preparationName: 'a',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
 
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await Future<void>.delayed(Duration.zero);
-      expect(bloc.state.status, ScheduleStatus.ongoing);
-      expect(bloc.state.schedule?.id, 'ongoing');
-    });
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.schedule?.id, 'ongoing');
+        expect(startUseCase.calls, isEmpty);
+        expect(navigationService.pushedRoutes, isEmpty);
+      },
+    );
 
     test(
       'at preparation start boundary it transitions to started and navigates once',
@@ -739,7 +955,8 @@ void main() {
           moveTime: Duration.zero,
           scheduleSpareTime: Duration.zero,
         );
-        bloc.add(ScheduleUpcomingReceived(schedule));
+        await followQueryWithLiveClock();
+        controller.add(schedule);
         await Future<void>.delayed(Duration.zero);
         expect(bloc.state.status, ScheduleStatus.upcoming);
 
@@ -752,7 +969,7 @@ void main() {
     );
 
     test(
-      'when received exactly at preparationStartTime it starts and navigates once',
+      'reading exactly preparationStartTime does not create a start intent',
       () async {
         final schedule = buildSchedule(
           id: 'exact-boundary',
@@ -772,10 +989,11 @@ void main() {
         await Future<void>.delayed(Duration.zero);
         await Future<void>.delayed(Duration.zero);
 
-        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
         expect(bloc.state.schedule?.id, 'exact-boundary');
         expect(bloc.state.isEarlyStarted, isFalse);
-        expect(navigationService.pushedRoutes, ['/scheduleStart']);
+        expect(navigationService.pushedRoutes, isEmpty);
+        expect(startUseCase.calls, isEmpty);
       },
     );
 
@@ -811,7 +1029,7 @@ void main() {
     );
 
     test(
-      'late entry fast-forwards elapsed preparation to current step',
+      'restoring a durable run derives elapsed preparation to current step',
       () async {
         final schedule = buildSchedule(
           id: 'late-entry',
@@ -833,11 +1051,11 @@ void main() {
         );
 
         now = schedule.preparationStartTime.add(const Duration(minutes: 15));
-        bloc.add(ScheduleUpcomingReceived(schedule));
+        receiveDurableRun(schedule);
 
         await Future<void>.delayed(Duration.zero);
         await Future<void>.delayed(Duration.zero);
-        expect(bloc.state.status, ScheduleStatus.ongoing);
+        expect(bloc.state.status, ScheduleStatus.started);
         expect(bloc.state.schedule!.preparation.currentStep?.id, 's2');
         expect(
           bloc.state.schedule!.preparation.preparationStepList[1].elapsedTime,
@@ -848,7 +1066,7 @@ void main() {
     );
 
     test(
-      'entering ongoing and legacy refresh derive elapsed from wall clock',
+      'restoring durable active run and legacy refresh derive elapsed from wall clock',
       () async {
         final schedule = buildSchedule(
           id: 'tick',
@@ -864,8 +1082,8 @@ void main() {
         );
 
         now = schedule.preparationStartTime.add(const Duration(seconds: 2));
-        bloc.add(ScheduleUpcomingReceived(schedule));
-        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        receiveDurableRun(schedule);
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
         await Future<void>.delayed(Duration.zero);
 
         final caughtUpElapsed = bloc.state.schedule!.preparation.elapsedTime;
@@ -917,8 +1135,8 @@ void main() {
           ],
         );
 
-        bloc.add(ScheduleUpcomingReceived(schedule));
-        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        receiveDurableRun(schedule);
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
         await Future<void>.delayed(Duration.zero);
 
         final restoredSteps =
@@ -1019,8 +1237,8 @@ void main() {
           ],
         );
         now = startedAt.add(const Duration(minutes: 1));
-        bloc.add(ScheduleUpcomingReceived(schedule));
-        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        receiveDurableRun(schedule);
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
         await Future<void>.delayed(Duration.zero);
         expect(
           bloc.state.schedule!.preparation.elapsedTime,
@@ -1060,8 +1278,8 @@ void main() {
           ],
         );
         now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-        bloc.add(ScheduleUpcomingReceived(schedule));
-        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        receiveDurableRun(schedule);
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
         bloc.add(const ScheduleStepSkipped());
         await Future<void>.delayed(Duration.zero);
@@ -1093,8 +1311,8 @@ void main() {
         ],
       );
       now = startedAt.add(const Duration(minutes: 1));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      receiveDurableRun(schedule);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
       await Future<void>.delayed(Duration.zero);
       saveUseCase.calls.clear();
 
@@ -1122,8 +1340,8 @@ void main() {
         ],
       );
       now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      receiveDurableRun(schedule);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
       bloc.add(const ScheduleStepSkipped());
       await Future<void>.delayed(Duration.zero);
@@ -1147,8 +1365,8 @@ void main() {
         ],
       );
       now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      receiveDurableRun(schedule);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
       final before = bloc.state.schedule!.preparation;
       bloc.add(const ScheduleStepSkipped());
@@ -1170,8 +1388,8 @@ void main() {
         ],
       );
       now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      receiveDurableRun(schedule);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
       bloc.add(const ScheduleFinished(7));
       final finished = await bloc.stream.firstWhere(
@@ -1203,8 +1421,8 @@ void main() {
           ],
         );
         now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-        bloc.add(ScheduleUpcomingReceived(schedule));
-        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        receiveDurableRun(schedule);
+        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
         expect(notifiedStepIds, isEmpty);
         bloc.add(const ScheduleTick(Duration(minutes: 10)));
@@ -1249,9 +1467,10 @@ void main() {
           scheduleSpareTime: Duration.zero,
         );
 
-        bloc.add(ScheduleUpcomingReceived(scheduleA));
+        await followQueryWithLiveClock();
+        controller.add(scheduleA);
         await Future<void>.delayed(const Duration(milliseconds: 20));
-        bloc.add(ScheduleUpcomingReceived(scheduleB));
+        controller.add(scheduleB);
         await Future<void>.delayed(const Duration(milliseconds: 220));
 
         expect(bloc.state.schedule?.id, 'B');
@@ -1832,14 +2051,14 @@ void main() {
       );
       finishUseCase.throwOnCall = true;
       now = schedule.preparationStartTime.add(const Duration(minutes: 1));
-      bloc.add(ScheduleUpcomingReceived(schedule));
-      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+      receiveDurableRun(schedule);
+      await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.started);
 
       bloc.add(const ScheduleFinished(11));
       await Future<void>.delayed(Duration.zero);
 
       expect(finishUseCase.calls, [('finish-fails', 11)]);
-      expect(bloc.state.status, ScheduleStatus.ongoing);
+      expect(bloc.state.status, ScheduleStatus.started);
       expect(clearTimedUseCase.calls, isNot(contains('finish-fails')));
     });
   });
@@ -1870,7 +2089,7 @@ void main() {
         startPreparation: true,
       ),
     );
-    expect(ScheduleUpcomingReceived(schedule).props, [schedule]);
+    expect(ScheduleUpcomingReceived(schedule).props, [schedule, null]);
     expect(
       const ScheduleAlarmPromptRequested(
         scheduleId: 's1',

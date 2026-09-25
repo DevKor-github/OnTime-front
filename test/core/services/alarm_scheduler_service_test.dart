@@ -42,7 +42,7 @@ void main() {
         {
           'type': 'schedule_alarm',
           'scheduleId': 'schedule-1',
-          'alarmLaunchPayloadVersion': '9',
+          'alarmLaunchPayloadVersion': '10',
           'promptVariant': 'alarm',
         },
       ]);
@@ -63,7 +63,7 @@ void main() {
         {
           'type': 'schedule_alarm',
           'scheduleId': 'schedule-2',
-          'alarmLaunchPayloadVersion': '9',
+          'alarmLaunchPayloadVersion': '10',
           'promptVariant': 'alarm',
         },
       ]);
@@ -212,7 +212,7 @@ void main() {
     expect(nativeArguments!['payload'], {
       'type': 'schedule_alarm',
       'scheduleId': 'schedule-1',
-      'alarmLaunchPayloadVersion': '9',
+      'alarmLaunchPayloadVersion': '10',
       'promptVariant': 'alarm',
     });
   });

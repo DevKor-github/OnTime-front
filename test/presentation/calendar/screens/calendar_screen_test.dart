@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/entities/schedule_deletion.dart';
+import 'package:on_time_front/domain/entities/schedule_save.dart';
+import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -65,10 +68,51 @@ class _StubGetSchedulesByDateUseCase implements GetSchedulesByDateUseCase {
 }
 
 class _StubDeleteScheduleUseCase implements DeleteScheduleUseCase {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
   _StubDeleteScheduleUseCase({this.error});
 
   final Object? error;
   final deletedSchedules = <ScheduleEntity>[];
+  List<ScheduleEntity> schedules = [];
+  @override
+  int get currentGeneration => 0;
+  @override
+  bool isCurrentGeneration(int generation) => generation == 0;
+  @override
+  Future<ScheduleDeletionIntent> prepare(
+    String id, {
+    RecurringEditScope scope = RecurringEditScope.occurrence,
+  }) async => ScheduleDeletionIntent(
+    intentId: 'ui',
+    scope: scope,
+    targets: [],
+    snapshot: ScheduleEditSnapshot(
+      schedules.singleWhere((v) => v.id == id),
+      const PreparationEntity(preparationStepList: []),
+      const ScheduleEditBaseline(store: 'ui', generation: 0, revision: 0),
+    ),
+  );
+  @override
+  Future<ScheduleDeletionResult> confirm(
+    ScheduleDeletionIntent intent, {
+    void Function(ScheduleDeletionCommit)? onCommitted,
+  }) async {
+    await call(intent.snapshot.schedule);
+    final commit = ScheduleDeletionCommit(
+      scheduleId: intent.snapshot.schedule.id,
+      store: 'ui',
+      generation: 0,
+      removedIds: {intent.snapshot.schedule.id},
+      changed: true,
+      alreadyAbsent: false,
+    );
+    onCommitted?.call(commit);
+    return ScheduleDeletionResult(
+      commit: commit,
+      cleanup: ScheduleDeletionCleanup.complete,
+    );
+  }
 
   @override
   Future<void> call(ScheduleEntity schedule) async {
@@ -135,11 +179,13 @@ void main() {
   }) async {
     final loadUseCase =
         loadSchedulesForMonthUseCase ?? _StubLoadSchedulesForMonthUseCase();
+    final deletion = deleteScheduleUseCase ?? _StubDeleteScheduleUseCase();
+    deletion.schedules = schedules;
     getIt.registerFactory<MonthlySchedulesBloc>(
       () => MonthlySchedulesBloc(
         loadUseCase,
         _StubGetSchedulesByDateUseCase(schedules),
-        deleteScheduleUseCase ?? _StubDeleteScheduleUseCase(),
+        deletion,
         _StubLoadPreparationByScheduleIdUseCase(),
         _StubGetPreparationByScheduleIdUseCase(),
         _StubStreamPreparationsUseCase(),
@@ -425,7 +471,7 @@ void main() {
       find.textContaining('This appointment can no longer be deleted'),
       findsOneWidget,
     );
-    expect(find.text('Design Review'), findsOneWidget);
+    expect(find.text('Design Review'), findsWidgets);
     expect(find.byType(TableCalendar), findsOneWidget);
   });
 

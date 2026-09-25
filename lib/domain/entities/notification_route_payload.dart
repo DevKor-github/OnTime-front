@@ -11,10 +11,17 @@ Map<String, String> minimalScheduleRoutePayload(Map<dynamic, dynamic> source) {
   if (type != 'schedule_alarm' && type != 'schedule_notification') {
     return const {};
   }
+  final incarnation = source['storeIncarnation'];
+  if (incarnation != null &&
+      (incarnation is! String ||
+          !RegExp(r'^[a-fA-F0-9-]{32,36}$').hasMatch(incarnation))) {
+    return const {};
+  }
   return {
     'type': type as String,
     'scheduleId': id,
-    'alarmLaunchPayloadVersion': '9',
+    if (incarnation is String) 'storeIncarnation': incarnation,
+    'alarmLaunchPayloadVersion': '10',
     'promptVariant': type == 'schedule_alarm' ? 'alarm' : 'notification',
   };
 }

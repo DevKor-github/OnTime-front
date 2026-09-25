@@ -1,4 +1,5 @@
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/shared/components/civil_date_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_engine.dart';
@@ -67,9 +68,14 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
         : r?.until != null
         ? 1
         : 0;
+    final defaultUntil = DateTime.utc(
+      widget.start.year,
+      widget.start.month + 3,
+      widget.start.day,
+    );
     _until =
         r?.until ??
-        DateTime(widget.start.year, widget.start.month + 3, widget.start.day);
+        (defaultUntil.year > 9999 ? DateTime.utc(9999, 12, 31) : defaultUntil);
   }
 
   @override
@@ -168,7 +174,13 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
       final slots = const RecurrenceEngine()
           .expand(
             r,
-            through: r.until ?? DateTime(widget.start.year + 50, 12, 31),
+            through:
+                r.until ??
+                DateTime.utc(
+                  widget.start.year > 9949 ? 9999 : widget.start.year + 50,
+                  12,
+                  31,
+                ),
             preparationNotBeforeUtc: DateTime.now(),
             leadTime: widget.leadTime,
             limit: 1,
@@ -630,18 +642,33 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
         value: recurrenceDay(context, _until),
         icon: Icons.calendar_today_outlined,
         onTap: () async {
-          final day = DateTime(
+          final day = DateTime.utc(
             widget.start.year,
             widget.start.month,
             widget.start.day,
           );
-          final picked = await showDatePicker(
+          final picked = await showCivilDateTimePicker(
             context: context,
-            initialDate: _until.isBefore(day) ? day : _until,
-            firstDate: day,
-            lastDate: DateTime(9999, 12, 31),
+            initialCivil: _until,
+            dateOnly: true,
+            title: recurrenceText(context, '마지막 날짜', 'Inclusive end date'),
           );
-          if (picked != null && mounted) setState(() => _until = picked);
+          if (picked == null || !mounted) return;
+          final selected = RecurrenceRule.civilDate(picked);
+          if (selected.isBefore(day)) {
+            setState(
+              () => _error = recurrenceText(
+                context,
+                '종료 날짜는 시작 날짜보다 빠를 수 없어요.',
+                'The end date cannot precede the start date.',
+              ),
+            );
+            return;
+          }
+          setState(() {
+            _until = selected;
+            _error = null;
+          });
         },
       ),
     RecurrencePanel(

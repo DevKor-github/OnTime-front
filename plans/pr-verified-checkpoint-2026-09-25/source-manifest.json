@@ -1,0 +1,3937 @@
+{
+  "files": [
+    {
+      "path": ".github/workflows/android-notification-contract.yml",
+      "sha256": "e2e36fc2445d2c08070f70fbbdfd68f3cc8a1c999d721f7b0179e5d70288ec27",
+      "member": ".github/workflows/android-notification-contract.yml"
+    },
+    {
+      "path": ".github/workflows/android-play-closed.yml",
+      "sha256": "ff7adf598862265552060b57e947ed24cbaf26203d6e79592ac6e5dd5f452521",
+      "member": ".github/workflows/android-play-closed.yml"
+    },
+    {
+      "path": ".github/workflows/android-play-internal.yml",
+      "sha256": "25f315de49c45f9ad27cd4c5b9375ddf6e08d9a5bbf962bbe76709c577ec4d81",
+      "member": ".github/workflows/android-play-internal.yml"
+    },
+    {
+      "path": ".github/workflows/firebase-hosting-pull-request-widgetbook.yml",
+      "sha256": "3ad44d6d193c6bc0233f960897711f123ac674ed4b94fecb929436da6d57598e",
+      "member": ".github/workflows/firebase-hosting-pull-request-widgetbook.yml"
+    },
+    {
+      "path": ".github/workflows/firebase_hosting-merge-widgetbook.yml",
+      "sha256": "c8ce930af130e8f6d99c1a029dea1991360acfe0100aac76a036b45459be1008",
+      "member": ".github/workflows/firebase_hosting-merge-widgetbook.yml"
+    },
+    {
+      "path": ".github/workflows/flutter_test.yml",
+      "sha256": "6c22e4c3548bfc90982cced6704a1e917ec23ab65c2b8dca527d7a0ad4f18308",
+      "member": ".github/workflows/flutter_test.yml"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "26633e0f31cc777c0576a7f58ea16850774d951e3b2724af9373a6a45dbed2d5",
+      "member": ".gitignore"
+    },
+    {
+      "path": "analysis_options.yaml",
+      "sha256": "01e2b4f21325e3066d238ff5e3a5ae14ac35181749f3928b2e927611ed2862b4",
+      "member": "analysis_options.yaml"
+    },
+    {
+      "path": "android/app/build.gradle",
+      "sha256": "c2bafd7ce6460bdaf58c683aa616e0aae8695941b03c8caf9fcab94a94bc1a9a",
+      "member": "android/app/build.gradle"
+    },
+    {
+      "path": "android/app/src/main/AndroidManifest.xml",
+      "sha256": "6b16f0fbaf8febcc2f9647450e40ca498462e2142f279c90666f86f77f14f210",
+      "member": "android/app/src/main/AndroidManifest.xml"
+    },
+    {
+      "path": "android/settings.gradle",
+      "sha256": "c0db3daff92f286e29e4a8b56d0cca0868863b4344ae43a8b65fe668487aa184",
+      "member": "android/settings.gradle"
+    },
+    {
+      "path": "build.yaml",
+      "sha256": "ee54fb878126843f790d86476db411299c70ea1632126023ee04075499f8a956",
+      "member": "build.yaml"
+    },
+    {
+      "path": "ios/Runner.xcodeproj/project.pbxproj",
+      "sha256": "004c615ea1e78256514dcb83fe3df5900a1a9732f4591bef8c6c0cb69c185e4b",
+      "member": "ios/Runner.xcodeproj/project.pbxproj"
+    },
+    {
+      "path": "ios/Runner/AppDelegate.swift",
+      "sha256": "1980d6e397a70b1988e9a5d2a5d662f0c8bf6e6466f1516da95f0f6dc28a630d",
+      "member": "ios/Runner/AppDelegate.swift"
+    },
+    {
+      "path": "ios/Runner/Info.plist",
+      "sha256": "f3ef9720f23fc5470ede5cf86a18d726d3fa0e21aa3c6132abc347ef8bb65604",
+      "member": "ios/Runner/Info.plist"
+    },
+    {
+      "path": "lib/core/backup/backup_authenticated_time_review.dart",
+      "sha256": "4da23aa316302b0387f7b77c76ce55f5659f8d860199f50353f3d87e9e26c434",
+      "member": "lib/core/backup/backup_authenticated_time_review.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_content.dart",
+      "sha256": "8465d980d9ae7aa3c8fb77d0901f36641a926d9c012651a6a75da7f3dd092611",
+      "member": "lib/core/backup/backup_content.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_crypto.dart",
+      "sha256": "9d374484085341d5c8ddb55e2b3c20e01ad06470890339d3426fd81e9a140d9e",
+      "member": "lib/core/backup/backup_crypto.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_export_snapshot.dart",
+      "sha256": "58b4e25e3805adf56b28f2abb2127d63047fee0eada25b8e893875654155c9eb",
+      "member": "lib/core/backup/backup_export_snapshot.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_file_export_port.dart",
+      "sha256": "99130582773e5f2ec86263108a9e5f7c95af01e2468046562140f1315fe79b8a",
+      "member": "lib/core/backup/backup_file_export_port.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_file_import_port.dart",
+      "sha256": "01c21046e15aee450b20e7f92cea3453542e47d913035724fa3072274ef04580",
+      "member": "lib/core/backup/backup_file_import_port.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_ingestion_store.dart",
+      "sha256": "3e51708da494957f4a10994a7fd61570804445b4981205625bd235a148f06cfb",
+      "member": "lib/core/backup/backup_ingestion_store.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_json_reader.dart",
+      "sha256": "cd3a0001e05073ce5557dceea4f0b0de48047d4a42c259c53463515c8486cb6d",
+      "member": "lib/core/backup/backup_json_reader.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_limits.dart",
+      "sha256": "e5e8daff6680ad9567405690a6e4b8df755650ca346356d3d89707be6597c9c9",
+      "member": "lib/core/backup/backup_limits.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_password.dart",
+      "sha256": "042ad87c36c962c1f0aa4b53cfba013654605ddd1d0f5448b04b4324c58853d9",
+      "member": "lib/core/backup/backup_password.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_private_files.dart",
+      "sha256": "658810998b3ec0fe892e9a1168ee8905b6820c6103d332f780f7a00e6aefc33a",
+      "member": "lib/core/backup/backup_private_files.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_recurrence_scan.dart",
+      "sha256": "d5bceb4792d2fb148cb6f2d824fc3e2867cf4fe48e251c2fdea7c47addbced4f",
+      "member": "lib/core/backup/backup_recurrence_scan.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_recurring_time_review.dart",
+      "sha256": "d4d2327190dc5f19c8d9f0a7d31883197452e6e7215c805db8039fea9ceb4cfc",
+      "member": "lib/core/backup/backup_recurring_time_review.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_service.dart",
+      "sha256": "7d249ec1f8f0279f7eeb9bc458cb85006cb325901c935f4e1ffb71c909a5374c",
+      "member": "lib/core/backup/backup_service.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_time_conflict_world.dart",
+      "sha256": "7447218747c58695de511733a7fed409e8a993eb9b988a72eb422006b1ec49a5",
+      "member": "lib/core/backup/backup_time_conflict_world.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_validated_ingestion.dart",
+      "sha256": "abaffda7b542d917de795fd6b17f9273cf67a2943857a97df235bec8075f484a",
+      "member": "lib/core/backup/backup_validated_ingestion.dart"
+    },
+    {
+      "path": "lib/core/backup/backup_value_validation.dart",
+      "sha256": "ef6f400c752fb9e03b92ff7bc735676e0584d7969fd2eef4abd740607d94a04e",
+      "member": "lib/core/backup/backup_value_validation.dart"
+    },
+    {
+      "path": "lib/core/backup/recurring_backup_data.dart",
+      "sha256": "b3ca209e16a78363883352974ac71fbbfdfaf1434dba827d9621784863ca7acc",
+      "member": "lib/core/backup/recurring_backup_data.dart"
+    },
+    {
+      "path": "lib/core/backup/restore_staging.dart",
+      "sha256": "9dd4cea5077696bd4a18bf3c694604844cdf81e10c7c8d22014e58233585d709",
+      "member": "lib/core/backup/restore_staging.dart"
+    },
+    {
+      "path": "lib/core/constants/local_profile.dart",
+      "sha256": "c180bfc87721015db1352f8157678f3566c02046fa94c3f7468ea494baf2a99f",
+      "member": "lib/core/constants/local_profile.dart"
+    },
+    {
+      "path": "lib/core/database/bootstrap_privacy_boundary.dart",
+      "sha256": "7e2b5071cbebb81dce56f27515423e71aaf4a8b4d2a31d3b8d2476d235af6658",
+      "member": "lib/core/database/bootstrap_privacy_boundary.dart"
+    },
+    {
+      "path": "lib/core/database/database.dart",
+      "sha256": "efd66c4473021ed20de8692688cd95934b4885e7aab2252f81723eca41d13d33",
+      "member": "lib/core/database/database.dart"
+    },
+    {
+      "path": "lib/core/database/database.g.dart",
+      "sha256": "521ec10815b94af28b63c319a097a0da16a3af34755853c95cda8ec0ebd18ac5",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/core/database/encrypted_database_guard.dart",
+      "sha256": "9d8861a7dc78bc64390c53a40c2cf001ce4f4e12a329e4a04e69c61d655baf0c",
+      "member": "lib/core/database/encrypted_database_guard.dart"
+    },
+    {
+      "path": "lib/core/database/initial_store_guard.dart",
+      "sha256": "87c8711951cf4857404660eb59af36652bb76c586d4f29ada164db103f743b70",
+      "member": "lib/core/database/initial_store_guard.dart"
+    },
+    {
+      "path": "lib/core/database/initial_store_guard_native.dart",
+      "sha256": "b782d3d5417ab3b2dd0c0c046c25e58e5e01a95dbbadab3a6225edda23c59985",
+      "member": "lib/core/database/initial_store_guard_native.dart"
+    },
+    {
+      "path": "lib/core/database/initial_store_guard_web.dart",
+      "sha256": "53537b4c536de376f08b7404e3e7eecdb1125cce7a9c839a3a1c18e0bcbc4102",
+      "member": "lib/core/database/initial_store_guard_web.dart"
+    },
+    {
+      "path": "lib/core/database/installation_key_store.dart",
+      "sha256": "97ea56d74d5a20a88174c118ab06715b85baa205cf55c801295983092af56c7c",
+      "member": "lib/core/database/installation_key_store.dart"
+    },
+    {
+      "path": "lib/core/database/local_data_files.dart",
+      "sha256": "1877a136a7c8f774b1a532af647dfa2e13da135b43af3b0cf25629258e4d1ed1",
+      "member": "lib/core/database/local_data_files.dart"
+    },
+    {
+      "path": "lib/core/database/local_data_files_native.dart",
+      "sha256": "323eea2a63be633ff287ca374b39ba25eb6f1828768d6298a08f2a2b9809c1a9",
+      "member": "lib/core/database/local_data_files_native.dart"
+    },
+    {
+      "path": "lib/core/database/local_data_files_web.dart",
+      "sha256": "fefdeeafb21465fe5af18168607458ea4e1ea71191066f34016be7d48e31463c",
+      "member": "lib/core/database/local_data_files_web.dart"
+    },
+    {
+      "path": "lib/core/database/local_data_lifecycle.dart",
+      "sha256": "df2cebec07c39546c1598d8b5abcf3345bedadac60efb3f745aba93c914786aa",
+      "member": "lib/core/database/local_data_lifecycle.dart"
+    },
+    {
+      "path": "lib/core/database/local_data_operation_gate.dart",
+      "sha256": "c2beefdda67cd042d7d03ea52294af3d1df18ec0869f49f1ac42766db2fcb23c",
+      "member": "lib/core/database/local_data_operation_gate.dart"
+    },
+    {
+      "path": "lib/core/database/local_data_reset_service.dart",
+      "sha256": "d0575f88cdf7301339e315d274a88632d9d693bad09f247e20fd103c1bf46fbe",
+      "member": "lib/core/database/local_data_reset_service.dart"
+    },
+    {
+      "path": "lib/core/database/local_reset_actions.dart",
+      "sha256": "8a35d0953bf4d8a9d0277d9bca50567000e9d399c1ce285fe8c64990de2968f3",
+      "member": "lib/core/database/local_reset_actions.dart"
+    },
+    {
+      "path": "lib/core/database/local_reset_protocol.dart",
+      "sha256": "02a56f3897080b7599e0265f8c15e7c425031467dc0e93025fc7348101ed9e69",
+      "member": "lib/core/database/local_reset_protocol.dart"
+    },
+    {
+      "path": "lib/core/database/open_database.dart",
+      "sha256": "5147fbe63d9b43fefc9497deef8cdba06a7454c524df3cdde3b098fd79304a28",
+      "member": "lib/core/database/open_database.dart"
+    },
+    {
+      "path": "lib/core/database/open_database_native.dart",
+      "sha256": "33a96865d461d2dad6a24e336199cd5612672372f88a101f0cc6a20e8856618c",
+      "member": "lib/core/database/open_database_native.dart"
+    },
+    {
+      "path": "lib/core/database/open_database_unsupported.dart",
+      "sha256": "26de98197064ba45d8d574d639a1f85d01338a55e6bb0e5302ac394c6057db23",
+      "member": "lib/core/database/open_database_unsupported.dart"
+    },
+    {
+      "path": "lib/core/database/open_database_web.dart",
+      "sha256": "ec0fe47260816155ac0d48d25e2a20d8a5a10684c64337c8bbba7572a759138f",
+      "member": "lib/core/database/open_database_web.dart"
+    },
+    {
+      "path": "lib/core/database/recovery/encrypted_pair_database.dart",
+      "sha256": "9d985fae12b5b0994698a1b32af3fb739948f805bb5f2412d1ec2b1e7c63c0f1",
+      "member": "lib/core/database/recovery/encrypted_pair_database.dart"
+    },
+    {
+      "path": "lib/core/database/recovery/native_process_identity.dart",
+      "sha256": "0fbe2809a4d05a1d2e52532b056271879593bdca2a3d469c020627e156522385",
+      "member": "lib/core/database/recovery/native_process_identity.dart"
+    },
+    {
+      "path": "lib/core/database/recovery/pair_files.dart",
+      "sha256": "d9bc72c094b6f32fd6d7732b84182b9f87b56009014a0052fc1125c11686dacf",
+      "member": "lib/core/database/recovery/pair_files.dart"
+    },
+    {
+      "path": "lib/core/database/recovery/pair_key_store.dart",
+      "sha256": "16c753046321bf6e97579c396681d8526edb219f3f668deb33f0d8eeaa89234d",
+      "member": "lib/core/database/recovery/pair_key_store.dart"
+    },
+    {
+      "path": "lib/core/database/recovery/recovery_restore_service.dart",
+      "sha256": "700e478365358690bfdfd175c3344e6841084a1a8e3a40b4f0a869a94c5ed011",
+      "member": "lib/core/database/recovery/recovery_restore_service.dart"
+    },
+    {
+      "path": "lib/core/database/recovery/store_pair.dart",
+      "sha256": "b614b47b36414775e86ebe823340475bb20eaa9b3a4aaf946388fbd88ced3058",
+      "member": "lib/core/database/recovery/store_pair.dart"
+    },
+    {
+      "path": "lib/core/database/restore_delivery_cleanup.dart",
+      "sha256": "fb7899d854ddd63b7bdcbceacd15fe3916eb27cc844a7c681e1144c5bc49f689",
+      "member": "lib/core/database/restore_delivery_cleanup.dart"
+    },
+    {
+      "path": "lib/core/database/restore_runtime_identity.dart",
+      "sha256": "c11bbaa843fc7d412a6bca563b01242c92651a9f80703e6a10d1ff893899024e",
+      "member": "lib/core/database/restore_runtime_identity.dart"
+    },
+    {
+      "path": "lib/core/database/schedule_aggregate_schema.dart",
+      "sha256": "6fcc4e2dce5a78d0cb435777782573aac03eaf1152451875267cc9c4d7f9a312",
+      "member": "lib/core/database/schedule_aggregate_schema.dart"
+    },
+    {
+      "path": "lib/core/database/schema_contract.dart",
+      "sha256": "39828d6aa63198d7b585765c39cd0268ddb4816224c1f0c49388aaff054b3096",
+      "member": "lib/core/database/schema_contract.dart"
+    },
+    {
+      "path": "lib/core/database/schema_contracts.g.dart",
+      "sha256": "8ed8b25a2f859b108b1cbc026e1ea2039733933d1ec3dce3c02b80f0c237be6d",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/core/database/schema_contracts.schema.json",
+      "sha256": "48b5013f66ad768cdcef2724bff860b198f74abb1fbafb4ce56dc7359fdbc357",
+      "member": "lib/core/database/schema_contracts.schema.json"
+    },
+    {
+      "path": "lib/core/database/sqlcipher_loader.dart",
+      "sha256": "72fc24e40ca2f3bf8ee763cfa724a70d82d7abdfc51e67115e2b46d822c675fe",
+      "member": "lib/core/database/sqlcipher_loader.dart"
+    },
+    {
+      "path": "lib/core/di/di_setup.config.dart",
+      "sha256": "92d5bf3a05fc56006eb70d3036efc42f3ef8bd9644c72c936e64d5d6e195be31",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/core/di/di_setup.dart",
+      "sha256": "4d77f4936d65761d000b78b14536d0e1602629fc6a209bd67327c03b580060d6",
+      "member": "lib/core/di/di_setup.dart"
+    },
+    {
+      "path": "lib/core/logging/app_logger.dart",
+      "sha256": "9e45b3a9b157ebd49d960550a5ca88ef71a6beecaccc18a51cb0f960178b6523",
+      "member": "lib/core/logging/app_logger.dart"
+    },
+    {
+      "path": "lib/core/services/alarm_journal_store.dart",
+      "sha256": "eeb1dfc3ccc31410904300f1c354dc79ae20a7995122e34eab19b4bd98e96f93",
+      "member": "lib/core/services/alarm_journal_store.dart"
+    },
+    {
+      "path": "lib/core/services/alarm_journal_store_native.dart",
+      "sha256": "7d8b052f35c81a7b553b5a074da92ba85e703c13d81fde7d6c1c8a1d953d4f67",
+      "member": "lib/core/services/alarm_journal_store_native.dart"
+    },
+    {
+      "path": "lib/core/services/alarm_journal_store_web.dart",
+      "sha256": "d2bf8aef8f0b81c40e400c080751e64c8991b0db7dc4b7bf7f52f702a129da75",
+      "member": "lib/core/services/alarm_journal_store_web.dart"
+    },
+    {
+      "path": "lib/core/services/alarm_operation_coordinator.dart",
+      "sha256": "299891cc3b3a0ebb45c887aba776636c5a43f3ec132d8c5db0d4e6fb7b3902ef",
+      "member": "lib/core/services/alarm_operation_coordinator.dart"
+    },
+    {
+      "path": "lib/core/services/alarm_ownership_journal.dart",
+      "sha256": "d73e238cca1def0492ecd74ba8b677214cc04baed2d3de790d64773ae61a3a1f",
+      "member": "lib/core/services/alarm_ownership_journal.dart"
+    },
+    {
+      "path": "lib/core/services/alarm_registration_cleanup.dart",
+      "sha256": "ebacb18786679faaeb78fef9055e6849c67fda272ec81fba2410c562434a34aa",
+      "member": "lib/core/services/alarm_registration_cleanup.dart"
+    },
+    {
+      "path": "lib/core/services/alarm_scheduler_service.dart",
+      "sha256": "68cdd5deef016088c00fffb8777fb15a02b5a8a987798a639ac8abae15b214ab",
+      "member": "lib/core/services/alarm_scheduler_service.dart"
+    },
+    {
+      "path": "lib/core/services/app_metadata_service.dart",
+      "sha256": "851293b1b21c791b4deca12f69095d6aafa615f0a1bb62dff93a9c9c82b80d6b",
+      "member": "lib/core/services/app_metadata_service.dart"
+    },
+    {
+      "path": "lib/core/services/detailed_notification_preference_service.dart",
+      "sha256": "5f2bd9c253e2450dd3066dec751e319b29c441ace2f9617172c735027fcf4715",
+      "member": "lib/core/services/detailed_notification_preference_service.dart"
+    },
+    {
+      "path": "lib/core/services/device_info_service/device_info_service_mobile.dart",
+      "sha256": "45d9651212b63ffd59b9d77a71ac415903cf6cad36d4648c8fdd4e79cb558f52",
+      "member": "lib/core/services/device_info_service/device_info_service_mobile.dart"
+    },
+    {
+      "path": "lib/core/services/device_info_service/device_info_service_unsupported.dart",
+      "sha256": "664d1e6f5c2616163e1feec9798f5491b35020248b055386eb4069bfd1784491",
+      "member": "lib/core/services/device_info_service/device_info_service_unsupported.dart"
+    },
+    {
+      "path": "lib/core/services/device_info_service/device_info_service_web.dart",
+      "sha256": "40aa5eb469a1417009a077dc492826ed7cae794181513786f88d660470814adc",
+      "member": "lib/core/services/device_info_service/device_info_service_web.dart"
+    },
+    {
+      "path": "lib/core/services/device_info_service/shared.dart",
+      "sha256": "2c453d3dd57f7fe47c1c84b2a9fc5600162b3ce53186110e311b917ef3a9f954",
+      "member": "lib/core/services/device_info_service/shared.dart"
+    },
+    {
+      "path": "lib/core/services/fallback_alarm_notification_service.dart",
+      "sha256": "3e15e7ce0fb5fed325ed530e00a484a22c43635daa987325c24b09e2ab64adaf",
+      "member": "lib/core/services/fallback_alarm_notification_service.dart"
+    },
+    {
+      "path": "lib/core/services/js_interop_service.dart",
+      "sha256": "7d5889aef25ea3bb294dae2d9320ade32e94d6e09c602d05a40c3a29989eec09",
+      "member": "lib/core/services/js_interop_service.dart"
+    },
+    {
+      "path": "lib/core/services/js_interop_service_stub.dart",
+      "sha256": "2b24f83a00bd811505159d508eea84e4333ffbfaebb62a3236dafef841c217b1",
+      "member": "lib/core/services/js_interop_service_stub.dart"
+    },
+    {
+      "path": "lib/core/services/js_interop_service_web.dart",
+      "sha256": "586702f62aba8ce3a23cdba9634125dce631d76819b46766b4c5e7eadb246774",
+      "member": "lib/core/services/js_interop_service_web.dart"
+    },
+    {
+      "path": "lib/core/services/local_time_zone_service.dart",
+      "sha256": "1f22ddf268a6c100bd1da7f92c4264b5b4fca7d9dd5b6c60a128837b8bf84b4c",
+      "member": "lib/core/services/local_time_zone_service.dart"
+    },
+    {
+      "path": "lib/core/services/navigation_service.dart",
+      "sha256": "c03431988dc6503698773fee686d2d3587fb8ee16a75c3b0d65be12d39535146",
+      "member": "lib/core/services/navigation_service.dart"
+    },
+    {
+      "path": "lib/core/services/notification_content.dart",
+      "sha256": "bb697b89ee6818ff84465cd5fa8fc36c68aa5a6f3688a34db040f0a2eb956609",
+      "member": "lib/core/services/notification_content.dart"
+    },
+    {
+      "path": "lib/core/services/notification_routing.dart",
+      "sha256": "90904bf0523b572f1d25cbd32d85c1be34358d2c5bfce3b7928daa1e09347db0",
+      "member": "lib/core/services/notification_routing.dart"
+    },
+    {
+      "path": "lib/core/services/notification_service.dart",
+      "sha256": "eba7163395b6b20d89c95b47f42022ca0b6abd9afb4d8fed0b211f35728399dd",
+      "member": "lib/core/services/notification_service.dart"
+    },
+    {
+      "path": "lib/core/services/notification_tap_router.dart",
+      "sha256": "ce18aff896e522baff152ecba13909a58503405180f3047403a4e8f19833bcb8",
+      "member": "lib/core/services/notification_tap_router.dart"
+    },
+    {
+      "path": "lib/core/services/runtime_privacy_migration.dart",
+      "sha256": "fdeea1be6ddb168d5dc8c5032a061a87608fb1a43049832dfba6fe807b209b45",
+      "member": "lib/core/services/runtime_privacy_migration.dart"
+    },
+    {
+      "path": "lib/core/startup/startup_dependency_scope.dart",
+      "sha256": "a87421c7ca43bd627bf99f8ed41eecd93e6a523bd9ffa43e99986ab781533227",
+      "member": "lib/core/startup/startup_dependency_scope.dart"
+    },
+    {
+      "path": "lib/core/startup/startup_failure.dart",
+      "sha256": "8948ba354f9b82840413eecb091b9211016200a8eeb6b37fa322cc824b8a63b0",
+      "member": "lib/core/startup/startup_failure.dart"
+    },
+    {
+      "path": "lib/core/startup/subscription_cleanup.dart",
+      "sha256": "a42f8f3620cf055c750e9f76e71a11c3c78f3fa0e320e5cdb994a6efe3f1ffbf",
+      "member": "lib/core/startup/subscription_cleanup.dart"
+    },
+    {
+      "path": "lib/core/time/civil_time_resolver.dart",
+      "sha256": "4a94c52039d9bd3589fcb36509e004219c1b5d1aa881c3695440eb02986c5b74",
+      "member": "lib/core/time/civil_time_resolver.dart"
+    },
+    {
+      "path": "lib/core/time/device_civil_day.dart",
+      "sha256": "854714dcdd4cde1f469c696411b008a586c2d48dd7cc1fc21c1802520f4c2cc4",
+      "member": "lib/core/time/device_civil_day.dart"
+    },
+    {
+      "path": "lib/core/time/recurring_time_correction_mapping.dart",
+      "sha256": "d33579029cae4780af484beaf6ce83793cbc8aa48ce6da2895e9e2fd0dee7863",
+      "member": "lib/core/time/recurring_time_correction_mapping.dart"
+    },
+    {
+      "path": "lib/core/time/schedule_time_resolution.dart",
+      "sha256": "fb1636aba92f67a019822f6bd5cd805a6ddf37219917a0e9938615e1a9c90883",
+      "member": "lib/core/time/schedule_time_resolution.dart"
+    },
+    {
+      "path": "lib/core/time/time_correction_conflicts.dart",
+      "sha256": "e43d76fdb54087a830a9ed060f220ccfe27acc34f6d8f4f02d4a0b064361b991",
+      "member": "lib/core/time/time_correction_conflicts.dart"
+    },
+    {
+      "path": "lib/core/time/time_zone_rules.dart",
+      "sha256": "217fa34f7a2ddb53672f35388689e31d05af97e711e8fbe1b8bb03c25b1bb5a2",
+      "member": "lib/core/time/time_zone_rules.dart"
+    },
+    {
+      "path": "lib/core/utils/json_converters/duration_json_converters.dart",
+      "sha256": "68f78dd8d23a85314a346f26801c91f4985ebffe047678be013c5e6a6f88b744",
+      "member": "lib/core/utils/json_converters/duration_json_converters.dart"
+    },
+    {
+      "path": "lib/core/validation/local_input_limits.dart",
+      "sha256": "bc8633aed542be5ed18de090580faefa785858e7b6022ea61c3cbe2c7f46ff38",
+      "member": "lib/core/validation/local_input_limits.dart"
+    },
+    {
+      "path": "lib/data/adapters/local_data_workflow_adapters.dart",
+      "sha256": "557a0525e3f7b78ea1b73af8017d3b289d37282a8674ab9ddd5356be4292f276",
+      "member": "lib/data/adapters/local_data_workflow_adapters.dart"
+    },
+    {
+      "path": "lib/data/daos/place_dao.dart",
+      "sha256": "092548b6f057d4ab3b486ecf20046e5c7820fee3f2d560433692a58509183d3f",
+      "member": "lib/data/daos/place_dao.dart"
+    },
+    {
+      "path": "lib/data/daos/place_dao.g.dart",
+      "sha256": "583ee827dcad95881d84282e6fd4c5a7010c0ab98107f8204b9b4284b36525b3",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/data/daos/preparation_schedule_dao.dart",
+      "sha256": "55e99d5f966a30f285c355c44c5868f7ab90de33a5c88853ea93343bbdde3f18",
+      "member": "lib/data/daos/preparation_schedule_dao.dart"
+    },
+    {
+      "path": "lib/data/daos/preparation_schedule_dao.g.dart",
+      "sha256": "a8aefdc454116a8f6f9170cb48826fb207ef80a8f11f6eb4ec078d54d2554f7e",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/data/daos/preparation_template_dao.dart",
+      "sha256": "e8b708a02c84d6883f6b79778b9524913c1d110262978550d7118310c0d49ca8",
+      "member": "lib/data/daos/preparation_template_dao.dart"
+    },
+    {
+      "path": "lib/data/daos/preparation_template_dao.g.dart",
+      "sha256": "e96cf33253760d030a7af8d7b610c289acdc1d4fc51601bf878cfd61e88675f7",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/data/daos/preparation_user_dao.dart",
+      "sha256": "a4017daa822bcdb8384f234c9d7f3e8c297ea290951236122ce2c5f843bf2e3f",
+      "member": "lib/data/daos/preparation_user_dao.dart"
+    },
+    {
+      "path": "lib/data/daos/preparation_user_dao.g.dart",
+      "sha256": "6356ee638fefa59d01966c82dcf56bac64f3bf4429f1a75a5506fd11505ae0bd",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/data/daos/schedule_dao.dart",
+      "sha256": "dc1da9cbfa271e3953a26decee5eedbd108e35b2b4f1528b26c78a5e858fa8e2",
+      "member": "lib/data/daos/schedule_dao.dart"
+    },
+    {
+      "path": "lib/data/daos/schedule_dao.g.dart",
+      "sha256": "595e17d0ff8784cd406553a883d86153f804ddd0dc305f359c6b973321caf2cf",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/data/daos/schedule_owned_content_cleanup.dart",
+      "sha256": "cf15ecc1f837319a60f977ea750cc64c9d22183d8ed6a66cc479b74d37821099",
+      "member": "lib/data/daos/schedule_owned_content_cleanup.dart"
+    },
+    {
+      "path": "lib/data/daos/user_dao.dart",
+      "sha256": "37f08ff913035b2118b8d183f29119ca078af0f0e371bd44302200a1cad37ca6",
+      "member": "lib/data/daos/user_dao.dart"
+    },
+    {
+      "path": "lib/data/daos/user_dao.g.dart",
+      "sha256": "4f482757f6bc650117ec8419561dfe28c9b0e255425a449f3a191f3f4c4a52c0",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/data/data_sources/alarm_registry_local_data_source.dart",
+      "sha256": "410ba53d780e6225c74b1c164c2d4729b2997ade4fb0368c1b3148a6aadee0f1",
+      "member": "lib/data/data_sources/alarm_registry_local_data_source.dart"
+    },
+    {
+      "path": "lib/data/data_sources/early_start_session_local_data_source.dart",
+      "sha256": "96126859a6138c95aba4defe075a689b5499413a8d89109fdaf4e9cbfc4d716f",
+      "member": "lib/data/data_sources/early_start_session_local_data_source.dart"
+    },
+    {
+      "path": "lib/data/data_sources/preparation_local_data_source.dart",
+      "sha256": "cdfe40002812d5b085876b4688c3cffa51d922134b0270528e980227f1824773",
+      "member": "lib/data/data_sources/preparation_local_data_source.dart"
+    },
+    {
+      "path": "lib/data/data_sources/preparation_with_time_local_data_source.dart",
+      "sha256": "415e058cf3d20272af73b0314e74cc8a4fc002bf491be1dc6a0562e73babe3d7",
+      "member": "lib/data/data_sources/preparation_with_time_local_data_source.dart"
+    },
+    {
+      "path": "lib/data/data_sources/schedule_local_data_source.dart",
+      "sha256": "e6316ed0995eab1a3b5c1b25211f5295e1ac67515a295220b7317e0c69080b57",
+      "member": "lib/data/data_sources/schedule_local_data_source.dart"
+    },
+    {
+      "path": "lib/data/mappers/domain_persistence_mappers.dart",
+      "sha256": "442dfc1b41a9868598c2d42b1ecec37242f11b3a57c1508c3b9a0548f96d56ea",
+      "member": "lib/data/mappers/domain_persistence_mappers.dart"
+    },
+    {
+      "path": "lib/data/mappers/recurrence_codec.dart",
+      "sha256": "25ea0c3fa83b51271126ddc5d2d3660fe50cf2becba393d4372a8bc0aba7e34e",
+      "member": "lib/data/mappers/recurrence_codec.dart"
+    },
+    {
+      "path": "lib/data/models/scheduled_alarm_record_model.dart",
+      "sha256": "1366c69727bae27a06f9887939ea7e7ab5c6a5eed432513ec6ecb92d765c4233",
+      "member": "lib/data/models/scheduled_alarm_record_model.dart"
+    },
+    {
+      "path": "lib/data/repositories/alarm_registry_repository_impl.dart",
+      "sha256": "ac5fb3c920ac8185dd20841059b64ffe5b6d5f84ae846d73b7a6eac3fd8e567c",
+      "member": "lib/data/repositories/alarm_registry_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/alarm_repository_impl.dart",
+      "sha256": "aa4bf65d3b99a630d5efdb23da7e96b692e1a8b5846da839a1164bb52e380b28",
+      "member": "lib/data/repositories/alarm_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/default_preferences_repository_impl.dart",
+      "sha256": "02d4156f871825e8494bf99630e201d16612472b7b7dc92df14f0d9fa18d31ba",
+      "member": "lib/data/repositories/default_preferences_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/early_start_session_repository_impl.dart",
+      "sha256": "ebf3e50cbceab742ba66ca859f2b80d34bcecd3073163877f69f9cdfcc9ff2d2",
+      "member": "lib/data/repositories/early_start_session_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/nearest_schedule_query_repository_impl.dart",
+      "sha256": "2ebf5df72a573b09386a712738ebd7fa99ba99a5d97128a4eb751d5d4f87589c",
+      "member": "lib/data/repositories/nearest_schedule_query_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/preparation_repository_impl.dart",
+      "sha256": "9bd567431a9dcd1ab1f183da081e0598a07e7cd00df3a205a21662b1b2b6c610",
+      "member": "lib/data/repositories/preparation_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/preparation_template_repository_impl.dart",
+      "sha256": "e498474de4aa366a88b67a3da662ff6797e0bcd2b0f19292f771ab679a583049",
+      "member": "lib/data/repositories/preparation_template_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/recurring_schedule_repository_impl.dart",
+      "sha256": "7ab999eaf2782bb17c876070df47ab46604953d1186c8f991f872bc1eb490082",
+      "member": "lib/data/repositories/recurring_schedule_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/recurring_time_correction_repository_impl.dart",
+      "sha256": "266d526f93e18e12be419264ba03d598a595305f3e7a43d98e6ab2f7f1494a7a",
+      "member": "lib/data/repositories/recurring_time_correction_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/schedule_aggregate_repository_impl.dart",
+      "sha256": "f674fd1da5504596a7217b68166317c5b9a33e5d77178ac6d9f3baeb1c2c2f17",
+      "member": "lib/data/repositories/schedule_aggregate_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/schedule_repository_impl.dart",
+      "sha256": "57142cb5bba915204b9f0146f6a853a9dae49904f7ea1d2ae72062bc8870f490",
+      "member": "lib/data/repositories/schedule_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/schedule_time_correction_repository_impl.dart",
+      "sha256": "d02553a68d3f427c9377172e711f114fb96f4ed93f21b5df383d377b5191bb72",
+      "member": "lib/data/repositories/schedule_time_correction_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/time_correction_conflict_reader.dart",
+      "sha256": "2a344eff2522f28cb5a62747198003c73c3ddc7e02612f3042563dff097cc881",
+      "member": "lib/data/repositories/time_correction_conflict_reader.dart"
+    },
+    {
+      "path": "lib/data/repositories/timed_preparation_repository_impl.dart",
+      "sha256": "33ad13ae5fb72eefb8bad6e177adffc3887f76f44e89d9ec0010fcd50df528bc",
+      "member": "lib/data/repositories/timed_preparation_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/repositories/user_repository_impl.dart",
+      "sha256": "1713cc38e2feb1e53eb2335dd96a6318bae58ec7495bc45f9de2b21d551fc66c",
+      "member": "lib/data/repositories/user_repository_impl.dart"
+    },
+    {
+      "path": "lib/data/tables/places_table.dart",
+      "sha256": "4faa94d0ea174eb72fb6af97b4f83bb6086c22d4bd99b5eb96b8f087d799a933",
+      "member": "lib/data/tables/places_table.dart"
+    },
+    {
+      "path": "lib/data/tables/preparation_schedule_table.dart",
+      "sha256": "4e93927beeefd4d4431a84bcf31b6a9fdba98209cef25853b1d1b4f9104d8614",
+      "member": "lib/data/tables/preparation_schedule_table.dart"
+    },
+    {
+      "path": "lib/data/tables/preparation_template_step_table.dart",
+      "sha256": "d7554446891571289182708cb71cc28582d199b4149025001b6ba79b2b369428",
+      "member": "lib/data/tables/preparation_template_step_table.dart"
+    },
+    {
+      "path": "lib/data/tables/preparation_template_table.dart",
+      "sha256": "42a8943a79f459be733883655178bd2e7c3c2409b1ade2ff6a788b72d76d57f9",
+      "member": "lib/data/tables/preparation_template_table.dart"
+    },
+    {
+      "path": "lib/data/tables/preparation_user_table.dart",
+      "sha256": "df066df5176f094017b2a33b86f520110d3aa887dd00441079cced8cfe09dc03",
+      "member": "lib/data/tables/preparation_user_table.dart"
+    },
+    {
+      "path": "lib/data/tables/recurring_schedule_tables.dart",
+      "sha256": "d1e76b7157a0ffbfef018ccebb28ffd1848d7cf56cebfa94a69651ea6574e3bb",
+      "member": "lib/data/tables/recurring_schedule_tables.dart"
+    },
+    {
+      "path": "lib/data/tables/schedule_with_place_model.dart",
+      "sha256": "8077c1296ec5bd46a9f878b7fe62d780ec3999ee6ebc8e5110c5d1aa3eb2e1dc",
+      "member": "lib/data/tables/schedule_with_place_model.dart"
+    },
+    {
+      "path": "lib/data/tables/schedules_table.dart",
+      "sha256": "7cdf7dd7742037fe35fea9fe3a3a4050aa94e196d81a9d5673fa024b676733ce",
+      "member": "lib/data/tables/schedules_table.dart"
+    },
+    {
+      "path": "lib/data/tables/user_table.dart",
+      "sha256": "012cca4d532c5a16b4851e821be47e7edb3d224cea20d662ec31f75ce85aff09",
+      "member": "lib/data/tables/user_table.dart"
+    },
+    {
+      "path": "lib/domain/entities/adjacent_schedules_with_preparation_entity.dart",
+      "sha256": "e8e3103da76a609dff08908e492056c70cfbc32a5bc20640e01ba8dc6562a831",
+      "member": "lib/domain/entities/adjacent_schedules_with_preparation_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/alarm_delivery_policy.dart",
+      "sha256": "28e99dac2867c63feb71ae2256695f165e4b8a8c067168223a93dbf8d00f747f",
+      "member": "lib/domain/entities/alarm_delivery_policy.dart"
+    },
+    {
+      "path": "lib/domain/entities/alarm_entities.dart",
+      "sha256": "1aa1c6972c20a9610d83f51e4ca0f04f1853efdd6bb63f523ceae596a11b33ec",
+      "member": "lib/domain/entities/alarm_entities.dart"
+    },
+    {
+      "path": "lib/domain/entities/backup_operation.dart",
+      "sha256": "49ea4205cbe76f258de06d6e88d21101aab21eda1aa0afa93efe381515cec23c",
+      "member": "lib/domain/entities/backup_operation.dart"
+    },
+    {
+      "path": "lib/domain/entities/backup_processing.dart",
+      "sha256": "48e1ad1719de43fa2921b76e319343b1ac65a0d3853bbc89d106a7040b415a79",
+      "member": "lib/domain/entities/backup_processing.dart"
+    },
+    {
+      "path": "lib/domain/entities/backup_recurring_time_review.dart",
+      "sha256": "afe96ec68f3a661fb5e016c181c1227a3a5087c381b4998a91a33a35560ec57c",
+      "member": "lib/domain/entities/backup_recurring_time_review.dart"
+    },
+    {
+      "path": "lib/domain/entities/backup_restore_selection.dart",
+      "sha256": "6454e43860705e16757ce273b9cfea595278e02cd1110c279fb8d7e6487e24da",
+      "member": "lib/domain/entities/backup_restore_selection.dart"
+    },
+    {
+      "path": "lib/domain/entities/backup_time_review.dart",
+      "sha256": "098e4e7b454e2a50001176c29418192bf569ab8c8d52e0b0df6db2fce172304f",
+      "member": "lib/domain/entities/backup_time_review.dart"
+    },
+    {
+      "path": "lib/domain/entities/civil_date_time.dart",
+      "sha256": "cd8639291bebdfbb79e60cff3f91f7689aefd1502c973120acbdcae6f6e54dbf",
+      "member": "lib/domain/entities/civil_date_time.dart"
+    },
+    {
+      "path": "lib/domain/entities/civil_time_occurrence.dart",
+      "sha256": "60f94db6c7e5fd9c1da94b803ac02d554bc08139fe93250b5ecb576d39165b73",
+      "member": "lib/domain/entities/civil_time_occurrence.dart"
+    },
+    {
+      "path": "lib/domain/entities/default_preferences.dart",
+      "sha256": "6efbe43b9c4c0ba7b58a57a23143af1f7d94425974bb9b6aba3772e5f187bb59",
+      "member": "lib/domain/entities/default_preferences.dart"
+    },
+    {
+      "path": "lib/domain/entities/delivery_observation.dart",
+      "sha256": "2f0623716afe22b99e1d6026ab5c82019d054569b032b77c7abfc7af89d6de5f",
+      "member": "lib/domain/entities/delivery_observation.dart"
+    },
+    {
+      "path": "lib/domain/entities/early_start_session_entity.dart",
+      "sha256": "a114fea000555c64efd986ed20ba1905b234322809a812eb85dd7891cca17ad3",
+      "member": "lib/domain/entities/early_start_session_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/local_reset_result.dart",
+      "sha256": "a2c87269003a16bad04ed3ce5f366e319e435c5ad2bb214376e6645f69282bd0",
+      "member": "lib/domain/entities/local_reset_result.dart"
+    },
+    {
+      "path": "lib/domain/entities/nearest_schedule_query.dart",
+      "sha256": "1b0bd4dad1d23e449e8c661688b4d413f10776bae5cfbbcdf3338f8895fd9caf",
+      "member": "lib/domain/entities/nearest_schedule_query.dart"
+    },
+    {
+      "path": "lib/domain/entities/notification_route_payload.dart",
+      "sha256": "fb197806fb4ff55e0818a8d12155acdbaa7adecc03c032054de8dea564b5f14b",
+      "member": "lib/domain/entities/notification_route_payload.dart"
+    },
+    {
+      "path": "lib/domain/entities/place_entity.dart",
+      "sha256": "de73d57dde841e9c1a995d704d9cd21620a7319c23aef79ba8f81794a35bec3c",
+      "member": "lib/domain/entities/place_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/preparation_action_event_entity.dart",
+      "sha256": "cd19303623aa39680c7255cbf3ec2ba9e3643f58c95b6aebe985ca6401e821c3",
+      "member": "lib/domain/entities/preparation_action_event_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/preparation_entity.dart",
+      "sha256": "d502cc73ddbefcd188948cee3ccf99f30b078a147457cf777a6326d96d98bae0",
+      "member": "lib/domain/entities/preparation_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/preparation_snapshot_validation.dart",
+      "sha256": "a71cc6843d1cd6fef8c729ff10af52331b69378585111d58a3db63834c312dda",
+      "member": "lib/domain/entities/preparation_snapshot_validation.dart"
+    },
+    {
+      "path": "lib/domain/entities/preparation_step_entity.dart",
+      "sha256": "70d16144e4700a42fa50479c64bc0ae616f8e3c3cad271354845ed2159af36f2",
+      "member": "lib/domain/entities/preparation_step_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/preparation_step_with_time_entity.dart",
+      "sha256": "bc07d5132050cf27cca687a46b4faef07898624bd9cf4828402fa77937e68354",
+      "member": "lib/domain/entities/preparation_step_with_time_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/preparation_template_entity.dart",
+      "sha256": "e2fa8c32836461e08fdcf90b786e0ccd692053a1eff9b951b091146aa07a77be",
+      "member": "lib/domain/entities/preparation_template_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/preparation_with_time_entity.dart",
+      "sha256": "73431e54375f34b457ce8796ba842cb21b4895fb0a19c5baca198e05ba45c31e",
+      "member": "lib/domain/entities/preparation_with_time_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_deletion.dart",
+      "sha256": "37e00513243e151f52ef33392e8c4d619e708daf7da390bbe3fb6cc2d95ffcae",
+      "member": "lib/domain/entities/schedule_deletion.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_entity.dart",
+      "sha256": "d5bee952cb796326699c3a52f487192d6ae24d434d8074e2a4e2e733923e2a90",
+      "member": "lib/domain/entities/schedule_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_not_found.dart",
+      "sha256": "7d2f02cf9233919f56f2fb52901a9e32974c729f5c71ad514bd7feeabf65155e",
+      "member": "lib/domain/entities/schedule_not_found.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_notification_status.dart",
+      "sha256": "93e994a46aab2768b33eb6d9f132ca9e20f1fef7f521b860ad1809abc7dcbcc8",
+      "member": "lib/domain/entities/schedule_notification_status.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_preparation_mode.dart",
+      "sha256": "0bc04629e912e65ef01111fda8d6652d5dc9c72aa1cbab4067ea7fce13f27516",
+      "member": "lib/domain/entities/schedule_preparation_mode.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_save.dart",
+      "sha256": "9fd020ed04d81f3fc8f552cf9b9437f27bd6f74159cb038bbc1590909dde3b76",
+      "member": "lib/domain/entities/schedule_save.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_start_rejected.dart",
+      "sha256": "87b12570f7e622fd4490d7b46b9e9d2d24d0ce6ed192864888280ce614b0ecbc",
+      "member": "lib/domain/entities/schedule_start_rejected.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_time_correction.dart",
+      "sha256": "72a3c5612f6bf7e07a9336ad69f88d2dfd1ad5525103282e29a70b264f8246f7",
+      "member": "lib/domain/entities/schedule_time_correction.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_time_resolution.dart",
+      "sha256": "26635aa80f3607f1012b392511f3f2a86986be96e6fa4b4688b3c87f43470bb1",
+      "member": "lib/domain/entities/schedule_time_resolution.dart"
+    },
+    {
+      "path": "lib/domain/entities/schedule_with_preparation_entity.dart",
+      "sha256": "c2b590548f96da567dd9c926e265dc0a860da1b27f4906e1f5c046020c4ae30a",
+      "member": "lib/domain/entities/schedule_with_preparation_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/scheduled_notification_content.dart",
+      "sha256": "f2f6d2fcf72c9f10b42b659589c7cae641c357b14135e27b13ad96a8920ae95e",
+      "member": "lib/domain/entities/scheduled_notification_content.dart"
+    },
+    {
+      "path": "lib/domain/entities/time_correction_conflict.dart",
+      "sha256": "5877a0e7914af3a63dbcfe60f62e37f120a0e9ac554de5d73fbd5dec8783dd94",
+      "member": "lib/domain/entities/time_correction_conflict.dart"
+    },
+    {
+      "path": "lib/domain/entities/timed_preparation_snapshot_entity.dart",
+      "sha256": "29d44ca08aa0846fe225b458280856f09de176221bdef42c01f025abb874defa",
+      "member": "lib/domain/entities/timed_preparation_snapshot_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/user_entity.dart",
+      "sha256": "c072da5b1aee09a57e3175003205804f79e7d91c555541fa04d9565f25cec5a9",
+      "member": "lib/domain/entities/user_entity.dart"
+    },
+    {
+      "path": "lib/domain/entities/user_entity.freezed.dart",
+      "sha256": "18691f90831cde97833c0fd4f9d79336464e9c32f8840cebb17dd101f8c3133a",
+      "retention": "ignored generated: hash only"
+    },
+    {
+      "path": "lib/domain/ports/backup_file_export_port.dart",
+      "sha256": "17f34296b0e60a9d138a35f18810a5567a6025ce2575213e314decc24cd08cfb",
+      "member": "lib/domain/ports/backup_file_export_port.dart"
+    },
+    {
+      "path": "lib/domain/ports/backup_file_import_port.dart",
+      "sha256": "82340e356f7d1219e098ff9e4a2a0186aa49669fff9dc06e36d438028876c4ec",
+      "member": "lib/domain/ports/backup_file_import_port.dart"
+    },
+    {
+      "path": "lib/domain/ports/backup_time_review_port.dart",
+      "sha256": "1dd8fed7b860ecc772835babe079d6651206e5ead8a4c28a80ed75c2bc737c7a",
+      "member": "lib/domain/ports/backup_time_review_port.dart"
+    },
+    {
+      "path": "lib/domain/ports/local_data_ports.dart",
+      "sha256": "7b461658630fc11d72546bad76bce2a44ae53d1e1fe052138ac2c32a5f106ecb",
+      "member": "lib/domain/ports/local_data_ports.dart"
+    },
+    {
+      "path": "lib/domain/ports/recovery_preclaim_cleanup_port.dart",
+      "sha256": "8fbdb5a24715477b95f323bd99ab7b82c35be0ef5926cb8df71aedf2bf4beb47",
+      "member": "lib/domain/ports/recovery_preclaim_cleanup_port.dart"
+    },
+    {
+      "path": "lib/domain/ports/recovery_restore_port.dart",
+      "sha256": "a5782cabc4eab660d0aa3a9ad016405a46db7d626ae805e9239a3ace362c811b",
+      "member": "lib/domain/ports/recovery_restore_port.dart"
+    },
+    {
+      "path": "lib/domain/recurrence/recurrence_engine.dart",
+      "sha256": "88d10b7be5383f65efc0486a0a5d35ee4fc1344d4355436a8bc35ae5d350ac08",
+      "member": "lib/domain/recurrence/recurrence_engine.dart"
+    },
+    {
+      "path": "lib/domain/recurrence/recurrence_reference_policy.dart",
+      "sha256": "af40ed46064dc8b7956d73a02815871e8ecb2478a2b3a1f60491e2e91e23d1a0",
+      "member": "lib/domain/recurrence/recurrence_reference_policy.dart"
+    },
+    {
+      "path": "lib/domain/recurrence/recurrence_rule.dart",
+      "sha256": "53b02120fcb5971277e6294c0b0a33acf4164609140d11e3cc5036f508b72c00",
+      "member": "lib/domain/recurrence/recurrence_rule.dart"
+    },
+    {
+      "path": "lib/domain/recurrence/recurring_schedule.dart",
+      "sha256": "1132d79bc77b0ea177fc9df8695eee2de7d7478649a72e0a4db04fc4fc5ec450",
+      "member": "lib/domain/recurrence/recurring_schedule.dart"
+    },
+    {
+      "path": "lib/domain/recurrence/recurring_time_correction.dart",
+      "sha256": "328b508631a8c6d76cec9aa990e2ec2b2c0e69c9e44d121640e280002dc2252e",
+      "member": "lib/domain/recurrence/recurring_time_correction.dart"
+    },
+    {
+      "path": "lib/domain/repositories/alarm_registry_repository.dart",
+      "sha256": "0798b435f240573dd06c779e23b6f9d07a6c43ffc612edc2b4728a0919224a6c",
+      "member": "lib/domain/repositories/alarm_registry_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/alarm_repository.dart",
+      "sha256": "101599fff6ff6ba21629f953b694edd40a5ec16cb69bd6b5a3e68e665cbe1dc0",
+      "member": "lib/domain/repositories/alarm_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/default_preferences_repository.dart",
+      "sha256": "71f92769416031a842c66067cde65cea05ac8fd26015003ef3ac538557e2b073",
+      "member": "lib/domain/repositories/default_preferences_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/early_start_session_repository.dart",
+      "sha256": "3a099407358b2071a300e8d23423d7605e8392ad0b9690a633edbbfcac797eef",
+      "member": "lib/domain/repositories/early_start_session_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/nearest_schedule_query_repository.dart",
+      "sha256": "fd86054503895ec9bda9f62ea71c2135edf100ebd8a4228bfcf4c005cec6f26b",
+      "member": "lib/domain/repositories/nearest_schedule_query_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/preparation_repository.dart",
+      "sha256": "0ac5a1eaefe0a49e8a0666e4f354adf083bd7c1dda34c9d0ec79731005e83015",
+      "member": "lib/domain/repositories/preparation_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/preparation_template_repository.dart",
+      "sha256": "7f56dc6f0bd337036aa94850ab21edfc459923bd3d0fe80af9c2649d6406c971",
+      "member": "lib/domain/repositories/preparation_template_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/recurring_schedule_repository.dart",
+      "sha256": "b3f54ddb09e1981f93e9a91e0a8b37d4c929a6b44d1b0c908480f57ff36b7f20",
+      "member": "lib/domain/repositories/recurring_schedule_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/recurring_time_correction_repository.dart",
+      "sha256": "7ba189c0d33afef2aa1cfa2c2b852c64c9f407a42540f41e83fde822a12b907f",
+      "member": "lib/domain/repositories/recurring_time_correction_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/schedule_aggregate_repository.dart",
+      "sha256": "e4210056b55c4d64a3068e585b5e5445a3e0b6aaa410174310447eb0e563311c",
+      "member": "lib/domain/repositories/schedule_aggregate_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/schedule_repository.dart",
+      "sha256": "6e29168e7a9b9347fcb3b5433f8cbd5394b1ddf7ce8c85821e273606669e46a5",
+      "member": "lib/domain/repositories/schedule_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/schedule_time_correction_repository.dart",
+      "sha256": "2419098ecdcacb7955058c602d4637e796dc854c2531426871a63943aa231192",
+      "member": "lib/domain/repositories/schedule_time_correction_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/timed_preparation_repository.dart",
+      "sha256": "0bde910c7a0abe4a2cd50d441d22c000748a42eeeeae4489da732f9aceb7afe2",
+      "member": "lib/domain/repositories/timed_preparation_repository.dart"
+    },
+    {
+      "path": "lib/domain/repositories/user_repository.dart",
+      "sha256": "65b28a130e4675d94b522cd32ca8ddc2b0146163ea35f8adb45d468e94bca935",
+      "member": "lib/domain/repositories/user_repository.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/cancel_all_alarms_use_case.dart",
+      "sha256": "bdbdc24b3555a6ff5cb39fa145c8c18a0996f6450bf2d5d76294774a61652d2f",
+      "member": "lib/domain/use-cases/cancel_all_alarms_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/cancel_schedule_alarm_use_case.dart",
+      "sha256": "910edcb21f162d0720c4bd3ee78b40ef05abb571b02eeae7ae4a0e4536bc4939",
+      "member": "lib/domain/use-cases/cancel_schedule_alarm_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/clear_early_start_session_use_case.dart",
+      "sha256": "e03b72e99c2ab379ba16d7db5d6247b39ada25a2e615a1daf5608ac62e781acf",
+      "member": "lib/domain/use-cases/clear_early_start_session_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/clear_timed_preparation_use_case.dart",
+      "sha256": "67dea0a0619b82be5113881dca4259cbc0cf4fe41eedce5902e0a809934280e4",
+      "member": "lib/domain/use-cases/clear_timed_preparation_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/create_custom_preparation_use_case.dart",
+      "sha256": "9e65bad6207798a9b5388e49d9d41e47e58334a7ff6a2cbe629c8f7976c179e6",
+      "member": "lib/domain/use-cases/create_custom_preparation_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/create_preparation_template_use_case.dart",
+      "sha256": "b2d2eb7688917a8383bf0e07e54aef240e0f7c37c15314bfe7707bf88a4b3175",
+      "member": "lib/domain/use-cases/create_preparation_template_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/create_schedule_form_submission_use_case.dart",
+      "sha256": "839b370b1ee876612a761848d2fb038c6f83741d520de05c9ca9e4c0ddec72c8",
+      "member": "lib/domain/use-cases/create_schedule_form_submission_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/create_schedule_with_place_use_case.dart",
+      "sha256": "3352e6ac345b58f8d2d07372d32152555447f276fe7c95336d51c6ca4c876356",
+      "member": "lib/domain/use-cases/create_schedule_with_place_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/default_preferences_workflow.dart",
+      "sha256": "6f3d621b8f094d1c1964f299ce96f6bfa2e3f24f6bdad8969a37cbc7023fd2c7",
+      "member": "lib/domain/use-cases/default_preferences_workflow.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/delete_preparation_template_use_case.dart",
+      "sha256": "2853fc103bdd5d34003ed4ccec7fbdd61450aea1ec0663b49ab1b01880a8ec32",
+      "member": "lib/domain/use-cases/delete_preparation_template_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/delete_schedule_use_case.dart",
+      "sha256": "5599df8a6d14dbd6d34338be6ff6ccc2e3b894ca1f7a83aedc7571a2408420f9",
+      "member": "lib/domain/use-cases/delete_schedule_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/finish_schedule_use_case.dart",
+      "sha256": "8d7f20825f49cc10ad85e27d430db7b8db77aa90fbd29db278cbfc132a0a44c4",
+      "member": "lib/domain/use-cases/finish_schedule_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_adjacent_schedules_with_preparation_use_case.dart",
+      "sha256": "0865a8d103c4bb0d6be7d0b66b9423dea5df4c79ab03597cabc2b0ea073811a5",
+      "member": "lib/domain/use-cases/get_adjacent_schedules_with_preparation_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_default_preparation_use_case.dart",
+      "sha256": "fd899f4c11929db72c380ec5793517e6a00a5f2aa6c79219759b379a1e780619",
+      "member": "lib/domain/use-cases/get_default_preparation_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_early_start_session_use_case.dart",
+      "sha256": "2f59b8e5835f032c9477458a3f376fccad6ba0a3c94fa6a91fef890c063f2299",
+      "member": "lib/domain/use-cases/get_early_start_session_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart",
+      "sha256": "99aff749bb991738ffc2b223e78e97e23949a60aa9512a7b1086e3537c400ac4",
+      "member": "lib/domain/use-cases/get_nearest_upcoming_schedule_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_preparation_by_schedule_id_use_case.dart",
+      "sha256": "ab8f51433b9efd6789ebef58eca4b9051d9e6faca0d0ea9bb181aeb7f5582de9",
+      "member": "lib/domain/use-cases/get_preparation_by_schedule_id_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_preparation_template_use_case.dart",
+      "sha256": "4c4a5dfbb25a6b57f073260f2fe2a48dd65d465111008eae2d1e73a750c57a77",
+      "member": "lib/domain/use-cases/get_preparation_template_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_preparation_templates_use_case.dart",
+      "sha256": "53115e7e9bd3eda925961d9a5afd74d8efa7df6d380d0639386e350274f4c220",
+      "member": "lib/domain/use-cases/get_preparation_templates_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_schedule_by_id_use_case.dart",
+      "sha256": "9d9937d3abf864b3739020614b5ffa0fd8dcaa1d6aca028fa2a2488a459b54ce",
+      "member": "lib/domain/use-cases/get_schedule_by_id_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_schedules_by_date_use_case.dart",
+      "sha256": "37993cdcee0db59c30903fce7a1b86c21cc2a97a5495045820dad6003b938620",
+      "member": "lib/domain/use-cases/get_schedules_by_date_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/get_timed_preparation_snapshot_use_case.dart",
+      "sha256": "f38dcdd3ad69a1847f0fdd043cc6b8790dac24835de133cef379d6bb64eea80e",
+      "member": "lib/domain/use-cases/get_timed_preparation_snapshot_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/load_adjacent_schedule_with_preparation_use_case.dart",
+      "sha256": "3c8e688ae097ea69a44402339809d4739f0da503a7244e25d5df5a081dd662e3",
+      "member": "lib/domain/use-cases/load_adjacent_schedule_with_preparation_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/load_preparation_by_schedule_id_use_case.dart",
+      "sha256": "9e4557715b3391cbe74b8c0ef6992f008ecc2d42279322c280703ad5438fe5c8",
+      "member": "lib/domain/use-cases/load_preparation_by_schedule_id_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/load_schedule_form_draft_use_case.dart",
+      "sha256": "33007380e96a4c6b8447db0ce9038b5afc0192003c231ed85c1e8e9f995f9e30",
+      "member": "lib/domain/use-cases/load_schedule_form_draft_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/load_schedules_by_date_use_case.dart",
+      "sha256": "1b30e58409b0e6e1b40515c3b5f5eb37a9202986c4f8823a39a24d0361302ccb",
+      "member": "lib/domain/use-cases/load_schedules_by_date_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/load_schedules_for_month_use_case.dart",
+      "sha256": "5d9fbc5bab20825c397c9738e24c74d60c34bf18318faf35e38800af298a7685",
+      "member": "lib/domain/use-cases/load_schedules_for_month_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/load_schedules_for_week_use_case.dart",
+      "sha256": "589374272e31c7e06cf46f3af807ac323b4f068afcf78c1b969d61fc5b9f9734",
+      "member": "lib/domain/use-cases/load_schedules_for_week_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/load_user_use_case.dart",
+      "sha256": "1be68c80a72346c4126fd07be03547b5acd5c79ac5aedc865ebc504220950d7d",
+      "member": "lib/domain/use-cases/load_user_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/local_data_workflows.dart",
+      "sha256": "635f802f7cf06fdd8ab7e33e332df7e265f6cb253bb3bac679b1552e0434815d",
+      "member": "lib/domain/use-cases/local_data_workflows.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/mark_early_start_session_use_case.dart",
+      "sha256": "ffdd344fff94b5f481352f258b42a21f43f3a56175348794297e2083379256e0",
+      "member": "lib/domain/use-cases/mark_early_start_session_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/onboard_use_case.dart",
+      "sha256": "b5425eb8369af2e7bae074b4f4c4aa472f8c3f2f6502893791019655df1c285a",
+      "member": "lib/domain/use-cases/onboard_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/reconcile_alarms_use_case.dart",
+      "sha256": "4c5fd591929220046458ba810722f4d5ad56bcb0cdd90fe60c3d7798f914558a",
+      "member": "lib/domain/use-cases/reconcile_alarms_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/recurring_schedules_use_case.dart",
+      "sha256": "8f0594074abee97deafc162420c17013ad6076843d2181ed32d0500b802d2c1d",
+      "member": "lib/domain/use-cases/recurring_schedules_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/recurring_time_correction_workflow.dart",
+      "sha256": "b11db31ea216f73f90e3ba145f21fdc13ab6a71e5aeffd518f71215515c1f4ba",
+      "member": "lib/domain/use-cases/recurring_time_correction_workflow.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/save_timed_preparation_use_case.dart",
+      "sha256": "d12db73deffddee2de258f30b664656432d05860ed9a239b0e1da07fa9d8fd8b",
+      "member": "lib/domain/use-cases/save_timed_preparation_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/schedule_form_submission.dart",
+      "sha256": "58e62c1085ca435ede7404725609eb9a713149f29570e63ccad28c591944dae7",
+      "member": "lib/domain/use-cases/schedule_form_submission.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart",
+      "sha256": "c57bd8d8fc3204e920f677925d2ce5f1f6953062d38bef41c2cb1c51f465b6b5",
+      "member": "lib/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/schedule_preparation_session_use_case.dart",
+      "sha256": "4b269b1df78e409d6cbb412ff6bbb2e69d281633c5bed23a331bc88cfc8ac52b",
+      "member": "lib/domain/use-cases/schedule_preparation_session_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/schedule_save_workflow.dart",
+      "sha256": "3eb8dcbbe095a31a972c95a56360b8275082b5a07a0e946d6d05c931ff971477",
+      "member": "lib/domain/use-cases/schedule_save_workflow.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/schedule_time_correction_workflow.dart",
+      "sha256": "74a8f6e27c3e3a28b8ceeb4704fe7f96431711c68266d0324a8420703e1a6679",
+      "member": "lib/domain/use-cases/schedule_time_correction_workflow.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/start_schedule_use_case.dart",
+      "sha256": "acf490fd3ae19994d8f6caca0293f5123ccd37c2d3e86ec10f0b895ceee8d1f2",
+      "member": "lib/domain/use-cases/start_schedule_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/stream_preparations_use_case.dart",
+      "sha256": "ea79e83c9949f1b86758f6bec6fca52446eb021a7d3eb2987c211bd7fc0beaec",
+      "member": "lib/domain/use-cases/stream_preparations_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/stream_user_use_case.dart",
+      "sha256": "1f2dcb075f1a33024e2720941ea19cc886b29932cb4f2664793a69c743c9b934",
+      "member": "lib/domain/use-cases/stream_user_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/update_default_preparation_use_case.dart",
+      "sha256": "f82e82a391bdb3bd956ecedba14e2b0d00e01848b1b5aac5d3828c50171fab41",
+      "member": "lib/domain/use-cases/update_default_preparation_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/update_preparation_by_schedule_id_use_case.dart",
+      "sha256": "364f367b7b167b03d39b181724a3116e48e369910750e3f2aa7c54ce1e9e4496",
+      "member": "lib/domain/use-cases/update_preparation_by_schedule_id_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/update_preparation_template_use_case.dart",
+      "sha256": "022bb5f4cbd1798f30157545d32d695d79c444add58595fa1ab5bdd37fb68d17",
+      "member": "lib/domain/use-cases/update_preparation_template_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/update_schedule_form_submission_use_case.dart",
+      "sha256": "975215ea2d3e869b3da5c9e5c3acb643a79f869f18f81fa37289ac4ae5a8a4fa",
+      "member": "lib/domain/use-cases/update_schedule_form_submission_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/update_schedule_use_case.dart",
+      "sha256": "de3541d03299b4da5efd816161ca8b06442ed23ae416f95fbe6ccb0cd7b0a8a7",
+      "member": "lib/domain/use-cases/update_schedule_use_case.dart"
+    },
+    {
+      "path": "lib/domain/use-cases/update_spare_time_use_case.dart",
+      "sha256": "85ee4388108d79f5973b335e39926465ef68cbee939cd54f292d2f27af269878",
+      "member": "lib/domain/use-cases/update_spare_time_use_case.dart"
+    },
+    {
+      "path": "lib/l10n/app_en.arb",
+      "sha256": "dbf4e9fc1abded2f0173c497320cbb35a2cf2bbd8d7bf27d5f22277ec5171db8",
+      "member": "lib/l10n/app_en.arb"
+    },
+    {
+      "path": "lib/l10n/app_ko.arb",
+      "sha256": "535aa5818ec3bf7a5b89127b54ef821f693cdebd0a7658c7aa11f3d9a1b2ce2c",
+      "member": "lib/l10n/app_ko.arb"
+    },
+    {
+      "path": "lib/l10n/app_localizations.dart",
+      "sha256": "75106d99e1b88572d565e83ff70d79276ef06f591d0b22a6fbee774789860ed8",
+      "member": "lib/l10n/app_localizations.dart"
+    },
+    {
+      "path": "lib/l10n/app_localizations_en.dart",
+      "sha256": "cd795c49437ad1ffe1a55e36424dd16b8a3348beedf7ff7b318523b90a308e1d",
+      "member": "lib/l10n/app_localizations_en.dart"
+    },
+    {
+      "path": "lib/l10n/app_localizations_ko.dart",
+      "sha256": "890932e3b0c224696e33bd95ae75992cfe72d597c2db67a4f9def1086bcb9b5e",
+      "member": "lib/l10n/app_localizations_ko.dart"
+    },
+    {
+      "path": "lib/main.dart",
+      "sha256": "d37acfe98b8348a958f0fc7c55201edfe21296f1306164e35c4b7258d0d885b4",
+      "member": "lib/main.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/components/alarm_graph_animator.dart",
+      "sha256": "ed37baa30ed39898e1424c832875557010b6f1dc4051f9d82b34ff8777aa7e9f",
+      "member": "lib/presentation/alarm/components/alarm_graph_animator.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/components/alarm_graph_component.dart",
+      "sha256": "5bdc32f010e7da7aa312654eefed20cc871499bf3c5241c9d582f86086b636b5",
+      "member": "lib/presentation/alarm/components/alarm_graph_component.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/components/alarm_screen_bottom_section.dart",
+      "sha256": "4353f1ff97338f6b6577aae5dbc2b23bb411f0dd673a493c38395c4e05831ee6",
+      "member": "lib/presentation/alarm/components/alarm_screen_bottom_section.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/components/alarm_screen_top_section.dart",
+      "sha256": "a4a3565323291193f8057cf417fd3916c71d46551b0f247211ddc7f745a061de",
+      "member": "lib/presentation/alarm/components/alarm_screen_top_section.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/components/preparation_completion_dialog.dart",
+      "sha256": "557159640456ba18b1b7b6ba6df8dd983c8cbd8e354bf4c1d55f23f7db5c4a1d",
+      "member": "lib/presentation/alarm/components/preparation_completion_dialog.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/components/preparation_step_list_widget.dart",
+      "sha256": "06e661e82b20f5f57d497140547c1fc6d0a4cedfe56c0622bfc9519bcdefe363",
+      "member": "lib/presentation/alarm/components/preparation_step_list_widget.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/components/preparation_step_tile.dart",
+      "sha256": "96a68057dc3b425d5be0f822ae0343113a06d51ac438181349dbc05da3305bcb",
+      "member": "lib/presentation/alarm/components/preparation_step_tile.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/screens/alarm_screen.dart",
+      "sha256": "c19dc1ca73f4377382fa4b236ab6a7c3958392b49a6e1f01079aa5ae3b2ebbf8",
+      "member": "lib/presentation/alarm/screens/alarm_screen.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/screens/notification_schedule_start_route.dart",
+      "sha256": "ff9ab41056b411b6c706dd123755db25892e175f12480a4d0a89a8f0d2f5f4a0",
+      "member": "lib/presentation/alarm/screens/notification_schedule_start_route.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/screens/schedule_start_screen.dart",
+      "sha256": "903e90a4ca9e7cc541d4ed07309062f548ac44104bced8ccc95576dcb9a5b2ba",
+      "member": "lib/presentation/alarm/screens/schedule_start_screen.dart"
+    },
+    {
+      "path": "lib/presentation/alarm/utils/preparation_step_state_mapper.dart",
+      "sha256": "2cea460d21133d1958bcde6c215a87c09c1899fdedc17e053d876218cbe88c7d",
+      "member": "lib/presentation/alarm/utils/preparation_step_state_mapper.dart"
+    },
+    {
+      "path": "lib/presentation/alarm_allow/screens/alarm_allow_screen.dart",
+      "sha256": "8cef5ba104046b1bcf1d6071387ad27c8f8bebf080e6f44d20a9071723e0fd1a",
+      "member": "lib/presentation/alarm_allow/screens/alarm_allow_screen.dart"
+    },
+    {
+      "path": "lib/presentation/app/bloc/auth/auth_bloc.dart",
+      "sha256": "b8b6787ca4e4cc4ad4b0dd0589ccaab80625361813a825c82d1826aac79a3eed",
+      "member": "lib/presentation/app/bloc/auth/auth_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/app/bloc/auth/auth_event.dart",
+      "sha256": "c6c69f06aff8238d9678011b6244ef865b5128c0191303ae3a578e7f4f4da652",
+      "member": "lib/presentation/app/bloc/auth/auth_event.dart"
+    },
+    {
+      "path": "lib/presentation/app/bloc/auth/auth_state.dart",
+      "sha256": "66910b6b7e005f18149adbbd6e27353065243bbec8670ac13f22e4e1ecfca712",
+      "member": "lib/presentation/app/bloc/auth/auth_state.dart"
+    },
+    {
+      "path": "lib/presentation/app/bloc/schedule/schedule_bloc.dart",
+      "sha256": "e91a62f731f0605df8810d10cd2fc0b65eb05e53ccfb1e51876f236ef849d6bd",
+      "member": "lib/presentation/app/bloc/schedule/schedule_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/app/bloc/schedule/schedule_event.dart",
+      "sha256": "ab54737d3e9089bb381638697b4837b13596a0daedf9e83128c3de895faecbc7",
+      "member": "lib/presentation/app/bloc/schedule/schedule_event.dart"
+    },
+    {
+      "path": "lib/presentation/app/bloc/schedule/schedule_state.dart",
+      "sha256": "0d14268ee1cf7287952d06b0eaa6d5edb0851b8aabc92d251f5f661419995d1c",
+      "member": "lib/presentation/app/bloc/schedule/schedule_state.dart"
+    },
+    {
+      "path": "lib/presentation/app/cubit/alarm_gate_cubit.dart",
+      "sha256": "2e97460db5f79359ae97dd6fd85e1fa2dfccc2e493e72c66a3766898444cdbbd",
+      "member": "lib/presentation/app/cubit/alarm_gate_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/app/cubit/alarm_gate_state.dart",
+      "sha256": "e130cf727cd7b443992d6c3752ec023f1fb069ae1a305ed164ea201d4eeea742",
+      "member": "lib/presentation/app/cubit/alarm_gate_state.dart"
+    },
+    {
+      "path": "lib/presentation/app/cubit/notification_gate_cubit.dart",
+      "sha256": "e4800ce38e9f941db23b4e9b2003fdf17f9cd5650d6d9099b52abc40cbcd9f47",
+      "member": "lib/presentation/app/cubit/notification_gate_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/app/cubit/notification_gate_state.dart",
+      "sha256": "240dc7c42dac98b8ff25ba7a00d4bcda49a585c18d4b27d2fe5ed488fc31a716",
+      "member": "lib/presentation/app/cubit/notification_gate_state.dart"
+    },
+    {
+      "path": "lib/presentation/app/screens/app.dart",
+      "sha256": "00f817318513b907d14b6ea3e57aab0546af1acae7c405def434c4c22d1f0c15",
+      "member": "lib/presentation/app/screens/app.dart"
+    },
+    {
+      "path": "lib/presentation/backup/backup_processing_panel.dart",
+      "sha256": "f6c2fc5c95e36af40cf8536b0f9864e9354b71d451d3121bb3ec13214aaae463",
+      "member": "lib/presentation/backup/backup_processing_panel.dart"
+    },
+    {
+      "path": "lib/presentation/backup/backup_recurring_time_review_screen.dart",
+      "sha256": "3d995509794a30f3ba520f078a5e27c00c008ba9d1e0168cef0806a1420be2bd",
+      "member": "lib/presentation/backup/backup_recurring_time_review_screen.dart"
+    },
+    {
+      "path": "lib/presentation/backup/backup_time_review_screen.dart",
+      "sha256": "8dcb1dce7a3587502d90774135127b333d651abe4d5d1c0729463550ffd7afca",
+      "member": "lib/presentation/backup/backup_time_review_screen.dart"
+    },
+    {
+      "path": "lib/presentation/calendar/bloc/monthly_schedules_bloc.dart",
+      "sha256": "53a121c93c9eb6a910dd62475744fa9be2f0e6d381a170ec4f6cb3702c4dce3a",
+      "member": "lib/presentation/calendar/bloc/monthly_schedules_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/calendar/bloc/monthly_schedules_event.dart",
+      "sha256": "50f24adcbc94ba49081783c8097aa5ece8790ac3bbbd57089c1be1b9d2dcd437",
+      "member": "lib/presentation/calendar/bloc/monthly_schedules_event.dart"
+    },
+    {
+      "path": "lib/presentation/calendar/bloc/monthly_schedules_state.dart",
+      "sha256": "c411a2b7d5d1ec82f540be0876dcb44df59748e81cfbd74562d1a8cfad49dd62",
+      "member": "lib/presentation/calendar/bloc/monthly_schedules_state.dart"
+    },
+    {
+      "path": "lib/presentation/calendar/component/schedule_deletion_dialog.dart",
+      "sha256": "d687bf3cbb06c46bb996dbfafee2f9a6ce8ae0482f5441a84df4544f848a7680",
+      "member": "lib/presentation/calendar/component/schedule_deletion_dialog.dart"
+    },
+    {
+      "path": "lib/presentation/calendar/component/schedule_detail.dart",
+      "sha256": "ad98094421f21c80a223f61c55dca5ebed53e7d91ae4db0e66f97c36270649eb",
+      "member": "lib/presentation/calendar/component/schedule_detail.dart"
+    },
+    {
+      "path": "lib/presentation/calendar/screens/calendar_screen.dart",
+      "sha256": "b55f9f20a57f8b33c2f1a3dd4ee69bac9cb6d645afb7122cd6ffbf4c033fd726",
+      "member": "lib/presentation/calendar/screens/calendar_screen.dart"
+    },
+    {
+      "path": "lib/presentation/early_late/bloc/early_late_screen_bloc.dart",
+      "sha256": "f996d7aeeb3268a290c76c18046ff4b83233e0711e9387349c9e5a661707e337",
+      "member": "lib/presentation/early_late/bloc/early_late_screen_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/early_late/bloc/early_late_screen_event.dart",
+      "sha256": "a9f7b39a26ae682e5f6cc595facd88c11fc263492a1e6befeb048548312f86c0",
+      "member": "lib/presentation/early_late/bloc/early_late_screen_event.dart"
+    },
+    {
+      "path": "lib/presentation/early_late/bloc/early_late_screen_state.dart",
+      "sha256": "7d96e1592e45e9cb3fa53f64968702dcd0dcec5a4406f9df9b7cbdacde0b6a2c",
+      "member": "lib/presentation/early_late/bloc/early_late_screen_state.dart"
+    },
+    {
+      "path": "lib/presentation/early_late/components/check_list_box_widget.dart",
+      "sha256": "17c48dd49b64463daa0e0a9236944e06719411cf4b0f5a39b0e4c36fa586c2b3",
+      "member": "lib/presentation/early_late/components/check_list_box_widget.dart"
+    },
+    {
+      "path": "lib/presentation/early_late/components/check_list_item_widget.dart",
+      "sha256": "46725440280e9536843a90b3438e016737fbbad9f295d758b0c0aa926f38a3c5",
+      "member": "lib/presentation/early_late/components/check_list_item_widget.dart"
+    },
+    {
+      "path": "lib/presentation/early_late/components/early_late_message_image_widget.dart",
+      "sha256": "9909c37278b758bd8a5178e5ff50fbc2afb905ad1a7d213137c063ec5160e26e",
+      "member": "lib/presentation/early_late/components/early_late_message_image_widget.dart"
+    },
+    {
+      "path": "lib/presentation/early_late/screens/early_late_screen.dart",
+      "sha256": "67d348472a5b1e1ff17bd677736e6d8f27c1029d6f1b63aedc2418cda69431aa",
+      "member": "lib/presentation/early_late/screens/early_late_screen.dart"
+    },
+    {
+      "path": "lib/presentation/home/bloc/schedule_timer_bloc.dart",
+      "sha256": "1e143ce9312246ef58f447bcd6687d6408c8146d7513bbc2c42522df19b55b03",
+      "member": "lib/presentation/home/bloc/schedule_timer_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/home/bloc/schedule_timer_event.dart",
+      "sha256": "2012a71a141e36eb0e21ff8f540de463f0707e1fa4bf48de6923e068b85d1979",
+      "member": "lib/presentation/home/bloc/schedule_timer_event.dart"
+    },
+    {
+      "path": "lib/presentation/home/bloc/schedule_timer_state.dart",
+      "sha256": "8b07c64c5ec929bd977fef9637b6017c8a57b4d3ba0414793b7826bc3061e9b9",
+      "member": "lib/presentation/home/bloc/schedule_timer_state.dart"
+    },
+    {
+      "path": "lib/presentation/home/bloc/weekly_schedules_bloc.dart",
+      "sha256": "1efdf83531614aa4197f54fa4319614ced03191b86ecaeed43becadb7c22bcd3",
+      "member": "lib/presentation/home/bloc/weekly_schedules_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/home/bloc/weekly_schedules_event.dart",
+      "sha256": "a5f5805f1e88fa7f2121b75dad4beca4dceb992b1e4c117e66389e72bd6d17a3",
+      "member": "lib/presentation/home/bloc/weekly_schedules_event.dart"
+    },
+    {
+      "path": "lib/presentation/home/bloc/weekly_schedules_state.dart",
+      "sha256": "dbc7f607f599a44efc2e5f14550f77933ef896afbc1d72eb1cf48ac15c219f03",
+      "member": "lib/presentation/home/bloc/weekly_schedules_state.dart"
+    },
+    {
+      "path": "lib/presentation/home/components/device_day_refresh.dart",
+      "sha256": "754fd660950109bf42ac21b5d5307129f4f1e85471aaf54703c08c8216545686",
+      "member": "lib/presentation/home/components/device_day_refresh.dart"
+    },
+    {
+      "path": "lib/presentation/home/components/home_app_bar.dart",
+      "sha256": "1f208919fa9a0ad892e9f2cce92123d09435635b2a1f44f9db1262677da4e07c",
+      "member": "lib/presentation/home/components/home_app_bar.dart"
+    },
+    {
+      "path": "lib/presentation/home/components/month_calendar.dart",
+      "sha256": "7212916513b58572cf9e88621de640bbce87d726e3e218a1d56e047ff4c338c0",
+      "member": "lib/presentation/home/components/month_calendar.dart"
+    },
+    {
+      "path": "lib/presentation/home/components/nearest_schedule_query_status.dart",
+      "sha256": "c1b67a1d0419bfea5f984480ae6661e1a0909e42d2f0a6c3375224fbe6ed6ae5",
+      "member": "lib/presentation/home/components/nearest_schedule_query_status.dart"
+    },
+    {
+      "path": "lib/presentation/home/components/todays_schedule_tile.dart",
+      "sha256": "6679149b96dc695022bde9d735bff1595284e21599b17cc27cfd5f6a696bff7c",
+      "member": "lib/presentation/home/components/todays_schedule_tile.dart"
+    },
+    {
+      "path": "lib/presentation/home/components/week_calendar.dart",
+      "sha256": "15cf725794b45a5d229029eb160ecb3f9cd9bd014a850aef34d0f0abaaab55fd",
+      "member": "lib/presentation/home/components/week_calendar.dart"
+    },
+    {
+      "path": "lib/presentation/home/screens/home_screen.dart",
+      "sha256": "d105d27fea2395aae1392b68058ed82a141bba07823bb392cdb405cc97ea694f",
+      "member": "lib/presentation/home/screens/home_screen.dart"
+    },
+    {
+      "path": "lib/presentation/home/screens/home_screen_tmp.dart",
+      "sha256": "b785409f15d320bd42a3f5f37efc7c0150de74c05109a76d56c46da1dca628ec",
+      "member": "lib/presentation/home/screens/home_screen_tmp.dart"
+    },
+    {
+      "path": "lib/presentation/home/utils/home_schedule_card_selection.dart",
+      "sha256": "0ab69cdf26852f5bb5595d7801443ad805505f72c43557db68888da67d515a72",
+      "member": "lib/presentation/home/utils/home_schedule_card_selection.dart"
+    },
+    {
+      "path": "lib/presentation/home/utils/today_tile_navigation.dart",
+      "sha256": "6f459e298de9724876c6c38e4a2335e37312db13d548cddd26bf14cf44ab41b4",
+      "member": "lib/presentation/home/utils/today_tile_navigation.dart"
+    },
+    {
+      "path": "lib/presentation/moving/screens/moving_screen.dart",
+      "sha256": "afbe4ffced63b31335a76fc1e7698c63989e5cd803050f6ffe29f76fc8ef7b52",
+      "member": "lib/presentation/moving/screens/moving_screen.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/cubit/detailed_notification_settings_cubit.dart",
+      "sha256": "b2b21ed23144ea411745946e72040b4dbc6254f798c692ea60e1b33749af93e0",
+      "member": "lib/presentation/my_page/cubit/detailed_notification_settings_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/cubit/detailed_notification_settings_state.dart",
+      "sha256": "48c8d7c21f4c8a3936c2c49e8197655c636b14cc992c4735a16a8149f420734c",
+      "member": "lib/presentation/my_page/cubit/detailed_notification_settings_state.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/my_data_screen.dart",
+      "sha256": "b862028c8265503079830dcbf933aa421051db40aaf2fb59ae7a8fd31685f4c0",
+      "member": "lib/presentation/my_page/my_data_screen.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/my_page_screen.dart",
+      "sha256": "8851a5f76a0ea4887e3cfaf7098dcb30037cfaea8d141d16f8a10116c94e6078",
+      "member": "lib/presentation/my_page/my_page_screen.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_bloc.dart",
+      "sha256": "ebd45ed8fd1aeff8c1f40460bad871c2dfa1db94f168b6ac1797a13df31fe6de",
+      "member": "lib/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_event.dart",
+      "sha256": "650c44789ded6fc978ed646e22eacc476077d752f18fbd14d0ea7b60cec08320",
+      "member": "lib/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_event.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_state.dart",
+      "sha256": "29cabf5e9f9cd1fe2429d0d8b29fa8e6aa0b68f14296a365a46aabaa8b7b4028",
+      "member": "lib/presentation/my_page/preparation_spare_time_edit/bloc/default_preparation_spare_time_form_state.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen.dart",
+      "sha256": "bd864abb26f6a068e78f9e7ac4f5354f7014bb755a7b994ab484362153753d4f",
+      "member": "lib/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen.dart"
+    },
+    {
+      "path": "lib/presentation/my_page/privacy_policy_screen.dart",
+      "sha256": "a04b6ffc392c14023c1ae89bd00a7bece0c801136f00eff6b8babd7f07cd88e9",
+      "member": "lib/presentation/my_page/privacy_policy_screen.dart"
+    },
+    {
+      "path": "lib/presentation/notification_allow/screens/notification_allow_screen.dart",
+      "sha256": "98be51d9cdb0f5129aa461522d830b69db99d1aa1cac531fcb6b60bfd90caa8b",
+      "member": "lib/presentation/notification_allow/screens/notification_allow_screen.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/components/onboarding_page_view_layout.dart",
+      "sha256": "70cd236da27d4067462ccf8789afbccf5102b890bfb7e0c89744310b625cf44b",
+      "member": "lib/presentation/onboarding/components/onboarding_page_view_layout.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/components/onboarding_title.dart",
+      "sha256": "9ff1b70ecb872b5f98cfeccf8179f47ab3a47a323654bdcb080db6cc49bb22d6",
+      "member": "lib/presentation/onboarding/components/onboarding_title.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/cubit/onboarding_cubit.dart",
+      "sha256": "9f3bdae18dd3c0509a99a9e772dd46e79cbc0d4eb434f26d0ed85de3d41a8623",
+      "member": "lib/presentation/onboarding/cubit/onboarding_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/cubit/onboarding_state.dart",
+      "sha256": "1d8e9044020d1f7eb8c39f19ad8b84b725d35664f90fff633f9de67d75aa55cf",
+      "member": "lib/presentation/onboarding/cubit/onboarding_state.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/components/create_icon_button.dart",
+      "sha256": "49ff8c85d7c9b0c739250b87ff77485e640ec1ce7b3222969089061d439cfb1c",
+      "member": "lib/presentation/onboarding/preparation_name_select/components/create_icon_button.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/components/preparation_create_list.dart",
+      "sha256": "017513d12028e1cef25ea2f2bf93ca91914325fe8b65a8c01e7118ef24491ea8",
+      "member": "lib/presentation/onboarding/preparation_name_select/components/preparation_create_list.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/components/preparation_name_select_field.dart",
+      "sha256": "693a9f66daaf3ecc851a8288c16b1a61d530581ebf5a28ce3ed174f1c3501431",
+      "member": "lib/presentation/onboarding/preparation_name_select/components/preparation_name_select_field.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/components/preparation_select_list.dart",
+      "sha256": "2c0454ddd0c5fa78ea57f19f836061f8c2add2ed0e166f834c3306220231c765",
+      "member": "lib/presentation/onboarding/preparation_name_select/components/preparation_select_list.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart",
+      "sha256": "e46d2063d89d7ed77f370f871e62d504ed9da0386e5b52be0860b843aa452334",
+      "member": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_state.dart",
+      "sha256": "9afd6432f38beabb80498b0a09550f04cbada24b34696f70229d209e8b26c024",
+      "member": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_state.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart",
+      "sha256": "f8593376df00bc228a3307c223b9e8e43e11c2384233e3124c98aa906b17c466",
+      "member": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_state.dart",
+      "sha256": "ff1dbfe8f78f12ae5c747dadd4295f4b1550d461838f051477a1dfc256c1c6dc",
+      "member": "lib/presentation/onboarding/preparation_name_select/cubit/preparation_step_name/preparation_step_name_state.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart",
+      "sha256": "5014ec0d0112b7672e96d81df431fa0bc125f2dd087d1c347917e55053c9350d",
+      "member": "lib/presentation/onboarding/preparation_name_select/input_models/preparation_name_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_name_select/screens/preparation_name_form.dart",
+      "sha256": "a3f5976ad86345c05835f8aaf8c669c7dea02fcc241fc3bc84e494da94137b37",
+      "member": "lib/presentation/onboarding/preparation_name_select/screens/preparation_name_form.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_order/components/preparation_reorderable_list.dart",
+      "sha256": "8c8793d70791e923403062f1079cef08234bd2364a1548c2ffaefff85392dd69",
+      "member": "lib/presentation/onboarding/preparation_order/components/preparation_reorderable_list.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_order/components/reorderable_tile.dart",
+      "sha256": "218bebcffa99eb3e69a0270fb1dcf9dc86c5a734c89fc106e2e2289a4dc5a74f",
+      "member": "lib/presentation/onboarding/preparation_order/components/reorderable_tile.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart",
+      "sha256": "3208a4cf3fbb86473768d0f2299005b7001e83123533f06d7fa8abe65eb8ea9b",
+      "member": "lib/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_order/cubit/preparation_order_state.dart",
+      "sha256": "6f5009747fad8332010fed6f950ab7f965b9ac9a01cb50eda2a9ffcd9d0b0c56",
+      "member": "lib/presentation/onboarding/preparation_order/cubit/preparation_order_state.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_order/screens/preparation_order_form.dart",
+      "sha256": "8d4717267f08c54809ba8ae3dbc49448a1726e77e37fd0a4c0a1807ff23a3332",
+      "member": "lib/presentation/onboarding/preparation_order/screens/preparation_order_form.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_time/components/preparation_time_input_list.dart",
+      "sha256": "aaaed48d4f8b5b3929ef988ec8b5c691c7007ca0d867dd2bd23ad9c68f2bf573",
+      "member": "lib/presentation/onboarding/preparation_time/components/preparation_time_input_list.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_time/components/preparation_time_tile.dart",
+      "sha256": "b1c2713ffbfb51cde46bbdc4369c30a81217394a2538ffd195a5b7fee0a97c50",
+      "member": "lib/presentation/onboarding/preparation_time/components/preparation_time_tile.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart",
+      "sha256": "974fc861181ce220bd0e41596ac73c99cc720580f9fe9da8fa8560160c8c71ec",
+      "member": "lib/presentation/onboarding/preparation_time/cubit/preparation_time_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_time/cubit/preparation_time_state.dart",
+      "sha256": "7cb4435944e644447a29e23fa23d27a79b98629a17512322c7a4453563ae679a",
+      "member": "lib/presentation/onboarding/preparation_time/cubit/preparation_time_state.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart",
+      "sha256": "eadd4ff20ef7dae4538c434b3144c8dc21703f15623259ed5d018fdcb4daae80",
+      "member": "lib/presentation/onboarding/preparation_time/input_models/preparation_time_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/preparation_time/screens/preparation_time_form.dart",
+      "sha256": "aee3dac620c9ecca0e57f4fdfb759a846a55ed2d8edc1fcd3a408685fb369a08",
+      "member": "lib/presentation/onboarding/preparation_time/screens/preparation_time_form.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/schedule_spare_time/components/shcedule_spare_time_field.dart",
+      "sha256": "8a4ac813a36584390d9a42cb6e81e9760a59889198c42a76b440a1b36f743d64",
+      "member": "lib/presentation/onboarding/schedule_spare_time/components/shcedule_spare_time_field.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart",
+      "sha256": "ed89ccea55c48e7e5af60d831afbe5e84baad43ad579ca19cb443548fb731564",
+      "member": "lib/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_state.dart",
+      "sha256": "3a76b4a8cf4d70c7fe6a9f3971579b8f76badc85a68e3716fff0be1ed4ce8d48",
+      "member": "lib/presentation/onboarding/schedule_spare_time/cubit/schedule_spare_time_state.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_form.dart",
+      "sha256": "16d812f5d590590b69ce0bc72ea0afd1a20f0c0e87b1483c28739b7b829fdeb0",
+      "member": "lib/presentation/onboarding/schedule_spare_time/screens/schedule_spare_time_form.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/screens/onboarding_screen.dart",
+      "sha256": "ea2df70d24d5cc32cc5567a93471e8a5a10e3605afddc37f70bfaaed34293759",
+      "member": "lib/presentation/onboarding/screens/onboarding_screen.dart"
+    },
+    {
+      "path": "lib/presentation/onboarding/screens/onboarding_start_screen.dart",
+      "sha256": "1509ce972f5de6b33449d6defeecfad036d9b62bd4c6e076bc01e6358b5c8439",
+      "member": "lib/presentation/onboarding/screens/onboarding_start_screen.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurrence_components.dart",
+      "sha256": "f5dee883c5ae7776d8d3f1cbb283ff107125e3a266ea821a6c8e457a845d624f",
+      "member": "lib/presentation/recurring/recurrence_components.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurrence_labels.dart",
+      "sha256": "7169303c215d0eb6bf80f644162a8f94161b07976d9dbce7a67933608e0549ba",
+      "member": "lib/presentation/recurring/recurrence_labels.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurrence_occurrence_sheet.dart",
+      "sha256": "f110efb2159a6c7dbcdbba5616f4f1d90f5028d9da10b3edea9e08a7e8770023",
+      "member": "lib/presentation/recurring/recurrence_occurrence_sheet.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurrence_review_sheet.dart",
+      "sha256": "f9f25cdd00ef9d960d7c56d6c70bdbd9efd4b550e2d2810bffeea5ca859ba661",
+      "member": "lib/presentation/recurring/recurrence_review_sheet.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurrence_scope_sheet.dart",
+      "sha256": "8c1564da849737d293db50a4a189e3766aab9ab3ab237c7a413fed1dae34850e",
+      "member": "lib/presentation/recurring/recurrence_scope_sheet.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurrence_settings_sheet.dart",
+      "sha256": "beb93f146ffc3cea336c18c7b9f3e5755c912ebb8862355b1543e8ded9f472c4",
+      "member": "lib/presentation/recurring/recurrence_settings_sheet.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurrence_time_choice_sheet.dart",
+      "sha256": "66d08acadc067691eae426ce4cb325ed59fd73899f0ab5b54f4bb3c331450bbd",
+      "member": "lib/presentation/recurring/recurrence_time_choice_sheet.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurring_management_screen.dart",
+      "sha256": "2d88128d3ebcc225faaf84ac2b3c4d5a805da9a1f13ad6f793e36e26a7e0ddd2",
+      "member": "lib/presentation/recurring/recurring_management_screen.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurring_time_correction_plan_summary.dart",
+      "sha256": "30941b880e441a85162d858b16b839913983203c3c72b331e476acf83fdeec77",
+      "member": "lib/presentation/recurring/recurring_time_correction_plan_summary.dart"
+    },
+    {
+      "path": "lib/presentation/recurring/recurring_time_correction_screen.dart",
+      "sha256": "4e37354fca69f433832c5e0b3d12af029f2ecaa853513c363ee8771ef41cc5b2",
+      "member": "lib/presentation/recurring/recurring_time_correction_screen.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/bloc/schedule_form_bloc.dart",
+      "sha256": "16a6b4c1a4f81e9473b061abdd1e3d1d3e5ed428115da543aaa83d0bb7b48a0b",
+      "member": "lib/presentation/schedule_create/bloc/schedule_form_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/bloc/schedule_form_event.dart",
+      "sha256": "3f6acbb3c934abaad0f11c6f928704339f17d0759b38ebf192a22dd5d56f0d28",
+      "member": "lib/presentation/schedule_create/bloc/schedule_form_event.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/bloc/schedule_form_state.dart",
+      "sha256": "4fece26b8d771323466758ce830907bc902111f02cb9b242fd5a1d40dd512134",
+      "member": "lib/presentation/schedule_create/bloc/schedule_form_state.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/bloc/schedule_time_save_review.dart",
+      "sha256": "cb95f7e4a5f747ece4ef2e32f2bdd323420b96db6c895fc3bd8e52c84da60633",
+      "member": "lib/presentation/schedule_create/bloc/schedule_time_save_review.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/components/keyboard_backed_bottom_sheet.dart",
+      "sha256": "c5284ec29224d69c611b912d74d440c447769e1e1b73c9fabb2ab45ba7f607e9",
+      "member": "lib/presentation/schedule_create/components/keyboard_backed_bottom_sheet.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/components/message_bubble.dart",
+      "sha256": "29b6f42b0ea61d7200029a0c619918e276df1269ecc51e1f3a6efa3434fef254",
+      "member": "lib/presentation/schedule_create/components/message_bubble.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/components/preparation_reorderable_list_form_field.dart",
+      "sha256": "ef91f5f5aa5c6948794d9893381abd10cab61a6a55ece0ba4e11cfb4f342adb8",
+      "member": "lib/presentation/schedule_create/components/preparation_reorderable_list_form_field.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/components/schedule_multi_page_form.dart",
+      "sha256": "bfd9df5c5bca6d10f86b40158d5229ef603899c3877b6f626f81675a7925b790",
+      "member": "lib/presentation/schedule_create/components/schedule_multi_page_form.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/components/top_bar.dart",
+      "sha256": "093612173fcccc0a8370bf6353ccf34c2cb65f8f1b43d08603036e99e6702487",
+      "member": "lib/presentation/schedule_create/components/top_bar.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart",
+      "sha256": "aa689272529ae771628bd8a5a042be1c56cfba2fdc5b2dab9702d28a1d7998c9",
+      "member": "lib/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_state.dart",
+      "sha256": "e9e3e795ef710f8abab1f7b6b8429e3d790ed41b6635b0436fd024fdc4083832",
+      "member": "lib/presentation/schedule_create/schedule_date_time/cubit/schedule_date_time_state.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_date_time/input_models/schedule_date_input_model.dart",
+      "sha256": "73532c71fe4abdb4950b12254c6f734d5c3bc5866c6422c5856d716174678e9d",
+      "member": "lib/presentation/schedule_create/schedule_date_time/input_models/schedule_date_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_date_time/input_models/schedule_time_input_model.dart",
+      "sha256": "c4bd8c1107db2166659a3fcc6c8596e4bfbb7aada26f383558e5ad39000f80dd",
+      "member": "lib/presentation/schedule_create/schedule_date_time/input_models/schedule_time_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_date_time/screens/schedule_date_time_form.dart",
+      "sha256": "2e53216c3d2063e9ae7519861b75feb3852e3ef070526a9df4009fda7d858d24",
+      "member": "lib/presentation/schedule_create/schedule_date_time/screens/schedule_date_time_form.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_date_time/screens/schedule_time_zone_picker.dart",
+      "sha256": "17d66b2c499abf9e85d67ed4faeca49ace558f95dd8aad2e29551d3649dc9b9c",
+      "member": "lib/presentation/schedule_create/schedule_date_time/screens/schedule_time_zone_picker.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart",
+      "sha256": "627a33307a7e2d5f100946cc096ad317057e3faccc2c243843c916824abae760",
+      "member": "lib/presentation/schedule_create/schedule_name/cubit/schedule_name_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_name/cubit/schedule_name_state.dart",
+      "sha256": "7306754d3e5fb1e226c0491a7b9d5e4d47e668e26600d610c02fcc55b3433f4a",
+      "member": "lib/presentation/schedule_create/schedule_name/cubit/schedule_name_state.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_name/input_models/schedule_name_input_model.dart",
+      "sha256": "af715181e54123cdf8d962e81a0dbc19e203ed6a2eae19a987bf9d657a45fa1d",
+      "member": "lib/presentation/schedule_create/schedule_name/input_models/schedule_name_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_name/screens/schedule_name_form.dart",
+      "sha256": "098aa18942746143a97fd3ba1e1a75c85c12bfc118c0c4411d5b23ee975a82e8",
+      "member": "lib/presentation/schedule_create/schedule_name/screens/schedule_name_form.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_cubit.dart",
+      "sha256": "ff1fe81c0dc5fdaabf9ceee8bf304bf29793dd91538917332694c964e3d2fdfd",
+      "member": "lib/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_state.dart",
+      "sha256": "1c7d6f439a9d39bea96de9bc2ea7488c589d92eecd7c49a19198aad88983df88",
+      "member": "lib/presentation/schedule_create/schedule_place_moving_time/cubit/schedule_place_moving_time_state.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_place_moving_time/input_models/schedule_moving_time_input_model.dart",
+      "sha256": "888828ae77625ffad9740e8b29d40167fa8fbb2c1a573f4ff16eb2e0ed0dc93f",
+      "member": "lib/presentation/schedule_create/schedule_place_moving_time/input_models/schedule_moving_time_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_place_moving_time/input_models/schedule_place_input_model.dart",
+      "sha256": "8c84fc1bd40deb193dd0e98975b25abf3b94edaf1576e44aeee319f0a3464049",
+      "member": "lib/presentation/schedule_create/schedule_place_moving_time/input_models/schedule_place_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_place_moving_time/screens/schedule_place_moving_time_form.dart",
+      "sha256": "370a6cb278cd5afa551e3517718272a862d19f599143fdb1c0be8880c7b52eae",
+      "member": "lib/presentation/schedule_create/schedule_place_moving_time/screens/schedule_place_moving_time_form.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart",
+      "sha256": "4fd8e64f397ef91ae4ecc0a24365d71ced4c3f136d171dc88665665be2af7ba6",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_state.dart",
+      "sha256": "d1e221e3814ab31964c149d87adbbfd2975dcd29c7dca991b595c793b59d2d18",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_state.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/input_models/schedule_spare_time_input_model.dart",
+      "sha256": "a7a84cf2b66d963a0b99af4f2539923227b3417a3a59389bbb9faf85478abac7",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/input_models/schedule_spare_time_input_model.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart",
+      "sha256": "7a4bfb1dd8f5b319a3c0594b88ea59a4e41d8169741175099798b98e108b5f63",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_event.dart",
+      "sha256": "a8ce756a34b5b6ce4c55542678995debd3e0401bec8ba90b554666163812d805",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_event.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_state.dart",
+      "sha256": "b1f1cd3d17f2f49902882e91b13dead14a5239ca6c5f5adeffb6398aed256b05",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_state.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_create_list.dart",
+      "sha256": "108c4fbf61c9ce11b053a41107b473a359518182bd05d3a5181e9cdae1052d5b",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_create_list.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart",
+      "sha256": "c02a2814133c42075a8e435935b38bfe6a6a6219771d79d705efc9ebb0da21ab",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_list_field.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart",
+      "sha256": "91480ec26c26da89e6765257c6323e20b252dcf05d6968e1fecf4825aca8024a",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_form_reorderable_list.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_time_input.dart",
+      "sha256": "0562e6cb4923a575f155f6668c7098b953e1563b7502d30bf3289fb5637b4025",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/components/preparation_time_input.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_edit_draft_cubit.dart",
+      "sha256": "aaf683923ff0f89a33b4f0b218bef78f2ff450c2b6bcc725fb0f0d41815026d6",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_edit_draft_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart",
+      "sha256": "33e2f996666004d99a04fa7ac793f0024388f7ac99442f74c2b4c69b1e9f16fe",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_cubit.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_state.dart",
+      "sha256": "bd7ab5172c6d53847694483644e48dfa663ab026dcab02ee6d30653c4673dcb5",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/cubit/preparation_step_form_state.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/screens/preparation_edit_form.dart",
+      "sha256": "87ef529118a7957f028426128361f2098656e9c7b7d84fbea17e6229614b6098",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/screens/preparation_edit_form.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart",
+      "sha256": "91b98671e643d1fa0013313cfe33d220e4e4a81e127904f86dc73dd02c63cc18",
+      "member": "lib/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/screens/schedule_create_screen.dart",
+      "sha256": "2db8bb7aaaa5b8f99221f1b700cf76e68419bc20f1c799e0b016a7e4d8f0a178",
+      "member": "lib/presentation/schedule_create/screens/schedule_create_screen.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/screens/schedule_edit_screen.dart",
+      "sha256": "6845a84e6464d1aacf24bb970bc2a64a3dbfcc2ffea98e7f4e27a45945b4160b",
+      "member": "lib/presentation/schedule_create/screens/schedule_edit_screen.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/screens/schedule_time_correction_screen.dart",
+      "sha256": "450ef6c0eaffc80d67d9b86ffc2505f5e67c51fba214ecd9c2edaf9ac24c4de7",
+      "member": "lib/presentation/schedule_create/screens/schedule_time_correction_screen.dart"
+    },
+    {
+      "path": "lib/presentation/schedule_create/screens/schedule_time_save_review_dialog.dart",
+      "sha256": "caae84e2f787c9a78f5090d31268d408e40e5875dd2ef475963f467716ebd3d8",
+      "member": "lib/presentation/schedule_create/screens/schedule_time_save_review_dialog.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/arc_indicator.dart",
+      "sha256": "ff2cdce39136e456503d4dfe4fc346f5e5898ccd03b0b4d6899c9384fbefdcba",
+      "member": "lib/presentation/shared/components/arc_indicator.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/bottom_nav_bar_scaffold.dart",
+      "sha256": "509cf3de7cfbdfa0b9046f8b60ab966959df2f5fa1c344b1f0a2e1abd5f36d05",
+      "member": "lib/presentation/shared/components/bottom_nav_bar_scaffold.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/bottom_navigation_bar.dart",
+      "sha256": "431ccb3643756b89a8bff46277ebdeda6c0d1d32fd273884a92076ff4c05bd00",
+      "member": "lib/presentation/shared/components/bottom_navigation_bar.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/calendar/centered_calendar_header.dart",
+      "sha256": "65ff57550fd149fc24d918c388d1df021172b89279f0e7cea5e889e4d05f0a78",
+      "member": "lib/presentation/shared/components/calendar/centered_calendar_header.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/calendar/schedule_marker_builder.dart",
+      "sha256": "af298fd331c94a632d23baf2875a16d0e4597318542bf36a346e8d16c68aba01",
+      "member": "lib/presentation/shared/components/calendar/schedule_marker_builder.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/check_button.dart",
+      "sha256": "1bdf31d714bcb58a05f89f892297eda954898d53a35ea906294f3c02588822de",
+      "member": "lib/presentation/shared/components/check_button.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/civil_date_time_picker.dart",
+      "sha256": "814f4eb12b7e8a648da8e0c79a6cee47bd2ce3414fe1cd10ce7affb2b609ed04",
+      "member": "lib/presentation/shared/components/civil_date_time_picker.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/cupertino_picker_modal.dart",
+      "sha256": "fd0168081a9e39a75034ce4bc1ef970845b6a9e7aeadbc8110f652b535b1a8b8",
+      "member": "lib/presentation/shared/components/cupertino_picker_modal.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/custom_alert_dialog.dart",
+      "sha256": "230968acf50a104b8ff93e338e838b09d74aca8a0ce70a5effa7ef0275a339f8",
+      "member": "lib/presentation/shared/components/custom_alert_dialog.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/error_message_bubble.dart",
+      "sha256": "6e0014a4053f1be61b6eeffec795630eea8e85730141b141ea48d74c62a5b3c2",
+      "member": "lib/presentation/shared/components/error_message_bubble.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/loading_screen.dart",
+      "sha256": "cfc1e7a30077bbf7aa24392abb06d05f1ee6a51d72de682b66f861bcfbe716dd",
+      "member": "lib/presentation/shared/components/loading_screen.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/modal_wide_button.dart",
+      "sha256": "b669ff1e9de9e0c0086b635f1bd1b7b11515cf6ffa9cd268924dd43bd82ea492",
+      "member": "lib/presentation/shared/components/modal_wide_button.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/notification_timing_education.dart",
+      "sha256": "bdfca87e3ba18234dfc41d7cb29ce4af6b1fe7c76828ac98aaf7efd7e4bd4207",
+      "member": "lib/presentation/shared/components/notification_timing_education.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/step_progress.dart",
+      "sha256": "83090a7190890211e86532a41b58f6e042abe96540ea95a0dd02a1dec2cb413d",
+      "member": "lib/presentation/shared/components/step_progress.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/tile.dart",
+      "sha256": "612f63b597ee5c12d76ea182f0bf397f9b6df0fe8594218099ac70d3cfdd0ef3",
+      "member": "lib/presentation/shared/components/tile.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/time_stepper.dart",
+      "sha256": "f2f6bc1971d4ffad5bc92b4871599dc00b76cb97e103a950960514efeb84f615",
+      "member": "lib/presentation/shared/components/time_stepper.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/two_action_dialog.dart",
+      "sha256": "d78a54e7cfe969e40939b740a9ba60dd3aef35c0b8202d97601ccefb57854095",
+      "member": "lib/presentation/shared/components/two_action_dialog.dart"
+    },
+    {
+      "path": "lib/presentation/shared/components/two_button_delete_dialog.dart",
+      "sha256": "238b4218f13a91c9409f262b4682f59824360a6fd475e2d34db2329f69ef0acc",
+      "member": "lib/presentation/shared/components/two_button_delete_dialog.dart"
+    },
+    {
+      "path": "lib/presentation/shared/constants/app_colors.dart",
+      "sha256": "dca7bf8e7b1a74b93ca87ac17635c6c0c5a731c41116884977539e20e2e78ef9",
+      "member": "lib/presentation/shared/constants/app_colors.dart"
+    },
+    {
+      "path": "lib/presentation/shared/constants/constants.dart",
+      "sha256": "2b0b1a2d9130f201a675af89904a71ded3c056e70e24a557b825709c9165271b",
+      "member": "lib/presentation/shared/constants/constants.dart"
+    },
+    {
+      "path": "lib/presentation/shared/constants/early_late_text_images.dart",
+      "sha256": "373b101f04cb658cdda21574dba94ab7b98d94eb0349c1e61eafa39ed6e5e13f",
+      "member": "lib/presentation/shared/constants/early_late_text_images.dart"
+    },
+    {
+      "path": "lib/presentation/shared/router/app_route_transition.dart",
+      "sha256": "b727d9335c01475dfb8d3016c7dea72bf55906b701607feb00b800b0ae2d3212",
+      "member": "lib/presentation/shared/router/app_route_transition.dart"
+    },
+    {
+      "path": "lib/presentation/shared/router/go_router.dart",
+      "sha256": "c5bb3bfc75e354f276446e1236e54b44bb87ad0c1f08ede8dade51efacf55680",
+      "member": "lib/presentation/shared/router/go_router.dart"
+    },
+    {
+      "path": "lib/presentation/shared/router/route_arguments.dart",
+      "sha256": "f97531dad02c929ade1aa73a8a6df1eaa8a24313018b517ac0277f6ea32073ec",
+      "member": "lib/presentation/shared/router/route_arguments.dart"
+    },
+    {
+      "path": "lib/presentation/shared/theme/button_styles.dart",
+      "sha256": "58f8fea4d7a728f387ced58b594d97db036774528f61509719f86a30bddcbe0c",
+      "member": "lib/presentation/shared/theme/button_styles.dart"
+    },
+    {
+      "path": "lib/presentation/shared/theme/calendar_theme.dart",
+      "sha256": "33c85328ad77666dfdfa42dcc033dd2adfd06bcc4e3185881a03c0b7b576492f",
+      "member": "lib/presentation/shared/theme/calendar_theme.dart"
+    },
+    {
+      "path": "lib/presentation/shared/theme/color_scheme.dart",
+      "sha256": "beffaaa6aacada4e982d1375aa87c9871a6d0201663be2831903bb5aa03eeaee",
+      "member": "lib/presentation/shared/theme/color_scheme.dart"
+    },
+    {
+      "path": "lib/presentation/shared/theme/input_decoration_theme.dart",
+      "sha256": "cb571d5c7f0dca6f696f8227b5738c392a369b092853b8a05562e6989fdae193",
+      "member": "lib/presentation/shared/theme/input_decoration_theme.dart"
+    },
+    {
+      "path": "lib/presentation/shared/theme/text_theme.dart",
+      "sha256": "0999af756973ba3af517333a7ba736bb92cc92ad1f687874467dde74f3e4ea65",
+      "member": "lib/presentation/shared/theme/text_theme.dart"
+    },
+    {
+      "path": "lib/presentation/shared/theme/theme.dart",
+      "sha256": "abfe61d784665ae144e360a97aa811511fc6950f69335cd3bc2d3403f36571df",
+      "member": "lib/presentation/shared/theme/theme.dart"
+    },
+    {
+      "path": "lib/presentation/shared/theme/tile_style.dart",
+      "sha256": "6d163a250d69adf3e0d340d9184daa1d65d9a789d11b46adff0a9430794bd686",
+      "member": "lib/presentation/shared/theme/tile_style.dart"
+    },
+    {
+      "path": "lib/presentation/shared/time/date_basis_info.dart",
+      "sha256": "672881f485c6b4be77c7bfead3ea3c673c6235543fa5ef150f489dfeed1eaa97",
+      "member": "lib/presentation/shared/time/date_basis_info.dart"
+    },
+    {
+      "path": "lib/presentation/shared/time/device_time_zone_scope.dart",
+      "sha256": "17e781eb25db1a7fa22b9a88189863553070c98614cf12d42967deafb31dcae6",
+      "member": "lib/presentation/shared/time/device_time_zone_scope.dart"
+    },
+    {
+      "path": "lib/presentation/shared/time/device_time_zone_state.dart",
+      "sha256": "0cfebc68be4482b0db52100d8844d7aacc209f95de50b10e7373131989a894e0",
+      "member": "lib/presentation/shared/time/device_time_zone_state.dart"
+    },
+    {
+      "path": "lib/presentation/shared/time/schedule_zoned_time.dart",
+      "sha256": "64931b5f71881646bc0a555e304ad5692a3282af008b136034d654286be37591",
+      "member": "lib/presentation/shared/time/schedule_zoned_time.dart"
+    },
+    {
+      "path": "lib/presentation/shared/time/schedule_zoned_time_text.dart",
+      "sha256": "16aeca6edfc79f568d2c0102357c1b59747e971739ae39d42423d7f2f1899ff2",
+      "member": "lib/presentation/shared/time/schedule_zoned_time_text.dart"
+    },
+    {
+      "path": "lib/presentation/shared/time/time_zone_catalog.dart",
+      "sha256": "e81f4c626e6a20cee98b5612b844e0539c65eff9811407277eec2b9531501215",
+      "member": "lib/presentation/shared/time/time_zone_catalog.dart"
+    },
+    {
+      "path": "lib/presentation/shared/time/zoned_schedule_presentation.dart",
+      "sha256": "a438ea989851f3890bba0cf082ea350cc853e2d87602b7a35daf253395c888fa",
+      "member": "lib/presentation/shared/time/zoned_schedule_presentation.dart"
+    },
+    {
+      "path": "lib/presentation/shared/utils/duration_format.dart",
+      "sha256": "f8812701bda47d580dfaff36f4b790494ddcffd41a8893dfcabcdbe647b8103c",
+      "member": "lib/presentation/shared/utils/duration_format.dart"
+    },
+    {
+      "path": "lib/presentation/shared/utils/login_platform.dart",
+      "sha256": "07ecf92084bfd790c0266c576d95bfec66de4712becb949b69fb070f0458cff3",
+      "member": "lib/presentation/shared/utils/login_platform.dart"
+    },
+    {
+      "path": "lib/presentation/shared/utils/stream_to_listenable.dart",
+      "sha256": "daf2bebb059f45dd57511a3fa57ced28d70ae53348924fefc0bf89e9dccf41d3",
+      "member": "lib/presentation/shared/utils/stream_to_listenable.dart"
+    },
+    {
+      "path": "lib/presentation/shared/utils/time_format.dart",
+      "sha256": "83a824385d87fedd9d59d3d644fb6286803b8121fbe8d8e2d61041d1294573e1",
+      "member": "lib/presentation/shared/utils/time_format.dart"
+    },
+    {
+      "path": "lib/presentation/startup/screens/local_data_recovery_screen.dart",
+      "sha256": "b2a791cca2339b0df1a8c58c71cdd56084459cb2506d59e196bdd5b135714f1e",
+      "member": "lib/presentation/startup/screens/local_data_recovery_screen.dart"
+    },
+    {
+      "path": "lib/presentation/startup/screens/local_reset_progress_screen.dart",
+      "sha256": "22f38e6e93a9b07742a49926977acac4532973ad20abd6203137252550dad8f8",
+      "member": "lib/presentation/startup/screens/local_reset_progress_screen.dart"
+    },
+    {
+      "path": "lib/presentation/startup/screens/local_startup_gate.dart",
+      "sha256": "194720e82ef244c719471b09a88e0c4f2fe90f4d5207c2dc59d30469d9c0a2ac",
+      "member": "lib/presentation/startup/screens/local_startup_gate.dart"
+    },
+    {
+      "path": "lib/presentation/startup/screens/recovery_restore_screen.dart",
+      "sha256": "daff784bcec0f6092aa5bebf7bc77b5e5317e6cc3199246f56865f12affdaf7c",
+      "member": "lib/presentation/startup/screens/recovery_restore_screen.dart"
+    },
+    {
+      "path": "lib/presentation/startup/screens/startup_screen.dart",
+      "sha256": "7a8475e5edb9be5e557f0b6f9191d2b023d60857fd3c23460c1bce73a9f72af2",
+      "member": "lib/presentation/startup/screens/startup_screen.dart"
+    },
+    {
+      "path": "pubspec.lock",
+      "sha256": "3dd6381afe1250a3f9a697e591820090d390cb696e04ec3da6ac6f731e973611",
+      "member": "pubspec.lock"
+    },
+    {
+      "path": "pubspec.yaml",
+      "sha256": "39f541cfb7e29e91c90af9808ff64fde50f471c26fd738fa2617b6f78f254f12",
+      "member": "pubspec.yaml"
+    },
+    {
+      "path": "test/core/backup/backup_admission_test.dart",
+      "sha256": "25167ed87e9aca4d23b7b98d191d40a2287fd6744f2b31229871e6f6a5b774bd",
+      "member": "test/core/backup/backup_admission_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_authenticated_time_review_test.dart",
+      "sha256": "7da7dd58d8844791593a09c7512d853e9782a657ae2c19973d320d22653a656b",
+      "member": "test/core/backup/backup_authenticated_time_review_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_civil_persistence_test.dart",
+      "sha256": "984e5bae916f42fb9e06d1fecd0c3ff6c6d27a856262c246ffb8bce904eb56e0",
+      "member": "test/core/backup/backup_civil_persistence_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_crypto_capacity_test.dart",
+      "sha256": "ae80ddd6f8c064ae63ebbcdf5456108178e216e3ec3cae5daabf12658e8506fe",
+      "member": "test/core/backup/backup_crypto_capacity_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_crypto_failure_matrix_test.dart",
+      "sha256": "fbed3da5afb88fdae42ef5068fa2d7b7f86c950d112b14600301dad0ddbf49cb",
+      "member": "test/core/backup/backup_crypto_failure_matrix_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_crypto_stream_test.dart",
+      "sha256": "dc062c641bd563289eebfcbea99b7c7b72f4bf18777987fa89075d7471a025da",
+      "member": "test/core/backup/backup_crypto_stream_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_crypto_test.dart",
+      "sha256": "919b76c76e3a981bd6f07fea477e328e940c8e542b2488e8453f78abc819d023",
+      "member": "test/core/backup/backup_crypto_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_export_snapshot_test.dart",
+      "sha256": "8f2093c669032d3efd7c635515f30b9e69f6253781a636744880bd41c37a2e67",
+      "member": "test/core/backup/backup_export_snapshot_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_failure_retry_acceptance_test.dart",
+      "sha256": "5f7ca795001dab7e8fbd4ba6451923ebdd4722f918d5b7604d425236ff7b2ebe",
+      "member": "test/core/backup/backup_failure_retry_acceptance_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_file_export_port_test.dart",
+      "sha256": "0181d8bd22c8430139be4c593410b0325556338248ebeecd918281f94db3db78",
+      "member": "test/core/backup/backup_file_export_port_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_file_import_port_test.dart",
+      "sha256": "43f284cde258a3652a84eb47d4f0b3b49ae13041586ec046d65e2b10df6e9644",
+      "member": "test/core/backup/backup_file_import_port_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_ingestion_store_test.dart",
+      "sha256": "db8aaed4173d44bacc5d0e2318cfe246bc64ad585f276c1531eee5c7db7a47e1",
+      "member": "test/core/backup/backup_ingestion_store_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_instant_representation_test.dart",
+      "sha256": "e1c193e612470daa93efc3eb48d5b89cbada18606cda949b1cd075fa9672bc84",
+      "member": "test/core/backup/backup_instant_representation_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_json_reader_test.dart",
+      "sha256": "b72e2c061e9d69ffea499ccf67515a8fbb593b9a45c17ffccd824575337b8906",
+      "member": "test/core/backup/backup_json_reader_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_large_ingestion_test.dart",
+      "sha256": "f93106fbb6d6d5fbe0fbef519499edd93b8d98b30412683ba56320eed685fd88",
+      "member": "test/core/backup/backup_large_ingestion_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_parser_budget_acceptance_test.dart",
+      "sha256": "0b8a731d8f738a668604b67efe4b6beecaa1af4229440ffaceca550b4ca29e20",
+      "member": "test/core/backup/backup_parser_budget_acceptance_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_password_test.dart",
+      "sha256": "d4f2b255bf8cab46994ecfaf24e4f639de21e474b3bfea486459e4650caf0108",
+      "member": "test/core/backup/backup_password_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_recurring_time_review_cipher_test.dart",
+      "sha256": "4c565a4d1fa1b3aaede1109b2b618f94864cd12d91472184d920f6dab26b349c",
+      "member": "test/core/backup/backup_recurring_time_review_cipher_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_recurring_time_review_test.dart",
+      "sha256": "d514835fd3bf610439a33340490bac6f58b047743aae6aaef99ac4d870b355b6",
+      "member": "test/core/backup/backup_recurring_time_review_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_restore_picker_test.dart",
+      "sha256": "0416f361e5f0189f1f95b22fb1d0bc0039cf5dc8199fa9a6faa9507be1dea052",
+      "member": "test/core/backup/backup_restore_picker_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_restore_stale_contract_test.dart",
+      "sha256": "a0b3cbfd04a0b6d5b1af7990cef977ae49a696fe4e95d51e317404dda3a49a3c",
+      "member": "test/core/backup/backup_restore_stale_contract_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_retained_recurrence_test.dart",
+      "sha256": "3d7fc2a201120f3acdd86c9cd96fdca0a0332ad610a5d9667ef154d360a7728e",
+      "member": "test/core/backup/backup_retained_recurrence_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_service_test.dart",
+      "sha256": "de17ef58ceb43a0727db7a4f47db53862149ef3a6d5f87c355ad0da32ccf753b",
+      "member": "test/core/backup/backup_service_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_spare_time_boundary_test.dart",
+      "sha256": "351d4ad2303366e996ad47220b6a1ea24cc255ee50f69845b4d77d4c2f9333c0",
+      "member": "test/core/backup/backup_spare_time_boundary_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_time_review_service_test.dart",
+      "sha256": "8a10b3a116c49f500083c98c0b96a710389b7a690066164b971219355646c6b6",
+      "member": "test/core/backup/backup_time_review_service_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_unknown_history_test.dart",
+      "sha256": "650fba49d6afc1109bbd213354b97d100f771107b68a0cb73150af37d2a541af",
+      "member": "test/core/backup/backup_unknown_history_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_unknown_recurrence_test.dart",
+      "sha256": "eef04fe887f32ea7a825888183c877e05baaff88d32b2a1215ff58af0d10a5b5",
+      "member": "test/core/backup/backup_unknown_recurrence_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_validated_ingestion_test.dart",
+      "sha256": "2e608b9020fa10359ed8ff56c1cbaf14b6cfe694725f26f3550cd41ece7d6c3c",
+      "member": "test/core/backup/backup_validated_ingestion_test.dart"
+    },
+    {
+      "path": "test/core/backup/backup_validation_contract_test.dart",
+      "sha256": "c35716234841ce91ac42106a233c9a0d7451c52bab5f7f9266746440a805788a",
+      "member": "test/core/backup/backup_validation_contract_test.dart"
+    },
+    {
+      "path": "test/core/backup/detailed_notification_backup_generation_acceptance_test.dart",
+      "sha256": "19b7b078c6dde97a7cef4146f85dabe1e51aecfded982f4cef49124ffd46aa91",
+      "member": "test/core/backup/detailed_notification_backup_generation_acceptance_test.dart"
+    },
+    {
+      "path": "test/core/backup/restore_commit_response_acceptance_test.dart",
+      "sha256": "0fa42372bea66102fc7581dd656037dd84747973f89d3e89b961291636d251e6",
+      "member": "test/core/backup/restore_commit_response_acceptance_test.dart"
+    },
+    {
+      "path": "test/core/backup/restore_replacement_protocol_test.dart",
+      "sha256": "f53afb269d2f57e2e380fb9127b8d947d1345f2dbcb289437560334b83ec70dd",
+      "member": "test/core/backup/restore_replacement_protocol_test.dart"
+    },
+    {
+      "path": "test/core/backup/restore_staging_cipher_test.dart",
+      "sha256": "840236ef7a3dd91cf82a1490e52852805400d80050bdbf42c6c5eb60c091ec76",
+      "member": "test/core/backup/restore_staging_cipher_test.dart"
+    },
+    {
+      "path": "test/core/backup/schedule_deletion_backup_test.dart",
+      "sha256": "b52f4f54e2fe2869989211255f8e9c1a005975f3d07ff22c307128f32f667b47",
+      "member": "test/core/backup/schedule_deletion_backup_test.dart"
+    },
+    {
+      "path": "test/core/database/alarm_journal_recovery_test.dart",
+      "sha256": "d4861dbaea522c2811872172a51df80d8a4316d7519f9d2acc6699f5898c5c09",
+      "member": "test/core/database/alarm_journal_recovery_test.dart"
+    },
+    {
+      "path": "test/core/database/alarm_replacement_integration_test.dart",
+      "sha256": "eb2ed4ca24d057dc9bfdebe5aad27c9341b240fc1ca2108a1c2db9260c71b249",
+      "member": "test/core/database/alarm_replacement_integration_test.dart"
+    },
+    {
+      "path": "test/core/database/bootstrap_privacy_boundary_test.dart",
+      "sha256": "3a7246a1a4ff4042c1d31fc5fc60545885fb5ae3c1da833c32eff9b3c1a03847",
+      "member": "test/core/database/bootstrap_privacy_boundary_test.dart"
+    },
+    {
+      "path": "test/core/database/cipher_capability_guard_test.dart",
+      "sha256": "96d260284d7102999206e75c704567934462b6b41dbdb34a057a2b7588612e10",
+      "member": "test/core/database/cipher_capability_guard_test.dart"
+    },
+    {
+      "path": "test/core/database/database_index_test.dart",
+      "sha256": "6520060bba808fbc25fb7784b869f299429da2075540da1e5a1922c09e7aff13",
+      "member": "test/core/database/database_index_test.dart"
+    },
+    {
+      "path": "test/core/database/encrypted_schema_roles_test.dart",
+      "sha256": "cb244c44885eeb92a68c869318e4f895ba1bbe162c6948e8f3f793027d622242",
+      "member": "test/core/database/encrypted_schema_roles_test.dart"
+    },
+    {
+      "path": "test/core/database/historical_row_image_test.dart",
+      "sha256": "9eeccb579d57b1a11a8810d9ea84bd853a332ab381ed57d07b1b35193db33aa8",
+      "member": "test/core/database/historical_row_image_test.dart"
+    },
+    {
+      "path": "test/core/database/initial_store_cipher_test.dart",
+      "sha256": "4160cc793a11bfa511be7200a81fd550986a6859819358b2a9ec5be2ff9ef1f2",
+      "member": "test/core/database/initial_store_cipher_test.dart"
+    },
+    {
+      "path": "test/core/database/initial_store_guard_test.dart",
+      "sha256": "f7a441efd2a7ca08ae49fb390b7b77db7b7327091f60378f51d94177fdb7bab4",
+      "member": "test/core/database/initial_store_guard_test.dart"
+    },
+    {
+      "path": "test/core/database/local_data_lifecycle_startup_test.dart",
+      "sha256": "b3cd8a53b0b2096498af14a3998a68162674528c5f2656374ff292748cf8f977",
+      "member": "test/core/database/local_data_lifecycle_startup_test.dart"
+    },
+    {
+      "path": "test/core/database/local_data_operation_gate_test.dart",
+      "sha256": "3e8d5b1e105a774364b48060abed94d5c2851f9c9b86e95d0d2758f593647ad8",
+      "member": "test/core/database/local_data_operation_gate_test.dart"
+    },
+    {
+      "path": "test/core/database/local_reset_actions_test.dart",
+      "sha256": "ee94f2185ac85c097c3f8ae1212c261d7f2e14e71f793378a9806faabb275716",
+      "member": "test/core/database/local_reset_actions_test.dart"
+    },
+    {
+      "path": "test/core/database/local_reset_protocol_test.dart",
+      "sha256": "4d5f256dbb29dba29fc6b79b0da6bdd4c7024e2edfdbe19be9cee18fe465a99b",
+      "member": "test/core/database/local_reset_protocol_test.dart"
+    },
+    {
+      "path": "test/core/database/migration_atomic_boundary_test.dart",
+      "sha256": "8b72dc05ad4e935bb3f9d4c61bef8f9c14b7f9daafed69e1a30841e7b1b85051",
+      "member": "test/core/database/migration_atomic_boundary_test.dart"
+    },
+    {
+      "path": "test/core/database/migration_checkpoint_test.dart",
+      "sha256": "e61fcc918fab6e567d38df19becd6034c8d269093a85eaa3d7dcdb0b96c0d3f8",
+      "member": "test/core/database/migration_checkpoint_test.dart"
+    },
+    {
+      "path": "test/core/database/migration_sqlite_fault_test.dart",
+      "sha256": "9f7a677ce4bc45776fd687e6421c44b12b2dcd594053143118ad46d39148852a",
+      "member": "test/core/database/migration_sqlite_fault_test.dart"
+    },
+    {
+      "path": "test/core/database/native_process_identity_test.dart",
+      "sha256": "9e47f2c7ccc1a456785f3c98d1d75681b1d79546a39a688624e44bb0a60f7460",
+      "member": "test/core/database/native_process_identity_test.dart"
+    },
+    {
+      "path": "test/core/database/recovery_pair_authority_test.dart",
+      "sha256": "ad0d931e3ce07ce917b8fa804e160c40b74a25ddaff0198d4379c5a16ea085b1",
+      "member": "test/core/database/recovery_pair_authority_test.dart"
+    },
+    {
+      "path": "test/core/database/recovery_restore_service_test.dart",
+      "sha256": "3d80262b7a7159b6d8b18608048706b66bd799672f04b0861aaae9dc36d31f18",
+      "member": "test/core/database/recovery_restore_service_test.dart"
+    },
+    {
+      "path": "test/core/database/recovery_time_review_service_test.dart",
+      "sha256": "7d855cde486bebe756de0dd381ec263107dcbee056a8f0596805e067da140add",
+      "member": "test/core/database/recovery_time_review_service_test.dart"
+    },
+    {
+      "path": "test/core/database/recurring_migration_test.dart",
+      "sha256": "03a0745c00ea247c55dea9f65b27a435b0492b217520c0f75fab4a898b672c0d",
+      "member": "test/core/database/recurring_migration_test.dart"
+    },
+    {
+      "path": "test/core/database/restore_delivery_cleanup_test.dart",
+      "sha256": "b71d8211db28814742996c240ac18b7d20a26f99248961d236d3151c1fc9cabf",
+      "member": "test/core/database/restore_delivery_cleanup_test.dart"
+    },
+    {
+      "path": "test/core/database/restore_runtime_quiescence_test.dart",
+      "sha256": "4aabda1d99ddc9bdd50d2fc1e0bad4bace78b35afe0a979a4080e3a450ba4ff1",
+      "member": "test/core/database/restore_runtime_quiescence_test.dart"
+    },
+    {
+      "path": "test/core/database/restore_startup_classification_test.dart",
+      "sha256": "6792cee4f9ef369a1aab46d8d93f0ccba0ef16e12deba4b40c41c25a48164626",
+      "member": "test/core/database/restore_startup_classification_test.dart"
+    },
+    {
+      "path": "test/core/database/schedule_aggregate_migration_test.dart",
+      "sha256": "695df4af77cfdd35e58945ba62c2337047c2759b7c131359bea9fdc54c6a0652",
+      "member": "test/core/database/schedule_aggregate_migration_test.dart"
+    },
+    {
+      "path": "test/core/database/schema_contract_test.dart",
+      "sha256": "960a3475adc0cef6c7566957d2601d116bf6b89c55cedafe2080c7329a55ae90",
+      "member": "test/core/database/schema_contract_test.dart"
+    },
+    {
+      "path": "test/core/database/start_restore_generation_acceptance_test.dart",
+      "sha256": "40d527f6f2bd70218a5c81748c9ae1741351fbf9e2c5cba18882b3844b517678",
+      "member": "test/core/database/start_restore_generation_acceptance_test.dart"
+    },
+    {
+      "path": "test/core/logging/app_logger_test.dart",
+      "sha256": "342b817a203e2c4e75326da5bdac5155c42a3fb9494c2c28fa40e23f24656a9c",
+      "member": "test/core/logging/app_logger_test.dart"
+    },
+    {
+      "path": "test/core/services/alarm_ownership_journal_test.dart",
+      "sha256": "c905fdb82a0630994568acf3ffab03d94bd2dbd304946f6a563a45784086d94b",
+      "member": "test/core/services/alarm_ownership_journal_test.dart"
+    },
+    {
+      "path": "test/core/services/alarm_scheduler_service_test.dart",
+      "sha256": "17dee952d6edaf94e5df81fd8839fe3d162aaebb72f521c8a959e51d949b7c34",
+      "member": "test/core/services/alarm_scheduler_service_test.dart"
+    },
+    {
+      "path": "test/core/services/android_notification_timing_test.dart",
+      "sha256": "f2e9032bf1be099fbf36d8ddf1a6bc29d0763ebd7de3ee2c1bed4f7d086ed168",
+      "member": "test/core/services/android_notification_timing_test.dart"
+    },
+    {
+      "path": "test/core/services/app_metadata_service_test.dart",
+      "sha256": "fb0c5dde9142829d5a3ffd8df74f766a3de9317ba0dc1c7d6f6928a6ddb427ad",
+      "member": "test/core/services/app_metadata_service_test.dart"
+    },
+    {
+      "path": "test/core/services/civil_legacy_runtime_migration_test.dart",
+      "sha256": "0996c9ceb3da8a57ae1bec1fc16191f84c7cdacdd10108cbe51e820410bce86f",
+      "member": "test/core/services/civil_legacy_runtime_migration_test.dart"
+    },
+    {
+      "path": "test/core/services/delivery_observation_test.dart",
+      "sha256": "c249f8c99a5be63d831db724418f8dbc6c4bbdc518815afcb840445db2412e09",
+      "member": "test/core/services/delivery_observation_test.dart"
+    },
+    {
+      "path": "test/core/services/detailed_notification_preference_acceptance_test.dart",
+      "sha256": "eac7648cebd3930a56d7df044865e59b5ae1c9ccee0dab86495265c9ec4b379e",
+      "member": "test/core/services/detailed_notification_preference_acceptance_test.dart"
+    },
+    {
+      "path": "test/core/services/fallback_alarm_notification_service_test.dart",
+      "sha256": "481b16728461a7eb8bd2fc9c470fac09d612f50da18e6799dc180843bf744381",
+      "member": "test/core/services/fallback_alarm_notification_service_test.dart"
+    },
+    {
+      "path": "test/core/services/notification_content_test.dart",
+      "sha256": "800b7a336f82befc9d9c11f7c4e107fd71c23b6c86353f0d9c30af7207c6ddc0",
+      "member": "test/core/services/notification_content_test.dart"
+    },
+    {
+      "path": "test/core/services/notification_launch_test.dart",
+      "sha256": "a8c8eea53276b67aaf6060dccb952dc112631f19b1ee96bc9630bb5208225cbe",
+      "member": "test/core/services/notification_launch_test.dart"
+    },
+    {
+      "path": "test/core/services/notification_privacy_cleanup_test.dart",
+      "sha256": "31c0a8a40125671588d71cbadcc039a4e6cf5f6ea87539d4259f0a09fd6121a1",
+      "member": "test/core/services/notification_privacy_cleanup_test.dart"
+    },
+    {
+      "path": "test/core/services/notification_routing_test.dart",
+      "sha256": "2077b8a15d9c1cca27e50fb287da7edc481930164de8df28d7f13080be7a05f9",
+      "member": "test/core/services/notification_routing_test.dart"
+    },
+    {
+      "path": "test/core/services/notification_tap_router_test.dart",
+      "sha256": "1ee0b7878694c0ef67d9f0f76d264b1adacd18ffc4383997ce95c95438c0e21d",
+      "member": "test/core/services/notification_tap_router_test.dart"
+    },
+    {
+      "path": "test/core/services/preparation_step_notification_test.dart",
+      "sha256": "5a9d45fe439c38ee00471e90fa849e7d9be65160e5f898aaa4bc1696679dcea7",
+      "member": "test/core/services/preparation_step_notification_test.dart"
+    },
+    {
+      "path": "test/core/services/runtime_privacy_migration_test.dart",
+      "sha256": "2e106d058b8b33386006794bc46a05fe497f87fd8e416eb6156ac50482abe4b5",
+      "member": "test/core/services/runtime_privacy_migration_test.dart"
+    },
+    {
+      "path": "test/core/services/scheduled_notification_delivery_test.dart",
+      "sha256": "cf00c6682f12b9d958af22c960f3ba9bac506e08972d0679638af621d61a2341",
+      "member": "test/core/services/scheduled_notification_delivery_test.dart"
+    },
+    {
+      "path": "test/core/startup/startup_dependency_scope_test.dart",
+      "sha256": "2471e336f2be16ba18a1d436d5880d469dc7c649fa24de7505c6901c5be15844",
+      "member": "test/core/startup/startup_dependency_scope_test.dart"
+    },
+    {
+      "path": "test/core/startup/startup_product_graph_test.dart",
+      "sha256": "af3c6f8c574d68e8e2cf275c41f9e9c592d65b88d82bccedcea4c705acdd433d",
+      "member": "test/core/startup/startup_product_graph_test.dart"
+    },
+    {
+      "path": "test/core/startup/subscription_cleanup_test.dart",
+      "sha256": "2b7fa4bd76b948733a4abd411849c4a09d9de66da06e90263c00150eefa3fd82",
+      "member": "test/core/startup/subscription_cleanup_test.dart"
+    },
+    {
+      "path": "test/core/time/civil_time_resolver_test.dart",
+      "sha256": "3de964d1dcb95a46cdc29fce29dabc9a9c2c18f10faca3f80dfd94dceb5b45d2",
+      "member": "test/core/time/civil_time_resolver_test.dart"
+    },
+    {
+      "path": "test/core/time/device_civil_day_test.dart",
+      "sha256": "72d73ab62ca91a96a19098142ef19279e334d22f219d3cbf860b05b0cc42e198",
+      "member": "test/core/time/device_civil_day_test.dart"
+    },
+    {
+      "path": "test/core/time/recurring_time_correction_mapping_test.dart",
+      "sha256": "872d161b72fb116b7fb2e1e7fad5b5e416fd1cfdaa955ed180d000e332676398",
+      "member": "test/core/time/recurring_time_correction_mapping_test.dart"
+    },
+    {
+      "path": "test/core/time/schedule_time_resolution_test.dart",
+      "sha256": "02b4cf1a98dc3275d1674a1c928564bd877831fd2858593f4fffeba106c56809",
+      "member": "test/core/time/schedule_time_resolution_test.dart"
+    },
+    {
+      "path": "test/core/time/time_correction_conflicts_test.dart",
+      "sha256": "232e6da7eefee948a4ea4bf034888cc79572756097d0edd3d4635b9a9139f298",
+      "member": "test/core/time/time_correction_conflicts_test.dart"
+    },
+    {
+      "path": "test/core/time/time_zone_rules_test.dart",
+      "sha256": "0fcd234ba2a61d0e50eae63250da9b3605e074f386267aab1e7809f1b1c692fd",
+      "member": "test/core/time/time_zone_rules_test.dart"
+    },
+    {
+      "path": "test/data/daos/civil_schedule_storage_test.dart",
+      "sha256": "d449c685d0786d61c7ec2b65520e917721f23766d780d8397708c9cf8e24b269",
+      "member": "test/data/daos/civil_schedule_storage_test.dart"
+    },
+    {
+      "path": "test/data/daos/preparation_schedule_dao_test.dart",
+      "sha256": "9f613abafb9c971d62057747b2dbe9d8591d92f90d06928d5f63a53006c723ca",
+      "member": "test/data/daos/preparation_schedule_dao_test.dart"
+    },
+    {
+      "path": "test/data/daos/preparation_user_dao_test.dart",
+      "sha256": "cb2ce4d5bf10dc4b42e05e1d45806cf7a90e8140cbef8b14e35fec141987753c",
+      "member": "test/data/daos/preparation_user_dao_test.dart"
+    },
+    {
+      "path": "test/data/daos/schedule_dao_test.dart",
+      "sha256": "608c92beef5e140dc9f3d894f0136f0a8d72685f53fd948cdeacc640ac93671e",
+      "member": "test/data/daos/schedule_dao_test.dart"
+    },
+    {
+      "path": "test/data/daos/user_dao_test.dart",
+      "sha256": "c2ad0692c4563e65ac6881c6cf7bf8a7e1dd3af216ce3b5001168d40c9d6c88b",
+      "member": "test/data/daos/user_dao_test.dart"
+    },
+    {
+      "path": "test/data/data_sources/alarm_registry_local_data_source_test.dart",
+      "sha256": "7809bb208b3ab05ee2bcc55581bd9e0141d8158888f9291c27c12f1b15b2d79b",
+      "member": "test/data/data_sources/alarm_registry_local_data_source_test.dart"
+    },
+    {
+      "path": "test/data/data_sources/early_start_session_local_data_source_test.dart",
+      "sha256": "eff79d3b94bf9a1c368a24ef35272bcb9487e2d16c9e90496e7b6b8c12060907",
+      "member": "test/data/data_sources/early_start_session_local_data_source_test.dart"
+    },
+    {
+      "path": "test/data/data_sources/preparation_local_data_source_test.dart",
+      "sha256": "d747510a56dec3a8557ea69649c74b8a6f593d02921afe54c918a4391ea238c8",
+      "member": "test/data/data_sources/preparation_local_data_source_test.dart"
+    },
+    {
+      "path": "test/data/data_sources/preparation_with_time_local_data_source_test.dart",
+      "sha256": "15031e33843abc333409884ebd25122455766e6cbd6cd991df7488580006d7f3",
+      "member": "test/data/data_sources/preparation_with_time_local_data_source_test.dart"
+    },
+    {
+      "path": "test/data/data_sources/schedule_data_source_contract_test.dart",
+      "sha256": "e25dffb2fd359ca69c420a326a021c56c3d884516a0ad9d36047f8664231d41a",
+      "member": "test/data/data_sources/schedule_data_source_contract_test.dart"
+    },
+    {
+      "path": "test/data/data_sources/schedule_local_data_source_test.dart",
+      "sha256": "fd89f2a82185fef88944b5a6238f30d69b64560cff4040df55ed8cda17cc6695",
+      "member": "test/data/data_sources/schedule_local_data_source_test.dart"
+    },
+    {
+      "path": "test/data/mappers/domain_persistence_mappers_test.dart",
+      "sha256": "209d29badab3ac9c19751666ad303da266ea1e6a1efa0dd114bb28c6bd71ac6a",
+      "member": "test/data/mappers/domain_persistence_mappers_test.dart"
+    },
+    {
+      "path": "test/data/repositories/alarm_registry_repository_impl_test.dart",
+      "sha256": "0b8060ced5059b4590a836c7eda138da3e4986c47d47b20d3518858f44524360",
+      "member": "test/data/repositories/alarm_registry_repository_impl_test.dart"
+    },
+    {
+      "path": "test/data/repositories/default_preferences_profile_publication_test.dart",
+      "sha256": "a54e770395224ca7be1c120f16cda8872e68dec07e147a051abf746c3e0b4a3b",
+      "member": "test/data/repositories/default_preferences_profile_publication_test.dart"
+    },
+    {
+      "path": "test/data/repositories/default_preferences_repository_test.dart",
+      "sha256": "fe69ee480d60013eab64a558f5c41b12e226b70c9d8d1c82ba9844ffe57bc5c9",
+      "member": "test/data/repositories/default_preferences_repository_test.dart"
+    },
+    {
+      "path": "test/data/repositories/early_start_session_repository_impl_test.dart",
+      "sha256": "822f070d8f7baf793a11199065c9aedbd9817c836b74e150a47541f4e6f0c8e5",
+      "member": "test/data/repositories/early_start_session_repository_impl_test.dart"
+    },
+    {
+      "path": "test/data/repositories/first_start_time_capture_test.dart",
+      "sha256": "33a5ff9da0954225f96caed18f551cfe7a3c9be3d066b2f0e9413da86077bc0f",
+      "member": "test/data/repositories/first_start_time_capture_test.dart"
+    },
+    {
+      "path": "test/data/repositories/local_schedule_score_test.dart",
+      "sha256": "8d2ae57c2cc07ccb2dd8e01380887c915bcadf336ca22852a9b4c961ec1b5ad9",
+      "member": "test/data/repositories/local_schedule_score_test.dart"
+    },
+    {
+      "path": "test/data/repositories/nearest_automatic_start_guard_test.dart",
+      "sha256": "54c226b537664f0a1865fc07db67cb40a1fc6a3c0ffdb25e5863d7191d46a6b8",
+      "member": "test/data/repositories/nearest_automatic_start_guard_test.dart"
+    },
+    {
+      "path": "test/data/repositories/nearest_query_sql_boundaries_test.dart",
+      "sha256": "a8f9ab4d172329a89aeb745ce3dcc6b5132b12b904724687097179d28537fa56",
+      "member": "test/data/repositories/nearest_query_sql_boundaries_test.dart"
+    },
+    {
+      "path": "test/data/repositories/nearest_schedule_query_repository_test.dart",
+      "sha256": "bd6e698918798c8ab1c0de632da53ba553c143a7d71de1f9195dd5bae38778fb",
+      "member": "test/data/repositories/nearest_schedule_query_repository_test.dart"
+    },
+    {
+      "path": "test/data/repositories/preparation_restore_watch_test.dart",
+      "sha256": "aa98fa84a559410f7250f7fd1e9213f833146a7d440e18f2190f9fabe814c91a",
+      "member": "test/data/repositories/preparation_restore_watch_test.dart"
+    },
+    {
+      "path": "test/data/repositories/profile_write_preservation_test.dart",
+      "sha256": "4692bce718b458de63dacd2ae933dddc05ef2b3fc44e1bded2f274d9d5b2b2f6",
+      "member": "test/data/repositories/profile_write_preservation_test.dart"
+    },
+    {
+      "path": "test/data/repositories/recurring_schedule_repository_test.dart",
+      "sha256": "e0e2b8bbd124232e8c51e8974dc058cfb70ebbbf5968d6509a20a37a25490fcb",
+      "member": "test/data/repositories/recurring_schedule_repository_test.dart"
+    },
+    {
+      "path": "test/data/repositories/recurring_time_correction_repository_test.dart",
+      "sha256": "4f4283a9cd76654bde11ae0dd6f777e7b45ca49ed68662f1eea1978180ecd9e1",
+      "member": "test/data/repositories/recurring_time_correction_repository_test.dart"
+    },
+    {
+      "path": "test/data/repositories/recurring_time_override_test.dart",
+      "sha256": "002d28e7a6a47b9a5587188544b70fb911c0937db6d972448d99e018f390b5ba",
+      "member": "test/data/repositories/recurring_time_override_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_aggregate_repository_test.dart",
+      "sha256": "dfa8ce81dd9f8f54fd3bdcd00354c88c921d37c615684fdf984942e47a2be763",
+      "member": "test/data/repositories/schedule_aggregate_repository_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_aggregate_snapshot_test.dart",
+      "sha256": "c553033e0e3c0cff8a2d97a61771654cdae2e9643b79f9b40216dd1b4c31debe",
+      "member": "test/data/repositories/schedule_aggregate_snapshot_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_deletion_privacy_test.dart",
+      "sha256": "f1d3442661bc4ef56406c932d6a8b5fb9099ef03098632e371ee4ce3e14f20c3",
+      "member": "test/data/repositories/schedule_deletion_privacy_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_deletion_repository_test.dart",
+      "sha256": "af76539e97134a6a5cd16725630807c506c16075a099b2d2b97d6e876e866340",
+      "member": "test/data/repositories/schedule_deletion_repository_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_restore_watch_test.dart",
+      "sha256": "751ee222e28f639868892b92a98c5f8c913bea2efc2bd92af2b7cb81ae5a5647",
+      "member": "test/data/repositories/schedule_restore_watch_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_start_transaction_test.dart",
+      "sha256": "36f2a695104c12067b438d99df0136ed805f5046d9a5761f8c35802a23d4618f",
+      "member": "test/data/repositories/schedule_start_transaction_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_time_correction_repository_test.dart",
+      "sha256": "ca4cedc44d92aeedda7e24ac3856facc9daeae234cebad22ef43985adf34ce07",
+      "member": "test/data/repositories/schedule_time_correction_repository_test.dart"
+    },
+    {
+      "path": "test/data/repositories/schedule_time_review_commit_test.dart",
+      "sha256": "40f5d598fb5b5fa361bf45970fa26faa0dd63db3ed227661210f8b27d5eabcc1",
+      "member": "test/data/repositories/schedule_time_review_commit_test.dart"
+    },
+    {
+      "path": "test/data/repositories/single_time_correction_conflict_test.dart",
+      "sha256": "ceb6202b475633bbdbb8ce99076b234c815fc6b582b239e800536c93bf21f39a",
+      "member": "test/data/repositories/single_time_correction_conflict_test.dart"
+    },
+    {
+      "path": "test/data/repositories/time_correction_conflict_reader_test.dart",
+      "sha256": "4ebec460bd71aa3a76c2dbdd8f67a75cbfaeacc61ddb4e02ce3e73098e709d8d",
+      "member": "test/data/repositories/time_correction_conflict_reader_test.dart"
+    },
+    {
+      "path": "test/data/repositories/unknown_historical_recurrence_materialization_test.dart",
+      "sha256": "956c7e61e2585db70a1c65549f8530fa3bc9b44e2898c915584879c6977ab581",
+      "member": "test/data/repositories/unknown_historical_recurrence_materialization_test.dart"
+    },
+    {
+      "path": "test/data/repositories/user_restore_identity_test.dart",
+      "sha256": "b159a471c01b4b7996098f631bcbd4655d69ce8c2720092530b85d43bd73b221",
+      "member": "test/data/repositories/user_restore_identity_test.dart"
+    },
+    {
+      "path": "test/domain/entities/alarm_delivery_policy_test.dart",
+      "sha256": "10fa2dc88c6600c8e6eac1c4b3065cfc6d0ed22bcf8db413f9b48dd4cb8c0afd",
+      "member": "test/domain/entities/alarm_delivery_policy_test.dart"
+    },
+    {
+      "path": "test/domain/entities/backup_processing_test.dart",
+      "sha256": "5280e64082162b20d24fbe0f6d3af8d4dc58beea49bff227c18e60b9681e1f81",
+      "member": "test/domain/entities/backup_processing_test.dart"
+    },
+    {
+      "path": "test/domain/entities/backup_receipt_test.dart",
+      "sha256": "408872baf5e3c2e8ac777d682d21a9c16165b4b469f7372c49b75e6a19447190",
+      "member": "test/domain/entities/backup_receipt_test.dart"
+    },
+    {
+      "path": "test/domain/entities/civil_date_time_contract_test.dart",
+      "sha256": "661dbe7cac24b09b9bd30d191cdf585b148eafff4f7364a46d55ff74bc8721bf",
+      "member": "test/domain/entities/civil_date_time_contract_test.dart"
+    },
+    {
+      "path": "test/domain/entities/domain_entity_boundary_test.dart",
+      "sha256": "339de8a5b78ab55c2450271892f5d72531852d71996868c9e9a9a28f37ac1985",
+      "member": "test/domain/entities/domain_entity_boundary_test.dart"
+    },
+    {
+      "path": "test/domain/entities/preparation_snapshot_validation_test.dart",
+      "sha256": "885567a042a9a93ec1b5ca6a1791ef3ccc0b81f7b72824d642ae4934cd2df3c5",
+      "member": "test/domain/entities/preparation_snapshot_validation_test.dart"
+    },
+    {
+      "path": "test/domain/entities/preparation_timing_entity_test.dart",
+      "sha256": "1cb32752679f26390dd93f51921c3e172ab0196b41faa14273ed7c368c3500c5",
+      "member": "test/domain/entities/preparation_timing_entity_test.dart"
+    },
+    {
+      "path": "test/domain/entities/resolved_schedule_runtime_test.dart",
+      "sha256": "500e848d212878ca249bf0d1df036fc77e2dd002cba100b1dadb4faf3a0dac81",
+      "member": "test/domain/entities/resolved_schedule_runtime_test.dart"
+    },
+    {
+      "path": "test/domain/entities/schedule_notification_status_test.dart",
+      "sha256": "c47ed772514315e6fc02fb967fa586ea50718007743f336ab1c91de6fce8733b",
+      "member": "test/domain/entities/schedule_notification_status_test.dart"
+    },
+    {
+      "path": "test/domain/entities/user_entity_test.dart",
+      "sha256": "b46a07ee0ead3ee9dff66d61327d1f07d9fe8cd3a6ff31f653712813fd09c884",
+      "member": "test/domain/entities/user_entity_test.dart"
+    },
+    {
+      "path": "test/domain/recurrence/recurrence_engine_test.dart",
+      "sha256": "12d6971f5038aacbc62b8814c7e3a728a71008990a14feb08f9a9f3e0bd9f314",
+      "member": "test/domain/recurrence/recurrence_engine_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/adjacent_schedule_instant_integration_test.dart",
+      "sha256": "f16d025243f2b7f87ac0fd3d2a46fd0ca237151b6c16faf0eb2bad1e79f5521a",
+      "member": "test/domain/use-cases/adjacent_schedule_instant_integration_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/alarm_reconciliation_concurrency_test.dart",
+      "sha256": "621bfd5c1a14a48c5b39d97ebc37d16aa047ae7ed4be96fecc3b6fc96373b3e0",
+      "member": "test/domain/use-cases/alarm_reconciliation_concurrency_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/cancel_alarms_use_cases_test.dart",
+      "sha256": "4427e8e23f559ef727171345128ba1599b8bc55bf8883eedb0abbaad7316231d",
+      "member": "test/domain/use-cases/cancel_alarms_use_cases_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/create_schedule_form_submission_use_case_test.dart",
+      "sha256": "317a45914cb0490bb54fe25cfbdbb213ff0a95697820834774dd2936f88d6e67",
+      "member": "test/domain/use-cases/create_schedule_form_submission_use_case_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/delivery_reconciliation_test.dart",
+      "sha256": "f9d324dd9dacb1dc195239c038f13d00c59d91c5fca61f58088e835fe7531fb3",
+      "member": "test/domain/use-cases/delivery_reconciliation_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/detailed_notification_content_guard_test.dart",
+      "sha256": "aa2522444cafaf3833caff22526edb4721266dc22295be6a6eb2a2528d0e1d2e",
+      "member": "test/domain/use-cases/detailed_notification_content_guard_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/detailed_notification_delivery_acceptance_test.dart",
+      "sha256": "f004522def98c2f8ddafa8e5d44e71f930c6433a7ac874088cef26066bf1862d",
+      "member": "test/domain/use-cases/detailed_notification_delivery_acceptance_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/get_nearest_upcoming_schedule_use_case_test.dart",
+      "sha256": "54263123ec7ca7c393a66b9d535fd0e03cc88975820f63686a6ef86709fa9d54",
+      "member": "test/domain/use-cases/get_nearest_upcoming_schedule_use_case_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/load_schedule_form_draft_use_case_test.dart",
+      "sha256": "f26a043fa3b91237f23df5b8614bfdd0a0dbeae9b5a59c4744704287e46cc280",
+      "member": "test/domain/use-cases/load_schedule_form_draft_use_case_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/local_data_workflows_test.dart",
+      "sha256": "19a320f4c6f7517e9cd14d7133ad71c5e6b96b53358a57357765690aed914d50",
+      "member": "test/domain/use-cases/local_data_workflows_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/nearest_schedule_clock_test.dart",
+      "sha256": "68b6a322ba2b61ffb1c8124703955bff28877a2432cebeafabf6f715ad7c3865",
+      "member": "test/domain/use-cases/nearest_schedule_clock_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/reconcile_alarms_use_case_test.dart",
+      "sha256": "37256b5e5a466542bf63b870ec7c0bfbb10389e208ebb416765ec41d7ea1a6b9",
+      "member": "test/domain/use-cases/reconcile_alarms_use_case_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/recurring_alarm_integration_test.dart",
+      "sha256": "0bcb7adf7cb7c0231a41c40e3d01a1edcafd28fe4242f2eddfd82a707564372f",
+      "member": "test/domain/use-cases/recurring_alarm_integration_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/schedule_date_use_cases_test.dart",
+      "sha256": "d7487fffbbc39e1b1201884fcb5b2f132af7346f7596fe27180bee9b2f47abf3",
+      "member": "test/domain/use-cases/schedule_date_use_cases_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/schedule_deletion_use_case_test.dart",
+      "sha256": "f2606a79403d99c54b613149357858e807b57f77d5109d396ab1517b775871c4",
+      "member": "test/domain/use-cases/schedule_deletion_use_case_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/schedule_mutation_alarm_effects_coordinator_test.dart",
+      "sha256": "b767e76b1bd30c61b370de46f1f4b791224317ca270c2c1fd1580a0ca4af8253",
+      "member": "test/domain/use-cases/schedule_mutation_alarm_effects_coordinator_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/schedule_mutation_use_cases_test.dart",
+      "sha256": "60225de3b22ab760a61cf0b6d6e084fb4376a92f1bab9e0b33908888dfa723b0",
+      "member": "test/domain/use-cases/schedule_mutation_use_cases_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/schedule_preparation_session_use_case_test.dart",
+      "sha256": "57d22417fc10181e396152e28daf7554a11a047dc33be16c5d2f0547be966bad",
+      "member": "test/domain/use-cases/schedule_preparation_session_use_case_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/timed_preparation_use_cases_test.dart",
+      "sha256": "c76c5c133e7f152a93592ffad8c63919803ddaacdb3da9e9d108f9883ddbc60e",
+      "member": "test/domain/use-cases/timed_preparation_use_cases_test.dart"
+    },
+    {
+      "path": "test/domain/use-cases/update_schedule_form_submission_use_case_test.dart",
+      "sha256": "5fd739f2cbaada8a787d14d1af8dd7b9718df86027d356919ed7669b5f78b6a9",
+      "member": "test/domain/use-cases/update_schedule_form_submission_use_case_test.dart"
+    },
+    {
+      "path": "test/fixtures/database/README.md",
+      "sha256": "bc45e4b544a7718195b48d108aac5ae345a0985635b391aef4af09f39b0bcdb1",
+      "member": "test/fixtures/database/README.md"
+    },
+    {
+      "path": "test/fixtures/database/populated_local.sql",
+      "sha256": "27d9b1015e956f2ae33fdded79d585c5b86477f203192db9166640af0171ef13",
+      "member": "test/fixtures/database/populated_local.sql"
+    },
+    {
+      "path": "test/fixtures/database/populated_recurring.sql",
+      "sha256": "44cf1a03ad30d719d6853f50f8fc8e52b673ff141303a436d1a49cf4e9fb93d9",
+      "member": "test/fixtures/database/populated_recurring.sql"
+    },
+    {
+      "path": "test/fixtures/database/schema_v1.sql",
+      "sha256": "782cd3a3cfdca56c67f896a7fbdfa9791a349f77b2b65e21c7f0c0f2ce4a121d",
+      "member": "test/fixtures/database/schema_v1.sql"
+    },
+    {
+      "path": "test/fixtures/database/schema_v2.sql",
+      "sha256": "a7ec3c57f1c86a58ef45c3417abe187fa4e44a0be87e3861a7182cb3ab02d7c5",
+      "member": "test/fixtures/database/schema_v2.sql"
+    },
+    {
+      "path": "test/fixtures/database/schema_v3.sql",
+      "sha256": "4c2d7b8be37fd22ff614bc1844872f23147d8e8623445652e2f949513583b55c",
+      "member": "test/fixtures/database/schema_v3.sql"
+    },
+    {
+      "path": "test/fixtures/database/schema_v4.sql",
+      "sha256": "60a5c9fef7385280e55adc622cf9f33f507de180a4c35d4c3d09285fcfd9d0ea",
+      "member": "test/fixtures/database/schema_v4.sql"
+    },
+    {
+      "path": "test/helpers/c08_home_query_fixture.dart",
+      "sha256": "ad45d8ceb2319781b42df7092480d962e90d640c371d86332d5f60af09aa4db6",
+      "member": "test/helpers/c08_home_query_fixture.dart"
+    },
+    {
+      "path": "test/helpers/fake_clock.dart",
+      "sha256": "3afc79b691795fcd1505b316b14c9784cf08746ff9ed0084498334c634408951",
+      "member": "test/helpers/fake_clock.dart"
+    },
+    {
+      "path": "test/helpers/isolated_alarm_owner.dart",
+      "sha256": "84a10eff3d2f4bbfca21e96c8d3e3d40fa47b11feecf0ce885df1c584ee22352",
+      "member": "test/helpers/isolated_alarm_owner.dart"
+    },
+    {
+      "path": "test/helpers/nearest_query_fixture.dart",
+      "sha256": "dd4606373f16a9e47d35cd392a8fc7d55a7305aa5cc25cbde8426fabd5520623",
+      "member": "test/helpers/nearest_query_fixture.dart"
+    },
+    {
+      "path": "test/helpers/noop_alarm_cleanup.dart",
+      "sha256": "5b26450418c9b461dbf338d4a794a1535d7f4b711d7f14dab261bc67bab00c7a",
+      "member": "test/helpers/noop_alarm_cleanup.dart"
+    },
+    {
+      "path": "test/helpers/noop_alarm_reconciliation.dart",
+      "sha256": "dd2a9e0f9888a7c64466daca2b16e78bac3a6a2361a997d69ca7ad6355548fd9",
+      "member": "test/helpers/noop_alarm_reconciliation.dart"
+    },
+    {
+      "path": "test/helpers/refresh_capture.dart",
+      "sha256": "2d65d76d15c359ee2625bafc1b1c18cedaf7ab1827ed9d6190b12b861aac0dbd",
+      "member": "test/helpers/refresh_capture.dart"
+    },
+    {
+      "path": "test/helpers/restore_staging_fixture.dart",
+      "sha256": "69f7e7852388d5ba2c02bd45c78cfd50e28fc5007cd74c9afe5c14858a51bdd4",
+      "member": "test/helpers/restore_staging_fixture.dart"
+    },
+    {
+      "path": "test/helpers/schedule_deletion_fixture.dart",
+      "sha256": "de58728588e10c253f04d54a7d66b65caa549bda7a2984423baeb8b342c3e52e",
+      "member": "test/helpers/schedule_deletion_fixture.dart"
+    },
+    {
+      "path": "test/helpers/schedule_deletion_workflow_fixture.dart",
+      "sha256": "c60d7b0612694ac7f98be1c4852452aa45ad1f65b00fea714cc5718ac526550e",
+      "member": "test/helpers/schedule_deletion_workflow_fixture.dart"
+    },
+    {
+      "path": "test/helpers/sodium_test_loader.dart",
+      "sha256": "be13982db4d2b5142b809f0ffd5872445a20a2db48c335751ef83f3c2344139d",
+      "member": "test/helpers/sodium_test_loader.dart"
+    },
+    {
+      "path": "test/helpers/u02_save_fixture.dart",
+      "sha256": "f6d2bae519a97732f4a56d0db0401e1bad2f75f5cebc8e38a64babb6934a661d",
+      "member": "test/helpers/u02_save_fixture.dart"
+    },
+    {
+      "path": "test/local_only_boundary_test.dart",
+      "sha256": "ac033712134bcef712914e03420ca90f8f362c01178491e4ad86fac6a8932646",
+      "member": "test/local_only_boundary_test.dart"
+    },
+    {
+      "path": "test/native/AlarmLaunchPayloadTest.kt",
+      "sha256": "e980cdbd69408f4cd9cadebbe37e92054d9cc0c6c72f0278a03d220869558fd2",
+      "member": "test/native/AlarmLaunchPayloadTest.kt"
+    },
+    {
+      "path": "test/native/AlarmLaunchPayloadTest.swift",
+      "sha256": "88b1d912fab5be63d4eda131d6f1bdd6c5a3916d159d76dedf418b969221f451",
+      "member": "test/native/AlarmLaunchPayloadTest.swift"
+    },
+    {
+      "path": "test/presentation/alarm/components/preparation_step_list_widget_test.dart",
+      "sha256": "c48c593db3e0d83db5a5458151e898ed7857da71ff7217d3a7576b45bbb9a143",
+      "member": "test/presentation/alarm/components/preparation_step_list_widget_test.dart"
+    },
+    {
+      "path": "test/presentation/alarm/screens/preparation_flow_widget_test.dart",
+      "sha256": "952bd430589b6aec3aa571ac2f8301421700923c7a3171aa68f36e33fb0552fe",
+      "member": "test/presentation/alarm/screens/preparation_flow_widget_test.dart"
+    },
+    {
+      "path": "test/presentation/alarm/screens/schedule_start_commit_widget_test.dart",
+      "sha256": "f8e872f748bb4eb14a96a545240fdc072ecbe9c9fc3b83b8a8c63dbf524bbdc9",
+      "member": "test/presentation/alarm/screens/schedule_start_commit_widget_test.dart"
+    },
+    {
+      "path": "test/presentation/alarm/utils/preparation_step_state_mapper_test.dart",
+      "sha256": "d7cbf6d14e0b22352e025385fbfebf307ed3f496fab86ed58b2394ebd64748f5",
+      "member": "test/presentation/alarm/utils/preparation_step_state_mapper_test.dart"
+    },
+    {
+      "path": "test/presentation/alarm_allow/alarm_allow_screen_test.dart",
+      "sha256": "dfd31f5fdc9fd2d295a6b9a015867ed1444cbf44b724dd004de7777e56696810",
+      "member": "test/presentation/alarm_allow/alarm_allow_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/auth/auth_bloc_test.dart",
+      "sha256": "b95d1caaff25751c97a24af5b920b21de157628db2656e8b52cf69289083e2d0",
+      "member": "test/presentation/app/bloc/auth/auth_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/nearest_active_run_lifecycle_test.dart",
+      "sha256": "c260ad845d1a13adeaa2726ad6ab878b8a93640d9006398a8963dd9a18b5e685",
+      "member": "test/presentation/app/bloc/schedule/nearest_active_run_lifecycle_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/nearest_boundary_intent_test.dart",
+      "sha256": "6a309a7d1774caa30926369f04ed1e1dba66a8686c627116568ca27479c611fb",
+      "member": "test/presentation/app/bloc/schedule/nearest_boundary_intent_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/nearest_cancel_delivery_race_test.dart",
+      "sha256": "1c12e4fa9f59c84bc8b73fe7057e28a05930acea4a351bf3c4a0eb88a560d835",
+      "member": "test/presentation/app/bloc/schedule/nearest_cancel_delivery_race_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/nearest_committed_start_projection_test.dart",
+      "sha256": "e406fdb8075cc75549b8d30a0c7b5a9bea70f612915d5d62e234249713348888",
+      "member": "test/presentation/app/bloc/schedule/nearest_committed_start_projection_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/nearest_query_lifecycle_test.dart",
+      "sha256": "21fffef598df1e527362189640c971dd47cad1d332e2581be28d34c58c7c2664",
+      "member": "test/presentation/app/bloc/schedule/nearest_query_lifecycle_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/notification_prompt_race_test.dart",
+      "sha256": "7a9f3a0a285b28ec2ca4239d88b67dfc783a6b650e29bb5343a89776c54d2a36",
+      "member": "test/presentation/app/bloc/schedule/notification_prompt_race_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/preparation_start_recovery_test.dart",
+      "sha256": "1af89ef608c92f1015996fee68e9e7e82b7615fc75d3fd70dee9ed52c307416d",
+      "member": "test/presentation/app/bloc/schedule/preparation_start_recovery_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/preparation_step_delivery_test.dart",
+      "sha256": "5a180daf80c10f7e07438bc4a0e03f519cc111349b42a02b8478a2c562df8b1f",
+      "member": "test/presentation/app/bloc/schedule/preparation_step_delivery_test.dart"
+    },
+    {
+      "path": "test/presentation/app/bloc/schedule/schedule_bloc_test.dart",
+      "sha256": "9533818419674491d5173cc7d30c5a78f5d45798f00e2863468dca5e1134210e",
+      "member": "test/presentation/app/bloc/schedule/schedule_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/app/cubit/alarm_gate_cubit_test.dart",
+      "sha256": "ceaa6032a46b88460ce304c14847904d529e668080de22805535b58169901e53",
+      "member": "test/presentation/app/cubit/alarm_gate_cubit_test.dart"
+    },
+    {
+      "path": "test/presentation/app/cubit/notification_gate_cubit_test.dart",
+      "sha256": "14a3b1264b1c4c4e0569f9b64667137b7af99d82ff9fee94bc78c63ba4b5fc3b",
+      "member": "test/presentation/app/cubit/notification_gate_cubit_test.dart"
+    },
+    {
+      "path": "test/presentation/backup/backup_processing_panel_test.dart",
+      "sha256": "699551f63bc1703f7384f1d9e94e9e230cf6ac3b8edf8b3276848b0c080f8de7",
+      "member": "test/presentation/backup/backup_processing_panel_test.dart"
+    },
+    {
+      "path": "test/presentation/backup/backup_recurring_time_review_screen_test.dart",
+      "sha256": "8b34cc1a36c3381478cf6e045c44073cb24f87f469fe52bcbd520f001e0c24db",
+      "member": "test/presentation/backup/backup_recurring_time_review_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/backup/backup_time_review_screen_test.dart",
+      "sha256": "af7c584c7f72196ef2222550e4a0539490cdd7f08a8c48f7db6365313483fa1d",
+      "member": "test/presentation/backup/backup_time_review_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/calendar/bloc/monthly_schedules_bloc_test.dart",
+      "sha256": "7e60ee8a9db4a57767e21b24d53d56316ee0b22a3358d77604f250c59aba9291",
+      "member": "test/presentation/calendar/bloc/monthly_schedules_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/calendar/component/schedule_deletion_dialog_test.dart",
+      "sha256": "f1ad0aa4f0c7e2d93ea5030297cb5f046c14512ed9626ccf4e28ab87718af3c7",
+      "member": "test/presentation/calendar/component/schedule_deletion_dialog_test.dart"
+    },
+    {
+      "path": "test/presentation/calendar/component/schedule_detail_test.dart",
+      "sha256": "25557edccc2834583209d5c680102adc8b5a3a57c851eca2ed43add1ae272f91",
+      "member": "test/presentation/calendar/component/schedule_detail_test.dart"
+    },
+    {
+      "path": "test/presentation/calendar/screens/calendar_screen_test.dart",
+      "sha256": "a45fde08fc3c2c481ebae2251fb9a643b92c42589dcaaf6898ec7c2c08d7f507",
+      "member": "test/presentation/calendar/screens/calendar_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/early_late/bloc/early_late_screen_bloc_test.dart",
+      "sha256": "0988303a4941fe4b27922b579d3c86c2c0173d8469c5e1e81aa55e8621c6d26c",
+      "member": "test/presentation/early_late/bloc/early_late_screen_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/event_value_objects_test.dart",
+      "sha256": "0f7b449b0e9351105421affbaa13c8e93965a8c4b6f1b943127f60e409d90c3f",
+      "member": "test/presentation/event_value_objects_test.dart"
+    },
+    {
+      "path": "test/presentation/home/bloc/device_today_schedule_test.dart",
+      "sha256": "4a8a16806a1fbb1968003adcd04d84205f696cf8332d593a4f670cc54fe96fe3",
+      "member": "test/presentation/home/bloc/device_today_schedule_test.dart"
+    },
+    {
+      "path": "test/presentation/home/bloc/schedule_timer_bloc_test.dart",
+      "sha256": "73c2b9a028902e9888e27b05aa63bceb287d7e63698f5ef6cd8e1b8c03511499",
+      "member": "test/presentation/home/bloc/schedule_timer_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/home/bloc/weekly_schedules_bloc_test.dart",
+      "sha256": "f522e2e344fc0fcc78db1041a1886ca7ca7a379385d1f3873c1b003b086375ed",
+      "member": "test/presentation/home/bloc/weekly_schedules_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/home/components/month_calendar_test.dart",
+      "sha256": "738b39300b3913e865ec68741906e66738cfad4f373b689555c6fb87812c1e07",
+      "member": "test/presentation/home/components/month_calendar_test.dart"
+    },
+    {
+      "path": "test/presentation/home/components/week_calendar_test.dart",
+      "sha256": "f4521de4da825b0066e217d0ddf63cf43213ee2e914a47bf6023e5fb250525dd",
+      "member": "test/presentation/home/components/week_calendar_test.dart"
+    },
+    {
+      "path": "test/presentation/home/home_device_day_test.dart",
+      "sha256": "acdac6b64b7a754d752ade69187e731b62e9179c60e4618ef404276aaf2de7e3",
+      "member": "test/presentation/home/home_device_day_test.dart"
+    },
+    {
+      "path": "test/presentation/home/nearest_query_home_test.dart",
+      "sha256": "e09fa8c4caa2a1d2e8589697cf001830bdaa905ab21aac7b63f34113453623f7",
+      "member": "test/presentation/home/nearest_query_home_test.dart"
+    },
+    {
+      "path": "test/presentation/home/screens/home_screen_tmp_test.dart",
+      "sha256": "eff156891525808637a4218fd31da9e1b021dcb51bbe128e9104cb4bcb9117a3",
+      "member": "test/presentation/home/screens/home_screen_tmp_test.dart"
+    },
+    {
+      "path": "test/presentation/home/utils/today_tile_navigation_test.dart",
+      "sha256": "36b0e271e66801188d2e58fe067370ea7187bcbfceb51f83fac48d00af332a80",
+      "member": "test/presentation/home/utils/today_tile_navigation_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/detailed_notification_settings_cubit_test.dart",
+      "sha256": "259496417c40dc2b536a72f739de71de514eac659f2bb79eb532785b3bc33ebd",
+      "member": "test/presentation/my_page/detailed_notification_settings_cubit_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/my_data_export_test.dart",
+      "sha256": "3f4c2a8090db0d8a4ef96b565a127ec8ca627cf02a1b24584412f3416cb27bb8",
+      "member": "test/presentation/my_page/my_data_export_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/my_data_recurring_time_review_test.dart",
+      "sha256": "379fbcd0cd5adc9c68f78aa519abd9c3eab3024195dccdac6728972ec2efebb6",
+      "member": "test/presentation/my_page/my_data_recurring_time_review_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/my_data_restore_test.dart",
+      "sha256": "7ac6b68bb2f972f03dd5ae238c3e101ee3217e6cd8e7f2fb55612f9a21ef31c3",
+      "member": "test/presentation/my_page/my_data_restore_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/my_data_time_review_test.dart",
+      "sha256": "aabb0c637836d97d93fc70350ea62bafc33e19cc4f0d1faa29e0afe01ea9466d",
+      "member": "test/presentation/my_page/my_data_time_review_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/my_data_unknown_restore_test.dart",
+      "sha256": "b3a8a0fa15df347b88475d53a21f98406b5ea7c514068c36c490ab444cd0ed74",
+      "member": "test/presentation/my_page/my_data_unknown_restore_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/my_page_screen_test.dart",
+      "sha256": "7faecf15af06445c4297dbb2da68798486c646f3e2409d3596443b5ab16955a7",
+      "member": "test/presentation/my_page/my_page_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen_test.dart",
+      "sha256": "7dc908fdb6b0bc798fb54745807307ac914e3ed649c639b6c85d429608963388",
+      "member": "test/presentation/my_page/preparation_spare_time_edit/preparation_spare_time_edit_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/notification_allow/notification_allow_screen_test.dart",
+      "sha256": "5c49a040772d717e262615633d4a3be1e41cf7fc0badb83d528900ab5029f3c5",
+      "member": "test/presentation/notification_allow/notification_allow_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/onboarding/cubit/onboarding_cubit_test.dart",
+      "sha256": "d12c9c3cddefc66a3215bcb5d294894fc70c0b78a6f1edfde965e54522ef1e56",
+      "member": "test/presentation/onboarding/cubit/onboarding_cubit_test.dart"
+    },
+    {
+      "path": "test/presentation/onboarding/screens/onboarding_screen_test.dart",
+      "sha256": "d35a018b847eb73090eab6b02f049c157f385db2f7b820a48bbe0eeae516fcbc",
+      "member": "test/presentation/onboarding/screens/onboarding_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/recurrence_settings_sheet_test.dart",
+      "sha256": "fc4af53c9863dd93948e40f47977db067c86d6639e5d9a4cb51539fcabbec2b2",
+      "member": "test/presentation/recurring/recurrence_settings_sheet_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/recurrence_sheet_title_accessibility_test.dart",
+      "sha256": "866a35393ecc5ac93579414e1e5299639cd3d0f66bffc8026ca7e05921a09a2d",
+      "member": "test/presentation/recurring/recurrence_sheet_title_accessibility_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/recurring_form_integration_test.dart",
+      "sha256": "cdf5714fd9eb3d2b762abbd3aecd68391e726b9d7aaf021273578bc65ccd8577",
+      "member": "test/presentation/recurring/recurring_form_integration_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/recurring_screens_test.dart",
+      "sha256": "eb4ce76ab2617cc8a2076fb4016bcb60bffb343ad276386d88f1d65a052c7480",
+      "member": "test/presentation/recurring/recurring_screens_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/recurring_time_correction_plan_summary_test.dart",
+      "sha256": "e8247dd976d01d5aa95a24bcc2743ed1549b0690191c28db82c91dd6dcfac519",
+      "member": "test/presentation/recurring/recurring_time_correction_plan_summary_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/recurring_time_correction_screen_test.dart",
+      "sha256": "bf9b91ad6c52475eed1d944edd7703b0d161986a2a99e3315cfe5ec807e70230",
+      "member": "test/presentation/recurring/recurring_time_correction_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/refreshed_screens_test.dart",
+      "sha256": "8e5c92be32a788098719fee730571f5f5ea9b63378c89f020ac6ac1b770a0995",
+      "member": "test/presentation/recurring/refreshed_screens_test.dart"
+    },
+    {
+      "path": "test/presentation/recurring/u02_recurrence_acceptance_integration_test.dart",
+      "sha256": "61e6327050224212455b1ae1283e00fc0abdf979fe07647d69bcccb649cf3e45",
+      "member": "test/presentation/recurring/u02_recurrence_acceptance_integration_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/bloc/following_zone_draft_integration_test.dart",
+      "sha256": "58d1b9022f048ce7d9494962cc365640e14f081670422ec02ad9b1de7453b876",
+      "member": "test/presentation/schedule_create/bloc/following_zone_draft_integration_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/bloc/schedule_form_bloc_test.dart",
+      "sha256": "61131e5078da9a3f67b3eedb114d43115f3e01c8acce7e1bbb8de584cb4b39be",
+      "member": "test/presentation/schedule_create/bloc/schedule_form_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/bloc/schedule_form_state_event_test.dart",
+      "sha256": "c2eda1d54ff8c6cd42d7cb1aa65b70a1056711f19c3bc0c871c9da4084c36267",
+      "member": "test/presentation/schedule_create/bloc/schedule_form_state_event_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/bloc/schedule_time_review_sqlite_integration_test.dart",
+      "sha256": "2a94ae892b93bce382191146a52622f3cf36672c0b7742c46a88a69d4f40e031",
+      "member": "test/presentation/schedule_create/bloc/schedule_time_review_sqlite_integration_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/components/keyboard_backed_bottom_sheet_test.dart",
+      "sha256": "b911cd03cb272ab31e151e9358a45622ec376125e8491c9784f8877f76a30108",
+      "member": "test/presentation/schedule_create/components/keyboard_backed_bottom_sheet_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/components/schedule_multi_page_form_test.dart",
+      "sha256": "d33af602ad57bad84609aee1c5c901934bf39a59124da4db33a2d9a735d2f8a6",
+      "member": "test/presentation/schedule_create/components/schedule_multi_page_form_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/input_models/backend_validation_input_models_test.dart",
+      "sha256": "78239f8b01b32aaf04eef14de904b32dd435d2d9e0cd40733e20cce7ecf5300b",
+      "member": "test/presentation/schedule_create/input_models/backend_validation_input_models_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/preparation_form/preparation_form_create_list_test.dart",
+      "sha256": "e172683255e169cbb427ba15b5bd667f46630675804d9459650526d9a581dd1f",
+      "member": "test/presentation/schedule_create/preparation_form/preparation_form_create_list_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/preparation_form/preparation_form_list_field_test.dart",
+      "sha256": "f2a18aadc5d7fb9bc34750f55f4e8c13e7d97b9e31cac62f27174b4e467d62d6",
+      "member": "test/presentation/schedule_create/preparation_form/preparation_form_list_field_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/preparation_form/preparation_form_reorderable_list_test.dart",
+      "sha256": "d2abdd2f9ff7b959be18057ed95e6ec881f2d89eaba1d8a0b6827e47e694f276",
+      "member": "test/presentation/schedule_create/preparation_form/preparation_form_reorderable_list_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/preparation_form/preparation_form_state_event_test.dart",
+      "sha256": "d4a3eca6ad1ae543618c31ec08347aea66f2a53ea0212c1299bd20687f56b167",
+      "member": "test/presentation/schedule_create/preparation_form/preparation_form_state_event_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/preparation_form/preparation_step_form_cubit_test.dart",
+      "sha256": "fbe84161f025163745d3cc4a36d73c5eab395629ab21ed60d149ac231bd847c2",
+      "member": "test/presentation/schedule_create/preparation_form/preparation_step_form_cubit_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_date_time/input_models/schedule_date_input_model_test.dart",
+      "sha256": "25030686e6f9a93adfafd7c3e8436108ad34600ba8049e982883c1aafa86b8bd",
+      "member": "test/presentation/schedule_create/schedule_date_time/input_models/schedule_date_input_model_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_date_time/input_models/schedule_time_input_model_test.dart",
+      "sha256": "730d0f24f96a04ce329402da4ba27107d028232966717fad59f0b8cf7c75c7b6",
+      "member": "test/presentation/schedule_create/schedule_date_time/input_models/schedule_time_input_model_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_date_time/schedule_date_time_cubit_test.dart",
+      "sha256": "9db8535477ea7e4ffd402ab6998e551d3d87a9210b61d62bfceb5c25bfb9d3a5",
+      "member": "test/presentation/schedule_create/schedule_date_time/schedule_date_time_cubit_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_date_time/schedule_date_time_form_test.dart",
+      "sha256": "020516af4dda0745b89b1136aee5b271e8d6484fb4a0cccaa62d6577e96bcfcb",
+      "member": "test/presentation/schedule_create/schedule_date_time/schedule_date_time_form_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_date_time/schedule_date_time_state_test.dart",
+      "sha256": "917f3e6c2d7a85ad59172a9ce0a4647ad55a3b2d204b82d68a8435dc299109e4",
+      "member": "test/presentation/schedule_create/schedule_date_time/schedule_date_time_state_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_date_time/schedule_time_zone_picker_contract_test.dart",
+      "sha256": "2c43277f5691027f1e0f7cc6d6de9b38e53ee3f17abf8338c557807737f0403c",
+      "member": "test/presentation/schedule_create/schedule_date_time/schedule_time_zone_picker_contract_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_place_moving_time/schedule_place_moving_time_form_test.dart",
+      "sha256": "26f5dea878c44875d3cf6392ffd44fe3928d4f75266e442b22aa8363485992d2",
+      "member": "test/presentation/schedule_create/schedule_place_moving_time/schedule_place_moving_time_form_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_state_test.dart",
+      "sha256": "867e648c05854e27e5abdd2fcb314545f9ea5b4e46cc2dff2d47d789b343f1e1",
+      "member": "test/presentation/schedule_create/schedule_spare_and_preparing_time/cubit/schedule_form_spare_time_state_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc_test.dart",
+      "sha256": "f2280df0f9bad6aeb0a0a6f27e00917c9a2a50e2c6328f77a97c4f1dfc96e121",
+      "member": "test/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form_test.dart",
+      "sha256": "03cb5f04f6d29ada101beeb53fadb3341c2effa40b9a128ae956e0e143334df9",
+      "member": "test/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_time_inputs_cubit_test.dart",
+      "sha256": "d63de9fe41f195450cbc080864d7301fe43a9a399bbb93741098048a5e1e1303",
+      "member": "test/presentation/schedule_create/schedule_time_inputs_cubit_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/schedule_time_save_review_dialog_test.dart",
+      "sha256": "d6f919a2f1f9908a69bfcaf5c5245dd5d01ecb1e792364fe8e4228c4492d4c93",
+      "member": "test/presentation/schedule_create/schedule_time_save_review_dialog_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/time_correction/schedule_time_correction_screen_test.dart",
+      "sha256": "51c30bb7c9cb3c721695e47d3aa6ffebeb5b2ef4016668784010c91347af6fea",
+      "member": "test/presentation/schedule_create/time_correction/schedule_time_correction_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/u02_form_acceptance_integration_test.dart",
+      "sha256": "5344624ed4d0d18b725c800b4c8ff77f8690d858ba2ec8b41f60404024bca997",
+      "member": "test/presentation/schedule_create/u02_form_acceptance_integration_test.dart"
+    },
+    {
+      "path": "test/presentation/schedule_create/u02_form_authority_integration_test.dart",
+      "sha256": "c9f298e2ffbdda661ac38bb655eb04c3f4181ffe4e1f3b998015d4a41e1fabf0",
+      "member": "test/presentation/schedule_create/u02_form_authority_integration_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/arc_indicator_test.dart",
+      "sha256": "5188c06cc45a9a8eb100567b3c9e2cef3f8e615aeedcc1279dfdd283fedb7ac9",
+      "member": "test/presentation/shared/arc_indicator_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/components/calendar/schedule_marker_builder_test.dart",
+      "sha256": "70ec3d801ba70ace6d9ccd3d7cb0326e694096b64db0cbbcb01d6c9f8c4da9f6",
+      "member": "test/presentation/shared/components/calendar/schedule_marker_builder_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/components/civil_date_time_picker_test.dart",
+      "sha256": "34345599bf2e8bc1073ef3179890431d65073c75e6e1a0e9c5d48f825db262b2",
+      "member": "test/presentation/shared/components/civil_date_time_picker_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/components/cupertino_picker_modal_test.dart",
+      "sha256": "8b813a5aca41660f2aef4eab2ffbda0cce9af44883eade6100e2dd7f6e731a47",
+      "member": "test/presentation/shared/components/cupertino_picker_modal_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/components/custom_alert_dialog_test.dart",
+      "sha256": "77a4dc5c5996fd715c1c892007bbf1c40ebb4543735c072bd81a32582cf4802b",
+      "member": "test/presentation/shared/components/custom_alert_dialog_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/components/modal_wide_button_test.dart",
+      "sha256": "49e7355c7ee17c7c6ea9558a4f7dbde2b9f7614a0cfb2c56009badb142c64214",
+      "member": "test/presentation/shared/components/modal_wide_button_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/components/two_button_delete_dialog_test.dart",
+      "sha256": "b071ed380e919f68a044da615daddd8ed77ece897dd9c6e934f7e1e26f44f206",
+      "member": "test/presentation/shared/components/two_button_delete_dialog_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/constants/app_colors_test.dart",
+      "sha256": "d704a295c34a816744d08577a7ffb159c3528cb9c8371400ca40af32ad27171e",
+      "member": "test/presentation/shared/constants/app_colors_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/constants/early_late_text_images_test.dart",
+      "sha256": "0b41247d2ea793b50a9d2e9accbc27dc451412b5f5b7f587303b7d3d6b9a7b2e",
+      "member": "test/presentation/shared/constants/early_late_text_images_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/router/app_route_transition_test.dart",
+      "sha256": "81ff608cbaf8d1090c8428c83d1086d57da27475b078cbbc00fc9b37efe9aaf8",
+      "member": "test/presentation/shared/router/app_route_transition_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/router/go_router_redirect_test.dart",
+      "sha256": "cc40181de0cae9e94c13b451377d055f965af2a2a800ed3a22bc2776e54bfe97",
+      "member": "test/presentation/shared/router/go_router_redirect_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/router/notification_launch_widget_test.dart",
+      "sha256": "00be41421eb16f96f060869005a392e3a48214fec358558cec8cc3a9ee422799",
+      "member": "test/presentation/shared/router/notification_launch_widget_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/router/route_arguments_test.dart",
+      "sha256": "1050f98213384ef4d69346546f3782a12f176551856aac8aa5524d344e3bdfc8",
+      "member": "test/presentation/shared/router/route_arguments_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/theme/button_and_calendar_theme_test.dart",
+      "sha256": "545e448abde56eab8adc8473a46a1c43a22782a44f576a04c0aa40cf22b45b87",
+      "member": "test/presentation/shared/theme/button_and_calendar_theme_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/theme/tile_style_test.dart",
+      "sha256": "b7d75fbd06d31f8b399dd54af958a60f8af22fc71afa216dc4952c2d68aeaa00",
+      "member": "test/presentation/shared/theme/tile_style_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/time/device_time_zone_scope_test.dart",
+      "sha256": "c0b032e8c210c4db29bc8f29c554a6ebb851b7b1cd8d05a6588ff2fbb2c96a16",
+      "member": "test/presentation/shared/time/device_time_zone_scope_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/time/zoned_recurrence_review_contract_test.dart",
+      "sha256": "1f71e4c2f739a03b4f7c1f2ec39623441ccc17f7a99c925b364a281ded4ad7c2",
+      "member": "test/presentation/shared/time/zoned_recurrence_review_contract_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/time/zoned_schedule_presentation_contract_test.dart",
+      "sha256": "48b0411b7ae765258fbfacb6be0353148754270ead61f1124b60dad4d964c6ab",
+      "member": "test/presentation/shared/time/zoned_schedule_presentation_contract_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/time/zoned_schedule_surface_contract_test.dart",
+      "sha256": "78d6fff21a0702892f52bbb46255cb4b9bba2766d18ec751a95602e6301fe09f",
+      "member": "test/presentation/shared/time/zoned_schedule_surface_contract_test.dart"
+    },
+    {
+      "path": "test/presentation/shared/utils/time_format_test.dart",
+      "sha256": "b92dbbb3cead69fb424becf32ffe3bec0d6da2ee27152aea8e89082af039f31e",
+      "member": "test/presentation/shared/utils/time_format_test.dart"
+    },
+    {
+      "path": "test/presentation/startup/damaged_store_restore_test.dart",
+      "sha256": "8ea3af8fac22e3f973deb2254b6658930427c34719faa328ff0c8761f5cd6964",
+      "member": "test/presentation/startup/damaged_store_restore_test.dart"
+    },
+    {
+      "path": "test/presentation/startup/local_reset_recovery_test.dart",
+      "sha256": "f1afb3d065a4b4fbe8ee14aa66205cd8b74eea589da8fa011d00d3bbf6ec91f8",
+      "member": "test/presentation/startup/local_reset_recovery_test.dart"
+    },
+    {
+      "path": "test/presentation/startup/local_startup_store_recovery_test.dart",
+      "sha256": "1787ba4e5f430b0f9d18f64bf95ef251b52d7a3b50cc761adf42d8ff3d453873",
+      "member": "test/presentation/startup/local_startup_store_recovery_test.dart"
+    },
+    {
+      "path": "test/presentation/startup/migration_recovery_integration_test.dart",
+      "sha256": "536ac9b8cead2e59f2d0028a6f81198e375d2dc91fbde3e61d3867fe5eadeeb3",
+      "member": "test/presentation/startup/migration_recovery_integration_test.dart"
+    },
+    {
+      "path": "test/presentation/startup/recovery_restore_screen_test.dart",
+      "sha256": "cab710a31af208992ae695cadfd2ff6c97abe1eda716e9b4c5ce9f3d7b2e7a5a",
+      "member": "test/presentation/startup/recovery_restore_screen_test.dart"
+    },
+    {
+      "path": "test/presentation/startup/recovery_time_review_test.dart",
+      "sha256": "a7b2f1d32e34d4d9aafe0133954275782ff666108e7a9e0f02e4003e344d5b2e",
+      "member": "test/presentation/startup/recovery_time_review_test.dart"
+    },
+    {
+      "path": "test/repository_structure_test.dart",
+      "sha256": "b9272c637e764758f71192bfcfa8a1a90d9db8928f1c76d928dada56ee51686b",
+      "member": "test/repository_structure_test.dart"
+    },
+    {
+      "path": "test/tool/test_android_notification_manifest.py",
+      "sha256": "6d51cf68d64339b9159ffa35c693c5edd65dc37e5827235b5913a168508454e7",
+      "member": "test/tool/test_android_notification_manifest.py"
+    },
+    {
+      "path": "tool/check_android_notification_manifest.py",
+      "sha256": "3cdce3147005cd9d789bea4b7df49623f2cfe84d8f0dee2cafdf5f3a88570479",
+      "member": "tool/check_android_notification_manifest.py"
+    },
+    {
+      "path": "tool/check_coverage.dart",
+      "sha256": "4e124968dd49d06f20c17db2a0f70b13712a65ecc47c1eae24618b1d929356f5",
+      "member": "tool/check_coverage.dart"
+    },
+    {
+      "path": "tool/check_database_schema.dart",
+      "sha256": "1a39e2ef577a45bd5ac4938a95e0946781287e9a5d86606cd2d2026740cc5210",
+      "member": "tool/check_database_schema.dart"
+    },
+    {
+      "path": "tool/check_generated_dart_policy.dart",
+      "sha256": "81e732eba020741605fd7352af7cacb876c033d20478ad0e1cb7f48af36f1662",
+      "member": "tool/check_generated_dart_policy.dart"
+    },
+    {
+      "path": "tool/check_local_only_boundary.dart",
+      "sha256": "d40d2362d02309d5ddc57a9b426a1d56eb0e90735b13b7039661e6ff92cdc05c",
+      "member": "tool/check_local_only_boundary.dart"
+    },
+    {
+      "path": "tool/database_schema_builder.dart",
+      "sha256": "932e8eac0e407f8eb7578d005524b832d5289df46268acd0495d19ab216a97e1",
+      "member": "tool/database_schema_builder.dart"
+    },
+    {
+      "path": "tool/database_schema_input.dart",
+      "sha256": "0d58fe9b11889926484d347ca0f03537b2726520809a45b812b0e556d0b5a068",
+      "member": "tool/database_schema_input.dart"
+    },
+    {
+      "path": "tool/qa/android_sqlite_control.kt",
+      "sha256": "2c19a70e359eff06da69c58baa176663cc33888517bbcd9d9e29a28bb0843dda",
+      "member": "tool/qa/android_sqlite_control.kt"
+    },
+    {
+      "path": "tool/qa/backup_native_probe.dart",
+      "sha256": "bb0393d435a8fabc00be832f6580dd1805be7b0be42ac5211fcabde1ff5e9769",
+      "member": "tool/qa/backup_native_probe.dart"
+    },
+    {
+      "path": "tool/qa/capture_damaged_store_recovery.dart",
+      "sha256": "8dbcf086dbb3f6071b4b73b7c7af26d0ec4419f6100b293fb25a75e6a3bbc48f",
+      "member": "tool/qa/capture_damaged_store_recovery.dart"
+    },
+    {
+      "path": "tool/qa/capture_default_preferences.dart",
+      "sha256": "b6c61ae5f7fa8ca02740edd668ab74625d3652823cda9bf2f12d8002485f9842",
+      "member": "tool/qa/capture_default_preferences.dart"
+    },
+    {
+      "path": "tool/qa/capture_local_data_workflows.dart",
+      "sha256": "9230da65ac4af641645da2d46172a39b8b63bc132d9e656c6955adc03009935d",
+      "member": "tool/qa/capture_local_data_workflows.dart"
+    },
+    {
+      "path": "tool/qa/capture_preparation_start.dart",
+      "sha256": "170ea3f55f54030b2f7b6159c053704f15fd2d6a3c74d6c85518b337114fed45",
+      "member": "tool/qa/capture_preparation_start.dart"
+    },
+    {
+      "path": "tool/qa/capture_reset_recovery.dart",
+      "sha256": "97cd0c27cc9cadcfb1d4f21dd5c894ec88e3eb84f3fd57ac0c151551594358dd",
+      "member": "tool/qa/capture_reset_recovery.dart"
+    },
+    {
+      "path": "tool/qa/capture_restore_cleanup.dart",
+      "sha256": "b3a0aa1ff4042ee5d6e947eefd89f3e62284145c911f91b015e851ce6a4237d5",
+      "member": "tool/qa/capture_restore_cleanup.dart"
+    },
+    {
+      "path": "tool/qa/emit_database_schema.dart",
+      "sha256": "13eef4d0d95ce80ffe3990c46b4c26a8ce98ed9790f40501686cef8ccf1df864",
+      "member": "tool/qa/emit_database_schema.dart"
+    },
+    {
+      "path": "tool/qa/migration_crash_probe.dart",
+      "sha256": "51f6c7fec8badc882b46e5b73dd291077bdf4ffb5f14ea589cf28da4fd830938",
+      "member": "tool/qa/migration_crash_probe.dart"
+    },
+    {
+      "path": "tool/qa/migration_native_probe.dart",
+      "sha256": "5c9dff1d9b18cd38f717ffa9d70f289324417db470a90365ff6fa464649a067f",
+      "member": "tool/qa/migration_native_probe.dart"
+    },
+    {
+      "path": "tool/qa/recovery_pair_crash_probe.dart",
+      "sha256": "c760ca688e2f0e15cd59b7e11edcc6fee058fd50af8e66d05965852aebcec2ce",
+      "member": "tool/qa/recovery_pair_crash_probe.dart"
+    },
+    {
+      "path": "tool/qa/reset_journal_crash_probe.dart",
+      "sha256": "5374f12a5f0226a6d65b2359597da91002d50776f6d3ae6e1b736a55bc87405d",
+      "member": "tool/qa/reset_journal_crash_probe.dart"
+    },
+    {
+      "path": "tool/qa/schedule_deletion_crash_probe.dart",
+      "sha256": "e327ee8f73ba1f67784235dd9702d7b60ee1ff84fc86c977d511d57bd8aee0ff",
+      "member": "tool/qa/schedule_deletion_crash_probe.dart"
+    },
+    {
+      "path": "tool/qa/time_zone_native_probe.dart",
+      "sha256": "32a74cbe3af334d693e09089a51523058df0f2f4131452e2791ada0c8b0ff369",
+      "member": "tool/qa/time_zone_native_probe.dart"
+    },
+    {
+      "path": "tool/qa/verify_migration_crash_recovery.py",
+      "sha256": "7b3565dcfbf2e293f611aa76c7ae5c904165990c2f2deefd82709e53a33389ff",
+      "member": "tool/qa/verify_migration_crash_recovery.py"
+    },
+    {
+      "path": "tool/qa/verify_pair_crash_recovery.py",
+      "sha256": "06a06f595e9d92a263c23f757495a70994927572b2914c1d4a603c13365ddb88",
+      "member": "tool/qa/verify_pair_crash_recovery.py"
+    },
+    {
+      "path": "tool/qa/verify_reset_crash_recovery.py",
+      "sha256": "daa52732605ec0b75c165bf453d2085ca0f7eb03380e37162f40340ebab4de69",
+      "member": "tool/qa/verify_reset_crash_recovery.py"
+    },
+    {
+      "path": "tool/qa/verify_schedule_deletion_crash_recovery.py",
+      "sha256": "3daa8ecd8bd4eba08fa4646359e6f16147b724084e36035f28f38b160b9cb61a",
+      "member": "tool/qa/verify_schedule_deletion_crash_recovery.py"
+    },
+    {
+      "path": "tool/qa/verify_schema_gate.py",
+      "sha256": "a57aeab77b4855ba69224d0b6ef78110a8bbd945cfdc00e0602fa8b8e56b323e",
+      "member": "tool/qa/verify_schema_gate.py"
+    },
+    {
+      "path": "web/index.html",
+      "sha256": "2e92775c88c012f6307f0f7ea42fa79cd0d6144234e805b4f308801daa58cb8e",
+      "member": "web/index.html"
+    }
+  ],
+  "verifiedSaved": 786,
+  "liveDriftAtArchive": [],
+  "ignoredGeneratedHashOnly": 10
+}

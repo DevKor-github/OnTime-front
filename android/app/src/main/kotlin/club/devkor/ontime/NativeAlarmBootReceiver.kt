@@ -148,6 +148,11 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
         if (preparationStartTimeMillis != null) {
             extras["preparationStartTime"] = preparationStartTimeMillis.toString()
         }
+        // Preserve only the identity originally issued with this registry record.
+        // Never stamp a legacy record with the current installation identity.
+        if (record.has("storeIncarnation") && !record.isNull("storeIncarnation")) {
+            extras["storeIncarnation"] = record.optString("storeIncarnation")
+        }
         extras["title"] = record.optString("scheduleTitle", "")
         extras["body"] = "It is time to get ready."
         return NativeAlarmReceiver.alarmPendingIntentForRecord(
@@ -176,6 +181,11 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
         }
         parseAlarmTime(record.optString("preparationStartTime"))?.let {
             extras["preparationStartTime"] = it.toString()
+        }
+        // Preserve only the identity originally issued with this registry record.
+        // Never stamp a legacy record with the current installation identity.
+        if (record.has("storeIncarnation") && !record.isNull("storeIncarnation")) {
+            extras["storeIncarnation"] = record.optString("storeIncarnation")
         }
         extras["title"] = record.optString("scheduleTitle", "")
         extras["body"] = "It is time to get ready."

@@ -10,6 +10,9 @@ class ScheduleState extends Equatable {
     this.notificationPromptOwner,
     this.hasPendingStartRecovery = false,
     this.isRecoveringStart = false,
+    this.nearestQuery = const NearestQueryIdle(),
+    this.hasNotificationPreparationOwner = false,
+    this.isResumedPreparation = false,
   });
 
   const ScheduleState.initial() : this._(status: ScheduleStatus.initial);
@@ -31,10 +34,12 @@ class ScheduleState extends Equatable {
   const ScheduleState.started(
     ScheduleWithPreparationEntity schedule, {
     bool isEarlyStarted = false,
+    bool isResumedPreparation = false,
   }) : this._(
          status: ScheduleStatus.started,
          schedule: schedule,
          isEarlyStarted: isEarlyStarted,
+         isResumedPreparation: isResumedPreparation,
        );
 
   final ScheduleStatus status;
@@ -44,12 +49,36 @@ class ScheduleState extends Equatable {
   final bool hasPendingStartRecovery;
   final bool isRecoveringStart;
 
+  /// The last projection is retained; it is not fresh start authority.
+  final NearestScheduleQuery nearestQuery;
+  final bool hasNotificationPreparationOwner;
+  bool get hasUpcomingReadFailure => nearestQuery is NearestQueryError;
+  NearestVerifiedSchedule? get freshNearest => switch (nearestQuery) {
+    NearestQueryReady(:final value) => value,
+    _ => null,
+  };
+  NearestVerifiedSchedule? get staleNearest => nearestQuery.stale;
+  bool get hasOwnedPreparationSurface =>
+      notificationPromptOwner != null ||
+      hasNotificationPreparationOwner ||
+      (schedule != null &&
+          schedule!.doneStatus == ScheduleDoneStatus.notEnded &&
+          schedule!.isStarted &&
+          schedule!.startedAt != null &&
+          schedule!.preparationFrozen);
+
+  /// A read restored an existing run; it is not a new-start navigation event.
+  final bool isResumedPreparation;
+
   ScheduleState copyWith({
     ScheduleStatus? status,
     ScheduleWithPreparationEntity? schedule,
     bool? isEarlyStarted,
     bool? hasPendingStartRecovery,
     bool? isRecoveringStart,
+    NearestScheduleQuery? nearestQuery,
+    bool? hasNotificationPreparationOwner,
+    bool? isResumedPreparation,
   }) {
     return ScheduleState._(
       status: status ?? this.status,
@@ -59,6 +88,11 @@ class ScheduleState extends Equatable {
       hasPendingStartRecovery:
           hasPendingStartRecovery ?? this.hasPendingStartRecovery,
       isRecoveringStart: isRecoveringStart ?? this.isRecoveringStart,
+      nearestQuery: nearestQuery ?? this.nearestQuery,
+      hasNotificationPreparationOwner:
+          hasNotificationPreparationOwner ??
+          this.hasNotificationPreparationOwner,
+      isResumedPreparation: isResumedPreparation ?? this.isResumedPreparation,
     );
   }
 
@@ -82,5 +116,8 @@ class ScheduleState extends Equatable {
     notificationPromptOwner,
     hasPendingStartRecovery,
     isRecoveringStart,
+    nearestQuery,
+    hasNotificationPreparationOwner,
+    isResumedPreparation,
   ];
 }

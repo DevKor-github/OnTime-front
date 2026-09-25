@@ -62,6 +62,25 @@ class PreparationTemplateDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
+  /// Validated backup materialization preserves both original timestamps.
+  Future<void> restore({
+    required String id,
+    required String name,
+    required PreparationEntity preparation,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+  }) async {
+    await transaction(() async {
+      await put(id: id, name: name, preparation: preparation, now: updatedAt);
+      await (update(preparationTemplates)..where((t) => t.id.equals(id))).write(
+        PreparationTemplatesCompanion(
+          createdAt: Value(createdAt),
+          updatedAt: Value(updatedAt),
+        ),
+      );
+    });
+  }
+
   Future<void> deleteById(String id) async {
     await (delete(
       preparationTemplates,

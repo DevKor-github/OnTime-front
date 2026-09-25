@@ -15,6 +15,7 @@ class MonthCalendar extends StatefulWidget {
     this.rowHeight = 50,
     this.daysOfWeekHeight = 40,
     this.contentPadding = const EdgeInsets.all(16.0),
+    this.today,
   });
 
   final MonthlySchedulesState monthlySchedulesState;
@@ -23,6 +24,7 @@ class MonthCalendar extends StatefulWidget {
   final double rowHeight;
   final double daysOfWeekHeight;
   final EdgeInsetsGeometry contentPadding;
+  final DateTime? today;
 
   @override
   State<MonthCalendar> createState() => _MonthCalendarState();
@@ -31,10 +33,12 @@ class MonthCalendar extends StatefulWidget {
 class _MonthCalendarState extends State<MonthCalendar> {
   late DateTime _focusedDay;
   late DateTime _selectedDay;
+  bool _manuallyNavigated = false;
+  DateTime get _today => widget.today ?? DateTime.now();
 
   DateTime get _firstDay => DateTime(2024, 1, 1);
 
-  DateTime get _lastDay => DateTime(DateTime.now().year + 5, 12, 31);
+  DateTime get _lastDay => DateTime(_today.year + 5, 12, 31);
 
   DateTime _clampDay(DateTime day, DateTime firstDay, DateTime lastDay) {
     final d = DateTime(day.year, day.month, day.day);
@@ -49,11 +53,33 @@ class _MonthCalendarState extends State<MonthCalendar> {
   @override
   void initState() {
     super.initState();
-    _focusedDay = _clampDay(DateTime.now(), _firstDay, _lastDay);
+    _focusedDay = _clampDay(_today, _firstDay, _lastDay);
     _selectedDay = _focusedDay;
   }
 
+  @override
+  void didUpdateWidget(covariant MonthCalendar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.today == null ||
+        isSameDay(oldWidget.today, widget.today) ||
+        _manuallyNavigated) {
+      return;
+    }
+    final oldMonth = (_focusedDay.year, _focusedDay.month);
+    _focusedDay = _clampDay(_today, _firstDay, _lastDay);
+    _selectedDay = _focusedDay;
+    if (oldMonth != (_focusedDay.year, _focusedDay.month) &&
+        widget.dispatchBlocEvents) {
+      context.read<MonthlySchedulesBloc>().add(
+        MonthlySchedulesMonthAdded(
+          date: DateTime(_focusedDay.year, _focusedDay.month, 1),
+        ),
+      );
+    }
+  }
+
   void _onLeftArrowTap() {
+    _manuallyNavigated = true;
     final nextFocusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
     final clampedFocusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
 
@@ -71,6 +97,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
   }
 
   void _onRightArrowTap() {
+    _manuallyNavigated = true;
     final nextFocusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
     final clampedFocusedDay = _clampDay(nextFocusedDay, _firstDay, _lastDay);
 
@@ -115,6 +142,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
             rowHeight: constrainedRowHeight,
             availableGestures: AvailableGestures.none,
             focusedDay: _focusedDay,
+            currentDay: _today,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             firstDay: _firstDay,
             lastDay: _lastDay,
@@ -124,6 +152,7 @@ class _MonthCalendarState extends State<MonthCalendar> {
             daysOfWeekHeight: widget.daysOfWeekHeight,
             calendarStyle: calendarTheme.calendarStyle,
             onDaySelected: (selectedDay, focusedDay) {
+              _manuallyNavigated = true;
               final clampedSelectedDay = _clampDay(
                 selectedDay,
                 _firstDay,

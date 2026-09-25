@@ -1,3 +1,7 @@
+import 'package:on_time_front/core/time/civil_time_resolver.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
+import 'package:on_time_front/domain/entities/schedule_time_resolution.dart';
+import 'package:on_time_front/presentation/shared/time/schedule_zoned_time.dart';
 import 'package:flutter/material.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
@@ -18,6 +22,24 @@ class RecurrenceTimeChoiceSheet extends StatefulWidget {
 
 class _RecurrenceTimeChoiceSheetState extends State<RecurrenceTimeChoiceSheet> {
   RepeatedCivilTime _choice = RepeatedCivilTime.first;
+  Widget _candidatePreview(RepeatedCivilTime choice) {
+    final candidates = CivilTimeResolver.resolve(
+      widget.date,
+      widget.timeZoneId,
+    );
+    final index = choice == RepeatedCivilTime.first ? 0 : 1;
+    if (candidates.length <= index) return const SizedBox.shrink();
+    return ScheduleZonedTime(
+      showInstant: true,
+      civil: CivilDateTime.fromFields(widget.date),
+      timeZoneId: widget.timeZoneId,
+      resolution: ScheduleTimeResolution(
+        status: ScheduleTimeResolutionStatus.resolved,
+        instantUtc: candidates[index].instantUtc,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => RecurrenceSheet(
     title: recurrenceText(context, '반복 시각 확인', 'Repeated time'),
@@ -47,6 +69,7 @@ class _RecurrenceTimeChoiceSheetState extends State<RecurrenceTimeChoiceSheet> {
           ),
           selected: _choice == choice,
           onTap: () => setState(() => _choice = choice),
+          child: _candidatePreview(choice),
         ),
       RecurrencePanel(
         child: Text(

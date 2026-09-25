@@ -7,12 +7,17 @@ object AlarmLaunchPayload {
         if (id.isBlank() || id.length > 512 || id.any { it.code < 32 || it.code == 127 }) {
             return null
         }
-        return mapOf(
+        val identity = source["storeIncarnation"]
+        if (source.containsKey("storeIncarnation") &&
+            (identity !is String || !Regex("^[a-fA-F0-9-]{32,36}$").matches(identity))) {
+            return null
+        }
+        return mutableMapOf(
             "type" to "schedule_alarm",
             "scheduleId" to id,
-            "alarmLaunchPayloadVersion" to "9",
+            "alarmLaunchPayloadVersion" to "10",
             "promptVariant" to "alarm",
-        )
+        ).apply { if (identity is String) put("storeIncarnation", identity) }
     }
 
     /** Provider display fields are never forwarded to Flutter as a route. */

@@ -52,6 +52,7 @@ class MonthlySchedulesBloc
   final LoadSchedulesForMonthUseCase _loadSchedulesForMonthUseCase;
   final GetSchedulesByDateUseCase _getSchedulesByDateUseCase;
   final DeleteScheduleUseCase _deleteScheduleUseCase;
+  DeleteScheduleUseCase get deletions => _deleteScheduleUseCase;
   final LoadPreparationByScheduleIdUseCase _loadPreparationByScheduleIdUseCase;
   final GetPreparationByScheduleIdUseCase _getPreparationByScheduleIdUseCase;
   final StreamPreparationsUseCase _streamPreparationsUseCase;

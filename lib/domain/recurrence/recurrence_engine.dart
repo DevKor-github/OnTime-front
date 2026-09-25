@@ -63,30 +63,57 @@ class RecurrenceEngine {
     int? limit,
     int candidateBudget = 200000,
   }) {
-    if (leadTime.isNegative) throw ArgumentError.value(leadTime, 'leadTime');
     if (candidateBudget < 1 || (limit != null && limit < 1)) {
       throw ArgumentError('Expansion budgets must be positive.');
     }
-    // Initialize the existing bundled time-zone database before validating the
-    // zone; recurring rules must not silently fall back to UTC for bad input.
+    final slots = <RecurrenceSlot>[];
+    final skipped = <RecurrenceSkip>[];
+    var visited = 0;
+    for (final step in scan(
+      rule,
+      through: through,
+      from: from,
+      preparationNotBeforeUtc: preparationNotBeforeUtc,
+      leadTime: leadTime,
+      excludedKeys: excludedKeys,
+    )) {
+      if (++visited > candidateBudget) throw const RecurrenceSearchLimit();
+      if (step.skipped != null) skipped.add(step.skipped!);
+      if (step.slot != null) slots.add(step.slot!);
+      if (limit != null && slots.length == limit) break;
+    }
+    return RecurrenceExpansion(
+      slots: List.unmodifiable(slots),
+      skipped: List.unmodifiable(skipped),
+    );
+  }
+
+  /// One yield per visited candidate, including skipped/excluded/history slots.
+  /// Keeping this iterator in memory lets bounded consumers continue without
+  /// restarting count. [expand] and nearest queries share these exact rules.
+  Iterable<RecurrenceScanStep> scan(
+    RecurrenceRule rule, {
+    required DateTime through,
+    DateTime? from,
+    DateTime? preparationNotBeforeUtc,
+    Duration leadTime = Duration.zero,
+    Set<String> excludedKeys = const {},
+  }) sync* {
+    if (leadTime.isNegative) throw ArgumentError.value(leadTime, 'leadTime');
     CivilTimeResolver.resolve(rule.start, 'UTC');
     tz.getLocation(rule.timeZoneId);
     var end = RecurrenceRule.civilDate(through);
     if (rule.until != null && rule.until!.isBefore(end)) end = rule.until!;
     final lower = from == null ? rule.start : RecurrenceRule.civilTime(from);
-    final slots = <RecurrenceSlot>[];
-    final skipped = <RecurrenceSkip>[];
     var counted = 0;
-    var candidates = 0;
-
     for (final date in _dates(rule, end)) {
-      if (++candidates > candidateBudget) throw const RecurrenceSearchLimit();
       if (date.missing) {
-        if (!date.value.isBefore(RecurrenceRule.civilDate(lower))) {
-          skipped.add(
-            RecurrenceSkip(date.value, RecurrenceSkipReason.nonexistentDate),
-          );
-        }
+        yield RecurrenceScanStep(
+          date.value,
+          skipped: !date.value.isBefore(RecurrenceRule.civilDate(lower))
+              ? RecurrenceSkip(date.value, RecurrenceSkipReason.nonexistentDate)
+              : null,
+        );
         continue;
       }
       final civil = DateTime.utc(
@@ -99,14 +126,18 @@ class RecurrenceEngine {
         rule.start.millisecond,
         rule.start.microsecond,
       );
-      if (civil.isBefore(rule.start)) continue;
+      if (civil.isBefore(rule.start)) {
+        yield RecurrenceScanStep(civil);
+        continue;
+      }
       final resolved = CivilTimeResolver.resolve(civil, rule.timeZoneId);
       if (resolved.isEmpty) {
-        if (!civil.isBefore(lower)) {
-          skipped.add(
-            RecurrenceSkip(civil, RecurrenceSkipReason.nonexistentTime),
-          );
-        }
+        yield RecurrenceScanStep(
+          civil,
+          skipped: !civil.isBefore(lower)
+              ? RecurrenceSkip(civil, RecurrenceSkipReason.nonexistentTime)
+              : null,
+        );
         continue;
       }
       if (resolved.length > 1 && rule.repeatedTime == null) {
@@ -120,33 +151,32 @@ class RecurrenceEngine {
           actual.instantUtc
               .subtract(leadTime)
               .isBefore(preparationNotBeforeUtc.toUtc())) {
-        if (!civil.isBefore(lower)) {
-          skipped.add(
-            RecurrenceSkip(civil, RecurrenceSkipReason.preparationPassed),
-          );
-        }
+        yield RecurrenceScanStep(
+          civil,
+          skipped: !civil.isBefore(lower)
+              ? RecurrenceSkip(civil, RecurrenceSkipReason.preparationPassed)
+              : null,
+        );
         continue;
       }
       counted++;
-      if (!civil.isBefore(lower) &&
-          !excludedKeys.contains(civil.toIso8601String())) {
-        slots.add(
-          RecurrenceSlot(
-            civilTime: civil,
-            instantUtc: actual.instantUtc,
-            offsetSeconds: actual.offsetSeconds,
-            ordinal: counted,
-          ),
-        );
-      }
-      if (counted == rule.count || (limit != null && slots.length == limit)) {
-        break;
-      }
+      final slot =
+          !civil.isBefore(lower) &&
+              !excludedKeys.contains(civil.toIso8601String())
+          ? RecurrenceSlot(
+              civilTime: civil,
+              instantUtc: actual.instantUtc,
+              offsetSeconds: actual.offsetSeconds,
+              ordinal: counted,
+            )
+          : null;
+      yield RecurrenceScanStep(
+        civil,
+        slot: slot,
+        countComplete: counted == rule.count,
+      );
+      if (counted == rule.count) break;
     }
-    return RecurrenceExpansion(
-      slots: List.unmodifiable(slots),
-      skipped: List.unmodifiable(skipped),
-    );
   }
 
   Iterable<_CandidateDate> _dates(RecurrenceRule rule, DateTime end) sync* {
@@ -218,4 +248,18 @@ class _CandidateDate {
   const _CandidateDate(this.value, {this.missing = false});
   final DateTime value;
   final bool missing;
+}
+
+/// Frontier is conservative even for nonexistent calendar dates.
+final class RecurrenceScanStep {
+  const RecurrenceScanStep(
+    this.frontierCivil, {
+    this.slot,
+    this.skipped,
+    this.countComplete = false,
+  });
+  final DateTime frontierCivil;
+  final RecurrenceSlot? slot;
+  final RecurrenceSkip? skipped;
+  final bool countComplete;
 }

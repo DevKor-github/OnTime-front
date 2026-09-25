@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
+import 'package:on_time_front/domain/entities/schedule_deletion.dart';
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:on_time_front/core/database/local_reset_protocol.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -88,8 +91,21 @@ void main() {
     await _pump(tester, RecurrenceReviewSheet(review: review, form: form));
     await captureRefresh(tester, 'conflicts');
     for (var i = 0; i < 3; i++) {
-      await tester.tap(find.byType(CheckboxListTile).at(i));
-      await tester.pump();
+      final row = find.byKey(
+        ValueKey('review-occurrence-${review.slots[i].key}'),
+      );
+      await tester.scrollUntilVisible(
+        row,
+        160,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      final control = find.descendant(of: row, matching: find.byType(Checkbox));
+      await Scrollable.ensureVisible(tester.element(control), alignment: .5);
+      await tester.pumpAndSettle();
+      expect(control.hitTestable(), findsOneWidget);
+      await tester.tap(control);
+      await tester.pumpAndSettle();
     }
     expect(
       tester
@@ -305,7 +321,8 @@ void main() {
       await tester.tap(find.text('반복 종료'));
       await tester.pumpAndSettle();
       await captureRefresh(tester, 'end-confirm');
-      expect(find.text('개별로 수정한 이후 회차도 삭제 대상에 포함됩니다.'), findsOneWidget);
+      expect(find.textContaining('이후'), findsWidgets);
+      expect(find.textContaining('이전'), findsWidgets);
       await tester.tap(find.text('취소'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -378,7 +395,33 @@ class _Management implements RecurringSchedulesUseCase {
   _Management(this.summaries);
   final List<RecurringScheduleSummary> summaries;
   @override
+  DeleteScheduleUseCase get deletions =>
+      _ManagementDeletion(summaries.first.next!);
+  @override
   Future<List<RecurringScheduleSummary>> list() async => summaries;
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _ManagementDeletion extends Fake implements DeleteScheduleUseCase {
+  _ManagementDeletion(this.schedule);
+  final ScheduleEntity schedule;
+  @override
+  int get currentGeneration => 0;
+  @override
+  bool isCurrentGeneration(int generation) => generation == 0;
+  @override
+  Future<ScheduleDeletionIntent> prepare(
+    String id, {
+    RecurringEditScope scope = RecurringEditScope.occurrence,
+  }) async => ScheduleDeletionIntent(
+    intentId: 'ui',
+    scope: scope,
+    targets: [],
+    snapshot: ScheduleEditSnapshot(
+      schedule,
+      _prep,
+      const ScheduleEditBaseline(store: 'ui', generation: 0, revision: 0),
+    ),
+  );
 }

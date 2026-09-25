@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'package:on_time_front/domain/entities/notification_route_payload.dart';
 import 'dart:async';
 
@@ -81,7 +82,10 @@ class NavigationNotificationTapRouter implements NotificationTapRouter {
   @override
   void routeLocalNotificationTap(String? payload) {
     final data = safeNotificationTapData(payload);
-    if (data == null) return;
+    if (data == null ||
+        !RestoreRuntimeIdentity.shared.accepts(data['storeIncarnation'])) {
+      return;
+    }
     final target = notificationRouteForData(data);
     if (target == null) return;
     _receive(target);
@@ -89,7 +93,10 @@ class NavigationNotificationTapRouter implements NotificationTapRouter {
 
   void routeNativeNotificationTap(Map<String, String> payload) {
     final safe = minimalScheduleRoutePayload(payload);
-    if (safe.isEmpty) return;
+    if (safe.isEmpty ||
+        !RestoreRuntimeIdentity.shared.accepts(safe['storeIncarnation'])) {
+      return;
+    }
     final target = notificationRouteForData(safe);
     if (target != null) _receive(target);
   }
@@ -149,6 +156,10 @@ class NavigationNotificationTapRouter implements NotificationTapRouter {
       final payload = Map<String, dynamic>.from(target.extra! as Map);
       final id = payload['scheduleId'] as String?;
       if (id == null) {
+        _pending = null;
+        return;
+      }
+      if (!RestoreRuntimeIdentity.shared.accepts(payload['storeIncarnation'])) {
         _pending = null;
         return;
       }

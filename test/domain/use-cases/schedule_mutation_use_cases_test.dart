@@ -3,7 +3,7 @@ import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
-import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
+import '../../helpers/schedule_deletion_workflow_fixture.dart';
 import 'package:on_time_front/domain/use-cases/finish_schedule_use_case.dart';
 import 'package:on_time_front/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart';
 import 'package:on_time_front/domain/use-cases/start_schedule_use_case.dart';
@@ -67,17 +67,18 @@ void main() {
   );
 
   test(
-    'delete schedule removes schedule then requests deleted alarm effects',
+    'confirmed delete persists once and requests reconciliation after cleanup',
     () async {
-      final scheduleRepository = _FakeScheduleRepository();
-      final alarmEffects = _FakeScheduleMutationAlarmEffectsCoordinator();
-      final useCase = DeleteScheduleUseCase(scheduleRepository, alarmEffects);
-      final schedule = _schedule('schedule-1');
-
-      await useCase(schedule);
-
-      expect(scheduleRepository.deletedSchedules, [schedule]);
-      expect(alarmEffects.calls, ['deleted:schedule-1']);
+      final fixture = DeletionWorkflowFixture();
+      addTearDown(fixture.close);
+      await fixture.open();
+      await fixture.create();
+      final before = await fixture.revision();
+      await fixture.deletion.confirm(await fixture.deletion.prepare('one'));
+      await pumpEventQueue();
+      expect(await fixture.db.select(fixture.db.schedules).get(), isEmpty);
+      expect(await fixture.revision(), before + 1);
+      expect(fixture.reconciliation.callCount, 1);
     },
   );
 
@@ -163,6 +164,8 @@ class _FakeScheduleRepository implements ScheduleRepository {
   Future<DateTime> startSchedule(
     String scheduleId, {
     DateTime? startedAt,
+    bool Function()? isCurrent,
+    String? expectedFingerprint,
   }) async {
     startedScheduleIds.add(scheduleId);
     return startedAt ?? DateTime.utc(2026);

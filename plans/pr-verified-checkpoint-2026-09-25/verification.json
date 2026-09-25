@@ -1,0 +1,63 @@
+{
+  "implementation_commit": "c8f09ce662271f9d127f38f89d8535ba4eac176b",
+  "status": "code_verified_device_pending",
+  "scope": "T03 local host actual SQLCipher full suite and CI; device and remote OPEN",
+  "source_manifest": "source-manifest.json",
+  "inputs": 786,
+  "root_git_blob_verification": {
+    "commit": "c8f09ce662271f9d127f38f89d8535ba4eac176b",
+    "tracked_git_blobs_equal": 776,
+    "ignored_generated_live_hashes_equal": 10,
+    "mismatches": []
+  },
+  "full": {
+    "passed": 2090,
+    "conditional_skipped": 6,
+    "failed": 0,
+    "exit_code": 0,
+    "terminal": "06:29 +2090 ~6: All tests passed!",
+    "interrupted": false
+  },
+  "analyze": {
+    "issues": 0
+  },
+  "local_ci": {
+    "checks": 6,
+    "all_exit_zero": true
+  },
+  "root_independent_coverage_recount": {
+    "app_owned_covered": 24994,
+    "app_owned_total": 27871,
+    "app_owned_percent": 89.67744250296006,
+    "raw_unfiltered_covered": 27398,
+    "raw_unfiltered_total": 34054,
+    "raw_unfiltered_percent": 80.45457215011453
+  },
+  "targeted": {
+    "crypto_and_parser": 27,
+    "workflow": 70,
+    "identity_final": 28,
+    "counts_overlap_full": true
+  },
+  "conditional_skips": "4 explicit timezone environments plus 2 inverse plaintext cases; unchanged historical supplemental evidence is not added to this run",
+  "host_reset": {
+    "source_commit": "729730d078cb2af7683e5823faa893e66cb6fd36",
+    "actual_sigkill_cases_passed": 11,
+    "scope": "host process death; fixture providers and deletion adapters",
+    "repeated_after_identity_ticket": false,
+    "reason": "Identity publication patch does not change the reset crash probe; preserve actual prior-source evidence."
+  },
+  "defects_fixed": [
+    "D05: authenticated final frame followed by extra frame escaped as untyped Sodium StateError",
+    "A09: actual restore COMMIT response loss was classified as notCommitted without authoritative readback",
+    "A09: stale identity.load republished old runtime authority after unknown restore hold"
+  ],
+  "mobile": "OPEN: actual Android/iOS failure-preservation-user-retry, native providers, secure storage, capacity measurements",
+  "provenance_note": "Prior local validation at the exact source checkpoint. Product/test/build inputs in this PR match all 776 tracked inputs; 10 ignored generated inputs are recorded as hashes only. Remote checks for this new PR are separate.",
+  "remaining_acceptance": [
+    "Physical Android/iOS notifications, permissions, lifecycle, native file providers, secure storage and accessibility remain open.",
+    "Full U08 screen/locale/text scale coverage and remaining audit items are not completed by this PR.",
+    "T04 implementation and all later edits are excluded.",
+    "No merge, store release, or issue closure is performed by opening this PR."
+  ]
+}

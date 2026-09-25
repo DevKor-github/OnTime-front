@@ -91,6 +91,21 @@ class RecurrenceRule extends Equatable {
     repeatedTime: repeatedTime ?? this.repeatedTime,
   );
 
+  RecurrenceRule withTimeZone(String zone) => RecurrenceRule(
+    frequency: frequency,
+    start: start,
+    timeZoneId: zone,
+    interval: interval,
+    weekdays: weekdays,
+    monthly: monthly,
+    monthDay: monthDay,
+    ordinal: ordinal,
+    monthWeekday: monthWeekday,
+    until: until,
+    count: count,
+    repeatedTime: repeatedTime,
+  );
+
   static DateTime civilDate(DateTime value) =>
       DateTime.utc(value.year, value.month, value.day);
 

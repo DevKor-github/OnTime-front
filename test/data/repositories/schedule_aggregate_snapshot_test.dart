@@ -1,3 +1,6 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../helpers/restore_staging_fixture.dart';
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'dart:convert';
 import 'package:on_time_front/core/backup/backup_service.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
@@ -59,6 +62,8 @@ class _Metadata implements AppMetadataProvider {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   for (final reader in ['edit', 'planning']) {
     test(
       '$reader snapshot cannot combine old schedule with new preparation',
@@ -537,6 +542,11 @@ void main() {
         db,
         _Metadata(),
         NoopAlarmCleanup(),
+        ingestionFactory: memoryBackupIngestion,
+        processingOwner: testBackupProcessingOwner(),
+        stagingFactory: memoryRestoreStaging,
+        runtimeIdentity: RestoreRuntimeIdentity(),
+        cleanupPlatform: noPlatformRestoreCleanup,
         crypto: crypto,
         operationGate: LocalDataOperationGate(),
       );

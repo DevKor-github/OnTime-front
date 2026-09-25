@@ -1,3 +1,6 @@
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
+import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'dart:async';
 
 import 'package:injectable/injectable.dart';
@@ -20,7 +23,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
 
   /// Gets both the previous and next closest schedules relative to the given DateTime with preparation data from the stream.
   ///
-  /// [selectedDateTime] - The date and time to search from
+  /// [selectedDateTime] - The selected UTC occurrence instant to search from
   /// [currentScheduleId] - Optional ID of the current schedule being edited (to exclude it)
   /// [startDate] - Start date for the search range
   /// [endDate] - End date for the search range
@@ -34,10 +37,26 @@ class GetAdjacentSchedulesWithPreparationUseCase {
   }) async {
     try {
       // Get schedules from the stream
-      final schedules = await _getSchedulesByDateUseCase(
-        startDate,
-        endDate,
+      final loaded = await _getSchedulesByDateUseCase(
+        CivilDateTime.fromFields(
+          startDate,
+        ).toUtcCarrier().subtract(const Duration(days: 2)),
+        CivilDateTime.fromFields(
+          endDate,
+        ).toUtcCarrier().add(const Duration(days: 2)),
       ).first;
+      final now = DateTime.now().toUtc();
+      final schedules = <ScheduleEntity>[];
+      final instants = <String, DateTime>{};
+      final resolutions = <String, ScheduleTimeResolution>{};
+      for (final value in loaded) {
+        if (value.retainedRecurringReference) continue;
+        final time = ScheduleTimeResolver.resolve(value, nowUtc: now);
+        if (time.instantUtc == null) continue;
+        schedules.add(value);
+        instants[value.id] = time.instantUtc!;
+        resolutions[value.id] = time;
+      }
 
       AppLogger.debug(
         'Schedule filtering selectedDateTime=$selectedDateTime '
@@ -51,8 +70,10 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       // because we want to warn about overlaps even with completed schedules
       final filteredSchedules = schedules.where((schedule) {
         final isNotCurrent = schedule.id != currentScheduleId;
-        final isAfterSelected = schedule.scheduleTime.isAfter(selectedDateTime);
-        final timeComparison = schedule.scheduleTime.compareTo(
+        final isAfterSelected = !instants[schedule.id]!.isBefore(
+          selectedDateTime.toUtc(),
+        );
+        final timeComparison = instants[schedule.id]!.compareTo(
           selectedDateTime,
         );
 
@@ -70,7 +91,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       // Filter schedules before selectedDateTime for previous schedule
       final previousSchedules = schedules.where((schedule) {
         final isNotCurrent = schedule.id != currentScheduleId;
-        final isBeforeSelected = schedule.scheduleTime.isBefore(
+        final isBeforeSelected = instants[schedule.id]!.isBefore(
           selectedDateTime,
         );
 
@@ -116,6 +137,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
           return ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
             schedule,
             preparation,
+            timeResolution: resolutions[schedule.id]!,
           );
         } catch (e) {
           // If preparation is not in stream, return null
@@ -132,7 +154,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       if (filteredSchedules.isNotEmpty) {
         // Sort by scheduleTime and get the first one (closest)
         filteredSchedules.sort(
-          (a, b) => a.scheduleTime.compareTo(b.scheduleTime),
+          (a, b) => instants[a.id]!.compareTo(instants[b.id]!),
         );
         nextSchedule = await getScheduleWithPreparation(
           filteredSchedules.first,
@@ -144,7 +166,7 @@ class GetAdjacentSchedulesWithPreparationUseCase {
       if (previousSchedules.isNotEmpty) {
         // Sort by scheduleTime descending and get the first one (closest before)
         previousSchedules.sort(
-          (a, b) => b.scheduleTime.compareTo(a.scheduleTime),
+          (a, b) => instants[b.id]!.compareTo(instants[a.id]!),
         );
         previousSchedule = await getScheduleWithPreparation(
           previousSchedules.first,

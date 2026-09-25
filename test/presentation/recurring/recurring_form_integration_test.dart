@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 import 'dart:io';
@@ -101,7 +102,7 @@ void main() {
     (s) => s.submissionStatus == ScheduleFormSubmissionStatus.review,
   );
   Future<void> save() => event(
-    const ScheduleFormCreated(confirmed: true),
+    ScheduleFormRecurrenceReviewConfirmed(bloc.state.recurrenceReview!),
     (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
   );
 
@@ -132,7 +133,12 @@ void main() {
       recurringScheduleRepository: recurring,
     );
     alarms = _AlarmEffects();
-    final useCase = RecurringSchedulesUseCase(recurring, schedules, alarms);
+    final useCase = RecurringSchedulesUseCase(
+      recurring,
+      schedules,
+      alarms,
+      _UnusedDeletion(),
+    );
     final aggregate = ScheduleAggregateRepositoryImpl(
       db,
       recurring,
@@ -155,6 +161,7 @@ void main() {
       UpdateScheduleFormSubmissionUseCase(workflow),
       aggregate: aggregate,
       recurringSchedules: useCase,
+      now: () => now,
     );
   });
   tearDown(() async {
@@ -371,7 +378,7 @@ void main() {
         '개별 변경',
       );
       await event(
-        const ScheduleFormUpdated(confirmed: true),
+        ScheduleFormRecurrenceReviewConfirmed(bloc.state.recurrenceReview!),
         (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
       );
       final after = await schedules.getSchedulesByDate(
@@ -518,11 +525,71 @@ void main() {
       tester.platformDispatcher.textScaleFactorTestValue = 2;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       await tester.pump();
+      final submittedMutation = bloc.state.mutationId;
+      final observedStatuses = <ScheduleFormSubmissionStatus>[];
+      final observation = bloc.stream
+          .map((state) => state.submissionStatus)
+          .distinct()
+          .listen(observedStatuses.add);
+      addTearDown(observation.cancel);
+      final submittedOwner = bloc.formOwner;
+      final timeReviewed = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.timeReview,
+      );
+      await tester.tap(find.text(language == 'ko' ? '저장' : 'Save'));
+      await tester.pump(const Duration(milliseconds: 20));
+      await tester.runAsync(
+        () => timeReviewed.timeout(const Duration(seconds: 5)),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        bloc.state.submissionStatus,
+        ScheduleFormSubmissionStatus.timeReview,
+      );
+      final confirm = find.byKey(
+        const ValueKey('schedule-time-review-confirm'),
+      );
+      void describeConfirmation(String phase) {
+        final elements = confirm.evaluate().toList();
+        final form = find.byType(ScheduleMultiPageForm).evaluate().toList();
+        debugPrint(
+          'U02 $language $phase: status=${bloc.state.submissionStatus} '
+          'keyCount=${elements.length} hitCount=${confirm.hitTestable().evaluate().length} '
+          'view=${tester.view.physicalSize} insetsBottom=${tester.view.viewInsets.bottom} '
+          'alertCount=${find.byType(AlertDialog).evaluate().length} '
+          'formRouteCurrent=${form.isEmpty ? null : ModalRoute.of(form.single)?.isCurrent} '
+          'reviewNull=${bloc.state.timeReview == null} '
+          'ownerSame=${identical(submittedOwner, bloc.formOwner)} '
+          'mutationSame=${submittedMutation == bloc.state.mutationId} '
+          'statuses=$observedStatuses '
+          'rect=${elements.isEmpty ? null : tester.getRect(confirm)} '
+          'routeCurrent=${elements.isEmpty ? null : ModalRoute.of(elements.single)?.isCurrent}',
+        );
+      }
+
+      describeConfirmation('after explicit review stream and settle');
+      // A Bloc event may finish after pumpAndSettle saw no scheduled frame.
+      // Give its listener and the dialog route bounded frames to render.
+      for (
+        var frame = 0;
+        frame < 20 && confirm.hitTestable().evaluate().isEmpty;
+        frame++
+      ) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+      describeConfirmation('after bounded dialog frames');
+      expect(confirm, findsOneWidget);
+      expect(confirm.hitTestable(), findsOneWidget);
+      expect(
+        await tester.runAsync(() => db.select(db.schedules).get()),
+        isEmpty,
+      );
       final failed = bloc.stream.firstWhere(
         (s) => s.submissionStatus == ScheduleFormSubmissionStatus.failure,
       );
-      await tester.tap(find.text(language == 'ko' ? '저장' : 'Save'));
-      await tester.runAsync(() => failed);
+      await tester.tap(confirm);
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.runAsync(() => failed.timeout(const Duration(seconds: 5)));
       await tester.pumpAndSettle();
       expect(
         await tester.runAsync(() => db.select(db.schedules).get()),
@@ -540,7 +607,8 @@ void main() {
       await tester.tap(
         find.text(language == 'ko' ? '다시 저장하기' : 'Retry saving'),
       );
-      await tester.runAsync(() => pending);
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.runAsync(() => pending.timeout(const Duration(seconds: 5)));
       await tester.pumpAndSettle();
       expect(
         await tester.runAsync(() => db.select(db.schedules).get()),
@@ -553,6 +621,18 @@ void main() {
         before! + 1,
       );
       expect(saved, isNull);
+      expect(
+        observedStatuses.where(
+          (s) => s == ScheduleFormSubmissionStatus.timeReview,
+        ),
+        hasLength(1),
+      );
+      expect(
+        find.byKey(const ValueKey('schedule-time-review-confirm')),
+        findsNothing,
+      );
+      expect(bloc.state.saveReceipt!.mutationId, submittedMutation);
+      final pendingReceipt = bloc.state.saveReceipt!;
       await captureA08(tester, '$language-delivery-pending');
       alarms.deliveryComplete = true;
       final done = bloc.stream.firstWhere(
@@ -560,9 +640,19 @@ void main() {
       );
       final l = AppLocalizations.of(tester.element(find.byType(AlertDialog)))!;
       await tester.tap(find.text(l.dataRetry));
-      await tester.runAsync(() => done);
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.runAsync(() => done.timeout(const Duration(seconds: 5)));
       await tester.pumpAndSettle();
       expect(saved, isTrue);
+      expect(
+        observedStatuses.where(
+          (s) => s == ScheduleFormSubmissionStatus.timeReview,
+        ),
+        hasLength(1),
+      );
+      expect(bloc.state.saveReceipt!.mutationId, pendingReceipt.mutationId);
+      expect(bloc.state.saveReceipt!.generation, pendingReceipt.generation);
+      expect(bloc.state.saveReceipt!.scheduleId, pendingReceipt.scheduleId);
       expect(
         await tester.runAsync(() => db.select(db.schedules).get()),
         hasLength(1),
@@ -636,10 +726,27 @@ void main() {
               s.submissionStatus ==
               (modal == 'review'
                   ? ScheduleFormSubmissionStatus.review
-                  : ScheduleFormSubmissionStatus.deliveryPending),
+                  : ScheduleFormSubmissionStatus.timeReview),
         ),
       );
       await tester.pumpAndSettle();
+      if (modal == 'receipt') {
+        final pending = bloc.stream.firstWhere(
+          (s) =>
+              s.submissionStatus ==
+              ScheduleFormSubmissionStatus.deliveryPending,
+        );
+        final confirm = find.byKey(
+          const ValueKey('schedule-time-review-confirm'),
+        );
+        expect(confirm.hitTestable(), findsOneWidget);
+        await tester.tap(confirm);
+        await tester.pumpAndSettle();
+        await tester.runAsync(
+          () => pending.timeout(const Duration(seconds: 5)),
+        );
+        await tester.pumpAndSettle();
+      }
       final previousOwner = bloc.formOwner;
       await tester.runAsync(draft);
       await tester.pump();
@@ -676,6 +783,10 @@ void main() {
       alarms.deliveryComplete = false;
       await event(
         const ScheduleFormCreated(),
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.timeReview,
+      );
+      await event(
+        ScheduleFormTimeReviewConfirmed(bloc.state.timeReview!),
         (s) =>
             s.submissionStatus == ScheduleFormSubmissionStatus.deliveryPending,
       );
@@ -692,6 +803,10 @@ void main() {
       alarms.deliveryComplete = true;
       await event(
         const ScheduleFormCreated(),
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.timeReview,
+      );
+      await event(
+        ScheduleFormTimeReviewConfirmed(bloc.state.timeReview!),
         (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
       );
       expect(await db.select(db.schedules).get(), hasLength(2));
@@ -746,3 +861,5 @@ Future<void> captureA08(WidgetTester tester, String name) async {
     image.dispose();
   });
 }
+
+class _UnusedDeletion extends Fake implements DeleteScheduleUseCase {}

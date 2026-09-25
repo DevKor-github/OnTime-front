@@ -1,5 +1,6 @@
+import 'package:on_time_front/presentation/calendar/component/schedule_deletion_dialog.dart';
+import 'package:on_time_front/presentation/shared/time/date_basis_info.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
-import 'package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_scope_sheet.dart';
 import 'dart:async';
 
@@ -17,7 +18,6 @@ import 'package:on_time_front/presentation/schedule_create/screens/schedule_crea
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/centered_calendar_header.dart';
 import 'package:on_time_front/presentation/shared/components/calendar/schedule_marker_builder.dart';
-import 'package:on_time_front/presentation/shared/components/two_button_delete_dialog.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/presentation/shared/theme/calendar_theme.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
@@ -158,17 +158,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _refreshSchedulesIfSaved(saved);
   }
 
-  Future<void> _deleteRecurring(
+  final _deleting = <String>{};
+  Future<void> _deleteSchedule(
     BuildContext context,
     ScheduleEntity schedule,
   ) async {
-    final scope = await showRecurrenceScope(context, deleting: true);
-    if (scope == null || !context.mounted) return;
+    if (!_deleting.add(schedule.id)) return;
     try {
-      await getIt<RecurringSchedulesUseCase>().delete(schedule, scope);
-      _refreshSchedulesIfSaved(true);
-    } catch (_) {
-      if (context.mounted) await _showScheduleDeleteFailureDialog(context);
+      final changed = await showScheduleDeletionDialog(
+        context,
+        schedule: schedule,
+        deletions: _monthlySchedulesBloc.deletions,
+      );
+      if (changed && context.mounted) _refreshSchedulesIfSaved(true);
+    } finally {
+      _deleting.remove(schedule.id);
     }
   }
 
@@ -430,6 +434,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   textAlign: TextAlign.start,
                                 ),
                               ),
+                              const DateBasisInfo(home: false),
                               SizedBox(height: selectedDateHeadingGap),
                               Expanded(
                                 child:
@@ -448,40 +453,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                                 context,
                                                 schedule: schedule,
                                               ),
-                                          onDeleteSchedule: (schedule) {
-                                            if (schedule.isRecurring) {
-                                              _deleteRecurring(
+                                          onDeleteSchedule: (schedule) =>
+                                              _deleteSchedule(
                                                 context,
                                                 schedule,
-                                              );
-                                              return;
-                                            }
-                                            showTwoButtonDeleteDialog(
-                                              context,
-                                              title: AppLocalizations.of(
-                                                context,
-                                              )!.scheduleDeleteConfirmTitle,
-                                              description: AppLocalizations.of(
-                                                context,
-                                              )!.scheduleDeleteConfirmDescription,
-                                              cancelText: AppLocalizations.of(
-                                                context,
-                                              )!.cancel,
-                                              confirmText: AppLocalizations.of(
-                                                context,
-                                              )!.deleteScheduleConfirmAction,
-                                            ).then((confirmed) {
-                                              if (confirmed != true ||
-                                                  !context.mounted) {
-                                                return;
-                                              }
-                                              _monthlySchedulesBloc.add(
-                                                MonthlySchedulesScheduleDeleted(
-                                                  schedule: schedule,
-                                                ),
-                                              );
-                                            });
-                                          },
+                                              ),
                                         );
                                       },
                                     ),

@@ -43,14 +43,20 @@ void main() {
       final storage = _IgnoredDeletes();
       final keys = InstallationKeyStore(storage: storage);
       final original = await keys.getOrCreate();
-      final actions = DeviceLocalResetActions(keyStore: keys);
+      final actions = DeviceLocalResetActions(
+        keyStore: keys,
+        removePairKeys: () async {},
+      );
       await expectLater(
         actions.perform(ResetStep.key),
         throwsA(isA<AlarmJournalUnavailable>()),
       );
       expect(await keys.getOrCreate(), original);
       final working = InstallationKeyStore();
-      await DeviceLocalResetActions(keyStore: working).perform(ResetStep.key);
+      await DeviceLocalResetActions(
+        keyStore: working,
+        removePairKeys: () async {},
+      ).perform(ResetStep.key);
       expect(await working.exists(), false);
     },
   );

@@ -1,3 +1,6 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../helpers/restore_staging_fixture.dart';
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'dart:async';
 import 'package:on_time_front/domain/ports/local_data_ports.dart';
 import 'package:on_time_front/domain/use-cases/local_data_workflows.dart';
@@ -54,6 +57,8 @@ class _RestoreService extends Fake implements BackupOperationsPort {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   late AppDatabase database;
   late _RestoreService service;
   late _Delivery delivery;
@@ -72,6 +77,11 @@ void main() {
       database,
       _Metadata(),
       NoopAlarmCleanup(),
+      ingestionFactory: memoryBackupIngestion,
+      processingOwner: testBackupProcessingOwner(),
+      stagingFactory: memoryRestoreStaging,
+      runtimeIdentity: RestoreRuntimeIdentity(),
+      cleanupPlatform: noPlatformRestoreCleanup,
       crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
     );
     final candidate = await delegate.previewEncryptedBackup(
@@ -175,7 +185,7 @@ void main() {
       await tester.runAsync(() => service.appliedDone.future);
       await tester.pumpAndSettle();
       expect(
-        find.textContaining('데이터는 복원됐지만 알림 처리가 완료되지 않았습니다.'),
+        find.textContaining('데이터는 복원됐지만 남은 정리와 알림 처리가 완료되지 않았습니다.'),
         findsWidgets,
       );
       expect(service.applied, 1);
@@ -184,7 +194,7 @@ void main() {
       );
       expect(before!.note, 'synthetic backup');
       delivery.succeeds = true;
-      await tester.tap(find.text('알림 처리만 다시 시도'));
+      await tester.tap(find.text('남은 처리 다시 시도'));
       await tester.pumpAndSettle();
       expect(find.text('현재 데이터의 알림 처리를 완료했습니다.'), findsOneWidget);
       expect(service.applied, 1);

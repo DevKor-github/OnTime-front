@@ -19,6 +19,7 @@ import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_pr
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/screens/schedule_spare_and_preparing_time_form.dart';
 import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/schedule_create/screens/schedule_time_save_review_dialog.dart';
 
 class ScheduleMultiPageForm extends StatefulWidget {
   const ScheduleMultiPageForm({super.key, this.onSaved});
@@ -75,7 +76,21 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
             bloc.state.mutationId == mutation &&
             (ModalRoute.of(context)?.isCurrent ?? false);
         if (!context.mounted || !ownsCurrentForm()) return;
-        if (state.submissionStatus == ScheduleFormSubmissionStatus.review) {
+        if (state.submissionStatus == ScheduleFormSubmissionStatus.timeReview) {
+          final review = state.timeReview;
+          if (review == null) return;
+          final accepted = await showScheduleTimeSaveReview(
+            context: context,
+            review: review,
+          );
+          if (!ownsCurrentForm()) return;
+          if (accepted == true) {
+            bloc.add(ScheduleFormTimeReviewConfirmed(review));
+          } else {
+            bloc.add(const ScheduleFormReviewDismissed());
+          }
+        } else if (state.submissionStatus ==
+            ScheduleFormSubmissionStatus.review) {
           final selected = await showModalBottomSheet<Set<String>>(
             context: context,
             isScrollControlled: true,
@@ -88,16 +103,19 @@ class _ScheduleMultiPageFormState extends State<ScheduleMultiPageForm>
               ),
             ),
           );
-          if (!context.mounted || !ownsCurrentForm()) return;
+          if (!context.mounted ||
+              !ownsCurrentForm() ||
+              !bloc.ownsRecurrenceReview(state.recurrenceReview!)) {
+            return;
+          }
           if (selected == null) {
             bloc.add(const ScheduleFormReviewDismissed());
-          } else if (state.originalSchedule == null) {
-            bloc.add(
-              ScheduleFormCreated(confirmed: true, excludedSlots: selected),
-            );
           } else {
             bloc.add(
-              ScheduleFormUpdated(confirmed: true, excludedSlots: selected),
+              ScheduleFormRecurrenceReviewConfirmed(
+                state.recurrenceReview!,
+                excludedSlots: selected,
+              ),
             );
           }
         } else if (state.submissionStatus ==

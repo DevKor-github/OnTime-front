@@ -6,6 +6,55 @@ import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
 void main() {
+  test(
+    'reconstructed schema3 upgrades only restore-local defaults and preserves existing identities',
+    () async {
+      // This is a reconstructed schema3 fixture (current schema minus the three
+      // additive v4 columns), not evidence from a historical device binary.
+      final dir = await Directory.systemTemp.createTemp('a09-schema3-');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File('${dir.path}/store.sqlite');
+      var db = AppDatabase.forTesting(NativeDatabase(file));
+      await db.userDao.putUser(
+        const UserEntity(
+          id: 'local-profile',
+          spareTime: Duration(minutes: 9),
+          note: 'schema3',
+        ),
+      );
+      final before = await db.select(db.users).getSingle();
+      await db.close();
+      final raw = sqlite3.open(file.path);
+      raw.execute(
+        'ALTER TABLE schedules DROP COLUMN requires_start_confirmation',
+      );
+      raw.execute('ALTER TABLE users DROP COLUMN restore_cleanup_pending');
+      raw.execute('ALTER TABLE users DROP COLUMN reject_legacy_delivery');
+      raw.execute('PRAGMA user_version=3');
+      raw.dispose();
+      db = AppDatabase.forTesting(NativeDatabase(file));
+      try {
+        final after = await db.select(db.users).getSingle();
+        expect(after.storeIncarnation, before.storeIncarnation);
+        expect(after.note, 'schema3');
+        expect(after.dataRevision, before.dataRevision);
+        expect(after.restoreCleanupPending, isFalse);
+        expect(after.rejectLegacyDelivery, isFalse);
+        expect(
+          (await db.customSelect('PRAGMA user_version').getSingle()).read<int>(
+            'user_version',
+          ),
+          4,
+        );
+        expect(
+          await db.customSelect('PRAGMA foreign_key_check').get(),
+          isEmpty,
+        );
+      } finally {
+        await db.close();
+      }
+    },
+  );
   for (final version in [1, 2]) {
     test(
       'frozen schema $version upgrades atomically and identities survive reopen/upsert',
@@ -128,7 +177,7 @@ void main() {
     );
   }
   test(
-    'failed schema3 identity backfill rolls back additive columns and preserves schema2',
+    'unknown preexisting trigger is rejected before migration and preserves schema2',
     () async {
       final dir = await Directory.systemTemp.createTemp('a08-migration-fault-');
       final file = File('${dir.path}/store.sqlite');

@@ -1,0 +1,5591 @@
+{
+  "format": 1,
+  "current": 4,
+  "legacySupported": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "pairSupported": [
+    4
+  ],
+  "snapshots": [
+    {
+      "version": 1,
+      "sourceCommit": "ccc6272bde15937a87dd577157b3330593718759",
+      "ddlPath": "test/fixtures/database/schema_v1.sql",
+      "ddlSha256": "782cd3a3cfdca56c67f896a7fbdfa9791a349f77b2b65e21c7f0c0f2ce4a121d",
+      "engine": "3.51.0",
+      "objects": [
+        {
+          "type": "index",
+          "name": "preparation_schedules_next_preparation_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_next_preparation_id_idx ON preparation_schedules (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_schedules_schedule_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_schedule_id_idx ON preparation_schedules (schedule_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_template_steps_template_id_idx",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE INDEX preparation_template_steps_template_id_idx ON preparation_template_steps (template_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_next_preparation_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_next_preparation_id_idx ON preparation_users (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_user_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_user_id_idx ON preparation_users (user_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_place_id_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_place_id_idx ON schedules (place_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_schedule_time_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_schedule_time_idx ON schedules (schedule_time)"
+        },
+        {
+          "type": "table",
+          "name": "places",
+          "tbl_name": "places",
+          "sql": "CREATE TABLE \"places\" (\"id\" TEXT NOT NULL, \"place_name\" TEXT NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_schedules",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TABLE \"preparation_schedules\" (\"id\" TEXT NOT NULL, \"schedule_id\" TEXT NOT NULL REFERENCES schedules (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_schedules (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_template_steps",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TABLE \"preparation_template_steps\" (\"id\" TEXT NOT NULL, \"template_id\" TEXT NOT NULL REFERENCES preparation_templates (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"position\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_templates",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TABLE \"preparation_templates\" (\"id\" TEXT NOT NULL, \"template_name\" TEXT NOT NULL, \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_users",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TABLE \"preparation_users\" (\"id\" TEXT NOT NULL, \"user_id\" TEXT NOT NULL REFERENCES users (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_users (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "schedules",
+          "tbl_name": "schedules",
+          "sql": "CREATE TABLE \"schedules\" (\"id\" TEXT NOT NULL, \"place_id\" TEXT NOT NULL REFERENCES places (id), \"schedule_name\" TEXT NOT NULL, \"time_zone_id\" TEXT NOT NULL DEFAULT 'UTC', \"occurrence_offset_seconds\" INTEGER NULL, \"schedule_time\" TEXT NOT NULL, \"move_time\" INTEGER NOT NULL, \"is_changed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_changed\" IN (0, 1)), \"is_started\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_started\" IN (0, 1)), \"schedule_spare_time\" INTEGER NULL, \"schedule_note\" TEXT NULL, \"lateness_time\" INTEGER NOT NULL DEFAULT -1, \"done_status\" TEXT NOT NULL DEFAULT 'notEnded', \"started_at\" INTEGER NULL, \"finished_at\" INTEGER NULL, \"preparation_mode\" TEXT NULL, \"preparation_template_id\" TEXT NULL, \"preparation_template_name\" TEXT NULL, \"preparation_template_deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_template_deleted\" IN (0, 1)), \"preparation_frozen\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_frozen\" IN (0, 1)), \"score_contribution_recorded\" INTEGER NOT NULL DEFAULT 0 CHECK (\"score_contribution_recorded\" IN (0, 1)), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "users",
+          "tbl_name": "users",
+          "sql": "CREATE TABLE \"users\" (\"id\" TEXT NOT NULL, \"spare_time\" INTEGER NOT NULL, \"note\" TEXT NOT NULL, \"is_onboarding_completed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_onboarding_completed\" IN (0, 1)), \"eligible_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"on_time_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"alarms_enabled\" INTEGER NOT NULL DEFAULT 1 CHECK (\"alarms_enabled\" IN (0, 1)), \"alarm_offset_minutes\" INTEGER NOT NULL DEFAULT 0, \"detailed_notification_content\" INTEGER NOT NULL DEFAULT 0 CHECK (\"detailed_notification_content\" IN (0, 1)), \"data_revision\" INTEGER NOT NULL DEFAULT 0, \"last_exported_revision\" INTEGER NULL, \"last_exported_at\" INTEGER NULL, \"first_durable_data_at\" INTEGER NULL, \"last_durable_data_at\" INTEGER NULL, PRIMARY KEY (\"id\"))"
+        }
+      ],
+      "tables": {
+        "places": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_schedules": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_schedules",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "schedules",
+              "from": "schedule_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_template_steps": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "position",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_templates",
+              "from": "template_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "template_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_templates": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "updated_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_users": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "user_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_users",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "users",
+              "from": "user_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "user_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "schedules": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "time_zone_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'UTC'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "occurrence_offset_seconds",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_time",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "move_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_changed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_started",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_spare_time",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_note",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "lateness_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "-1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "done_status",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'notEnded'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "started_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "finished_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_mode",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_name",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_deleted",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_frozen",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "score_contribution_recorded",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "places",
+              "from": "place_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_time",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "place_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "users": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "spare_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "note",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_onboarding_completed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "eligible_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "on_time_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarms_enabled",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarm_offset_minutes",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "detailed_notification_content",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "data_revision",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_revision",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "first_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "version": 2,
+      "sourceCommit": "4529d9f84e911b1ee2fbb42af09698a0c27cc9f2",
+      "ddlPath": "test/fixtures/database/schema_v2.sql",
+      "ddlSha256": "a7ec3c57f1c86a58ef45c3417abe187fa4e44a0be87e3861a7182cb3ab02d7c5",
+      "engine": "3.51.0",
+      "objects": [
+        {
+          "type": "index",
+          "name": "preparation_schedules_next_preparation_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_next_preparation_id_idx ON preparation_schedules (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_schedules_schedule_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_schedule_id_idx ON preparation_schedules (schedule_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_template_steps_template_id_idx",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE INDEX preparation_template_steps_template_id_idx ON preparation_template_steps (template_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_next_preparation_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_next_preparation_id_idx ON preparation_users (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_user_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_user_id_idx ON preparation_users (user_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_place_id_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_place_id_idx ON schedules (place_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_schedule_time_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_schedule_time_idx ON schedules (schedule_time)"
+        },
+        {
+          "type": "table",
+          "name": "places",
+          "tbl_name": "places",
+          "sql": "CREATE TABLE \"places\" (\"id\" TEXT NOT NULL, \"place_name\" TEXT NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_definition_steps",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TABLE \"preparation_definition_steps\" (\"id\" TEXT NOT NULL, \"definition_id\" TEXT NOT NULL REFERENCES preparation_definitions (id), \"name\" TEXT NOT NULL, \"minutes\" INTEGER NOT NULL CHECK (minutes >= 0), \"position\" INTEGER NOT NULL CHECK (position >= 0), PRIMARY KEY (\"id\"), UNIQUE (\"definition_id\", \"position\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_definitions",
+          "tbl_name": "preparation_definitions",
+          "sql": "CREATE TABLE \"preparation_definitions\" (\"id\" TEXT NOT NULL, \"owner_id\" TEXT NOT NULL, \"scope\" TEXT NOT NULL, \"name\" TEXT NOT NULL, \"created_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_schedules",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TABLE \"preparation_schedules\" (\"id\" TEXT NOT NULL, \"schedule_id\" TEXT NOT NULL REFERENCES schedules (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_schedules (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_template_steps",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TABLE \"preparation_template_steps\" (\"id\" TEXT NOT NULL, \"template_id\" TEXT NOT NULL REFERENCES preparation_templates (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"position\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_templates",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TABLE \"preparation_templates\" (\"id\" TEXT NOT NULL, \"template_name\" TEXT NOT NULL, \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_users",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TABLE \"preparation_users\" (\"id\" TEXT NOT NULL, \"user_id\" TEXT NOT NULL REFERENCES users (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_users (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "recurring_schedule_exclusions",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TABLE \"recurring_schedule_exclusions\" (\"segment_id\" TEXT NOT NULL REFERENCES recurring_schedule_segments (id), \"slot_key\" TEXT NOT NULL, \"ordinal\" INTEGER NOT NULL, PRIMARY KEY (\"segment_id\", \"slot_key\"))"
+        },
+        {
+          "type": "table",
+          "name": "recurring_schedule_segments",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TABLE \"recurring_schedule_segments\" (\"id\" TEXT NOT NULL, \"series_id\" TEXT NOT NULL, \"rule_json\" TEXT NOT NULL, \"schedule_json\" TEXT NOT NULL, \"preparation_id\" TEXT NOT NULL REFERENCES preparation_definitions (id), \"from_slot\" TEXT NOT NULL, \"before_slot\" TEXT NULL, \"created_at\" INTEGER NOT NULL, \"preparation_not_before\" INTEGER NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "schedules",
+          "tbl_name": "schedules",
+          "sql": "CREATE TABLE \"schedules\" (\"id\" TEXT NOT NULL, \"place_id\" TEXT NOT NULL REFERENCES places (id), \"schedule_name\" TEXT NOT NULL, \"time_zone_id\" TEXT NOT NULL DEFAULT 'UTC', \"occurrence_offset_seconds\" INTEGER NULL, \"schedule_time\" TEXT NOT NULL, \"move_time\" INTEGER NOT NULL, \"is_changed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_changed\" IN (0, 1)), \"is_started\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_started\" IN (0, 1)), \"schedule_spare_time\" INTEGER NULL, \"schedule_note\" TEXT NULL, \"lateness_time\" INTEGER NOT NULL DEFAULT -1, \"done_status\" TEXT NOT NULL DEFAULT 'notEnded', \"started_at\" INTEGER NULL, \"finished_at\" INTEGER NULL, \"preparation_mode\" TEXT NULL, \"preparation_template_id\" TEXT NULL, \"preparation_template_name\" TEXT NULL, \"preparation_template_deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_template_deleted\" IN (0, 1)), \"preparation_frozen\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_frozen\" IN (0, 1)), \"score_contribution_recorded\" INTEGER NOT NULL DEFAULT 0 CHECK (\"score_contribution_recorded\" IN (0, 1)), \"recurring_segment_id\" TEXT NULL, \"recurring_slot_key\" TEXT NULL, \"recurring_ordinal\" INTEGER NULL, \"recurring_overrides\" TEXT NOT NULL DEFAULT '', \"preparation_definition_id\" TEXT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "users",
+          "tbl_name": "users",
+          "sql": "CREATE TABLE \"users\" (\"id\" TEXT NOT NULL, \"spare_time\" INTEGER NOT NULL, \"note\" TEXT NOT NULL, \"is_onboarding_completed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_onboarding_completed\" IN (0, 1)), \"eligible_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"on_time_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"alarms_enabled\" INTEGER NOT NULL DEFAULT 1 CHECK (\"alarms_enabled\" IN (0, 1)), \"alarm_offset_minutes\" INTEGER NOT NULL DEFAULT 0, \"detailed_notification_content\" INTEGER NOT NULL DEFAULT 0 CHECK (\"detailed_notification_content\" IN (0, 1)), \"data_revision\" INTEGER NOT NULL DEFAULT 0, \"last_exported_revision\" INTEGER NULL, \"last_exported_at\" INTEGER NULL, \"first_durable_data_at\" INTEGER NULL, \"last_durable_data_at\" INTEGER NULL, PRIMARY KEY (\"id\"))"
+        }
+      ],
+      "tables": {
+        "places": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_definition_steps": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "definition_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "minutes",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "position",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_definitions",
+              "from": "definition_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "u",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "definition_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": "position",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 2,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_definitions": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "owner_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "scope",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_schedules": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_schedules",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "schedules",
+              "from": "schedule_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_template_steps": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "position",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_templates",
+              "from": "template_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "template_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_templates": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "updated_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_users": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "user_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_users",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "users",
+              "from": "user_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "user_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "recurring_schedule_exclusions": {
+          "columns": [
+            {
+              "name": "segment_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "slot_key",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 2,
+              "hidden": 0
+            },
+            {
+              "name": "ordinal",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "recurring_schedule_segments",
+              "from": "segment_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "segment_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": "slot_key",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 2,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "recurring_schedule_segments": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "series_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "rule_json",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_json",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "from_slot",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "before_slot",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_not_before",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_definitions",
+              "from": "preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "schedules": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "time_zone_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'UTC'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "occurrence_offset_seconds",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_time",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "move_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_changed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_started",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_spare_time",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_note",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "lateness_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "-1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "done_status",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'notEnded'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "started_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "finished_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_mode",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_name",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_deleted",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_frozen",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "score_contribution_recorded",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_segment_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_slot_key",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_ordinal",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_overrides",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "''",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_definition_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "places",
+              "from": "place_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_time",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "place_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "users": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "spare_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "note",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_onboarding_completed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "eligible_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "on_time_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarms_enabled",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarm_offset_minutes",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "detailed_notification_content",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "data_revision",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_revision",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "first_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "version": 3,
+      "sourceCommit": "126161dab042365c89983934b1673d860c27d8d3",
+      "ddlPath": "test/fixtures/database/schema_v3.sql",
+      "ddlSha256": "4c2d7b8be37fd22ff614bc1844872f23147d8e8623445652e2f949513583b55c",
+      "engine": "3.51.0",
+      "objects": [
+        {
+          "type": "index",
+          "name": "preparation_schedules_next_preparation_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_next_preparation_id_idx ON preparation_schedules (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_schedules_schedule_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_schedule_id_idx ON preparation_schedules (schedule_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_template_steps_template_id_idx",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE INDEX preparation_template_steps_template_id_idx ON preparation_template_steps (template_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_next_preparation_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_next_preparation_id_idx ON preparation_users (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_user_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_user_id_idx ON preparation_users (user_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_place_id_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_place_id_idx ON schedules (place_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_schedule_time_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_schedule_time_idx ON schedules (schedule_time)"
+        },
+        {
+          "type": "table",
+          "name": "places",
+          "tbl_name": "places",
+          "sql": "CREATE TABLE \"places\" (\"id\" TEXT NOT NULL, \"place_name\" TEXT NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_definition_steps",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TABLE \"preparation_definition_steps\" (\"id\" TEXT NOT NULL, \"definition_id\" TEXT NOT NULL REFERENCES preparation_definitions (id), \"name\" TEXT NOT NULL, \"minutes\" INTEGER NOT NULL CHECK (minutes >= 0), \"position\" INTEGER NOT NULL CHECK (position >= 0), PRIMARY KEY (\"id\"), UNIQUE (\"definition_id\", \"position\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_definitions",
+          "tbl_name": "preparation_definitions",
+          "sql": "CREATE TABLE \"preparation_definitions\" (\"id\" TEXT NOT NULL, \"owner_id\" TEXT NOT NULL, \"scope\" TEXT NOT NULL, \"name\" TEXT NOT NULL, \"created_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_schedules",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TABLE \"preparation_schedules\" (\"id\" TEXT NOT NULL, \"schedule_id\" TEXT NOT NULL REFERENCES schedules (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_schedules (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_template_steps",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TABLE \"preparation_template_steps\" (\"id\" TEXT NOT NULL, \"template_id\" TEXT NOT NULL REFERENCES preparation_templates (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"position\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_templates",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TABLE \"preparation_templates\" (\"id\" TEXT NOT NULL, \"template_name\" TEXT NOT NULL, \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_users",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TABLE \"preparation_users\" (\"id\" TEXT NOT NULL, \"user_id\" TEXT NOT NULL REFERENCES users (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_users (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "recurring_schedule_exclusions",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TABLE \"recurring_schedule_exclusions\" (\"segment_id\" TEXT NOT NULL REFERENCES recurring_schedule_segments (id), \"slot_key\" TEXT NOT NULL, \"ordinal\" INTEGER NOT NULL, PRIMARY KEY (\"segment_id\", \"slot_key\"))"
+        },
+        {
+          "type": "table",
+          "name": "recurring_schedule_segments",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TABLE \"recurring_schedule_segments\" (\"root_segment_id\" TEXT NULL, \"aggregate_incarnation\" TEXT NULL, \"aggregate_version\" INTEGER NULL, \"last_mutation_id\" TEXT NULL, \"last_mutation_digest\" TEXT NULL, \"last_mutation_version\" INTEGER NULL, \"id\" TEXT NOT NULL, \"series_id\" TEXT NOT NULL, \"rule_json\" TEXT NOT NULL, \"schedule_json\" TEXT NOT NULL, \"preparation_id\" TEXT NOT NULL REFERENCES preparation_definitions (id), \"from_slot\" TEXT NOT NULL, \"before_slot\" TEXT NULL, \"created_at\" INTEGER NOT NULL, \"preparation_not_before\" INTEGER NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "schedules",
+          "tbl_name": "schedules",
+          "sql": "CREATE TABLE \"schedules\" (\"aggregate_incarnation\" TEXT NULL, \"aggregate_version\" INTEGER NULL, \"last_mutation_id\" TEXT NULL, \"last_mutation_digest\" TEXT NULL, \"last_mutation_version\" INTEGER NULL, \"id\" TEXT NOT NULL, \"place_id\" TEXT NOT NULL REFERENCES places (id), \"schedule_name\" TEXT NOT NULL, \"time_zone_id\" TEXT NOT NULL DEFAULT 'UTC', \"occurrence_offset_seconds\" INTEGER NULL, \"schedule_time\" TEXT NOT NULL, \"move_time\" INTEGER NOT NULL, \"is_changed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_changed\" IN (0, 1)), \"is_started\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_started\" IN (0, 1)), \"schedule_spare_time\" INTEGER NULL, \"schedule_note\" TEXT NULL, \"lateness_time\" INTEGER NOT NULL DEFAULT -1, \"done_status\" TEXT NOT NULL DEFAULT 'notEnded', \"started_at\" INTEGER NULL, \"finished_at\" INTEGER NULL, \"preparation_mode\" TEXT NULL, \"preparation_template_id\" TEXT NULL, \"preparation_template_name\" TEXT NULL, \"preparation_template_deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_template_deleted\" IN (0, 1)), \"preparation_frozen\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_frozen\" IN (0, 1)), \"score_contribution_recorded\" INTEGER NOT NULL DEFAULT 0 CHECK (\"score_contribution_recorded\" IN (0, 1)), \"recurring_segment_id\" TEXT NULL, \"recurring_slot_key\" TEXT NULL, \"recurring_ordinal\" INTEGER NULL, \"recurring_overrides\" TEXT NOT NULL DEFAULT '', \"preparation_definition_id\" TEXT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "users",
+          "tbl_name": "users",
+          "sql": "CREATE TABLE \"users\" (\"store_incarnation\" TEXT NULL, \"id\" TEXT NOT NULL, \"spare_time\" INTEGER NOT NULL, \"note\" TEXT NOT NULL, \"is_onboarding_completed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_onboarding_completed\" IN (0, 1)), \"eligible_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"on_time_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"alarms_enabled\" INTEGER NOT NULL DEFAULT 1 CHECK (\"alarms_enabled\" IN (0, 1)), \"alarm_offset_minutes\" INTEGER NOT NULL DEFAULT 0, \"detailed_notification_content\" INTEGER NOT NULL DEFAULT 0 CHECK (\"detailed_notification_content\" IN (0, 1)), \"data_revision\" INTEGER NOT NULL DEFAULT 0, \"last_exported_revision\" INTEGER NULL, \"last_exported_at\" INTEGER NULL, \"first_durable_data_at\" INTEGER NULL, \"last_durable_data_at\" INTEGER NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "trigger",
+          "name": "definition_steps_delete",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TRIGGER definition_steps_delete AFTER DELETE ON preparation_definition_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id=OLD.definition_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id=OLD.definition_id); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT root_segment_id FROM recurring_schedule_segments WHERE preparation_id=OLD.definition_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "definition_steps_insert",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TRIGGER definition_steps_insert AFTER INSERT ON preparation_definition_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id=NEW.definition_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id=NEW.definition_id); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT root_segment_id FROM recurring_schedule_segments WHERE preparation_id=NEW.definition_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "definition_steps_update",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TRIGGER definition_steps_update AFTER UPDATE ON preparation_definition_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id=NEW.definition_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id=NEW.definition_id); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT root_segment_id FROM recurring_schedule_segments WHERE preparation_id=NEW.definition_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "exclusion_delete",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TRIGGER exclusion_delete AFTER DELETE ON recurring_schedule_exclusions BEGIN UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = OLD.segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "exclusion_insert",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TRIGGER exclusion_insert AFTER INSERT ON recurring_schedule_exclusions BEGIN UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = NEW.segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "exclusion_update",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TRIGGER exclusion_update AFTER UPDATE ON recurring_schedule_exclusions BEGIN UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = NEW.segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "place_version",
+          "tbl_name": "places",
+          "sql": "CREATE TRIGGER place_version AFTER UPDATE OF place_name ON places WHEN NEW.place_name IS NOT OLD.place_name BEGIN\n    UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE place_id = NEW.id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.place_id=NEW.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_default_delete",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TRIGGER preparation_default_delete AFTER DELETE ON preparation_users BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=schedules.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=schedules.preparation_template_id AND schedules.preparation_template_deleted=0); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=s.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=s.preparation_template_id AND s.preparation_template_deleted=0)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_default_insert",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TRIGGER preparation_default_insert AFTER INSERT ON preparation_users BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=schedules.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=schedules.preparation_template_id AND schedules.preparation_template_deleted=0); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=s.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=s.preparation_template_id AND s.preparation_template_deleted=0)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_default_update",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TRIGGER preparation_default_update AFTER UPDATE ON preparation_users BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=schedules.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=schedules.preparation_template_id AND schedules.preparation_template_deleted=0); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=s.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=s.preparation_template_id AND s.preparation_template_deleted=0)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_schedule_delete",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TRIGGER preparation_schedule_delete AFTER DELETE ON preparation_schedules BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = OLD.schedule_id;\n      UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = (SELECT recurring_segment_id FROM schedules WHERE id = OLD.schedule_id)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_schedule_insert",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TRIGGER preparation_schedule_insert AFTER INSERT ON preparation_schedules BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = NEW.schedule_id;\n      UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = (SELECT recurring_segment_id FROM schedules WHERE id = NEW.schedule_id)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_schedule_update",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TRIGGER preparation_schedule_update AFTER UPDATE ON preparation_schedules BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = NEW.schedule_id;\n      UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = (SELECT recurring_segment_id FROM schedules WHERE id = NEW.schedule_id)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "recurring_schedule_segments_identity",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TRIGGER recurring_schedule_segments_identity AFTER INSERT ON recurring_schedule_segments\n      WHEN NEW.aggregate_incarnation IS NULL BEGIN\n      UPDATE recurring_schedule_segments SET aggregate_incarnation = lower(hex(randomblob(16))), aggregate_version = 0 WHERE id = NEW.id; END"
+        },
+        {
+          "type": "trigger",
+          "name": "schedules_deleted",
+          "tbl_name": "schedules",
+          "sql": "CREATE TRIGGER schedules_deleted AFTER DELETE ON schedules BEGIN\n    UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = OLD.recurring_segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "schedules_identity",
+          "tbl_name": "schedules",
+          "sql": "CREATE TRIGGER schedules_identity AFTER INSERT ON schedules\n      WHEN NEW.aggregate_incarnation IS NULL BEGIN\n      UPDATE schedules SET aggregate_incarnation = lower(hex(randomblob(16))), aggregate_version = 0 WHERE id = NEW.id; END"
+        },
+        {
+          "type": "trigger",
+          "name": "schedules_version",
+          "tbl_name": "schedules",
+          "sql": "CREATE TRIGGER schedules_version AFTER UPDATE OF place_id,schedule_name,time_zone_id,occurrence_offset_seconds,schedule_time,move_time,is_changed,is_started,schedule_spare_time,schedule_note,lateness_time,done_status,started_at,finished_at,preparation_mode,preparation_template_id,preparation_template_name,preparation_template_deleted,preparation_frozen,score_contribution_recorded,recurring_segment_id,recurring_slot_key,recurring_ordinal,recurring_overrides,preparation_definition_id ON schedules\n    WHEN NEW.place_id IS NOT OLD.place_id OR NEW.schedule_name IS NOT OLD.schedule_name OR NEW.time_zone_id IS NOT OLD.time_zone_id OR NEW.occurrence_offset_seconds IS NOT OLD.occurrence_offset_seconds OR NEW.schedule_time IS NOT OLD.schedule_time OR NEW.move_time IS NOT OLD.move_time OR NEW.is_changed IS NOT OLD.is_changed OR NEW.is_started IS NOT OLD.is_started OR NEW.schedule_spare_time IS NOT OLD.schedule_spare_time OR NEW.schedule_note IS NOT OLD.schedule_note OR NEW.lateness_time IS NOT OLD.lateness_time OR NEW.done_status IS NOT OLD.done_status OR NEW.started_at IS NOT OLD.started_at OR NEW.finished_at IS NOT OLD.finished_at OR NEW.preparation_mode IS NOT OLD.preparation_mode OR NEW.preparation_template_id IS NOT OLD.preparation_template_id OR NEW.preparation_template_name IS NOT OLD.preparation_template_name OR NEW.preparation_template_deleted IS NOT OLD.preparation_template_deleted OR NEW.preparation_frozen IS NOT OLD.preparation_frozen OR NEW.score_contribution_recorded IS NOT OLD.score_contribution_recorded OR NEW.recurring_segment_id IS NOT OLD.recurring_segment_id OR NEW.recurring_slot_key IS NOT OLD.recurring_slot_key OR NEW.recurring_ordinal IS NOT OLD.recurring_ordinal OR NEW.recurring_overrides IS NOT OLD.recurring_overrides OR NEW.preparation_definition_id IS NOT OLD.preparation_definition_id BEGIN\n    UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = NEW.id;\n    UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = OLD.recurring_segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "segment_root",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TRIGGER segment_root AFTER INSERT ON recurring_schedule_segments WHEN NEW.root_segment_id IS NULL BEGIN UPDATE recurring_schedule_segments SET root_segment_id = COALESCE((SELECT root_segment_id FROM recurring_schedule_segments WHERE series_id=NEW.series_id AND root_segment_id IS NOT NULL LIMIT 1), NEW.id) WHERE id=NEW.id; END"
+        },
+        {
+          "type": "trigger",
+          "name": "segments_version",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TRIGGER segments_version AFTER UPDATE OF rule_json,schedule_json,preparation_id,from_slot,before_slot,preparation_not_before ON recurring_schedule_segments\n    WHEN NEW.rule_json IS NOT OLD.rule_json OR NEW.schedule_json IS NOT OLD.schedule_json OR NEW.preparation_id IS NOT OLD.preparation_id OR NEW.from_slot IS NOT OLD.from_slot OR NEW.before_slot IS NOT OLD.before_slot OR NEW.preparation_not_before IS NOT OLD.preparation_not_before BEGIN\n    UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = NEW.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_delete",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TRIGGER template_delete AFTER DELETE ON preparation_templates BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=OLD.id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=OLD.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_steps_delete",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TRIGGER template_steps_delete AFTER DELETE ON preparation_template_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=OLD.template_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=OLD.template_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_steps_insert",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TRIGGER template_steps_insert AFTER INSERT ON preparation_template_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=NEW.template_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=NEW.template_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_steps_update",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TRIGGER template_steps_update AFTER UPDATE ON preparation_template_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=NEW.template_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=NEW.template_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_update",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TRIGGER template_update AFTER UPDATE ON preparation_templates BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=OLD.id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=OLD.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "users_identity",
+          "tbl_name": "users",
+          "sql": "CREATE TRIGGER users_identity AFTER INSERT ON users WHEN NEW.store_incarnation IS NULL BEGIN\n    UPDATE users SET store_incarnation = lower(hex(randomblob(16))) WHERE id = NEW.id; END"
+        }
+      ],
+      "tables": {
+        "places": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_definition_steps": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "definition_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "minutes",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "position",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_definitions",
+              "from": "definition_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "u",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "definition_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": "position",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 2,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_definitions": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "owner_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "scope",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_schedules": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_schedules",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "schedules",
+              "from": "schedule_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_template_steps": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "position",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_templates",
+              "from": "template_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "template_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_templates": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "updated_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_users": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "user_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_users",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "users",
+              "from": "user_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "user_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "recurring_schedule_exclusions": {
+          "columns": [
+            {
+              "name": "segment_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "slot_key",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 2,
+              "hidden": 0
+            },
+            {
+              "name": "ordinal",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "recurring_schedule_segments",
+              "from": "segment_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "segment_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": "slot_key",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 2,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "recurring_schedule_segments": {
+          "columns": [
+            {
+              "name": "root_segment_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "aggregate_incarnation",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "aggregate_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_digest",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "series_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "rule_json",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_json",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "from_slot",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "before_slot",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_not_before",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_definitions",
+              "from": "preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "schedules": {
+          "columns": [
+            {
+              "name": "aggregate_incarnation",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "aggregate_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_digest",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "time_zone_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'UTC'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "occurrence_offset_seconds",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_time",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "move_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_changed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_started",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_spare_time",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_note",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "lateness_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "-1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "done_status",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'notEnded'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "started_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "finished_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_mode",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_name",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_deleted",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_frozen",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "score_contribution_recorded",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_segment_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_slot_key",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_ordinal",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_overrides",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "''",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_definition_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "places",
+              "from": "place_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_time",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "place_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "users": {
+          "columns": [
+            {
+              "name": "store_incarnation",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "spare_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "note",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_onboarding_completed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "eligible_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "on_time_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarms_enabled",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarm_offset_minutes",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "detailed_notification_content",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "data_revision",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_revision",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "first_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "version": 4,
+      "sourceCommit": "e0a668f8c84edc54f4c7501399409e6a79d6510b",
+      "ddlPath": "test/fixtures/database/schema_v4.sql",
+      "ddlSha256": "60a5c9fef7385280e55adc622cf9f33f507de180a4c35d4c3d09285fcfd9d0ea",
+      "engine": "3.51.0",
+      "objects": [
+        {
+          "type": "index",
+          "name": "preparation_schedules_next_preparation_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_next_preparation_id_idx ON preparation_schedules (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_schedules_schedule_id_idx",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE INDEX preparation_schedules_schedule_id_idx ON preparation_schedules (schedule_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_template_steps_template_id_idx",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE INDEX preparation_template_steps_template_id_idx ON preparation_template_steps (template_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_next_preparation_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_next_preparation_id_idx ON preparation_users (next_preparation_id)"
+        },
+        {
+          "type": "index",
+          "name": "preparation_users_user_id_idx",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE INDEX preparation_users_user_id_idx ON preparation_users (user_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_place_id_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_place_id_idx ON schedules (place_id)"
+        },
+        {
+          "type": "index",
+          "name": "schedules_schedule_time_idx",
+          "tbl_name": "schedules",
+          "sql": "CREATE INDEX schedules_schedule_time_idx ON schedules (schedule_time)"
+        },
+        {
+          "type": "table",
+          "name": "places",
+          "tbl_name": "places",
+          "sql": "CREATE TABLE \"places\" (\"id\" TEXT NOT NULL, \"place_name\" TEXT NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_definition_steps",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TABLE \"preparation_definition_steps\" (\"id\" TEXT NOT NULL, \"definition_id\" TEXT NOT NULL REFERENCES preparation_definitions (id), \"name\" TEXT NOT NULL, \"minutes\" INTEGER NOT NULL CHECK (minutes >= 0), \"position\" INTEGER NOT NULL CHECK (position >= 0), PRIMARY KEY (\"id\"), UNIQUE (\"definition_id\", \"position\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_definitions",
+          "tbl_name": "preparation_definitions",
+          "sql": "CREATE TABLE \"preparation_definitions\" (\"id\" TEXT NOT NULL, \"owner_id\" TEXT NOT NULL, \"scope\" TEXT NOT NULL, \"name\" TEXT NOT NULL, \"created_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_schedules",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TABLE \"preparation_schedules\" (\"id\" TEXT NOT NULL, \"schedule_id\" TEXT NOT NULL REFERENCES schedules (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_schedules (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_template_steps",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TABLE \"preparation_template_steps\" (\"id\" TEXT NOT NULL, \"template_id\" TEXT NOT NULL REFERENCES preparation_templates (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"position\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_templates",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TABLE \"preparation_templates\" (\"id\" TEXT NOT NULL, \"template_name\" TEXT NOT NULL, \"created_at\" INTEGER NOT NULL, \"updated_at\" INTEGER NOT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "preparation_users",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TABLE \"preparation_users\" (\"id\" TEXT NOT NULL, \"user_id\" TEXT NOT NULL REFERENCES users (id), \"preparation_name\" TEXT NOT NULL, \"preparation_time\" INTEGER NOT NULL, \"next_preparation_id\" TEXT NULL REFERENCES preparation_users (id), PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "recurring_schedule_exclusions",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TABLE \"recurring_schedule_exclusions\" (\"segment_id\" TEXT NOT NULL REFERENCES recurring_schedule_segments (id), \"slot_key\" TEXT NOT NULL, \"ordinal\" INTEGER NOT NULL, PRIMARY KEY (\"segment_id\", \"slot_key\"))"
+        },
+        {
+          "type": "table",
+          "name": "recurring_schedule_segments",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TABLE \"recurring_schedule_segments\" (\"root_segment_id\" TEXT NULL, \"aggregate_incarnation\" TEXT NULL, \"aggregate_version\" INTEGER NULL, \"last_mutation_id\" TEXT NULL, \"last_mutation_digest\" TEXT NULL, \"last_mutation_version\" INTEGER NULL, \"id\" TEXT NOT NULL, \"series_id\" TEXT NOT NULL, \"rule_json\" TEXT NOT NULL, \"schedule_json\" TEXT NOT NULL, \"preparation_id\" TEXT NOT NULL REFERENCES preparation_definitions (id), \"from_slot\" TEXT NOT NULL, \"before_slot\" TEXT NULL, \"created_at\" INTEGER NOT NULL, \"preparation_not_before\" INTEGER NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "schedules",
+          "tbl_name": "schedules",
+          "sql": "CREATE TABLE \"schedules\" (\"requires_start_confirmation\" INTEGER NOT NULL DEFAULT 0 CHECK (\"requires_start_confirmation\" IN (0, 1)), \"aggregate_incarnation\" TEXT NULL, \"aggregate_version\" INTEGER NULL, \"last_mutation_id\" TEXT NULL, \"last_mutation_digest\" TEXT NULL, \"last_mutation_version\" INTEGER NULL, \"id\" TEXT NOT NULL, \"place_id\" TEXT NOT NULL REFERENCES places (id), \"schedule_name\" TEXT NOT NULL, \"time_zone_id\" TEXT NOT NULL DEFAULT 'UTC', \"occurrence_offset_seconds\" INTEGER NULL, \"schedule_time\" TEXT NOT NULL, \"move_time\" INTEGER NOT NULL, \"is_changed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_changed\" IN (0, 1)), \"is_started\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_started\" IN (0, 1)), \"schedule_spare_time\" INTEGER NULL, \"schedule_note\" TEXT NULL, \"lateness_time\" INTEGER NOT NULL DEFAULT -1, \"done_status\" TEXT NOT NULL DEFAULT 'notEnded', \"started_at\" INTEGER NULL, \"finished_at\" INTEGER NULL, \"preparation_mode\" TEXT NULL, \"preparation_template_id\" TEXT NULL, \"preparation_template_name\" TEXT NULL, \"preparation_template_deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_template_deleted\" IN (0, 1)), \"preparation_frozen\" INTEGER NOT NULL DEFAULT 0 CHECK (\"preparation_frozen\" IN (0, 1)), \"score_contribution_recorded\" INTEGER NOT NULL DEFAULT 0 CHECK (\"score_contribution_recorded\" IN (0, 1)), \"recurring_segment_id\" TEXT NULL, \"recurring_slot_key\" TEXT NULL, \"recurring_ordinal\" INTEGER NULL, \"recurring_overrides\" TEXT NOT NULL DEFAULT '', \"preparation_definition_id\" TEXT NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "table",
+          "name": "users",
+          "tbl_name": "users",
+          "sql": "CREATE TABLE \"users\" (\"restore_cleanup_pending\" INTEGER NOT NULL DEFAULT 0 CHECK (\"restore_cleanup_pending\" IN (0, 1)), \"reject_legacy_delivery\" INTEGER NOT NULL DEFAULT 0 CHECK (\"reject_legacy_delivery\" IN (0, 1)), \"store_incarnation\" TEXT NULL, \"id\" TEXT NOT NULL, \"spare_time\" INTEGER NOT NULL, \"note\" TEXT NOT NULL, \"is_onboarding_completed\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_onboarding_completed\" IN (0, 1)), \"eligible_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"on_time_outcome_count\" INTEGER NOT NULL DEFAULT 0, \"alarms_enabled\" INTEGER NOT NULL DEFAULT 1 CHECK (\"alarms_enabled\" IN (0, 1)), \"alarm_offset_minutes\" INTEGER NOT NULL DEFAULT 0, \"detailed_notification_content\" INTEGER NOT NULL DEFAULT 0 CHECK (\"detailed_notification_content\" IN (0, 1)), \"data_revision\" INTEGER NOT NULL DEFAULT 0, \"last_exported_revision\" INTEGER NULL, \"last_exported_at\" INTEGER NULL, \"first_durable_data_at\" INTEGER NULL, \"last_durable_data_at\" INTEGER NULL, PRIMARY KEY (\"id\"))"
+        },
+        {
+          "type": "trigger",
+          "name": "definition_steps_delete",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TRIGGER definition_steps_delete AFTER DELETE ON preparation_definition_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id=OLD.definition_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id=OLD.definition_id); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT root_segment_id FROM recurring_schedule_segments WHERE preparation_id=OLD.definition_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "definition_steps_insert",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TRIGGER definition_steps_insert AFTER INSERT ON preparation_definition_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id=NEW.definition_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id=NEW.definition_id); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT root_segment_id FROM recurring_schedule_segments WHERE preparation_id=NEW.definition_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "definition_steps_update",
+          "tbl_name": "preparation_definition_steps",
+          "sql": "CREATE TRIGGER definition_steps_update AFTER UPDATE ON preparation_definition_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id=NEW.definition_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id=NEW.definition_id); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT root_segment_id FROM recurring_schedule_segments WHERE preparation_id=NEW.definition_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "exclusion_delete",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TRIGGER exclusion_delete AFTER DELETE ON recurring_schedule_exclusions BEGIN UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = OLD.segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "exclusion_insert",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TRIGGER exclusion_insert AFTER INSERT ON recurring_schedule_exclusions BEGIN UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = NEW.segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "exclusion_update",
+          "tbl_name": "recurring_schedule_exclusions",
+          "sql": "CREATE TRIGGER exclusion_update AFTER UPDATE ON recurring_schedule_exclusions BEGIN UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = NEW.segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "place_version",
+          "tbl_name": "places",
+          "sql": "CREATE TRIGGER place_version AFTER UPDATE OF place_name ON places WHEN NEW.place_name IS NOT OLD.place_name BEGIN\n    UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE place_id = NEW.id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.place_id=NEW.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_default_delete",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TRIGGER preparation_default_delete AFTER DELETE ON preparation_users BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=schedules.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=schedules.preparation_template_id AND schedules.preparation_template_deleted=0); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=s.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=s.preparation_template_id AND s.preparation_template_deleted=0)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_default_insert",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TRIGGER preparation_default_insert AFTER INSERT ON preparation_users BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=schedules.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=schedules.preparation_template_id AND schedules.preparation_template_deleted=0); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=s.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=s.preparation_template_id AND s.preparation_template_deleted=0)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_default_update",
+          "tbl_name": "preparation_users",
+          "sql": "CREATE TRIGGER preparation_default_update AFTER UPDATE ON preparation_users BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=schedules.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=schedules.preparation_template_id AND schedules.preparation_template_deleted=0); UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_definition_id IS NULL AND NOT EXISTS (SELECT 1 FROM preparation_schedules p WHERE p.schedule_id=s.id) AND NOT EXISTS (SELECT 1 FROM preparation_templates p WHERE p.id=s.preparation_template_id AND s.preparation_template_deleted=0)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_schedule_delete",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TRIGGER preparation_schedule_delete AFTER DELETE ON preparation_schedules BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = OLD.schedule_id;\n      UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = (SELECT recurring_segment_id FROM schedules WHERE id = OLD.schedule_id)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_schedule_insert",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TRIGGER preparation_schedule_insert AFTER INSERT ON preparation_schedules BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = NEW.schedule_id;\n      UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = (SELECT recurring_segment_id FROM schedules WHERE id = NEW.schedule_id)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "preparation_schedule_update",
+          "tbl_name": "preparation_schedules",
+          "sql": "CREATE TRIGGER preparation_schedule_update AFTER UPDATE ON preparation_schedules BEGIN\n      UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = NEW.schedule_id;\n      UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = (SELECT recurring_segment_id FROM schedules WHERE id = NEW.schedule_id)); END"
+        },
+        {
+          "type": "trigger",
+          "name": "recurring_schedule_segments_identity",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TRIGGER recurring_schedule_segments_identity AFTER INSERT ON recurring_schedule_segments\n      WHEN NEW.aggregate_incarnation IS NULL BEGIN\n      UPDATE recurring_schedule_segments SET aggregate_incarnation = lower(hex(randomblob(16))), aggregate_version = 0 WHERE id = NEW.id; END"
+        },
+        {
+          "type": "trigger",
+          "name": "schedules_deleted",
+          "tbl_name": "schedules",
+          "sql": "CREATE TRIGGER schedules_deleted AFTER DELETE ON schedules BEGIN\n    UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = OLD.recurring_segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "schedules_identity",
+          "tbl_name": "schedules",
+          "sql": "CREATE TRIGGER schedules_identity AFTER INSERT ON schedules\n      WHEN NEW.aggregate_incarnation IS NULL BEGIN\n      UPDATE schedules SET aggregate_incarnation = lower(hex(randomblob(16))), aggregate_version = 0 WHERE id = NEW.id; END"
+        },
+        {
+          "type": "trigger",
+          "name": "schedules_version",
+          "tbl_name": "schedules",
+          "sql": "CREATE TRIGGER schedules_version AFTER UPDATE OF place_id,schedule_name,time_zone_id,occurrence_offset_seconds,schedule_time,move_time,is_changed,is_started,schedule_spare_time,schedule_note,lateness_time,done_status,started_at,finished_at,preparation_mode,preparation_template_id,preparation_template_name,preparation_template_deleted,preparation_frozen,score_contribution_recorded,recurring_segment_id,recurring_slot_key,recurring_ordinal,recurring_overrides,preparation_definition_id ON schedules\n    WHEN NEW.place_id IS NOT OLD.place_id OR NEW.schedule_name IS NOT OLD.schedule_name OR NEW.time_zone_id IS NOT OLD.time_zone_id OR NEW.occurrence_offset_seconds IS NOT OLD.occurrence_offset_seconds OR NEW.schedule_time IS NOT OLD.schedule_time OR NEW.move_time IS NOT OLD.move_time OR NEW.is_changed IS NOT OLD.is_changed OR NEW.is_started IS NOT OLD.is_started OR NEW.schedule_spare_time IS NOT OLD.schedule_spare_time OR NEW.schedule_note IS NOT OLD.schedule_note OR NEW.lateness_time IS NOT OLD.lateness_time OR NEW.done_status IS NOT OLD.done_status OR NEW.started_at IS NOT OLD.started_at OR NEW.finished_at IS NOT OLD.finished_at OR NEW.preparation_mode IS NOT OLD.preparation_mode OR NEW.preparation_template_id IS NOT OLD.preparation_template_id OR NEW.preparation_template_name IS NOT OLD.preparation_template_name OR NEW.preparation_template_deleted IS NOT OLD.preparation_template_deleted OR NEW.preparation_frozen IS NOT OLD.preparation_frozen OR NEW.score_contribution_recorded IS NOT OLD.score_contribution_recorded OR NEW.recurring_segment_id IS NOT OLD.recurring_segment_id OR NEW.recurring_slot_key IS NOT OLD.recurring_slot_key OR NEW.recurring_ordinal IS NOT OLD.recurring_ordinal OR NEW.recurring_overrides IS NOT OLD.recurring_overrides OR NEW.preparation_definition_id IS NOT OLD.preparation_definition_id BEGIN\n    UPDATE schedules SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = NEW.id;\n    UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = OLD.recurring_segment_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "segment_root",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TRIGGER segment_root AFTER INSERT ON recurring_schedule_segments WHEN NEW.root_segment_id IS NULL BEGIN UPDATE recurring_schedule_segments SET root_segment_id = COALESCE((SELECT root_segment_id FROM recurring_schedule_segments WHERE series_id=NEW.series_id AND root_segment_id IS NOT NULL LIMIT 1), NEW.id) WHERE id=NEW.id; END"
+        },
+        {
+          "type": "trigger",
+          "name": "segments_version",
+          "tbl_name": "recurring_schedule_segments",
+          "sql": "CREATE TRIGGER segments_version AFTER UPDATE OF rule_json,schedule_json,preparation_id,from_slot,before_slot,preparation_not_before ON recurring_schedule_segments\n    WHEN NEW.rule_json IS NOT OLD.rule_json OR NEW.schedule_json IS NOT OLD.schedule_json OR NEW.preparation_id IS NOT OLD.preparation_id OR NEW.from_slot IS NOT OLD.from_slot OR NEW.before_slot IS NOT OLD.before_slot OR NEW.preparation_not_before IS NOT OLD.preparation_not_before BEGIN\n    UPDATE recurring_schedule_segments SET aggregate_version = COALESCE(aggregate_version,0)+1 WHERE id = (SELECT root_segment_id FROM recurring_schedule_segments WHERE id = NEW.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_delete",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TRIGGER template_delete AFTER DELETE ON preparation_templates BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=OLD.id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=OLD.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_steps_delete",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TRIGGER template_steps_delete AFTER DELETE ON preparation_template_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=OLD.template_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=OLD.template_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_steps_insert",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TRIGGER template_steps_insert AFTER INSERT ON preparation_template_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=NEW.template_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=NEW.template_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_steps_update",
+          "tbl_name": "preparation_template_steps",
+          "sql": "CREATE TRIGGER template_steps_update AFTER UPDATE ON preparation_template_steps BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=NEW.template_id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=NEW.template_id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "template_update",
+          "tbl_name": "preparation_templates",
+          "sql": "CREATE TRIGGER template_update AFTER UPDATE ON preparation_templates BEGIN UPDATE schedules SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE preparation_template_id=OLD.id; UPDATE recurring_schedule_segments SET aggregate_version=COALESCE(aggregate_version,0)+1 WHERE id IN (SELECT r.root_segment_id FROM recurring_schedule_segments r JOIN schedules s ON s.recurring_segment_id=r.id WHERE s.preparation_template_id=OLD.id); END"
+        },
+        {
+          "type": "trigger",
+          "name": "users_identity",
+          "tbl_name": "users",
+          "sql": "CREATE TRIGGER users_identity AFTER INSERT ON users WHEN NEW.store_incarnation IS NULL BEGIN\n    UPDATE users SET store_incarnation = lower(hex(randomblob(16))) WHERE id = NEW.id; END"
+        }
+      ],
+      "tables": {
+        "places": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_definition_steps": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "definition_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "minutes",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "position",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_definitions",
+              "from": "definition_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "u",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "definition_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": "position",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 2,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_definitions": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "owner_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "scope",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_schedules": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_schedules",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "schedules",
+              "from": "schedule_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_template_steps": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "position",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_templates",
+              "from": "template_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "template_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_templates": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "template_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "updated_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "preparation_users": {
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "user_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "next_preparation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_users",
+              "from": "next_preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            },
+            {
+              "id": 1,
+              "seq": 0,
+              "table": "users",
+              "from": "user_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "user_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "next_preparation_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "recurring_schedule_exclusions": {
+          "columns": [
+            {
+              "name": "segment_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "slot_key",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 2,
+              "hidden": 0
+            },
+            {
+              "name": "ordinal",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "recurring_schedule_segments",
+              "from": "segment_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "segment_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": "slot_key",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 2,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "recurring_schedule_segments": {
+          "columns": [
+            {
+              "name": "root_segment_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "aggregate_incarnation",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "aggregate_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_digest",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "series_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "rule_json",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_json",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "from_slot",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "before_slot",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "created_at",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_not_before",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "preparation_definitions",
+              "from": "preparation_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "schedules": {
+          "columns": [
+            {
+              "name": "requires_start_confirmation",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "aggregate_incarnation",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "aggregate_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_digest",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_mutation_version",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "place_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_name",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "time_zone_id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'UTC'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "occurrence_offset_seconds",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_time",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "move_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_changed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_started",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_spare_time",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "schedule_note",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "lateness_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "-1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "done_status",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "'notEnded'",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "started_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "finished_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_mode",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_name",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_template_deleted",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_frozen",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "score_contribution_recorded",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_segment_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_slot_key",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_ordinal",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "recurring_overrides",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": "''",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "preparation_definition_id",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [
+            {
+              "id": 0,
+              "seq": 0,
+              "table": "places",
+              "from": "place_id",
+              "to": "id",
+              "on_update": "NO ACTION",
+              "on_delete": "NO ACTION",
+              "match": "NONE"
+            }
+          ],
+          "indexes": [
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "schedule_time",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 0,
+              "origin": "c",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "place_id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            },
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        },
+        "users": {
+          "columns": [
+            {
+              "name": "restore_cleanup_pending",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "reject_legacy_delivery",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "store_incarnation",
+              "type": "TEXT",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "id",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 1,
+              "hidden": 0
+            },
+            {
+              "name": "spare_time",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "note",
+              "type": "TEXT",
+              "notnull": 1,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "is_onboarding_completed",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "eligible_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "on_time_outcome_count",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarms_enabled",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "1",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "alarm_offset_minutes",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "detailed_notification_content",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "data_revision",
+              "type": "INTEGER",
+              "notnull": 1,
+              "dflt_value": "0",
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_revision",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_exported_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "first_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            },
+            {
+              "name": "last_durable_data_at",
+              "type": "INTEGER",
+              "notnull": 0,
+              "dflt_value": null,
+              "pk": 0,
+              "hidden": 0
+            }
+          ],
+          "foreignKeys": [],
+          "indexes": [
+            {
+              "unique": 1,
+              "origin": "pk",
+              "partial": 0,
+              "columns": [
+                {
+                  "seqno": 0,
+                  "name": "id",
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 1
+                },
+                {
+                  "seqno": 1,
+                  "name": null,
+                  "desc": 0,
+                  "coll": "BINARY",
+                  "key": 0
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

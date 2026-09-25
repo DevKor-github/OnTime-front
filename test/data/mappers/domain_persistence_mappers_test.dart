@@ -14,6 +14,7 @@ void main() {
       () {
         final entity = ScheduleWithPlace(
           schedule: Schedule(
+            requiresStartConfirmation: false,
             id: 'schedule-model',
             placeId: 'place-model',
             scheduleName: 'Doctor',
@@ -64,6 +65,8 @@ void main() {
         alarmsEnabled: true,
         alarmOffsetMinutes: 5,
         detailedNotificationContent: false,
+        restoreCleanupPending: false,
+        rejectLegacyDelivery: false,
         dataRevision: 7,
       );
 

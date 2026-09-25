@@ -1,3 +1,11 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/domain/entities/schedule_start_rejected.dart';
+export 'package:on_time_front/domain/entities/nearest_schedule_query.dart';
+import 'package:on_time_front/domain/entities/nearest_schedule_query.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
+import 'package:on_time_front/core/time/device_civil_day.dart';
+import 'package:on_time_front/core/startup/startup_dependency_scope.dart';
+import 'package:on_time_front/core/startup/subscription_cleanup.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'dart:async';
 
@@ -76,7 +84,36 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _registerHandlers();
   }
 
+  int _dataGeneration = LocalDataOperationGate.shared.generation;
+  void _onDataGateChanged() {
+    final gate = LocalDataOperationGate.shared;
+    if (_dataGeneration != gate.generation) {
+      _dataGeneration = gate.generation;
+      _notificationRevision++;
+      _scheduleStartTimer?.cancel();
+      _stopPreparationTimer();
+      _clearActivePreparationRun();
+      _activeEarlyStartScheduleId = null;
+      _currentScheduleId = null;
+      _notificationPromptOwner = null;
+      _notificationPreparationOwner = null;
+      _notificationPreparationId = null;
+      _attemptedSteps.clear();
+      _lastSnapshotSavedAt = null;
+      _subscriptionRevision++;
+      _retiredWatches.retire(_upcomingScheduleSubscription);
+      _upcomingScheduleSubscription = null;
+      if (!isClosed) add(const _NearestProjectionInvalidated(replaced: true));
+    }
+    if (!isClosed && gate.isAvailable) {
+      add(const ScheduleSubscriptionRequested());
+    }
+  }
+
+  final _retiredWatches = SubscriptionCleanup();
   void _registerHandlers() {
+    StartupDependencyScope.own(this, close);
+    LocalDataOperationGate.shared.addListener(_onDataGateChanged);
     on<_NotificationPromptPresented>((event, emit) {
       if (!identical(_notificationPromptOwner, event.owner) ||
           !event.isCurrent()) {
@@ -98,6 +135,88 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     });
     on<ScheduleSubscriptionRequested>(_onSubscriptionRequested);
     on<ScheduleUpcomingReceived>(_onUpcomingReceived);
+    on<_OwnedScheduleUpcomingReadFailed>(_onUpcomingReadFailed);
+    on<_NearestQueryReceived>(_onNearestQueryReceived);
+    on<_NearestProjectionInvalidated>((event, emit) {
+      if (event.replaced) {
+        emit(const ScheduleState.initial());
+      } else {
+        final key = state.nearestQuery.key;
+        emit(
+          state.copyWith(
+            nearestQuery: key == null
+                ? const NearestQueryIdle()
+                : NearestQueryLimited(
+                    key: key,
+                    reason: NearestQueryLimitReason.interrupted,
+                    progress: const NearestQueryProgress(
+                      visitedCandidates: 0,
+                      candidateBudget: 200000,
+                      provenSegments: 0,
+                      totalSegments: 0,
+                    ),
+                    canContinue: false,
+                    canRetry: true,
+                    stale: state.freshNearest ?? state.staleNearest,
+                  ),
+          ),
+        );
+      }
+    });
+    on<_NotificationPreparationOwnershipChanged>((event, emit) {
+      emit(
+        state.copyWith(
+          hasNotificationPreparationOwner: notificationPreparationId != null,
+        ),
+      );
+    });
+    on<ScheduleNearestQueryRetryRequested>((event, emit) {
+      final query = state.nearestQuery;
+      if (query.key != event.queryKey) return;
+      if (query is NearestQueryError ||
+          query is NearestQueryLimited && query.canRetry) {
+        add(const ScheduleSubscriptionRequested());
+      }
+    });
+    on<ScheduleNearestQueryContinueRequested>((event, emit) {
+      final query = state.nearestQuery;
+      if (query.key == event.queryKey &&
+          query is NearestQueryLimited &&
+          query.canContinue) {
+        _queryPaused = false;
+        _upcomingScheduleSubscription?.resume();
+        emit(
+          state.copyWith(
+            nearestQuery: NearestQueryLoading(
+              key: event.queryKey,
+              progress: query.progress,
+              stale: query.stale,
+              issues: query.issues,
+            ),
+          ),
+        );
+      }
+    });
+    on<ScheduleNearestQueryCancelRequested>((event, emit) {
+      final query = state.nearestQuery;
+      if (query.key != event.queryKey || query is! NearestQueryLoading) return;
+      _queryPaused = true;
+      _upcomingScheduleSubscription?.pause();
+      _retireBoundaryIntent();
+      emit(
+        state.copyWith(
+          nearestQuery: NearestQueryLimited(
+            key: event.queryKey,
+            reason: NearestQueryLimitReason.cancelled,
+            progress: query.progress,
+            canContinue: true,
+            canRetry: false,
+            stale: query.stale,
+            issues: query.issues,
+          ),
+        ),
+      );
+    });
     on<ScheduleAlarmPromptRequested>(_onAlarmPromptRequested);
     on<ScheduleStarted>(_onScheduleStarted);
     on<SchedulePreparationStarted>(_onPreparationStarted);
@@ -115,8 +234,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   final SchedulePreparationSessionUseCase _schedulePreparationSessionUseCase;
   final NowProvider _nowProvider;
   final NotifyPreparationStep _notifyPreparationStep;
-  StreamSubscription<ScheduleWithPreparationEntity?>?
-  _upcomingScheduleSubscription;
+  StreamSubscription<NearestScheduleQuery>? _upcomingScheduleSubscription;
   Timer? _scheduleStartTimer;
   String? _currentScheduleId;
   String? _activeEarlyStartScheduleId;
@@ -149,7 +267,44 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   void observeLifecycleState(AppLifecycleState phase) {
     _stepObservation = null;
     _stepRevision++;
+    _queryForeground = phase == AppLifecycleState.resumed;
+    _retireBoundaryIntent();
+    _queryMidnightTimer?.cancel();
+    _queryDeviceClockTimer?.cancel();
+    _queryDeviceClockTimer = null;
+    _queryClockObservation = null;
+    if (!_queryForeground) {
+      _subscriptionRevision++;
+      _retiredWatches.retire(_upcomingScheduleSubscription);
+      _upcomingScheduleSubscription = null;
+      if (!isClosed) add(const _NearestProjectionInvalidated());
+    } else if (LocalDataOperationGate.shared.isAvailable && !isClosed) {
+      add(const ScheduleSubscriptionRequested());
+    }
   }
+
+  bool _queryForeground = true;
+  bool _queryPaused = false;
+  int _queryEpoch = 0;
+  (DateTime, Duration)? _queryClockObservation;
+  _BoundaryStartIntent? _boundaryStartIntent;
+  void _retireBoundaryIntent() {
+    _boundaryStartIntent = null;
+    _scheduleStartTimer?.cancel();
+    _scheduleStartTimer = null;
+  }
+
+  void observeDeviceTimeZone(String zone) {
+    if (_observedDeviceTimeZone == zone) return;
+    final previous = _observedDeviceTimeZone;
+    _observedDeviceTimeZone = zone;
+    if (previous != null && _queryForeground && !isClosed) {
+      _retireBoundaryIntent();
+      add(const ScheduleSubscriptionRequested());
+    }
+  }
+
+  String? _observedDeviceTimeZone;
 
   Object? _notificationPreparationOwner;
   Object? _notificationPreparationViewOwner;
@@ -171,6 +326,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _notificationPreparationGeneration =
         LocalDataOperationGate.shared.generation;
     releaseNotificationPrompt(owner, resumeNearest: false);
+    if (!isClosed) add(const _NotificationPreparationOwnershipChanged());
   }
 
   void attachNotificationPreparation(Object owner, Object viewOwner) {
@@ -188,6 +344,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _notificationPreparationViewOwner = null;
     _notificationPreparationId = null;
     _notificationPreparationGeneration = null;
+    if (!isClosed) add(const _NotificationPreparationOwnershipChanged());
     _notificationRevision++;
     if (!isClosed && _notificationPromptOwner == null) {
       add(const ScheduleSubscriptionRequested());
@@ -202,6 +359,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     final generation = LocalDataOperationGate.shared.generation;
     return () =>
         !isClosed &&
+        !LocalDataOperationGate.shared.isReplacingData &&
+        !LocalDataOperationGate.shared.isRecoveryPending &&
+        !LocalDataOperationGate.shared.isInvalidated &&
         _notificationPromptOwner == null &&
         revision == _notificationRevision &&
         generation == LocalDataOperationGate.shared.generation;
@@ -224,6 +384,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _notificationPreparationViewOwner = null;
     _notificationPreparationId = null;
     _notificationPreparationGeneration = null;
+    if (!isClosed) add(const _NotificationPreparationOwnershipChanged());
     _notificationRevision++;
     _notificationPromptOwner = owner;
     add(_NotificationPromptPresented(schedule, owner, isCurrent));
@@ -240,24 +401,278 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   int _subscriptionRevision = 0;
+  int _upcomingReadRevision = 0;
+  int _upcomingFailureRevision = 0;
+  Timer? _queryMidnightTimer;
+  Timer? _queryDeviceClockTimer;
+  (int, int, int, Duration, String)? _queryDeviceDay;
+
+  (int, int, int, Duration, String) _deviceDaySignature() {
+    final local = _nowProvider().toLocal();
+    return (
+      local.year,
+      local.month,
+      local.day,
+      local.timeZoneOffset,
+      local.timeZoneName,
+    );
+  }
+
+  void _watchQueryDay() {
+    if (!_queryForeground) return;
+    _queryDeviceDay = _deviceDaySignature();
+    _queryClockObservation = (_nowProvider().toUtc(), _monotonicNow);
+    _queryMidnightTimer?.cancel();
+    final now = _nowProvider().toUtc();
+    _queryMidnightTimer = Timer(
+      DeviceCivilDay.at(now).endUtc.difference(now),
+      () {
+        if (_queryForeground &&
+            !isClosed &&
+            LocalDataOperationGate.shared.isAvailable) {
+          _retireBoundaryIntent();
+          add(const ScheduleSubscriptionRequested());
+        }
+      },
+    );
+    _queryDeviceClockTimer ??= Timer.periodic(const Duration(minutes: 1), (_) {
+      if (!_queryForeground ||
+          isClosed ||
+          !LocalDataOperationGate.shared.isAvailable) {
+        return;
+      }
+      final wall = _nowProvider().toUtc();
+      final mono = _monotonicNow;
+      final before = _queryClockObservation;
+      final drift =
+          before != null &&
+          (wall.difference(before.$1) - (mono - before.$2)).inMicroseconds
+                  .abs() >
+              stepClockTolerance.inMicroseconds;
+      _queryClockObservation = (wall, mono);
+      if (drift || _queryDeviceDay != _deviceDaySignature()) {
+        _retireBoundaryIntent();
+        add(const ScheduleSubscriptionRequested());
+      }
+    });
+  }
 
   Future<void> _onSubscriptionRequested(
     ScheduleSubscriptionRequested event,
     Emitter<ScheduleState> emit,
   ) async {
     final revision = ++_subscriptionRevision;
+    final generation = LocalDataOperationGate.shared.generation;
+    _queryPaused = false;
+    _retireBoundaryIntent();
     final previous = _upcomingScheduleSubscription;
     _upcomingScheduleSubscription = null;
-    await previous?.cancel();
-    if (isClosed || revision != _subscriptionRevision) return;
-
-    _upcomingScheduleSubscription = _getNearestUpcomingScheduleUseCase().listen(
-      (upcomingSchedule) {
-        // ✅ Safety check: Only add events if bloc is still active
-        if (!isClosed) {
-          add(ScheduleUpcomingReceived(upcomingSchedule));
+    await _retiredWatches.cancelAndWait(previous);
+    if (isClosed ||
+        !_queryForeground ||
+        revision != _subscriptionRevision ||
+        !LocalDataOperationGate.shared.isAvailable) {
+      return;
+    }
+    final key = NearestQueryKey(
+      generation: generation,
+      epoch: ++_queryEpoch,
+      revision: 0,
+    );
+    // Existing durable preparation is independent of the bounded future search.
+    // Recover it even when that search will stop at an error or budget limit.
+    if (_notificationPromptOwner == null &&
+        notificationPreparationId == null &&
+        _explicitStartPending == null) {
+      try {
+        final active = await _getNearestUpcomingScheduleUseCase.readActive();
+        if (isClosed ||
+            emit.isDone ||
+            revision != _subscriptionRevision ||
+            generation != LocalDataOperationGate.shared.generation ||
+            !_queryForeground) {
+          return;
         }
-      },
+        if (active != null) {
+          await _onUpcomingReceived(
+            _OwnedScheduleUpcomingReceived(active, generation, revision),
+            emit,
+          );
+          if (isClosed ||
+              emit.isDone ||
+              revision != _subscriptionRevision ||
+              generation != LocalDataOperationGate.shared.generation ||
+              !_queryForeground) {
+            return;
+          }
+        }
+      } catch (_) {
+        if (!isClosed &&
+            !emit.isDone &&
+            revision == _subscriptionRevision &&
+            generation == LocalDataOperationGate.shared.generation) {
+          emit(
+            state.copyWith(
+              nearestQuery: NearestQueryError(
+                key: key,
+                reason: NearestQueryFailureReason.preparationReadFailed,
+                stale: state.freshNearest ?? state.staleNearest,
+              ),
+            ),
+          );
+        }
+      }
+    }
+    // A rejected old active read is as stale as a successful old receipt.
+    // In particular it cannot overwrite the handle of a newer subscription.
+    if (isClosed ||
+        emit.isDone ||
+        !_queryForeground ||
+        revision != _subscriptionRevision ||
+        generation != LocalDataOperationGate.shared.generation ||
+        !LocalDataOperationGate.shared.isAvailable) {
+      return;
+    }
+    _upcomingScheduleSubscription = _getNearestUpcomingScheduleUseCase(key: key)
+        .listen(
+          (query) {
+            if (!isClosed &&
+                revision == _subscriptionRevision &&
+                generation == LocalDataOperationGate.shared.generation &&
+                LocalDataOperationGate.shared.isAvailable) {
+              add(_NearestQueryReceived(query, revision));
+            }
+          },
+          onError: (Object error, StackTrace stack) {
+            if (!isClosed &&
+                revision == _subscriptionRevision &&
+                generation == LocalDataOperationGate.shared.generation) {
+              add(_OwnedScheduleUpcomingReadFailed(generation, revision));
+            }
+          },
+        );
+    _watchQueryDay();
+  }
+
+  Future<void> _onNearestQueryReceived(
+    _NearestQueryReceived event,
+    Emitter<ScheduleState> emit,
+  ) async {
+    bool current() =>
+        !isClosed &&
+        !emit.isDone &&
+        !_queryPaused &&
+        _queryForeground &&
+        event.subscriptionRevision == _subscriptionRevision &&
+        event.query.key?.generation ==
+            LocalDataOperationGate.shared.generation &&
+        LocalDataOperationGate.shared.isAvailable;
+    if (!current()) return;
+    final read = ++_upcomingReadRevision;
+    var query = event.query;
+    final old = state.freshNearest ?? state.staleNearest;
+    if (query is NearestQueryLoading &&
+        query.stale == null &&
+        old != null &&
+        old.authority.key.generation == query.key!.generation) {
+      query = NearestQueryLoading(
+        key: query.key!,
+        progress: query.progress,
+        stale: old,
+        issues: query.issues,
+      );
+    }
+    _retireBoundaryIntent();
+    emit(state.copyWith(nearestQuery: query));
+    if (query is NearestQueryLoading || query is NearestQueryIdle) return;
+    if (_notificationPromptOwner != null ||
+        notificationPreparationId != null ||
+        _explicitStartPending != null) {
+      return;
+    }
+    ScheduleWithPreparationEntity? active;
+    try {
+      active = await _getNearestUpcomingScheduleUseCase.readActive();
+    } catch (_) {
+      if (current() && read == _upcomingReadRevision) {
+        emit(
+          state.copyWith(
+            nearestQuery: NearestQueryError(
+              key: query.key!,
+              reason: NearestQueryFailureReason.preparationReadFailed,
+              stale: query is NearestQueryReady ? query.value : query.stale,
+            ),
+          ),
+        );
+      }
+      return;
+    }
+    if (!current() || read != _upcomingReadRevision) return;
+    if (active != null) {
+      await _onUpcomingReceived(
+        _OwnedScheduleUpcomingReceived(
+          active,
+          query.key!.generation,
+          event.subscriptionRevision,
+        ),
+        emit,
+      );
+      if (current() && _upcomingReadRevision == read + 1) {
+        emit(state.copyWith(nearestQuery: query));
+      }
+      return;
+    }
+    // An authoritative active read may retire a deleted/completed run. Query
+    // refresh itself never writes completion or clears persisted runtime data.
+    _stopPreparationTimer();
+    _clearActivePreparationRun();
+    _activeEarlyStartScheduleId = null;
+    _currentScheduleId = query is NearestQueryReady
+        ? query.value.schedule.id
+        : null;
+    if (query is NearestQueryReady) {
+      _snapshotInvalidated = false;
+      emit(
+        ScheduleState.upcoming(
+          query.value.schedule,
+        ).copyWith(nearestQuery: query),
+      );
+      _startScheduleTimer(query.value.schedule);
+    } else {
+      emit(
+        (query is NearestQueryEmpty
+                ? const ScheduleState.notExists()
+                : const ScheduleState.initial())
+            .copyWith(nearestQuery: query),
+      );
+    }
+  }
+
+  void _onUpcomingReadFailed(
+    _OwnedScheduleUpcomingReadFailed event,
+    Emitter<ScheduleState> emit,
+  ) {
+    if (event.subscriptionRevision != _subscriptionRevision ||
+        event.generation != LocalDataOperationGate.shared.generation) {
+      return;
+    }
+    _upcomingReadRevision++;
+    _upcomingFailureRevision++;
+    _retireBoundaryIntent();
+    emit(
+      state.copyWith(
+        nearestQuery: NearestQueryError(
+          key:
+              state.nearestQuery.key ??
+              NearestQueryKey(
+                generation: event.generation,
+                epoch: _queryEpoch,
+                revision: event.subscriptionRevision,
+              ),
+          reason: NearestQueryFailureReason.storeReadFailed,
+          stale: state.freshNearest ?? state.staleNearest,
+        ),
+      ),
     );
   }
 
@@ -265,30 +680,77 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleUpcomingReceived event,
     Emitter<ScheduleState> emit,
   ) async {
+    if (event is _OwnedScheduleUpcomingReceived &&
+        event.subscriptionRevision != _subscriptionRevision) {
+      return;
+    }
+    if (event.generation != null &&
+        event.generation != LocalDataOperationGate.shared.generation) {
+      return;
+    }
     if (notificationPreparationId != null || _explicitStartPending != null) {
+      return;
+    }
+    final backgroundCurrent = _captureBackgroundValidity();
+    final subscriptionRevision = _subscriptionRevision;
+    final readRevision = ++_upcomingReadRevision;
+    bool current() =>
+        backgroundCurrent() &&
+        subscriptionRevision == _subscriptionRevision &&
+        readRevision == _upcomingReadRevision;
+    if (!current()) return;
+    final now = _nowProvider();
+    var candidate = event.upcomingSchedule;
+    if (candidate != null && candidate.timeResolution == null) {
+      candidate =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            candidate,
+            candidate.preparation,
+            timeResolution: ScheduleTimeResolver.resolve(
+              candidate,
+              nowUtc: now,
+            ),
+          );
+    }
+    if (candidate != null &&
+        (candidate.timeResolution ??
+                    ScheduleTimeResolver.resolve(candidate, nowUtc: now))
+                .instantUtc ==
+            null) {
+      // An unresolved appointment remains available in calendar/edit surfaces.
+      // It must not enter countdown/start/finish automation or crash other rows.
+      _scheduleStartTimer?.cancel();
+      _scheduleStartTimer = null;
+      _stopPreparationTimer();
+      _clearActivePreparationRun();
+      if (_captureBackgroundValidity()()) {
+        emit(const ScheduleState.notExists());
+      }
       return;
     }
     // A repository emission is not a successful recovery receipt. Preserve
     // the live projection and pending warning for the same unchanged run.
     if (state.hasPendingStartRecovery &&
-        event.upcomingSchedule?.id == state.schedule?.id &&
-        event.upcomingSchedule?.cacheFingerprint ==
-            state.schedule?.cacheFingerprint &&
-        event.upcomingSchedule != null &&
-        !_isEnded(event.upcomingSchedule!.doneStatus)) {
+        candidate?.id == state.schedule?.id &&
+        candidate?.cacheFingerprint == state.schedule?.cacheFingerprint &&
+        candidate != null &&
+        !_isEnded(candidate.doneStatus)) {
       return;
     }
-    final current = _captureBackgroundValidity();
-    if (!current()) return;
     _stepRevision++;
     _stepObservation = null;
     _scheduleStartTimer?.cancel();
     _scheduleStartTimer = null;
-    final now = _nowProvider();
-
-    if (event.upcomingSchedule == null ||
-        event.upcomingSchedule!.scheduleTime.isBefore(now)) {
-      final staleId = event.upcomingSchedule?.id ?? _currentScheduleId;
+    final hasDurableRun =
+        candidate != null &&
+        candidate.isStarted &&
+        candidate.startedAt != null &&
+        candidate.preparationFrozen &&
+        candidate.doneStatus == ScheduleDoneStatus.notEnded;
+    if (candidate == null ||
+        (candidate.occurrenceInstantUtc.isBefore(now.toUtc()) &&
+            !hasDurableRun)) {
+      final staleId = candidate?.id ?? _currentScheduleId;
       if (staleId != null) {
         await _clearPersistedState(staleId);
         if (!current()) return;
@@ -303,7 +765,16 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       return;
     }
 
-    final incoming = event.upcomingSchedule!;
+    final incoming = candidate;
+    if (incoming.requiresStartConfirmation) {
+      _currentScheduleId = incoming.id;
+      _activeEarlyStartScheduleId = null;
+      _clearActivePreparationRun();
+      _stopPreparationTimer();
+      _snapshotInvalidated = true;
+      emit(ScheduleState.upcoming(incoming));
+      return;
+    }
     if (_currentScheduleId != null && _currentScheduleId != incoming.id) {
       await _clearPersistedState(_currentScheduleId!);
       if (!current()) return;
@@ -329,6 +800,43 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
             !_activePreparationRunStartedAt!.isAtSameMomentAs(
               incoming.preparationStartTime,
             ));
+    if (hasDurableRun) {
+      final restoredStart = _activePreparationRunStartedAt;
+      if (_snapshotInvalidated ||
+          restoredStart == null ||
+          !restoredStart.isAtSameMomentAs(incoming.startedAt!)) {
+        // A durable start marker does not reconstruct a missing or different
+        // runtime session. Keep access without inventing elapsed progress or
+        // triggering another automatic start.
+        _snapshotInvalidated = true;
+        _activeEarlyStartScheduleId = null;
+        _clearActivePreparationRun();
+        _stopPreparationTimer();
+        resolvedSchedule =
+            ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+              incoming.copyWith(requiresStartConfirmation: true),
+              incoming.preparation,
+              timeResolution:
+                  incoming.timeResolution ??
+                  ScheduleTimeResolver.resolve(incoming, nowUtc: now),
+            );
+        emit(ScheduleState.upcoming(resolvedSchedule));
+        return;
+      }
+      final early = !restoredStart.isAtSameMomentAs(
+        incoming.preparationStartTime,
+      );
+      _activeEarlyStartScheduleId = early ? incoming.id : null;
+      emit(
+        ScheduleState.started(
+          resolvedSchedule,
+          isEarlyStarted: early,
+          isResumedPreparation: true,
+        ),
+      );
+      _startPreparationTimer();
+      return;
+    }
     if (!_snapshotInvalidated &&
         !hasEarlyStartSession &&
         incoming.preparationStartTime.isAfter(now)) {
@@ -359,6 +867,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
                 actionEvents: const [],
                 now: now,
               ),
+              timeResolution:
+                  resolvedSchedule.timeResolution ??
+                  ScheduleTimeResolver.resolve(resolvedSchedule, nowUtc: now),
             );
       }
       await _startScheduleLocally(resolvedSchedule.id);
@@ -371,27 +882,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     }
 
     _activeEarlyStartScheduleId = null;
-    if (_isAtPreparationStartBoundary(resolvedSchedule, now)) {
-      emit(ScheduleState.upcoming(resolvedSchedule));
-      AppLogger.debug(
-        'preparation boundary reached scheduleId=${resolvedSchedule.id}',
-      );
-      add(const ScheduleStarted());
-      return;
-    }
-
-    if (_isPreparationOnGoing(resolvedSchedule, now)) {
-      await _startScheduleLocally(resolvedSchedule.id);
-      if (!current()) return;
-      emit(ScheduleState.ongoing(resolvedSchedule));
-      AppLogger.debug(
-        'ongoing scheduleId=${resolvedSchedule.id} '
-        'currentStepId=${resolvedSchedule.preparation.currentStep?.id}',
-      );
-      _startPreparationTimer();
-      return;
-    }
-
     _stopPreparationTimer();
     emit(ScheduleState.upcoming(resolvedSchedule));
     AppLogger.debug('upcoming scheduleId=${resolvedSchedule.id}');
@@ -402,17 +892,73 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleStarted event,
     Emitter<ScheduleState> emit,
   ) async {
-    final current = _captureBackgroundValidity();
+    final intent = event._boundaryIntent;
+    if (intent == null || !_isBoundaryIntentCurrent(intent)) return;
+    final backgroundCurrent = _captureBackgroundValidity();
+    final failureRevision = _upcomingFailureRevision;
+    bool current() =>
+        backgroundCurrent() &&
+        failureRevision == _upcomingFailureRevision &&
+        !state.hasUpcomingReadFailure &&
+        _isBoundaryIntentCurrent(intent);
     if (!current()) return;
-    if (_snapshotInvalidated) return;
+    if (state.hasUpcomingReadFailure ||
+        _snapshotInvalidated ||
+        (state.schedule?.requiresStartConfirmation ?? false)) {
+      return;
+    }
     if (state.schedule != null && state.schedule!.id == _currentScheduleId) {
       if (_activeEarlyStartScheduleId == _currentScheduleId) return;
       AppLogger.debug('schedule started scheduleId=${state.schedule!.id}');
-      await _startScheduleLocally(state.schedule!.id);
-      if (!current()) return;
-      emit(ScheduleState.started(state.schedule!));
-      _navigationService.push('/scheduleStart');
-      _activePreparationRunStartedAt ??= state.schedule!.preparationStartTime;
+      final schedule = state.schedule!;
+      final interpretation = state.freshNearest!.resolution;
+      late final DateTime committedAt;
+      try {
+        committedAt = await _schedulePreparationSessionUseCase
+            .startSchedulePreparation(
+              state.schedule!.id,
+              isCurrent: current,
+              expectedFingerprint: intent.fingerprint,
+            );
+      } on ScheduleStartRejected {
+        if (identical(_boundaryStartIntent, intent)) _retireBoundaryIntent();
+        return;
+      } on AlarmOperationInvalidated {
+        if (identical(_boundaryStartIntent, intent)) _retireBoundaryIntent();
+        return;
+      }
+      // The committed writer receipt owns this run even when its own database
+      // emission has already invalidated the recommendation query. It does not
+      // grant fresh query authority or replace a separately owned prompt.
+      if (!backgroundCurrent()) return;
+      final committed =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            schedule.copyWith(
+              isStarted: true,
+              startedAt: committedAt,
+              preparationFrozen: true,
+              requiresStartConfirmation: false,
+            ),
+            schedule.preparation,
+            timeResolution: interpretation,
+          );
+      _currentScheduleId = committed.id;
+      _activeEarlyStartScheduleId = null;
+      _activePreparationRunStartedAt = committedAt;
+      _activePreparationActionEvents = const [];
+      _snapshotInvalidated = false;
+      _retireBoundaryIntent();
+      emit(
+        state.copyWith(
+          status: ScheduleStatus.started,
+          schedule: committed,
+          isEarlyStarted: false,
+          isResumedPreparation: false,
+        ),
+      );
+      if (_queryForeground) {
+        _navigationService.push('/scheduleStart');
+      }
       _startPreparationTimer();
     }
   }
@@ -427,7 +973,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       'alarm prompt requested: scheduleId=${event.scheduleId} '
       'startPreparation=${event.startPreparation}',
     );
-    final cachedSchedule = event.startPreparation
+    final cachedSchedule =
+        event.startPreparation && !state.hasUpcomingReadFailure
         ? _matchingCachedAlarmSchedule(event)
         : null;
     if (cachedSchedule != null) {
@@ -554,13 +1101,32 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         _notificationRevision == revision &&
         state.schedule?.id == schedule?.id &&
         (event.isCurrent?.call() ?? _notificationPromptOwner == null);
-    if (schedule == null || !current()) {
+    final awaitingFreshQuery =
+        state.nearestQuery is! NearestQueryIdle &&
+        state.freshNearest == null &&
+        !state.hasOwnedPreparationSurface;
+    if (schedule == null ||
+        !current() ||
+        state.hasUpcomingReadFailure ||
+        awaitingFreshQuery) {
       event.receipt?.complete(null);
       return;
     }
     if (_activeEarlyStartScheduleId == schedule.id &&
         _activePreparationRunStartedAt != null &&
         event.receipt == null) {
+      return;
+    }
+    final interpretation =
+        schedule.timeResolution ??
+        (state.freshNearest?.schedule.id == schedule.id
+            ? state.freshNearest!.resolution
+            : ScheduleTimeResolver.resolve(
+                schedule,
+                nowUtc: _nowProvider().toUtc(),
+              ));
+    if (interpretation.instantUtc == null) {
+      event.receipt?.complete(null);
       return;
     }
     final pending = Object();
@@ -584,9 +1150,21 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
       _activeEarlyStartScheduleId = schedule.id;
       _activePreparationRunStartedAt = result.startedAt;
       _activePreparationActionEvents = result.actionEvents;
+      final committed =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            schedule.copyWith(
+              isStarted: true,
+              startedAt: result.durableStartedAt ?? result.startedAt,
+              preparationFrozen: true,
+              requiresStartConfirmation: false,
+            ),
+            schedule.preparation,
+            timeResolution: interpretation,
+          );
       emit(
         state.copyWith(
           status: ScheduleStatus.started,
+          schedule: committed,
           isEarlyStarted: true,
           hasPendingStartRecovery: result.hasPendingRecovery,
         ),
@@ -664,7 +1242,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     SchedulePreparationTimeRefreshRequested event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (_finishing ||
+    if (LocalDataOperationGate.shared.isRecoveryPending ||
+        LocalDataOperationGate.shared.isReplacingData ||
+        _finishing ||
         _notificationPromptOwner != null ||
         state.schedule == null) {
       return;
@@ -686,6 +1266,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
           state.schedule!,
           refreshedPreparation,
+          timeResolution:
+              state.schedule!.timeResolution ??
+              ScheduleTimeResolver.resolve(state.schedule!, nowUtc: observedAt),
         );
     emit(state.copyWith(schedule: refreshedSchedule));
     _observeStepTransition(
@@ -704,7 +1287,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     ScheduleStepSkipped event,
     Emitter<ScheduleState> emit,
   ) async {
-    if (_finishing ||
+    if (LocalDataOperationGate.shared.isRecoveryPending ||
+        LocalDataOperationGate.shared.isReplacingData ||
+        _finishing ||
         _notificationPromptOwner != null ||
         state.schedule == null) {
       return;
@@ -737,6 +1322,9 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
           state.schedule!,
           updated,
+          timeResolution:
+              state.schedule!.timeResolution ??
+              ScheduleTimeResolver.resolve(state.schedule!, nowUtc: now),
         );
     emit(state.copyWith(schedule: newSchedule));
     _stepObservation = (_monotonicNow, now, _lifecycle);
@@ -797,21 +1385,50 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
   }
 
   void _startScheduleTimer(ScheduleWithPreparationEntity schedule) {
-    final now = _nowProvider();
-    final target = schedule.preparationStartTime;
-    if (!target.isAfter(now)) {
-      if (!isClosed && _currentScheduleId == schedule.id) {
-        add(const ScheduleStarted());
-      }
+    _retireBoundaryIntent();
+    final ready = state.freshNearest;
+    final now = _nowProvider().toUtc();
+    final target = schedule.preparationStartTime.toUtc();
+    if (!_queryForeground ||
+        schedule.requiresStartConfirmation ||
+        ready == null ||
+        ready.schedule.cacheFingerprint != schedule.cacheFingerprint ||
+        !target.isAfter(now)) {
       return;
     }
-    final duration = target.difference(now);
-    _scheduleStartTimer = Timer(duration, () {
-      // Only add event if bloc is still active and schedule ID matches
-      if (!isClosed && _currentScheduleId == schedule.id) {
-        add(const ScheduleStarted());
-      }
+    final intent = _BoundaryStartIntent(
+      ready.authority.key,
+      schedule.id,
+      schedule.cacheFingerprint,
+      target,
+      now,
+      _monotonicNow,
+    );
+    _boundaryStartIntent = intent;
+    _scheduleStartTimer = Timer(target.difference(now), () {
+      if (_isBoundaryIntentCurrent(intent)) add(ScheduleStarted._owned(intent));
     });
+  }
+
+  bool _isBoundaryIntentCurrent(_BoundaryStartIntent intent) {
+    final now = _nowProvider().toUtc();
+    final lateness = now.difference(intent.target);
+    final drift =
+        (now.difference(intent.observedWall) -
+                (_monotonicNow - intent.observedMonotonic))
+            .inMicroseconds
+            .abs();
+    return !isClosed &&
+        _queryForeground &&
+        identical(_boundaryStartIntent, intent) &&
+        LocalDataOperationGate.shared.isAvailable &&
+        intent.key.generation == LocalDataOperationGate.shared.generation &&
+        state.freshNearest?.authority.key == intent.key &&
+        _currentScheduleId == intent.scheduleId &&
+        state.schedule?.cacheFingerprint == intent.fingerprint &&
+        lateness >= Duration.zero &&
+        lateness <= stepNotificationFreshness &&
+        drift <= stepClockTolerance.inMicroseconds;
   }
 
   void _startPreparationTimer() {
@@ -843,16 +1460,30 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _preparationTimer = null;
   }
 
+  @disposeMethod
+  Future<void> disposeFromScope() =>
+      StartupDependencyScope.release(this, close);
+
+  Future<void>? _closeFlight;
   @override
   Future<void> close() {
-    // ✅ Proper cleanup: Cancel subscription and timer before closing
-    _upcomingScheduleSubscription?.cancel();
+    final running = _closeFlight;
+    if (running != null) return running;
+    LocalDataOperationGate.shared.removeListener(_onDataGateChanged);
+    _subscriptionRevision++;
+    _queryMidnightTimer?.cancel();
+    _queryDeviceClockTimer?.cancel();
+    _retiredWatches.retire(_upcomingScheduleSubscription);
+    _upcomingScheduleSubscription = null;
     _scheduleStartTimer?.cancel();
     _stopPreparationTimer();
     _stepRevision++;
     _attemptedSteps.clear();
     _stepRun = null;
-    return super.close();
+    return _closeFlight = Future.wait([
+      _retiredWatches.close(),
+      super.close(),
+    ]).then<void>((_) {}).whenComplete(() => _closeFlight = null);
   }
 
   bool _snapshotInvalidated = false;
@@ -992,21 +1623,6 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     _stepRevision++;
     _activePreparationRunStartedAt = null;
     _activePreparationActionEvents = const [];
-  }
-
-  bool _isAtPreparationStartBoundary(
-    ScheduleWithPreparationEntity schedule,
-    DateTime now,
-  ) {
-    return schedule.preparationStartTime.isAtSameMomentAs(now);
-  }
-
-  bool _isPreparationOnGoing(
-    ScheduleWithPreparationEntity schedule,
-    DateTime now,
-  ) {
-    final start = schedule.preparationStartTime;
-    return start.isBefore(now) && schedule.scheduleTime.isAfter(now);
   }
 
   bool _isEnded(ScheduleDoneStatus doneStatus) {

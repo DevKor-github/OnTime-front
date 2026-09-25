@@ -1,3 +1,5 @@
+import 'schedule_time_resolution.dart';
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:on_time_front/domain/entities/preparation_with_time_entity.dart';
@@ -5,6 +7,18 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 
 class ScheduleWithPreparationEntity extends ScheduleEntity {
   final PreparationWithTimeEntity preparation;
+
+  /// Immutable interpretation for one read pass; not a database/start authority.
+  final ScheduleTimeResolution? timeResolution;
+
+  @override
+  DateTime get occurrenceInstantUtc {
+    final resolved = timeResolution;
+    if (resolved == null) return super.occurrenceInstantUtc;
+    final instant = resolved.instantUtc;
+    if (instant == null) throw ScheduleTimeUnresolved(resolved.status);
+    return instant;
+  }
 
   const ScheduleWithPreparationEntity({
     required super.id,
@@ -27,6 +41,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     super.preparationTemplateName,
     super.preparationTemplateDeleted,
     super.preparationFrozen,
+    super.requiresStartConfirmation,
+    super.retainedRecurringReference,
     super.scoreContributionRecorded,
     super.customPreparations,
     super.recurringSegmentId,
@@ -36,6 +52,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     super.preparationDefinitionId,
 
     required this.preparation,
+    this.timeResolution,
   });
 
   ///Returns the total duration of the schedule including the moving time and the preparation time.
@@ -49,13 +66,21 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       occurrenceInstantUtc.subtract(totalDuration);
 
   /// Fingerprint for validating whether cached timed-preparation is still valid.
-  String get timingIdentity => _identity('timing', [
-    occurrenceInstantUtc.toIso8601String(),
-    timeZoneId,
-    occurrenceOffsetSeconds,
-    moveTime.inMilliseconds,
-    (scheduleSpareTime ?? Duration.zero).inMilliseconds,
-  ]);
+  String get timingIdentity {
+    final instant = occurrenceInstantUtc;
+    final canonicalOffset =
+        occurrenceOffsetSeconds ??
+        CivilDateTime.fromFields(
+          scheduleTime,
+        ).toUtcCarrier().difference(instant).inSeconds;
+    return _identity('timing', [
+      instant.toIso8601String(),
+      timeZoneId,
+      canonicalOffset,
+      moveTime.inMilliseconds,
+      (scheduleSpareTime ?? Duration.zero).inMilliseconds,
+    ]);
+  }
 
   String get preparationShapeIdentity => _identity('shape', [
     for (final step in preparation.preparationStepList)
@@ -80,7 +105,11 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
   String get legacyCacheFingerprint {
     final spare = scheduleSpareTime ?? Duration.zero;
     final buffer = StringBuffer()
-      ..write(scheduleTime.toIso8601String())
+      // The old SQLite civil converter constructed a local DateTime and its
+      // legacy fingerprint therefore serialized wall fields without a Z. Do
+      // not construct a device-local value here: a foreign DST gap could
+      // normalize those fields and accidentally validate a different run.
+      ..write(CivilDateTime.fromFields(scheduleTime).toCivilIso8601String())
       ..write('|')
       ..write(timeZoneId)
       ..write('|')
@@ -131,8 +160,9 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
 
   static ScheduleWithPreparationEntity fromScheduleAndPreparationEntity(
     ScheduleEntity schedule,
-    PreparationWithTimeEntity preparation,
-  ) {
+    PreparationWithTimeEntity preparation, {
+    required ScheduleTimeResolution timeResolution,
+  }) {
     return ScheduleWithPreparationEntity(
       id: schedule.id,
       place: schedule.place,
@@ -154,6 +184,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       preparationTemplateName: schedule.preparationTemplateName,
       preparationTemplateDeleted: schedule.preparationTemplateDeleted,
       preparationFrozen: schedule.preparationFrozen,
+      requiresStartConfirmation: schedule.requiresStartConfirmation,
+      retainedRecurringReference: schedule.retainedRecurringReference,
       scoreContributionRecorded: schedule.scoreContributionRecorded,
       customPreparations: schedule.customPreparations,
       recurringSegmentId: schedule.recurringSegmentId,
@@ -163,6 +195,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
       preparationDefinitionId: schedule.preparationDefinitionId,
 
       preparation: preparation,
+      timeResolution: timeResolution,
     );
   }
 
@@ -173,7 +206,7 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     scheduleName,
     timeZoneId,
     occurrenceOffsetSeconds,
-    scheduleTime,
+    CivilDateTime.fromFields(scheduleTime),
     moveTime,
     isChanged,
     isStarted,
@@ -187,6 +220,8 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     preparationTemplateName,
     preparationTemplateDeleted,
     preparationFrozen,
+    requiresStartConfirmation,
+    retainedRecurringReference,
     scoreContributionRecorded,
     recurringSegmentId,
     recurringSlotKey,
@@ -194,5 +229,6 @@ class ScheduleWithPreparationEntity extends ScheduleEntity {
     recurringOverrides,
     preparationDefinitionId,
     preparation,
+    timeResolution,
   ];
 }

@@ -24,6 +24,7 @@ void main() async {
   final endDate = scheduleTime.add(Duration(days: 1));
 
   final scheduleModel = Schedule(
+    requiresStartConfirmation: false,
     id: scheduleEntityId,
     placeId: placeModel.id,
     scheduleName: 'Test Schedule',

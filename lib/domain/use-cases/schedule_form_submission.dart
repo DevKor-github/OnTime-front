@@ -21,6 +21,11 @@ class ScheduleFormSubmission extends Equatable {
   final bool confirmDetached;
   final String? reviewedFirstSlotKey;
 
+  /// Ephemeral confirmation guard. Called synchronously by the existing writer
+  /// after receipt replay checks and immediately before transaction completion.
+  /// Not durable content and not part of the idempotent mutation digest.
+  final void Function()? validateTimeReview;
+
   const ScheduleFormSubmission({
     this.mutationId,
     this.baseline,
@@ -35,6 +40,7 @@ class ScheduleFormSubmission extends Equatable {
     this.excludedSlots = const {},
     this.confirmDetached = false,
     this.reviewedFirstSlotKey,
+    this.validateTimeReview,
   });
 
   @override

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/core/database/schema_contract.dart';
 
 void main() {
   late AppDatabase database;
@@ -30,11 +31,11 @@ void main() {
   );
 
   test('rejects in-place upgrades across the one-way local cutover', () async {
-    expect(database.schemaVersion, 3);
+    expect(database.schemaVersion, 4);
 
     await expectLater(
       database.migration.onUpgrade(database.createMigrator(), 0, 1),
-      throwsStateError,
+      throwsA(isA<UnsupportedDatabaseSchema>()),
     );
   });
 }

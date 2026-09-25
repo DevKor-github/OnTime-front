@@ -86,7 +86,12 @@ Map<String, dynamic>? safeNotificationTapData(String? raw) {
           RegExp(r'[\x00-\x1f\x7f]').hasMatch(id)) {
         return null;
       }
-      return {'type': 'preparation_step', 'scheduleId': id};
+      return {
+        'type': 'preparation_step',
+        'scheduleId': id,
+        if (value['storeIncarnation'] is String)
+          'storeIncarnation': value['storeIncarnation'],
+      };
     }
   } on FormatException {
     return null;

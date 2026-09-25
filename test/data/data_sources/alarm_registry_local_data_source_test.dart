@@ -200,7 +200,7 @@ ScheduledAlarmRecord _record(String scheduleId) {
     payload: {
       'type': 'schedule_alarm',
       'scheduleId': scheduleId,
-      'alarmLaunchPayloadVersion': '9',
+      'alarmLaunchPayloadVersion': '10',
       'promptVariant': 'alarm',
       'detailedNotificationContent': 'false',
     },

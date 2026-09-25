@@ -9,6 +9,77 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get detailedNotificationTitle => '알림에 일정 이름 표시';
+
+  @override
+  String get detailedNotificationPrivacy =>
+      '잠금화면에 일정 이름과 다른 시간대만 표시합니다. 장소, 메모, 준비 내용은 표시하지 않습니다.';
+
+  @override
+  String get detailedNotificationLoading => '설정 확인 중';
+
+  @override
+  String get detailedNotificationReadFailed => '설정을 불러오지 못했습니다. 저장된 값을 확인해주세요.';
+
+  @override
+  String get detailedNotificationUnavailable =>
+      '로컬 데이터 변경이 끝난 뒤 설정을 다시 확인해주세요.';
+
+  @override
+  String get detailedNotificationRequestOn => '켬 요청 중 · 아직 저장되지 않음';
+
+  @override
+  String get detailedNotificationRequestOff => '끔 요청 중 · 아직 저장되지 않음';
+
+  @override
+  String get detailedNotificationSavedOn => '켬으로 저장됨';
+
+  @override
+  String get detailedNotificationSavedOff => '끔으로 저장됨';
+
+  @override
+  String get detailedNotificationSaveFailed =>
+      '요청한 변경을 저장하지 못했습니다. 아직 적용되지 않았습니다.';
+
+  @override
+  String get detailedNotificationApplying => '저장된 설정을 알림에 반영 중';
+
+  @override
+  String get detailedNotificationDelayed =>
+      '기기의 응답이 늦어지고 있습니다. 알림 적용을 계속 확인 중입니다.';
+
+  @override
+  String get detailedNotificationApplied => '현재 알림 등록에 반영됨';
+
+  @override
+  String get detailedNotificationOff => '일정 알림이 꺼져 있습니다.';
+
+  @override
+  String get detailedNotificationEmpty => '현재 반영할 예정 알림이 없습니다.';
+
+  @override
+  String get detailedNotificationPermission => '알림 권한을 확인해주세요. 저장된 설정은 유지됩니다.';
+
+  @override
+  String get detailedNotificationCancellation =>
+      '기존 알림에 일정 이름이 남아 있을 수 있습니다. 알림 정리를 다시 확인해주세요.';
+
+  @override
+  String get detailedNotificationSchedulingFailed =>
+      '일부 알림을 예약하지 못했습니다. 알림을 다시 적용해주세요.';
+
+  @override
+  String get detailedNotificationNeedsCheck =>
+      '알림 적용 여부를 확인하지 못했습니다. 다시 확인해주세요.';
+
+  @override
+  String get detailedNotificationHeld =>
+      '끔 요청이 해결될 때까지 새 상세 알림 등록을 보류합니다. 기존 알림이 제거됐다는 뜻은 아닙니다.';
+
+  @override
+  String get detailedNotificationRetry => '다시 확인·적용';
+
+  @override
   String get startupRecoveryTitle => '앱을 시작할 수 없습니다';
 
   @override
@@ -586,6 +657,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dataRetryDelivery => '알림 처리만 다시 시도';
 
   @override
+  String get dataRestoreCleanupPending =>
+      '데이터는 복원됐지만 남은 정리와 알림 처리가 완료되지 않았습니다. 데이터를 다시 복원하지 않고 남은 처리만 다시 시도할 수 있습니다.';
+
+  @override
+  String get dataRetryCleanup => '남은 처리 다시 시도';
+
+  @override
   String get dataRestorePartial =>
       '데이터는 복원됐지만 알림 처리가 완료되지 않았습니다. 알림 처리만 다시 시도할 수 있습니다.';
 
@@ -617,6 +695,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get dataInvalidBackup => '작업을 완료하지 못했습니다. 백업 파일과 비밀번호를 확인해 주세요.';
+
+  @override
+  String get dataStagingCleanupFailed =>
+      '데이터는 복원되지 않았고 임시 파일 정리가 완료되지 않았습니다. 앱을 다시 열면 정리를 다시 시도합니다.';
 
   @override
   String get dataOperationFailed => '작업을 완료하지 못했습니다. 다시 시도해 주세요.';
@@ -701,4 +783,387 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get scheduleSaveUnavailable =>
       '저장할 수 없어요. 입력을 유지했으니 현재 상태와 준비 단계를 확인해 주세요.';
+
+  @override
+  String get defaultPreferencesLoadFailed => '설정을 불러오지 못했어요. 다시 불러와 주세요.';
+
+  @override
+  String get defaultPreferencesSaveFailed =>
+      '설정을 저장하지 못했어요. 입력은 그대로 남아 있어요. 다시 시도해 주세요.';
+
+  @override
+  String get defaultPreferencesInvalid =>
+      '준비 이름과 시간, 여유 시간을 확인해 주세요. 설정은 저장되지 않았어요.';
+
+  @override
+  String get defaultPreferencesConflict =>
+      '편집 중 일정 또는 설정이 변경되었어요. 입력은 남아 있지만 아직 저장되지 않았어요. 최신 설정을 다시 불러온 뒤 확인해 주세요.';
+
+  @override
+  String get defaultPreferencesReloadPending =>
+      '설정은 저장되었지만 화면 갱신을 마치지 못했어요. 다시 저장하지 않고 화면 갱신만 재시도할 수 있어요.';
+
+  @override
+  String get defaultPreferencesDeliveryPending =>
+      '설정은 저장되었지만 알림 처리를 마치지 못했어요. 다시 저장하지 않고 알림 처리만 재시도할 수 있어요.';
+
+  @override
+  String get defaultPreferencesBothPending =>
+      '설정은 저장되었지만 화면 갱신과 알림 처리를 마치지 못했어요. 다시 저장하지 않고 남은 작업만 재시도할 수 있어요.';
+
+  @override
+  String get defaultPreferencesSavedStoreChanged =>
+      '설정을 저장한 뒤 로컬 작업 상태가 달라졌어요. 이 화면의 작업은 다시 실행하지 않아요. 화면을 닫고 현재 설정을 확인해 주세요.';
+
+  @override
+  String get defaultPreferencesRetryFollowUp => '남은 작업 다시 시도';
+
+  @override
+  String get defaultPreferencesLoadLatest => '최신 설정 다시 불러오기';
+
+  @override
+  String get defaultPreferencesDiscardTitle => '편집 내용을 버리고 다시 불러올까요?';
+
+  @override
+  String get defaultPreferencesDiscardDescription =>
+      '최신 설정을 불러오면 이 화면의 저장하지 않은 편집 내용이 바뀌어요. 불러오지 못하면 편집 내용은 유지돼요.';
+
+  @override
+  String defaultPreferencesMinutes(int minutes) {
+    return '$minutes분';
+  }
+
+  @override
+  String get defaultPreferencesAuthorityPending =>
+      '설정은 저장되었지만 현재 로컬 데이터를 확인하지 못했어요. 다시 저장하지 않고 남은 작업을 재시도할 수 있어요.';
+
+  @override
+  String get zonedTimeOriginal => '약속 시간';
+
+  @override
+  String get zonedTimeDevice => '기기 시간';
+
+  @override
+  String get zonedTimeDeviceLoading => '기기 시간대를 확인하고 있어요.';
+
+  @override
+  String get zonedTimeDeviceUnavailable => '기기 시간대를 확인할 수 없어 환산 시각을 표시하지 못해요.';
+
+  @override
+  String get zonedTimeDeviceOutOfRange =>
+      '기기 환산 날짜가 지원 범위를 벗어나요. 원래 약속 시간은 유지됩니다.';
+
+  @override
+  String get zonedTimeUnknownZone => '시간대를 확인해주세요.';
+
+  @override
+  String get zonedTimeHistoricalUnknownZone =>
+      '이 기록의 시간대 규칙을 찾을 수 없어요. 저장된 약속은 그대로 보존됩니다.';
+
+  @override
+  String get zonedTimeHistoricalUncertain =>
+      '과거 기록의 발생 시각을 확정할 수 없어요. 저장된 시간은 그대로 보존됩니다.';
+
+  @override
+  String get zonedTimeNonexistent => '이 시간대에는 존재하지 않는 시각이에요. 다른 시각을 선택해주세요.';
+
+  @override
+  String get zonedTimeAmbiguous => '두 번 발생하는 시각이에요. 사용할 발생 시각을 선택해주세요.';
+
+  @override
+  String get zonedTimeRulesChanged => '시간대 규칙이 달라졌어요. 변경할 발생 시각을 확인해주세요.';
+
+  @override
+  String get zonedTimeInvalid => '약속 시간을 확인해주세요.';
+
+  @override
+  String get zonedTimeInstant => '실제 시각 (UTC)';
+
+  @override
+  String get zonedTimeChooseZone => '시간대 선택';
+
+  @override
+  String get zonedTimeSearch => '도시 또는 시간대 검색';
+
+  @override
+  String get zonedTimeClearSearch => '검색어 지우기';
+
+  @override
+  String get zonedTimeCurrentDeviceZone => '현재 기기 시간대';
+
+  @override
+  String get zonedTimeCurrentSelection => '현재 일정 시간대';
+
+  @override
+  String get zonedTimeDraftPreview => '선택 미리보기';
+
+  @override
+  String get zonedTimeKeepCivil =>
+      '날짜와 시각은 유지하고 시간대를 변경해요. 저장 전 약속 시간을 다시 확인합니다.';
+
+  @override
+  String get zonedTimeNoMatches =>
+      '일치하는 시간대가 없어요. 도시 이름이나 IANA 식별자로 다시 검색해주세요.';
+
+  @override
+  String get zonedTimeApplyDraft => '선택 적용';
+
+  @override
+  String get zonedTimeReviewTitle => '약속 시간 확인';
+
+  @override
+  String get zonedTimeReviewDescription => '저장할 약속과 기기에서의 시각을 확인해주세요.';
+
+  @override
+  String get zonedTimeBefore => '변경 전';
+
+  @override
+  String get zonedTimeAfter => '저장할 약속';
+
+  @override
+  String get zonedTimeConfirmSave => '확인하고 저장';
+
+  @override
+  String get zonedTimeFirstOccurrence => '첫 번째 발생';
+
+  @override
+  String get zonedTimeSecondOccurrence => '두 번째 발생';
+
+  @override
+  String get zonedTimeDetectedZone => '기기에서 확인한 시간대';
+
+  @override
+  String get zonedTimeSelectedZone => '직접 선택한 시간대';
+
+  @override
+  String get zonedTimeSavedZone => '저장된 일정 시간대';
+
+  @override
+  String get zonedTimeSelectUnavailableZone => '기기 시간대를 확인할 수 없어요. 직접 선택해주세요.';
+
+  @override
+  String get zonedTimeNextValid => '다음 유효 시각 확인';
+
+  @override
+  String get zonedTimePreparationStart => '준비 시작';
+
+  @override
+  String get zonedCityAsiaSeoul => '서울';
+
+  @override
+  String get zonedCityAsiaTokyo => '도쿄';
+
+  @override
+  String get zonedCityAsiaShanghai => '상하이';
+
+  @override
+  String get zonedCityAsiaHongKong => '홍콩';
+
+  @override
+  String get zonedCityAsiaTaipei => '타이베이';
+
+  @override
+  String get zonedCityAsiaSingapore => '싱가포르';
+
+  @override
+  String get zonedCityAsiaBangkok => '방콕';
+
+  @override
+  String get zonedCityAsiaDubai => '두바이';
+
+  @override
+  String get zonedCityAsiaKolkata => '콜카타';
+
+  @override
+  String get zonedCityAsiaKathmandu => '카트만두';
+
+  @override
+  String get zonedCityEuropeLondon => '런던';
+
+  @override
+  String get zonedCityEuropeParis => '파리';
+
+  @override
+  String get zonedCityEuropeBerlin => '베를린';
+
+  @override
+  String get zonedCityEuropeRome => '로마';
+
+  @override
+  String get zonedCityEuropeMadrid => '마드리드';
+
+  @override
+  String get zonedCityEuropeMoscow => '모스크바';
+
+  @override
+  String get zonedCityAmericaNewYork => '뉴욕';
+
+  @override
+  String get zonedCityAmericaLosAngeles => '로스앤젤레스';
+
+  @override
+  String get zonedCityAmericaChicago => '시카고';
+
+  @override
+  String get zonedCityAmericaDenver => '덴버';
+
+  @override
+  String get zonedCityAmericaToronto => '토론토';
+
+  @override
+  String get zonedCityAmericaVancouver => '밴쿠버';
+
+  @override
+  String get zonedCityAmericaSaoPaulo => '상파울루';
+
+  @override
+  String get zonedCityAustraliaSydney => '시드니';
+
+  @override
+  String get zonedCityAustraliaMelbourne => '멜버른';
+
+  @override
+  String get zonedCityAustraliaPerth => '퍼스';
+
+  @override
+  String get zonedCityAustraliaLordHowe => '로드하우';
+
+  @override
+  String get zonedCityPacificAuckland => '오클랜드';
+
+  @override
+  String get zonedCityPacificHonolulu => '호놀룰루';
+
+  @override
+  String get zonedCityPacificApia => '아피아';
+
+  @override
+  String get zonedCityAfricaCairo => '카이로';
+
+  @override
+  String get zonedCityAfricaJohannesburg => '요하네스버그';
+
+  @override
+  String get zonedCityUtc => '협정 세계시';
+
+  @override
+  String get zonedTimeHomeDateBasis => '오늘 · 기기 날짜 기준';
+
+  @override
+  String get zonedTimeCalendarDateBasis => '달력 · 원래 약속 날짜 기준';
+
+  @override
+  String get zonedTimeDateBasisTitle => '날짜가 다른 이유';
+
+  @override
+  String get zonedTimeDateBasisDescription =>
+      '홈의 오늘 일정은 현재 기기 시간대의 날짜로 모읍니다. 월 달력은 각 약속의 원래 시간대와 날짜에 배치합니다. 약속과 기기 시간대가 다르면 같은 순간이 서로 다른 날짜일 수 있어 두 날짜와 시간대를 함께 표시합니다.';
+
+  @override
+  String get zonedTimeAllReviewedOccurrences => '검토 중인 회차 모두 보기';
+
+  @override
+  String get zonedTimeReviewScopeOccurrence => '변경 범위: 이번 회차';
+
+  @override
+  String get zonedTimeReviewScopeFollowing => '변경 범위: 이번 회차와 이후';
+
+  @override
+  String get zonedTimeReviewScopeNew => '새 반복 일정';
+
+  @override
+  String get zonedTimePreparationUnavailable =>
+      '현재 시간대 규칙으로 준비 시작을 표시할 수 없어요. 저장 전에 다시 검토해주세요.';
+
+  @override
+  String get homeNextAppointment => '다음 약속';
+
+  @override
+  String get homePreparationInProgress => '진행 중인 준비';
+
+  @override
+  String get homePreparationPrompt => '준비할 약속';
+
+  @override
+  String get homePreviouslyCheckedAppointment => '이전에 확인한 약속';
+
+  @override
+  String get homeCheckingAppointments => '다음 약속을 확인하고 있어요.';
+
+  @override
+  String get homeNoUpcomingAppointments => '예정된 약속이 없어요.';
+
+  @override
+  String get homeQueryFailed => '약속을 확인하지 못했어요. 다시 시도해 주세요.';
+
+  @override
+  String get homeQueryCancelled => '약속 확인을 중단했어요. 캘린더에서 약속을 확인할 수 있어요.';
+
+  @override
+  String get homeQueryInterrupted => '약속 확인이 중단됐어요. 이어서 확인해 주세요.';
+
+  @override
+  String get homeQueryLimited => '모든 약속을 확인하지 못했어요. 캘린더에서 약속이나 반복 설정을 확인해 주세요.';
+
+  @override
+  String get homeQueryStale =>
+      '아래는 이전에 확인한 내용이에요. 다시 확인하기 전에는 이 카드에서 준비를 시작할 수 없어요.';
+
+  @override
+  String get homeRetryQuery => '다시 확인';
+
+  @override
+  String get homeContinueQuery => '이어서 확인';
+
+  @override
+  String get homeCancelQuery => '확인 중단';
+
+  @override
+  String get homeTimeIssues =>
+      '시간을 확인해야 하는 약속이 있어요. 캘린더에서 해당 약속의 날짜와 시간대를 검토해 주세요.';
+
+  @override
+  String get homeReviewCalendar => '캘린더에서 확인';
+
+  @override
+  String get scheduleDeletionRemovedTitle => '일정 이력이 삭제됐어요';
+
+  @override
+  String get scheduleDeletionComplete => '일정 이력과 알림 정리가 완료됐어요.';
+
+  @override
+  String get scheduleDeletionCleaning => '이력은 삭제됐고 알림을 정리하고 있어요.';
+
+  @override
+  String get scheduleDeletionPending =>
+      '이력은 삭제됐지만 알림 정리가 아직 확인되지 않았어요. 정리가 끝나면 다시 확인할 수 있어요.';
+
+  @override
+  String get scheduleDeletionPreparationActive =>
+      '준비가 진행 중이에요. 준비 화면에서 먼저 종료한 뒤 삭제해 주세요.';
+
+  @override
+  String get scheduleDeletionConsequences =>
+      '선택한 일정의 이름, 메모, 개별 준비와 결과를 삭제해요. 다른 일정과 공유 중인 내용 및 이미 반영된 시간 엄수 점수는 유지돼요. 앱에서 실행 취소할 수 없으며, 이전에 내보낸 백업을 복원하면 이력이 다시 나타날 수 있어요.';
+
+  @override
+  String get scheduleDeletionFollowing => '선택한 회차와 이후의 미진행 회차를 삭제해요.';
+
+  @override
+  String get scheduleDeletionOnlySelected =>
+      '선택한 일정만 삭제해요. 다른 일정과 반복 규칙은 유지돼요.';
+
+  @override
+  String get scheduleDeletionAlreadyAbsent =>
+      '이 일정은 현재 데이터에 이미 없어요. 새로 삭제한 데이터는 없어요.';
+
+  @override
+  String get scheduleDeletionRetryCleanup => '알림 정리 다시 확인';
+
+  @override
+  String get scheduleDeletionAbsentTitle => '이미 없는 일정';
+
+  @override
+  String get scheduleDeletionFollowingConsequences =>
+      '이 반복 일정의 선택한 회차부터 이후 미진행 회차를 삭제하고, 이후 반복 생성을 종료해요. 개별로 수정한 이후 회차도 삭제 대상에 포함돼요. 삭제 대상의 이름, 메모와 다른 일정에서 공유하지 않는 준비 내용을 삭제해요. 과거 이력, 진행 중이거나 준비가 고정된 회차, 다른 반복 일정, 공유 중인 내용과 이미 반영된 시간 엄수 점수는 유지돼요. 앱에서 실행 취소할 수 없어요. 이미 내보낸 백업 파일은 바뀌지 않으며, 이전 백업을 복원하면 삭제한 회차와 반복이 다시 나타날 수 있어요.';
 }

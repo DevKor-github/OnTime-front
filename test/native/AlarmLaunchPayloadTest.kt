@@ -13,7 +13,7 @@ fun main() {
     val clean = requireNotNull(AlarmLaunchPayload.sanitize(old))
     check(clean == mapOf(
         "scheduleId" to "fixture-schedule", "type" to "schedule_alarm",
-        "alarmLaunchPayloadVersion" to "9", "promptVariant" to "alarm",
+        "alarmLaunchPayloadVersion" to "10", "promptVariant" to "alarm",
     ))
     check(!clean.toString().contains(privateMarker))
     check(AlarmLaunchPayload.sanitize(clean) == clean)
@@ -21,6 +21,14 @@ fun main() {
         check(AlarmLaunchPayload.sanitize(mapOf("scheduleId" to id)) == null)
     }
     check(AlarmLaunchPayload.sanitize(mapOf("scheduleId" to "한글-🙂")) != null)
+    val identity = "11111111-1111-1111-1111-111111111111"
+    val issued = old + mapOf("storeIncarnation" to identity)
+    check(AlarmLaunchPayload.sanitize(issued)?.get("storeIncarnation") == identity)
+    check(AlarmLaunchPayload.sanitize(AlarmLaunchPayload.deliveryExtras(issued))?.get("storeIncarnation") == identity)
+    check(!clean.containsKey("storeIncarnation"))
+    for (bad in listOf(42, "", "private-value", "g".repeat(36), null)) {
+        check(AlarmLaunchPayload.sanitize(old + mapOf("storeIncarnation" to bad)) == null)
+    }
     val delivery = AlarmLaunchPayload.deliveryExtras(old)
     check(delivery["title"] == privateMarker && delivery["body"] == privateMarker)
     check(delivery["nativeAlarmId"] == "42" && delivery["alarmTime"] == "1234")

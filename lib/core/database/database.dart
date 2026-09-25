@@ -1,4 +1,7 @@
+import 'package:on_time_front/core/startup/startup_dependency_scope.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:drift/drift.dart';
+import 'schema_contract.dart';
 import 'package:on_time_front/core/database/schedule_aggregate_schema.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/database/installation_key_store.dart';
@@ -48,25 +51,38 @@ part 'database.g.dart';
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(InstallationKeyStore keyStore)
-    : super(openOnTimeDatabase(keyStore));
+    : super(openOnTimeDatabase(keyStore)) {
+    StartupDependencyScope.own(this, close);
+  }
 
   AppDatabase.forTesting(super.e);
 
+  @disposeMethod
+  Future<void> disposeFromScope() =>
+      StartupDependencyScope.release(this, close);
+
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => DatabaseSchemaContract.current;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
-      await m.createAll();
-      await installAggregateConcurrency(this);
+      final existing = await customSelect(
+        DatabaseSchemaContract.objectsQuery,
+      ).get();
+      if (existing.isNotEmpty) throw const UnsupportedDatabaseSchema();
+      await transaction(() async {
+        await m.createAll();
+        await installAggregateConcurrency(this);
+        await _validateSchema(schemaVersion);
+        await customStatement('PRAGMA user_version = $schemaVersion');
+      });
     },
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 1 || from > schemaVersion || to > schemaVersion) {
-        throw StateError(
-          'Only the encrypted local-only schema can be upgraded.',
-        );
+        throw const UnsupportedDatabaseSchema();
       }
+      await _validateSchema(from);
       await transaction(() async {
         if (from < 2) {
           await m.createTable(preparationDefinitions);
@@ -105,12 +121,74 @@ class AppDatabase extends _$AppDatabase {
           }
           await installAggregateConcurrency(this);
         }
+        if (from < 4) {
+          await m.addColumn(schedules, schedules.requiresStartConfirmation);
+          await m.addColumn(users, users.restoreCleanupPending);
+          await m.addColumn(users, users.rejectLegacyDelivery);
+        }
+        await _validateSchema(schemaVersion);
+        // Drift repeats this write after beforeOpen. Committing it here means
+        // an error in that later write cannot leave new DDL with an old version.
+        await customStatement('PRAGMA user_version = $schemaVersion');
       });
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
+      await _validateSchema(schemaVersion);
     },
   );
+
+  Future<void> _validateSchema(int version) async {
+    final rows = await customSelect(DatabaseSchemaContract.objectsQuery).get();
+    DatabaseSchemaContract.validate(version, rows.map((r) => r.data).toList());
+    for (final row in rows.where((r) => r.read<String>('type') == 'table')) {
+      final name = row.read<String>('name');
+      final quoted = '"${name.replaceAll('"', '""')}"';
+      final columns = await customSelect('PRAGMA table_xinfo($quoted)').get();
+      final foreign = await customSelect(
+        'PRAGMA foreign_key_list($quoted)',
+      ).get();
+      final indexRows = await customSelect('PRAGMA index_list($quoted)').get();
+      final indexes = <Map<String, Object?>>[];
+      for (final index in indexRows) {
+        final indexName =
+            '"${index.read<String>('name').replaceAll('"', '""')}"';
+        final indexColumns = await customSelect(
+          'PRAGMA index_xinfo($indexName)',
+        ).get();
+        indexes.add({
+          ...index.data,
+          'columns': indexColumns.map((r) => r.data).toList(),
+        });
+      }
+      DatabaseSchemaContract.validateTableMetadata(
+        version,
+        name,
+        columns.map((r) => r.data).toList(),
+        foreign.map((r) => r.data).toList(),
+        indexes,
+      );
+    }
+    if ((await customSelect('PRAGMA foreign_key_check').get()).isNotEmpty) {
+      throw const UnsupportedDatabaseSchema();
+    }
+  }
+
+  /// Ordinary mutations share the existing replacement gate but stay available
+  /// while a non-destructive export picker owns that gate.
+  Future<T> writeTransaction<T>(
+    Future<T> Function() action, {
+    LocalDataOperationGate? gate,
+  }) {
+    final owner = gate ?? LocalDataOperationGate.shared;
+    final generation = owner.captureWrite();
+    return transaction(() async {
+      owner.checkWrite(generation);
+      final result = await action();
+      owner.checkWrite(generation);
+      return result;
+    });
+  }
 
   Future<void> deleteAllDurableData() async {
     await transaction(() async {

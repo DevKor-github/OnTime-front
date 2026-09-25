@@ -7,16 +7,10 @@ void main() {
   test('default preparation edit events compare user-edited fields', () {
     const preparation = PreparationEntity(preparationStepList: []);
 
-    expect(const DefaultPreparationSpareTimeFormEvent().props, isEmpty);
-    expect(const FormEditRequested(spareTime: Duration(minutes: 7)).props, [
-      const Duration(minutes: 7),
-    ]);
+    expect(const FormEditRequested().props, isEmpty);
     expect(const SpareTimeIncreased().props, isEmpty);
     expect(const SpareTimeDecreased().props, isEmpty);
-    expect(
-      const FormSubmitted(note: 'Bring bag', preparation: preparation).props,
-      ['Bring bag'],
-    );
+    expect(const FormSubmitted(preparation: preparation).props, [preparation]);
   });
 
   test('schedule timer events compare schedule and tick times', () {

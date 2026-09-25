@@ -17,6 +17,7 @@ import 'package:on_time_front/presentation/app/cubit/alarm_gate_cubit.dart';
 import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
 import 'package:on_time_front/presentation/shared/router/go_router.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:on_time_front/presentation/shared/time/device_time_zone_scope.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -37,7 +38,7 @@ class App extends StatelessWidget {
         ),
         BlocProvider<AlarmGateCubit>(create: (context) => AlarmGateCubit()),
       ],
-      child: const AppView(),
+      child: const DeviceTimeZoneScope(child: AppView()),
     );
   }
 }
@@ -60,6 +61,13 @@ class _AppRouterView extends StatefulWidget {
 
 class _AppRouterViewState extends State<_AppRouterView>
     with WidgetsBindingObserver {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final zone = DeviceTimeZoneScope.stateOf(context).identifier;
+    if (zone != null) context.read<ScheduleBloc>().observeDeviceTimeZone(zone);
+  }
+
   static const _logTag = '[AppAlarmLaunch]';
 
   late final _router = goRouterConfig(

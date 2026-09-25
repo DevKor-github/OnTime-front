@@ -1,3 +1,4 @@
+import 'package:on_time_front/presentation/my_page/cubit/detailed_notification_settings_cubit.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
@@ -34,6 +35,9 @@ void main() {
   setUpAll(loadRefreshFonts);
 
   late AppDatabase database;
+  late LocalDataOperationGate detailGate;
+  late AlarmOperationCoordinator detailOwner;
+  late _ControlledPreferenceService detailPreferences;
   late _FakeAlarmRepository alarmRepository;
   late _FakeAlarmRegistry alarmRegistry;
   late _FakeAlarmSchedulerService scheduler;
@@ -45,6 +49,9 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await getIt.reset();
     database = AppDatabase.forTesting(NativeDatabase.memory());
+    detailGate = LocalDataOperationGate();
+    detailOwner = AlarmOperationCoordinator(detailGate);
+    detailPreferences = _ControlledPreferenceService(database, detailGate);
     await database.userDao.putUser(
       const UserEntity(
         id: localProfileId,
@@ -52,7 +59,7 @@ void main() {
         note: '',
       ),
     );
-    alarmRepository = _FakeAlarmRepository();
+    alarmRepository = _FakeAlarmRepository(database);
     alarmRegistry = _FakeAlarmRegistry();
     scheduler = _FakeAlarmSchedulerService();
     fallback = _FakeFallbackAlarmNotificationService();
@@ -65,20 +72,413 @@ void main() {
     cancelAll = _FakeCancelAllAlarmsUseCase(alarmRegistry, scheduler, fallback);
     getIt
       ..registerSingleton<DetailedNotificationPreferenceService>(
-        DetailedNotificationPreferenceService(database),
+        detailPreferences,
       )
       ..registerSingleton<AlarmRepository>(alarmRepository)
       ..registerSingleton<AlarmRegistryRepository>(alarmRegistry)
       ..registerSingleton<AlarmSchedulerService>(scheduler)
       ..registerSingleton<FallbackAlarmNotificationService>(fallback)
       ..registerSingleton<ReconcileAlarmsUseCase>(reconcile)
-      ..registerSingleton<CancelAllAlarmsUseCase>(cancelAll);
+      ..registerSingleton<CancelAllAlarmsUseCase>(cancelAll)
+      ..registerSingleton<DetailedNotificationSettingsCubit>(
+        DetailedNotificationSettingsCubit(
+          getIt<DetailedNotificationPreferenceService>(),
+          reconcile,
+          operations: detailOwner,
+        ),
+        dispose: (controller) => controller.close(),
+      );
   });
 
   tearDown(() async {
-    await database.close();
     await getIt.reset();
+    detailOwner.dispose();
+    detailGate.dispose();
+    await database.close();
   });
+
+  testWidgets('U03 unknown read shows no false preference and retry recovers', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    try {
+      detailPreferences.readBarrier = Completer<void>();
+      await _pumpMyPage(tester, settle: false, withNavigation: true);
+      final status = find.byKey(const Key('detailedNotificationStatus'));
+      expect(find.byKey(const Key('detailedNotificationSwitch')), findsNothing);
+      expect(tester.widget<Text>(status).data, 'Checking setting');
+      expect(detailPreferences.writes, isEmpty);
+      await tester.ensureVisible(status);
+      await tester.pump();
+      await captureRefresh(tester, 'u03-en-unknown');
+      detailPreferences.failRead = true;
+      detailPreferences.readBarrier!.complete();
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Unable to read the setting'), findsOneWidget);
+      expect(find.textContaining('Saved: off'), findsNothing);
+      detailPreferences.failRead = false;
+      await database.userDao.updateDetailedNotificationContent(
+        userId: localProfileId,
+        enabled: true,
+      );
+      final retry = find.byKey(const Key('detailedNotificationRetry'));
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<SwitchListTile>(
+              find.byKey(const Key('detailedNotificationSwitch')),
+            )
+            .value,
+        isTrue,
+      );
+      expect(find.textContaining('Saved: on'), findsOneWidget);
+      expect(detailPreferences.writes, isEmpty);
+    } finally {
+      if (detailPreferences.readBarrier != null &&
+          !detailPreferences.readBarrier!.isCompleted) {
+        detailPreferences.readBarrier!.complete();
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    }
+  });
+
+  for (final requested in [true, false]) {
+    testWidgets(
+      'U03 failed ${requested ? 'ON' : 'OFF'} keeps saved truth and retries',
+      (tester) async {
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await database.userDao.updateDetailedNotificationContent(
+          userId: localProfileId,
+          enabled: !requested,
+        );
+        await _pumpMyPage(tester, withNavigation: true);
+        detailPreferences.failWrite = true;
+        final toggle = find.byKey(const Key('detailedNotificationSwitch'));
+        await tester.ensureVisible(toggle);
+        await tester.tap(toggle);
+        await tester.pumpAndSettle();
+        final status = tester
+            .widget<Text>(find.byKey(const Key('detailedNotificationStatus')))
+            .data!;
+        expect(status, contains(requested ? 'Saved: off' : 'Saved: on'));
+        expect(
+          status,
+          contains(
+            requested
+                ? 'On requested · not saved yet'
+                : 'Off requested · not saved yet',
+          ),
+        );
+        expect(status, contains('could not be saved'));
+        expect(
+          status.contains('until the off request is resolved'),
+          !requested,
+        );
+        expect(
+          detailOwner.allowsDetailed(detailOwner.captureContentPermit()),
+          false,
+        );
+        expect(detailPreferences.writes, [requested]);
+        final retry = find.byKey(const Key('detailedNotificationRetry'));
+        final statusFinder = find.byKey(
+          const Key('detailedNotificationStatus'),
+        );
+        await tester.ensureVisible(statusFinder);
+        await tester.pump();
+        final statusRect = tester.getRect(statusFinder);
+        final navigation = tester
+            .widget<Scaffold>(find.byType(Scaffold).first)
+            .bottomNavigationBar!;
+        expect(
+          statusRect.top,
+          greaterThanOrEqualTo(tester.getRect(find.byType(AppBar)).bottom),
+        );
+        expect(
+          statusRect.bottom,
+          lessThanOrEqualTo(tester.getRect(find.byWidget(navigation)).top),
+        );
+        await captureRefresh(
+          tester,
+          'u03-en-failed-${requested ? 'on' : 'off'}',
+        );
+        detailPreferences.failWrite = false;
+        await tester.ensureVisible(retry);
+        await tester.pump();
+        await tester.tap(retry);
+        await tester.pumpAndSettle();
+        expect(detailPreferences.writes, [requested, requested]);
+        expect(
+          (await database.userDao.getAlarmSettings(
+            localProfileId,
+          )).detailedNotificationContent,
+          requested,
+        );
+        expect(find.textContaining('not saved yet'), findsNothing);
+        expect(find.textContaining('could not be saved'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets(
+    'U03 leaving and returning retains accepted OFF and failed retry',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      try {
+        await database.userDao.updateDetailedNotificationContent(
+          userId: localProfileId,
+          enabled: true,
+        );
+        await _pumpMyPage(tester, withNavigation: true);
+        final controller = getIt<DetailedNotificationSettingsCubit>();
+        final router = GoRouter.of(tester.element(find.byType(MyPageScreen)));
+        detailPreferences.writeBarrier = Completer<void>();
+        detailPreferences.failWrite = true;
+        final toggle = find.byKey(const Key('detailedNotificationSwitch'));
+        await tester.ensureVisible(toggle);
+        await tester.tap(toggle);
+        await tester.pump();
+        expect(controller.state.requestedEnabled, false);
+        router.go('/myData');
+        await tester.pumpAndSettle();
+        expect(find.byType(MyPageScreen), findsNothing);
+        expect(controller.isClosed, false);
+        detailPreferences.writeBarrier!.complete();
+        await _pumpUntil(
+          tester,
+          () => controller.state.save == DetailedPreferenceSave.failed,
+        );
+        expect(controller.state.confirmedEnabled, true);
+        expect(
+          detailOwner.allowsDetailed(detailOwner.captureContentPermit()),
+          false,
+        );
+        router.go('/myPage');
+        await tester.pumpAndSettle();
+        expect(
+          identical(getIt<DetailedNotificationSettingsCubit>(), controller),
+          true,
+        );
+        expect(
+          find.textContaining('Off requested · not saved yet'),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Saved: on'), findsOneWidget);
+        detailPreferences.failWrite = false;
+        final retry = find.byKey(const Key('detailedNotificationRetry'));
+        await tester.ensureVisible(retry);
+        await tester.tap(retry);
+        await tester.pumpAndSettle();
+        expect(
+          (await database.userDao.getAlarmSettings(
+            localProfileId,
+          )).detailedNotificationContent,
+          false,
+        );
+        expect(controller.state.requestedEnabled, isNull);
+        expect(tester.takeException(), isNull);
+      } finally {
+        if (detailPreferences.writeBarrier != null &&
+            !detailPreferences.writeBarrier!.isCompleted) {
+          detailPreferences.writeBarrier!.complete();
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+      }
+    },
+  );
+
+  testWidgets(
+    'U03 ten second delay keeps response pending and OFF database retry live',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      try {
+        await _pumpMyPage(tester, withNavigation: true);
+        final controller = getIt<DetailedNotificationSettingsCubit>();
+        reconcile.barrier = Completer<void>();
+        final toggle = find.byKey(const Key('detailedNotificationSwitch'));
+        await tester.ensureVisible(toggle);
+        await tester.tap(toggle);
+        await _pumpUntil(
+          tester,
+          () =>
+              controller.state.delivery == DetailedPreferenceDelivery.applying,
+        );
+        final pendingCalls = reconcile.callCount;
+        await tester.pump(const Duration(seconds: 11));
+        expect(controller.state.delivery, DetailedPreferenceDelivery.delayed);
+        expect(
+          find.textContaining('The device is taking longer to respond'),
+          findsOneWidget,
+        );
+        await controller.retry();
+        expect(reconcile.callCount, pendingCalls);
+        expect(
+          find.byKey(const Key('detailedNotificationRetry')),
+          findsNothing,
+        );
+        await tester.ensureVisible(
+          find.byKey(const Key('detailedNotificationStatus')),
+        );
+        await tester.pump();
+        await captureRefresh(tester, 'u03-en-delayed');
+        detailPreferences.failWrite = true;
+        await tester.ensureVisible(toggle);
+        await tester.tap(toggle);
+        await _pumpUntil(
+          tester,
+          () => controller.state.save == DetailedPreferenceSave.failed,
+        );
+        final retry = find.byKey(const Key('detailedNotificationRetry'));
+        expect(tester.widget<TextButton>(retry).onPressed, isNotNull);
+        detailPreferences.failWrite = false;
+        await tester.ensureVisible(retry);
+        await tester.tap(retry);
+        await _pumpUntil(
+          tester,
+          () =>
+              controller.state.confirmedEnabled == false &&
+              controller.state.save == DetailedPreferenceSave.idle,
+        );
+        expect(
+          (await database.userDao.getAlarmSettings(
+            localProfileId,
+          )).detailedNotificationContent,
+          false,
+        );
+        expect(detailPreferences.writes, [true, false, false]);
+        expect(reconcile.barrier!.isCompleted, false);
+        reconcile.barrier!.complete();
+        await tester.pumpAndSettle();
+        expect(
+          controller.state.delivery,
+          DetailedPreferenceDelivery.noUpcoming,
+        );
+        expect(
+          find.textContaining('The device is taking longer to respond'),
+          findsNothing,
+        );
+        expect(tester.takeException(), isNull);
+      } finally {
+        if (reconcile.barrier != null && !reconcile.barrier!.isCompleted) {
+          reconcile.barrier!.complete();
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+      }
+    },
+  );
+
+  for (final language in ['ko', 'en']) {
+    for (final scenario in ['saved', 'cleanup', 'read-error']) {
+      testWidgets('U03 $language $scenario remains accessible at 200 percent', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final semantics = tester.ensureSemantics();
+        try {
+          if (scenario == 'read-error') {
+            detailPreferences.failRead = true;
+          }
+          if (scenario == 'cleanup') {
+            reconcile.status = AlarmReconciliationStatus.partial;
+            reconcile.failures = const [
+              AlarmFailure(reason: AlarmFailureReason.cancellationFailed),
+            ];
+          }
+          await _pumpMyPage(
+            tester,
+            locale: Locale(language),
+            textScale: 2,
+            withNavigation: true,
+          );
+          final destinations =
+              [
+                find.byIcon(Icons.home_outlined),
+                find.byIcon(Icons.add_circle),
+                find.byIcon(Icons.person_outline).last,
+              ].map(
+                (icon) => find
+                    .ancestor(of: icon, matching: find.byType(InkWell))
+                    .first,
+              );
+          final destinationHeights = destinations
+              .map((item) => tester.getSize(item).height)
+              .toList();
+          expect(destinationHeights, everyElement(greaterThanOrEqualTo(56)));
+          expect(destinationHeights.toSet(), hasLength(1));
+          final status = find.byKey(const Key('detailedNotificationStatus'));
+          await tester.ensureVisible(status);
+          await tester.pumpAndSettle();
+          final l10n = AppLocalizations.of(tester.element(status))!;
+          final text = tester.widget<Text>(status).data!;
+          expect(
+            text,
+            contains(switch (scenario) {
+              'read-error' => l10n.detailedNotificationReadFailed,
+              'cleanup' => l10n.detailedNotificationCancellation,
+              _ => l10n.detailedNotificationSavedOff,
+            }),
+          );
+          expect(
+            tester.getSemantics(status).flagsCollection.isLiveRegion,
+            true,
+          );
+          expect(tester.getSemantics(status).label, contains(text));
+          if (scenario == 'read-error') {
+            expect(
+              find.byKey(const Key('detailedNotificationSwitch')),
+              findsNothing,
+            );
+            expect(text, isNot(contains(l10n.detailedNotificationSavedOff)));
+          }
+          await captureRefresh(tester, 'u03-$language-$scenario-200');
+          if (scenario != 'saved') {
+            final retry = find.byKey(const Key('detailedNotificationRetry'));
+            await tester.ensureVisible(retry);
+            await tester.pumpAndSettle();
+            expect(tester.widget<TextButton>(retry).onPressed, isNotNull);
+            expect(tester.getRect(retry).bottom, lessThanOrEqualTo(800));
+            await captureRefresh(tester, 'u03-$language-$scenario-retry-200');
+            detailPreferences.failRead = false;
+            reconcile.status = AlarmReconciliationStatus.armed;
+            reconcile.failures = const [];
+            await tester.tap(retry);
+            await tester.pumpAndSettle();
+            expect(
+              find.byKey(const Key('detailedNotificationRetry')),
+              findsNothing,
+            );
+          }
+          expect(tester.takeException(), isNull);
+        } finally {
+          try {
+            await tester.pumpWidget(const SizedBox.shrink());
+          } finally {
+            semantics.dispose();
+          }
+        }
+      });
+    }
+  }
 
   testWidgets('Korean settings match the phone layout', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -95,7 +495,7 @@ void main() {
 
     expect(find.text('My Page'), findsOneWidget);
     expect(find.text('Back up my data'), findsOneWidget);
-    expect(find.text('알림에 일정 이름 표시'), findsOneWidget);
+    expect(find.text('Show schedule names in notifications'), findsOneWidget);
     expect(find.text('Sign in'), findsNothing);
     expect(find.textContaining('email'), findsNothing);
     expect(find.text('No scheduled notifications'), findsOneWidget);
@@ -106,7 +506,7 @@ void main() {
   ) async {
     await _pumpMyPage(tester);
 
-    final detailSwitch = find.widgetWithText(SwitchListTile, '알림에 일정 이름 표시');
+    final detailSwitch = find.byKey(const Key('detailedNotificationSwitch'));
     expect(tester.widget<SwitchListTile>(detailSwitch).value, isFalse);
 
     await tester.tap(detailSwitch);
@@ -126,7 +526,7 @@ void main() {
     (tester) async {
       await _pumpMyPage(tester);
       reconcile.fail = true;
-      final detail = find.widgetWithText(SwitchListTile, '알림에 일정 이름 표시');
+      final detail = find.byKey(const Key('detailedNotificationSwitch'));
       await tester.tap(detail);
       await tester.pumpAndSettle();
       expect(
@@ -136,7 +536,10 @@ void main() {
         true,
       );
       expect(tester.widget<SwitchListTile>(detail).value, true);
-      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+        find.textContaining('Notification changes could not be confirmed'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     },
   );
@@ -171,7 +574,8 @@ void main() {
   testWidgets(
     'disabled delivery still shows unconfirmed cleanup and clears after recovery',
     (tester) async {
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+      await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+      alarmRepository.updatedSettings.clear();
       reconcile.disabledStatus = AlarmReconciliationStatus.partial;
       await _pumpMyPage(tester);
       expect(find.text('Off · cancellation needs checking'), findsOneWidget);
@@ -187,7 +591,8 @@ void main() {
   testWidgets('fallback permission enables local schedule notifications', (
     tester,
   ) async {
-    alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+    await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+    alarmRepository.updatedSettings.clear();
     scheduler.capabilities = AlarmSchedulerCapabilities.unsupported;
     fallback.permission = AlarmPermissionState.granted;
 
@@ -234,7 +639,8 @@ void main() {
   testWidgets(
     'timing education is optional once and settings require explicit choice',
     (tester) async {
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+      await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+      alarmRepository.updatedSettings.clear();
       fallback.timingPermission = AlarmPermissionState.denied;
       await _pumpMyPage(tester);
       expect(fallback.timingRequestCount, 0);
@@ -278,7 +684,8 @@ void main() {
   testWidgets(
     'education setting choice rereads state without claiming a grant',
     (tester) async {
-      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+      await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+      alarmRepository.updatedSettings.clear();
       fallback.timingPermission = AlarmPermissionState.denied;
       await _pumpMyPage(tester);
       await tester.tap(find.byKey(const Key('alarmSettingsSwitch')));
@@ -454,13 +861,16 @@ Future<void> _pumpMyPage(
   WidgetTester tester, {
   NotificationService? notificationService,
   Locale locale = const Locale('en'),
+  double textScale = 1,
+  bool settle = true,
+  bool? withNavigation,
 }) async {
   final router = GoRouter(
     initialLocation: '/myPage',
     routes: [
       GoRoute(
         path: '/myPage',
-        builder: (_, _) => locale.languageCode == 'ko'
+        builder: (_, _) => (withNavigation ?? locale.languageCode == 'ko')
             ? BottomNavBarScaffold(
                 child: MyPageScreen(notificationService: notificationService),
               )
@@ -487,9 +897,10 @@ Future<void> _pumpMyPage(
       theme: themeData,
       debugShowCheckedModeBanner: false,
       builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(
-          context,
-        ).copyWith(padding: const EdgeInsets.only(top: 44, bottom: 34)),
+        data: MediaQuery.of(context).copyWith(
+          padding: const EdgeInsets.only(top: 44, bottom: 34),
+          textScaler: TextScaler.linear(textScale),
+        ),
         child: child!,
       ),
       locale: locale,
@@ -498,23 +909,50 @@ Future<void> _pumpMyPage(
       routerConfig: router,
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
+}
+
+Future<void> _pumpUntil(WidgetTester tester, bool Function() completed) async {
+  for (var attempt = 0; attempt < 100 && !completed(); attempt++) {
+    await tester.pump(const Duration(milliseconds: 10));
+  }
+  expect(completed(), true, reason: 'Expected controlled operation to settle');
+  // The state stream can emit after a pump without rebuilding its listener yet.
+  await tester.pump();
 }
 
 class _FakeAlarmRepository implements AlarmRepository {
+  _FakeAlarmRepository(this.database);
+
+  final AppDatabase database;
   AlarmSettings settings = const AlarmSettings(alarmsEnabled: true);
   final updatedSettings = <bool>[];
 
   @override
-  Future<AlarmSettings> getAlarmSettings() async => settings;
+  Future<AlarmSettings> getAlarmSettings() async {
+    final stored = await database.userDao.getAlarmSettings(localProfileId);
+    settings = AlarmSettings(
+      alarmsEnabled: stored.enabled,
+      defaultAlarmOffsetMinutes: stored.offsetMinutes,
+      detailedNotificationContent: stored.detailedNotificationContent,
+    );
+    return settings;
+  }
 
   @override
   Future<AlarmSettings> updateAlarmSettings({
     required bool alarmsEnabled,
   }) async {
     updatedSettings.add(alarmsEnabled);
-    settings = AlarmSettings(alarmsEnabled: alarmsEnabled);
-    return settings;
+    await database.userDao.updateAlarmSettings(
+      userId: localProfileId,
+      enabled: alarmsEnabled,
+    );
+    return getAlarmSettings();
   }
 
   @override
@@ -628,10 +1066,13 @@ class _FakeReconcileAlarmsUseCase extends ReconcileAlarmsUseCase {
   List<String> armedIds = [];
   AlarmReconciliationStatus status = AlarmReconciliationStatus.armed;
   bool fail = false;
+  Completer<void>? barrier;
+  List<AlarmFailure> failures = const [];
 
   @override
   Future<AlarmReconciliationResult> call() async {
     callCount += 1;
+    await barrier?.future;
     if (fail) throw const AlarmOperationInvalidated();
     return AlarmReconciliationResult(
       status: (await repository.getAlarmSettings()).alarmsEnabled
@@ -641,7 +1082,7 @@ class _FakeReconcileAlarmsUseCase extends ReconcileAlarmsUseCase {
       fallbackProvider: AlarmProvider.localNotification,
       armedScheduleIds: armedIds,
       skippedScheduleCount: 0,
-      failures: const [],
+      failures: failures,
       scheduleWindowStart: DateTime(2026),
       scheduleWindowEnd: DateTime(2027),
       alarmCoverageStart: DateTime(2026),
@@ -704,4 +1145,36 @@ class _FakeNotificationService implements NotificationService {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _ControlledPreferenceService
+    extends DetailedNotificationPreferenceService {
+  _ControlledPreferenceService(super.database, LocalDataOperationGate gate)
+    : super(gate: gate);
+
+  bool failRead = false;
+  bool failWrite = false;
+  Completer<void>? readBarrier;
+  Completer<void>? writeBarrier;
+  final writes = <bool>[];
+
+  @override
+  Future<DetailedNotificationPreferenceSnapshot> read({
+    required int expectedGeneration,
+  }) async {
+    await readBarrier?.future;
+    if (failRead) throw StateError('Controlled unavailable preference');
+    return super.read(expectedGeneration: expectedGeneration);
+  }
+
+  @override
+  Future<DetailedNotificationPreferenceSnapshot> write(
+    bool enabled, {
+    required int expectedGeneration,
+  }) async {
+    writes.add(enabled);
+    await writeBarrier?.future;
+    if (failWrite) throw StateError('Controlled save failure');
+    return super.write(enabled, expectedGeneration: expectedGeneration);
+  }
 }

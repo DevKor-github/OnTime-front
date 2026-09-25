@@ -1,4 +1,5 @@
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
 import 'package:flutter/services.dart';
 import 'package:on_time_front/core/database/bootstrap_privacy_boundary.dart';
 import 'package:injectable/injectable.dart';
@@ -25,8 +26,11 @@ class RuntimePrivacyMigration {
     this.registry, {
     @ignoreParam Future<void> Function()? cleanPlatform,
     @ignoreParam AlarmOperationCoordinator? operations,
+    @ignoreParam DateTime Function()? now,
   }) : _cleanPlatform = cleanPlatform,
+       _now = now ?? DateTime.now,
        _operations = operations ?? AlarmOperationCoordinator.shared;
+  final DateTime Function() _now;
   final AlarmOperationCoordinator _operations;
   final Future<void> Function()? _cleanPlatform;
   final ScheduleRepository schedules;
@@ -43,6 +47,7 @@ class RuntimePrivacyMigration {
   }
 
   Future<void> _run() async {
+    final evaluationNow = _now().toUtc();
     final prefs = await SharedPreferences.getInstance();
     for (final key
         in prefs.getKeys().where((key) => key.startsWith(_prefix)).toList()) {
@@ -50,11 +55,16 @@ class RuntimePrivacyMigration {
       TimedPreparationSnapshotEntity? replacement;
       try {
         final stored = await snapshots.loadPreparation(id);
+        final rawSchedule = await schedules.getScheduleById(id);
         final schedule =
             ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-              await schedules.getScheduleById(id),
+              rawSchedule,
               PreparationWithTimeEntity.fromPreparation(
                 await preparations.getPreparationByScheduleId(id),
+              ),
+              timeResolution: ScheduleTimeResolver.resolve(
+                rawSchedule,
+                nowUtc: evaluationNow,
               ),
             );
         if (schedule.doneStatus == ScheduleDoneStatus.notEnded) {
@@ -63,11 +73,16 @@ class RuntimePrivacyMigration {
               : validatePreparationSnapshot(stored, schedule);
           replacement ??= TimedPreparationSnapshotEntity(
             preparation: schedule.preparation,
-            savedAt: DateTime.now(),
+            savedAt: evaluationNow,
             scheduleFingerprint: schedule.cacheFingerprint,
             requiresConfirmation: true,
           );
         }
+      } on ScheduleTimeUnresolved {
+        // This row cannot authorize reconstructing a run. Remove only its
+        // installed transient projection below; the encrypted facts remain.
+        // Storage/read/cleanup failures are deliberately not caught here.
+        replacement = null;
       } catch (error, stack) {
         // Drift's getSingle signals a missing schedule as StateError('No element').
         // Other errors can mean the encrypted DB became unavailable; do not

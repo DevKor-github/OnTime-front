@@ -13,6 +13,14 @@ _Avoid_: Offline-first, local cache mode, standalone mode
 The single installation-bound, non-identifying profile that owns Schedules, Places, Preparations, outcomes, and preferences.
 _Avoid_: Account, login, member, OnTime User
 
+**Schedule Draft**:
+The editable contents of a Schedule while the user is creating or changing it, before those edits are saved or discarded.
+_Avoid_: Saved Schedule, automatic backup, Preparation Run
+
+**Unsaved Schedule Changes**:
+Changes in a Schedule Draft that differ from the editing starting point accepted by the user and have not been saved. Changes already saved remain saved when notification delivery setup is still pending.
+_Avoid_: Validation error, pending notification, backup freshness
+
 **Schedule Outcome**:
 The final local result of completing one Schedule as On Time, Late, or Abnormal.
 _Avoid_: Server result, analytics event, transient completion screen
@@ -202,8 +210,12 @@ The sum of a Schedule's Preparation step durations, excluding move time and Sche
 _Avoid_: Total duration, travel time, buffer time
 
 **Schedule Spare Time**:
-A user buffer before a Schedule's appointment time, separate from travel time and Preparation Duration.
+A user buffer before a Schedule's appointment time, separate from travel time and Preparation Duration. A Schedule with no assigned buffer has zero spare time; changing the profile default does not change that Schedule's buffer.
 _Avoid_: Preparation time, move time
+
+**Default Schedule Spare Time**:
+The profile's suggested buffer used to initialize a new Schedule draft. It does not replace an absent buffer on an existing or restored Schedule.
+_Avoid_: Inherited schedule buffer, automatic buffer override
 
 **Default Preparation**:
 The user's fallback Preparation for new Schedules.

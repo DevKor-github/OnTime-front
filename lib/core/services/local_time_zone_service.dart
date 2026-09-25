@@ -1,3 +1,4 @@
+import '../time/time_zone_rules.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -5,16 +6,21 @@ abstract final class LocalTimeZoneService {
   static const _channel = MethodChannel('on_time_front/native_alarm');
 
   static Future<String> current() async {
-    if (kIsWeb) return 'UTC';
+    if (kIsWeb) throw const LocalTimeZoneUnavailable();
     try {
       final identifier = await _channel.invokeMethod<String>(
         'getLocalTimeZone',
       );
-      return identifier == null || identifier.isEmpty ? 'UTC' : identifier;
+      if (identifier == null || !TimeZoneRules.contains(identifier)) {
+        throw const LocalTimeZoneUnavailable();
+      }
+      return identifier;
     } catch (_) {
-      // A missing platform binding/plugin must not prevent local scheduling or
-      // recovery mode from starting. UTC is the deterministic safe fallback.
-      return 'UTC';
+      throw const LocalTimeZoneUnavailable();
     }
   }
+}
+
+class LocalTimeZoneUnavailable implements Exception {
+  const LocalTimeZoneUnavailable();
 }

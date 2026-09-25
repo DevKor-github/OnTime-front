@@ -8,12 +8,35 @@ final class LocalDataOperationGate extends ChangeNotifier {
   bool _busy = false;
   bool _unavailable = false;
   bool _replacingData = false;
+  bool _recoveryPending = false;
+
+  bool get isRecoveryPending => _recoveryPending;
+  void setRecoveryPending(bool pending) {
+    if (_recoveryPending == pending) return;
+    _recoveryPending = pending;
+    notifyListeners();
+  }
+
   int _generation = 0;
 
   int get generation => _generation;
   bool get isReplacingData => _replacingData;
   bool get isInvalidated => _unavailable;
-  bool get isAvailable => !_busy && !_unavailable;
+  bool get isAvailable => !_busy && !_unavailable && !_recoveryPending;
+
+  int captureWrite() {
+    checkWrite(_generation);
+    return _generation;
+  }
+
+  void checkWrite(int generation) {
+    if (generation != _generation ||
+        _replacingData ||
+        _recoveryPending ||
+        _unavailable) {
+      throw const LocalDataUnavailable();
+    }
+  }
 
   Future<T> run<T>(
     Future<T> Function() action, {
@@ -21,7 +44,7 @@ final class LocalDataOperationGate extends ChangeNotifier {
     Future<void> Function()? validateReplacement,
   }) async {
     if (_busy) throw const LocalDataOperationBusy();
-    if (_unavailable) throw const LocalDataUnavailable();
+    if (_unavailable || _recoveryPending) throw const LocalDataUnavailable();
     _busy = true;
     try {
       // The exclusive claim is held before validation, but its replacement

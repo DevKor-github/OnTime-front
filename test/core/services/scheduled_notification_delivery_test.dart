@@ -86,7 +86,7 @@ void main() {
           expect(jsonDecode(fallback['payload'] as String), {
             'type': 'schedule_notification',
             'scheduleId': original.scheduleId,
-            'alarmLaunchPayloadVersion': '9',
+            'alarmLaunchPayloadVersion': '10',
             'promptVariant': 'notification',
           });
           expect(native['payload'], jsonDecode(fallback['payload'] as String));

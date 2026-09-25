@@ -176,18 +176,35 @@ final class AlarmRegistrationCleanup {
   }
 
   Future<List<ScheduledAlarmRecord>> cancelRecords(
-    List<ScheduledAlarmRecord> records,
-  ) async {
+    List<ScheduledAlarmRecord> records, {
+    bool Function()? isCurrent,
+    Future<bool> Function()? isStillOwned,
+  }) async {
+    Future<void> check() async {
+      if (!(isCurrent?.call() ?? true) ||
+          !(await isStillOwned?.call() ?? true) ||
+          !(isCurrent?.call() ?? true)) {
+        throw const AlarmOperationInvalidated();
+      }
+    }
+
+    await check();
     if (records.isNotEmpty) await operations.remember(registry, records);
+    await check();
     final failed = <ScheduledAlarmRecord>[];
     for (final record in records) {
+      await check();
       try {
         if (record.provider == AlarmProvider.localNotification) {
           await fallback.cancelFallbackAlarm(record);
         } else if (record.provider != AlarmProvider.none) {
           await scheduler.cancelNativeAlarm(record);
         }
+        await check();
         await operations.confirmedCancelled(registry, record);
+        await check();
+      } on AlarmOperationInvalidated {
+        rethrow;
       } catch (_) {
         failed.add(AlarmOperationCoordinator.ownershipOnly(record));
       }
@@ -200,19 +217,39 @@ final class AlarmRegistrationCleanup {
     if (!report.isComplete) throw AlarmCleanupIncomplete(report: report);
   }
 
-  Future<AlarmCleanupReport> cancelMatchingReport({String? scheduleId}) async {
+  Future<AlarmCleanupReport> cancelMatchingReport({
+    String? scheduleId,
+    bool Function()? isCurrent,
+    Future<bool> Function()? isStillOwned,
+  }) async {
+    Future<void> check() async {
+      if (!(isCurrent?.call() ?? true) ||
+          !(await isStillOwned?.call() ?? true) ||
+          !(isCurrent?.call() ?? true)) {
+        throw const AlarmOperationInvalidated();
+      }
+    }
+
+    await check();
     final stored = await operations.loadRecords(registry);
+    await check();
     final targets = stored
         .where(
           (record) => scheduleId == null || record.scheduleId == scheduleId,
         )
         .toList();
-    final failed = await cancelRecords(targets);
+    final failed = await cancelRecords(
+      targets,
+      isCurrent: isCurrent,
+      isStillOwned: isStillOwned,
+    );
+    await check();
     await operations.replaceRecords(registry, [
       if (scheduleId != null)
         ...stored.where((record) => record.scheduleId != scheduleId),
       ...failed,
     ]);
+    await check();
     return AlarmCleanupReport(
       targets.length,
       failed.length,

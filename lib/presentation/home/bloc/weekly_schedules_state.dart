@@ -13,17 +13,30 @@ final class WeeklySchedulesState extends Equatable {
 
   List<DateTime> get dates =>
       schedules.map((schedule) => schedule.scheduleTime).toList();
-  ScheduleEntity? get todaySchedule => schedules
-      .where((schedule) {
-        if (schedule.doneStatus != ScheduleDoneStatus.notEnded) return false;
+  ScheduleEntity? get todaySchedule => todayScheduleAt(DateTime.now());
 
-        final now = DateTime.now();
-        return schedule.scheduleTime.year == now.year &&
-            schedule.scheduleTime.month == now.month &&
-            schedule.scheduleTime.day == now.day;
-      })
-      .sortedBy((e) => e.scheduleTime)
-      .firstOrNull;
+  ScheduleEntity? todayScheduleAt(DateTime now) {
+    final day = DeviceCivilDay.at(now);
+    final candidates = <(ScheduleEntity, DateTime)>[];
+    for (final schedule in schedules) {
+      if (schedule.doneStatus != ScheduleDoneStatus.notEnded ||
+          schedule.retainedRecurringReference) {
+        continue;
+      }
+      final instant = ScheduleTimeResolver.resolve(
+        schedule,
+        nowUtc: now,
+      ).instantUtc;
+      if (instant != null && day.contains(instant)) {
+        candidates.add((schedule, instant));
+      }
+    }
+    candidates.sort((a, b) {
+      final compared = a.$2.compareTo(b.$2);
+      return compared == 0 ? a.$1.id.compareTo(b.$1.id) : compared;
+    });
+    return candidates.firstOrNull?.$1;
+  }
 
   WeeklySchedulesState copyWith({
     WeeklySchedulesStatus Function()? status,

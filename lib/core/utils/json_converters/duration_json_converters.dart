@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:drift/drift.dart';
 
 class DurationSqlConverter extends TypeConverter<Duration, int>
@@ -20,29 +21,9 @@ class CivilDateTimeSqlConverter extends TypeConverter<DateTime, String>
   const CivilDateTimeSqlConverter();
 
   @override
-  DateTime fromSql(String fromDb) {
-    final parsed = DateTime.parse(fromDb);
-    return DateTime(
-      parsed.year,
-      parsed.month,
-      parsed.day,
-      parsed.hour,
-      parsed.minute,
-      parsed.second,
-      parsed.millisecond,
-      parsed.microsecond,
-    );
-  }
+  DateTime fromSql(String fromDb) => CivilDateTime.parse(fromDb).toUtcCarrier();
 
   @override
-  String toSql(DateTime value) => DateTime(
-    value.year,
-    value.month,
-    value.day,
-    value.hour,
-    value.minute,
-    value.second,
-    value.millisecond,
-    value.microsecond,
-  ).toIso8601String();
+  String toSql(DateTime value) =>
+      CivilDateTime.fromFields(value).toCivilIso8601String();
 }

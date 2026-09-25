@@ -1,3 +1,8 @@
+import 'package:on_time_front/presentation/backup/backup_recurring_time_review_screen.dart';
+import 'package:on_time_front/domain/entities/backup_restore_selection.dart';
+import 'package:on_time_front/domain/entities/backup_time_review.dart';
+import 'package:on_time_front/presentation/backup/backup_time_review_screen.dart';
+import 'package:on_time_front/presentation/backup/backup_processing_panel.dart';
 import 'package:on_time_front/domain/entities/local_reset_result.dart';
 import 'package:on_time_front/domain/entities/backup_operation.dart';
 import 'package:on_time_front/domain/use-cases/local_data_workflows.dart';
@@ -142,28 +147,40 @@ class _MyDataScreenState extends State<MyDataScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _restoreReceipt!.committed
-                          ? l10n.dataRestorePartial
-                          : l10n.dataUncommittedCleanup,
-                    ),
+                    Text(switch (_restoreReceipt!.disposition) {
+                      BackupCommitDisposition.committed =>
+                        l10n.dataRestoreCleanupPending,
+                      BackupCommitDisposition.notCommitted =>
+                        l10n.dataUncommittedCleanup,
+                      BackupCommitDisposition.undetermined =>
+                        _unknownRestoreMessage,
+                    }),
                     TextButton(
-                      onPressed: _busy ? null : _retryRestoreDelivery,
-                      child: Text(l10n.dataRetryDelivery),
+                      onPressed: _busy || _unknownCommit
+                          ? null
+                          : _retryRestoreDelivery,
+                      child: Text(switch (_restoreReceipt!.disposition) {
+                        BackupCommitDisposition.committed =>
+                          l10n.dataRetryCleanup,
+                        BackupCommitDisposition.notCommitted =>
+                          l10n.dataRetryDelivery,
+                        BackupCommitDisposition.undetermined =>
+                          l10n.dataChecking,
+                      }),
                     ),
                   ],
                 ),
               ),
             ),
           ListTile(
-            enabled: !_busy,
+            enabled: !_busy && !_unknownCommit,
             leading: const Icon(Icons.lock_outline),
             title: Text(l10n.dataExport),
             subtitle: Text(l10n.dataExportDescription),
             onTap: _export,
           ),
           ListTile(
-            enabled: !_busy,
+            enabled: !_busy && !_unknownCommit,
             leading: const Icon(Icons.restore),
             title: Text(l10n.dataRestore),
             subtitle: Text(l10n.dataRestoreDescription),
@@ -171,7 +188,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
           ),
           const Divider(height: 32),
           ListTile(
-            enabled: !_busy,
+            enabled: !_busy && !_unknownCommit,
             leading: Icon(
               Icons.delete_forever,
               color: Theme.of(context).colorScheme.error,
@@ -183,6 +200,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
             subtitle: Text(l10n.dataResetDescription),
             onTap: _resetData,
           ),
+          const BackupProcessingPanel(),
           if (_working)
             const Padding(
               padding: EdgeInsets.only(top: 24),
@@ -192,6 +210,13 @@ class _MyDataScreenState extends State<MyDataScreen> {
       ),
     );
   }
+
+  bool get _unknownCommit =>
+      _restoreReceipt?.disposition == BackupCommitDisposition.undetermined;
+  String get _unknownRestoreMessage =>
+      Localizations.localeOf(context).languageCode == 'ko'
+      ? '복원 적용 여부를 아직 확인할 수 없습니다. 앱을 다시 열어 같은 작업을 확인하세요.'
+      : 'The restore outcome is not yet confirmed. Reopen the app to check the same operation.';
 
   String _freshnessLabel(BackupFreshnessStatus? status) {
     if (status == null) return l10n.dataChecking;
@@ -203,7 +228,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   Future<void> _export() async {
-    if (_busy) return;
+    if (_busy || _unknownCommit) return;
     setState(() => _busy = true);
     final operationGeneration = _workflow.generation;
     try {
@@ -242,9 +267,13 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   Future<void> _restore() async {
-    if (_busy) return;
+    if (_busy || _unknownCommit) return;
     setState(() => _busy = true);
     final operationGeneration = _workflow.generation;
+    BackupRestoreInput? candidate;
+    BackupRestoreSelection? selected;
+    final workflow = _workflow;
+    BackupRestoreReceipt? ownedReceipt;
     try {
       final password = await _askPassword(confirm: false);
       if (password == null ||
@@ -254,13 +283,52 @@ class _MyDataScreenState extends State<MyDataScreen> {
       }
       final generation = _workflow.generation;
       setState(() => _working = true);
-      final candidate = await _workflow.preview(password);
+      selected = await workflow.selectForRestore(password);
       if (!_routeCurrent ||
-          generation != _workflow.generation ||
-          candidate == null) {
+          !identical(workflow, _workflow) ||
+          generation != workflow.generation ||
+          selected == null) {
         return;
       }
       setState(() => _working = false);
+      if (!mounted) return;
+      if (selected is BackupTimeReviewInput) {
+        final review = selected;
+        candidate = await Navigator.of(context).push<BackupRestoreInput>(
+          MaterialPageRoute(
+            builder: (reviewContext) => BackupTimeReviewScreen(
+              input: review,
+              onReviewRecurrence: (currentInput, issue) async {
+                if (!mounted ||
+                    !reviewContext.mounted ||
+                    ModalRoute.of(reviewContext)?.isCurrent == false ||
+                    !identical(workflow, _workflow) ||
+                    generation != workflow.generation) {
+                  return;
+                }
+                await Navigator.of(reviewContext).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => BackupRecurringTimeReviewScreen(
+                      input: currentInput,
+                      issue: issue,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      } else if (selected is BackupRestoreInput) {
+        candidate = selected;
+      } else {
+        throw const DataOperationException(DataOperationFailure.invalidBackup);
+      }
+      if (candidate == null ||
+          !_routeCurrent ||
+          !identical(workflow, _workflow) ||
+          generation != workflow.generation) {
+        return;
+      }
       final preview = candidate.preview;
       if (!mounted) return;
       final confirmed = await showDialog<bool>(
@@ -268,15 +336,22 @@ class _MyDataScreenState extends State<MyDataScreen> {
         builder: (context) => AlertDialog(
           title: Text(l10n.dataRestorePreviewTitle),
           content: SingleChildScrollView(
-            child: Text(
-              l10n.dataRestorePreview(
-                '${preview.cutoff.toLocal()}',
-                preview.sourceAppVersion,
-                preview.sourcePlatform,
-                preview.scheduleCount,
-                preview.templateCount,
-                preview.defaultPreparationStepCount,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.dataRestorePreview(
+                    preview.cutoffLiteral ?? '${preview.cutoff.toLocal()}',
+                    preview.sourceAppVersion,
+                    preview.sourcePlatform,
+                    preview.scheduleCount,
+                    preview.templateCount,
+                    preview.defaultPreparationStepCount,
+                  ),
+                ),
+                BackupPreviewNotices(input: candidate!),
+              ],
             ),
           ),
           actions: [
@@ -291,30 +366,71 @@ class _MyDataScreenState extends State<MyDataScreen> {
           ],
         ),
       );
-      if (confirmed != true || !_routeCurrent) return;
+      if (confirmed != true ||
+          !_routeCurrent ||
+          !identical(workflow, _workflow) ||
+          generation != workflow.generation) {
+        return;
+      }
       setState(() => _working = true);
-      final receipt = await _workflow.restore(candidate);
+      final receipt = await workflow.restore(candidate);
+      ownedReceipt = receipt;
       if (!_routeCurrent || receipt.generation != _workflow.generation) return;
       setState(() => _restoreReceipt = receipt);
-      if (receipt.committed) {
-        _message(
-          receipt.followUpPending
-              ? l10n.dataRestorePartial
-              : l10n.dataRestoreComplete,
-        );
-        await _loadFreshness();
-      } else {
-        _showError(
-          DataOperationException(
-            receipt.failure ?? DataOperationFailure.failed,
-          ),
-        );
+      switch (receipt.disposition) {
+        case BackupCommitDisposition.committed:
+          _message(
+            receipt.followUpPending
+                ? l10n.dataRestoreCleanupPending
+                : l10n.dataRestoreComplete,
+          );
+          await _loadFreshness();
+        case BackupCommitDisposition.undetermined:
+          _message(_unknownRestoreMessage);
+        case BackupCommitDisposition.notCommitted:
+          _showError(
+            DataOperationException(
+              receipt.failure ?? DataOperationFailure.failed,
+            ),
+          );
       }
     } catch (error) {
-      if (_routeCurrent && operationGeneration == _workflow.generation) {
-        _showError(error);
+      if (_routeCurrent && identical(workflow, _workflow)) {
+        if (error is DataOperationException &&
+            error.followUpPending &&
+            error.generation == workflow.generation) {
+          setState(
+            () => _restoreReceipt = BackupRestoreReceipt(
+              disposition: BackupCommitDisposition.notCommitted,
+              generation: error.generation!,
+              followUpPending: true,
+              failure: error.failure,
+            ),
+          );
+          _showError(error);
+        } else if (operationGeneration == workflow.generation) {
+          _showError(error);
+        }
       }
     } finally {
+      try {
+        if (ownedReceipt?.disposition != BackupCommitDisposition.undetermined) {
+          try {
+            await candidate?.dispose();
+          } finally {
+            if (!identical(candidate, selected)) await selected?.dispose();
+          }
+        }
+      } catch (error) {
+        final ownerGeneration = ownedReceipt?.generation ?? operationGeneration;
+        if (_routeCurrent &&
+            ownerGeneration == _workflow.generation &&
+            (ownedReceipt == null ||
+                ownedReceipt.disposition ==
+                    BackupCommitDisposition.notCommitted)) {
+          _showError(error);
+        }
+      }
       if (mounted) {
         setState(() {
           _busy = false;
@@ -344,7 +460,7 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   Future<void> _resetData() async {
-    if (_busy) return;
+    if (_busy || _unknownCommit) return;
     setState(() => _busy = true);
     final generation = _workflow.generation;
     try {
@@ -387,6 +503,18 @@ class _MyDataScreenState extends State<MyDataScreen> {
   }
 
   void _showError(Object error) {
+    final processing = backupProcessingError(
+      error,
+      Localizations.localeOf(context).languageCode == 'ko',
+    );
+    if (processing != null) {
+      _message(processing);
+      return;
+    }
+    if (error is RestoreStagingCleanupFailure) {
+      _message(l10n.dataStagingCleanupFailed);
+      return;
+    }
     final code = error is DataOperationException
         ? error.failure
         : DataOperationFailure.failed;

@@ -154,8 +154,8 @@ void main() {
 
       expect(loadedWeeks, [DateTime(2026, 5, 15)]);
       expect(getSchedulesByDateUseCase.calls.single, (
-        DateTime(2026, 5, 11),
-        DateTime(2026, 5, 18),
+        DateTime.utc(2026, 5, 9),
+        DateTime.utc(2026, 5, 20),
       ));
       expect(state.schedules, [schedule]);
     },
@@ -171,7 +171,8 @@ ScheduleEntity _schedule({
     id: id,
     place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: id,
-    scheduleTime: scheduleTime,
+    scheduleTime: scheduleTime.toUtc(),
+    occurrenceOffsetSeconds: 0,
     moveTime: const Duration(minutes: 10),
     isChanged: false,
     isStarted: false,

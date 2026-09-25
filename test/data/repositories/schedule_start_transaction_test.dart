@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/time/schedule_time_resolution.dart';
 import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
@@ -122,6 +123,10 @@ void main() {
                     nextPreparationId: null,
                   ),
                 ],
+              ),
+              timeResolution: ScheduleTimeResolver.resolve(
+                await repository.getScheduleById('one'),
+                nowUtc: DateTime.now().toUtc(),
               ),
             );
         final skip = PreparationActionEventEntity.skipStep(

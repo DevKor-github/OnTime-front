@@ -242,6 +242,30 @@ void main() {
     await db.customStatement('DROP TRIGGER reject_revision');
     await preparations.updateSpareTime(const Duration(minutes: 15));
     expect((await row()).dataRevision, 43);
+    await db.userDao.updateAlarmSettings(userId: id, enabled: true);
+    expect((await row()).dataRevision, 44);
+    expect((await row()).alarmsEnabled, isTrue);
+    await db.userDao.updateDetailedNotificationContent(
+      userId: id,
+      enabled: false,
+    );
+    expect((await row()).dataRevision, 45);
+    expect((await row()).detailedNotificationContent, isFalse);
+    await db.userDao.resetScore(id);
+    final recovered = await row();
+    expect(recovered.dataRevision, 46);
+    expect(recovered.eligibleOutcomeCount, 0);
+    expect(recovered.onTimeOutcomeCount, 0);
+    expect(recovered.note, before.note);
+    expect(recovered.lastExportedRevision, before.lastExportedRevision);
+    expect(recovered.firstDurableDataAt, before.firstDurableDataAt);
+    await db.userDao.updateAlarmSettings(userId: id, enabled: true);
+    await db.userDao.updateDetailedNotificationContent(
+      userId: id,
+      enabled: false,
+    );
+    await db.userDao.resetScore(id);
+    expect(await row(), recovered);
   });
 
   test(
@@ -255,6 +279,17 @@ void main() {
       final schedule = await schedules.getScheduleById('one');
       expect(schedule.doneStatus, ScheduleDoneStatus.notEnded);
       expect(schedule.scoreContributionRecorded, false);
+      await db.customStatement('DROP TRIGGER reject_revision');
+      await schedules.finishSchedule('one', 0);
+      final recovered = await row();
+      expect(recovered.dataRevision, before.dataRevision + 1);
+      expect(recovered.eligibleOutcomeCount, before.eligibleOutcomeCount + 1);
+      expect(recovered.onTimeOutcomeCount, before.onTimeOutcomeCount + 1);
+      final finished = await schedules.getScheduleById('one');
+      expect(finished.doneStatus, ScheduleDoneStatus.normalEnd);
+      expect(finished.scoreContributionRecorded, isTrue);
+      await schedules.finishSchedule('one', 0);
+      expect(await row(), recovered);
     },
   );
 

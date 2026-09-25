@@ -1,3 +1,6 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../helpers/restore_staging_fixture.dart';
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
@@ -24,6 +27,8 @@ class _Cleanup extends NoopAlarmCleanup {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   test(
     'preview followed by a durable edit never overwrites that edit',
     () async {
@@ -44,6 +49,11 @@ void main() {
         _Metadata(),
         cleanup,
         operationGate: gate,
+        ingestionFactory: memoryBackupIngestion,
+        processingOwner: testBackupProcessingOwner(),
+        stagingFactory: memoryRestoreStaging,
+        runtimeIdentity: RestoreRuntimeIdentity(),
+        cleanupPlatform: noPlatformRestoreCleanup,
         crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
       );
       const password = 'synthetic backup password';

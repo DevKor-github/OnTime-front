@@ -1,3 +1,5 @@
+import '../../helpers/restore_staging_fixture.dart';
+import 'package:on_time_front/core/database/restore_runtime_identity.dart';
 import 'package:on_time_front/core/database/local_reset_actions.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
@@ -44,6 +46,11 @@ void main() {
     _Metadata(),
     r.cancelAll,
     operationGate: r.gate,
+    ingestionFactory: memoryBackupIngestion,
+    processingOwner: testBackupProcessingOwner(),
+    stagingFactory: memoryRestoreStaging,
+    runtimeIdentity: RestoreRuntimeIdentity(),
+    cleanupPlatform: r.cancelAll.forDataReplacement,
     crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
   );
   Future<BackupRestoreCandidate> candidate(BackupService service) async =>
@@ -92,7 +99,7 @@ void main() {
   );
 
   test(
-    'actual restore cancellation failure preserves original database and ownership',
+    'returned cancellation failure commits restore but preserves pending ownership for cleanup-only retry',
     () async {
       final r = concurrency.Rig();
       addTearDown(r.dispose);
@@ -104,26 +111,19 @@ void main() {
       r.repository.schedules = [r.schedule('old')];
       await r.reconcile();
       r.fallback.throwOnCancelIds.add('old');
-      await expectLater(
-        service.applyRestore(restore),
-        throwsA(
-          isA<DataOperationException>()
-              .having((e) => e.followUpPending, 'cleanup remains pending', true)
-              .having((e) => e.generation, 'actual claim generation', 1),
-        ),
-      );
-      expect(
-        (await database.select(database.users).getSingle()).note,
-        'current value',
-      );
-      expect(r.registry.records.single.cancellationPending, true);
-      expect(r.gate.isAvailable, true);
-      r.fallback.throwOnCancelIds.clear();
       await service.applyRestore(restore);
-      expect(
-        (await database.select(database.users).getSingle()).note,
-        'backup value',
-      );
+      final committed = await database.select(database.users).getSingle();
+      expect(committed.note, 'backup value');
+      expect(committed.restoreCleanupPending, true);
+      expect(r.registry.records.single.cancellationPending, true);
+      expect(r.gate.isRecoveryPending, true);
+      r.fallback.throwOnCancelIds.clear();
+      await service.finishRestoreCleanup();
+      final after = await database.select(database.users).getSingle();
+      expect(after.dataRevision, committed.dataRevision);
+      expect(after.storeIncarnation, committed.storeIncarnation);
+      expect(after.restoreCleanupPending, false);
+      expect(r.gate.isAvailable, true);
     },
   );
 
@@ -143,6 +143,9 @@ void main() {
           keyStore: keys,
           closeDatabase: database.close,
           deleteFiles: () async {}, // In-memory Drift fixture owns no DB files.
+          removeCreationReceipt: () async {}, // Nor a first-creation receipt.
+          removePairKeys:
+              () async {}, // No pair files or slots in this fixture.
           clearDeliveries:
               () async {}, // Provider cancellation is exercised by r.
           clearLaunch: () async {},

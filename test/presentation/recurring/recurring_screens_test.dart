@@ -1,3 +1,6 @@
+import 'package:on_time_front/domain/use-cases/delete_schedule_use_case.dart';
+import 'package:on_time_front/domain/entities/schedule_deletion.dart';
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -193,9 +196,11 @@ void main() {
       await tester.tap(find.text('반복 종료'));
       await tester.pumpAndSettle();
       expect(useCase.deleted, isNull);
-      await tester.tap(find.text('반복 종료').last);
+      await tester.tap(find.widgetWithText(TextButton, '약속 삭제'));
       await tester.pumpAndSettle();
       expect(useCase.deleted, RecurringEditScope.following);
+      await tester.tap(find.widgetWithText(TextButton, '확인'));
+      await tester.pumpAndSettle();
       expect(find.text('예정된 회차 없음'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
@@ -389,16 +394,64 @@ class _Management implements RecurringSchedulesUseCase {
   List<RecurringScheduleSummary> summaries;
   RecurringEditScope? deleted;
   @override
+  DeleteScheduleUseCase get deletions => _ManagementDeletion(this);
+  @override
   Future<List<RecurringScheduleSummary>> list() async => summaries;
   @override
-  Future<void> delete(
+  Future<ScheduleDeletionResult> delete(
     ScheduleEntity occurrence,
     RecurringEditScope scope,
   ) async {
     deleted = scope;
     summaries = [RecurringScheduleSummary(summaries.first.segment, null)];
+    return ScheduleDeletionResult(
+      commit: ScheduleDeletionCommit(
+        scheduleId: occurrence.id,
+        store: 'ui',
+        generation: 0,
+        removedIds: {occurrence.id},
+        changed: true,
+        alreadyAbsent: false,
+      ),
+      cleanup: ScheduleDeletionCleanup.complete,
+    );
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _ManagementDeletion extends Fake implements DeleteScheduleUseCase {
+  _ManagementDeletion(this.management);
+  final _Management management;
+  @override
+  int get currentGeneration => 0;
+  @override
+  bool isCurrentGeneration(int generation) => generation == 0;
+  @override
+  Future<ScheduleDeletionIntent> prepare(
+    String id, {
+    RecurringEditScope scope = RecurringEditScope.occurrence,
+  }) async => ScheduleDeletionIntent(
+    intentId: 'ui',
+    scope: scope,
+    targets: [],
+    snapshot: ScheduleEditSnapshot(
+      management.summaries.first.next!,
+      _prep,
+      const ScheduleEditBaseline(store: 'ui', generation: 0, revision: 0),
+    ),
+  );
+  @override
+  Future<ScheduleDeletionResult> confirm(
+    ScheduleDeletionIntent intent, {
+    void Function(ScheduleDeletionCommit)? onCommitted,
+  }) async {
+    final result = await management.delete(
+      intent.snapshot.schedule,
+      intent.scope,
+    );
+    onCommitted?.call(result.commit);
+    return result;
+  }
 }

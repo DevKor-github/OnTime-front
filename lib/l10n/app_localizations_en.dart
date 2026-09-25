@@ -9,6 +9,83 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get detailedNotificationTitle =>
+      'Show schedule names in notifications';
+
+  @override
+  String get detailedNotificationPrivacy =>
+      'Shows the schedule name and a differing time zone on the lock screen. Places, notes and preparation details stay private.';
+
+  @override
+  String get detailedNotificationLoading => 'Checking setting';
+
+  @override
+  String get detailedNotificationReadFailed =>
+      'Unable to read the setting. Check the saved value again.';
+
+  @override
+  String get detailedNotificationUnavailable =>
+      'Check the setting again after the local data operation finishes.';
+
+  @override
+  String get detailedNotificationRequestOn => 'On requested · not saved yet';
+
+  @override
+  String get detailedNotificationRequestOff => 'Off requested · not saved yet';
+
+  @override
+  String get detailedNotificationSavedOn => 'Saved: on';
+
+  @override
+  String get detailedNotificationSavedOff => 'Saved: off';
+
+  @override
+  String get detailedNotificationSaveFailed =>
+      'The requested change could not be saved and has not been applied.';
+
+  @override
+  String get detailedNotificationApplying =>
+      'Applying the saved setting to notifications';
+
+  @override
+  String get detailedNotificationDelayed =>
+      'The device is taking longer to respond. Notification changes are still being checked.';
+
+  @override
+  String get detailedNotificationApplied =>
+      'Applied to current notification registrations';
+
+  @override
+  String get detailedNotificationOff => 'Schedule notifications are off.';
+
+  @override
+  String get detailedNotificationEmpty =>
+      'There are no upcoming notifications to update.';
+
+  @override
+  String get detailedNotificationPermission =>
+      'Check notification permission. The saved setting is kept.';
+
+  @override
+  String get detailedNotificationCancellation =>
+      'Existing notifications may still show a schedule name. Check notification cleanup again.';
+
+  @override
+  String get detailedNotificationSchedulingFailed =>
+      'Some notifications could not be scheduled. Apply notifications again.';
+
+  @override
+  String get detailedNotificationNeedsCheck =>
+      'Notification changes could not be confirmed. Check again.';
+
+  @override
+  String get detailedNotificationHeld =>
+      'New detailed notifications are on hold until the off request is resolved. Existing notifications may remain.';
+
+  @override
+  String get detailedNotificationRetry => 'Check or apply again';
+
+  @override
   String get startupRecoveryTitle => 'Unable to start OnTime';
 
   @override
@@ -632,6 +709,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataRetryDelivery => 'Retry notification processing only';
 
   @override
+  String get dataRestoreCleanupPending =>
+      'Data was restored, but remaining cleanup and notification processing are incomplete. Retry the remaining work without restoring data again.';
+
+  @override
+  String get dataRetryCleanup => 'Retry remaining work';
+
+  @override
   String get dataRestorePartial =>
       'Data was restored, but notification processing is incomplete. You can retry notification processing only.';
 
@@ -667,6 +751,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dataInvalidBackup =>
       'The operation could not be completed. Check the backup file and password.';
+
+  @override
+  String get dataStagingCleanupFailed =>
+      'Data was not restored, and temporary file cleanup is incomplete. Reopen the app to retry cleanup.';
 
   @override
   String get dataOperationFailed =>
@@ -754,4 +842,403 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get scheduleSaveUnavailable =>
       'Unable to save. Your draft is preserved. Check the current state and preparation steps.';
+
+  @override
+  String get defaultPreferencesLoadFailed =>
+      'Could not load your settings. Please try again.';
+
+  @override
+  String get defaultPreferencesSaveFailed =>
+      'Settings were not saved. Your edits are still here. Please try again.';
+
+  @override
+  String get defaultPreferencesInvalid =>
+      'Check the preparation names, durations and spare time. Settings were not saved.';
+
+  @override
+  String get defaultPreferencesConflict =>
+      'Schedules or settings changed while you were editing. Your edits are still here and have not been saved. Reload the latest settings to review them.';
+
+  @override
+  String get defaultPreferencesReloadPending =>
+      'Settings are saved, but refreshing the displayed data is incomplete. Retry the refresh without saving again.';
+
+  @override
+  String get defaultPreferencesDeliveryPending =>
+      'Settings are saved, but notification setup is incomplete. Retry notification setup without saving again.';
+
+  @override
+  String get defaultPreferencesBothPending =>
+      'Settings are saved, but refreshing the displayed data and notification setup are incomplete. Retry only the remaining work without saving again.';
+
+  @override
+  String get defaultPreferencesSavedStoreChanged =>
+      'The local operation state changed after these settings were saved. This screen will not repeat the operation. Close it and review the current settings.';
+
+  @override
+  String get defaultPreferencesRetryFollowUp => 'Retry remaining work';
+
+  @override
+  String get defaultPreferencesLoadLatest => 'Reload latest settings';
+
+  @override
+  String get defaultPreferencesDiscardTitle => 'Discard edits and reload?';
+
+  @override
+  String get defaultPreferencesDiscardDescription =>
+      'Loading the latest settings replaces your unsaved edits on this screen. If loading fails, your edits stay here.';
+
+  @override
+  String defaultPreferencesMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get defaultPreferencesAuthorityPending =>
+      'Settings are saved, but the current local data could not be checked. Retry the remaining work without saving again.';
+
+  @override
+  String get zonedTimeOriginal => 'Commitment time';
+
+  @override
+  String get zonedTimeDevice => 'Device time';
+
+  @override
+  String get zonedTimeDeviceLoading => 'Checking the device time zone.';
+
+  @override
+  String get zonedTimeDeviceUnavailable =>
+      'The device time zone is unavailable, so its equivalent time cannot be shown.';
+
+  @override
+  String get zonedTimeDeviceOutOfRange =>
+      'The equivalent device date is outside the supported range. The original commitment is preserved.';
+
+  @override
+  String get zonedTimeUnknownZone => 'Review the time zone.';
+
+  @override
+  String get zonedTimeHistoricalUnknownZone =>
+      'The time zone rules for this historical record are unavailable. The stored commitment is preserved.';
+
+  @override
+  String get zonedTimeHistoricalUncertain =>
+      'The occurrence of this historical record is uncertain. The stored time is preserved.';
+
+  @override
+  String get zonedTimeNonexistent =>
+      'This time does not exist in this time zone. Choose another time.';
+
+  @override
+  String get zonedTimeAmbiguous =>
+      'This time occurs twice. Choose which occurrence to use.';
+
+  @override
+  String get zonedTimeRulesChanged =>
+      'Time zone rules have changed. Review the new occurrence.';
+
+  @override
+  String get zonedTimeInvalid => 'Review the commitment time.';
+
+  @override
+  String get zonedTimeInstant => 'Instant (UTC)';
+
+  @override
+  String get zonedTimeChooseZone => 'Choose a time zone';
+
+  @override
+  String get zonedTimeSearch => 'Search city or time zone';
+
+  @override
+  String get zonedTimeClearSearch => 'Clear search';
+
+  @override
+  String get zonedTimeCurrentDeviceZone => 'Current device time zone';
+
+  @override
+  String get zonedTimeCurrentSelection => 'Current schedule time zone';
+
+  @override
+  String get zonedTimeDraftPreview => 'Selection preview';
+
+  @override
+  String get zonedTimeKeepCivil =>
+      'Keep the wall date and time while changing the time zone. Review the commitment before saving.';
+
+  @override
+  String get zonedTimeNoMatches =>
+      'No matching time zones. Try a city name or IANA identifier.';
+
+  @override
+  String get zonedTimeApplyDraft => 'Apply selection';
+
+  @override
+  String get zonedTimeReviewTitle => 'Review commitment time';
+
+  @override
+  String get zonedTimeReviewDescription =>
+      'Review the commitment and its time on this device before saving.';
+
+  @override
+  String get zonedTimeBefore => 'Before change';
+
+  @override
+  String get zonedTimeAfter => 'Commitment to save';
+
+  @override
+  String get zonedTimeConfirmSave => 'Confirm and save';
+
+  @override
+  String get zonedTimeFirstOccurrence => 'First occurrence';
+
+  @override
+  String get zonedTimeSecondOccurrence => 'Second occurrence';
+
+  @override
+  String get zonedTimeDetectedZone => 'Detected device time zone';
+
+  @override
+  String get zonedTimeSelectedZone => 'Selected by you';
+
+  @override
+  String get zonedTimeSavedZone => 'Saved schedule time zone';
+
+  @override
+  String get zonedTimeSelectUnavailableZone =>
+      'Device time zone unavailable. Select one to continue.';
+
+  @override
+  String get zonedTimeNextValid => 'Review next valid time';
+
+  @override
+  String get zonedTimePreparationStart => 'Preparation starts';
+
+  @override
+  String get zonedCityAsiaSeoul => 'Seoul';
+
+  @override
+  String get zonedCityAsiaTokyo => 'Tokyo';
+
+  @override
+  String get zonedCityAsiaShanghai => 'Shanghai';
+
+  @override
+  String get zonedCityAsiaHongKong => 'Hong Kong';
+
+  @override
+  String get zonedCityAsiaTaipei => 'Taipei';
+
+  @override
+  String get zonedCityAsiaSingapore => 'Singapore';
+
+  @override
+  String get zonedCityAsiaBangkok => 'Bangkok';
+
+  @override
+  String get zonedCityAsiaDubai => 'Dubai';
+
+  @override
+  String get zonedCityAsiaKolkata => 'Kolkata';
+
+  @override
+  String get zonedCityAsiaKathmandu => 'Kathmandu';
+
+  @override
+  String get zonedCityEuropeLondon => 'London';
+
+  @override
+  String get zonedCityEuropeParis => 'Paris';
+
+  @override
+  String get zonedCityEuropeBerlin => 'Berlin';
+
+  @override
+  String get zonedCityEuropeRome => 'Rome';
+
+  @override
+  String get zonedCityEuropeMadrid => 'Madrid';
+
+  @override
+  String get zonedCityEuropeMoscow => 'Moscow';
+
+  @override
+  String get zonedCityAmericaNewYork => 'New York';
+
+  @override
+  String get zonedCityAmericaLosAngeles => 'Los Angeles';
+
+  @override
+  String get zonedCityAmericaChicago => 'Chicago';
+
+  @override
+  String get zonedCityAmericaDenver => 'Denver';
+
+  @override
+  String get zonedCityAmericaToronto => 'Toronto';
+
+  @override
+  String get zonedCityAmericaVancouver => 'Vancouver';
+
+  @override
+  String get zonedCityAmericaSaoPaulo => 'Sao Paulo';
+
+  @override
+  String get zonedCityAustraliaSydney => 'Sydney';
+
+  @override
+  String get zonedCityAustraliaMelbourne => 'Melbourne';
+
+  @override
+  String get zonedCityAustraliaPerth => 'Perth';
+
+  @override
+  String get zonedCityAustraliaLordHowe => 'Lord Howe';
+
+  @override
+  String get zonedCityPacificAuckland => 'Auckland';
+
+  @override
+  String get zonedCityPacificHonolulu => 'Honolulu';
+
+  @override
+  String get zonedCityPacificApia => 'Apia';
+
+  @override
+  String get zonedCityAfricaCairo => 'Cairo';
+
+  @override
+  String get zonedCityAfricaJohannesburg => 'Johannesburg';
+
+  @override
+  String get zonedCityUtc => 'UTC';
+
+  @override
+  String get zonedTimeHomeDateBasis => 'Today · device date';
+
+  @override
+  String get zonedTimeCalendarDateBasis => 'Calendar · commitment date';
+
+  @override
+  String get zonedTimeDateBasisTitle => 'Why dates can differ';
+
+  @override
+  String get zonedTimeDateBasisDescription =>
+      'Today on Home groups appointments by the current device date. The month calendar places each appointment on its original commitment date and time zone. The same instant can fall on different dates, so both dates and zones are shown when they differ.';
+
+  @override
+  String get zonedTimeAllReviewedOccurrences => 'View all reviewed occurrences';
+
+  @override
+  String get zonedTimeReviewScopeOccurrence => 'Changes: this occurrence';
+
+  @override
+  String get zonedTimeReviewScopeFollowing =>
+      'Changes: this and following occurrences';
+
+  @override
+  String get zonedTimeReviewScopeNew => 'New recurring schedule';
+
+  @override
+  String get zonedTimePreparationUnavailable =>
+      'The preparation start cannot be displayed with the available time zone rules. Review it again before saving.';
+
+  @override
+  String get homeNextAppointment => 'Next appointment';
+
+  @override
+  String get homePreparationInProgress => 'Preparation in progress';
+
+  @override
+  String get homePreparationPrompt => 'Appointment to prepare for';
+
+  @override
+  String get homePreviouslyCheckedAppointment =>
+      'Previously checked appointment';
+
+  @override
+  String get homeCheckingAppointments => 'Checking upcoming appointments.';
+
+  @override
+  String get homeNoUpcomingAppointments => 'No upcoming appointments.';
+
+  @override
+  String get homeQueryFailed =>
+      'Could not check appointments. Please try again.';
+
+  @override
+  String get homeQueryCancelled =>
+      'Appointment checking was cancelled. You can review your appointments in the calendar.';
+
+  @override
+  String get homeQueryInterrupted =>
+      'Appointment checking was interrupted. Continue checking when you are ready.';
+
+  @override
+  String get homeQueryLimited =>
+      'Could not check all appointments. Review your appointments or repeat settings in the calendar.';
+
+  @override
+  String get homeQueryStale =>
+      'These are previously checked details. Recheck them before starting preparation from this card.';
+
+  @override
+  String get homeRetryQuery => 'Retry';
+
+  @override
+  String get homeContinueQuery => 'Continue checking';
+
+  @override
+  String get homeCancelQuery => 'Cancel checking';
+
+  @override
+  String get homeTimeIssues =>
+      'Some appointment times need review. Check their dates and time zones in the calendar.';
+
+  @override
+  String get homeReviewCalendar => 'Review calendar';
+
+  @override
+  String get scheduleDeletionRemovedTitle => 'Schedule history removed';
+
+  @override
+  String get scheduleDeletionComplete =>
+      'The schedule history and its delivery registrations have been removed.';
+
+  @override
+  String get scheduleDeletionCleaning =>
+      'History has been removed. Delivery cleanup is in progress.';
+
+  @override
+  String get scheduleDeletionPending =>
+      'History has been removed, but delivery cleanup is not yet confirmed. You can retry when the current operation finishes.';
+
+  @override
+  String get scheduleDeletionPreparationActive =>
+      'Preparation is in progress. Finish it on the preparation screen before deleting this schedule.';
+
+  @override
+  String get scheduleDeletionConsequences =>
+      'The selected schedule’s details, private preparation and outcome will be removed. Other schedules, shared content and existing punctuality totals are preserved. There is no undo in the app. Restoring an older exported backup can bring this history back.';
+
+  @override
+  String get scheduleDeletionFollowing =>
+      'Delete this and later unstarted occurrences.';
+
+  @override
+  String get scheduleDeletionOnlySelected =>
+      'Delete only the selected schedule. Other schedules and recurrence rules are preserved.';
+
+  @override
+  String get scheduleDeletionAlreadyAbsent =>
+      'This schedule is already absent from the current data. No additional data was deleted.';
+
+  @override
+  String get scheduleDeletionRetryCleanup => 'Retry delivery cleanup';
+
+  @override
+  String get scheduleDeletionAbsentTitle => 'Schedule already absent';
+
+  @override
+  String get scheduleDeletionFollowingConsequences =>
+      'Delete this and following upcoming, unstarted occurrences in this series and stop generating later occurrences. Individually edited following occurrences are also included. Their names, notes and preparation content that no other schedule shares will be removed. Past history, active or preparation-frozen occurrences, other series, shared content and existing punctuality totals are preserved. There is no undo in the app. Existing exported backup files are unchanged; restoring an older backup can bring back deleted occurrences and their recurrence.';
 }

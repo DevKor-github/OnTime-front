@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/civil_date_time.dart';
 import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,7 +33,10 @@ void main() {
     expect(stored.schedule.id, 'schedule-1');
     expect(stored.place, const Place(id: 'place-1', placeName: 'Office'));
     expect(stored.schedule.scheduleName, 'Meeting schedule-1');
-    expect(stored.schedule.scheduleTime, DateTime(2026, 5, 15, 9));
+    expect(
+      CivilDateTime.fromFields(stored.schedule.scheduleTime),
+      CivilDateTime.fromFields(schedule.schedule.scheduleTime),
+    );
     expect(stored.schedule.moveTime, const Duration(minutes: 20));
     expect(stored.schedule.scheduleSpareTime, const Duration(minutes: 5));
   });
@@ -74,7 +78,10 @@ void main() {
 
     expect(schedules.map((schedule) => schedule.schedule.id), ['inside']);
     expect(schedules.single.schedule.scheduleName, 'Updated meeting');
-    expect(schedules.single.schedule.scheduleTime, DateTime(2026, 5, 15, 10));
+    expect(
+      CivilDateTime.fromFields(schedules.single.schedule.scheduleTime),
+      CivilDateTime.fromFields(updated.scheduleTime),
+    );
     expect(schedules.single.schedule.moveTime, const Duration(minutes: 45));
     expect(schedules.single.schedule.isChanged, isTrue);
     expect(schedules.single.schedule.isStarted, isTrue);
@@ -203,6 +210,7 @@ Schedule _scheduleRow({
   required int latenessTime,
 }) {
   return Schedule(
+    requiresStartConfirmation: false,
     id: id,
     placeId: placeId,
     scheduleName: scheduleName,

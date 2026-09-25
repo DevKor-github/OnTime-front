@@ -114,6 +114,13 @@ class LoadScheduleFormDraftUseCase {
     final defaultPreparation =
         snapshot?.preparation ?? await _getDefaultPreparationUseCase();
 
+    String detectedZone;
+    try {
+      detectedZone = await _timeZoneId();
+    } catch (_) {
+      // Keep the draft accessible so the user can explicitly select a zone.
+      detectedZone = '';
+    }
     return ScheduleFormDraft(
       baseline: snapshot?.baseline,
       id: _newId(),
@@ -123,7 +130,7 @@ class LoadScheduleFormDraftUseCase {
       scheduleTime: initialDate == null
           ? null
           : _initialScheduleTime(initialDate, _now()),
-      timeZoneId: await _timeZoneId(),
+      timeZoneId: detectedZone,
       occurrenceOffsetSeconds: null,
       moveTime: null,
       preparationChanged: false,
@@ -164,16 +171,16 @@ class LoadScheduleFormDraftUseCase {
   }
 
   DateTime _initialScheduleTime(DateTime initialDate, DateTime now) {
-    final selectedDate = DateTime(
+    final selectedDate = DateTime.utc(
       initialDate.year,
       initialDate.month,
       initialDate.day,
     );
-    final today = DateTime(now.year, now.month, now.day);
+    final today = DateTime.utc(now.year, now.month, now.day);
     final initialTime = selectedDate == today
         ? now.add(const Duration(minutes: 1))
         : now;
-    return DateTime(
+    return DateTime.utc(
       initialDate.year,
       initialDate.month,
       initialDate.day,

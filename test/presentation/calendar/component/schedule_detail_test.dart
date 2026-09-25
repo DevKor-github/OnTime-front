@@ -25,7 +25,8 @@ void main() {
     id: 'schedule-1',
     place: PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: 'Design Review',
-    scheduleTime: DateTime(2026, 3, 20, 9, 0),
+    scheduleTime: (DateTime.utc(2026, 3, 20, 9, 0)).toUtc(),
+    occurrenceOffsetSeconds: 0,
     moveTime: const Duration(minutes: 30),
     isChanged: false,
     isStarted: false,
@@ -38,6 +39,7 @@ void main() {
     ScheduleEntity? customSchedule,
     Duration? preparationTime,
     bool isEarlyStarted = false,
+    bool alwaysUse24HourFormat = false,
   }) async {
     final targetSchedule = customSchedule ?? schedule;
     await tester.pumpWidget(
@@ -45,6 +47,12 @@ void main() {
         bundle: _FakeSvgAssetBundle(),
         child: MaterialApp(
           locale: const Locale('en'),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(alwaysUse24HourFormat: alwaysUse24HourFormat),
+            child: child!,
+          ),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -174,36 +182,45 @@ void main() {
     },
   );
 
-  testWidgets('tile text updates when schedule fields change for same id', (
-    tester,
-  ) async {
-    await pumpScheduleDetail(tester);
+  for (final use24Hours in [false, true]) {
+    testWidgets('tile text updates for same id in EN 24h=$use24Hours', (
+      tester,
+    ) async {
+      final oldTime = use24Hours ? '09:00' : '9:00 AM';
+      final newTime = use24Hours ? '10:30' : '10:30 AM';
+      await pumpScheduleDetail(tester, alwaysUse24HourFormat: use24Hours);
 
-    expect(find.text('Design Review'), findsOneWidget);
-    expect(find.text('Office'), findsOneWidget);
-    expect(find.text('09:00'), findsOneWidget);
+      expect(find.text('Design Review'), findsOneWidget);
+      expect(find.text('Office'), findsOneWidget);
+      expect(find.text(oldTime), findsOneWidget);
 
-    final updatedSchedule = ScheduleEntity(
-      id: 'schedule-1',
-      place: PlaceEntity(id: 'place-1', placeName: 'New Office'),
-      scheduleName: 'Edited Review',
-      scheduleTime: DateTime(2026, 3, 20, 10, 30),
-      moveTime: const Duration(minutes: 45),
-      isChanged: false,
-      isStarted: false,
-      scheduleSpareTime: const Duration(minutes: 20),
-      scheduleNote: '',
-    );
+      final updatedSchedule = ScheduleEntity(
+        id: 'schedule-1',
+        place: PlaceEntity(id: 'place-1', placeName: 'New Office'),
+        scheduleName: 'Edited Review',
+        scheduleTime: (DateTime.utc(2026, 3, 20, 10, 30)).toUtc(),
+        occurrenceOffsetSeconds: 0,
+        moveTime: const Duration(minutes: 45),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: const Duration(minutes: 20),
+        scheduleNote: '',
+      );
 
-    await pumpScheduleDetail(tester, customSchedule: updatedSchedule);
+      await pumpScheduleDetail(
+        tester,
+        customSchedule: updatedSchedule,
+        alwaysUse24HourFormat: use24Hours,
+      );
 
-    expect(find.text('Edited Review'), findsOneWidget);
-    expect(find.text('New Office'), findsOneWidget);
-    expect(find.text('10:30'), findsOneWidget);
-    expect(find.text('Design Review'), findsNothing);
-    expect(find.text('Office'), findsNothing);
-    expect(find.text('09:00'), findsNothing);
-  });
+      expect(find.text('Edited Review'), findsOneWidget);
+      expect(find.text('New Office'), findsOneWidget);
+      expect(find.text(newTime), findsOneWidget);
+      expect(find.text('Design Review'), findsNothing);
+      expect(find.text('Office'), findsNothing);
+      expect(find.text(oldTime), findsNothing);
+    });
+  }
 
   testWidgets('edit action is available before preparation starts', (
     tester,
@@ -212,7 +229,8 @@ void main() {
       id: 'schedule-2',
       place: PlaceEntity(id: 'place-1', placeName: 'Office'),
       scheduleName: 'Planning',
-      scheduleTime: DateTime.now().add(const Duration(hours: 3)),
+      scheduleTime: (DateTime.now().add(const Duration(hours: 3))).toUtc(),
+      occurrenceOffsetSeconds: 0,
       moveTime: const Duration(minutes: 30),
       isChanged: false,
       isStarted: false,
@@ -238,7 +256,8 @@ void main() {
       id: 'schedule-3',
       place: PlaceEntity(id: 'place-1', placeName: 'Office'),
       scheduleName: 'Planning',
-      scheduleTime: DateTime.now().add(const Duration(minutes: 30)),
+      scheduleTime: (DateTime.now().add(const Duration(minutes: 30))).toUtc(),
+      occurrenceOffsetSeconds: 0,
       moveTime: const Duration(minutes: 30),
       isChanged: false,
       isStarted: false,
@@ -264,7 +283,8 @@ void main() {
       id: 'schedule-4',
       place: PlaceEntity(id: 'place-1', placeName: 'Office'),
       scheduleName: 'Planning',
-      scheduleTime: DateTime.now().add(const Duration(hours: 3)),
+      scheduleTime: (DateTime.now().add(const Duration(hours: 3))).toUtc(),
+      occurrenceOffsetSeconds: 0,
       moveTime: const Duration(minutes: 30),
       isChanged: false,
       isStarted: false,
@@ -284,58 +304,64 @@ void main() {
     expect(getActionButtonCount(tester), 1);
   });
 
-  testWidgets('delete action stays available for started unfinished schedule', (
-    tester,
-  ) async {
-    final startedSchedule = ScheduleEntity(
-      id: 'schedule-5',
-      place: PlaceEntity(id: 'place-1', placeName: 'Office'),
-      scheduleName: 'Planning',
-      scheduleTime: DateTime.now().add(const Duration(hours: 3)),
-      moveTime: const Duration(minutes: 30),
-      isChanged: false,
-      isStarted: true,
-      scheduleSpareTime: const Duration(minutes: 10),
-      scheduleNote: '',
-      doneStatus: ScheduleDoneStatus.notEnded,
-      startedAt: DateTime.now(),
-    );
+  testWidgets(
+    'started entry remains discoverable for preparation-block guidance',
+    (tester) async {
+      final startedSchedule = ScheduleEntity(
+        id: 'schedule-5',
+        place: PlaceEntity(id: 'place-1', placeName: 'Office'),
+        scheduleName: 'Planning',
+        scheduleTime: (DateTime.now().add(const Duration(hours: 3))).toUtc(),
+        occurrenceOffsetSeconds: 0,
+        moveTime: const Duration(minutes: 30),
+        isChanged: false,
+        isStarted: true,
+        scheduleSpareTime: const Duration(minutes: 10),
+        scheduleNote: '',
+        doneStatus: ScheduleDoneStatus.notEnded,
+        startedAt: DateTime.now(),
+      );
 
-    await pumpScheduleDetail(
-      tester,
-      customSchedule: startedSchedule,
-      preparationTime: const Duration(minutes: 20),
-    );
+      await pumpScheduleDetail(
+        tester,
+        customSchedule: startedSchedule,
+        preparationTime: const Duration(minutes: 20),
+      );
 
-    await openTrailingActions(tester);
+      await openTrailingActions(tester);
 
-    expect(getActionButtonCount(tester), 1);
-  });
+      expect(getActionButtonCount(tester), 1);
+    },
+  );
 
-  testWidgets('delete action is hidden for finished schedules', (tester) async {
-    final finishedSchedule = ScheduleEntity(
-      id: 'schedule-6',
-      place: PlaceEntity(id: 'place-1', placeName: 'Office'),
-      scheduleName: 'Planning',
-      scheduleTime: DateTime.now().add(const Duration(hours: 3)),
-      moveTime: const Duration(minutes: 30),
-      isChanged: false,
-      isStarted: true,
-      scheduleSpareTime: const Duration(minutes: 10),
-      scheduleNote: '',
-      doneStatus: ScheduleDoneStatus.normalEnd,
-      startedAt: DateTime.now().subtract(const Duration(hours: 1)),
-      finishedAt: DateTime.now(),
-    );
+  testWidgets(
+    'finished history exposes individual delete while edit remains hidden',
+    (tester) async {
+      final finishedSchedule = ScheduleEntity(
+        id: 'schedule-6',
+        place: PlaceEntity(id: 'place-1', placeName: 'Office'),
+        scheduleName: 'Planning',
+        scheduleTime: (DateTime.now().add(const Duration(hours: 3))).toUtc(),
+        occurrenceOffsetSeconds: 0,
+        moveTime: const Duration(minutes: 30),
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: const Duration(minutes: 10),
+        scheduleNote: '',
+        doneStatus: ScheduleDoneStatus.normalEnd,
+        startedAt: DateTime.now().subtract(const Duration(hours: 1)),
+        finishedAt: DateTime.now(),
+      );
 
-    await pumpScheduleDetail(
-      tester,
-      customSchedule: finishedSchedule,
-      preparationTime: const Duration(minutes: 20),
-    );
+      await pumpScheduleDetail(
+        tester,
+        customSchedule: finishedSchedule,
+        preparationTime: const Duration(minutes: 20),
+      );
 
-    await openTrailingActions(tester);
+      await openTrailingActions(tester);
 
-    expect(getActionButtonCount(tester), 0);
-  });
+      expect(getActionButtonCount(tester), 1);
+    },
+  );
 }

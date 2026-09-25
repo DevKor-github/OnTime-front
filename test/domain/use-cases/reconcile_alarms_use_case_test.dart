@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
 import '../../helpers/isolated_alarm_owner.dart';
 import 'package:on_time_front/domain/entities/delivery_observation.dart';
@@ -1634,12 +1635,14 @@ ScheduleWithPreparationEntity scheduleWithAlarmAt({
   final scheduleTime = preparationStartTime.add(
     moveTime + spareTime + preparationTime,
   );
+  final civil = CivilTimeResolver.civilTimeAt(scheduleTime, timeZoneId);
   return ScheduleWithPreparationEntity(
     id: id,
     place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
     scheduleName: scheduleName ?? 'Schedule $id',
     timeZoneId: timeZoneId,
-    scheduleTime: scheduleTime,
+    scheduleTime: civil,
+    occurrenceOffsetSeconds: civil.timeZoneOffset.inSeconds,
     moveTime: moveTime,
     isChanged: false,
     isStarted: isStarted,

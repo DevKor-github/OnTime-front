@@ -13,6 +13,7 @@ class ScheduleDateTimeState extends Equatable {
     this.previousOverlapDuration,
     this.previousScheduleName,
     this.timeZoneId = 'UTC',
+    this.timeZoneExplicitlySelected = false,
     this.civilTimeResolved = false,
     this.occurrenceOffsetOptions = const [],
     this.selectedOccurrenceOffsetSeconds,
@@ -27,6 +28,7 @@ class ScheduleDateTimeState extends Equatable {
   final Duration? previousOverlapDuration;
   final String? previousScheduleName;
   final String timeZoneId;
+  final bool timeZoneExplicitlySelected;
   final bool civilTimeResolved;
   final List<int> occurrenceOffsetOptions;
   final int? selectedOccurrenceOffsetSeconds;
@@ -36,13 +38,14 @@ class ScheduleDateTimeState extends Equatable {
 
   bool get requiresOccurrenceChoice =>
       civilTimeResolved &&
-      occurrenceOffsetOptions.length > 1 &&
+      occurrenceOffsetOptions.isNotEmpty &&
       selectedOccurrenceOffsetSeconds == null;
 
   bool get hasAmbiguousCivilTime =>
       civilTimeResolved && occurrenceOffsetOptions.length > 1;
 
   bool get isValid =>
+      TimeZoneRules.contains(timeZoneId) &&
       Formz.validate([scheduleDate, scheduleTime]) &&
       (isRecurring ||
           (!isOverlapping &&
@@ -57,29 +60,27 @@ class ScheduleDateTimeState extends Equatable {
     }
     final selectedDate = scheduleDate.value!;
     final selectedTime = scheduleTime.value!;
-    return DateTime(
+    return DateTime.utc(
       selectedDate.year,
       selectedDate.month,
       selectedDate.day,
       selectedTime.hour,
       selectedTime.minute,
+      selectedTime.second,
+      selectedTime.millisecond,
+      selectedTime.microsecond,
     );
   }
 
-  bool get isPastScheduleTime {
-    final selectedDateTime = selectedScheduleDateTime;
-    if (selectedDateTime == null) {
-      return false;
-    }
+  bool get isPastScheduleTime => isPastScheduleTimeAt(DateTime.now());
+
+  bool isPastScheduleTimeAt(DateTime now) {
+    final selected = selectedScheduleDateTime;
     final offset = selectedOccurrenceOffsetSeconds;
-    if (offset == null) return selectedDateTime.isBefore(DateTime.now());
-    return DateTime.utc(
-      selectedDateTime.year,
-      selectedDateTime.month,
-      selectedDateTime.day,
-      selectedDateTime.hour,
-      selectedDateTime.minute,
-    ).subtract(Duration(seconds: offset)).isBefore(DateTime.now().toUtc());
+    if (selected == null || offset == null) return false;
+    return CivilDateTime.fromFields(
+      selected,
+    ).atOffset(offset).isBefore(now.toUtc());
   }
 
   /// Returns true if there's an overlap warning or error to display (for next schedule)
@@ -144,6 +145,7 @@ class ScheduleDateTimeState extends Equatable {
     bool clearOverlap = false,
     bool clearPreviousOverlap = false,
     String? timeZoneId,
+    bool? timeZoneExplicitlySelected,
     bool? civilTimeResolved,
     List<int>? occurrenceOffsetOptions,
     Object? selectedOccurrenceOffsetSeconds = _unset,
@@ -168,6 +170,8 @@ class ScheduleDateTimeState extends Equatable {
           ? null
           : (previousScheduleName ?? this.previousScheduleName),
       timeZoneId: timeZoneId ?? this.timeZoneId,
+      timeZoneExplicitlySelected:
+          timeZoneExplicitlySelected ?? this.timeZoneExplicitlySelected,
       civilTimeResolved: civilTimeResolved ?? this.civilTimeResolved,
       occurrenceOffsetOptions:
           occurrenceOffsetOptions ?? this.occurrenceOffsetOptions,
@@ -184,6 +188,7 @@ class ScheduleDateTimeState extends Equatable {
       scheduleDate: ScheduleDateInputModel.pure(state.scheduleTime),
       scheduleTime: ScheduleTimeInputModel.pure(state.scheduleTime),
       timeZoneId: state.timeZoneId,
+      timeZoneExplicitlySelected: state.timeZoneExplicitlySelected,
       selectedOccurrenceOffsetSeconds: state.occurrenceOffsetSeconds,
     );
   }
@@ -195,10 +200,11 @@ class ScheduleDateTimeState extends Equatable {
     isOverlapping,
     isRecurring,
     nextScheduleName ?? '',
-    nextPreparationStartTime ?? DateTime(0),
+    nextPreparationStartTime ?? DateTime.utc(0),
     previousOverlapDuration ?? const Duration(),
     previousScheduleName ?? '',
     timeZoneId,
+    timeZoneExplicitlySelected,
     civilTimeResolved,
     occurrenceOffsetOptions,
     selectedOccurrenceOffsetSeconds ?? 0,

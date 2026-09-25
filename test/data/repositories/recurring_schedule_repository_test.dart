@@ -223,9 +223,19 @@ void main() {
       final initial = await rows();
       await repository.updateOccurrence(
         initial[1],
-        initial[1].copyWith(scheduleName: 'personal'),
+        initial[1].copyWith(
+          scheduleName: 'personal',
+          place: const PlaceEntity(
+            id: 'draft-personal-place',
+            placeName: 'Personal place',
+          ),
+        ),
         _prep('personal prep'),
         preparationChanged: true,
+      );
+      final personalBefore = (await rows())[1];
+      final definitionBefore = await repository.getPreparation(
+        personalBefore.preparationDefinitionId!,
       );
       await repository.updateFollowing(
         initial.first,
@@ -239,6 +249,21 @@ void main() {
       final all = await rows();
       expect(all.map((s) => s.scheduleTime.hour), everyElement(11));
       expect(all.map((s) => s.scheduleName), ['shared', 'personal', 'shared']);
+      expect(all[1].place, personalBefore.place);
+      expect(
+        all[1].preparationDefinitionId,
+        personalBefore.preparationDefinitionId,
+      );
+      expect(
+        await repository.getPreparation(all[1].preparationDefinitionId!),
+        definitionBefore,
+      );
+      expect(
+        (await db.select(db.places).get()).any(
+          (p) => p.id == personalBefore.place.id,
+        ),
+        isTrue,
+      );
       expect(
         (await repository.getPreparation(
           all[1].preparationDefinitionId!,

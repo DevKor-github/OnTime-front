@@ -59,70 +59,85 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
         body: widget.child,
         bottomNavigationBar: SafeArea(
           top: false,
-          child: SizedBox(
-            height: 56,
-            child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => onDestinationSelected(0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.home_outlined, size: 26),
-                        Text(
-                          AppLocalizations.of(context)!.home,
-                          style: const TextStyle(fontSize: 11),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => onDestinationSelected(0),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.home_outlined, size: 26),
+                            Text(
+                              AppLocalizations.of(context)!.home,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => showModalBottomSheet(
-                      context: context,
-                      isDismissible: false,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => const ScheduleCreateScreen(),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.add_circle,
-                          color: colorScheme.primary,
-                          size: 30,
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => showModalBottomSheet(
+                        context: context,
+                        isDismissible: false,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const ScheduleCreateScreen(),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_circle,
+                              color: colorScheme.primary,
+                              size: 30,
+                            ),
+                            Text(
+                              AppLocalizations.of(context)!.addAppointment,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                          ],
                         ),
-                        Text(
-                          AppLocalizations.of(context)!.addAppointment,
-                          style: const TextStyle(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => onDestinationSelected(1),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.person_outline,
-                          color: colorScheme.primary,
-                          size: 26,
-                        ),
-                        Text(
-                          AppLocalizations.of(context)!.myPage,
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => onDestinationSelected(1),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.person_outline,
+                              color: colorScheme.primary,
+                              size: 26,
+                            ),
+                            Text(
+                              AppLocalizations.of(context)!.myPage,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

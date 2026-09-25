@@ -18,7 +18,7 @@ import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:permission_handler/permission_handler.dart'
     as permission_handler;
-import 'package:timezone/data/latest.dart' as tz_data;
+import '../time/time_zone_rules.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 enum AuthorizationStatus { authorized, denied, notDetermined, provisional }
@@ -584,7 +584,7 @@ class NotificationService {
 
   Future<void> _ensureTimezoneInitialized() async {
     if (_isTimezoneInitialized) return;
-    tz_data.initializeTimeZones();
+    TimeZoneRules.ensureInitialized();
     if (_isIOS) {
       try {
         final identifier = await _nativeAlarmChannel.invokeMethod<String>(

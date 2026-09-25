@@ -1,3 +1,4 @@
+import '../../../helpers/nearest_query_fixture.dart';
 import 'package:on_time_front/domain/entities/preparation_action_event_entity.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
@@ -304,7 +305,10 @@ class _Monthly extends Cubit<MonthlySchedulesState>
 class _Nearest implements GetNearestUpcomingScheduleUseCase {
   final subject = BehaviorSubject<ScheduleWithPreparationEntity?>.seeded(null);
   @override
-  Stream<ScheduleWithPreparationEntity?> call() => subject.stream;
+  Stream<NearestScheduleQuery> call({required NearestQueryKey key}) =>
+      subject.stream.map((value) => nearestQueryFixture(value, key));
+  @override
+  Future<ScheduleWithPreparationEntity?> readActive() async => null;
 }
 
 class _Session implements SchedulePreparationSessionUseCase {

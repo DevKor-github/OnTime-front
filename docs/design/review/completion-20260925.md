@@ -70,6 +70,12 @@ All commands below completed successfully on the final source state, including t
 | Fresh upstream read | `git fetch origin main` succeeded; `git rev-list --count HEAD..origin/main` returned 0 before the delivery commit. |
 
 The coverage percentage uses the repository's app-owned LCOV filter, excluding generated/localization/schema files; it is not a claim that every source line or device behavior was executed. Remote CI is a separate receipt on Draft PR #596 and must be read against its current head commit.
+
+### Reproducible golden environment
+
+The first remote run on Ubuntu, [36079080226](https://github.com/DevKor-github/OnTime-front/actions/runs/36079080226), passed 632 tests and failed 61 golden comparisons. Every reported failure was a pixel mismatch; there were no non-golden failures. The reviewed images were generated on macOS 26.5.1 with Flutter 3.44.4. Cross-platform font rendering is not guaranteed to match, as described in [Flutter's comparator documentation](https://api.flutter.dev/flutter/flutter_test/GoldenFileComparator-class.html).
+
+The full CI job now runs on the supported [macOS 26 arm64 runner](https://docs.github.com/en/actions/reference/runners/github-hosted-runners), with Flutter 3.44.4 retained and Homebrew SQLite/libsodium dependencies. It still executes every test and the unchanged exact-pixel comparator, without skipping tests, increasing tolerances or updating goldens in CI. Failure PNGs are uploaded for review. Generate and compare these iOS-first goldens on this macOS/Flutter environment; an OS/SDK rendering change requires explicit image review. The current PR check is the authoritative remote result.
 <!-- FINAL_VALIDATION_ROOT_END -->
 
 ## Physical-device release gate

@@ -13,7 +13,9 @@ on:
       - "hotfix/**"
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Real-font goldens are reviewed on macOS. Keep the rendering platform
+    # aligned with those baselines; cross-OS rasterization is not identical.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -22,7 +24,9 @@ jobs:
           channel: stable
           cache: true
       - name: install native test dependencies
-        run: sudo apt-get install sqlite3 libsqlite3-dev libsodium-dev
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+        run: brew install sqlite libsodium
       - name: Install packages
         run: flutter pub get
       - name: Check Flutter version
@@ -48,3 +52,10 @@ jobs:
           name: flutter-coverage-lcov
           path: coverage/lcov.info
           if-no-files-found: warn
+      - name: Upload golden failure images
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-golden-failures
+          path: test/**/failures/*.png
+          if-no-files-found: ignore

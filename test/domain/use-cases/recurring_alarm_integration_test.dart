@@ -1,3 +1,17 @@
+import '../../helpers/isolated_alarm_owner.dart';
+import 'dart:async';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
+import 'package:on_time_front/domain/repositories/alarm_repository.dart';
+import 'package:on_time_front/domain/use-cases/cancel_schedule_alarm_use_case.dart';
+import 'package:on_time_front/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart';
+import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
+import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
+import 'package:on_time_front/domain/use-cases/update_default_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
+import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
@@ -25,6 +39,10 @@ import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase database;
   late RecurringScheduleRepositoryImpl recurring;
@@ -45,6 +63,8 @@ void main() {
     native,
     _Notifications(),
     nowProvider: () => now,
+
+    operations: isolatedOwner,
   );
 
   Future<void> createSeries(
@@ -124,6 +144,155 @@ void main() {
     await preparations.dispose();
     await database.close();
   });
+
+  test(
+    'actual create/update entrypoints rerun after snapshot and retain nearest 60 without materialize loop',
+    () async {
+      await createSeries('morning', DateTime.utc(2030, 1, 2, 9));
+      final gate = LocalDataOperationGate();
+      final owner = AlarmOperationCoordinator(gate);
+      addTearDown(owner.dispose);
+      final blocked = _BlockingAlarmWindow(alarms)..block(1);
+      final notifications = _Notifications();
+      final useCase = ReconcileAlarmsUseCase.test(
+        blocked,
+        registry,
+        native,
+        notifications,
+        operations: owner,
+        nowProvider: () => now,
+        timeZoneProvider: () async => 'UTC',
+      );
+      final effects = ScheduleMutationAlarmEffectsCoordinator(
+        CancelScheduleAlarmUseCase(
+          registry,
+          native,
+          notifications,
+          operations: owner,
+        ),
+        useCase,
+      );
+      final first = useCase();
+      await blocked.entered[1]!.future;
+      final early = ScheduleEntity(
+        id: 'new-nearest',
+        place: const PlaceEntity(id: 'new-place', placeName: 'New'),
+        scheduleName: 'New',
+        scheduleTime: now.add(const Duration(hours: 4)),
+        timeZoneId: 'UTC',
+        occurrenceOffsetSeconds: 0,
+        moveTime: Duration.zero,
+        isChanged: false,
+        isStarted: false,
+        scheduleSpareTime: Duration.zero,
+        scheduleNote: '',
+      );
+      await CreateScheduleWithPlaceUseCase(schedules, effects)(early);
+      blocked.release[1]!.complete();
+      await first;
+      await owner.cleanup(() async {});
+      expect(
+        (await registry.loadAll()).map((record) => record.scheduleId),
+        contains('new-nearest'),
+      );
+      expect(await registry.loadAll(), hasLength(60));
+      await pumpEventQueue();
+      expect(blocked.calls, 2);
+
+      blocked.block(3);
+      final beforeUpdate = useCase();
+      await blocked.entered[3]!.future;
+      await UpdateScheduleUseCase(schedules, effects)(
+        early.copyWith(scheduleTime: now.add(const Duration(days: 100))),
+      );
+      blocked.release[3]!.complete();
+      await beforeUpdate;
+      await owner.cleanup(() async {});
+      expect(
+        (await registry.loadAll()).map((record) => record.scheduleId),
+        isNot(contains('new-nearest')),
+      );
+      expect(await registry.loadAll(), hasLength(60));
+      await pumpEventQueue();
+      expect(blocked.calls, 4);
+    },
+  );
+
+  test(
+    'actual default and custom preparation commits request latest delivery timing',
+    () async {
+      final gate = LocalDataOperationGate();
+      final owner = AlarmOperationCoordinator(gate);
+      addTearDown(owner.dispose);
+      final blocked = _BlockingAlarmWindow(alarms);
+      final useCase = ReconcileAlarmsUseCase.test(
+        blocked,
+        registry,
+        native,
+        _Notifications(),
+        operations: owner,
+        nowProvider: () => now,
+        timeZoneProvider: () async => 'UTC',
+      );
+      await schedules.createSchedule(
+        ScheduleEntity(
+          id: 'prepared',
+          place: const PlaceEntity(id: 'p', placeName: 'Place'),
+          scheduleName: 'Prepared',
+          scheduleTime: now.add(const Duration(hours: 5)),
+          timeZoneId: 'UTC',
+          occurrenceOffsetSeconds: 0,
+          moveTime: Duration.zero,
+          isChanged: false,
+          isStarted: false,
+          scheduleSpareTime: Duration.zero,
+          scheduleNote: '',
+        ),
+      );
+      await useCase();
+      var previous = (await registry.loadAll()).single.alarmTime;
+      final mutations = <(Future<void> Function(), int)>[
+        (
+          () => UpdateDefaultPreparationUseCase(preparations, useCase)(
+            _preparation(30),
+          ),
+          60,
+        ),
+        (
+          () => CreateCustomPreparationUseCase(preparations, useCase)(
+            _preparation(60),
+            'prepared',
+          ),
+          -30,
+        ),
+        (
+          () => UpdatePreparationByScheduleIdUseCase(preparations, useCase)(
+            _preparation(10),
+            'prepared',
+          ),
+          50,
+        ),
+      ];
+      for (final (mutate, deltaMinutes) in mutations) {
+        final pass = blocked.calls + 1;
+        blocked.block(pass);
+        final old = useCase();
+        await blocked.entered[pass]!.future;
+        await mutate();
+        blocked.release[pass]!.complete();
+        await old;
+        // Wait for the use case's accepted pass; do not inject a test request
+        // that could hide a missing post-commit integration.
+        await owner.cleanup(() async {});
+        expect((await registry.loadAll()).map((record) => record.scheduleId), [
+          'prepared',
+        ]);
+        final actual = (await registry.loadAll()).single.alarmTime;
+        expect(actual, previous.add(Duration(minutes: deltaMinutes)));
+        previous = actual;
+      }
+    },
+  );
 
   test(
     'two unbounded series share the nearest 60 alarms and survive reopening',
@@ -215,6 +384,16 @@ class _UnusedUser extends Fake implements UserRepository {}
 class _UnusedTimers extends Fake implements TimedPreparationRepository {}
 
 class _NativeAlarms extends Fake implements AlarmSchedulerService {
+  final pending = <String>{};
+  @override
+  Future<DeliveryObservation> observePendingNativeAlarms(
+    Iterable<String> ids,
+  ) async => DeliveryObservation(
+    source: DeliveryObservationSource.iosAlarmKit,
+    entries: pending
+        .map((id) => PendingDelivery(id: id, scheduleId: id))
+        .toList(),
+  );
   final scheduled = <ScheduledAlarmRecord>[];
   final canceled = <ScheduledAlarmRecord>[];
 
@@ -232,16 +411,66 @@ class _NativeAlarms extends Fake implements AlarmSchedulerService {
   @override
   Future<void> scheduleNativeAlarm(ScheduledAlarmRecord record) async {
     scheduled.add(record);
+    pending.add(record.scheduleId);
   }
 
   @override
   Future<void> cancelNativeAlarm(ScheduledAlarmRecord record) async {
     canceled.add(record);
+    pending.remove(record.scheduleId);
   }
 }
 
 class _Notifications extends Fake implements FallbackAlarmNotificationService {
   @override
+  Future<DeliveryObservation> observePending() async =>
+      const DeliveryObservation(
+        source: DeliveryObservationSource.iosNotificationCenter,
+        entries: [],
+      );
+  AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
+  int timingRequestCount = 0;
+
+  @override
+  Future<AlarmPermissionState> checkExactTimingPermission() async =>
+      timingPermission;
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    timingRequestCount++;
+    return timingPermission;
+  }
+
+  @override
   Future<AlarmPermissionState> checkPermission() async =>
       AlarmPermissionState.denied;
+}
+
+class _BlockingAlarmWindow implements AlarmRepository {
+  _BlockingAlarmWindow(this.delegate);
+  final AlarmRepository delegate;
+  int calls = 0;
+  final entered = <int, Completer<void>>{};
+  final release = <int, Completer<void>>{};
+  void block(int pass) {
+    entered[pass] = Completer<void>();
+    release[pass] = Completer<void>();
+  }
+
+  @override
+  Future<AlarmSettings> getAlarmSettings() => delegate.getAlarmSettings();
+  @override
+  Future<AlarmSettings> updateAlarmSettings({required bool alarmsEnabled}) =>
+      delegate.updateAlarmSettings(alarmsEnabled: alarmsEnabled);
+  @override
+  Future<List<ScheduleWithPreparationEntity>> getAlarmWindow(
+    DateTime start,
+    DateTime end,
+  ) async {
+    final pass = ++calls;
+    final result = await delegate.getAlarmWindow(start, end);
+    entered[pass]?.complete();
+    await release[pass]?.future;
+    return result;
+  }
 }

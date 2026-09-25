@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -79,9 +80,18 @@ class SpyCreateScheduleFormSubmissionUseCase
   Future<void> Function(ScheduleFormSubmission submission)? handler;
 
   @override
-  Future<void> call(ScheduleFormSubmission submission) async {
+  Future<ScheduleSaveReceipt> call(ScheduleFormSubmission submission) async {
     await handler?.call(submission);
+    return ScheduleSaveReceipt(
+      scheduleId: submission.schedule.id,
+      mutationId: submission.mutationId ?? 'test',
+      generation: 0,
+      changed: true,
+    );
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class SpyUpdateScheduleFormSubmissionUseCase
@@ -89,9 +99,18 @@ class SpyUpdateScheduleFormSubmissionUseCase
   Future<void> Function(ScheduleFormSubmission submission)? handler;
 
   @override
-  Future<void> call(ScheduleFormSubmission submission) async {
+  Future<ScheduleSaveReceipt> call(ScheduleFormSubmission submission) async {
     await handler?.call(submission);
+    return ScheduleSaveReceipt(
+      scheduleId: submission.schedule.id,
+      mutationId: submission.mutationId ?? 'test',
+      generation: 0,
+      changed: true,
+    );
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class StubLoadAdjacentScheduleWithPreparationUseCase

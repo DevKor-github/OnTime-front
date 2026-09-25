@@ -1,3 +1,4 @@
+import '../../helpers/noop_alarm_reconciliation.dart';
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -128,6 +129,8 @@ void main() {
       'fingerprint-1',
       null,
       const [],
+      false,
+      false,
     ]);
   });
 
@@ -193,15 +196,18 @@ void main() {
       final repository = _FakePreparationRepository();
       final preparation = _preparation('prep-1');
 
-      await CreateCustomPreparationUseCase(repository)(
-        preparation,
-        'schedule-1',
-      );
-      await UpdateDefaultPreparationUseCase(repository)(preparation);
-      await UpdatePreparationByScheduleIdUseCase(repository)(
-        preparation,
-        'schedule-2',
-      );
+      await CreateCustomPreparationUseCase(
+        repository,
+        NoopAlarmReconciliation(),
+      )(preparation, 'schedule-1');
+      await UpdateDefaultPreparationUseCase(
+        repository,
+        NoopAlarmReconciliation(),
+      )(preparation);
+      await UpdatePreparationByScheduleIdUseCase(
+        repository,
+        NoopAlarmReconciliation(),
+      )(preparation, 'schedule-2');
       await UpdateSpareTimeUseCase(repository)(const Duration(minutes: 20));
 
       expect(repository.customPreparationCalls, [(preparation, 'schedule-1')]);
@@ -378,7 +384,10 @@ class _FakeScheduleRepository implements ScheduleRepository {
   Future<void> finishSchedule(String scheduleId, int latenessTime) async {}
 
   @override
-  Future<void> startSchedule(String scheduleId) async {}
+  Future<DateTime> startSchedule(
+    String scheduleId, {
+    DateTime? startedAt,
+  }) async => startedAt ?? DateTime.utc(2026);
 
   @override
   Future<ScheduleEntity> getScheduleById(String id) async =>

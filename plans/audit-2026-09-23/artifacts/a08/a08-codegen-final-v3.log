@@ -1,0 +1,22 @@
+W These options have been removed and were ignored: --delete-conflicting-outputs
+  0s freezed on 504 inputs; lib/core/backup/backup_crypto.dart
+  0s freezed on 504 inputs: 1 skipped; lib/core/backup/backup_file_export_port.dart
+W SDK language version 3.12.0 is newer than `analyzer` language version 3.10.0. Run `flutter packages upgrade`.
+  5s freezed on 504 inputs: 3 skipped, 1 no-op; spent 5s analyzing; lib/core/backup/recurring_backup_data.dart
+  6s freezed on 504 inputs: 311 skipped, 22 no-op; spent 5s analyzing; lib/presentation/shared/router/route_arguments.dart
+  6s freezed on 504 inputs: 481 skipped, 23 no-op; spent 5s analyzing
+  0s json_serializable on 1008 inputs; lib/core/backup/backup_crypto.dart
+  1s json_serializable on 1008 inputs: 924 skipped, 84 no-op
+  0s drift_dev on 4032 inputs; lib/core/backup/backup_crypto.dart
+  0s drift_dev on 4032 inputs: 1023 skipped, 96 same; lib/data/daos/preparation_user_dao.freezed.dart
+  1s drift_dev on 4032 inputs: 3780 skipped, 175 same, 77 no-op
+  0s source_gen:combining_builder on 2016 inputs; lib/core/backup/backup_crypto.dart
+  0s source_gen:combining_builder on 2016 inputs: 2009 skipped, 7 same
+  0s mockito:mockBuilder on 1184 inputs; test/core/backup/backup_crypto_test.dart
+  0s mockito:mockBuilder on 1184 inputs: 1143 skipped, 41 no-op
+  0s injectable_generator:injectable_builder on 5216 inputs; lib/core/backup/backup_crypto.dart
+  0s injectable_generator:injectable_builder on 5216 inputs: 24 skipped, 1 same; lib/core/backup/backup_service.dart.types.temp.dart
+  0s injectable_generator:injectable_builder on 5216 inputs: 5132 skipped, 15 same, 69 no-op
+  0s injectable_generator:injectable_config_builder on 5216 inputs; lib/core/backup/backup_crypto.dart
+  0s injectable_generator:injectable_config_builder on 5216 inputs: 5193 skipped, 23 no-op
+  Built with build_runner/aot in 10s; wrote 197 outputs.

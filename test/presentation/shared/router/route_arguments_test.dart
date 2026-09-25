@@ -127,9 +127,7 @@ void main() {
 
       expect(capturedExtra, {
         'scheduleId': 'extra-id',
-        'scheduleFingerprint': 'fingerprint',
         'promptVariant': 'officialStart',
-        'alarmLaunchAction': 'startPreparation',
         'isFiveMinutesBefore': true,
       });
     });

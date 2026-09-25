@@ -52,7 +52,9 @@ final class ScheduleStarted extends ScheduleEvent {
 }
 
 final class SchedulePreparationStarted extends ScheduleEvent {
-  const SchedulePreparationStarted();
+  const SchedulePreparationStarted({this.receipt, this.isCurrent});
+  final Completer<PreparationStartReceipt?>? receipt;
+  final bool Function()? isCurrent;
 
   @override
   List<Object?> get props => [];
@@ -67,11 +69,17 @@ final class ScheduleTick extends ScheduleEvent {
   List<Object?> get props => [elapsed];
 }
 
+enum PreparationRefreshOrigin { periodic, resume, restore, manual }
+
 final class SchedulePreparationTimeRefreshRequested extends ScheduleEvent {
-  const SchedulePreparationTimeRefreshRequested();
+  const SchedulePreparationTimeRefreshRequested({
+    this.origin = PreparationRefreshOrigin.manual,
+  });
+
+  final PreparationRefreshOrigin origin;
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [origin];
 }
 
 final class ScheduleStepSkipped extends ScheduleEvent {
@@ -85,4 +93,17 @@ final class ScheduleFinished extends ScheduleEvent {
 
   @override
   List<Object?> get props => [latenessTime];
+}
+
+final class _NotificationPromptPresented extends ScheduleEvent {
+  const _NotificationPromptPresented(this.schedule, this.owner, this.isCurrent);
+  final ScheduleWithPreparationEntity schedule;
+  final Object owner;
+  final bool Function() isCurrent;
+  @override
+  List<Object?> get props => [schedule, owner];
+}
+
+final class SchedulePreparationRecoveryRequested extends ScheduleEvent {
+  const SchedulePreparationRecoveryRequested();
 }

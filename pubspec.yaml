@@ -46,6 +46,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   equatable: ^2.0.5
   collection: ^1.18.0
+  crypto: ^3.0.7
   uuid: ^4.5.1
   flutter_svg: ^2.0.14
 
@@ -77,8 +78,12 @@ dependencies:
 
 
 dev_dependencies:
+  sqlite3: ^2.9.4
   flutter_test:
     sdk: flutter
+  # Exercise the locked iOS picker contract without replacing its UTI logic.
+  file_selector_ios: 0.5.3+6
+  file_selector_platform_interface: 2.7.0
 
   
   drift_dev: ^2.31.0

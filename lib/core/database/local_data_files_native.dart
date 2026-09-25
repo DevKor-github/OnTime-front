@@ -32,5 +32,11 @@ Future<void> _deleteSqliteFamily(String path) async {
   for (final suffix in const ['', '-wal', '-shm', '-journal']) {
     final file = File('$path$suffix');
     if (await file.exists()) await file.delete();
+    if (await file.exists()) {
+      throw FileSystemException(
+        'Local database removal is unconfirmed',
+        file.path,
+      );
+    }
   }
 }

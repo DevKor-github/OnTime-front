@@ -1,3 +1,4 @@
+import 'package:on_time_front/core/database/local_reset_protocol.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -176,7 +177,7 @@ void main() {
   testWidgets(
     'recovery confirms before deleting and prevents duplicate resets',
     (tester) async {
-      final pending = Completer<void>();
+      final pending = Completer<LocalResetResult>();
       var resets = 0;
       var completed = false;
       await _pump(
@@ -207,7 +208,14 @@ void main() {
         isNull,
       );
       await captureRefresh(tester, 'recovery-busy');
-      pending.complete();
+      pending.complete(
+        const LocalResetResult(
+          intentRecorded: true,
+          completed: {},
+          isComplete: true,
+          recoveryRequired: false,
+        ),
+      );
       await tester.pump();
       expect(completed, isTrue);
     },
@@ -230,6 +238,29 @@ void main() {
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('초기화하지 못했습니다. 다시 시도해 주세요.'), 200);
     expect(find.text('초기화하지 못했습니다. 다시 시도해 주세요.'), findsOneWidget);
+  });
+
+  testWidgets('partial reset opens recovery instead of reporting completion', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      LocalDataRecoveryScreen(
+        onRetry: () {},
+        reset: () async =>
+            const LocalResetResult(intentRecorded: true, completed: {}),
+        onResetComplete: () => fail('Partial reset is not completion'),
+      ),
+    );
+    await tester.tap(find.text('모든 로컬 데이터 초기화'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('모두 삭제'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('초기화가 끝나지 않았습니다. 확인되지 않은 정리 단계만 다시 시도합니다.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('privacy keeps all six policy sections scrollable', (

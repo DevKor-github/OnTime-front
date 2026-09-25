@@ -1,4 +1,9 @@
+import 'package:on_time_front/domain/entities/schedule_start_rejected.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/core/logging/app_logger.dart';
+import 'package:on_time_front/domain/entities/schedule_not_found.dart';
 import 'dart:async';
+import 'package:on_time_front/domain/entities/preparation_snapshot_validation.dart';
 
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/entities/early_start_session_entity.dart';
@@ -52,8 +57,11 @@ class SchedulePreparationSessionUseCase {
     this._timedPreparationRepository,
     this._earlyStartSessionRepository,
     this._cancelScheduleAlarmUseCase,
-    this._reconcileAlarmsUseCase,
-  );
+    this._reconcileAlarmsUseCase, {
+    @ignoreParam AlarmOperationCoordinator? operations,
+  }) : _operations = operations ?? AlarmOperationCoordinator.shared {
+    _operations.addListener(_discardOldGenerations);
+  }
 
   final ScheduleRepository _scheduleRepository;
   final PreparationRepository _preparationRepository;
@@ -61,29 +69,173 @@ class SchedulePreparationSessionUseCase {
   final EarlyStartSessionRepository _earlyStartSessionRepository;
   final CancelScheduleAlarmUseCase _cancelScheduleAlarmUseCase;
   final ReconcileAlarmsUseCase _reconcileAlarmsUseCase;
-  final Set<String> _startedScheduleIds = {};
+  final AlarmOperationCoordinator _operations;
+  final _starts = <(int, String), Future<void>>{};
+  final _runs = <(int, String), _StartRun>{};
+  final _projections = <(int, String), TimedPreparationSnapshotEntity>{};
+  final _epochs = <(int, String), int>{};
 
-  Future<void> startEarlySession(
+  @disposeMethod
+  void dispose() {
+    _operations.removeListener(_discardOldGenerations);
+    _starts.clear();
+    _runs.clear();
+    _projections.clear();
+    _epochs.clear();
+  }
+
+  void _discardOldGenerations() {
+    final generation = _operations.generation;
+    // Queued futures keep their own completion/lease; dropping lookup entries
+    // never cancels their native work or releases the shared operation owner.
+    _starts.removeWhere((key, _) => key.$1 != generation);
+    _runs.removeWhere((key, _) => key.$1 != generation);
+    _projections.removeWhere((key, _) => key.$1 != generation);
+    _epochs.removeWhere((key, _) => key.$1 != generation);
+  }
+
+  Future<PreparationStartReceipt> startEarlySession(
     ScheduleWithPreparationEntity schedule, {
     required DateTime startedAt,
-  }) async {
-    await _earlyStartSessionRepository.markStarted(
-      scheduleId: schedule.id,
-      startedAt: startedAt,
+    bool Function()? isCurrent,
+  }) {
+    final lease = _operations.capture();
+    final key = (lease.generation, schedule.id);
+    if (_runs[key] != null &&
+        _runs[key]!.fingerprint != schedule.cacheFingerprint) {
+      _runs.remove(key);
+      _projections.remove(key);
+    }
+    final run = _runs.putIfAbsent(
+      key,
+      () => _StartRun(startedAt, schedule.cacheFingerprint),
     );
-    await startSchedulePreparation(schedule.id);
-    await _cancelScheduleAlarmUseCase(schedule.id);
-    await saveTimedPreparationSnapshot(
-      schedule,
-      savedAt: startedAt,
-      startedAt: startedAt,
-      actionEvents: const [],
+    if (run.flight != null) return run.flight!;
+    final future = _startEarly(schedule, run, lease, isCurrent);
+    run.flight = future;
+    future.then<void>(
+      (_) {
+        run.flight = null;
+      },
+      onError: (Object _, StackTrace __) {
+        run.flight = null;
+      },
+    );
+    return future;
+  }
+
+  Future<PreparationStartReceipt> _startEarly(
+    ScheduleWithPreparationEntity schedule,
+    _StartRun run,
+    AlarmOperationLease lease,
+    bool Function()? isCurrent,
+  ) async {
+    final key = (lease.generation, schedule.id);
+    bool current() =>
+        lease.isCurrent &&
+        identical(_runs[key], run) &&
+        (isCurrent?.call() ?? true);
+    if (!current()) throw const AlarmOperationInvalidated();
+    await _operations.run(lease, () async {
+      if (!current()) throw const AlarmOperationInvalidated();
+      if (!run.initialized) {
+        final stored = await _timedPreparationRepository
+            .getTimedPreparationSnapshot(schedule.id);
+        if (!current()) throw const AlarmOperationInvalidated();
+        final validated = stored == null
+            ? null
+            : validatePreparationSnapshot(stored, schedule);
+        // A view owner is not a Preparation Run identity. Only a validated
+        // active snapshot resumes a previous run; DB startedAt alone never does.
+        if (validated != null &&
+            !validated.requiresConfirmation &&
+            validated.startedAt != null) {
+          run.startedAt = validated.startedAt!;
+          _projections[key] = validated;
+        }
+        run.initialized = true;
+      }
+      if (!run.committed) {
+        run.durableStartedAt = await _scheduleRepository.startSchedule(
+          schedule.id,
+          startedAt: run.startedAt,
+        );
+        run.committed = true;
+      } else {
+        final existing = await _scheduleRepository.getScheduleById(schedule.id);
+        if (_isEnded(existing.doneStatus)) {
+          throw ScheduleStartRejected(schedule.id);
+        }
+      }
+    });
+    if (!current()) throw const AlarmOperationInvalidated();
+    var partial = false;
+    try {
+      await _operations.run(lease, () async {
+        if (!current()) throw const AlarmOperationInvalidated();
+        await _earlyStartSessionRepository.markStarted(
+          scheduleId: schedule.id,
+          startedAt: run.startedAt,
+        );
+      });
+    } on AlarmOperationInvalidated {
+      rethrow;
+    } catch (_) {
+      partial = true;
+    }
+    if (!current()) throw const AlarmOperationInvalidated();
+    try {
+      // A retry uses the latest projection, never the initial empty event list.
+      if (!_projections.containsKey(key)) {
+        _projections[key] = TimedPreparationSnapshotEntity(
+          preparation: schedule.preparation,
+          savedAt: run.startedAt,
+          scheduleFingerprint: schedule.cacheFingerprint,
+          startedAt: run.startedAt,
+        );
+      }
+      await _persistProjection(schedule.id, lease, isCurrent: current);
+    } on AlarmOperationInvalidated {
+      rethrow;
+    } catch (_) {
+      partial = true;
+    }
+    if (!current()) throw const AlarmOperationInvalidated();
+    try {
+      await _cancelScheduleAlarmUseCase(schedule.id);
+    } on AlarmOperationInvalidated {
+      rethrow;
+    } catch (_) {
+      partial = true;
+    }
+    if (!current()) throw const AlarmOperationInvalidated();
+    requestAlarmReconciliation(_reconcileAlarmsUseCase);
+    return PreparationStartReceipt(
+      startedAt: run.startedAt,
+      durableStartedAt: run.durableStartedAt,
+      actionEvents: _projections[key]?.actionEvents ?? const [],
+      hasPendingRecovery: partial,
     );
   }
 
-  Future<void> startSchedulePreparation(String scheduleId) async {
-    if (!_startedScheduleIds.add(scheduleId)) return;
-    await _scheduleRepository.startSchedule(scheduleId);
+  Future<void> startSchedulePreparation(String scheduleId) {
+    final lease = _operations.capture();
+    final key = (lease.generation, scheduleId);
+    final pending = _starts[key];
+    if (pending != null) return pending;
+    final future = _operations.run(lease, () async {
+      await _scheduleRepository.startSchedule(scheduleId);
+    });
+    _starts[key] = future;
+    future.then<void>(
+      (_) {
+        if (identical(_starts[key], future)) _starts.remove(key);
+      },
+      onError: (Object _, StackTrace __) {
+        if (identical(_starts[key], future)) _starts.remove(key);
+      },
+    );
+    return future;
   }
 
   Future<bool> hasEarlyStartSession(String scheduleId) async {
@@ -99,6 +251,7 @@ class SchedulePreparationSessionUseCase {
     DateTime? savedAt,
     DateTime? startedAt,
     List<PreparationActionEventEntity> actionEvents = const [],
+    bool persist = true,
   }) {
     final snapshot = TimedPreparationSnapshotEntity(
       preparation: schedule.preparation,
@@ -107,23 +260,59 @@ class SchedulePreparationSessionUseCase {
       startedAt: startedAt,
       actionEvents: actionEvents,
     );
-    return _timedPreparationRepository.saveTimedPreparationSnapshot(
-      schedule.id,
-      snapshot,
-    );
+    final lease = _operations.capture();
+    _projections[(lease.generation, schedule.id)] = snapshot;
+    return persist
+        ? _persistProjection(schedule.id, lease)
+        : Future<void>.value();
+  }
+
+  Future<void> _persistProjection(
+    String scheduleId,
+    AlarmOperationLease lease, {
+    bool Function()? isCurrent,
+  }) {
+    final key = (lease.generation, scheduleId);
+    final epoch = _epochs[key] ?? 0;
+    return _operations.run(lease, () async {
+      if ((_epochs[key] ?? 0) != epoch || !(isCurrent?.call() ?? true)) return;
+      final latest = _projections[key];
+      if (latest != null) {
+        await _timedPreparationRepository.saveTimedPreparationSnapshot(
+          scheduleId,
+          latest,
+        );
+      }
+    });
   }
 
   Future<ScheduleWithPreparationEntity> restoreTimedPreparationIfValid(
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
     RestoredSessionCallback? onRestoredSession,
+    void Function()? onInvalidated,
   }) async {
-    final snapshot = await _timedPreparationRepository
+    final lease = _operations.capture();
+    final stored = await _timedPreparationRepository
         .getTimedPreparationSnapshot(schedule.id);
-    if (snapshot == null) return schedule;
-    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint &&
-        !_canRestoreAcrossFingerprintMismatch(snapshot, schedule)) {
+    lease.check();
+    if (stored == null) return schedule;
+    final snapshot = validatePreparationSnapshot(stored, schedule);
+    if (snapshot == null || snapshot.requiresConfirmation) {
       await clearPersistedState(schedule.id);
+      await _operations.run(
+        lease,
+        () => _timedPreparationRepository.saveTimedPreparationSnapshot(
+          schedule.id,
+          TimedPreparationSnapshotEntity(
+            preparation: schedule.preparation,
+            savedAt: now,
+            scheduleFingerprint: schedule.cacheFingerprint,
+            requiresConfirmation: true,
+          ),
+        ),
+      );
+      onInvalidated?.call();
       return schedule;
     }
 
@@ -147,62 +336,129 @@ class SchedulePreparationSessionUseCase {
     );
   }
 
-  Future<void> clearPersistedState(String scheduleId) async {
-    await _timedPreparationRepository.clearTimedPreparation(scheduleId);
-    await _earlyStartSessionRepository.clear(scheduleId);
-    _startedScheduleIds.remove(scheduleId);
+  Future<void> clearPersistedState(String scheduleId) {
+    final lease = _operations.capture();
+    final key = (lease.generation, scheduleId);
+    _runs.remove(key);
+    _projections.remove(key);
+    _epochs[key] = (_epochs[key] ?? 0) + 1;
+    return _operations.run(lease, () async {
+      await _timedPreparationRepository.clearTimedPreparation(scheduleId);
+      await _earlyStartSessionRepository.clear(scheduleId);
+    });
   }
 
   Future<void> finishSchedulePreparation(
     String scheduleId, {
     required int latenessTime,
   }) async {
-    await startSchedulePreparation(scheduleId);
-    await _scheduleRepository.finishSchedule(scheduleId, latenessTime);
-    await _cancelScheduleAlarmUseCase(scheduleId);
+    final lease = _operations.capture();
+    final key = (lease.generation, scheduleId);
+    _runs.remove(key);
+    _projections.remove(key);
+    _epochs[key] = (_epochs[key] ?? 0) + 1;
+    await _operations.run(lease, () async {
+      try {
+        await _scheduleRepository.startSchedule(scheduleId);
+      } on ScheduleStartRejected {
+        /* Already finished is idempotent. */
+      }
+      await _scheduleRepository.finishSchedule(scheduleId, latenessTime);
+    });
+    lease.check();
+    requestAlarmReconciliation(_reconcileAlarmsUseCase);
+    if (!await _cancelDelivery(scheduleId)) return;
     await clearPersistedState(scheduleId);
-    unawaited(_reconcileAlarmsUseCase());
   }
 
   Future<SchedulePreparationPromptResult> resolvePromptedSchedule({
     required String scheduleId,
     required bool startPreparation,
     String? scheduleFingerprint,
+    bool Function()? isCurrent,
   }) async {
+    bool current() => isCurrent?.call() ?? true;
     try {
       final schedule = await _scheduleRepository.getScheduleById(scheduleId);
-      if (_isEnded(schedule.doneStatus)) {
-        await _cancelScheduleAlarmUseCase(scheduleId);
-        return const SchedulePreparationPromptResult.rejected();
-      }
-
-      final preparationFuture = _preparationRepository.preparationStream
-          .map((preparations) => preparations[scheduleId])
-          .where((preparation) => preparation != null)
-          .cast<PreparationEntity>()
-          .first;
-      await _preparationRepository.getPreparationByScheduleId(scheduleId);
-      final preparation = await preparationFuture;
-      final scheduleWithPreparation =
-          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-            schedule,
-            PreparationWithTimeEntity.fromPreparation(preparation),
-          );
-
-      if (scheduleFingerprint != null &&
-          scheduleFingerprint != scheduleWithPreparation.cacheFingerprint &&
-          !startPreparation) {
-        await _cancelScheduleAlarmUseCase(scheduleId);
-        return const SchedulePreparationPromptResult.rejected();
-      }
-
-      return SchedulePreparationPromptResult.ready(scheduleWithPreparation);
-    } catch (_) {
-      if (startPreparation) {
+      if (!current()) {
         return const SchedulePreparationPromptResult.unavailable();
       }
+      if (_isEnded(schedule.doneStatus)) {
+        if (isCurrent == null && !await _cancelDelivery(scheduleId)) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
+        return const SchedulePreparationPromptResult.rejected();
+      }
+      // Subscribe first, but retain only a finite snapshot of the loaded map.
+      // No uncancelled firstWhere waiter survives a failed preparation lookup.
+      PreparationEntity? preparation;
+      Object? streamError;
+      final firstSnapshot = Completer<void>();
+      final subscription = _preparationRepository.preparationStream.listen(
+        (preparations) {
+          preparation = preparations[scheduleId];
+          if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+        },
+        onError: (Object error, StackTrace stack) {
+          streamError = error;
+          if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+        },
+        onDone: () {
+          if (!firstSnapshot.isCompleted) firstSnapshot.complete();
+        },
+      );
+      try {
+        await _preparationRepository.getPreparationByScheduleId(scheduleId);
+        if (!current()) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
+        // The repository publishes the loaded map before completing the load.
+        // Wait for stream delivery, not an arbitrary timer or cached firstWhere.
+        await firstSnapshot.future;
+        if (!current() || streamError != null) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
+      } finally {
+        await subscription.cancel();
+      }
+      if (!current() || preparation == null) {
+        return const SchedulePreparationPromptResult.unavailable();
+      }
+      final combined =
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            schedule,
+            PreparationWithTimeEntity.fromPreparation(preparation!),
+          );
+      if (scheduleFingerprint != null &&
+          scheduleFingerprint != combined.cacheFingerprint &&
+          !startPreparation) {
+        if (isCurrent == null && !await _cancelDelivery(scheduleId)) {
+          return const SchedulePreparationPromptResult.unavailable();
+        }
+        return const SchedulePreparationPromptResult.rejected();
+      }
+      return SchedulePreparationPromptResult.ready(combined);
+    } on ScheduleNotFound {
+      return current()
+          ? const SchedulePreparationPromptResult.rejected()
+          : const SchedulePreparationPromptResult.unavailable();
+    } catch (_) {
+      return const SchedulePreparationPromptResult.unavailable();
+    }
+  }
+
+  Future<bool> _cancelDelivery(String scheduleId) async {
+    try {
       await _cancelScheduleAlarmUseCase(scheduleId);
-      return const SchedulePreparationPromptResult.rejected();
+      return true;
+    } on AlarmOperationInvalidated {
+      // The old DB action must not write/clear transient state in a new store.
+      return false;
+    } catch (error) {
+      AppLogger.debug(
+        '[PreparationSession] delivery cleanup incomplete errorType=${error.runtimeType}',
+      );
+      return true; // Durable start/finish succeeded; ownership remains for retry.
     }
   }
 
@@ -297,41 +553,27 @@ class SchedulePreparationSessionUseCase {
       ],
     );
   }
+}
 
-  bool _canRestoreAcrossFingerprintMismatch(
-    TimedPreparationSnapshotEntity snapshot,
-    ScheduleWithPreparationEntity schedule,
-  ) {
-    return _scheduleTimingFingerprintPrefix(snapshot.scheduleFingerprint) ==
-            _scheduleTimingFingerprintPrefix(schedule.cacheFingerprint) &&
-        _hasSamePreparationShape(snapshot.preparation, schedule.preparation);
-  }
+class PreparationStartReceipt {
+  const PreparationStartReceipt({
+    required this.startedAt,
+    this.durableStartedAt,
+    this.actionEvents = const [],
+    this.hasPendingRecovery = false,
+  });
+  final DateTime? durableStartedAt;
+  final List<PreparationActionEventEntity> actionEvents;
+  final DateTime startedAt;
+  final bool hasPendingRecovery;
+}
 
-  String _scheduleTimingFingerprintPrefix(String fingerprint) {
-    final parts = fingerprint.split('|');
-    if (parts.length < 4) {
-      return fingerprint;
-    }
-    return '${parts[0]}|${parts[1]}|${parts[2]}|';
-  }
-
-  bool _hasSamePreparationShape(
-    PreparationWithTimeEntity left,
-    PreparationWithTimeEntity right,
-  ) {
-    final leftSteps = left.preparationStepList;
-    final rightSteps = right.preparationStepList;
-    if (leftSteps.length != rightSteps.length) {
-      return false;
-    }
-    for (var index = 0; index < leftSteps.length; index++) {
-      final leftStep = leftSteps[index];
-      final rightStep = rightSteps[index];
-      if (leftStep.preparationName != rightStep.preparationName ||
-          leftStep.preparationTime != rightStep.preparationTime) {
-        return false;
-      }
-    }
-    return true;
-  }
+class _StartRun {
+  _StartRun(this.startedAt, this.fingerprint);
+  final String fingerprint;
+  DateTime startedAt;
+  DateTime? durableStartedAt;
+  bool initialized = false;
+  bool committed = false;
+  Future<PreparationStartReceipt>? flight;
 }

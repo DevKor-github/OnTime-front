@@ -1,0 +1,14 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_restore_stale_contract_test.dart
+00:00 +0: preview followed by a durable edit never overwrites that edit
+00:00 +0 -1: preview followed by a durable edit never overwrites that edit [E]
+  Expected: <17>
+    Actual: <0>
+
+  package:matcher                                                expect
+  package:flutter_test/src/widget_tester.dart 473:18             expect
+  test/core/backup/backup_restore_stale_contract_test.dart 31:5  main.<fn>
+
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_restore_stale_contract_test.dart: preview followed by a durable edit never overwrites that edit

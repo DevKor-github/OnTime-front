@@ -1,3 +1,10 @@
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
+import 'package:on_time_front/presentation/shared/components/step_progress.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:on_time_front/data/repositories/schedule_aggregate_repository_impl.dart';
+import 'package:on_time_front/domain/use-cases/schedule_save_workflow.dart';
 import '../../helpers/refresh_capture.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,9 +33,7 @@ import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:on_time_front/domain/repositories/user_repository.dart';
-import 'package:on_time_front/domain/use-cases/create_custom_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/create_schedule_form_submission_use_case.dart';
-import 'package:on_time_front/domain/use-cases/create_schedule_with_place_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/get_schedule_by_id_use_case.dart';
@@ -36,9 +41,7 @@ import 'package:on_time_front/domain/use-cases/load_preparation_by_schedule_id_u
 import 'package:on_time_front/domain/use-cases/load_schedule_form_draft_use_case.dart';
 import 'package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart';
 import 'package:on_time_front/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart';
-import 'package:on_time_front/domain/use-cases/update_preparation_by_schedule_id_use_case.dart';
 import 'package:on_time_front/domain/use-cases/update_schedule_form_submission_use_case.dart';
-import 'package:on_time_front/domain/use-cases/update_schedule_use_case.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 
 void main() {
@@ -130,6 +133,12 @@ void main() {
     );
     alarms = _AlarmEffects();
     final useCase = RecurringSchedulesUseCase(recurring, schedules, alarms);
+    final aggregate = ScheduleAggregateRepositoryImpl(
+      db,
+      recurring,
+      now: () => now,
+    );
+    final workflow = ScheduleSaveWorkflow(aggregate, alarms);
     var nextId = 0;
     bloc = ScheduleFormBloc(
       LoadScheduleFormDraftUseCase.withOverrides(
@@ -137,20 +146,14 @@ void main() {
         GetPreparationByScheduleIdUseCase(preparations),
         GetDefaultPreparationUseCase(preparations),
         GetScheduleByIdUseCase(schedules),
+        aggregate: aggregate,
         now: () => now,
         newId: () => 'new-${nextId++}',
         timeZoneId: () async => 'UTC',
       ),
-      CreateScheduleFormSubmissionUseCase(
-        CreateScheduleWithPlaceUseCase(schedules, alarms),
-        CreateCustomPreparationUseCase(preparations),
-        recurringSchedules: useCase,
-      ),
-      UpdateScheduleFormSubmissionUseCase(
-        UpdateScheduleUseCase(schedules, alarms),
-        UpdatePreparationByScheduleIdUseCase(preparations),
-        recurringSchedules: useCase,
-      ),
+      CreateScheduleFormSubmissionUseCase(workflow),
+      UpdateScheduleFormSubmissionUseCase(workflow),
+      aggregate: aggregate,
       recurringSchedules: useCase,
     );
   });
@@ -407,6 +410,293 @@ void main() {
       expect(alarms.operations, [ScheduleMutationAlarmOperation.created]);
     },
   );
+  for (final language in ['ko', 'en']) {
+    testWidgets('ordinary save rollback and delivery-only retry $language', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(430, 932);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.runAsync(draft);
+      await tester.runAsync(
+        () => event(
+          const ScheduleFormRecurringChanged(null),
+          (s) => s.recurrenceRule == null,
+        ),
+      );
+      final byDate = GetSchedulesByDateUseCase(schedules);
+      getIt.registerFactoryParam<ScheduleDateTimeCubit, ScheduleFormBloc, void>(
+        (form, _) => ScheduleDateTimeCubit(
+          form,
+          LoadAdjacentScheduleWithPreparationUseCase(
+            LoadSchedulesByDateUseCase(schedules),
+            byDate,
+            LoadPreparationByScheduleIdUseCase(preparations),
+          ),
+          GetAdjacentSchedulesWithPreparationUseCase(
+            byDate,
+            GetPreparationByScheduleIdUseCase(preparations),
+          ),
+        ),
+      );
+      addTearDown(getIt.reset);
+      bool? saved;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: themeData,
+          locale: Locale(language),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () async {
+                  saved = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => Scaffold(
+                        body: BlocProvider.value(
+                          value: bloc,
+                          child: ScheduleMultiPageForm(
+                            onSaved: () =>
+                                bloc.add(const ScheduleFormCreated()),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      for (var page = 0; page < 3; page++) {
+        for (
+          var attempt = 0;
+          attempt < 30 &&
+              (tester
+                          .widget<ScreenActions>(find.byType(ScreenActions))
+                          .onAction ==
+                      null ||
+                  !bloc.state.isValid);
+          attempt++
+        ) {
+          await tester.runAsync(() => db.customSelect('SELECT 1').get());
+          await tester.pump();
+        }
+        expect(
+          bloc.state.isValid,
+          isTrue,
+          reason: 'Page $page must be valid before tapping Next',
+        );
+        await tester.pump();
+        expect(
+          tester.widget<ScreenActions>(find.byType(ScreenActions)).onAction,
+          isNotNull,
+        );
+        await tester.tap(find.text(language == 'ko' ? '다음' : 'Next'));
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<StepProgress>(find.byType(StepProgress)).currentStep,
+          page + 1,
+          reason: 'Next should advance actual form page $page',
+        );
+      }
+      final before = await tester.runAsync(
+        () async => (await db.select(db.users).getSingle()).dataRevision,
+      );
+      await tester.runAsync(
+        () => db.customStatement(
+          "CREATE TRIGGER fail_save BEFORE UPDATE OF data_revision ON users BEGIN SELECT RAISE(ABORT,'injected save fault'); END",
+        ),
+      );
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pump();
+      final failed = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.failure,
+      );
+      await tester.tap(find.text(language == 'ko' ? '저장' : 'Save'));
+      await tester.runAsync(() => failed);
+      await tester.pumpAndSettle();
+      expect(
+        await tester.runAsync(() => db.select(db.schedules).get()),
+        isEmpty,
+      );
+      expect(bloc.state.scheduleName, '출근');
+      expect(saved, isNull);
+      await captureA08(tester, '$language-rollback');
+      await tester.runAsync(() => db.customStatement('DROP TRIGGER fail_save'));
+      alarms.deliveryComplete = false;
+      final pending = bloc.stream.firstWhere(
+        (s) =>
+            s.submissionStatus == ScheduleFormSubmissionStatus.deliveryPending,
+      );
+      await tester.tap(
+        find.text(language == 'ko' ? '다시 저장하기' : 'Retry saving'),
+      );
+      await tester.runAsync(() => pending);
+      await tester.pumpAndSettle();
+      expect(
+        await tester.runAsync(() => db.select(db.schedules).get()),
+        hasLength(1),
+      );
+      expect(
+        await tester.runAsync(
+          () async => (await db.select(db.users).getSingle()).dataRevision,
+        ),
+        before! + 1,
+      );
+      expect(saved, isNull);
+      await captureA08(tester, '$language-delivery-pending');
+      alarms.deliveryComplete = true;
+      final done = bloc.stream.firstWhere(
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
+      );
+      final l = AppLocalizations.of(tester.element(find.byType(AlertDialog)))!;
+      await tester.tap(find.text(l.dataRetry));
+      await tester.runAsync(() => done);
+      await tester.pumpAndSettle();
+      expect(saved, isTrue);
+      expect(
+        await tester.runAsync(() => db.select(db.schedules).get()),
+        hasLength(1),
+      );
+      expect(
+        await tester.runAsync(
+          () async => (await db.select(db.users).getSingle()).dataRevision,
+        ),
+        before + 1,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  for (final modal in ['review', 'receipt']) {
+    testWidgets('late $modal answer cannot submit or close replacement draft', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(430, 932);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.runAsync(draft);
+      final byDate = GetSchedulesByDateUseCase(schedules);
+      getIt.registerFactoryParam<ScheduleDateTimeCubit, ScheduleFormBloc, void>(
+        (form, _) => ScheduleDateTimeCubit(
+          form,
+          LoadAdjacentScheduleWithPreparationUseCase(
+            LoadSchedulesByDateUseCase(schedules),
+            byDate,
+            LoadPreparationByScheduleIdUseCase(preparations),
+          ),
+          GetAdjacentSchedulesWithPreparationUseCase(
+            byDate,
+            GetPreparationByScheduleIdUseCase(preparations),
+          ),
+        ),
+      );
+      addTearDown(getIt.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: themeData,
+          locale: const Locale('ko'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: BlocProvider.value(
+              value: bloc,
+              child: ScheduleMultiPageForm(
+                onSaved: () => bloc.add(const ScheduleFormCreated()),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      if (modal == 'receipt') {
+        await tester.runAsync(
+          () => event(
+            const ScheduleFormRecurringChanged(null),
+            (s) => s.recurrenceRule == null,
+          ),
+        );
+        alarms.deliveryComplete = false;
+      }
+      await tester.runAsync(
+        () => event(
+          const ScheduleFormCreated(),
+          (s) =>
+              s.submissionStatus ==
+              (modal == 'review'
+                  ? ScheduleFormSubmissionStatus.review
+                  : ScheduleFormSubmissionStatus.deliveryPending),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final previousOwner = bloc.formOwner;
+      await tester.runAsync(draft);
+      await tester.pump();
+      final currentId = bloc.state.id;
+      expect(identical(previousOwner, bloc.formOwner), isFalse);
+      final label = modal == 'review'
+          ? '저장하기'
+          : AppLocalizations.of(
+              tester.element(find.byType(AlertDialog)),
+            )!.dataRetry;
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      await tester.runAsync(() => db.customSelect('SELECT 1').get());
+      await tester.pump();
+      expect(bloc.state.id, currentId);
+      expect(bloc.state.submissionStatus, ScheduleFormSubmissionStatus.idle);
+      expect(bloc.state.saveReceipt, isNull);
+      expect(find.byType(ScheduleMultiPageForm), findsOneWidget);
+      expect(
+        await tester.runAsync(() => db.select(db.schedules).get()),
+        hasLength(modal == 'review' ? 0 : 1),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+  test(
+    'partial receipt from form A cannot replace actual save of new form B',
+    () async {
+      await draft();
+      await event(
+        const ScheduleFormRecurringChanged(null),
+        (s) => s.recurrenceRule == null,
+      );
+      alarms.deliveryComplete = false;
+      await event(
+        const ScheduleFormCreated(),
+        (s) =>
+            s.submissionStatus == ScheduleFormSubmissionStatus.deliveryPending,
+      );
+      final first = bloc.state.id;
+      expect(bloc.state.saveReceipt, isNotNull);
+      await draft();
+      await event(
+        const ScheduleFormRecurringChanged(null),
+        (s) => s.recurrenceRule == null,
+      );
+      expect(bloc.state.id, isNot(first));
+      expect(bloc.state.saveReceipt, isNull);
+      expect(bloc.state.originalSchedule, isNull);
+      alarms.deliveryComplete = true;
+      await event(
+        const ScheduleFormCreated(),
+        (s) => s.submissionStatus == ScheduleFormSubmissionStatus.success,
+      );
+      expect(await db.select(db.schedules).get(), hasLength(2));
+    },
+  );
 }
 
 PreparationEntity _preparation(String name, int minutes) => PreparationEntity(
@@ -424,7 +714,14 @@ class _UnusedUser extends Fake implements UserRepository {}
 class _UnusedTimers extends Fake implements TimedPreparationRepository {}
 
 class _AlarmEffects implements ScheduleMutationAlarmEffectsCoordinator {
+  bool deliveryComplete = true;
   final operations = <ScheduleMutationAlarmOperation>[];
+  @override
+  Future<bool> afterCommit() async {
+    operations.add(ScheduleMutationAlarmOperation.created);
+    return deliveryComplete;
+  }
+
   @override
   Future<void> call({
     required ScheduleMutationAlarmOperation operation,
@@ -432,4 +729,20 @@ class _AlarmEffects implements ScheduleMutationAlarmEffectsCoordinator {
   }) async {
     operations.add(operation);
   }
+}
+
+Future<void> captureA08(WidgetTester tester, String name) async {
+  const path = String.fromEnvironment('A08_CAPTURE_DIR');
+  if (path.isEmpty) return;
+  await tester.runAsync(() async {
+    final view = tester.binding.renderViews.first;
+    final image = await (view.debugLayer! as OffsetLayer).toImage(
+      Offset.zero & view.size,
+      pixelRatio: 1,
+    );
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    await Directory(path).create(recursive: true);
+    await File('$path/$name.png').writeAsBytes(bytes!.buffer.asUint8List());
+    image.dispose();
+  });
 }

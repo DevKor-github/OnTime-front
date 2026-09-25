@@ -57,6 +57,9 @@ ScheduleStartLaunchAction scheduleStartLaunchActionFromRouteExtra(
 
 class ScheduleStartScreen extends StatefulWidget {
   final ScheduleStartPromptVariant promptVariant;
+  final bool requiresExplicitStart;
+  final bool Function()? isCurrent;
+  final VoidCallback? onExplicitStart;
 
   @Deprecated(
     'Use promptVariant. This field is kept only for backward compatibility.',
@@ -66,6 +69,9 @@ class ScheduleStartScreen extends StatefulWidget {
   const ScheduleStartScreen({
     super.key,
     this.promptVariant = ScheduleStartPromptVariant.officialStart,
+    this.requiresExplicitStart = false,
+    this.isCurrent,
+    this.onExplicitStart,
     this.isFiveMinutesBefore = false,
   });
 
@@ -94,6 +100,11 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
       ),
     );
 
+    if (!context.mounted) return;
+    if (!(widget.isCurrent?.call() ?? true)) {
+      if (ModalRoute.of(context)?.isCurrent == true) context.go('/home');
+      return;
+    }
     if (result == DialogActionResult.secondary && context.mounted) {
       context.go('/home');
     }
@@ -144,15 +155,33 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     return l10n.preparationStartsEarlyBy(formattedLeadTime);
   }
 
-  void _onPrimaryActionPressed(
+  bool _starting = false;
+  bool _failed = false;
+
+  Future<void> _onPrimaryActionPressed(
     BuildContext context,
     ScheduleStartPromptVariant variant,
-  ) {
-    if (variant == ScheduleStartPromptVariant.earlyStart ||
-        variant == ScheduleStartPromptVariant.alarm) {
-      context.read<ScheduleBloc>().add(const SchedulePreparationStarted());
+  ) async {
+    bool current() =>
+        mounted &&
+        (widget.isCurrent?.call() ?? true) &&
+        ModalRoute.of(context)?.isCurrent == true;
+    if (_starting || !current()) return;
+    setState(() {
+      _starting = true;
+      _failed = false;
+    });
+    try {
+      final bloc = context.read<ScheduleBloc>();
+      final result = await bloc.requestPreparationStart(isCurrent: current);
+      if (!context.mounted || !current() || result == null) return;
+      widget.onExplicitStart?.call();
+      context.go('/alarmScreen');
+    } catch (_) {
+      if (current()) setState(() => _failed = true);
+    } finally {
+      if (mounted) setState(() => _starting = false);
     }
-    context.go('/alarmScreen');
   }
 
   @override
@@ -214,6 +243,16 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
                         ),
                         textAlign: TextAlign.center,
                       ),
+                      if (_failed)
+                        Text(
+                          AppLocalizations.of(context)!.preparationStartFailed,
+                          key: const Key('preparation-start-error'),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      if (_starting) const LinearProgressIndicator(),
                       SizedBox(height: imageTopGap),
                       Expanded(
                         child: Center(
@@ -256,13 +295,15 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
     return Align(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 358),
-        child: SizedBox(
-          width: double.infinity,
-          height: 57,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: double.infinity,
+            minHeight: 57,
+          ),
           child: ElevatedButton(
-            onPressed: () async {
-              _onPrimaryActionPressed(context, variant);
-            },
+            onPressed: _starting
+                ? null
+                : () => _onPrimaryActionPressed(context, variant),
             child: Text(
               variant == ScheduleStartPromptVariant.earlyStart ||
                       variant == ScheduleStartPromptVariant.alarm
@@ -298,20 +339,24 @@ class _ScheduleStartScreenState extends State<ScheduleStartScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: double.infinity,
-              height: 57,
+            ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: double.infinity,
+                minHeight: 57,
+              ),
               child: ElevatedButton(
-                onPressed: () async {
-                  _onPrimaryActionPressed(context, variant);
-                },
+                onPressed: _starting
+                    ? null
+                    : () => _onPrimaryActionPressed(context, variant),
                 child: Text(AppLocalizations.of(context)!.startPreparingNow),
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 57,
+            ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: double.infinity,
+                minHeight: 57,
+              ),
               child: ElevatedButton(
                 onPressed: () async {
                   context.go('/home');

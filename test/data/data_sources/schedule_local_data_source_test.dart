@@ -1,3 +1,4 @@
+import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
@@ -158,7 +159,11 @@ void main() {
       DateTime(2026, 5, 15),
       DateTime(2026, 5, 16),
     );
-    expect(schedules, [keep]);
+    expect(schedules.map((row) => row.toScheduleEntity()), [
+      keep.toScheduleEntity(),
+    ]);
+    expect(schedules.single.schedule.aggregateIncarnation, hasLength(32));
+    expect(schedules.single.schedule.aggregateVersion, 0);
   });
 }
 

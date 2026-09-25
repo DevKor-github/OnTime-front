@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:on_time_front/domain/entities/schedule_notification_status.dart';
+import 'package:on_time_front/presentation/shared/components/notification_timing_education.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/domain/use-cases/get_default_preparation_use_case.dart';
 import 'package:on_time_front/domain/use-cases/stream_user_use_case.dart';
@@ -290,7 +293,24 @@ class _DetailedNotificationTileState extends State<_DetailedNotificationTile> {
   Future<void> _change(bool enabled) async {
     setState(() => _enabled = enabled);
     await getIt<DetailedNotificationPreferenceService>().setEnabled(enabled);
-    await getIt<ReconcileAlarmsUseCase>()();
+    var incomplete = false;
+    try {
+      final result = await getIt<ReconcileAlarmsUseCase>()();
+      incomplete =
+          result.status == AlarmReconciliationStatus.partial ||
+          result.status == AlarmReconciliationStatus.settingsUnavailable;
+    } catch (_) {
+      incomplete = true;
+    }
+    if (incomplete && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.notificationIncompleteStatus,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -314,19 +334,37 @@ class _AlarmStatusView extends StatefulWidget {
   State<_AlarmStatusView> createState() => _AlarmStatusViewState();
 }
 
-class _AlarmStatusViewState extends State<_AlarmStatusView> {
+class _AlarmStatusViewState extends State<_AlarmStatusView>
+    with WidgetsBindingObserver {
   bool _isLoading = true;
   bool _isUpdating = false;
   bool _alarmsEnabled = true;
   String _statusLabel = '확인 중';
+  AlarmPermissionState _timingPermission = AlarmPermissionState.unsupported;
+  Future<void>? _loading;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_isUpdating) unawaited(_load());
+  }
+
+  Future<void> _load() =>
+      _loading ??= _loadStatus().whenComplete(() => _loading = null);
+
+  Future<void> _loadStatus() async {
     setState(() {
       _isLoading = true;
     });
@@ -337,7 +375,10 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
       final fallbackService = getIt.get<FallbackAlarmNotificationService>();
 
       final settings = await alarmRepository.getAlarmSettings();
+      final result = await getIt<ReconcileAlarmsUseCase>()();
       final records = await registryRepository.loadAll();
+      final timingPermission = await fallbackService
+          .checkExactTimingPermission();
       final delivery = await _checkAlarmDeliveryPolicy(
         schedulerService: schedulerService,
         fallbackService: fallbackService,
@@ -347,11 +388,13 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
       final l10n = AppLocalizations.of(context)!;
       setState(() {
         _alarmsEnabled = settings.alarmsEnabled;
+        _timingPermission = timingPermission;
         _statusLabel = _buildStatusLabel(
           l10n: l10n,
           settings: settings,
           records: records,
           delivery: delivery.policy,
+          result: result,
         );
         _isLoading = false;
       });
@@ -369,25 +412,41 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     required AlarmSettings settings,
     required List<ScheduledAlarmRecord> records,
     required AlarmDeliveryPolicy delivery,
-  }) {
-    if (!settings.alarmsEnabled) return '꺼짐';
-    if (records.any((record) => record.provider == AlarmProvider.iosAlarmKit)) {
-      return l10n.alarmStatus;
+    required AlarmReconciliationResult? result,
+  }) => switch (scheduleNotificationStatus(
+    enabled: settings.alarmsEnabled,
+    canDeliver: delivery.canDeliver,
+    records: records,
+    result: result,
+    now: DateTime.now(),
+    requiresExactTimingEvidence:
+        _timingPermission != AlarmPermissionState.unsupported,
+  )) {
+    ScheduleNotificationStatus.off => '꺼짐',
+    ScheduleNotificationStatus.cleanupNeeded =>
+      l10n.notificationCleanupNeededStatus,
+    ScheduleNotificationStatus.permissionNeeded =>
+      l10n.notificationPermissionNeededStatus,
+    ScheduleNotificationStatus.empty => l10n.noScheduledNotificationStatus,
+    ScheduleNotificationStatus.alarm => l10n.alarmStatus,
+    ScheduleNotificationStatus.notification => l10n.notificationStatus,
+    ScheduleNotificationStatus.precise => l10n.preciseNotificationStatus,
+    ScheduleNotificationStatus.approximate =>
+      l10n.notificationApproximateStatus,
+    ScheduleNotificationStatus.mixed => l10n.notificationMixedTimingStatus,
+    ScheduleNotificationStatus.incomplete => l10n.notificationIncompleteStatus,
+  };
+
+  Future<void> _openTimingSettings() async {
+    if (_isUpdating || _isLoading) return;
+    setState(() => _isUpdating = true);
+    try {
+      await getIt<FallbackAlarmNotificationService>()
+          .requestExactTimingPermission();
+      if (mounted) await _load();
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
     }
-    if (records.any(
-      (record) => record.provider == AlarmProvider.androidAlarmManager,
-    )) {
-      return l10n.preciseNotificationStatus;
-    }
-    if (records.any(
-      (record) => record.provider == AlarmProvider.localNotification,
-    )) {
-      return l10n.notificationStatus;
-    }
-    if (!delivery.canDeliver) {
-      return l10n.notificationPermissionNeededStatus;
-    }
-    return l10n.noScheduledNotificationStatus;
   }
 
   Future<void> _toggle(bool value) async {
@@ -422,6 +481,7 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
           if (!delivery.policy.canDeliver &&
               delivery.policy.shouldDisableAlarms) {
             await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+            requestAlarmReconciliation(getIt<ReconcileAlarmsUseCase>());
             await getIt.get<CancelAllAlarmsUseCase>()();
             await _load();
             return;
@@ -442,17 +502,31 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
         if (!delivery.policy.canDeliver &&
             delivery.policy.shouldDisableAlarms) {
           await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+          requestAlarmReconciliation(getIt<ReconcileAlarmsUseCase>());
           await getIt.get<CancelAllAlarmsUseCase>()();
           await _load();
           return;
         }
         await alarmRepository.updateAlarmSettings(alarmsEnabled: true);
-        await getIt.get<ReconcileAlarmsUseCase>()();
       } else {
         await alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+        requestAlarmReconciliation(getIt<ReconcileAlarmsUseCase>());
         await getIt.get<CancelAllAlarmsUseCase>()();
       }
       await _load();
+      if (value &&
+          mounted &&
+          await NotificationTimingEducation.offerOnce(
+            context,
+            deliveryReconciled: true,
+          ) &&
+          mounted) {
+        await _load();
+      }
+    } catch (_) {
+      // The preference may already be committed. Re-read it and expose the
+      // incomplete delivery state instead of undoing it or leaking a Future.
+      if (mounted) await _load();
     } finally {
       if (mounted) {
         setState(() {
@@ -467,48 +541,55 @@ class _AlarmStatusViewState extends State<_AlarmStatusView> {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Icon(Icons.notifications_none, size: 24),
             const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                AppLocalizations.of(context)!.scheduleNotificationSetting,
-                style: textTheme.bodyMedium,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context)!.scheduleNotificationSetting,
+                    style: textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _isLoading ? '확인 중' : _statusLabel,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.outline,
+                    ),
+                  ),
+                ],
               ),
             ),
             Switch(
               key: const Key('alarmSettingsSwitch'),
               value: _alarmsEnabled,
-              onChanged: _isUpdating ? null : _toggle,
+              onChanged: _isUpdating || _isLoading ? null : _toggle,
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-              const Icon(Icons.schedule, size: 24),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  recurrenceText(context, '예정 알림 상태', 'Notification status'),
-                  style: textTheme.bodyMedium,
-                ),
-              ),
-              Flexible(
-                child: Text(
-                  _isLoading ? '확인 중' : _statusLabel,
-                  textAlign: TextAlign.end,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.primary,
-                  ),
-                ),
-              ),
-            ],
+        if (!_isLoading &&
+            _timingPermission != AlarmPermissionState.unsupported) ...[
+          const SizedBox(height: 8),
+          Text(
+            _timingPermission == AlarmPermissionState.granted
+                ? AppLocalizations.of(context)!.notificationTimingAvailable
+                : AppLocalizations.of(context)!.notificationTimingApproximate,
+            style: textTheme.bodySmall,
           ),
-        ),
+          TextButton(
+            key: const Key('notificationTimingSettings'),
+            onPressed: _isUpdating ? null : _openTimingSettings,
+            child: Text(
+              AppLocalizations.of(context)!.notificationTimingSettings,
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -1,0 +1,3 @@
+00:00 +0: loading /tmp/a08-materialization-probe_test.dart
+00:00 +0: new occurrences materialized after receipt preserve its aggregate version and revision
+00:00 +1: All tests passed!

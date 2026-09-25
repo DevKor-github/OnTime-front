@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:on_time_front/domain/entities/preparation_snapshot_validation.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/navigation_service.dart';
@@ -204,6 +205,9 @@ class SpyClearEarlyStartSessionUseCase
 
 class FakeSchedulePreparationSessionUseCase
     implements SchedulePreparationSessionUseCase {
+  @override
+  void dispose() {}
+
   FakeSchedulePreparationSessionUseCase({
     required this.saveTimedPreparationUseCase,
     required this.getTimedPreparationSnapshotUseCase,
@@ -237,9 +241,10 @@ class FakeSchedulePreparationSessionUseCase
   final _startedScheduleIds = <String>{};
 
   @override
-  Future<void> startEarlySession(
+  Future<PreparationStartReceipt> startEarlySession(
     ScheduleWithPreparationEntity schedule, {
     required DateTime startedAt,
+    bool Function()? isCurrent,
   }) async {
     await markEarlyStartSessionUseCase(
       scheduleId: schedule.id,
@@ -253,6 +258,7 @@ class FakeSchedulePreparationSessionUseCase
       startedAt: startedAt,
       actionEvents: const [],
     );
+    return PreparationStartReceipt(startedAt: startedAt);
   }
 
   @override
@@ -277,6 +283,7 @@ class FakeSchedulePreparationSessionUseCase
     DateTime? savedAt,
     DateTime? startedAt,
     List<PreparationActionEventEntity> actionEvents = const [],
+    bool persist = true,
   }) {
     return saveTimedPreparationUseCase(
       schedule,
@@ -292,12 +299,14 @@ class FakeSchedulePreparationSessionUseCase
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
     RestoredSessionCallback? onRestoredSession,
+    void Function()? onInvalidated,
   }) async {
     final snapshot = await getTimedPreparationSnapshotUseCase(schedule.id);
     if (snapshot == null) return schedule;
-    if (snapshot.scheduleFingerprint != schedule.cacheFingerprint &&
-        !_canRestoreAcrossFingerprintMismatch(snapshot, schedule)) {
+    if (validatePreparationSnapshot(snapshot, schedule) == null ||
+        snapshot.requiresConfirmation) {
       await clearPersistedState(schedule.id);
+      onInvalidated?.call();
       return schedule;
     }
 
@@ -341,6 +350,7 @@ class FakeSchedulePreparationSessionUseCase
     required String scheduleId,
     required bool startPreparation,
     String? scheduleFingerprint,
+    bool Function()? isCurrent,
   }) async {
     if (unavailablePromptIds.contains(scheduleId)) {
       return const SchedulePreparationPromptResult.unavailable();
@@ -467,43 +477,6 @@ class FakeSchedulePreparationSessionUseCase
       ],
     );
   }
-
-  bool _canRestoreAcrossFingerprintMismatch(
-    TimedPreparationSnapshotEntity snapshot,
-    ScheduleWithPreparationEntity schedule,
-  ) {
-    return _scheduleTimingFingerprintPrefix(snapshot.scheduleFingerprint) ==
-            _scheduleTimingFingerprintPrefix(schedule.cacheFingerprint) &&
-        _hasSamePreparationShape(snapshot.preparation, schedule.preparation);
-  }
-
-  String _scheduleTimingFingerprintPrefix(String fingerprint) {
-    final parts = fingerprint.split('|');
-    if (parts.length < 4) {
-      return fingerprint;
-    }
-    return '${parts[0]}|${parts[1]}|${parts[2]}|';
-  }
-
-  bool _hasSamePreparationShape(
-    PreparationWithTimeEntity left,
-    PreparationWithTimeEntity right,
-  ) {
-    final leftSteps = left.preparationStepList;
-    final rightSteps = right.preparationStepList;
-    if (leftSteps.length != rightSteps.length) {
-      return false;
-    }
-    for (var index = 0; index < leftSteps.length; index++) {
-      final leftStep = leftSteps[index];
-      final rightStep = rightSteps[index];
-      if (leftStep.preparationName != rightStep.preparationName ||
-          leftStep.preparationTime != rightStep.preparationTime) {
-        return false;
-      }
-    }
-    return true;
-  }
 }
 
 ScheduleWithPreparationEntity buildSchedule({
@@ -544,6 +517,7 @@ TimedPreparationSnapshotEntity buildSnapshot({
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('ScheduleBloc preparation runtime flow', () {
     late StreamController<ScheduleWithPreparationEntity?> controller;
     late SpyNavigationService navigationService;
@@ -615,6 +589,7 @@ void main() {
               required preparationName,
               required scheduleId,
               required stepId,
+              required isCurrent,
             }) {
               notifiedStepIds.add(stepId);
             },
@@ -873,7 +848,7 @@ void main() {
     );
 
     test(
-      'entering ongoing applies catch-up tick and accepts later ticks',
+      'entering ongoing and legacy refresh derive elapsed from wall clock',
       () async {
         final schedule = buildSchedule(
           id: 'tick',
@@ -896,6 +871,7 @@ void main() {
         final caughtUpElapsed = bloc.state.schedule!.preparation.elapsedTime;
         expect(caughtUpElapsed, const Duration(seconds: 2));
 
+        now = now.add(const Duration(seconds: 1));
         bloc.add(const ScheduleTick(Duration(seconds: 1)));
         await Future<void>.delayed(Duration.zero);
         expect(
@@ -955,7 +931,7 @@ void main() {
     );
 
     test(
-      'restoring an ongoing run tolerates frozen preparation ids and preserves skip actions',
+      'changed preparation ids discard progress and require explicit start',
       () async {
         final startedAt = DateTime(2026, 3, 20, 9, 0);
         final original = buildSchedule(
@@ -1009,17 +985,14 @@ void main() {
         );
 
         bloc.add(ScheduleUpcomingReceived(frozen));
-        await bloc.stream.firstWhere((s) => s.status == ScheduleStatus.ongoing);
+        await bloc.stream.firstWhere(
+          (s) => s.status == ScheduleStatus.upcoming,
+        );
         await Future<void>.delayed(Duration.zero);
-
-        final restoredSteps =
-            bloc.state.schedule!.preparation.preparationStepList;
-        expect(clearTimedUseCase.calls, isNot(contains('frozen-restore')));
-        expect(restoredSteps[0].id, 'frozen-s1');
-        expect(restoredSteps[0].isDone, isTrue);
-        expect(restoredSteps[0].elapsedTime, const Duration(minutes: 3));
-        expect(bloc.state.schedule!.preparation.currentStep?.id, 'frozen-s2');
-        expect(restoredSteps[1].elapsedTime, const Duration(minutes: 4));
+        expect(clearTimedUseCase.calls, contains('frozen-restore'));
+        expect(bloc.state.schedule!.preparation.currentStep?.id, 'frozen-s1');
+        expect(bloc.state.schedule!.preparation.elapsedTime, Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
       },
     );
 
@@ -1209,7 +1182,7 @@ void main() {
     });
 
     test(
-      'step change notification fires for non-first transitions only once',
+      'legacy Tick does not invent elapsed progress or replay notifications',
       () async {
         final schedule = buildSchedule(
           id: 'notify',
@@ -1236,11 +1209,11 @@ void main() {
         expect(notifiedStepIds, isEmpty);
         bloc.add(const ScheduleTick(Duration(minutes: 10)));
         await Future<void>.delayed(Duration.zero);
-        expect(notifiedStepIds, ['s2']);
+        expect(notifiedStepIds, isEmpty);
 
         bloc.add(const ScheduleTick(Duration(minutes: 1)));
         await Future<void>.delayed(Duration.zero);
-        expect(notifiedStepIds, ['s2']);
+        expect(notifiedStepIds, isEmpty);
       },
     );
 
@@ -1533,6 +1506,53 @@ void main() {
       expect(clearEarlySessionUseCase.calls, contains('finish-clear'));
     });
 
+    test(
+      'confirmation-required run stays stopped after prompt until explicit start',
+      () async {
+        final schedule = buildSchedule(
+          id: 'requires-confirmation',
+          scheduleTime: now.add(const Duration(minutes: 30)),
+          steps: const [
+            PreparationStepWithTimeEntity(
+              id: 'step',
+              preparationName: 'step',
+              preparationTime: Duration(minutes: 10),
+              nextPreparationId: null,
+            ),
+          ],
+        );
+        final marker = TimedPreparationSnapshotEntity(
+          preparation: schedule.preparation,
+          savedAt: now,
+          scheduleFingerprint: schedule.cacheFingerprint,
+          requiresConfirmation: true,
+        );
+        getSnapshotUseCase.snapshots[schedule.id] = marker;
+        bloc.add(ScheduleUpcomingReceived(schedule));
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.schedule!.preparation.elapsedTime, Duration.zero);
+        // The fake clears invalid state; production persists a safe marker.
+        getSnapshotUseCase.snapshots[schedule.id] = marker;
+        bloc.add(
+          ScheduleAlarmPromptRequested(
+            scheduleId: schedule.id,
+            startPreparation: true,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        expect(bloc.state.schedule!.preparation.elapsedTime, Duration.zero);
+        bloc.add(const ScheduleStarted());
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.upcoming);
+        bloc.add(const SchedulePreparationStarted());
+        await Future<void>.delayed(Duration.zero);
+        expect(bloc.state.status, ScheduleStatus.started);
+        expect(bloc.state.isEarlyStarted, isTrue);
+      },
+    );
+
     test('mismatched fingerprint invalidates cached progress', () async {
       final schedule = buildSchedule(
         id: 'fingerprint',
@@ -1567,10 +1587,7 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(clearTimedUseCase.calls, contains('fingerprint'));
-      expect(
-        bloc.state.schedule!.preparation.elapsedTime,
-        const Duration(minutes: 10),
-      );
+      expect(bloc.state.schedule!.preparation.elapsedTime, Duration.zero);
     });
 
     test(

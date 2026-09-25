@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/scheduled_notification_content.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +39,12 @@ void main() {
       );
 
       expect(receivedPayloads, [
-        {'type': 'schedule_alarm', 'scheduleId': 'schedule-1'},
+        {
+          'type': 'schedule_alarm',
+          'scheduleId': 'schedule-1',
+          'alarmLaunchPayloadVersion': '9',
+          'promptVariant': 'alarm',
+        },
       ]);
     },
   );
@@ -54,7 +60,12 @@ void main() {
       await service.dispatchPendingLaunchPayload();
 
       expect(receivedPayloads, [
-        {'type': 'schedule_alarm', 'scheduleId': 'schedule-2'},
+        {
+          'type': 'schedule_alarm',
+          'scheduleId': 'schedule-2',
+          'alarmLaunchPayloadVersion': '9',
+          'promptVariant': 'alarm',
+        },
       ]);
     },
   );
@@ -185,17 +196,7 @@ void main() {
 
     final alarmTime = DateTime.utc(2026, 5, 15, 8);
     final preparationStartTime = DateTime.utc(2026, 5, 15, 8, 5);
-    await AlarmSchedulerService().scheduleNativeAlarm(
-      ScheduledAlarmRecord(
-        scheduleId: 'schedule-1',
-        alarmTime: alarmTime,
-        preparationStartTime: preparationStartTime,
-        scheduleFingerprint: 'fingerprint',
-        provider: AlarmProvider.androidAlarmManager,
-        scheduleTitle: 'Morning meeting',
-        payload: const {'type': 'schedule_alarm', 'scheduleId': 'schedule-1'},
-      ),
-    );
+    await AlarmSchedulerService().scheduleNativeAlarm(_scheduledAlarmRecord());
 
     expect(nativeArguments, isNotNull);
     expect(nativeArguments!['scheduleId'], 'schedule-1');
@@ -207,10 +208,12 @@ void main() {
     expect(nativeArguments!['nativeAlarmId'], stableAlarmId('schedule-1'));
     expect(nativeArguments!['provider'], 'androidAlarmManager');
     expect(nativeArguments!['title'], 'Morning meeting');
-    expect(nativeArguments!['body'], 'It is time to get ready.');
+    expect(nativeArguments!['body'], 'Open OnTime to review your schedule.');
     expect(nativeArguments!['payload'], {
       'type': 'schedule_alarm',
       'scheduleId': 'schedule-1',
+      'alarmLaunchPayloadVersion': '9',
+      'promptVariant': 'alarm',
     });
   });
 
@@ -321,12 +324,24 @@ void main() {
     },
   );
 
-  test('cancelNativeAlarm ignores missing native platform', () async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, null);
+  test(
+    'cancelNativeAlarm reports missing native platform as unconfirmed',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
 
-    await AlarmSchedulerService().cancelNativeAlarm(_scheduledAlarmRecord());
-  });
+      await expectLater(
+        AlarmSchedulerService().cancelNativeAlarm(_scheduledAlarmRecord()),
+        throwsA(
+          isA<AlarmSchedulingException>().having(
+            (error) => error.reason,
+            'reason',
+            AlarmFailureReason.cancellationFailed,
+          ),
+        ),
+      );
+    },
+  );
 
   test(
     'cancelNativeAlarm maps native platform failures to scheduling exception',
@@ -424,6 +439,10 @@ ScheduledAlarmRecord _scheduledAlarmRecord({
   String scheduleId = 'schedule-1',
   int? nativeAlarmId,
 }) {
+  final content = ScheduledNotificationContent(
+    scheduleTitle: 'Morning meeting',
+    detailed: true,
+  );
   return ScheduledAlarmRecord(
     scheduleId: scheduleId,
     alarmTime: DateTime.utc(2026, 5, 15, 8),
@@ -432,6 +451,14 @@ ScheduledAlarmRecord _scheduledAlarmRecord({
     nativeAlarmId: nativeAlarmId,
     provider: AlarmProvider.androidAlarmManager,
     scheduleTitle: 'Morning meeting',
-    payload: {'type': 'schedule_alarm', 'scheduleId': scheduleId},
+    payload: {
+      'type': 'schedule_alarm',
+      'scheduleId': scheduleId,
+      'detailedNotificationContent': 'true',
+    },
+    notificationContent: content,
+    contentDigest: content.digest,
+    contentVersion: ScheduledNotificationContent.schemaVersion,
+    contentLanguageCode: content.languageCode,
   );
 }

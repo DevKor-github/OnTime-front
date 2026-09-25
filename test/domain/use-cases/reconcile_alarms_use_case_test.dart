@@ -1,4 +1,8 @@
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import '../../helpers/isolated_alarm_owner.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:on_time_front/data/models/scheduled_alarm_record_model.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
@@ -56,6 +60,7 @@ class FakeAlarmRepository implements AlarmRepository {
 
 class FakeAlarmRegistryRepository implements AlarmRegistryRepository {
   List<ScheduledAlarmRecord> records = [];
+  void Function(List<ScheduledAlarmRecord>)? onReplace;
 
   @override
   Future<List<ScheduledAlarmRecord>> loadAll() async => List.of(records);
@@ -84,6 +89,7 @@ class FakeAlarmRegistryRepository implements AlarmRegistryRepository {
   @override
   Future<void> replaceAll(List<ScheduledAlarmRecord> records) async {
     this.records = List.of(records);
+    onReplace?.call(records);
   }
 }
 
@@ -94,6 +100,23 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
   );
   AlarmPermissionState nativePermission = AlarmPermissionState.granted;
   bool throwOnCheckPermission = false;
+  final pendingNative = <String>{};
+  bool nativeObservationFails = false;
+  int unmappedNativeCount = 0;
+  @override
+  Future<DeliveryObservation> observePendingNativeAlarms(
+    Iterable<String> ids,
+  ) async => nativeObservationFails
+      ? const DeliveryObservation.unknown(
+          source: DeliveryObservationSource.iosAlarmKit,
+        )
+      : DeliveryObservation(
+          source: DeliveryObservationSource.iosAlarmKit,
+          unmappedCount: unmappedNativeCount,
+          entries: pendingNative
+              .map((id) => PendingDelivery(id: id, scheduleId: id))
+              .toList(),
+        );
   final scheduledNative = <ScheduledAlarmRecord>[];
   final canceledNative = <ScheduledAlarmRecord>[];
   final throwOnScheduleIds = <String>{};
@@ -126,6 +149,7 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
       );
     }
     scheduledNative.add(record);
+    pendingNative.add(record.scheduleId);
   }
 
   @override
@@ -134,6 +158,7 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
       throw Exception('cancel failed');
     }
     canceledNative.add(record);
+    pendingNative.remove(record.scheduleId);
   }
 
   @override
@@ -152,8 +177,38 @@ class FakeAlarmSchedulerService implements AlarmSchedulerService {
 
 class FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
+  AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
+  int timingRequestCount = 0;
+  NotificationTiming? actualTimingOverride;
+
+  @override
+  Future<AlarmPermissionState> checkExactTimingPermission() async =>
+      timingPermission;
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    timingRequestCount++;
+    return timingPermission;
+  }
+
   AlarmPermissionState permission = AlarmPermissionState.denied;
   bool throwOnCheckPermission = false;
+  final pendingFallback = <String, PendingDelivery>{};
+  bool observationFails = false;
+  bool forgetScheduled = false;
+  @override
+  Future<DeliveryObservation> observePending() async {
+    final source = timingPermission == AlarmPermissionState.unsupported
+        ? DeliveryObservationSource.iosNotificationCenter
+        : DeliveryObservationSource.androidPluginCache;
+    return observationFails
+        ? DeliveryObservation.unknown(source: source)
+        : DeliveryObservation(
+            source: source,
+            entries: pendingFallback.values.toList(),
+          );
+  }
+
   final scheduledFallback = <ScheduledAlarmRecord>[];
   final canceledFallback = <ScheduledAlarmRecord>[];
   final throwOnScheduleIds = <String>{};
@@ -173,7 +228,9 @@ class FakeFallbackAlarmNotificationService
   Future<AlarmPermissionState> requestPermission() async => permission;
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async {
     if (throwPermissionOnScheduleIds.contains(record.scheduleId)) {
       throw const AlarmSchedulingException(
         reason: AlarmFailureReason.platformError,
@@ -191,6 +248,20 @@ class FakeFallbackAlarmNotificationService
       throw Exception('fallback channel failed');
     }
     scheduledFallback.add(record);
+    if (!forgetScheduled) {
+      final id =
+          '${record.fallbackNotificationId ?? stableAlarmId(record.scheduleId)}';
+      pendingFallback[id] = PendingDelivery(
+        id: id,
+        scheduleId: record.scheduleId,
+      );
+    }
+    return actualTimingOverride ??
+        (timingPermission == AlarmPermissionState.unsupported
+            ? NotificationTiming.platformDefault
+            : timingPermission == AlarmPermissionState.granted
+            ? NotificationTiming.exact
+            : NotificationTiming.approximate);
   }
 
   @override
@@ -199,19 +270,30 @@ class FakeFallbackAlarmNotificationService
       throw Exception('fallback cancel failed');
     }
     canceledFallback.add(record);
+    pendingFallback.remove(
+      '${record.fallbackNotificationId ?? stableAlarmId(record.scheduleId)}',
+    );
   }
 }
 
 void main() {
+  late AlarmOperationCoordinator isolatedOwner;
+  setUp(() {
+    isolatedOwner = isolatedAlarmOwner();
+  });
   late DateTime now;
   late FakeAlarmRepository alarmRepository;
   late FakeAlarmRegistryRepository registryRepository;
   late FakeAlarmSchedulerService schedulerService;
   late FakeFallbackAlarmNotificationService fallbackService;
   late ReconcileAlarmsUseCase useCase;
+  var language = 'en';
+  var deviceZone = 'UTC';
 
   setUp(() {
     now = DateTime(2026, 5, 5, 9, 0);
+    language = 'en';
+    deviceZone = 'UTC';
     alarmRepository = FakeAlarmRepository();
     registryRepository = FakeAlarmRegistryRepository();
     schedulerService = FakeAlarmSchedulerService();
@@ -223,8 +305,145 @@ void main() {
       schedulerService,
       fallbackService,
       nowProvider: () => now,
+      languageCodeProvider: () => language,
+      timeZoneProvider: () async => deviceZone,
+
+      operations: isolatedOwner,
     );
   });
+
+  test(
+    'Android grant and revoke replace timing while preserving capacity and ownership',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.denied;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'timing',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      expect(
+        registryRepository.records.single.notificationTiming,
+        NotificationTiming.approximate,
+      );
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      await useCase();
+      expect(fallbackService.canceledFallback, hasLength(1));
+      expect(
+        registryRepository.records.single.notificationTiming,
+        NotificationTiming.exact,
+      );
+      fallbackService.timingPermission = AlarmPermissionState.denied;
+      await useCase();
+      expect(fallbackService.canceledFallback, hasLength(2));
+      expect(
+        registryRepository.records.single.notificationTiming,
+        NotificationTiming.approximate,
+      );
+      expect(fallbackService.scheduledFallback, hasLength(3));
+      await useCase();
+      expect(fallbackService.scheduledFallback, hasLength(4));
+    },
+  );
+
+  test(
+    'actual downgrade receipt is persisted instead of optimistic permission',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      fallbackService.actualTimingOverride = NotificationTiming.approximate;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'race',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      final stored = ScheduledAlarmRecordModel(
+        registryRepository.records.single,
+      ).toJson();
+      expect(stored['notificationTiming'], 'approximate');
+      expect(
+        ScheduledAlarmRecordModel.fromJson(stored).record.notificationTiming,
+        NotificationTiming.approximate,
+      );
+    },
+  );
+
+  test(
+    'legacy or malformed mode keeps ownership and forces Android replacement',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'legacy',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      for (final raw in [null, 12, 'not-a-mode']) {
+        final stored = ScheduledAlarmRecordModel(
+          registryRepository.records.single,
+        ).toJson();
+        stored['notificationTiming'] = raw;
+        final legacy = ScheduledAlarmRecordModel.fromJson(stored).record;
+        expect(legacy.scheduleId, 'legacy');
+        expect(legacy.fallbackNotificationId, isNotNull);
+        expect(legacy.notificationTiming, isNull);
+        registryRepository.records = [legacy];
+        await useCase();
+        expect(
+          registryRepository.records.single.notificationTiming,
+          NotificationTiming.exact,
+        );
+      }
+      expect(fallbackService.canceledFallback, hasLength(3));
+    },
+  );
+
+  test('timing change cannot overwrite a failed cancellation', () async {
+    fallbackService.timingPermission = AlarmPermissionState.denied;
+    alarmRepository.schedules = [
+      scheduleWithAlarmAt(
+        id: 'blocked',
+        alarmTime: now.add(const Duration(hours: 1)),
+      ),
+    ];
+    await useCase();
+    fallbackService.timingPermission = AlarmPermissionState.granted;
+    fallbackService.throwOnCancelIds.add('blocked');
+    final result = await useCase();
+    expect(result.status, AlarmReconciliationStatus.partial);
+    expect(result.armedScheduleIds, isEmpty);
+    expect(fallbackService.scheduledFallback, hasLength(1));
+    expect(registryRepository.records.single.cancellationPending, isTrue);
+    expect(
+      registryRepository.records.single.notificationTiming,
+      NotificationTiming.approximate,
+    );
+  });
+
+  test(
+    'display denial plus cancellation failure preserves OS ownership',
+    () async {
+      fallbackService.timingPermission = AlarmPermissionState.granted;
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'denied',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      final id = registryRepository.records.single.fallbackNotificationId;
+      fallbackService.permission = AlarmPermissionState.denied;
+      fallbackService.throwOnCancelIds.add('denied');
+      final result = await useCase();
+      expect(result.armedScheduleIds, isEmpty);
+      expect(registryRepository.records.single.fallbackNotificationId, id);
+      expect(registryRepository.records.single.cancellationPending, isTrue);
+      expect(fallbackService.scheduledFallback, hasLength(1));
+    },
+  );
 
   test(
     'requests the full future window and schedules only eligible records',
@@ -373,7 +592,7 @@ void main() {
       currentTimeZoneId: 'UTC',
     );
 
-    expect(private.scheduleTitle, 'OnTime');
+    expect(private.scheduleTitle, 'Time to prepare');
     expect(private.payload['detailedNotificationContent'], 'false');
     expect(private.payload, isNot(contains('notificationTimeZone')));
     expect(private.payload, isNot(contains('placeName')));
@@ -381,7 +600,413 @@ void main() {
     expect(detailed.payload['notificationTimeZone'], 'Asia/Seoul');
   });
 
-  test('coalesces overlapping reconciliation requests', () async {
+  test(
+    'replaces an existing detailed registration when details are disabled',
+    () async {
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'private-toggle',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      final old = registryRepository.records.single;
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: false,
+      );
+
+      final result = await useCase();
+
+      expect(fallbackService.canceledFallback, [old]);
+      expect(fallbackService.scheduledFallback, hasLength(2));
+      expect(
+        registryRepository
+            .records
+            .single
+            .payload['detailedNotificationContent'],
+        'false',
+      );
+      expect(result.status, AlarmReconciliationStatus.armed);
+    },
+  );
+
+  test(
+    'does not report private armed or discard evidence when detailed cancellation fails',
+    () async {
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'private-failure',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      fallbackService.throwOnCancelIds.add('private-failure');
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
+
+      final result = await useCase();
+
+      expect(result.status, AlarmReconciliationStatus.partial);
+      expect(result.armedScheduleIds, isEmpty);
+      expect(result.failures.single.scheduleId, 'private-failure');
+      expect(registryRepository.records.single.payload, isEmpty);
+      expect(registryRepository.records.single.scheduleTitle, 'OnTime');
+      expect(registryRepository.records.single.cancellationPending, isTrue);
+      expect(fallbackService.scheduledFallback, hasLength(1));
+      expect(alarmRepository.settings.detailedNotificationContent, isFalse);
+    },
+  );
+
+  test(
+    'changes detailed titles but does not reschedule private title-only edits',
+    () async {
+      final time = now.add(const Duration(hours: 2));
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'name',
+          alarmTime: time,
+          scheduleName: 'Original',
+        ),
+      ];
+      await useCase();
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'name',
+          alarmTime: time,
+          scheduleName: 'Private new name',
+        ),
+      ];
+      await useCase();
+      expect(fallbackService.scheduledFallback, hasLength(1));
+      expect(fallbackService.canceledFallback, isEmpty);
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      await useCase();
+      expect(
+        registryRepository.records.single.deliveryContent.title,
+        'Private new name',
+      );
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'name',
+          alarmTime: time,
+          scheduleName: 'Updated opt-in title',
+        ),
+      ];
+      await useCase();
+      expect(
+        registryRepository.records.single.deliveryContent.title,
+        'Updated opt-in title',
+      );
+      expect(fallbackService.scheduledFallback, hasLength(3));
+      expect(fallbackService.canceledFallback, hasLength(2));
+    },
+  );
+
+  test(
+    'reconciles locale and visible time zone using one content snapshot',
+    () async {
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'zone',
+          alarmTime: now.add(const Duration(days: 2)),
+          timeZoneId: 'Asia/Seoul',
+        ),
+      ];
+      language = 'ko';
+      await useCase();
+      expect(
+        registryRepository.records.single.deliveryContent.body,
+        '일정 시간대: Asia/Seoul',
+      );
+      final korean = registryRepository.records.single.contentDigest;
+      language = 'en';
+      await useCase();
+      expect(
+        registryRepository.records.single.deliveryContent.body,
+        'Schedule time zone: Asia/Seoul',
+      );
+      expect(registryRepository.records.single.contentDigest, isNot(korean));
+      deviceZone = 'Asia/Seoul';
+      await useCase();
+      expect(
+        registryRepository.records.single.payload,
+        isNot(contains('notificationTimeZone')),
+      );
+      expect(
+        registryRepository.records.single.deliveryContent.body,
+        'Open OnTime to review your schedule.',
+      );
+      await useCase();
+      language = 'fr';
+      await useCase();
+      language = 'de';
+      await useCase();
+      expect(fallbackService.scheduledFallback, hasLength(3));
+      expect(fallbackService.canceledFallback, hasLength(2));
+    },
+  );
+
+  test(
+    'legacy content metadata is replaced once and current persisted metadata is stable',
+    () async {
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'legacy',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      language = 'ko';
+      await useCase();
+      final legacy =
+          ScheduledAlarmRecordModel(registryRepository.records.single).toJson()
+            ..remove('contentDigest')
+            ..remove('contentVersion')
+            ..remove('contentLanguageCode');
+      registryRepository.records = [
+        ScheduledAlarmRecordModel.fromJson(legacy).record,
+      ];
+      await useCase();
+      registryRepository.records = registryRepository.records
+          .map(
+            (record) => ScheduledAlarmRecordModel.fromJson(
+              ScheduledAlarmRecordModel(record).toJson(),
+            ).record,
+          )
+          .toList();
+      expect(registryRepository.records.single.notificationContent, isNull);
+      expect(
+        registryRepository.records.single.deliveryContent.title,
+        '일정 준비 시간이에요',
+      );
+      expect(
+        registryRepository.records.single.deliveryContent.digest,
+        registryRepository.records.single.contentDigest,
+      );
+      registryRepository.records.single.requireCurrentContent();
+      await useCase();
+      expect(fallbackService.scheduledFallback, hasLength(2));
+      expect(fallbackService.canceledFallback, hasLength(1));
+    },
+  );
+
+  test(
+    'cancellation failure survives restart, blocks only that ID and retries after recovery',
+    () async {
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      alarmRepository.schedules = [
+        for (final id in ['failed', 'okay'])
+          scheduleWithAlarmAt(
+            id: id,
+            alarmTime: now.add(const Duration(hours: 1)),
+          ),
+      ];
+      await useCase();
+      fallbackService.throwOnCancelIds.add('failed');
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
+      final partial = await useCase();
+      expect(partial.status, AlarmReconciliationStatus.partial);
+      expect(partial.armedScheduleIds, ['okay']);
+      expect(
+        partial.failures.single.reason,
+        AlarmFailureReason.cancellationFailed,
+      );
+      final pending = registryRepository.records.singleWhere(
+        (r) => r.scheduleId == 'failed',
+      );
+      expect(pending.cancellationPending, isTrue);
+      registryRepository.records = registryRepository.records
+          .map(
+            (record) => ScheduledAlarmRecordModel.fromJson(
+              ScheduledAlarmRecordModel(record).toJson(),
+            ).record,
+          )
+          .toList();
+      fallbackService.throwOnCancelIds.clear();
+      final recovered = await useCase();
+      expect(recovered.status, AlarmReconciliationStatus.armed);
+      expect(recovered.armedScheduleIds, containsAll(['failed', 'okay']));
+      expect(
+        registryRepository.records.every(
+          (r) =>
+              !r.cancellationPending &&
+              r.payload['detailedNotificationContent'] == 'false',
+        ),
+        isTrue,
+      );
+      expect(fallbackService.scheduledFallback, hasLength(4));
+    },
+  );
+
+  test(
+    'private scheduling failure never restores details and retries next time',
+    () async {
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'retry',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
+      fallbackService.throwOnScheduleIds.add('retry');
+      final failed = await useCase();
+      expect(failed.status, AlarmReconciliationStatus.partial);
+      expect(failed.armedScheduleIds, isEmpty);
+      expect(registryRepository.records, isEmpty);
+      expect(fallbackService.scheduledFallback, hasLength(1));
+      expect(fallbackService.canceledFallback, hasLength(2));
+      fallbackService.throwOnScheduleIds.clear();
+      await useCase();
+      expect(
+        fallbackService
+            .scheduledFallback
+            .last
+            .payload['detailedNotificationContent'],
+        'false',
+      );
+      expect(alarmRepository.settings.detailedNotificationContent, isFalse);
+    },
+  );
+
+  test(
+    'global disable retains failed cancellation instead of claiming disabled',
+    () async {
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'disable',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      fallbackService.throwOnCancelIds.add('disable');
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: false);
+      final failed = await useCase();
+      expect(failed.status, AlarmReconciliationStatus.partial);
+      expect(failed.armedScheduleIds, isEmpty);
+      expect(registryRepository.records.single.cancellationPending, isTrue);
+      fallbackService.throwOnCancelIds.clear();
+      final recovered = await useCase();
+      expect(recovered.status, AlarmReconciliationStatus.disabled);
+      expect(registryRepository.records, isEmpty);
+    },
+  );
+
+  test(
+    'cleans a past owned notification without re-emitting it or canceling other IDs',
+    () async {
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      final past = buildScheduledAlarmRecord(
+        scheduleWithAlarmAt(
+          id: 'displayed',
+          alarmTime: now.subtract(const Duration(minutes: 1)),
+        ),
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.localNotification,
+        detailedNotificationContent: true,
+      );
+      final future = scheduleWithAlarmAt(
+        id: 'unrelated',
+        alarmTime: now.add(const Duration(hours: 1)),
+      );
+      alarmRepository.schedules = [future];
+      await useCase();
+      registryRepository.records.add(past);
+      await useCase();
+      expect(fallbackService.canceledFallback, [past]);
+      expect(fallbackService.scheduledFallback, hasLength(1));
+      expect(registryRepository.records.single.scheduleId, 'unrelated');
+    },
+  );
+
+  test(
+    'an already started preparation never receives a new start notification',
+    () async {
+      final time = now.add(const Duration(hours: 1));
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(id: 'active', alarmTime: time),
+      ];
+      await useCase();
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(id: 'active', alarmTime: time, isStarted: true),
+      ];
+      final result = await useCase();
+      expect(fallbackService.canceledFallback, hasLength(1));
+      expect(fallbackService.scheduledFallback, hasLength(1));
+      expect(result.armedScheduleIds, isEmpty);
+      expect(registryRepository.records, isEmpty);
+    },
+  );
+
+  test(
+    'iOS native privacy cancellation also preserves failed evidence and retries',
+    () async {
+      schedulerService.capabilities = const AlarmSchedulerCapabilities(
+        supportsNativeAlarm: true,
+        nativeAlarmProvider: AlarmProvider.iosAlarmKit,
+      );
+      alarmRepository.settings = const AlarmSettings(
+        alarmsEnabled: true,
+        detailedNotificationContent: true,
+      );
+      alarmRepository.schedules = [
+        scheduleWithAlarmAt(
+          id: 'native-private',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+      ];
+      await useCase();
+      expect(schedulerService.scheduledNative, hasLength(1));
+      alarmRepository.settings = const AlarmSettings(alarmsEnabled: true);
+      schedulerService.throwOnCancelIds.add('native-private');
+      final failed = await useCase();
+      expect(failed.status, AlarmReconciliationStatus.partial);
+      expect(failed.armedScheduleIds, isEmpty);
+      expect(registryRepository.records.single.cancellationPending, isTrue);
+      expect(fallbackService.scheduledFallback, isEmpty);
+      schedulerService.throwOnCancelIds.clear();
+      await useCase();
+      expect(schedulerService.scheduledNative, hasLength(2));
+      expect(
+        schedulerService
+            .scheduledNative
+            .last
+            .payload['detailedNotificationContent'],
+        'false',
+      );
+    },
+  );
+
+  test('overlapping requests each observe their requested pass', () async {
     alarmRepository.schedules = [
       scheduleWithAlarmAt(
         id: 'eligible',
@@ -391,8 +1016,8 @@ void main() {
 
     final results = await Future.wait([useCase(), useCase()]);
 
-    expect(results[0], results[1]);
-    expect(alarmRepository.alarmWindowRequestCount, 1);
+    expect(results[0].armedScheduleIds, ['eligible']);
+    expect(results[1].armedScheduleIds, ['eligible']);
     expect(schedulerService.scheduledNative, isEmpty);
     expect(fallbackService.scheduledFallback.length, 1);
   });
@@ -475,7 +1100,7 @@ void main() {
   );
 
   test(
-    'keeps matching fallback registry record when fallback provider is available',
+    'keeps matching iOS fallback only when OS pending confirms it',
     () async {
       schedulerService.capabilities = const AlarmSchedulerCapabilities(
         supportsNativeAlarm: false,
@@ -494,6 +1119,11 @@ void main() {
         provider: AlarmProvider.localNotification,
       );
       registryRepository.records = [existing];
+      final pendingId = '${existing.fallbackNotificationId}';
+      fallbackService.pendingFallback[pendingId] = PendingDelivery(
+        id: pendingId,
+        scheduleId: existing.scheduleId,
+      );
       alarmRepository.schedules = [schedule];
 
       final result = await useCase();
@@ -948,32 +1578,43 @@ void main() {
     },
   );
 
-  test('cancel failures do not block registry replacement', () async {
-    final staleNative = buildScheduledAlarmRecord(
-      scheduleWithAlarmAt(
-        id: 'stale-native',
-        alarmTime: now.add(const Duration(hours: 1)),
-      ),
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.androidAlarmManager,
-    );
-    final staleFallback = buildScheduledAlarmRecord(
-      scheduleWithAlarmAt(
-        id: 'stale-fallback',
-        alarmTime: now.add(const Duration(hours: 2)),
-      ),
-      alarmOffset: const Duration(minutes: 5),
-      provider: AlarmProvider.localNotification,
-    );
-    schedulerService.throwOnCancelIds.add('stale-native');
-    fallbackService.throwOnCancelIds.add('stale-fallback');
-    registryRepository.records = [staleNative, staleFallback];
+  test(
+    'cancel failures retain retry evidence without claiming armed',
+    () async {
+      final staleNative = buildScheduledAlarmRecord(
+        scheduleWithAlarmAt(
+          id: 'stale-native',
+          alarmTime: now.add(const Duration(hours: 1)),
+        ),
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.androidAlarmManager,
+      );
+      final staleFallback = buildScheduledAlarmRecord(
+        scheduleWithAlarmAt(
+          id: 'stale-fallback',
+          alarmTime: now.add(const Duration(hours: 2)),
+        ),
+        alarmOffset: const Duration(minutes: 5),
+        provider: AlarmProvider.localNotification,
+      );
+      schedulerService.throwOnCancelIds.add('stale-native');
+      fallbackService.throwOnCancelIds.add('stale-fallback');
+      registryRepository.records = [staleNative, staleFallback];
 
-    final result = await useCase();
+      final result = await useCase();
 
-    expect(result.status, AlarmReconciliationStatus.armed);
-    expect(registryRepository.records, isEmpty);
-  });
+      expect(result.status, AlarmReconciliationStatus.partial);
+      expect(result.armedScheduleIds, isEmpty);
+      expect(result.failures, hasLength(2));
+      expect(registryRepository.records, hasLength(2));
+      expect(
+        registryRepository.records.every(
+          (record) => record.cancellationPending,
+        ),
+        isTrue,
+      );
+    },
+  );
 }
 
 ScheduleWithPreparationEntity scheduleWithAlarmAt({
@@ -982,6 +1623,8 @@ ScheduleWithPreparationEntity scheduleWithAlarmAt({
   ScheduleDoneStatus doneStatus = ScheduleDoneStatus.notEnded,
   String preparationName = 'Shower',
   String timeZoneId = 'UTC',
+  String? scheduleName,
+  bool isStarted = false,
 }) {
   const offset = Duration(minutes: 5);
   const moveTime = Duration(minutes: 10);
@@ -994,12 +1637,12 @@ ScheduleWithPreparationEntity scheduleWithAlarmAt({
   return ScheduleWithPreparationEntity(
     id: id,
     place: const PlaceEntity(id: 'place-1', placeName: 'Office'),
-    scheduleName: 'Schedule $id',
+    scheduleName: scheduleName ?? 'Schedule $id',
     timeZoneId: timeZoneId,
     scheduleTime: scheduleTime,
     moveTime: moveTime,
     isChanged: false,
-    isStarted: false,
+    isStarted: isStarted,
     scheduleSpareTime: spareTime,
     scheduleNote: '',
     doneStatus: doneStatus,

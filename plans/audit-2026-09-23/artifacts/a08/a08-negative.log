@@ -1,0 +1,17 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_negative_test.dart
+00:00 +0: preparation insert failure leaves no partial schedule, place or revision
+00:00 +0 -1: preparation insert failure leaves no partial schedule, place or revision [E]
+  Expected: empty
+    Actual: [
+              Schedule:Schedule(id: one, placeId: place, scheduleName: Meeting, timeZoneId: UTC, occurrenceOffsetSeconds: null, scheduleTime: 2030-01-01 10:00:00.000, moveTime: 0:00:00.000000, isChanged: true, isStarted: false, scheduleSpareTime: 0:00:00.000000, scheduleNote: , latenessTime: 0, doneStatus: notEnded, startedAt: null, finishedAt: null, preparationMode: null, preparationTemplateId: null, preparationTemplateName: null, preparationTemplateDeleted: false, preparationFrozen: false, scoreContributionRecorded: false, recurringSegmentId: null, recurringSlotKey: null, recurringOrdinal: null, recurringOverrides: , preparationDefinitionId: null)
+            ]
+  A failed aggregate must not leave its schedule committed
+
+  package:matcher                                                    expect
+  package:flutter_test/src/widget_tester.dart 473:18                 expect
+  test/data/repositories/schedule_aggregate_negative_test.dart 37:2  main.<fn>
+
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_negative_test.dart: preparation insert failure leaves no partial schedule, place or revision

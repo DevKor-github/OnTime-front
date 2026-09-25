@@ -1,3 +1,9 @@
+import 'package:on_time_front/core/services/notification_routing.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
+import 'dart:convert';
+import 'package:on_time_front/domain/entities/notification_route_payload.dart';
+import 'package:on_time_front/data/data_sources/alarm_registry_local_data_source.dart';
 import 'dart:io' show Platform;
 import 'dart:ui' as ui;
 
@@ -9,6 +15,7 @@ import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/notification_content.dart';
 import 'package:on_time_front/core/services/notification_tap_router.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:permission_handler/permission_handler.dart'
     as permission_handler;
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -22,11 +29,15 @@ class NotificationService {
     NotificationTapRouter? notificationTapRouter,
     String Function()? localeProvider,
     bool? isIOSOverride,
+    bool? isAndroidOverride,
+    AlarmOperationCoordinator? alarmOwner,
   }) : _localNotifications =
            localNotifications ?? FlutterLocalNotificationsPlugin(),
        _notificationTapRouter =
            notificationTapRouter ?? const NoopNotificationTapRouter(),
        _localeProvider = localeProvider,
+       _alarmOwner = alarmOwner ?? AlarmOperationCoordinator.shared,
+       _isAndroidOverride = isAndroidOverride,
        _isIOSOverride = isIOSOverride;
 
   @visibleForTesting
@@ -37,10 +48,14 @@ class NotificationService {
     bool isFlutterLocalNotificationsInitialized = false,
     bool isTimezoneInitialized = false,
     bool? isIOSOverride,
+    bool? isAndroidOverride,
+    AlarmOperationCoordinator? alarmOwner,
   }) : _localNotifications = localNotifications,
        _notificationTapRouter =
            notificationTapRouter ?? const NoopNotificationTapRouter(),
        _localeProvider = localeProvider,
+       _alarmOwner = alarmOwner ?? AlarmOperationCoordinator.shared,
+       _isAndroidOverride = isAndroidOverride,
        _isIOSOverride = isIOSOverride,
        _isFlutterLocalNotificationsInitialized =
            isFlutterLocalNotificationsInitialized,
@@ -51,15 +66,26 @@ class NotificationService {
     'on_time_front/native_alarm',
   );
 
+  final AlarmOperationCoordinator _alarmOwner;
   final FlutterLocalNotificationsPlugin _localNotifications;
   NotificationTapRouter _notificationTapRouter;
   final String Function()? _localeProvider;
   final bool? _isIOSOverride;
+  final bool? _isAndroidOverride;
   bool _isFlutterLocalNotificationsInitialized = false;
   bool _isTimezoneInitialized = false;
   Future<void>? _initializationFuture;
+  Future<void>? _setupFuture;
+  Future<void>? _launchFuture;
+  bool _launchCollected = false;
+  int _callbackReceipt = 0;
+  (int, int)? _delegateInstalledReceipt;
+  String? _deferredPayload;
+  int? _deferredGeneration;
 
   bool get _isIOS => !kIsWeb && (_isIOSOverride ?? Platform.isIOS);
+
+  bool get _isAndroid => !kIsWeb && (_isAndroidOverride ?? Platform.isAndroid);
 
   String get _locale =>
       _localeProvider?.call() ??
@@ -69,6 +95,157 @@ class NotificationService {
     required NotificationTapRouter notificationTapRouter,
   }) {
     _notificationTapRouter = notificationTapRouter;
+    _delegateInstalledReceipt =
+        notificationTapRouter is NavigationNotificationTapRouter
+        ? notificationTapRouter.receipt
+        : null;
+    final deferred = _deferredPayload;
+    _deferredPayload = null;
+    if (deferred != null &&
+        _deferredGeneration == LocalDataOperationGate.shared.generation) {
+      _notificationTapRouter.routeLocalNotificationTap(deferred);
+    }
+  }
+
+  void _receiveResponse(String? raw) {
+    final data = safeNotificationTapData(raw);
+    if (data == null) return;
+    _callbackReceipt++;
+    final safe = jsonEncode(data);
+    if (_notificationTapRouter is NoopNotificationTapRouter) {
+      _deferredPayload = safe;
+      _deferredGeneration = LocalDataOperationGate.shared.generation;
+    } else {
+      _notificationTapRouter.routeLocalNotificationTap(safe);
+    }
+  }
+
+  /// Initial launch details are not consumed by either native plugin. Read once
+  /// successfully per service lifetime, with explicit retry after failure.
+  Future<void> collectInitialLaunch() {
+    if (_launchCollected) return Future.value();
+    return _launchFuture ??= _collectInitialLaunch().whenComplete(() {
+      _launchFuture = null;
+    });
+  }
+
+  Future<void> _collectInitialLaunch() async {
+    final receipt = _callbackReceipt;
+    final generation = LocalDataOperationGate.shared.generation;
+    final router = _notificationTapRouter;
+    final routerReceipt = router is NavigationNotificationTapRouter
+        ? router.receipt
+        : null;
+    try {
+      await setupFlutterNotifications();
+      final details = await _localNotifications
+          .getNotificationAppLaunchDetails();
+      _launchCollected = true;
+      if (receipt != _callbackReceipt ||
+          generation != LocalDataOperationGate.shared.generation ||
+          details?.didNotificationLaunchApp != true) {
+        return;
+      }
+      final raw = details?.notificationResponse?.payload;
+      if (router is NavigationNotificationTapRouter &&
+          identical(router, _notificationTapRouter) &&
+          routerReceipt != null) {
+        router.receiveInitial(raw, routerReceipt);
+      } else {
+        final currentRouter = _notificationTapRouter;
+        if (currentRouter is NavigationNotificationTapRouter) {
+          final installed = _delegateInstalledReceipt;
+          if (installed == null) return;
+          currentRouter.receiveInitial(raw, installed);
+        } else {
+          _receiveResponse(raw);
+        }
+      }
+    } catch (_) {
+      // Callback registration survives. A later initialize/resume can retry.
+    }
+  }
+
+  /// Uses only the plugin's public API. Its pending list is cache evidence,
+  /// not proof about historical OS logs or first-launch-before-boot delivery.
+  Future<void> removeLegacySchedulePayloads() async {
+    await setupFlutterNotifications();
+    final source = AlarmRegistryLocalDataSourceImpl();
+    var records = await source.loadAll();
+    final pending = await _localNotifications.pendingNotificationRequests();
+    for (final request in pending) {
+      Map<String, dynamic>? payload;
+      try {
+        final decoded = jsonDecode(request.payload ?? '');
+        if (decoded is Map<String, dynamic>) payload = decoded;
+      } catch (_) {
+        /* Unknown ownership is not cancelled indiscriminately. */
+      }
+      final owner = records
+          .where(
+            (record) =>
+                record.provider == AlarmProvider.localNotification &&
+                record.fallbackNotificationId == request.id,
+          )
+          .firstOrNull;
+      final knownScheduleType =
+          payload?['type'] == 'schedule_notification' ||
+          payload?['type'] == 'schedule_alarm';
+      if (owner == null && !knownScheduleType) continue;
+      final safe = payload == null
+          ? <String, String>{}
+          : minimalScheduleRoutePayload(payload);
+      if (safe.isNotEmpty &&
+          payload!.length == safe.length &&
+          safe.entries.every((entry) => payload![entry.key] == entry.value)) {
+        continue;
+      }
+      // A malformed route can still be an owned platform registration. This
+      // internal cancellation-only ID is never used to load or open a Schedule.
+      final id =
+          safe['scheduleId'] ??
+          owner?.scheduleId ??
+          'privacy-cleanup:notification:${request.id}';
+      final existing =
+          owner ??
+          records
+              .where(
+                (record) =>
+                    record.scheduleId == id &&
+                    record.provider == AlarmProvider.localNotification,
+              )
+              .firstOrNull;
+      final tombstone =
+          (existing ??
+                  ScheduledAlarmRecord(
+                    scheduleId: id,
+                    alarmTime: DateTime.fromMillisecondsSinceEpoch(
+                      0,
+                      isUtc: true,
+                    ),
+                    preparationStartTime: DateTime.fromMillisecondsSinceEpoch(
+                      0,
+                      isUtc: true,
+                    ),
+                    scheduleFingerprint: '',
+                    provider: AlarmProvider.localNotification,
+                    scheduleTitle: 'OnTime',
+                    payload: safe,
+                  ))
+              .copyWith(
+                fallbackNotificationId: request.id,
+                cancellationPending: true,
+              );
+      records = [...records.where((record) => record != existing), tombstone];
+      await source.replaceAll(records); // Ownership survives interruption.
+      await _localNotifications.cancel(id: request.id);
+      final remaining = await _localNotifications.pendingNotificationRequests();
+      if (remaining.any((record) => record.id == request.id)) {
+        throw StateError('Legacy notification cancellation is unconfirmed');
+      }
+      records = records.where((record) => record != tombstone).toList();
+      await source.replaceAll(records);
+    }
   }
 
   Future<void> initialize() {
@@ -79,6 +256,7 @@ class NotificationService {
 
   Future<void> _initialize() async {
     await setupFlutterNotifications();
+    await collectInitialLaunch();
     await _ensureTimezoneInitialized();
   }
 
@@ -128,9 +306,14 @@ class NotificationService {
   Future<bool> openNotificationSettings() =>
       permission_handler.openAppSettings();
 
-  Future<void> setupFlutterNotifications() async {
-    if (_isFlutterLocalNotificationsInitialized) return;
+  Future<void> setupFlutterNotifications() {
+    if (_isFlutterLocalNotificationsInitialized) return Future.value();
+    return _setupFuture ??= _setupFlutterNotifications().whenComplete(() {
+      _setupFuture = null;
+    });
+  }
 
+  Future<void> _setupFlutterNotifications() async {
     const generalChannel = AndroidNotificationChannel(
       'high_importance_channel',
       'Important notifications',
@@ -160,18 +343,20 @@ class NotificationService {
         ),
       ),
       onDidReceiveNotificationResponse: (response) {
-        _notificationTapRouter.routeLocalNotificationTap(response.payload);
+        _receiveResponse(response.payload);
       },
     );
     _isFlutterLocalNotificationsInitialized = true;
   }
 
-  Future<void> showLocalNotification({
+  Future<bool> showLocalNotification({
     required String title,
     required String body,
     Map<String, dynamic>? payload,
+    bool Function()? isCurrent,
   }) async {
     await setupFlutterNotifications();
+    if (!(isCurrent?.call() ?? true)) return false;
     await _localNotifications.show(
       id: Object.hash(title, body, DateTime.now().microsecondsSinceEpoch),
       title: title,
@@ -193,6 +378,7 @@ class NotificationService {
       ),
       payload: encodeLocalNotificationPayload(payload),
     );
+    return true;
   }
 
   Future<void> showPreparationStepNotification({
@@ -200,20 +386,40 @@ class NotificationService {
     required String preparationName,
     required String scheduleId,
     required String stepId,
+    required bool Function() isCurrent,
   }) async {
-    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
-      return;
-    }
-    await showLocalNotification(
-      title: _locale == 'ko' ? '준비 단계가 바뀌었어요' : 'Preparation updated',
-      body: _locale == 'ko'
-          ? 'OnTime을 열어 다음 단계를 확인하세요.'
-          : 'Open OnTime to see the next step.',
-      payload: preparationStepNotificationPayload(
-        scheduleId: scheduleId,
-        stepId: stepId,
-      ),
-    );
+    bool current() =>
+        isCurrent() &&
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.paused;
+    if (!current() || !_alarmOwner.canSchedule) return;
+    final lease = _alarmOwner.capture();
+    await _alarmOwner.run(lease, () async {
+      if (!current()) return;
+      // Upcoming preparation-start preferences do not control an active run.
+      // This read never requests permission or opens a system prompt.
+      if (!await hasNotificationPermission()) {
+        AppLogger.debug(
+          '[NotificationService] step delivery skipped: permission',
+        );
+        return;
+      }
+      if (!lease.isCurrent || !current()) return;
+      final submitted = await showLocalNotification(
+        title: _locale == 'ko' ? '준비 단계가 바뀌었어요' : 'Preparation updated',
+        body: _locale == 'ko'
+            ? 'OnTime을 열어 다음 단계를 확인하세요.'
+            : 'Open OnTime to see the next step.',
+        payload: preparationStepNotificationPayload(
+          scheduleId: scheduleId,
+          stepId: stepId,
+        ),
+        isCurrent: () => lease.isCurrent && current(),
+      );
+      // Plugin completion is only submission, never proof the user saw it.
+      AppLogger.debug(
+        '[NotificationService] step delivery: ${submitted ? 'submitted' : 'skipped stale'}',
+      );
+    });
   }
 
   Future<bool> hasNotificationPermission() async {
@@ -222,7 +428,48 @@ class NotificationService {
         permission == AuthorizationStatus.provisional;
   }
 
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {
+  /// Timing access is independent of notification display and full-screen UI.
+  Future<AlarmPermissionState> checkExactTimingPermission() async {
+    if (!_isAndroid) return AlarmPermissionState.unsupported;
+    try {
+      final allowed = await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.canScheduleExactNotifications();
+      return allowed == true
+          ? AlarmPermissionState.granted
+          : allowed == false
+          ? AlarmPermissionState.denied
+          : AlarmPermissionState.notDetermined;
+    } on PlatformException {
+      return AlarmPermissionState.notDetermined;
+    } on MissingPluginException {
+      return AlarmPermissionState.notDetermined;
+    }
+  }
+
+  /// Call only after the user explicitly chooses to open timing settings.
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    if (!_isAndroid) return AlarmPermissionState.unsupported;
+    try {
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestExactAlarmsPermission();
+    } on PlatformException {
+      return checkExactTimingPermission();
+    } on MissingPluginException {
+      return AlarmPermissionState.notDetermined;
+    }
+    return checkExactTimingPermission();
+  }
+
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async {
+    record.requireCurrentContent();
     if (!await hasNotificationPermission()) {
       throw const AlarmSchedulingException(
         reason: AlarmFailureReason.platformError,
@@ -231,47 +478,103 @@ class NotificationService {
       );
     }
     await setupFlutterNotifications();
+    await collectInitialLaunch();
     await _ensureTimezoneInitialized();
-    final detailed = record.payload['detailedNotificationContent'] == 'true';
-    final notificationTimeZone = record.payload['notificationTimeZone'];
-    await _localNotifications.zonedSchedule(
-      id: fallbackNotificationIdForRecord(record),
-      title: detailed
-          ? record.scheduleTitle
-          : (_locale == 'ko' ? '일정 준비 시간이에요' : 'Time to prepare'),
-      body: detailed && notificationTimeZone != null
-          ? (_locale == 'ko'
-                ? '일정 시간대: $notificationTimeZone'
-                : 'Schedule time zone: $notificationTimeZone')
-          : (_locale == 'ko'
-                ? 'OnTime을 열어 일정을 확인하세요.'
-                : 'Open OnTime to review your schedule.'),
-      scheduledDate: tz.TZDateTime.from(record.alarmTime, tz.local),
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'scheduled_notification_channel',
-          'Schedule notifications',
-          channelDescription: 'OnTime schedule preparation notifications.',
-          importance: Importance.max,
-          priority: Priority.max,
-          category: AndroidNotificationCategory.reminder,
-          icon: '@mipmap/ic_launcher',
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          interruptionLevel: InterruptionLevel.timeSensitive,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      payload: encodeLocalNotificationPayload(record.payload),
-    );
+    final content = record.deliveryContent;
+    final permission = await checkExactTimingPermission();
+    var timing = !_isAndroid
+        ? NotificationTiming.platformDefault
+        : permission == AlarmPermissionState.granted
+        ? NotificationTiming.exact
+        : NotificationTiming.approximate;
+    Future<void> schedule(NotificationTiming mode) =>
+        _localNotifications.zonedSchedule(
+          id: fallbackNotificationIdForRecord(record),
+          title: content.title,
+          body: content.body,
+          scheduledDate: tz.TZDateTime.from(record.alarmTime, tz.local),
+          notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'scheduled_notification_channel',
+              'Schedule notifications',
+              channelDescription: 'OnTime schedule preparation notifications.',
+              importance: Importance.max,
+              priority: Priority.max,
+              category: AndroidNotificationCategory.reminder,
+              icon: '@mipmap/ic_launcher',
+            ),
+            iOS: DarwinNotificationDetails(
+              presentAlert: true,
+              presentBadge: true,
+              presentSound: true,
+              interruptionLevel: InterruptionLevel.timeSensitive,
+            ),
+          ),
+          androidScheduleMode: mode == NotificationTiming.exact
+              ? AndroidScheduleMode.exactAllowWhileIdle
+              : AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: encodeLocalNotificationPayload(
+            minimalScheduleRoutePayload(record.payload),
+          ),
+        );
+    try {
+      await schedule(timing);
+    } on PlatformException catch (error) {
+      if (timing != NotificationTiming.exact ||
+          error.code != 'exact_alarms_not_permitted') {
+        rethrow;
+      }
+      timing = NotificationTiming.approximate;
+      await schedule(timing); // Exactly one retry; other errors stay visible.
+    }
+    return timing;
   }
 
   Future<void> cancelFallbackNotification(int notificationId) async {
     await setupFlutterNotifications();
+    // Public cancel removes both pending and already presented items. Even an
+    // empty pending list must not skip cleanup of a delivered notification.
     await _localNotifications.cancel(id: notificationId);
+    final after = await observePendingScheduleNotifications();
+    if (!after.available ||
+        after.entries.any((entry) => entry.id == '$notificationId')) {
+      throw const AlarmSchedulingException(
+        reason: AlarmFailureReason.cancellationFailed,
+        message: 'Notification cancellation could not be confirmed',
+      );
+    }
+  }
+
+  Future<DeliveryObservation> observePendingScheduleNotifications() async {
+    final source = _isIOS
+        ? DeliveryObservationSource.iosNotificationCenter
+        : _isAndroid
+        ? DeliveryObservationSource.androidPluginCache
+        : DeliveryObservationSource.unavailable;
+    if (source == DeliveryObservationSource.unavailable) {
+      return const DeliveryObservation.unknown();
+    }
+    try {
+      await setupFlutterNotifications();
+      final requests = await _localNotifications.pendingNotificationRequests();
+      return DeliveryObservation(
+        source: source,
+        entries: requests.map((request) {
+          String? scheduleId;
+          try {
+            final decoded = jsonDecode(request.payload ?? '');
+            if (decoded is Map) {
+              scheduleId = minimalScheduleRoutePayload(decoded)['scheduleId'];
+            }
+          } catch (_) {
+            // Unknown ownership still participates in ID-based read-back.
+          }
+          return PendingDelivery(id: '${request.id}', scheduleId: scheduleId);
+        }).toList(),
+      );
+    } catch (_) {
+      return DeliveryObservation.unknown(source: source);
+    }
   }
 
   Future<void> cancelAll() async {

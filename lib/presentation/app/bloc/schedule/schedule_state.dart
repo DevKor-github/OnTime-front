@@ -7,14 +7,23 @@ class ScheduleState extends Equatable {
     required this.status,
     this.schedule,
     this.isEarlyStarted = false,
+    this.notificationPromptOwner,
+    this.hasPendingStartRecovery = false,
+    this.isRecoveringStart = false,
   });
 
   const ScheduleState.initial() : this._(status: ScheduleStatus.initial);
 
   const ScheduleState.notExists() : this._(status: ScheduleStatus.notExists);
 
-  const ScheduleState.upcoming(ScheduleWithPreparationEntity schedule)
-    : this._(status: ScheduleStatus.upcoming, schedule: schedule);
+  const ScheduleState.upcoming(
+    ScheduleWithPreparationEntity schedule, {
+    Object? notificationPromptOwner,
+  }) : this._(
+         status: ScheduleStatus.upcoming,
+         schedule: schedule,
+         notificationPromptOwner: notificationPromptOwner,
+       );
 
   const ScheduleState.ongoing(ScheduleWithPreparationEntity schedule)
     : this._(status: ScheduleStatus.ongoing, schedule: schedule);
@@ -31,16 +40,25 @@ class ScheduleState extends Equatable {
   final ScheduleStatus status;
   final ScheduleWithPreparationEntity? schedule;
   final bool isEarlyStarted;
+  final Object? notificationPromptOwner;
+  final bool hasPendingStartRecovery;
+  final bool isRecoveringStart;
 
   ScheduleState copyWith({
     ScheduleStatus? status,
     ScheduleWithPreparationEntity? schedule,
     bool? isEarlyStarted,
+    bool? hasPendingStartRecovery,
+    bool? isRecoveringStart,
   }) {
     return ScheduleState._(
       status: status ?? this.status,
       schedule: schedule ?? this.schedule,
       isEarlyStarted: isEarlyStarted ?? this.isEarlyStarted,
+      notificationPromptOwner: notificationPromptOwner,
+      hasPendingStartRecovery:
+          hasPendingStartRecovery ?? this.hasPendingStartRecovery,
+      isRecoveringStart: isRecoveringStart ?? this.isRecoveringStart,
     );
   }
 
@@ -61,5 +79,8 @@ class ScheduleState extends Equatable {
     schedule,
     schedule?.preparation,
     isEarlyStarted,
+    notificationPromptOwner,
+    hasPendingStartRecovery,
+    isRecoveringStart,
   ];
 }

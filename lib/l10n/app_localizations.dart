@@ -98,6 +98,90 @@ abstract class AppLocalizations {
     Locale('ko'),
   ];
 
+  /// No description provided for @startupRecoveryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to start OnTime'**
+  String get startupRecoveryTitle;
+
+  /// No description provided for @startupRecoveryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'OnTime could not verify local data. Please try again shortly.'**
+  String get startupRecoveryBody;
+
+  /// No description provided for @startupRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get startupRetryAction;
+
+  /// No description provided for @restartRequiredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the app completely, then reopen it.'**
+  String get restartRequiredBody;
+
+  /// No description provided for @resetInProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resetting local data'**
+  String get resetInProgressTitle;
+
+  /// No description provided for @resetInProgressBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking notification and local data cleanup.'**
+  String get resetInProgressBody;
+
+  /// No description provided for @resetWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the device to finish a notification operation. Reset is not complete. Reopening the app will resume cleanup.'**
+  String get resetWaitingBody;
+
+  /// No description provided for @resetDeletedPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data was deleted, but some notification cleanup is still unconfirmed.'**
+  String get resetDeletedPendingBody;
+
+  /// No description provided for @resetIncompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset is not complete. Only unconfirmed cleanup steps will be retried.'**
+  String get resetIncompleteBody;
+
+  /// No description provided for @resetNoIntentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The reset record could not be verified. Reset has not been reported as complete. Please try again.'**
+  String get resetNoIntentBody;
+
+  /// No description provided for @resetCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data reset complete'**
+  String get resetCompleteTitle;
+
+  /// No description provided for @resetCompleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data and notification cleanup were verified. Close the app completely and reopen it to start again.'**
+  String get resetCompleteBody;
+
+  /// No description provided for @resetRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry cleanup'**
+  String get resetRetryAction;
+
+  /// No description provided for @notificationCleanupNeededStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Off · cancellation needs checking'**
+  String get notificationCleanupNeededStatus;
+
   /// The title of the calendar screen
   ///
   /// In en, this message translates to:
@@ -919,6 +1003,379 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Settings'**
   String get openSettings;
+
+  /// No description provided for @notificationTimingEducationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve preparation notification timing'**
+  String get notificationTimingEducationTitle;
+
+  /// No description provided for @notificationTimingEducationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are on, but may arrive after preparation starts. Allow precise timing to improve scheduling. Delivery may still be delayed by the OS, battery settings, or device conditions.'**
+  String get notificationTimingEducationDescription;
+
+  /// No description provided for @notificationTimingAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise timing available'**
+  String get notificationTimingAvailable;
+
+  /// No description provided for @notificationTimingApproximate.
+  ///
+  /// In en, this message translates to:
+  /// **'Approximate timing · precise timing can be enabled'**
+  String get notificationTimingApproximate;
+
+  /// No description provided for @notificationApproximateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification · approximate timing'**
+  String get notificationApproximateStatus;
+
+  /// No description provided for @notificationMixedTimingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification · some approximate timing'**
+  String get notificationMixedTimingStatus;
+
+  /// No description provided for @notificationIncompleteStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification scheduling incomplete or needs checking'**
+  String get notificationIncompleteStatus;
+
+  /// No description provided for @notificationTimingSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing settings'**
+  String get notificationTimingSettings;
+
+  /// No description provided for @startupLoadingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking the data stored on this device.'**
+  String get startupLoadingBody;
+
+  /// No description provided for @startupWaitingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the device to respond. Please wait until the check finishes.'**
+  String get startupWaitingBody;
+
+  /// No description provided for @preparationStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation could not be started. Try again.'**
+  String get preparationStartFailed;
+
+  /// No description provided for @preparationStartPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparation has started. Some progress storage or alarm cleanup is incomplete.'**
+  String get preparationStartPartial;
+
+  /// No description provided for @dataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My data'**
+  String get dataTitle;
+
+  /// No description provided for @dataBackupStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup status'**
+  String get dataBackupStatus;
+
+  /// No description provided for @dataReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Some changes have not been backed up for at least 30 days.'**
+  String get dataReminder;
+
+  /// No description provided for @dataExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export encrypted backup'**
+  String get dataExport;
+
+  /// No description provided for @dataExportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Save only to the file location you choose.'**
+  String get dataExportDescription;
+
+  /// No description provided for @dataRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup'**
+  String get dataRestore;
+
+  /// No description provided for @dataRestoreDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the backup before replacing all current data.'**
+  String get dataRestoreDescription;
+
+  /// No description provided for @dataReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local data'**
+  String get dataReset;
+
+  /// No description provided for @dataResetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all OnTime data and alarms on this device.'**
+  String get dataResetDescription;
+
+  /// No description provided for @dataChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking'**
+  String get dataChecking;
+
+  /// No description provided for @dataNeverExported.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup has been exported yet.'**
+  String get dataNeverExported;
+
+  /// No description provided for @dataNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes since the last backup.'**
+  String get dataNoChanges;
+
+  /// No description provided for @dataUnexportedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Some changes have not been backed up.'**
+  String get dataUnexportedChanges;
+
+  /// No description provided for @dataFreshnessFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup status could not be checked. Try again.'**
+  String get dataFreshnessFailed;
+
+  /// No description provided for @dataRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get dataRetry;
+
+  /// No description provided for @dataRetryDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry notification processing only'**
+  String get dataRetryDelivery;
+
+  /// No description provided for @dataRestorePartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was restored, but notification processing is incomplete. You can retry notification processing only.'**
+  String get dataRestorePartial;
+
+  /// No description provided for @dataUncommittedCleanup.
+  ///
+  /// In en, this message translates to:
+  /// **'Data was not restored. Notification cleanup already began; retry notification processing for the current data.'**
+  String get dataUncommittedCleanup;
+
+  /// No description provided for @dataExportSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted backup saved.'**
+  String get dataExportSaved;
+
+  /// No description provided for @dataExportMetadataFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file was saved, but backup status could not be updated. Retry checking backup status.'**
+  String get dataExportMetadataFailed;
+
+  /// No description provided for @dataRestoreComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored.'**
+  String get dataRestoreComplete;
+
+  /// No description provided for @dataDeliveryUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification processing completed for the current data.'**
+  String get dataDeliveryUpdated;
+
+  /// No description provided for @dataBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Another data operation is in progress. Try again after it finishes.'**
+  String get dataBusy;
+
+  /// No description provided for @dataUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data is unavailable. Reopen the app.'**
+  String get dataUnavailable;
+
+  /// No description provided for @dataStalePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Data changed after the preview. Select and review the backup again.'**
+  String get dataStalePreview;
+
+  /// No description provided for @dataInvalidBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'The operation could not be completed. Check the backup file and password.'**
+  String get dataInvalidBackup;
+
+  /// No description provided for @dataOperationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The operation could not be completed. Try again.'**
+  String get dataOperationFailed;
+
+  /// No description provided for @dataRestorePreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review restore'**
+  String get dataRestorePreviewTitle;
+
+  /// No description provided for @dataRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get dataRestoreAction;
+
+  /// No description provided for @dataCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dataCancel;
+
+  /// No description provided for @dataContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get dataContinue;
+
+  /// No description provided for @dataCreatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Create backup password'**
+  String get dataCreatePassword;
+
+  /// No description provided for @dataEnterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter backup password'**
+  String get dataEnterPassword;
+
+  /// No description provided for @dataPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get dataPassword;
+
+  /// No description provided for @dataPasswordHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'15–128 characters. Case and spaces are preserved.'**
+  String get dataPasswordHelp;
+
+  /// No description provided for @dataConfirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm backup password'**
+  String get dataConfirmPassword;
+
+  /// No description provided for @dataPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get dataPasswordMismatch;
+
+  /// No description provided for @dataPasswordInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a backup password of 15–128 characters.'**
+  String get dataPasswordInvalid;
+
+  /// No description provided for @dataRestorePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup cutoff: {cutoff}\nApp version: {version}\nSource platform: {platform}\nSchedules: {schedules}\nPreparation templates: {templates}\nDefault preparation steps: {steps}\n\nAll current local data will be replaced.'**
+  String dataRestorePreview(
+    String cutoff,
+    String version,
+    String platform,
+    int schedules,
+    int templates,
+    int steps,
+  );
+
+  /// No description provided for @dataResetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data could not be reset. Try again.'**
+  String get dataResetFailed;
+
+  /// No description provided for @scheduleSavedPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule saved'**
+  String get scheduleSavedPending;
+
+  /// No description provided for @scheduleDeliveryPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications could not be updated. Retry updates notifications without saving the schedule again.'**
+  String get scheduleDeliveryPendingBody;
+
+  /// No description provided for @scheduleSaveConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Review changes before saving'**
+  String get scheduleSaveConflict;
+
+  /// No description provided for @scheduleSaveConflictBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data changed after this form was opened. Your draft is preserved. A new schedule also requires review when other data changes.'**
+  String get scheduleSaveConflictBody;
+
+  /// No description provided for @scheduleReviewCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Review current data'**
+  String get scheduleReviewCurrent;
+
+  /// No description provided for @scheduleCreateReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare a new save using the current local data. Review your draft, then press Save again.'**
+  String get scheduleCreateReview;
+
+  /// No description provided for @scheduleDraftPreserved.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the currently saved schedule. Confirm to preserve your draft and prepare a new save. Review the changes, then press Save again.'**
+  String get scheduleDraftPreserved;
+
+  /// No description provided for @scheduleSaveProtected.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedules that have started or reached preparation time cannot be edited. Your draft is preserved.'**
+  String get scheduleSaveProtected;
+
+  /// No description provided for @scheduleSaveUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save. Your draft is preserved. Check the current state and preparation steps.'**
+  String get scheduleSaveUnavailable;
 }
 
 class _AppLocalizationsDelegate

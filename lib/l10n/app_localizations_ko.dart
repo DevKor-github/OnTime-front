@@ -9,6 +9,52 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
+  String get startupRecoveryTitle => '앱을 시작할 수 없습니다';
+
+  @override
+  String get startupRecoveryBody =>
+      '로컬 데이터를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get startupRetryAction => '다시 시도';
+
+  @override
+  String get restartRequiredBody => '앱을 완전히 닫은 뒤 다시 열어 주세요.';
+
+  @override
+  String get resetInProgressTitle => '로컬 데이터 초기화 중';
+
+  @override
+  String get resetInProgressBody => '알림과 로컬 데이터의 정리 상태를 확인하고 있습니다.';
+
+  @override
+  String get resetWaitingBody =>
+      '기기의 알림 작업 응답을 기다리고 있습니다. 아직 초기화가 완료되지 않았습니다. 앱을 다시 열면 정리를 이어갑니다.';
+
+  @override
+  String get resetDeletedPendingBody =>
+      '기기 내 데이터는 삭제됐지만 일부 알림 정리는 아직 확인되지 않았습니다.';
+
+  @override
+  String get resetIncompleteBody => '초기화가 끝나지 않았습니다. 확인되지 않은 정리 단계만 다시 시도합니다.';
+
+  @override
+  String get resetNoIntentBody => '초기화 기록을 확인하지 못해 완료로 처리하지 않았습니다. 다시 시도해 주세요.';
+
+  @override
+  String get resetCompleteTitle => '로컬 데이터 초기화 완료';
+
+  @override
+  String get resetCompleteBody =>
+      '로컬 데이터와 알림 정리를 확인했습니다. 새로 시작하려면 앱을 완전히 닫고 다시 열어 주세요.';
+
+  @override
+  String get resetRetryAction => '정리 다시 시도';
+
+  @override
+  String get notificationCleanupNeededStatus => '꺼짐 · 알림 취소 확인 필요';
+
+  @override
   String get calendarTitle => '캘린더';
 
   @override
@@ -452,4 +498,207 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get openSettings => '설정 열기';
+
+  @override
+  String get notificationTimingEducationTitle => '준비 시작 알림을 더 정확하게';
+
+  @override
+  String get notificationTimingEducationDescription =>
+      '현재 알림은 켜져 있으며 준비 시작 시각보다 늦게 도착할 수 있어요. 정확한 시각 권한을 허용하면 더 정확하게 예약할 수 있어요. OS, 절전 설정과 기기 상태에 따라 도착이 늦어질 수 있습니다.';
+
+  @override
+  String get notificationTimingAvailable => '정확한 시각 예약 가능';
+
+  @override
+  String get notificationTimingApproximate => '근사 시각 예약 · 정확한 시각 설정 가능';
+
+  @override
+  String get notificationApproximateStatus => '알림 · 근사 시각';
+
+  @override
+  String get notificationMixedTimingStatus => '알림 · 일부 근사 시각';
+
+  @override
+  String get notificationIncompleteStatus => '알림 예약 일부 실패 또는 확인 필요';
+
+  @override
+  String get notificationTimingSettings => '정확한 시각 설정하기';
+
+  @override
+  String get startupLoadingBody => '기기에 저장된 데이터를 확인하고 있습니다.';
+
+  @override
+  String get startupWaitingBody => '기기의 응답을 기다리고 있습니다. 확인이 끝날 때까지 잠시 기다려 주세요.';
+
+  @override
+  String get preparationStartFailed => '준비 시작을 저장하지 못했어요. 다시 시도해주세요.';
+
+  @override
+  String get preparationStartPartial =>
+      '준비는 시작했지만 진행 저장 또는 알림 정리가 일부 완료되지 않았어요.';
+
+  @override
+  String get dataTitle => '내 데이터';
+
+  @override
+  String get dataBackupStatus => '백업 상태';
+
+  @override
+  String get dataReminder => '30일 이상 백업되지 않은 변경 사항이 있습니다.';
+
+  @override
+  String get dataExport => '암호화 백업 내보내기';
+
+  @override
+  String get dataExportDescription => '선택한 파일 위치에만 저장합니다.';
+
+  @override
+  String get dataRestore => '백업에서 복원';
+
+  @override
+  String get dataRestoreDescription => '미리 확인한 뒤 현재 데이터를 완전히 교체합니다.';
+
+  @override
+  String get dataReset => '로컬 데이터 초기화';
+
+  @override
+  String get dataResetDescription => '이 기기의 OnTime 데이터와 알람을 모두 삭제합니다.';
+
+  @override
+  String get dataChecking => '확인 중';
+
+  @override
+  String get dataNeverExported => '아직 내보낸 백업이 없습니다.';
+
+  @override
+  String get dataNoChanges => '마지막 백업 이후 변경 사항이 없습니다.';
+
+  @override
+  String get dataUnexportedChanges => '백업되지 않은 변경 사항이 있습니다.';
+
+  @override
+  String get dataFreshnessFailed => '백업 상태를 확인하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get dataRetry => '다시 시도';
+
+  @override
+  String get dataRetryDelivery => '알림 처리만 다시 시도';
+
+  @override
+  String get dataRestorePartial =>
+      '데이터는 복원됐지만 알림 처리가 완료되지 않았습니다. 알림 처리만 다시 시도할 수 있습니다.';
+
+  @override
+  String get dataUncommittedCleanup =>
+      '데이터는 복원되지 않았습니다. 이미 시작된 알림 정리를 마무리하려면 현재 데이터의 알림 처리를 다시 시도해 주세요.';
+
+  @override
+  String get dataExportSaved => '암호화 백업을 저장했습니다.';
+
+  @override
+  String get dataExportMetadataFailed =>
+      '파일은 저장됐지만 백업 상태를 갱신하지 못했습니다. 백업 상태 확인만 다시 시도해 주세요.';
+
+  @override
+  String get dataRestoreComplete => '백업을 복원했습니다.';
+
+  @override
+  String get dataDeliveryUpdated => '현재 데이터의 알림 처리를 완료했습니다.';
+
+  @override
+  String get dataBusy => '다른 데이터 작업이 진행 중입니다. 완료 후 다시 시도해 주세요.';
+
+  @override
+  String get dataUnavailable => '로컬 데이터를 사용할 수 없습니다. 앱을 다시 열어 주세요.';
+
+  @override
+  String get dataStalePreview => '미리보기 이후 데이터가 변경됐습니다. 백업을 다시 선택하고 확인해 주세요.';
+
+  @override
+  String get dataInvalidBackup => '작업을 완료하지 못했습니다. 백업 파일과 비밀번호를 확인해 주세요.';
+
+  @override
+  String get dataOperationFailed => '작업을 완료하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get dataRestorePreviewTitle => '복원 내용 확인';
+
+  @override
+  String get dataRestoreAction => '복원';
+
+  @override
+  String get dataCancel => '취소';
+
+  @override
+  String get dataContinue => '계속';
+
+  @override
+  String get dataCreatePassword => '백업 비밀번호 만들기';
+
+  @override
+  String get dataEnterPassword => '백업 비밀번호 입력';
+
+  @override
+  String get dataPassword => '백업 비밀번호';
+
+  @override
+  String get dataPasswordHelp => '15~128자, 대소문자와 공백을 그대로 구분합니다.';
+
+  @override
+  String get dataConfirmPassword => '백업 비밀번호 확인';
+
+  @override
+  String get dataPasswordMismatch => '비밀번호가 서로 다릅니다.';
+
+  @override
+  String get dataPasswordInvalid => '백업 비밀번호는 15~128자로 입력해주세요.';
+
+  @override
+  String dataRestorePreview(
+    String cutoff,
+    String version,
+    String platform,
+    int schedules,
+    int templates,
+    int steps,
+  ) {
+    return '백업 시점: $cutoff\n앱 버전: $version\n원본 플랫폼: $platform\n일정 $schedules개\n준비 템플릿 $templates개\n기본 준비 단계 $steps개\n\n현재 로컬 데이터는 모두 교체됩니다.';
+  }
+
+  @override
+  String get dataResetFailed => '초기화하지 못했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get scheduleSavedPending => '일정은 저장됐어요';
+
+  @override
+  String get scheduleDeliveryPendingBody =>
+      '알림 업데이트를 완료하지 못했어요. 다시 시도하면 저장한 일정은 그대로 두고 알림만 업데이트합니다.';
+
+  @override
+  String get scheduleSaveConflict => '저장 전에 변경 사항을 확인해 주세요';
+
+  @override
+  String get scheduleSaveConflictBody =>
+      '화면을 연 뒤 로컬 데이터가 바뀌었어요. 입력은 유지됩니다. 새 일정은 다른 데이터가 바뀌어도 다시 확인해야 합니다.';
+
+  @override
+  String get scheduleReviewCurrent => '현재 데이터 확인';
+
+  @override
+  String get scheduleCreateReview =>
+      '현재 로컬 데이터를 기준으로 새 저장을 준비합니다. 입력 내용을 확인한 뒤 저장 버튼을 다시 눌러 주세요.';
+
+  @override
+  String get scheduleDraftPreserved =>
+      '위 내용은 현재 저장된 일정입니다. 확인하면 입력한 초안을 유지하며 새 저장을 준비합니다. 변경 내용을 검토한 뒤 저장을 다시 눌러 주세요.';
+
+  @override
+  String get scheduleSaveProtected =>
+      '이미 시작됐거나 준비 시간이 지난 일정은 수정할 수 없어요. 입력 내용은 유지됩니다.';
+
+  @override
+  String get scheduleSaveUnavailable =>
+      '저장할 수 없어요. 입력을 유지했으니 현재 상태와 준비 단계를 확인해 주세요.';
 }

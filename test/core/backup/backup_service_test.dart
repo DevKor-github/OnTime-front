@@ -1,11 +1,17 @@
+import '../../helpers/noop_alarm_cleanup.dart';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+
+import 'package:drift/drift.dart' show Value;
 import 'package:on_time_front/data/repositories/recurring_schedule_repository_impl.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
+import 'package:on_time_front/core/backup/backup_file_export_port.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/backup/backup_service.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/core/services/app_metadata_service.dart';
@@ -22,13 +28,20 @@ void main() {
   const password = 'portable backup password';
   late AppDatabase database;
   late BackupService service;
+  late _ExportPort exportPort;
+  late LocalDataOperationGate gate;
 
   setUp(() async {
     database = AppDatabase.forTesting(NativeDatabase.memory());
+    exportPort = _ExportPort();
+    gate = LocalDataOperationGate();
     service = BackupService(
       database,
       _MetadataProvider(),
+      NoopAlarmCleanup(),
       crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
+      exportPort: exportPort,
+      operationGate: gate,
     );
     await database.userDao.putUser(
       const UserEntity(
@@ -58,6 +71,141 @@ void main() {
   });
 
   tearDown(() => database.close());
+
+  test(
+    'saved receipt marks only the captured revision despite an ordinary edit',
+    () async {
+      await database.userDao.updateAlarmSettings(
+        userId: 'local-profile',
+        enabled: false,
+      );
+      final initial =
+          (await database.select(database.users).getSingle()).dataRevision;
+      final pending = service.exportToUserSelectedFile(password);
+      await exportPort.opened.future;
+      final candidate = await service.previewEncryptedBackup(
+        exportPort.bytes!,
+        password,
+      );
+      expect(candidate.preview.scheduleCount, 1);
+      expect(exportPort.name, endsWith('.ontimebackup'));
+      await database.userDao.updateSpareTime(
+        'local-profile',
+        const Duration(minutes: 11),
+      );
+      exportPort.completion.complete(BackupFileExportReceipt.saved);
+      expect(await pending, BackupExportResult.saved);
+      final row = await database.select(database.users).getSingle();
+      expect(row.lastExportedRevision, initial);
+      expect(row.dataRevision, initial + 1);
+      expect(row.spareTime, 11);
+      expect(row.alarmsEnabled, false);
+      expect(
+        (await service.getFreshness()).freshness,
+        BackupFreshness.unexportedChanges,
+      );
+    },
+  );
+
+  test('cancel preserves freshness and releases gate for a retry', () async {
+    final pending = service.exportToUserSelectedFile(password);
+    await exportPort.opened.future;
+    exportPort.completion.complete(BackupFileExportReceipt.cancelled);
+    expect(await pending, BackupExportResult.cancelled);
+    expect(
+      (await service.getFreshness()).freshness,
+      BackupFreshness.neverExported,
+    );
+    await gate.run(() async {});
+  });
+
+  test(
+    'write failure cannot mark success or expose provider error details',
+    () async {
+      final pending = service.exportToUserSelectedFile(password);
+      final failure = expectLater(
+        pending,
+        throwsA(isA<BackupFileExportFailure>()),
+      );
+      await exportPort.opened.future;
+      exportPort.completion.completeError(
+        StateError('/private/document/sensitive'),
+      );
+      await failure;
+      expect(
+        (await service.getFreshness()).freshness,
+        BackupFreshness.neverExported,
+      );
+      await gate.run(() async {});
+    },
+  );
+
+  test(
+    'second export, restore, and destructive operation reject while picker is open',
+    () async {
+      final candidate = await service.previewEncryptedBackup(
+        await service.createEncryptedBackup(password),
+        password,
+      );
+      final pending = service.exportToUserSelectedFile(password);
+      await exportPort.opened.future;
+      await expectLater(
+        service.exportToUserSelectedFile('different backup password'),
+        throwsA(isA<LocalDataOperationBusy>()),
+      );
+      await expectLater(
+        service.applyRestore(candidate),
+        throwsA(isA<LocalDataOperationBusy>()),
+      );
+      await expectLater(
+        gate.run(() async {
+          fail('destructive operation entered');
+        }, replacesData: true),
+        throwsA(isA<LocalDataOperationBusy>()),
+      );
+      expect(exportPort.calls, 1);
+      exportPort.completion.complete(BackupFileExportReceipt.cancelled);
+      await pending;
+      await service.applyRestore(candidate);
+    },
+  );
+
+  test(
+    'successful external save with missing profile reports metadata failure',
+    () async {
+      final pending = service.exportToUserSelectedFile(password);
+      await exportPort.opened.future;
+      await database.deleteAllDurableData();
+      exportPort.completion.complete(BackupFileExportReceipt.saved);
+      expect(await pending, BackupExportResult.savedFreshnessUpdateFailed);
+      expect(exportPort.calls, 1);
+    },
+  );
+
+  test(
+    'late success cannot write freshness after lifecycle invalidation',
+    () async {
+      final pending = service.exportToUserSelectedFile(password);
+      await exportPort.opened.future;
+      gate.invalidate();
+      exportPort.completion.complete(BackupFileExportReceipt.saved);
+      expect(await pending, BackupExportResult.savedFreshnessUpdateFailed);
+      expect(
+        (await database.select(database.users).getSingle())
+            .lastExportedRevision,
+        isNull,
+      );
+    },
+  );
+
+  test('crypto failure releases gate without opening a destination', () async {
+    await expectLater(
+      service.exportToUserSelectedFile('short'),
+      throwsFormatException,
+    );
+    expect(exportPort.calls, 0);
+    await gate.run(() async {});
+  });
 
   test(
     'preview authenticates backup and restore replaces active data',
@@ -120,12 +268,45 @@ void main() {
           .toList();
       final deleted = generated[1];
       await recurring.delete(deleted, RecurringEditScope.occurrence);
+      final oldStore =
+          (await database.select(database.users).getSingle()).storeIncarnation;
+      final oldSegments = await database
+          .select(database.recurringScheduleSegments)
+          .get();
       final encrypted = await service.createEncryptedBackup(password);
+      final plaintext = utf8.decode(
+        await BackupCrypto(
+          sodiumLoader: loadSodiumForTest,
+        ).decrypt(container: encrypted, password: password),
+      );
+      for (final internal in [
+        'storeIncarnation',
+        'aggregateIncarnation',
+        'aggregateVersion',
+        'lastMutationId',
+        'lastMutationDigest',
+        'lastMutationVersion',
+        'rootSegmentId',
+      ]) {
+        expect(plaintext, isNot(contains(internal)));
+      }
       final candidate = await service.previewEncryptedBackup(
         encrypted,
         password,
       );
       await service.applyRestore(candidate);
+      expect(
+        (await database.select(database.users).getSingle()).storeIncarnation,
+        isNot(oldStore),
+      );
+      final newSegments = await database
+          .select(database.recurringScheduleSegments)
+          .get();
+      expect(
+        newSegments.first.aggregateIncarnation,
+        isNot(oldSegments.first.aggregateIncarnation),
+      );
+      expect(newSegments.first.lastMutationId, isNull);
       await recurring.materialize(DateTime.utc(2030), DateTime.utc(2031));
       final restored = (await database.scheduleDao.getScheduleList())
           .map((r) => r.toScheduleEntity())
@@ -204,13 +385,9 @@ void main() {
 
   test('wrong password leaves current database unchanged', () async {
     final encrypted = await service.createEncryptedBackup(password);
-    await database.userDao.putUser(
-      const UserEntity(
-        id: 'local-profile',
-        spareTime: Duration.zero,
-        note: 'must survive',
-      ),
-    );
+    await (database.update(database.users)
+          ..where((row) => row.id.equals('local-profile')))
+        .write(const UsersCompanion(note: Value('must survive')));
 
     await expectLater(
       service.previewEncryptedBackup(encrypted, 'wrong backup password'),
@@ -242,4 +419,24 @@ class _MetadataProvider implements AppMetadataProvider {
   @override
   Future<AppMetadata> getMetadata() async =>
       const AppMetadata(version: '1.0.1', buildNumber: '1');
+}
+
+class _ExportPort implements BackupFileExportPort {
+  final opened = Completer<void>();
+  final completion = Completer<BackupFileExportReceipt>();
+  Uint8List? bytes;
+  String? name;
+  int calls = 0;
+
+  @override
+  Future<BackupFileExportReceipt> export({
+    required Uint8List encryptedBytes,
+    required String suggestedName,
+  }) {
+    calls++;
+    bytes = encryptedBytes;
+    name = suggestedName;
+    opened.complete();
+    return completion.future;
+  }
 }

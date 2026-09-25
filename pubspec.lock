@@ -217,7 +217,7 @@ packages:
     source: hosted
     version: "0.3.5+5"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
       sha256: c8ea0233063ba03258fbcf2ca4d6dadfefe14f02fab57702265467a19f27fadf
@@ -337,7 +337,7 @@ packages:
     source: hosted
     version: "0.5.2+10"
   file_selector_ios:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: file_selector_ios
       sha256: "97269e5307a0ab813b1fa2430bada0a96e0afb74848417f8676f64ba5de0051c"
@@ -361,7 +361,7 @@ packages:
     source: hosted
     version: "0.9.5+1"
   file_selector_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: file_selector_platform_interface
       sha256: "35e0bd61ebcdb91a3505813b055b09b79dfdc7d0aee9c09a7ba59ae4bb13dc85"
@@ -1130,7 +1130,7 @@ packages:
     source: hosted
     version: "0.6.8"
   sqlite3:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: sqlite3
       sha256: "3145bd74dcdb4fd6f5c6dda4d4e4490a8087d7f286a14dee5d37087290f0f8a2"

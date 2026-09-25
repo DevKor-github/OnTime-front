@@ -1,0 +1,119 @@
+{
+  "scope": "A07 #599 local source implementation and validation; not merge, release or physical device proof",
+  "source_freeze": {
+    "baseline": "c0907712429f5aa7a2ffbaf50332e665409dff7a",
+    "files": {
+      "lib/data/data_sources/early_start_session_local_data_source.dart": "a82657e5337aab46d99868f031156c71d56d823482682a65f7360ad2b227dfae",
+      "lib/data/repositories/schedule_repository_impl.dart": "3071ca881e33da7fb85684ee0898fdd5e5066051cf37e8b08eedd0acc361df54",
+      "lib/domain/entities/schedule_start_rejected.dart": "87b12570f7e622fd4490d7b46b9e9d2d24d0ce6ed192864888280ce614b0ecbc",
+      "lib/domain/repositories/schedule_repository.dart": "144ca813485e542b7a16e94780bbe85593a67f6a87a43391e351b62c8c69d0a2",
+      "lib/domain/use-cases/finish_schedule_use_case.dart": "2a4897f2cc28abaa3c8f50c252d8c8d9525a0c35a7e2bb55a8c36ef31089b7ac",
+      "lib/domain/use-cases/schedule_preparation_session_use_case.dart": "66426b3eff70d8d9dc78912dcaf782d60fa3e5e8c66a90a95a509d9f7f23c54d",
+      "lib/l10n/app_en.arb": "acb4d5cf83dc5132b40857e503677398ccca4d849a75454771b54995a5636c4a",
+      "lib/l10n/app_ko.arb": "25acbfed2188139d78f7b5f3fa14bdecddce66f805eaaaaa78e0f839550590f9",
+      "lib/l10n/app_localizations.dart": "8af7a8251e5931b5a6e2594c993471bd0f880d5d4d0e8d12a184b5e1c5717dd3",
+      "lib/l10n/app_localizations_en.dart": "9982c9681e6d4a3f6d5f0520fee91dbcb4109d9b4daf4d81c42b48cc9e8c704b",
+      "lib/l10n/app_localizations_ko.dart": "7c925f9487e86a3a64160ae34a1dfe744c19eba841ddba9a5a5040709d975d58",
+      "lib/presentation/alarm/components/alarm_screen_top_section.dart": "a4a3565323291193f8057cf417fd3916c71d46551b0f247211ddc7f745a061de",
+      "lib/presentation/alarm/components/preparation_step_tile.dart": "96a68057dc3b425d5be0f822ae0343113a06d51ac438181349dbc05da3305bcb",
+      "lib/presentation/alarm/screens/alarm_screen.dart": "c19dc1ca73f4377382fa4b236ab6a7c3958392b49a6e1f01079aa5ae3b2ebbf8",
+      "lib/presentation/alarm/screens/schedule_start_screen.dart": "903e90a4ca9e7cc541d4ed07309062f548ac44104bced8ccc95576dcb9a5b2ba",
+      "lib/presentation/app/bloc/schedule/schedule_bloc.dart": "a44e99a352f540d92d2d073f2ebe8529b589e5bf7e8c66b361c32f67493ad9e4",
+      "lib/presentation/app/bloc/schedule/schedule_event.dart": "3429adf54c131ab193e1a81da556c34cf38fd302c9b4117554b0b3f6460dc07e",
+      "lib/presentation/app/bloc/schedule/schedule_state.dart": "ac4926f5ddb2813638115c8a1aa6bf41f2b10c259b07c8f40bf6379596847a7c",
+      "test/data/repositories/schedule_start_transaction_test.dart": "4b42aebf7f5e7600c8eff235a31f945eedeb98ba6a3c5bc87c27f0e7fbbb8171",
+      "test/domain/use-cases/schedule_mutation_use_cases_test.dart": "e5ccf01f01226850377e864e5d9012c8be0983772873d23688ad54ee6ca57213",
+      "test/domain/use-cases/schedule_preparation_session_use_case_test.dart": "f434dabb6a6c6f5154d85d026d0dd81281dbdc3b9a70df4cd772a03a43e85559",
+      "test/domain/use-cases/timed_preparation_use_cases_test.dart": "08fc5ce01227d3e1a79ea17220aa08cecad9521c109c81c5b2a4a2896e4ec5d2",
+      "test/presentation/alarm/screens/preparation_flow_widget_test.dart": "889b8c1b42a5932c6ddd46b75526823701990f55e41930ed586c2b017fdc6e80",
+      "test/presentation/alarm/screens/schedule_start_commit_widget_test.dart": "f8e872f748bb4eb14a96a545240fdc072ecbe9c9fc3b83b8a8c63dbf524bbdc9",
+      "test/presentation/app/bloc/schedule/preparation_start_recovery_test.dart": "1af89ef608c92f1015996fee68e9e7e82b7615fc75d3fd70dee9ed52c307416d",
+      "test/presentation/app/bloc/schedule/preparation_step_delivery_test.dart": "a8ff3397cadf360dca302f02b627b339fe8e7ffc7878e5ab7730ce8c03955e43",
+      "test/presentation/app/bloc/schedule/schedule_bloc_test.dart": "0c0ec915425269a620cfe50d3baecefb6fa17e361042ae0a4a29951a973d614b",
+      "test/presentation/shared/router/notification_launch_widget_test.dart": "08de5fe0ae1d328d22529228fe245a15024cd18311c4942e8bce57c241691c46",
+      "tool/qa/capture_preparation_start.dart": "170ea3f55f54030b2f7b6159c053704f15fd2d6a3c74d6c85518b337114fed45"
+    },
+    "source_manifest_sha256": "dfedcb18495e5fc0d89bb659d24832ce70fb32a577b80f1a30df6c92ff9111de"
+  },
+  "full_suite": {
+    "passed": 944,
+    "failed": 0,
+    "log": "/tmp/a07-full.log"
+  },
+  "coverage": {
+    "percentage": 88.67,
+    "covered": 13289,
+    "lines": 14987,
+    "minimum": 80
+  },
+  "focused": {
+    "passed": 56,
+    "log": "/tmp/a07-final-focused.log"
+  },
+  "analyzer": "No issues found",
+  "ui": {
+    "viewport": [
+      430,
+      932
+    ],
+    "text_scale": 2,
+    "raster_scale": 2,
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "scenarios": [
+      "durable start failure",
+      "committed start partial recovery"
+    ],
+    "scroll": "actual list scroll, skip tap and next step hit-test passed in both locales",
+    "source": "synthetic receipt widget rendering; distinct from actual SQLite button tests"
+  },
+  "limitations": [
+    "No physical Android/iOS lifecycle or native delivery proof in A07",
+    "Existing English AlarmScreen Korean time and skip labels remain under U05",
+    "Minimum content heights are a scoped U08 follow-up, not completion of all accessibility work",
+    "No merge/deployment/store claims; remote CI awaits root push"
+  ],
+  "raw_artifacts": {
+    "/tmp/a07-negative.log": "f47b119bb4803be8e2253bc9335bbfed31d7eb1c8bef3f90aba4d50cc0b9c389",
+    "/tmp/a07-final-focused.log": "fbbb337de723e92f717d417d695f2f5584d8a84f622f03cc7eff1021585e69c4",
+    "/tmp/a07-analyze.log": "858887ef606eccd00cce0c9798f8aad50c74b2d0f6c49d0cfd4c2c7eb60abf61",
+    "/tmp/a07-full.log": "c231bc5ff52127c70b02834447394159a37607c509234c7fcb34228f3b502c34",
+    "/tmp/a07-coverage.log": "66cd2f9e8016107f594e03bad61227b49514a28bfa26d6f2d024c3e4eebfe77f",
+    "/tmp/a07-generate.log": "46bb94575fde53480b43e7f1cf813d0d09699a364ccd68f1e825762d5748dec0",
+    "/tmp/a07-python-policy.log": "4fdc1df0b7744216895078fbfd0411918951ced6f104fd7c2d803096adf589a8",
+    "/tmp/a07-manifest-policy.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+    "/tmp/a07-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "/tmp/a07-local-only-policy.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "/tmp/a07-ui-capture.log": "0328208f9d867befcdf536ac4611406cd8e5f2be57b5f079f086605e1b70a7f9",
+    "/tmp/a07-ui-overflow-before.log": "bbe91889f4bf3370fa98fb6225302bdd2d13caddd7d7d0509c52eb845db3f1e6",
+    "/tmp/a07-review-transcript.md": "99e698672aec56a2dbf2e6808bb4d52664e3a30b12585e8ef6dc8b9311fdfe5d",
+    "/tmp/a07-ui/preparation-partial-en.png": "2418716a1e763c82fc55b19feedee9082d5c8ef06d8e5b6161cd3b699c68979a",
+    "/tmp/a07-ui/preparation-error-ko.png": "eab4d45aa4048033f3a2f40d462f81920a275034cf286e1db70d3459a38ffc89",
+    "/tmp/a07-ui/preparation-partial-ko.png": "bd319f9ce92300998d116b60e8f1a10b3e1b786d38f7cbf864474287b0670068",
+    "/tmp/a07-ui/preparation-error-en.png": "bbe86dc327626ea5838c9489015ee5039f605533c5dc9624cdc2d1204a655897"
+  },
+  "artifacts": {
+    "plans/audit-2026-09-23/artifacts/a07/a07-negative.log": "a70fa3f470666108d5b09f1812b206dca70a09c048aa9ec8af469d7ce269a754",
+    "plans/audit-2026-09-23/artifacts/a07/a07-final-focused.log": "fbbb337de723e92f717d417d695f2f5584d8a84f622f03cc7eff1021585e69c4",
+    "plans/audit-2026-09-23/artifacts/a07/a07-analyze.log": "e14cd93bf6c2391ea351f1e339dfb189231948b63a2fb0d98d6808596574e80f",
+    "plans/audit-2026-09-23/artifacts/a07/a07-full.log": "c231bc5ff52127c70b02834447394159a37607c509234c7fcb34228f3b502c34",
+    "plans/audit-2026-09-23/artifacts/a07/a07-coverage.log": "66cd2f9e8016107f594e03bad61227b49514a28bfa26d6f2d024c3e4eebfe77f",
+    "plans/audit-2026-09-23/artifacts/a07/a07-generate.log": "eb2f5668150f568ebaf5013c746dee250b02be59b29decad99efcecaead22f08",
+    "plans/audit-2026-09-23/artifacts/a07/a07-python-policy.log": "4fdc1df0b7744216895078fbfd0411918951ced6f104fd7c2d803096adf589a8",
+    "plans/audit-2026-09-23/artifacts/a07/a07-manifest-policy.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+    "plans/audit-2026-09-23/artifacts/a07/a07-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "plans/audit-2026-09-23/artifacts/a07/a07-local-only-policy.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "plans/audit-2026-09-23/artifacts/a07/a07-ui-capture.log": "0328208f9d867befcdf536ac4611406cd8e5f2be57b5f079f086605e1b70a7f9",
+    "plans/audit-2026-09-23/artifacts/a07/a07-ui-overflow-before.log": "302c9305186a6f871bbcd92791bfcac82e6ebaf171bb881a103e9544e99d0a7c",
+    "plans/audit-2026-09-23/artifacts/a07/a07-review-transcript.md": "99e698672aec56a2dbf2e6808bb4d52664e3a30b12585e8ef6dc8b9311fdfe5d",
+    "plans/audit-2026-09-23/artifacts/a07/preparation-partial-en.png": "2418716a1e763c82fc55b19feedee9082d5c8ef06d8e5b6161cd3b699c68979a",
+    "plans/audit-2026-09-23/artifacts/a07/preparation-error-ko.png": "eab4d45aa4048033f3a2f40d462f81920a275034cf286e1db70d3459a38ffc89",
+    "plans/audit-2026-09-23/artifacts/a07/preparation-partial-ko.png": "bd319f9ce92300998d116b60e8f1a10b3e1b786d38f7cbf864474287b0670068",
+    "plans/audit-2026-09-23/artifacts/a07/preparation-error-en.png": "bbe86dc327626ea5838c9489015ee5039f605533c5dc9624cdc2d1204a655897"
+  },
+  "artifact_note": "Original hashes retained in raw_artifacts; stored log copies normalize trailing whitespace only.",
+  "implementation_commit": "d73c7863a01343004ccadcd72064b563c464dd0d",
+  "root_committed_blob_verification": "All 29 frozen source/test/QA files match the committed blobs"
+}

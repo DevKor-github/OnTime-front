@@ -170,6 +170,9 @@ EarlyStartUseCaseBundle createEarlyStartUseCaseBundle() {
 
 class TestSchedulePreparationSessionUseCase
     implements SchedulePreparationSessionUseCase {
+  @override
+  void dispose() {}
+
   TestSchedulePreparationSessionUseCase({
     required this.saveTimedPreparationUseCase,
     required this.getTimedPreparationSnapshotUseCase,
@@ -192,9 +195,10 @@ class TestSchedulePreparationSessionUseCase
   final _startedScheduleIds = <String>{};
 
   @override
-  Future<void> startEarlySession(
+  Future<PreparationStartReceipt> startEarlySession(
     ScheduleWithPreparationEntity schedule, {
     required DateTime startedAt,
+    bool Function()? isCurrent,
   }) async {
     await markEarlyStartSessionUseCase(
       scheduleId: schedule.id,
@@ -206,6 +210,7 @@ class TestSchedulePreparationSessionUseCase
       savedAt: startedAt,
       startedAt: startedAt,
     );
+    return PreparationStartReceipt(startedAt: startedAt);
   }
 
   @override
@@ -230,6 +235,7 @@ class TestSchedulePreparationSessionUseCase
     DateTime? savedAt,
     DateTime? startedAt,
     List<PreparationActionEventEntity> actionEvents = const [],
+    bool persist = true,
   }) {
     return saveTimedPreparationUseCase(
       schedule,
@@ -245,11 +251,13 @@ class TestSchedulePreparationSessionUseCase
     ScheduleWithPreparationEntity schedule, {
     required DateTime now,
     RestoredSessionCallback? onRestoredSession,
+    void Function()? onInvalidated,
   }) async {
     final snapshot = await getTimedPreparationSnapshotUseCase(schedule.id);
     if (snapshot == null) return schedule;
     if (snapshot.scheduleFingerprint != schedule.cacheFingerprint) {
       await clearPersistedState(schedule.id);
+      onInvalidated?.call();
       return schedule;
     }
     onRestoredSession?.call(
@@ -287,6 +295,7 @@ class TestSchedulePreparationSessionUseCase
     required String scheduleId,
     required bool startPreparation,
     String? scheduleFingerprint,
+    bool Function()? isCurrent,
   }) async {
     return const SchedulePreparationPromptResult.unavailable();
   }
@@ -367,6 +376,12 @@ class StaticScheduleBloc implements ScheduleBloc {
 
   @override
   Stream<ScheduleState> get stream => const Stream.empty();
+
+  @override
+  String? get notificationPreparationId => null;
+
+  @override
+  Object? get notificationPreparationOwner => null;
 
   @override
   bool get isClosed => false;
@@ -588,6 +603,26 @@ void main() {
       (tester) async {
         await setLargeTestViewport(tester);
 
+        await tester.runAsync(() async {
+          bloc.add(
+            ScheduleUpcomingReceived(
+              buildSchedule(
+                id: 'prompt',
+                scheduleTime: now.add(const Duration(hours: 2)),
+                steps: const [
+                  PreparationStepWithTimeEntity(
+                    id: 'step',
+                    preparationName: 'prep',
+                    preparationTime: Duration(minutes: 10),
+                    nextPreparationId: null,
+                  ),
+                ],
+              ),
+            ),
+          );
+          await bloc.stream.firstWhere((state) => state.schedule != null);
+        });
+
         final router = GoRouter(
           initialLocation: '/scheduleStart',
           routes: [
@@ -613,7 +648,13 @@ void main() {
         expect(find.text('Start preparing now'), findsNothing);
         expect(find.byType(ElevatedButton), findsOneWidget);
 
+        final committed = bloc.stream.firstWhere(
+          (state) => state.status == ScheduleStatus.started,
+        );
         await tapAndPump(tester, find.text('Start Preparing'));
+        await tester.runAsync(
+          () => committed.timeout(const Duration(seconds: 5)),
+        );
         await pumpUntilRouteText(tester, 'ALARM_ROUTE');
 
         expect(find.text('ALARM_ROUTE'), findsOneWidget);
@@ -733,6 +774,26 @@ void main() {
       (tester) async {
         await setLargeTestViewport(tester);
 
+        await tester.runAsync(() async {
+          bloc.add(
+            ScheduleUpcomingReceived(
+              buildSchedule(
+                id: 'prompt',
+                scheduleTime: now.add(const Duration(hours: 2)),
+                steps: const [
+                  PreparationStepWithTimeEntity(
+                    id: 'step',
+                    preparationName: 'prep',
+                    preparationTime: Duration(minutes: 10),
+                    nextPreparationId: null,
+                  ),
+                ],
+              ),
+            ),
+          );
+          await bloc.stream.firstWhere((state) => state.schedule != null);
+        });
+
         final router = GoRouter(
           initialLocation: '/scheduleStart',
           routes: [
@@ -754,7 +815,13 @@ void main() {
         );
 
         await pumpWithRouter(tester, bloc: bloc, router: router);
+        final committed = bloc.stream.firstWhere(
+          (state) => state.status == ScheduleStatus.started,
+        );
         await tapAndPump(tester, find.text('Start preparing now'));
+        await tester.runAsync(
+          () => committed.timeout(const Duration(seconds: 5)),
+        );
         await pumpUntilRouteText(tester, 'ALARM_ROUTE');
         expect(find.text('ALARM_ROUTE'), findsOneWidget);
       },
@@ -963,7 +1030,10 @@ void main() {
             ),
           ],
         );
-        bloc.add(ScheduleUpcomingReceived(schedule));
+        await tester.runAsync(() async {
+          bloc.add(ScheduleUpcomingReceived(schedule));
+          await bloc.stream.firstWhere((state) => state.schedule != null);
+        });
 
         final router = GoRouter(
           initialLocation: '/scheduleStart',
@@ -986,7 +1056,13 @@ void main() {
         );
 
         await pumpWithRouter(tester, bloc: bloc, router: router);
+        final committed = bloc.stream.firstWhere(
+          (state) => state.status == ScheduleStatus.started,
+        );
         await tapAndPump(tester, find.text('Start preparing now'));
+        await tester.runAsync(
+          () => committed.timeout(const Duration(seconds: 5)),
+        );
         await pumpUntilRouteText(tester, 'ALARM_ROUTE');
 
         expect(find.text('ALARM_ROUTE'), findsOneWidget);

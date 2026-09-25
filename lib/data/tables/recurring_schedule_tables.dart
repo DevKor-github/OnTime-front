@@ -29,6 +29,14 @@ class PreparationDefinitionSteps extends Table {
 }
 
 class RecurringScheduleSegments extends Table {
+  TextColumn get rootSegmentId => text().nullable()();
+  // Installation-local concurrency metadata; excluded from portable backups.
+  TextColumn get aggregateIncarnation => text().nullable()();
+  IntColumn get aggregateVersion => integer().nullable()();
+  TextColumn get lastMutationId => text().nullable()();
+  TextColumn get lastMutationDigest => text().nullable()();
+  IntColumn get lastMutationVersion => integer().nullable()();
+
   TextColumn get id => text()();
   TextColumn get seriesId => text()();
   TextColumn get ruleJson => text()();

@@ -1,0 +1,74 @@
+{
+  "scope": "host process death; fixture providers and deletion adapters",
+  "mobileOsVerified": false,
+  "powerLossVerified": false,
+  "writeSyscallInterruptionVerified": false,
+  "results": [
+    {
+      "cut": "first-ownership-written",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": false
+    },
+    {
+      "cut": "intent-renamed",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": false
+    },
+    {
+      "cut": "database-deleted",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": false
+    },
+    {
+      "cut": "completion-renamed",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": false
+    },
+    {
+      "cut": "marker-removed",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": false
+    },
+    {
+      "cut": "journal-unlinked",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": false
+    },
+    {
+      "cut": "partial-first-pending",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": true
+    },
+    {
+      "cut": "recoveryMarked",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": true
+    },
+    {
+      "cut": "quarantinedPending",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": true
+    },
+    {
+      "cut": "recoveryVerified",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": true
+    },
+    {
+      "cut": "recoveryPublished",
+      "signal": "SIGKILL",
+      "freshProcessPassed": true,
+      "damagedBytesPreparedAsFixture": true
+    }
+  ]
+}

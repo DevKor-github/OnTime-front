@@ -1,4 +1,18 @@
 {
+  "startupRecoveryTitle": "앱을 시작할 수 없습니다",
+  "startupRecoveryBody": "로컬 데이터를 확인하는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+  "startupRetryAction": "다시 시도",
+  "restartRequiredBody": "앱을 완전히 닫은 뒤 다시 열어 주세요.",
+  "resetInProgressTitle": "로컬 데이터 초기화 중",
+  "resetInProgressBody": "알림과 로컬 데이터의 정리 상태를 확인하고 있습니다.",
+  "resetWaitingBody": "기기의 알림 작업 응답을 기다리고 있습니다. 아직 초기화가 완료되지 않았습니다. 앱을 다시 열면 정리를 이어갑니다.",
+  "resetDeletedPendingBody": "기기 내 데이터는 삭제됐지만 일부 알림 정리는 아직 확인되지 않았습니다.",
+  "resetIncompleteBody": "초기화가 끝나지 않았습니다. 확인되지 않은 정리 단계만 다시 시도합니다.",
+  "resetNoIntentBody": "초기화 기록을 확인하지 못해 완료로 처리하지 않았습니다. 다시 시도해 주세요.",
+  "resetCompleteTitle": "로컬 데이터 초기화 완료",
+  "resetCompleteBody": "로컬 데이터와 알림 정리를 확인했습니다. 새로 시작하려면 앱을 완전히 닫고 다시 열어 주세요.",
+  "resetRetryAction": "정리 다시 시도",
+  "notificationCleanupNeededStatus": "꺼짐 · 알림 취소 확인 필요",
     "calendarTitle": "캘린더",
     "error": "오류",
     "noSchedules": "약속이 없어요",
@@ -197,5 +211,88 @@
     "exactAlarmPermissionRequired": "정확한 알림 권한이 필요해요",
     "exactAlarmPermissionRequiredDescription": "정확한 시간에 준비를 알려드리기 위해 이 권한이 필요해요.\nAndroid 설정에서 알람 및 리마인더를 허용해주세요.",
     "openNotificationSettingsDescription": "알림 권한이 거부되었습니다.\n약속 준비 리마인더를 받으려면 설정에서 알림을 허용해주세요.",
-    "openSettings": "설정 열기"
+    "openSettings": "설정 열기",
+    "notificationTimingEducationTitle": "준비 시작 알림을 더 정확하게",
+    "notificationTimingEducationDescription": "현재 알림은 켜져 있으며 준비 시작 시각보다 늦게 도착할 수 있어요. 정확한 시각 권한을 허용하면 더 정확하게 예약할 수 있어요. OS, 절전 설정과 기기 상태에 따라 도착이 늦어질 수 있습니다.",
+    "notificationTimingAvailable": "정확한 시각 예약 가능",
+    "notificationTimingApproximate": "근사 시각 예약 · 정확한 시각 설정 가능",
+    "notificationApproximateStatus": "알림 · 근사 시각",
+    "notificationMixedTimingStatus": "알림 · 일부 근사 시각",
+    "notificationIncompleteStatus": "알림 예약 일부 실패 또는 확인 필요",
+    "notificationTimingSettings": "정확한 시각 설정하기",
+  "startupLoadingBody": "기기에 저장된 데이터를 확인하고 있습니다.",
+  "startupWaitingBody": "기기의 응답을 기다리고 있습니다. 확인이 끝날 때까지 잠시 기다려 주세요.",
+  "preparationStartFailed": "준비 시작을 저장하지 못했어요. 다시 시도해주세요.",
+  "preparationStartPartial": "준비는 시작했지만 진행 저장 또는 알림 정리가 일부 완료되지 않았어요.",
+  "dataTitle": "내 데이터",
+  "dataBackupStatus": "백업 상태",
+  "dataReminder": "30일 이상 백업되지 않은 변경 사항이 있습니다.",
+  "dataExport": "암호화 백업 내보내기",
+  "dataExportDescription": "선택한 파일 위치에만 저장합니다.",
+  "dataRestore": "백업에서 복원",
+  "dataRestoreDescription": "미리 확인한 뒤 현재 데이터를 완전히 교체합니다.",
+  "dataReset": "로컬 데이터 초기화",
+  "dataResetDescription": "이 기기의 OnTime 데이터와 알람을 모두 삭제합니다.",
+  "dataChecking": "확인 중",
+  "dataNeverExported": "아직 내보낸 백업이 없습니다.",
+  "dataNoChanges": "마지막 백업 이후 변경 사항이 없습니다.",
+  "dataUnexportedChanges": "백업되지 않은 변경 사항이 있습니다.",
+  "dataFreshnessFailed": "백업 상태를 확인하지 못했습니다. 다시 시도해 주세요.",
+  "dataRetry": "다시 시도",
+  "dataRetryDelivery": "알림 처리만 다시 시도",
+  "dataRestorePartial": "데이터는 복원됐지만 알림 처리가 완료되지 않았습니다. 알림 처리만 다시 시도할 수 있습니다.",
+  "dataUncommittedCleanup": "데이터는 복원되지 않았습니다. 이미 시작된 알림 정리를 마무리하려면 현재 데이터의 알림 처리를 다시 시도해 주세요.",
+  "dataExportSaved": "암호화 백업을 저장했습니다.",
+  "dataExportMetadataFailed": "파일은 저장됐지만 백업 상태를 갱신하지 못했습니다. 백업 상태 확인만 다시 시도해 주세요.",
+  "dataRestoreComplete": "백업을 복원했습니다.",
+  "dataDeliveryUpdated": "현재 데이터의 알림 처리를 완료했습니다.",
+  "dataBusy": "다른 데이터 작업이 진행 중입니다. 완료 후 다시 시도해 주세요.",
+  "dataUnavailable": "로컬 데이터를 사용할 수 없습니다. 앱을 다시 열어 주세요.",
+  "dataStalePreview": "미리보기 이후 데이터가 변경됐습니다. 백업을 다시 선택하고 확인해 주세요.",
+  "dataInvalidBackup": "작업을 완료하지 못했습니다. 백업 파일과 비밀번호를 확인해 주세요.",
+  "dataOperationFailed": "작업을 완료하지 못했습니다. 다시 시도해 주세요.",
+  "dataRestorePreviewTitle": "복원 내용 확인",
+  "dataRestoreAction": "복원",
+  "dataCancel": "취소",
+  "dataContinue": "계속",
+  "dataCreatePassword": "백업 비밀번호 만들기",
+  "dataEnterPassword": "백업 비밀번호 입력",
+  "dataPassword": "백업 비밀번호",
+  "dataPasswordHelp": "15~128자, 대소문자와 공백을 그대로 구분합니다.",
+  "dataConfirmPassword": "백업 비밀번호 확인",
+  "dataPasswordMismatch": "비밀번호가 서로 다릅니다.",
+  "dataPasswordInvalid": "백업 비밀번호는 15~128자로 입력해주세요.",
+  "dataRestorePreview": "백업 시점: {cutoff}\n앱 버전: {version}\n원본 플랫폼: {platform}\n일정 {schedules}개\n준비 템플릿 {templates}개\n기본 준비 단계 {steps}개\n\n현재 로컬 데이터는 모두 교체됩니다.",
+  "@dataRestorePreview": {
+    "placeholders": {
+      "cutoff": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      },
+      "platform": {
+        "type": "String"
+      },
+      "schedules": {
+        "type": "int"
+      },
+      "templates": {
+        "type": "int"
+      },
+      "steps": {
+        "type": "int"
+      }
+    }
+  },
+  "dataResetFailed": "초기화하지 못했습니다. 다시 시도해 주세요.",
+  "scheduleSavedPending": "일정은 저장됐어요",
+  "scheduleDeliveryPendingBody": "알림 업데이트를 완료하지 못했어요. 다시 시도하면 저장한 일정은 그대로 두고 알림만 업데이트합니다.",
+  "scheduleSaveConflict": "저장 전에 변경 사항을 확인해 주세요",
+  "scheduleSaveConflictBody": "화면을 연 뒤 로컬 데이터가 바뀌었어요. 입력은 유지됩니다. 새 일정은 다른 데이터가 바뀌어도 다시 확인해야 합니다.",
+  "scheduleReviewCurrent": "현재 데이터 확인",
+  "scheduleCreateReview": "현재 로컬 데이터를 기준으로 새 저장을 준비합니다. 입력 내용을 확인한 뒤 저장 버튼을 다시 눌러 주세요.",
+  "scheduleDraftPreserved": "위 내용은 현재 저장된 일정입니다. 확인하면 입력한 초안을 유지하며 새 저장을 준비합니다. 변경 내용을 검토한 뒤 저장을 다시 눌러 주세요.",
+  "scheduleSaveProtected": "이미 시작됐거나 준비 시간이 지난 일정은 수정할 수 없어요. 입력 내용은 유지됩니다.",
+  "scheduleSaveUnavailable": "저장할 수 없어요. 입력을 유지했으니 현재 상태와 준비 단계를 확인해 주세요."
 }

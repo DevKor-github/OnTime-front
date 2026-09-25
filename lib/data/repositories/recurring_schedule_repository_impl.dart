@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_save.dart';
 import 'package:on_time_front/domain/entities/place_entity.dart';
 import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'dart:convert';
@@ -555,7 +556,9 @@ class RecurringScheduleRepositoryImpl implements RecurringScheduleRepository {
       final existing = await (db.select(
         db.recurringScheduleSegments,
       )..where((t) => t.seriesId.equals(schedule.id))).get();
-      if (existing.isNotEmpty) return;
+      if (existing.isNotEmpty) {
+        throw const ScheduleSaveRejected(ScheduleSaveFailure.conflict);
+      }
       final cutoff = _now();
       final check = await _review(schedule, preparation, rule, cutoff: cutoff);
       _requireClear(check, excludedSlots);

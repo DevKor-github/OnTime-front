@@ -1,3 +1,5 @@
+import 'package:on_time_front/core/services/notification_tap_router.dart';
+import 'package:on_time_front/presentation/alarm/screens/notification_schedule_start_route.dart';
 import 'package:on_time_front/presentation/recurring/recurring_management_screen.dart';
 import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +58,7 @@ GoRouter goRouterConfig(
         path: state.uri.path,
       );
     },
+    observers: [getIt.get<NavigationService>().routeObserver],
     initialLocation: '/startup',
     routes: [
       GoRoute(
@@ -202,6 +205,17 @@ GoRouter goRouterConfig(
         path: '/scheduleStart',
         name: 'scheduleStart',
         pageBuilder: (context, state) {
+          final notification = state.extra;
+          if (notification is NotificationPromptRouteData) {
+            return _buildAppRoutePage(
+              state: state,
+              transition: AppRouteTransition.scheduleFlow,
+              child: NotificationScheduleStartRoute(
+                data: notification,
+                observer: getIt.get<NavigationService>().routeObserver,
+              ),
+            );
+          }
           final extra = scheduleStartRouteExtraFromState(state);
           return _buildAppRoutePage(
             state: state,
@@ -267,7 +281,6 @@ StreamToListenable appRouterRefreshListenable({
   ]);
 }
 
-@visibleForTesting
 String? appRedirectLocation({
   required AuthStatus authStatus,
   required NotificationGateState notificationGateState,

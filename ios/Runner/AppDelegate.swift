@@ -20,14 +20,20 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     Self.current = self
+    _ = AlarmLaunchPayload.sanitizeStored(
+      in: .standard, key: onTimeAlarmLaunchPayloadDefaultsKey
+    )
     if #available(iOS 10.0, *) {
-      UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
+      UNUserNotificationCenter.current().delegate = self
     }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "OnTimeBackupExport") {
+      BackupExportPlugin.register(with: registrar)
+    }
     let channel = FlutterMethodChannel(
       name: "on_time_front/native_alarm",
       binaryMessenger: engineBridge.applicationRegistrar.messenger()
@@ -50,8 +56,26 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       scheduleNativeAlarm(call, result: result)
     case "cancelNativeAlarm":
       cancelNativeAlarm(call, result: result)
+    case "resetCancelAllNativeAlarms":
+      resetCancelAllNativeAlarms(result: result)
+    case "getPendingNativeAlarms":
+      getPendingNativeAlarms(call, result: result)
+    case "sanitizeStoredLaunchPayload":
+      let cleaned = AlarmLaunchPayload.sanitizeStored(
+        in: .standard, key: onTimeAlarmLaunchPayloadDefaultsKey
+      )
+      result(cleaned ? nil : FlutterError(
+        code: "privacyCleanupFailed",
+        message: "Could not confirm pending launch cleanup.", details: nil
+      ))
     case "getLaunchPayload":
       result(takeStoredAlarmLaunchPayload())
+    case "clearStoredLaunchPayload":
+      let defaults = UserDefaults.standard
+      defaults.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+      result(defaults.object(forKey: onTimeAlarmLaunchPayloadDefaultsKey) == nil
+        ? nil : FlutterError(code: "cleanupUnconfirmed",
+          message: "Could not confirm launch cleanup.", details: nil))
     case "getLocalTimeZone":
       result(TimeZone.current.identifier)
     case "excludeFromBackup":
@@ -73,6 +97,12 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       var values = URLResourceValues()
       values.isExcludedFromBackup = true
       try url.setResourceValues(values)
+      guard try url.resourceValues(forKeys: [.isExcludedFromBackupKey])
+        .isExcludedFromBackup == true else {
+        result(FlutterError(code: "backupExclusionUnconfirmed",
+          message: "Could not confirm local backup exclusion.", details: nil))
+        return
+      }
       result(nil)
     } catch {
       result(FlutterError(
@@ -157,8 +187,8 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     #if canImport(AlarmKit)
     if #available(iOS 26.0, *) {
       guard let args = call.arguments as? [String: Any],
-            let scheduleId = args["scheduleId"] as? String,
-            !scheduleId.isEmpty,
+            let route = AlarmLaunchPayload.sanitize(args),
+            let scheduleId = route["scheduleId"],
             let alarmTimeMillis = int64Value(args["alarmTime"]) else {
         result(FlutterError(
           code: "invalidArguments",
@@ -246,13 +276,71 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     ))
   }
 
+  // Invoked only by explicit full local reset under the shared Dart owner.
+  // AlarmManager enumerates this app's alarms, including identities no longer
+  // mappable to a local schedule after registry corruption.
+  private func resetCancelAllNativeAlarms(result: @escaping FlutterResult) {
+    #if canImport(AlarmKit)
+    if #available(iOS 26.0, *) {
+      do {
+        let manager = AlarmManager.shared
+        for alarm in try manager.alarms {
+          try manager.cancel(id: alarm.id)
+        }
+        guard try manager.alarms.isEmpty else {
+          result(FlutterError(code: "cleanupUnconfirmed",
+            message: "Native alarm cleanup is unconfirmed.", details: nil))
+          return
+        }
+        result(true)
+      } catch {
+        result(FlutterError(code: "cleanupUnconfirmed",
+          message: "Native alarm cleanup is unconfirmed.", details: nil))
+      }
+      return
+    }
+    #endif
+    if #available(iOS 26.0, *) {
+      result(FlutterError(code: "unsupported",
+        message: "This build cannot confirm native alarm cleanup.", details: nil))
+      return
+    }
+    // AlarmKit cannot hold registrations on versions before its introduction.
+    result(true)
+  }
+
+  private func getPendingNativeAlarms(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    #if canImport(AlarmKit)
+    if #available(iOS 26.0, *) {
+      guard let args = call.arguments as? [String: Any],
+            let scheduleIds = args["scheduleIds"] as? [String] else {
+        result(FlutterError(code: "invalidArguments", message: "Missing schedule IDs", details: nil))
+        return
+      }
+      do {
+        // Do not invert UUID hashes or infer ownership from arbitrary UUIDs.
+        let known = Dictionary(scheduleIds.map { (deterministicAlarmUUID($0), $0) },
+                               uniquingKeysWith: { first, _ in first })
+        let alarms = try AlarmManager.shared.alarms
+        let matched = alarms.compactMap { known[$0.id] }
+        result(["source": "iosAlarmKit", "scheduleIds": matched,
+                "unmappedCount": alarms.count - matched.count])
+      } catch {
+        result(FlutterError(code: "observationFailed", message: "AlarmKit registrations could not be read.", details: nil))
+      }
+      return
+    }
+    #endif
+    result(FlutterError(code: "unsupported", message: "AlarmKit observation is unavailable.", details: nil))
+  }
+
   private func cancelNativeAlarm(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     #if canImport(AlarmKit)
     if #available(iOS 26.0, *) {
       guard let args = call.arguments as? [String: Any],
             let scheduleId = args["scheduleId"] as? String,
             !scheduleId.isEmpty else {
-        result(nil)
+        result(FlutterError(code: "invalidArguments", message: "Missing schedule ID", details: nil))
         return
       }
       do {
@@ -268,36 +356,34 @@ private let onTimeAlarmLaunchURLHost = "alarm"
       return
     }
     #endif
-    result(nil)
+    result(FlutterError(
+      code: "unsupported",
+      message: "AlarmKit cancellation cannot be confirmed on this build or OS version.",
+      details: nil
+    ))
   }
 
   private func takeStoredAlarmLaunchPayload() -> [String: String]? {
     let defaults = UserDefaults.standard
-    guard let payload = defaults.dictionary(
-      forKey: onTimeAlarmLaunchPayloadDefaultsKey
-    ) as? [String: String] else {
-      return nil
-    }
+    let payload = AlarmLaunchPayload.sanitize(
+      defaults.dictionary(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+    )
     defaults.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
     return payload
   }
 
   static func handleAlarmLaunchURL(_ url: URL) -> Bool {
     guard url.scheme == onTimeAlarmLaunchURLScheme,
-          url.host == onTimeAlarmLaunchURLHost else {
-      return false
-    }
-
-    var payload: [String: String] = [
-      "type": "schedule_alarm",
-      "promptVariant": "alarm"
-    ]
+          url.host == onTimeAlarmLaunchURLHost else { return false }
+    var values: [String: Any] = [:]
     if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-      for item in components.queryItems ?? [] {
-        if let value = item.value {
-          payload[item.name] = value
-        }
-      }
+      // Duplicate identity parameters are ambiguous, not last-value-wins.
+      let identities = (components.queryItems ?? []).filter { $0.name == "scheduleId" }
+      if identities.count == 1 { values["scheduleId"] = identities.first?.value }
+    }
+    guard let payload = AlarmLaunchPayload.sanitize(values) else {
+      UserDefaults.standard.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+      return true
     }
     storeAlarmLaunchPayload(payload)
     current?.notifyFlutterAlarmLaunch(payload)
@@ -305,49 +391,36 @@ private let onTimeAlarmLaunchURLHost = "alarm"
   }
 
   fileprivate static func alarmLaunchURL(payload: [String: String]) -> URL? {
+    guard let clean = AlarmLaunchPayload.sanitize(payload) else { return nil }
     var components = URLComponents()
     components.scheme = onTimeAlarmLaunchURLScheme
     components.host = onTimeAlarmLaunchURLHost
-    components.queryItems = payload.keys.sorted().map { key in
-      URLQueryItem(name: key, value: payload[key])
+    components.queryItems = clean.keys.sorted().map { key in
+      URLQueryItem(name: key, value: clean[key])
     }
     return components.url
   }
 
   fileprivate static func storeAlarmLaunchPayload(_ payload: [String: String]) {
-    UserDefaults.standard.set(payload, forKey: onTimeAlarmLaunchPayloadDefaultsKey)
-    UserDefaults.standard.synchronize()
-  }
-
-  private func storeAlarmLaunchPayload(_ payload: [String: String]) {
-    Self.storeAlarmLaunchPayload(payload)
+    let defaults = UserDefaults.standard
+    if let clean = AlarmLaunchPayload.sanitize(payload) {
+      defaults.set(clean, forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+    } else {
+      defaults.removeObject(forKey: onTimeAlarmLaunchPayloadDefaultsKey)
+    }
+    defaults.synchronize()
   }
 
   private func notifyFlutterAlarmLaunch(_ payload: [String: String]) {
+    guard let clean = AlarmLaunchPayload.sanitize(payload) else { return }
     DispatchQueue.main.async {
-      self.nativeAlarmChannel?.invokeMethod("alarmLaunch", arguments: payload)
+      self.nativeAlarmChannel?.invokeMethod("alarmLaunch", arguments: clean)
     }
   }
 
   private func alarmPayload(from args: [String: Any]) -> [String: String] {
-    var payload: [String: String] = [:]
-    if let rawPayload = args["payload"] as? [String: Any] {
-      for (key, value) in rawPayload {
-        payload[key] = "\(value)"
-      }
-    }
-    payload["type"] = "schedule_alarm"
-    payload["promptVariant"] = "alarm"
-    if let scheduleId = args["scheduleId"] as? String {
-      payload["scheduleId"] = scheduleId
-    }
-    if let alarmTime = int64Value(args["alarmTime"]) {
-      payload["alarmTime"] = "\(alarmTime)"
-    }
-    if let preparationStartTime = int64Value(args["preparationStartTime"]) {
-      payload["preparationStartTime"] = "\(preparationStartTime)"
-    }
-    return payload
+    // Provider time/title/body and nested payload are not route instructions.
+    return AlarmLaunchPayload.sanitize(args) ?? [:]
   }
 
   private func int64Value(_ value: Any?) -> Int64? {
@@ -393,18 +466,19 @@ public struct OpenScheduleAlarmIntent: LiveActivityIntent {
   }
 
   public init(payload: [String: String]) {
-    let data = try? JSONSerialization.data(withJSONObject: payload, options: [])
+    let data = try? JSONSerialization.data(withJSONObject: AlarmLaunchPayload.sanitize(payload) ?? [:], options: [])
     encodedPayload = data.flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
   }
 
   public func perform() async throws -> some IntentResult & OpensIntent {
     if let data = encodedPayload.data(using: .utf8),
-       let payload = try? JSONSerialization.jsonObject(with: data) as? [String: String] {
+       let raw = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+       let payload = AlarmLaunchPayload.sanitize(raw) {
       #if DEBUG
-      NSLog("OnTime AlarmKit Open intent invoked for scheduleId=%@", payload["scheduleId"] ?? "")
+      NSLog("OnTime AlarmKit Open intent invoked with a routing hint")
       #endif
-      AppDelegate.storeAlarmLaunchPayload(payload)
-      if let url = AppDelegate.alarmLaunchURL(payload: payload) {
+      await AppDelegate.storeAlarmLaunchPayload(payload)
+      if let url = await AppDelegate.alarmLaunchURL(payload: payload) {
         return .result(opensIntent: OpenURLIntent(url))
       }
     }

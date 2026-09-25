@@ -33,6 +33,16 @@ class _AlarmScreenState extends State<AlarmScreen> {
   bool? _pendingIsLate;
   Timer? _uiTickerTimer;
   String? _completionScheduleId;
+  ScheduleBloc? _notificationPreparationBloc;
+  Object? _notificationPreparationOwner;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _notificationPreparationBloc = context.read<ScheduleBloc>();
+    _notificationPreparationOwner =
+        _notificationPreparationBloc!.notificationPreparationOwner;
+  }
 
   void _resetFinishNavigation() {
     _navigateAfterFinish = false;
@@ -115,6 +125,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
   @override
   void dispose() {
     _uiTickerTimer?.cancel();
+    final owner = _notificationPreparationOwner;
+    if (owner != null) {
+      _notificationPreparationBloc?.releaseNotificationPreparation(owner, this);
+    }
     super.dispose();
   }
 
@@ -149,6 +163,20 @@ class _AlarmScreenState extends State<AlarmScreen> {
       },
       child: BlocBuilder<ScheduleBloc, ScheduleState>(
         builder: (context, scheduleState) {
+          // GoRouter may reuse this State when another notification starts a
+          // different occurrence on the same route. Release only its latest
+          // selected session when this screen actually leaves the stack.
+          if (ModalRoute.of(context)?.isCurrent ?? false) {
+            _notificationPreparationOwner =
+                _notificationPreparationBloc!.notificationPreparationOwner;
+            final owner = _notificationPreparationOwner;
+            if (owner != null) {
+              _notificationPreparationBloc!.attachNotificationPreparation(
+                owner,
+                this,
+              );
+            }
+          }
           if (scheduleState.status == ScheduleStatus.ongoing ||
               scheduleState.status == ScheduleStatus.started) {
             final schedule = scheduleState.schedule!;
@@ -252,6 +280,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
     }
 
     final alarmTheme = _buildAlarmTheme(context, isLateContinueMode);
+    final startState = context.watch<ScheduleBloc>().state;
 
     return Theme(
       key: const ValueKey('alarm_screen_theme'),
@@ -260,6 +289,31 @@ class _AlarmScreenState extends State<AlarmScreen> {
         builder: (context) {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.primary,
+            bottomNavigationBar: startState.hasPendingStartRecovery
+                ? SafeArea(
+                    child: MaterialBanner(
+                      content: Text(l10n.preparationStartPartial),
+                      actions: [
+                        TextButton(
+                          onPressed: startState.isRecoveringStart
+                              ? null
+                              : () => context.read<ScheduleBloc>().add(
+                                  const SchedulePreparationRecoveryRequested(),
+                                ),
+                          child: startState.isRecoveringStart
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(l10n.startupRetryAction),
+                        ),
+                      ],
+                    ),
+                  )
+                : null,
             body: Stack(
               children: [
                 Column(

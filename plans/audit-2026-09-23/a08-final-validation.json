@@ -1,0 +1,398 @@
+{
+  "issue": "A08 #601",
+  "status": "implemented_and_locally_validated",
+  "created_at": "2026-09-24T03:58:34.293942+00:00",
+  "implementation_base": "4529d9f84e911b1ee2fbb42af09698a0c27cc9f2",
+  "source_manifest": "/tmp/a08-source-freeze.json",
+  "source_path_count": 49,
+  "source_hashes_match": true,
+  "product_identical_to_successful_full_run": true,
+  "full_run_test_only_delta": [
+    "test/data/repositories/schedule_aggregate_repository_test.dart"
+  ],
+  "full_run_delta_explanation": "The count=3 re-materialization no-op regression was strengthened to count=65. Actual create inserts 60; subsequent materialization inserts 5 more while root version, mutation version, durable revision and same-intent receipt remain unchanged. Root explicitly requested permanent regression plus focused rerun, without redundant full rerun. Product sources are byte-identical to the full1018 run.",
+  "coverage": {
+    "percent": 88.96,
+    "covered_lines": 14113,
+    "total_lines": 15864,
+    "scope": "repository app-owned check_coverage.dart; successful v3 full run"
+  },
+  "commands": [
+    {
+      "command": "flutter analyze --no-pub",
+      "exit_code": 0,
+      "result": "No issues found",
+      "log": "/tmp/a08-analyze-final.log",
+      "source": "final freeze"
+    },
+    {
+      "command": "flutter test --no-pub --coverage --reporter expanded",
+      "exit_code": 0,
+      "passed": 1018,
+      "failed": 0,
+      "log": "/tmp/a08-full-coverage.log",
+      "source_manifest": "/tmp/a08-source-freeze-v3.json",
+      "duration_reported_seconds": 55
+    },
+    {
+      "command": "flutter test --no-pub test/data/repositories/schedule_aggregate_repository_test.dart --reporter expanded",
+      "exit_code": 0,
+      "passed": 41,
+      "failed": 0,
+      "log": "/tmp/a08-materialization-final-focused.log",
+      "source": "final freeze; test-only strengthening after full run"
+    },
+    {
+      "command": "flutter test --no-pub /tmp/a08-materialization-probe_test.dart --reporter expanded",
+      "exit_code": 0,
+      "passed": 1,
+      "log": "/tmp/a08-materialization-probe.log"
+    },
+    {
+      "command": "dart run tool/check_coverage.dart --min=80",
+      "exit_code": 0,
+      "log": "/tmp/a08-coverage-gate.log"
+    },
+    {
+      "command": "dart run tool/check_generated_dart_policy.dart",
+      "exit_code": 0,
+      "log": "/tmp/a08-generated-policy.log"
+    },
+    {
+      "command": "dart run tool/check_local_only_boundary.dart",
+      "exit_code": 0,
+      "log": "/tmp/a08-local-only.log"
+    },
+    {
+      "command": "python3 -B -m unittest discover -s test/tool -p 'test_*.py' -v",
+      "exit_code": 0,
+      "passed": 11,
+      "log": "/tmp/a08-python-tests.log"
+    },
+    {
+      "command": "python3 tool/check_android_notification_manifest.py android/app/src/main/AndroidManifest.xml",
+      "exit_code": 0,
+      "log": "/tmp/a08-android-manifest.log"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "log": "/tmp/a08-diff-check.log"
+    },
+    {
+      "command": "dart run build_runner build --delete-conflicting-outputs",
+      "exit_code": 0,
+      "log": "/tmp/a08-codegen-final-v3.log",
+      "note": "Ignored generated outputs remain untracked; no generated Dart staged."
+    },
+    {
+      "command": "flutter gen-l10n",
+      "exit_code": 0,
+      "log": "/tmp/a08-l10n-freeze.log"
+    }
+  ],
+  "focused_evidence": [
+    {
+      "log": "/tmp/a08-focused-final.log",
+      "passed": 112,
+      "boundary": "Before final DAO metadata/readback/watch ordering fixes"
+    },
+    {
+      "log": "/tmp/a08-focused-v3.log",
+      "passed": 60,
+      "boundary": "Final product freeze; changed DAO/start UI/aggregate/snapshot tests"
+    }
+  ],
+  "historical_migration": {
+    "v2_baseline": "4529d9f84e911b1ee2fbb42af09698a0c27cc9f2",
+    "v2_method": "Actual baseline Drift AppDatabase NativeDatabase memory sqlite_master DDL dump in isolated temporary source copy",
+    "v1_source": "ccc6272bde15937a87dd577157b3330593718759",
+    "v1_method": "Reconstruction of frozen v2 DDL using verified historical difference, not v1 binary execution",
+    "fixtures": {
+      "test/fixtures/database/schema_v1.sql": "782cd3a3cfdca56c67f896a7fbdfa9791a349f77b2b65e21c7f0c0f2ce4a121d",
+      "test/fixtures/database/schema_v2.sql": "a7ec3c57f1c86a58ef45c3417abe187fa4e44a0be87e3861a7182cb3ab02d7c5"
+    },
+    "boundary": "Actual native SQLite file open/migration/rollback, not mobile SQLCipher or a released historical binary"
+  },
+  "ui": {
+    "path": "/tmp/a08-ui",
+    "languages": [
+      "ko",
+      "en"
+    ],
+    "size": [
+      430,
+      932
+    ],
+    "text_scale": 2,
+    "capture_type": "synthetic Flutter widget raster",
+    "images_inspected": 4,
+    "behavior": "Actual DB revision fault rollback, preserved draft, successful one-commit retry, notification-only retry, new-form modal ownership",
+    "limitations": "Existing English background step-label wrapping/title truncation belongs to U08; no entire-form accessibility or native notification claim. Final product UI source and UI test hashes equal capture-run versions."
+  },
+  "previous_validation": {
+    "first_full": {
+      "passed": 1008,
+      "failed": 7,
+      "log": "/tmp/a08-full-coverage-first-failure.log",
+      "resolved": "5 old raw-row metadata assertions; 2 unchanged A07 start widget timeouts from extra async watch read transaction"
+    },
+    "interrupted_full": {
+      "log": "/tmp/a08-full-coverage-before-ordering.log",
+      "reason": "Stopped only the owned validation PID for root-reviewed chronological watch ordering fix",
+      "passing_evidence": false
+    }
+  },
+  "remaining_integration_obligations": [
+    "A09/D02 must rotate durable store incarnation for any data replacement, including profile-preserving replacement.",
+    "C01 verified staging/runtime replacement and damaged-store recovery remain A09/D02 responsibilities.",
+    "Device SQLCipher migration, actual mobile OS notification/file-provider delivery and external CI/merge/release are not local proof."
+  ],
+  "git_actions": "No stage, commit, push, or GitHub mutations by this agent",
+  "artifacts": {
+    "plans/audit-2026-09-23/artifacts/a08/a08-source-freeze.json": "53f354317242075bb0c6ce7b02bdad8282e29ea58752fef8f3ee45f970c3a740",
+    "plans/audit-2026-09-23/artifacts/a08/a08-source-freeze-v1.json": "e7e9cfb8fd270bf85034eaaf95b35bf8decae940f859f12abfef642f729e343c",
+    "plans/audit-2026-09-23/artifacts/a08/a08-source-freeze-v2.json": "75f3f3f607495b8e0be3b9ed3a9e7eb4cdf8b5ef053d5fbe3edbb34990985a70",
+    "plans/audit-2026-09-23/artifacts/a08/a08-source-freeze-v3.json": "40c22c1505b5ea38b1434904d26bd1c36a531996ac917234cc428f5528002beb",
+    "plans/audit-2026-09-23/artifacts/a08/a08-negative-proof.json": "b697d371af0118e9fe899b81d09cfd744fade5b1a47663d1ca8cdb45ef88fb5f",
+    "plans/audit-2026-09-23/artifacts/a08/a08-negative.log": "8668c4cd448bb0ffe72ee819008eccd85bc6eef5719d2844990c05c6fde939e9",
+    "plans/audit-2026-09-23/artifacts/a08/a08-negative-test.dart.txt": "692bce0eef10bde945c34f2741fa30f6ec7fa5964e605c638913ce8a85134e60",
+    "plans/audit-2026-09-23/artifacts/a08/a08-review-transcript.md": "f0017f580c17c2756db8fe06efc49da9b21b84808b36013b1cf2166737513947",
+    "plans/audit-2026-09-23/artifacts/a08/a08-handoff.md": "7a77842f0bb93f8ee890b58021d3e9cfc9dfece5300c9484d960e8d94527ad15",
+    "plans/audit-2026-09-23/artifacts/a08/a08-codegen-final-v3.log": "0f16236d9c8e2025d3cc44a0373bd8d31a73db2de9e469b021d7bdf018ff67e4",
+    "plans/audit-2026-09-23/artifacts/a08/a08-l10n-freeze.log": "99777303f8bb4635eabe383963a4f0617345de959016f82712a51702233027bf",
+    "plans/audit-2026-09-23/artifacts/a08/a08-focused-final.log": "94f93bde059d45da77958c7c44cd5360e23abbc089ae10483387eaab0306e539",
+    "plans/audit-2026-09-23/artifacts/a08/a08-full-fix-focused.log": "c5062462e3edbc630aa30b67161c637e982c31cefcaa77515d91c6624ebbfacb",
+    "plans/audit-2026-09-23/artifacts/a08/a08-focused-v3.log": "c6e445464ece78dcb03fd32876a1793fb5c24972a566cf0328a946a5e0947619",
+    "plans/audit-2026-09-23/artifacts/a08/a08-ordering-focused.log": "9945f8c06d79a8cbe4ecc62476ab8ef5242dafe0c439030a280fc2d352c7421a",
+    "plans/audit-2026-09-23/artifacts/a08/a08-materialization-probe.log": "52ddcfe637cb22c6ea0009b09b1d43d74410905215bf21f29b2221bb28b61e99",
+    "plans/audit-2026-09-23/artifacts/a08/a08-materialization-probe_test.dart.txt": "ef383b108b63fe21db87a919ddf4ada20879791878ef956710a362681f265d17",
+    "plans/audit-2026-09-23/artifacts/a08/a08-materialization-final-focused.log": "7a120e1964404e4895db3b80014b90cfe6f740975a4e6a9be6008febb2871dd0",
+    "plans/audit-2026-09-23/artifacts/a08/a08-analyze-final.log": "05ca0c927e73dde40e340806626c09232bd942284df8f27912e73aa97c768d17",
+    "plans/audit-2026-09-23/artifacts/a08/a08-full-coverage.log": "019597612f9787d7c82f1742e61b3ba8f8df1f6794f32a4bb7265242f78bbe07",
+    "plans/audit-2026-09-23/artifacts/a08/a08-full-coverage-first-failure.log": "34a7487c17c64d7ad2cbf74544a686148e705db1cb6d03dee0b49ca58b412d68",
+    "plans/audit-2026-09-23/artifacts/a08/a08-full-coverage-before-ordering.log": "38805b7b01583f30b9ef6409299fe288bbe7fd648edd36a7d34be25836f1b988",
+    "plans/audit-2026-09-23/artifacts/a08/a08-coverage-gate.log": "197d63302fe72600f85a8cb3f4fba0c94bf875c120cd6a8aea8d21351e720a8b",
+    "plans/audit-2026-09-23/artifacts/a08/a08-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "plans/audit-2026-09-23/artifacts/a08/a08-local-only.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "plans/audit-2026-09-23/artifacts/a08/a08-python-tests.log": "bf82059427ffe9b6f0424d5d1d0cce246bd4ae3114fef7fdb2d5aed0bab949f6",
+    "plans/audit-2026-09-23/artifacts/a08/a08-android-manifest.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+    "plans/audit-2026-09-23/artifacts/a08/a08-diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "plans/audit-2026-09-23/artifacts/a08/a08-historical-dump.log": "ea9b1ee49d5da13cbca47fe908e35c0ab4786083f6771fe0bdf47930e1cf885e",
+    "plans/audit-2026-09-23/artifacts/a08/en-delivery-pending.png": "15eca6d2860787db4247be58146000b6bb8742ff6179c8d5ee9481b3c4d9a05b",
+    "plans/audit-2026-09-23/artifacts/a08/en-rollback.png": "04f2bf551f26a6813fbce8573794f0701baaf0ced617b77b8f0d3e83f10d1920",
+    "plans/audit-2026-09-23/artifacts/a08/ko-delivery-pending.png": "daccffe2454d4c300a8f4925a6a45e8e7b925b09824b3f98ea824a6fedb8c115",
+    "plans/audit-2026-09-23/artifacts/a08/ko-rollback.png": "3c732763d94fade1caa35d69aaf2e97e995e0d568a28a4e93628d9a5cc1ef976"
+  },
+  "implementation_commit": "126161dab042365c89983934b1673d860c27d8d3",
+  "source_files": {
+    "docs/adr/0037-bind-schedule-save-receipts-to-local-aggregate-identities.md": "8bfef8e2fd05f0ad9a7e495475d534d5b6d5a4b0d5be33df77dcf065f3ced964",
+    "lib/core/backup/recurring_backup_data.dart": "875221d414768e380ec7d6f731f371840c1f39ca8efe8dc88b75949c22caf5b7",
+    "lib/core/database/database.dart": "c217c5ffcd37825f480c3ff303316ba2db8680d1221138fccffda7d6016f1cef",
+    "lib/core/database/schedule_aggregate_schema.dart": "6fcc4e2dce5a78d0cb435777782573aac03eaf1152451875267cc9c4d7f9a312",
+    "lib/data/daos/schedule_dao.dart": "370e4aa68d2159c5e8a24f5b86e704b19758c3365903e6cb1045b5555610e738",
+    "lib/data/repositories/alarm_repository_impl.dart": "bb32b840e90f68e9073f05022ff1ebac6cace18abb078afc02af62e7990de45e",
+    "lib/data/repositories/preparation_repository_impl.dart": "bb430d86ec37a7b3df629c44f0fa34dbd51b48102dd723d9d9d78446b56fbc80",
+    "lib/data/repositories/recurring_schedule_repository_impl.dart": "dbb70fd633b08d5a81619d33b1feb7938bcfffde1825bc0a53fdbe1118bf92fb",
+    "lib/data/repositories/schedule_aggregate_repository_impl.dart": "11df5dfdc0fb4f0c292db82edc12e789ee0bd9070cd2956f6e8c6ed2383e2e9a",
+    "lib/data/tables/recurring_schedule_tables.dart": "d1e76b7157a0ffbfef018ccebb28ffd1848d7cf56cebfa94a69651ea6574e3bb",
+    "lib/data/tables/schedules_table.dart": "33b39eb13aa513e01723da00f4914da0d6cf8d1ed07e16a0070bf9f6a800aa18",
+    "lib/data/tables/user_table.dart": "b21c5c98f36f7237b9d632d8afe41fff4d665235f36cc8a2e146178c9b67b046",
+    "lib/domain/entities/schedule_save.dart": "9fd020ed04d81f3fc8f552cf9b9437f27bd6f74159cb038bbc1590909dde3b76",
+    "lib/domain/repositories/schedule_aggregate_repository.dart": "3755c4135d26ee85bbfae3a19c56395a2e444f6cf6c89cb335d23b3af3df5e61",
+    "lib/domain/use-cases/create_schedule_form_submission_use_case.dart": "839b370b1ee876612a761848d2fb038c6f83741d520de05c9ca9e4c0ddec72c8",
+    "lib/domain/use-cases/load_schedule_form_draft_use_case.dart": "0cc6587d76d5fb0194b7bf47cb21169e26bb043fc9a1fd8bd72da8fbbc37ff34",
+    "lib/domain/use-cases/recurring_schedules_use_case.dart": "9384895177fe325a067f42388b59a704dca3966aa932de84346fb94d90ff317f",
+    "lib/domain/use-cases/schedule_form_submission.dart": "3b05cab96ec691388eac5007f1791be25c88ef3cacfd34a2bb19c6fa69514d79",
+    "lib/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart": "c57bd8d8fc3204e920f677925d2ce5f1f6953062d38bef41c2cb1c51f465b6b5",
+    "lib/domain/use-cases/schedule_save_workflow.dart": "3eb8dcbbe095a31a972c95a56360b8275082b5a07a0e946d6d05c931ff971477",
+    "lib/domain/use-cases/update_schedule_form_submission_use_case.dart": "975215ea2d3e869b3da5c9e5c3acb643a79f869f18f81fa37289ac4ae5a8a4fa",
+    "lib/l10n/app_en.arb": "213a419f55776010ab7f980b83b19b56e13580d6a7c7c229eb692aea7e5f93bf",
+    "lib/l10n/app_ko.arb": "48b5c1fd482ac93d403b21c5e218e6645cb8cb55f36ddf8c99ca90f850252db0",
+    "lib/l10n/app_localizations.dart": "7298fb334a699579aaac77fc05dd354f32ba9bd714968f8cf03fe403a0318ec6",
+    "lib/l10n/app_localizations_en.dart": "14c3741c7e7307f61673d994ad5e44cd742a5f5e26b80fd9783225286ecee827",
+    "lib/l10n/app_localizations_ko.dart": "660c8d17c39a7e305519876053aa4dbf6a945f8ad3b03ef4ce13abddf7847c25",
+    "lib/presentation/schedule_create/bloc/schedule_form_bloc.dart": "6642f6ad29d36434ecb3dbb879d09b6f2a30759c529f0d9ea5cdb68e28e5a69a",
+    "lib/presentation/schedule_create/bloc/schedule_form_event.dart": "9f7a765946c18aea23d8fb97917ce100d6f40bc2d52bd63027a3d472cd086b56",
+    "lib/presentation/schedule_create/bloc/schedule_form_state.dart": "b692aa1667462f547662c2c57beab1b2b8b70dd04a893e432761ce96f0b64f7c",
+    "lib/presentation/schedule_create/components/schedule_multi_page_form.dart": "10a04857519473eb7c83fa6beb5958d3c62fa6b3139147105d8d49a860b8453a",
+    "pubspec.lock": "1305211851a74cdea3bae6402409b9ac0108562751859b062bb90aeb34900d4f",
+    "pubspec.yaml": "71d14bb6731407309b150f89e548ec4d78fa0843087e1b2a8d1489425697eaf1",
+    "test/core/backup/backup_service_test.dart": "92d76777b8cc5a4205fa33075281997313cf50f99b38271edd4e16718d6903f2",
+    "test/core/database/database_index_test.dart": "ead0ee32b368a911832fb1e08e86ec684eb767949d7ee060022ad6c81ceec898",
+    "test/core/database/recurring_migration_test.dart": "03a0745c00ea247c55dea9f65b27a435b0492b217520c0f75fab4a898b672c0d",
+    "test/core/database/schedule_aggregate_migration_test.dart": "46bf6aa216d7e46c47730e8aa0e87216984b6551dd1ec015cfa3f7d84e619d91",
+    "test/data/daos/schedule_dao_test.dart": "bc500cd4ebd497379c306ae2579a8619acab9795a580e73759e968a37707acfb",
+    "test/data/data_sources/schedule_local_data_source_test.dart": "a7c1f55b98887dcf2538f608070545cc64af145f5617b290bc5589e10511a365",
+    "test/data/repositories/recurring_schedule_repository_test.dart": "60969859e40aaf9b5301d5c1340c6ff201bb95466b50ce1369a5677f751cec05",
+    "test/data/repositories/schedule_aggregate_repository_test.dart": "dfa8ce81dd9f8f54fd3bdcd00354c88c921d37c615684fdf984942e47a2be763",
+    "test/data/repositories/schedule_aggregate_snapshot_test.dart": "50531d54e9eed6b93414185c62326f5cd6489c46eaf543bb08848511518efbca",
+    "test/domain/use-cases/create_schedule_form_submission_use_case_test.dart": "317a45914cb0490bb54fe25cfbdbb213ff0a95697820834774dd2936f88d6e67",
+    "test/domain/use-cases/update_schedule_form_submission_use_case_test.dart": "5fd739f2cbaada8a787d14d1af8dd7b9718df86027d356919ed7669b5f78b6a9",
+    "test/fixtures/database/README.md": "1e4068750433db1b18c5936216786128def1088f532d5a9486d9e9405625f168",
+    "test/fixtures/database/schema_v1.sql": "782cd3a3cfdca56c67f896a7fbdfa9791a349f77b2b65e21c7f0c0f2ce4a121d",
+    "test/fixtures/database/schema_v2.sql": "a7ec3c57f1c86a58ef45c3417abe187fa4e44a0be87e3861a7182cb3ab02d7c5",
+    "test/presentation/recurring/recurring_form_integration_test.dart": "6d935c38090713b0a729f8fe70a7ff4ff018d4de0f8fa508ab201040988422c9",
+    "test/presentation/schedule_create/bloc/schedule_form_bloc_test.dart": "15bffe233e663f55d6588533dd272ccdd8658ef11be709e3708c8241cf18c954",
+    "test/presentation/schedule_create/components/schedule_multi_page_form_test.dart": "fb0ad4e2a2235f52d23466ae4b14447c37b04d7db12deff8d6f3319a7d2f197e"
+  },
+  "raw_evidence_archive_inputs": {
+    "/tmp/a08-source-freeze.json": {
+      "sha256": "53f354317242075bb0c6ce7b02bdad8282e29ea58752fef8f3ee45f970c3a740",
+      "bytes": 6539
+    },
+    "/tmp/a08-source-freeze-v1.json": {
+      "sha256": "e7e9cfb8fd270bf85034eaaf95b35bf8decae940f859f12abfef642f729e343c",
+      "bytes": 6097
+    },
+    "/tmp/a08-source-freeze-v2.json": {
+      "sha256": "75f3f3f607495b8e0be3b9ed3a9e7eb4cdf8b5ef053d5fbe3edbb34990985a70",
+      "bytes": 6657
+    },
+    "/tmp/a08-source-freeze-v3.json": {
+      "sha256": "40c22c1505b5ea38b1434904d26bd1c36a531996ac917234cc428f5528002beb",
+      "bytes": 6520
+    },
+    "/tmp/a08-negative-proof.json": {
+      "sha256": "b697d371af0118e9fe899b81d09cfd744fade5b1a47663d1ca8cdb45ef88fb5f",
+      "bytes": 836
+    },
+    "/tmp/a08-negative.log": {
+      "sha256": "8f907e05b2250f2698569cd3006d0b126674549d71e86fc292eefb0408177f09",
+      "bytes": 1603
+    },
+    "/tmp/a08-negative-test.dart": {
+      "sha256": "692bce0eef10bde945c34f2741fa30f6ec7fa5964e605c638913ce8a85134e60",
+      "bytes": 3502
+    },
+    "/tmp/a08-review-transcript.md": {
+      "sha256": "f0017f580c17c2756db8fe06efc49da9b21b84808b36013b1cf2166737513947",
+      "bytes": 31627
+    },
+    "/tmp/a08-handoff.md": {
+      "sha256": "7a77842f0bb93f8ee890b58021d3e9cfc9dfece5300c9484d960e8d94527ad15",
+      "bytes": 8425
+    },
+    "/tmp/a08-codegen-final-v3.log": {
+      "sha256": "0f16236d9c8e2025d3cc44a0373bd8d31a73db2de9e469b021d7bdf018ff67e4",
+      "bytes": 1889
+    },
+    "/tmp/a08-l10n-freeze.log": {
+      "sha256": "97362974d3ec503ef18e205dbcc7d8e1ca57e5426c80a4966c6608571fa88609",
+      "bytes": 161
+    },
+    "/tmp/a08-focused-final.log": {
+      "sha256": "0ff59fda9f347ad7c5e618a9eb28fb732c89fd90d2997baa96309ff6eb3ae092",
+      "bytes": 28727
+    },
+    "/tmp/a08-full-fix-focused.log": {
+      "sha256": "c5062462e3edbc630aa30b67161c637e982c31cefcaa77515d91c6624ebbfacb",
+      "bytes": 15360
+    },
+    "/tmp/a08-focused-v3.log": {
+      "sha256": "c6e445464ece78dcb03fd32876a1793fb5c24972a566cf0328a946a5e0947619",
+      "bytes": 15211
+    },
+    "/tmp/a08-ordering-focused.log": {
+      "sha256": "9945f8c06d79a8cbe4ecc62476ab8ef5242dafe0c439030a280fc2d352c7421a",
+      "bytes": 2962
+    },
+    "/tmp/a08-materialization-probe.log": {
+      "sha256": "52ddcfe637cb22c6ea0009b09b1d43d74410905215bf21f29b2221bb28b61e99",
+      "bytes": 184
+    },
+    "/tmp/a08-materialization-probe_test.dart": {
+      "sha256": "ef383b108b63fe21db87a919ddf4ada20879791878ef956710a362681f265d17",
+      "bytes": 2324
+    },
+    "/tmp/a08-materialization-final-focused.log": {
+      "sha256": "7a120e1964404e4895db3b80014b90cfe6f740975a4e6a9be6008febb2871dd0",
+      "bytes": 3607
+    },
+    "/tmp/a08-analyze-final.log": {
+      "sha256": "253e6cd543d700598beaf075ddc943e038d2cf5fa08e5b1e260f10c940a9a12d",
+      "bytes": 96
+    },
+    "/tmp/a08-full-coverage.log": {
+      "sha256": "5f0d93ef8488ce1ebd743e6221d9b3de48a1bd5c363dcb388432e5d70790b7d7",
+      "bytes": 230982
+    },
+    "/tmp/a08-full-coverage-first-failure.log": {
+      "sha256": "12725fbaaa6a7657b28060894bf95f7b47a635a0548d4158ce91644862db0258",
+      "bytes": 260376
+    },
+    "/tmp/a08-full-coverage-before-ordering.log": {
+      "sha256": "bd004887598f1943a6b63b2f03d9a6bf88259c6a027cd907b805b3726060bfe9",
+      "bytes": 131499
+    },
+    "/tmp/a08-coverage-gate.log": {
+      "sha256": "197d63302fe72600f85a8cb3f4fba0c94bf875c120cd6a8aea8d21351e720a8b",
+      "bytes": 81
+    },
+    "/tmp/a08-generated-policy.log": {
+      "sha256": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+      "bytes": 113
+    },
+    "/tmp/a08-local-only.log": {
+      "sha256": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+      "bytes": 82
+    },
+    "/tmp/a08-python-tests.log": {
+      "sha256": "bf82059427ffe9b6f0424d5d1d0cce246bd4ae3114fef7fdb2d5aed0bab949f6",
+      "bytes": 1996
+    },
+    "/tmp/a08-android-manifest.log": {
+      "sha256": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+      "bytes": 151
+    },
+    "/tmp/a08-diff-check.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/tmp/a08-historical-dump.log": {
+      "sha256": "ea9b1ee49d5da13cbca47fe908e35c0ab4786083f6771fe0bdf47930e1cf885e",
+      "bytes": 140
+    }
+  },
+  "root_review": {
+    "source_and_committed_blobs_match": true,
+    "source_file_count": 49,
+    "widget_captures_reviewed": 4,
+    "capture_scope": "Synthetic KO/EN 430x932 widget captures at 200%; new rollback/delivery-pending bodies and actions reviewed; broader underlay form labels remain U08 scope.",
+    "remote_ci": "pending",
+    "issue_remains_open": true
+  },
+  "agent_raw_artifacts": {
+    "/tmp/a08-source-freeze.json": "53f354317242075bb0c6ce7b02bdad8282e29ea58752fef8f3ee45f970c3a740",
+    "/tmp/a08-source-freeze-v1.json": "e7e9cfb8fd270bf85034eaaf95b35bf8decae940f859f12abfef642f729e343c",
+    "/tmp/a08-source-freeze-v2.json": "75f3f3f607495b8e0be3b9ed3a9e7eb4cdf8b5ef053d5fbe3edbb34990985a70",
+    "/tmp/a08-source-freeze-v3.json": "40c22c1505b5ea38b1434904d26bd1c36a531996ac917234cc428f5528002beb",
+    "/tmp/a08-negative-proof.json": "b697d371af0118e9fe899b81d09cfd744fade5b1a47663d1ca8cdb45ef88fb5f",
+    "/tmp/a08-negative.log": "8f907e05b2250f2698569cd3006d0b126674549d71e86fc292eefb0408177f09",
+    "/tmp/a08-negative-test.dart": "692bce0eef10bde945c34f2741fa30f6ec7fa5964e605c638913ce8a85134e60",
+    "/tmp/a08-review-transcript.md": "f0017f580c17c2756db8fe06efc49da9b21b84808b36013b1cf2166737513947",
+    "/tmp/a08-handoff.md": "7a77842f0bb93f8ee890b58021d3e9cfc9dfece5300c9484d960e8d94527ad15",
+    "/tmp/a08-analyze-final.log": "253e6cd543d700598beaf075ddc943e038d2cf5fa08e5b1e260f10c940a9a12d",
+    "/tmp/a08-full-coverage.log": "5f0d93ef8488ce1ebd743e6221d9b3de48a1bd5c363dcb388432e5d70790b7d7",
+    "/tmp/a08-full-coverage-first-failure.log": "12725fbaaa6a7657b28060894bf95f7b47a635a0548d4158ce91644862db0258",
+    "/tmp/a08-full-coverage-before-ordering.log": "bd004887598f1943a6b63b2f03d9a6bf88259c6a027cd907b805b3726060bfe9",
+    "/tmp/a08-focused-final.log": "0ff59fda9f347ad7c5e618a9eb28fb732c89fd90d2997baa96309ff6eb3ae092",
+    "/tmp/a08-focused-v3.log": "c6e445464ece78dcb03fd32876a1793fb5c24972a566cf0328a946a5e0947619",
+    "/tmp/a08-materialization-final-focused.log": "7a120e1964404e4895db3b80014b90cfe6f740975a4e6a9be6008febb2871dd0",
+    "/tmp/a08-materialization-probe.log": "52ddcfe637cb22c6ea0009b09b1d43d74410905215bf21f29b2221bb28b61e99",
+    "/tmp/a08-materialization-probe_test.dart": "ef383b108b63fe21db87a919ddf4ada20879791878ef956710a362681f265d17",
+    "/tmp/a08-coverage-gate.log": "197d63302fe72600f85a8cb3f4fba0c94bf875c120cd6a8aea8d21351e720a8b",
+    "/tmp/a08-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "/tmp/a08-local-only.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "/tmp/a08-python-tests.log": "bf82059427ffe9b6f0424d5d1d0cce246bd4ae3114fef7fdb2d5aed0bab949f6",
+    "/tmp/a08-android-manifest.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+    "/tmp/a08-diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/a08-codegen-final-v3.log": "0f16236d9c8e2025d3cc44a0373bd8d31a73db2de9e469b021d7bdf018ff67e4",
+    "/tmp/a08-l10n-freeze.log": "97362974d3ec503ef18e205dbcc7d8e1ca57e5426c80a4966c6608571fa88609",
+    "/tmp/a08-historical-dump.log": "ea9b1ee49d5da13cbca47fe908e35c0ab4786083f6771fe0bdf47930e1cf885e",
+    "/tmp/a08-ui/en-delivery-pending.png": "15eca6d2860787db4247be58146000b6bb8742ff6179c8d5ee9481b3c4d9a05b",
+    "/tmp/a08-ui/en-rollback.png": "04f2bf551f26a6813fbce8573794f0701baaf0ced617b77b8f0d3e83f10d1920",
+    "/tmp/a08-ui/ko-delivery-pending.png": "daccffe2454d4c300a8f4925a6a45e8e7b925b09824b3f98ea824a6fedb8c115",
+    "/tmp/a08-ui/ko-rollback.png": "3c732763d94fade1caa35d69aaf2e97e995e0d568a28a4e93628d9a5cc1ef976"
+  }
+}

@@ -40,8 +40,10 @@ class InstallationKeyStore {
     return key;
   }
 
-  Future<void> delete() => _storage.delete(
-    key: _keyName,
-    iOptions: _iosOptions,
-  );
+  Future<void> delete() =>
+      _storage.delete(key: _keyName, iOptions: _iosOptions);
+
+  /// Checks absence without creating a replacement key during recovery.
+  Future<bool> exists() async =>
+      await _storage.read(key: _keyName, iOptions: _iosOptions) != null;
 }

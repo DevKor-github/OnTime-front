@@ -1,0 +1,43 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart
+00:00 +0: place fault rolls back the whole aggregate and same intent retries
+00:00 +1: schedule fault rolls back the whole aggregate and same intent retries
+00:00 +2: step fault rolls back the whole aggregate and same intent retries
+00:00 +3: revision fault rolls back the whole aggregate and same intent retries
+00:00 +4: edit failure after old preparation deletion preserves old aggregate and revision
+00:00 +5: concurrent and recreated repository lost receipt retry commit once
+00:00 +6: same id other input conflicts instead of upsert
+00:00 +7: semantic no-op preserves owned step IDs and revision
+00:00 +8: two edit drafts and value ABA conflict without using global revision
+00:00 +9: deleted create retry and recreated same id reject old intent
+00:00 +10: new store same revision and fresh memory generation rejects old draft
+00:00 +11: unrelated durable create conflict is explicit; reviewed new intent succeeds
+00:00 +12: start between draft and commit conflicts and preserves protected fields
+00:00 +13: same shared place label edit copies ownership
+00:00 +14: invalid custom input is rejected atomically 0:00:00.000000
+00:00 +15: invalid custom input is rejected atomically 0:01:59.000000
+00:00 +16: create cannot inject outcome or frozen metadata
+00:00 +17: recurring duplicate create has durable receipt and rejects changed input
+00:00 +18: workflow failed delivery retry does not re-save and coalesces pending intent
+00:00 +19: late delivery after replacement retains commit but never current success
+00:00 +20: custom to default to template preserves reference sources and owned cleanup
+00:00 +21: default fallback dependency ABA invalidates stale edit
+00:00 +22: recurring preparation_definition_steps fault rolls back definitions series materialization and revision
+00:00 +23: recurring recurring_schedule_segments fault rolls back definitions series materialization and revision
+00:00 +24: recurring schedules fault rolls back definitions series materialization and revision
+00:00 +25: recurring users fault rolls back definitions series materialization and revision
+00:00 +26: following split keeps stable root through clock reversal and recovers lost receipt
+00:00 +27: semantic same following save does not split or increase revision
+00:00 +28: root receipt rejects dependency place mutation after following commit
+00:00 +29: custom step 0 insertion failure has no partial aggregate
+00:00 +30: custom step 1 insertion failure has no partial aggregate
+00:00 +31: custom step 2 insertion failure has no partial aggregate
+00:00 +32: clock reaching preparation start protects unchanged database baseline
+00:00 +33: recurring RecurringEditScope.occurrence preparation_definition_steps failure preserves prior complete series
+00:00 +34: recurring RecurringEditScope.occurrence users failure preserves prior complete series
+00:00 +35: recurring RecurringEditScope.following preparation_definition_steps failure preserves prior complete series
+00:00 +36: recurring RecurringEditScope.following users failure preserves prior complete series
+00:00 +37: recreated create receipt cannot validate old baseline even with reused mutation identity
+00:00 +38: occurrence owned definition invalidates series root receipt dependency
+00:00 +39: legacy persisted row withPlace=false cannot rewind identity version or receipt
+00:00 +40: legacy persisted row withPlace=true cannot rewind identity version or receipt
+00:00 +41: All tests passed!

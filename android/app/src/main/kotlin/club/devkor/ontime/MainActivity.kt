@@ -30,7 +30,8 @@ open class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
         NativeLog.d(TAG, "MainActivity onCreate ${NativeLog.summarizeIntent(intent)}")
         configureAlarmLaunchWindow(intent)
-        payloadFromIntent(intent)?.let {
+        launchPayload = payloadFromIntent(intent)
+        launchPayload?.let {
             NativeLog.d(TAG, "Captured launch payload from onCreate ${NativeLog.summarizeMap(it)}")
             launchPayload = it
         }
@@ -38,6 +39,9 @@ open class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        if (!flutterEngine.plugins.has(BackupExportPlugin::class.java)) {
+            flutterEngine.plugins.add(BackupExportPlugin())
+        }
         NativeLog.d(TAG, "configureFlutterEngine registering method channel")
         methodChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -70,10 +74,31 @@ open class MainActivity : FlutterActivity() {
                 "cancelNativeAlarm" -> cancelNativeAlarm(call, result)
                 "getLocalTimeZone" -> result.success(TimeZone.getDefault().id)
                 "excludeFromBackup" -> result.success(null)
+                "sanitizeStoredLaunchPayload" -> {
+                    launchPayload = AlarmLaunchPayload.sanitize(launchPayload)
+                    // Remove old raw extras from the activity's retained intent too.
+                    if (intent?.action == ACTION_SCHEDULE_ALARM) {
+                        val clean = payloadFromIntent(intent)
+                        intent?.replaceExtras(Bundle().apply {
+                            clean?.forEach { (key, value) -> putString(key, value) }
+                        })
+                    }
+                    result.success(null)
+                }
                 "getLaunchPayload" -> {
                     NativeLog.d(TAG, "getLaunchPayload -> ${NativeLog.summarizeMap(launchPayload)}")
-                    result.success(launchPayload)
+                    result.success(AlarmLaunchPayload.sanitize(launchPayload))
                     launchPayload = null
+                }
+                // AlarmManager has no app-wide registration read-back. Known
+                // legacy identities are cancelled by the common owner; false
+                // preserves unknown ownership rather than inventing absence.
+                "resetCancelAllNativeAlarms" -> result.success(false)
+                "clearStoredLaunchPayload" -> {
+                    launchPayload = null
+                    // Reset also invalidates notification-plugin launch extras.
+                    intent?.replaceExtras(Bundle())
+                    result.success(null)
                 }
                 else -> result.notImplemented()
             }
@@ -85,7 +110,8 @@ open class MainActivity : FlutterActivity() {
         NativeLog.d(TAG, "MainActivity onNewIntent ${NativeLog.summarizeIntent(intent)}")
         setIntent(intent)
         configureAlarmLaunchWindow(intent)
-        payloadFromIntent(intent)?.let {
+        launchPayload = payloadFromIntent(intent)
+        launchPayload?.let {
             NativeLog.d(TAG, "Captured launch payload from onNewIntent ${NativeLog.summarizeMap(it)}")
             launchPayload = it
             methodChannel?.invokeMethod("alarmLaunch", it)
@@ -111,8 +137,8 @@ open class MainActivity : FlutterActivity() {
         }
 
         val triggerAtMillis = (args["alarmTime"] as? Number)?.toLong()
-        val scheduleId = args["scheduleId"]?.toString()
-        if (triggerAtMillis == null || scheduleId.isNullOrEmpty()) {
+        val scheduleId = AlarmLaunchPayload.sanitize(args)?.get("scheduleId")
+        if (triggerAtMillis == null || scheduleId == null) {
             NativeLog.w(TAG, "scheduleNativeAlarm invalid ${NativeLog.summarizeMap(args)}")
             result.error("invalidArguments", "Missing scheduleId or alarmTime", null)
             return
@@ -178,12 +204,15 @@ open class MainActivity : FlutterActivity() {
 
     private fun cancelNativeAlarm(call: MethodCall, result: MethodChannel.Result) {
         val args = call.arguments as? Map<*, *>
-        if (args == null) {
-            NativeLog.d(TAG, "cancelNativeAlarm skipped: missing args")
-            result.success(null)
+        if (args == null || (args["scheduleId"] as? String).isNullOrBlank()) {
+            result.error("invalidArguments", "Missing cancellation identity", null)
             return
         }
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+        if (alarmManager == null) {
+            result.error("cancellationFailed", "AlarmManager is unavailable", null)
+            return
+        }
         val activityPendingIntent = NativeAlarmReceiver.activityPendingIntentForArgs(
             this,
             args,
@@ -194,7 +223,7 @@ open class MainActivity : FlutterActivity() {
             args,
             PendingIntent.FLAG_NO_CREATE,
         )
-        if (alarmManager != null && activityPendingIntent != null) {
+        if (activityPendingIntent != null) {
             NativeLog.d(
                 TAG,
                 "cancelNativeAlarm cancel activity operation scheduleId=${args["scheduleId"]} " +
@@ -203,7 +232,7 @@ open class MainActivity : FlutterActivity() {
             alarmManager.cancel(activityPendingIntent)
             activityPendingIntent.cancel()
         }
-        if (alarmManager != null && legacyBroadcastPendingIntent != null) {
+        if (legacyBroadcastPendingIntent != null) {
             NativeLog.d(
                 TAG,
                 "cancelNativeAlarm cancel legacy broadcast operation scheduleId=${args["scheduleId"]} " +
@@ -212,32 +241,35 @@ open class MainActivity : FlutterActivity() {
             alarmManager.cancel(legacyBroadcastPendingIntent)
             legacyBroadcastPendingIntent.cancel()
         }
-        if (alarmManager == null || (activityPendingIntent == null && legacyBroadcastPendingIntent == null)) {
+        if (activityPendingIntent == null && legacyBroadcastPendingIntent == null) {
             NativeLog.d(
                 TAG,
-                "cancelNativeAlarm no-op scheduleId=${args["scheduleId"]} " +
-                    "hasAlarmManager=${alarmManager != null} " +
-                    "hasActivityPendingIntent=${activityPendingIntent != null} " +
-                    "hasLegacyBroadcastPendingIntent=${legacyBroadcastPendingIntent != null}",
+                "cancelNativeAlarm no owned token scheduleId=${args["scheduleId"]}",
             )
         }
         val requestCode = (args["nativeAlarmId"] as? Number)?.toInt()
             ?: args["scheduleId"]?.toString()?.hashCode()
             ?: 1
         NativeAlarmReceiver.cancelAlarmNotification(this, requestCode)
+        // This confirms our cancellation boundary, not a global OS alarm list.
+        if (NativeAlarmReceiver.activityPendingIntentForArgs(this, args, PendingIntent.FLAG_NO_CREATE) != null ||
+            NativeAlarmReceiver.alarmPendingIntentForArgs(this, args, PendingIntent.FLAG_NO_CREATE) != null) {
+            result.error("cancellationFailed", "Owned cancellation tokens remain", null)
+            return
+        }
         result.success(null)
     }
 
     private fun payloadFromIntent(intent: Intent?): Map<String, String>? {
         if (intent?.action != ACTION_SCHEDULE_ALARM) return null
         val extras = intent.extras ?: return null
-        val payload = mutableMapOf<String, String>()
-        for (key in extras.keySet()) {
-            extras.get(key)?.let { payload[key] = it.toString() }
-        }
-        payload["type"] = "schedule_alarm"
-        payload["promptVariant"] = "alarm"
-        return payload
+        val clean = AlarmLaunchPayload.sanitize(
+            extras.keySet().associateWith { key -> extras.get(key) },
+        )
+        intent.replaceExtras(Bundle().apply {
+            clean?.forEach { (key, value) -> putString(key, value) }
+        })
+        return clean
     }
 
     private fun exactAlarmPermissionState(): String {

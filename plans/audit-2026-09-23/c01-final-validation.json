@@ -1,0 +1,204 @@
+{
+  "issue": "C01 #600",
+  "status": "implemented_subset_verified_integration_device_pending",
+  "baseline": "3771615dd2b41089330ba74277d85451d4421c4f",
+  "full_tests": {
+    "count": 959,
+    "result": "passed",
+    "exit_code": 0,
+    "duration_seconds": 54
+  },
+  "focused_tests": {
+    "count": 52,
+    "result": "passed",
+    "note": "Before one final gate-validation test was added; that test passed in final 959-test full run."
+  },
+  "new_test_count": 15,
+  "coverage": {
+    "scope": "app-owned sources per tool/check_coverage.dart",
+    "percent": 88.74,
+    "lines_hit": 13507,
+    "lines_found": 15221,
+    "minimum": 80,
+    "result": "passed",
+    "lcov_sha256": "75618388d95dd3a28400f3f986d2e3a819d9a0857031290fe567abe532dcbf2f"
+  },
+  "analyzer": "No issues found",
+  "generated_policy": "passed",
+  "local_only": "passed",
+  "python_tests": 11,
+  "manifest": "passed",
+  "source_freeze_verified": true,
+  "source_files": {
+    "lib/core/backup/backup_service.dart": "b8afab53af794ad93b384d289fb41960e19ee9574bf28e8513a432e3687ef94f",
+    "lib/core/database/local_data_operation_gate.dart": "0237e006967fa462aee71056e5d8e184b20621d366a62ae4f6df7da7b80842e9",
+    "lib/core/database/local_reset_protocol.dart": "02a56f3897080b7599e0265f8c15e7c425031467dc0e93025fc7348101ed9e69",
+    "lib/core/services/alarm_ownership_journal.dart": "d73e238cca1def0492ecd74ba8b677214cc04baed2d3de790d64773ae61a3a1f",
+    "lib/data/adapters/local_data_workflow_adapters.dart": "10717c376a3cddfcf63abc2c9ff0b7b767f1737f44f2b259cefd42419c9cf837",
+    "lib/domain/entities/backup_operation.dart": "6720b667d4c67e2bf223d4540b296c176b1618ac67ccb7cb2b7bf2b27e9515e2",
+    "lib/domain/entities/local_reset_result.dart": "a2c87269003a16bad04ed3ce5f366e319e435c5ad2bb214376e6645f69282bd0",
+    "lib/domain/ports/local_data_ports.dart": "7b461658630fc11d72546bad76bce2a44ae53d1e1fe052138ac2c32a5f106ecb",
+    "lib/domain/use-cases/local_data_workflows.dart": "52c90760373f94fdd1e36b8bed48265695d2579dba1226a70092e754cfb60e88",
+    "lib/l10n/app_en.arb": "cd319e10f65a966611a41a26a0094a0688b5f980f6a229f1b75c45b6cde24bca",
+    "lib/l10n/app_ko.arb": "8786557fb72d98a19ab968a7d31d7daa030756b2c2b1d51cc75fd8f554645541",
+    "lib/l10n/app_localizations.dart": "1e5cdf4cd992b26a39f258a6308137f2e7ac22e3066d7f9161878afad192b84c",
+    "lib/l10n/app_localizations_en.dart": "bcfd79a0d176c7ba105a22e75e734dc6ad896c3255a10827cb52837c6b397d37",
+    "lib/l10n/app_localizations_ko.dart": "9d8fecc2eb47894cfa0fd619078a1aa5986745f80e6a966457bea85fa5b9859a",
+    "lib/main.dart": "0316ce499e1b67dbc9938e26bc1e7939582c6237b3cc94700a473ef4cd0f7c8d",
+    "lib/presentation/my_page/my_data_screen.dart": "5166b981ecf73a7da8278b541a8057da73453ec8784523994e35de1a8a4d4ce4",
+    "lib/presentation/startup/screens/local_data_recovery_screen.dart": "b2a791cca2339b0df1a8c58c71cdd56084459cb2506d59e196bdd5b135714f1e",
+    "test/core/backup/backup_restore_stale_contract_test.dart": "9de2084511f0750e70a63a4b51308062940699881f532f305c2fca979e99b328",
+    "test/core/database/alarm_replacement_integration_test.dart": "6a9bb66138ad8322f5f61d6d63b7efd72d6797c14a6956e252bc11a1b0c9f8b0",
+    "test/core/database/local_data_operation_gate_test.dart": "3e8d5b1e105a774364b48060abed94d5c2851f9c9b86e95d0d2758f593647ad8",
+    "test/domain/use-cases/local_data_workflows_test.dart": "8ea450f1479820e9431294fd1df1b8d717752257abf8b0d17369ab7d92b36b79",
+    "test/presentation/my_page/my_data_export_test.dart": "3f4c2a8090db0d8a4ef96b565a127ec8ca627cf02a1b24584412f3416cb27bb8",
+    "test/presentation/my_page/my_data_restore_test.dart": "d0f0058415fbc8323da9eaf071c2bba0a793a7cba5be7c135ca2bb2acbf07b2b",
+    "tool/qa/capture_local_data_workflows.dart": "9230da65ac4af641645da2d46172a39b8b63bc132d9e656c6955adc03009935d"
+  },
+  "evidence": {
+    "/tmp/c01-negative.log": {
+      "sha256": "33c17720cf09267b5acb50db88c2fd6c3150ecbc717b09b3e378b7bf4c02cae8",
+      "bytes": 820
+    },
+    "/tmp/c01-negative-proof.json": {
+      "sha256": "b795d7240248f25619866508c869f40be71129bdd8f291954705b6e4aedf39d0",
+      "bytes": 708
+    },
+    "/tmp/c01-source-freeze.json": {
+      "sha256": "cba77dfc082a514f47dad65f0f06c9a77433b922c108df9b7eb3cf0420da50b9",
+      "bytes": 2913
+    },
+    "/tmp/c01-review-transcript.md": {
+      "sha256": "492950013ee3800fc04f3f7490fc13d32dc6df5097506dd36d6e71837e696dd3",
+      "bytes": 5528
+    },
+    "/tmp/c01-codegen.log": {
+      "sha256": "8b71a8d213d2ca8814178cebaf57ab1e141d587eff259228152d92cc10e20ca7",
+      "bytes": 3384
+    },
+    "/tmp/c01-l10n.log": {
+      "sha256": "97362974d3ec503ef18e205dbcc7d8e1ca57e5426c80a4966c6608571fa88609",
+      "bytes": 161
+    },
+    "/tmp/c01-focused-final.log": {
+      "sha256": "d896cb002f09f9095bae032d53bad02c7104f265bee0155e907e07a8647a7b54",
+      "bytes": 11208
+    },
+    "/tmp/c01-analyze-final.log": {
+      "sha256": "44327ec5e3f58255851b8b72ae5c778b2a40716dab4603404578ad4f7db9a53f",
+      "bytes": 96
+    },
+    "/tmp/c01-full-coverage.log": {
+      "sha256": "ccaf79f2e8dc5e286a39b7e1eb10aace70708b1f59dda551425ae1ac3550a64f",
+      "bytes": 216468
+    },
+    "/tmp/c01-generated-policy.log": {
+      "sha256": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+      "bytes": 113
+    },
+    "/tmp/c01-local-only.log": {
+      "sha256": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+      "bytes": 82
+    },
+    "/tmp/c01-python.log": {
+      "sha256": "bf82059427ffe9b6f0424d5d1d0cce246bd4ae3114fef7fdb2d5aed0bab949f6",
+      "bytes": 1996
+    },
+    "/tmp/c01-manifest.log": {
+      "sha256": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+      "bytes": 151
+    },
+    "/tmp/c01-coverage-gate.log": {
+      "sha256": "f8c65ac49c7fc1405401ae2896a6e32e014823ba582766d87f8b347992f35578",
+      "bytes": 81
+    },
+    "/tmp/c01-ui.log": {
+      "sha256": "f855d7846308bb00482ad342fc42a155a81cf404f1ee27797c6d02227e711518",
+      "bytes": 220
+    }
+  },
+  "widget_captures": {
+    "/tmp/c01-ui/freshness-failed-en.png": "1e9f2eca2a4e9b6f5509e4b703081ed5add8a272d3070f16524343ffb707e633",
+    "/tmp/c01-ui/freshness-failed-ko.png": "b06a295aa7a726c88f1a0f77adaae18da78cff907fb2225575bc273fbeb09761",
+    "/tmp/c01-ui/password-en.png": "666956c23756c1a1e8d46e5ae8b24808a1178c74379789e1b09925492ae81e69",
+    "/tmp/c01-ui/password-ko.png": "923f96ef0ca4e064d21786e6ab2c674fd71790e22d7712119bfea362486ac3d6",
+    "/tmp/c01-ui/preview-en.png": "534bb5c551d5dbb025ef2e4f1fb6cb6e9257b5fbfb61987ad4afa5cde20e34d5",
+    "/tmp/c01-ui/preview-ko.png": "92f49031f07f1e0ec287dd710a53eda16a1257af25a692ba3852b8af2735782a",
+    "/tmp/c01-ui/restore-pending-en.png": "88272d4a69d2cf41ae63a0cc71a93dd1a69af5d274653240b7fa122b8053d179",
+    "/tmp/c01-ui/restore-pending-ko.png": "f9e71172d8f1e70dd8eb08195951e6f9acfdc2963b6e70f0a4c4e4c5cd45ad17"
+  },
+  "capture_conditions": {
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "text_scale": 2,
+    "logical_size": "430x932",
+    "states": [
+      "freshness-failed",
+      "password",
+      "preview",
+      "restore-pending"
+    ],
+    "visual_review": "All states rendered without overflow; password helper was fixed to multiline after visual inspection."
+  },
+  "negative_proof": {
+    "baseline": "3771615dd2b41089330ba74277d85451d4421c4f",
+    "exit_code": 1,
+    "before": {
+      "lib/core/backup/backup_service.dart": "b8afab53af794ad93b384d289fb41960e19ee9574bf28e8513a432e3687ef94f",
+      "lib/core/database/local_data_operation_gate.dart": "e062fa4994138f825c0643a6831f7b171aba277d1b35d97549f27f50e4445dd4"
+    },
+    "after": {
+      "lib/core/backup/backup_service.dart": "b8afab53af794ad93b384d289fb41960e19ee9574bf28e8513a432e3687ef94f",
+      "lib/core/database/local_data_operation_gate.dart": "e062fa4994138f825c0643a6831f7b171aba277d1b35d97549f27f50e4445dd4"
+    },
+    "restored_exactly": true,
+    "observed": "Expected spareTime 17, actual 0: stale preview overwrote a later durable edit."
+  },
+  "limits": [
+    "A08 schedule aggregate FormSubmission integration is pending; no atomic aggregate completion claim.",
+    "A09 staging Local Data Store, runtime/session replacement and all-writer fencing are pending. Candidate remains authenticated parsed memory data, not verified staging.",
+    "Revision is checked before OS cleanup and again inside DB transaction; a racing edit during cleanup prevents DB overwrite but may leave OS cleanup pending. Receipt exposes this and retry reconciles current data only.",
+    "D02 damaged-database restore integration is pending.",
+    "No actual Android/iOS picker, encrypted file roundtrip, provider delivery or reset device proof in this change.",
+    "No merge, deployment, or issue-close claim."
+  ],
+  "raw_lcov_including_generated": {
+    "lines_hit": 15148,
+    "lines_found": 20426,
+    "percent": 74.16038382453735
+  },
+  "implementation_commit": "4529d9f84e911b1ee2fbb42af09698a0c27cc9f2",
+  "artifacts": {
+    "plans/audit-2026-09-23/artifacts/c01/c01-negative.log": "045f93441d63877d9ea56983be243f7765664567e8b139888984cd7193212fa5",
+    "plans/audit-2026-09-23/artifacts/c01/c01-negative-proof.json": "b795d7240248f25619866508c869f40be71129bdd8f291954705b6e4aedf39d0",
+    "plans/audit-2026-09-23/artifacts/c01/c01-source-freeze.json": "cba77dfc082a514f47dad65f0f06c9a77433b922c108df9b7eb3cf0420da50b9",
+    "plans/audit-2026-09-23/artifacts/c01/c01-review-transcript.md": "492950013ee3800fc04f3f7490fc13d32dc6df5097506dd36d6e71837e696dd3",
+    "plans/audit-2026-09-23/artifacts/c01/c01-codegen.log": "ee648c29db73b12a18c9809b0d1c12e141e3602bb67712ea2395ca1e01bf6642",
+    "plans/audit-2026-09-23/artifacts/c01/c01-l10n.log": "99777303f8bb4635eabe383963a4f0617345de959016f82712a51702233027bf",
+    "plans/audit-2026-09-23/artifacts/c01/c01-focused-final.log": "d896cb002f09f9095bae032d53bad02c7104f265bee0155e907e07a8647a7b54",
+    "plans/audit-2026-09-23/artifacts/c01/c01-analyze-final.log": "55f2247d76f3601c1d1356c57f4a20cc173cb0dff3efa0eaa16f56c58fa439a1",
+    "plans/audit-2026-09-23/artifacts/c01/c01-full-coverage.log": "ccaf79f2e8dc5e286a39b7e1eb10aace70708b1f59dda551425ae1ac3550a64f",
+    "plans/audit-2026-09-23/artifacts/c01/c01-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "plans/audit-2026-09-23/artifacts/c01/c01-local-only.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "plans/audit-2026-09-23/artifacts/c01/c01-python.log": "bf82059427ffe9b6f0424d5d1d0cce246bd4ae3114fef7fdb2d5aed0bab949f6",
+    "plans/audit-2026-09-23/artifacts/c01/c01-manifest.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+    "plans/audit-2026-09-23/artifacts/c01/c01-coverage-gate.log": "f8c65ac49c7fc1405401ae2896a6e32e014823ba582766d87f8b347992f35578",
+    "plans/audit-2026-09-23/artifacts/c01/c01-ui.log": "f855d7846308bb00482ad342fc42a155a81cf404f1ee27797c6d02227e711518",
+    "plans/audit-2026-09-23/artifacts/c01/freshness-failed-en.png": "1e9f2eca2a4e9b6f5509e4b703081ed5add8a272d3070f16524343ffb707e633",
+    "plans/audit-2026-09-23/artifacts/c01/freshness-failed-ko.png": "b06a295aa7a726c88f1a0f77adaae18da78cff907fb2225575bc273fbeb09761",
+    "plans/audit-2026-09-23/artifacts/c01/password-en.png": "666956c23756c1a1e8d46e5ae8b24808a1178c74379789e1b09925492ae81e69",
+    "plans/audit-2026-09-23/artifacts/c01/password-ko.png": "923f96ef0ca4e064d21786e6ab2c674fd71790e22d7712119bfea362486ac3d6",
+    "plans/audit-2026-09-23/artifacts/c01/preview-en.png": "534bb5c551d5dbb025ef2e4f1fb6cb6e9257b5fbfb61987ad4afa5cde20e34d5",
+    "plans/audit-2026-09-23/artifacts/c01/preview-ko.png": "92f49031f07f1e0ec287dd710a53eda16a1257af25a692ba3852b8af2735782a",
+    "plans/audit-2026-09-23/artifacts/c01/restore-pending-en.png": "88272d4a69d2cf41ae63a0cc71a93dd1a69af5d274653240b7fa122b8053d179",
+    "plans/audit-2026-09-23/artifacts/c01/restore-pending-ko.png": "f9e71172d8f1e70dd8eb08195951e6f9acfdc2963b6e70f0a4c4e4c5cd45ad17"
+  },
+  "root_review": {
+    "source_and_committed_blobs_match": true,
+    "widget_captures_reviewed": 8,
+    "remote_ci": "pending",
+    "issue_remains_open": true
+  }
+}

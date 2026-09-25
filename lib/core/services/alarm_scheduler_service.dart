@@ -1,8 +1,10 @@
+import 'package:on_time_front/domain/entities/notification_route_payload.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 
 typedef AlarmLaunchPayloadHandler = void Function(Map<String, String> payload);
 
@@ -12,6 +14,43 @@ class AlarmSchedulerService {
   static const _logTag = '[AlarmSchedulerService]';
 
   AlarmLaunchPayloadHandler? _launchPayloadHandler;
+
+  Future<DeliveryObservation> observePendingNativeAlarms(
+    Iterable<String> scheduleIds,
+  ) async {
+    if (kIsWeb) return const DeliveryObservation.unknown();
+    try {
+      final raw = await _channel.invokeMapMethod<String, dynamic>(
+        'getPendingNativeAlarms',
+        {'scheduleIds': scheduleIds.toSet().toList()},
+      );
+      final ids = raw?['scheduleIds'];
+      final unmapped = raw?['unmappedCount'];
+      if (raw?['source'] != 'iosAlarmKit' ||
+          ids is! List ||
+          ids.any((id) => id is! String) ||
+          unmapped is! int ||
+          unmapped < 0) {
+        return const DeliveryObservation.unknown();
+      }
+      final candidates = scheduleIds.toSet();
+      if (ids.any((id) => !candidates.contains(id))) {
+        return const DeliveryObservation.unknown();
+      }
+      return DeliveryObservation(
+        source: DeliveryObservationSource.iosAlarmKit,
+        entries: ids
+            .cast<String>()
+            .map((id) => PendingDelivery(id: id, scheduleId: id))
+            .toList(),
+        unmappedCount: unmapped,
+      );
+    } catch (_) {
+      return const DeliveryObservation.unknown(
+        source: DeliveryObservationSource.iosAlarmKit,
+      );
+    }
+  }
 
   Future<AlarmSchedulerCapabilities> getCapabilities() async {
     if (kIsWeb) {
@@ -88,6 +127,7 @@ class AlarmSchedulerService {
   }
 
   Future<void> scheduleNativeAlarm(ScheduledAlarmRecord record) async {
+    record.requireCurrentContent();
     try {
       AppLogger.debug(
         '$_logTag scheduleNativeAlarm start '
@@ -116,13 +156,16 @@ class AlarmSchedulerService {
 
   Future<void> cancelNativeAlarm(ScheduledAlarmRecord record) async {
     if (kIsWeb) {
-      AppLogger.debug(
-        '$_logTag cancelNativeAlarm skipped on web '
-        'scheduleId=${record.scheduleId}',
+      throw const AlarmSchedulingException(
+        reason: AlarmFailureReason.cancellationFailed,
+        message: 'Native cancellation is unavailable',
       );
-      return;
     }
     try {
+      if (record.provider == AlarmProvider.iosAlarmKit) {
+        final before = await observePendingNativeAlarms([record.scheduleId]);
+        if (before.presence(record) == DeliveryPresence.absent) return;
+      }
       AppLogger.debug(
         '$_logTag cancelNativeAlarm start '
         'scheduleId=${record.scheduleId} '
@@ -132,16 +175,28 @@ class AlarmSchedulerService {
         'cancelNativeAlarm',
         _recordToMethodArguments(record),
       );
+      if (record.provider == AlarmProvider.iosAlarmKit) {
+        final after = await observePendingNativeAlarms([record.scheduleId]);
+        if (after.presence(record) != DeliveryPresence.absent) {
+          throw const AlarmSchedulingException(
+            reason: AlarmFailureReason.cancellationFailed,
+            message: 'Native cancellation could not be confirmed',
+          );
+        }
+      }
       AppLogger.debug(
         '$_logTag cancelNativeAlarm success '
         'scheduleId=${record.scheduleId}',
       );
     } on MissingPluginException {
       AppLogger.debug(
-        '$_logTag cancelNativeAlarm skipped: missing plugin '
+        '$_logTag cancelNativeAlarm failed: missing plugin '
         'scheduleId=${record.scheduleId}',
       );
-      return;
+      throw const AlarmSchedulingException(
+        reason: AlarmFailureReason.cancellationFailed,
+        message: 'Native cancellation is unavailable',
+      );
     } on PlatformException catch (error) {
       AppLogger.debug(
         '$_logTag cancelNativeAlarm platform error '
@@ -218,6 +273,7 @@ class AlarmSchedulerService {
   }
 
   Map<String, dynamic> _recordToMethodArguments(ScheduledAlarmRecord record) {
+    final content = record.deliveryContent;
     return {
       'scheduleId': record.scheduleId,
       'alarmTime': record.alarmTime.millisecondsSinceEpoch,
@@ -225,11 +281,9 @@ class AlarmSchedulerService {
           record.preparationStartTime.millisecondsSinceEpoch,
       'nativeAlarmId': record.nativeAlarmId ?? stableAlarmId(record.scheduleId),
       'provider': record.provider.wireValue,
-      'title': record.scheduleTitle,
-      'body': record.payload['notificationTimeZone'] == null
-          ? 'It is time to get ready.'
-          : 'Schedule time zone: ${record.payload['notificationTimeZone']}',
-      'payload': record.payload,
+      'title': content.title,
+      'body': content.body,
+      'payload': minimalScheduleRoutePayload(record.payload),
     };
   }
 
@@ -273,6 +327,7 @@ class AlarmSchedulerService {
 
   Map<String, String>? _payloadFromObject(Object? raw) {
     if (raw is! Map) return null;
-    return raw.map((key, value) => MapEntry(key.toString(), value.toString()));
+    final safe = minimalScheduleRoutePayload(raw);
+    return safe.isEmpty ? null : safe;
   }
 }

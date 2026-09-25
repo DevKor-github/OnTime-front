@@ -9,6 +9,7 @@ enum ScheduleFormSubmissionStatus {
   failure,
   review,
   timeChoice,
+  deliveryPending,
 }
 
 enum IsPreparationChanged { changed, unchanged }
@@ -16,6 +17,10 @@ enum IsPreparationChanged { changed, unchanged }
 final class ScheduleFormState extends Equatable {
   static const _unset = Object();
 
+  final ScheduleEditBaseline? baseline;
+  final String mutationId;
+  final ScheduleSaveReceipt? saveReceipt;
+  final ScheduleSaveFailure? saveFailure;
   final ScheduleFormStatus status;
   final ScheduleFormSubmissionStatus submissionStatus;
   final String? submissionError;
@@ -44,6 +49,10 @@ final class ScheduleFormState extends Equatable {
   final String? previousScheduleName;
 
   ScheduleFormState({
+    this.baseline,
+    String? mutationId,
+    this.saveReceipt,
+    this.saveFailure,
     this.status = ScheduleFormStatus.initial,
     this.submissionStatus = ScheduleFormSubmissionStatus.idle,
     this.submissionError,
@@ -70,9 +79,14 @@ final class ScheduleFormState extends Equatable {
     this.isValid = false,
     this.maxAvailableTime,
     this.previousScheduleName,
-  }) : id = id ?? Uuid().v7();
+  }) : mutationId = mutationId ?? const Uuid().v7(),
+       id = id ?? Uuid().v7();
 
   ScheduleFormState copyWith({
+    ScheduleEditBaseline? baseline,
+    String? mutationId,
+    ScheduleSaveReceipt? saveReceipt,
+    Object? saveFailure = _unset,
     ScheduleFormStatus? status,
     ScheduleFormSubmissionStatus? submissionStatus,
     Object? submissionError = _unset,
@@ -101,6 +115,12 @@ final class ScheduleFormState extends Equatable {
     Object? previousScheduleName = _unset,
   }) {
     return ScheduleFormState(
+      baseline: baseline ?? this.baseline,
+      mutationId: mutationId ?? this.mutationId,
+      saveReceipt: saveReceipt ?? this.saveReceipt,
+      saveFailure: identical(saveFailure, _unset)
+          ? this.saveFailure
+          : saveFailure as ScheduleSaveFailure?,
       status: status ?? this.status,
       submissionStatus: submissionStatus ?? this.submissionStatus,
       submissionError: identical(submissionError, _unset)
@@ -164,6 +184,16 @@ final class ScheduleFormState extends Equatable {
       scheduleSpareTime: state.scheduleSpareTime,
       scheduleNote: state.scheduleNote ?? '',
       isStarted: false,
+      preparationMode: state.isChanged == IsPreparationChanged.changed
+          ? SchedulePreparationMode.custom
+          : (originalSchedule?.preparationMode ??
+                SchedulePreparationMode.defaultPreparation),
+      preparationTemplateId: state.isChanged == IsPreparationChanged.changed
+          ? null
+          : originalSchedule?.preparationTemplateId,
+      preparationTemplateName: state.isChanged == IsPreparationChanged.changed
+          ? null
+          : originalSchedule?.preparationTemplateName,
       recurringSegmentId: originalSchedule?.recurringSegmentId,
       recurringSlotKey: originalSchedule?.recurringSlotKey,
       recurringOrdinal: originalSchedule?.recurringOrdinal,
@@ -174,6 +204,10 @@ final class ScheduleFormState extends Equatable {
 
   @override
   List<Object?> get props => [
+    baseline,
+    mutationId,
+    saveReceipt,
+    saveFailure,
     status,
     submissionStatus,
     submissionError,

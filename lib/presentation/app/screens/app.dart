@@ -1,3 +1,7 @@
+import 'package:on_time_front/presentation/shared/components/notification_timing_education.dart';
+import 'package:on_time_front/core/services/notification_service.dart';
+import 'package:on_time_front/core/services/notification_tap_router.dart';
+import 'package:on_time_front/domain/use-cases/schedule_preparation_session_use_case.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/core/logging/app_logger.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
-import 'package:on_time_front/core/services/navigation_service.dart';
 import 'package:on_time_front/domain/use-cases/reconcile_alarms_use_case.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
@@ -65,7 +68,50 @@ class _AppRouterViewState extends State<_AppRouterView>
     context.read<AlarmGateCubit>(),
   );
   final _alarmLaunchPollTimers = <Timer>[];
-  Map<String, String>? _pendingAlarmLaunchPayload;
+  NavigationNotificationTapRouter? get _tapRouter {
+    final router = getIt.get<NotificationTapRouter>();
+    return router is NavigationNotificationTapRouter ? router : null;
+  }
+
+  bool _readyForNotification() =>
+      mounted &&
+      appRedirectLocation(
+            authStatus: context.read<AuthBloc>().state.status,
+            notificationGateState: context.read<NotificationGateCubit>().state,
+            alarmGateState: context.read<AlarmGateCubit>().state,
+            path: '/scheduleStart',
+          ) ==
+          null &&
+      _router.routerDelegate.navigatorKey.currentContext != null;
+
+  void _offerTimingEducation() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !_readyForNotification() ||
+          _router.routeInformationProvider.value.uri.path != '/home') {
+        return;
+      }
+      final navigatorContext =
+          _router.routerDelegate.navigatorKey.currentContext;
+      if (navigatorContext != null) {
+        unawaited(
+          NotificationTimingEducation.offerOnce(
+            navigatorContext,
+            isCurrent: () =>
+                mounted &&
+                _readyForNotification() &&
+                _router.routeInformationProvider.value.uri.path == '/home',
+          ),
+        );
+      }
+    });
+  }
+
+  void _retryNotificationTap() {
+    if (!mounted) return;
+    _tapRouter?.retry();
+    _offerTimingEducation();
+  }
 
   @override
   void initState() {
@@ -73,6 +119,18 @@ class _AppRouterViewState extends State<_AppRouterView>
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _tapRouter?.configure(
+        isReady: _readyForNotification,
+        resolve: (id, current) => getIt
+            .get<SchedulePreparationSessionUseCase>()
+            .resolvePromptedSchedule(
+              scheduleId: id,
+              startPreparation: false,
+              isCurrent: current,
+            ),
+      );
+      _router.routerDelegate.addListener(_retryNotificationTap);
+      unawaited(NotificationService.instance.collectInitialLaunch());
       AppLogger.debug('$_logTag initialize launch handling');
       unawaited(
         getIt.get<AlarmSchedulerService>().initializeLaunchHandling(
@@ -93,15 +151,20 @@ class _AppRouterViewState extends State<_AppRouterView>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     AppLogger.debug('$_logTag lifecycle state=$state');
+    context.read<ScheduleBloc>().observeLifecycleState(state);
     if (state != AppLifecycleState.resumed) return;
     unawaited(HardwareKeyboard.instance.syncKeyboardState().catchError((_) {}));
     context.read<ScheduleBloc>().add(
-      const SchedulePreparationTimeRefreshRequested(),
+      const SchedulePreparationTimeRefreshRequested(
+        origin: PreparationRefreshOrigin.resume,
+      ),
     );
     unawaited(
       getIt.get<AlarmSchedulerService>().dispatchPendingLaunchPayload(),
     );
     _schedulePendingAlarmLaunchPolls();
+    unawaited(NotificationService.instance.collectInitialLaunch());
+    _retryNotificationTap();
     if (context.read<AuthBloc>().state.status != AuthStatus.authenticated) {
       return;
     }
@@ -110,45 +173,12 @@ class _AppRouterViewState extends State<_AppRouterView>
         disableAlarmsWhenPermissionMissing: true,
       ),
     );
-    unawaited(getIt.get<ReconcileAlarmsUseCase>()());
+    requestAlarmReconciliation(getIt.get<ReconcileAlarmsUseCase>());
   }
 
   void _handleAlarmLaunchPayload(Map<String, String> payload) {
     if (!mounted) return;
-    AppLogger.debug(
-      '$_logTag received payload ${AppLogger.summarizeMap(payload)}',
-    );
-    _pendingAlarmLaunchPayload = payload;
-    _drainPendingAlarmLaunchPayload();
-  }
-
-  void _drainPendingAlarmLaunchPayload() {
-    final payload = _pendingAlarmLaunchPayload;
-    if (!mounted || payload == null) return;
-    if (context.read<AuthBloc>().state.status != AuthStatus.authenticated) {
-      AppLogger.debug(
-        '$_logTag waiting for authenticated state '
-        '${AppLogger.summarizeMap(payload)}',
-      );
-      return;
-    }
-    if (getIt.get<NavigationService>().navigatorKey.currentContext == null) {
-      AppLogger.debug(
-        '$_logTag waiting for navigator context '
-        '${AppLogger.summarizeMap(payload)}',
-      );
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _drainPendingAlarmLaunchPayload();
-      });
-      return;
-    }
-
-    _pendingAlarmLaunchPayload = null;
-    AppLogger.debug(
-      '$_logTag navigating to /scheduleStart '
-      '${AppLogger.summarizeMap(payload)}',
-    );
-    getIt.get<NavigationService>().push('/scheduleStart', extra: payload);
+    _tapRouter?.routeNativeNotificationTap(payload);
   }
 
   void _schedulePendingAlarmLaunchPolls() {
@@ -179,24 +209,37 @@ class _AppRouterViewState extends State<_AppRouterView>
     for (final timer in _alarmLaunchPollTimers) {
       timer.cancel();
     }
+    _router.routerDelegate.removeListener(_retryNotificationTap);
+    _tapRouter?.detach();
     WidgetsBinding.instance.removeObserver(this);
+    _router.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) {
-        _drainPendingAlarmLaunchPayload();
-        if (state.status == AuthStatus.authenticated) {
-          unawaited(
-            context.read<AlarmGateCubit>().refreshPermission(
-              disableAlarmsWhenPermissionMissing: true,
-            ),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<NotificationGateCubit, NotificationGateState>(
+          listener: (_, _) => _retryNotificationTap(),
+        ),
+        BlocListener<AlarmGateCubit, AlarmGateState>(
+          listener: (_, _) => _retryNotificationTap(),
+        ),
+        BlocListener<AuthBloc, AuthState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            _retryNotificationTap();
+            if (state.status == AuthStatus.authenticated) {
+              unawaited(
+                context.read<AlarmGateCubit>().refreshPermission(
+                  disableAlarmsWhenPermissionMissing: true,
+                ),
+              );
+            }
+          },
+        ),
+      ],
       child: MaterialApp.router(
         theme: themeData,
         routerConfig: _router,

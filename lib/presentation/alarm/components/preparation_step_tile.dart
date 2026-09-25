@@ -48,9 +48,8 @@ class PreparationStepTile extends StatelessWidget {
     if (preparationStepState == PreparationStateEnum.now && onSkip != null) {
       skipButton = Align(
         alignment: Alignment.centerRight,
-        child: SizedBox(
-          width: 326,
-          height: 53,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 53, maxWidth: 326),
           child: TextButton(
             style: TextButton.styleFrom(
               backgroundColor: colorScheme.primaryContainer,
@@ -81,11 +80,13 @@ class PreparationStepTile extends StatelessWidget {
           curve: Curves.ease,
           child: Container(
             width: 358,
-            height:
-                (preparationStepState == PreparationStateEnum.now &&
-                    skipButton != null)
-                ? 135
-                : 62,
+            constraints: BoxConstraints(
+              minHeight:
+                  (preparationStepState == PreparationStateEnum.now &&
+                      skipButton != null)
+                  ? 135
+                  : 62,
+            ),
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               border: (preparationStepState == PreparationStateEnum.now)
@@ -96,6 +97,7 @@ class PreparationStepTile extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     children: [

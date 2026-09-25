@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_start_rejected.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/use-cases/schedule_mutation_alarm_effects_coordinator.dart';
@@ -13,7 +14,11 @@ class FinishScheduleUseCase {
   );
 
   Future<void> call(String scheduleId, int latenessTime) async {
-    await _scheduleRepository.startSchedule(scheduleId);
+    try {
+      await _scheduleRepository.startSchedule(scheduleId);
+    } on ScheduleStartRejected {
+      // Repeated finish remains idempotent; start itself rejects ended runs.
+    }
     await _scheduleRepository.finishSchedule(scheduleId, latenessTime);
     await _alarmEffectsCoordinator(
       operation: ScheduleMutationAlarmOperation.finished,

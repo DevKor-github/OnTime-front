@@ -243,8 +243,10 @@ void main() {
       );
       expect(schedule.timeRemainingBeforeLeaving.inMinutes, isA<int>());
       expect(schedule.isLate, isA<bool>());
-      expect(schedule.cacheFingerprint, contains('s1:wash:600000:s2|'));
-      expect(schedule.cacheFingerprint, contains('s2:dress:600000:|'));
+      expect(schedule.cacheFingerprint, matches(r'^v2:[0-9a-f]{64}$'));
+      expect(schedule.cacheFingerprint, isNot(contains('wash')));
+      expect(schedule.legacyCacheFingerprint, contains('s1:wash:600000:s2|'));
+      expect(schedule.timingIdentity, isNot(schedule.preparationShapeIdentity));
     });
 
     test(

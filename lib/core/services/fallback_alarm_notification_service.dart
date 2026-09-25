@@ -1,15 +1,22 @@
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 
 abstract interface class FallbackAlarmNotificationService {
   Future<AlarmPermissionState> checkPermission();
 
   Future<AlarmPermissionState> requestPermission();
 
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record);
+  Future<AlarmPermissionState> checkExactTimingPermission();
+
+  Future<AlarmPermissionState> requestExactTimingPermission();
+
+  Future<NotificationTiming> scheduleFallbackAlarm(ScheduledAlarmRecord record);
 
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record);
+
+  Future<DeliveryObservation> observePending();
 }
 
 @Singleton(as: FallbackAlarmNotificationService)
@@ -21,6 +28,10 @@ class FallbackAlarmNotificationServiceImpl
            notificationService ?? NotificationService.instance;
 
   final NotificationService _notificationService;
+
+  @override
+  Future<DeliveryObservation> observePending() =>
+      _notificationService.observePendingScheduleNotifications();
 
   @override
   Future<AlarmPermissionState> checkPermission() async {
@@ -37,7 +48,17 @@ class FallbackAlarmNotificationServiceImpl
   }
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) {
+  Future<AlarmPermissionState> checkExactTimingPermission() =>
+      _notificationService.checkExactTimingPermission();
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() =>
+      _notificationService.requestExactTimingPermission();
+
+  @override
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) {
     return _notificationService.scheduleFallbackAlarm(record);
   }
 

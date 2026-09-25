@@ -4,10 +4,30 @@ import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 
 @Singleton(as: AlarmRegistryRepository)
-class AlarmRegistryRepositoryImpl implements AlarmRegistryRepository {
+class AlarmRegistryRepositoryImpl
+    implements AlarmRegistryRepository, RecoverableAlarmOwnershipIntegrity {
   final AlarmRegistryLocalDataSource localDataSource;
 
   AlarmRegistryRepositoryImpl({required this.localDataSource});
+
+  @override
+  Future<bool> hasUnresolvedOwnership() async {
+    final source = localDataSource;
+    return source is AlarmOwnershipIntegrity
+        ? await (source as AlarmOwnershipIntegrity).hasUnresolvedOwnership()
+        : false;
+  }
+
+  @override
+  Future<void> clearResolvedOwnership() async {
+    final source = localDataSource;
+    if (source is RecoverableAlarmOwnershipIntegrity) {
+      await (source as RecoverableAlarmOwnershipIntegrity)
+          .clearResolvedOwnership();
+    } else if (await hasUnresolvedOwnership()) {
+      throw StateError('Registry cannot resolve ownership uncertainty');
+    }
+  }
 
   @override
   Future<List<ScheduledAlarmRecord>> loadAll() {
@@ -19,7 +39,10 @@ class AlarmRegistryRepositoryImpl implements AlarmRegistryRepository {
     final records = await loadAll();
     final nextRecords =
         records
-            .where((existing) => existing.scheduleId != record.scheduleId)
+            .where(
+              (existing) =>
+                  alarmOwnershipKey(existing) != alarmOwnershipKey(record),
+            )
             .toList()
           ..add(record);
     await replaceAll(nextRecords);
@@ -40,10 +63,10 @@ class AlarmRegistryRepositoryImpl implements AlarmRegistryRepository {
 
   @override
   Future<void> replaceAll(List<ScheduledAlarmRecord> records) {
-    final byScheduleId = <String, ScheduledAlarmRecord>{};
+    final byOwnership = <String, ScheduledAlarmRecord>{};
     for (final record in records) {
-      byScheduleId[record.scheduleId] = record;
+      byOwnership[alarmOwnershipKey(record)] = record;
     }
-    return localDataSource.replaceAll(byScheduleId.values.toList());
+    return localDataSource.replaceAll(byOwnership.values.toList());
   }
 }

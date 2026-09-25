@@ -1,0 +1,31 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/app/bloc/schedule/schedule_bloc_test.dart
+00:00 +0: ScheduleBloc preparation runtime flow actual periodic refresh submits a fresh paused step once
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: ['s2']
+  Actual: []
+   Which: at location [0] is [] which shorter than expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/app/bloc/schedule/schedule_bloc_test.dart:618:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1952:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/app/bloc/schedule/schedule_bloc_test.dart line 618
+The test description was:
+  actual periodic refresh submits a fresh paused step once
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: ScheduleBloc preparation runtime flow actual periodic refresh submits a fresh paused step once [E]
+  Test failed. See exception logs above.
+  The test description was: actual periodic refresh submits a fresh paused step once
+
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/app/bloc/schedule/schedule_bloc_test.dart: ScheduleBloc preparation runtime flow actual periodic refresh submits a fresh paused step once

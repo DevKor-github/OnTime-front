@@ -1,0 +1,119 @@
+{
+  "checked_at": "2026-09-24",
+  "operation": "read_only",
+  "scope": "Previously published items without a recorded body hash; exact remote body versus local file",
+  "issues": [
+    {
+      "audit_id": "A03",
+      "number": 586,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "b71cdb49ee31482c29244505f041bd6ec18084401d8a3b7aa68e18db9a90984c",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/586"
+    },
+    {
+      "audit_id": "A04",
+      "number": 587,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "d7aad74fd3e48468cd0d9ffde95cb531b48e1bc2ee616d74eca32a766ba5a603",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/587"
+    },
+    {
+      "audit_id": "A05",
+      "number": 588,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "b8bbdf6aaa69075453f3f55cb327594e2cf2ca1c4e3acf703e04cfc6b3f0fa67",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/588"
+    },
+    {
+      "audit_id": "A11",
+      "number": 589,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "451d17d7e378a2673b098c1180f4bf8aa98023bef1a672544a7dafbd2515ce41",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/589"
+    },
+    {
+      "audit_id": "A12",
+      "number": 591,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "8b2c2dc7fe7cdb75662208d589727a4dcbbb728da87095b700e454f660a56f54",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/591"
+    },
+    {
+      "audit_id": "A13",
+      "number": 592,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "baab5f33ce7bd44c3851068bcd8a10f003406fac96ea4d627f79d76352278f97",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/592"
+    },
+    {
+      "audit_id": "A15",
+      "number": 594,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "ea30e4068c598fe9632e8a56e08a5bffc8eb661079e8eb2d74c6ed5acefba569",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/594"
+    },
+    {
+      "audit_id": "D03",
+      "number": 595,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "8c7ae3ed41f7d9f9c9d8622a7c62e2c5ae21486ef212b63d0ba34a5604647fbc",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/595"
+    },
+    {
+      "audit_id": "A08",
+      "number": 601,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "bd5f1b77a400c56f5fb1656412201f72d8288a0a63ed79a699a16f45e7cc1c76",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/601"
+    },
+    {
+      "audit_id": "A09",
+      "number": 602,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "97c77e8e911aa351002e7979674507f4586ef0fabd96ad3cf91343e902f2638a",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/602"
+    },
+    {
+      "audit_id": "D01",
+      "number": 603,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "f75e396b4b7da225ec721ee745f11d95ebf264e0debd3d3ca82cbd33894b8d21",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/603"
+    },
+    {
+      "audit_id": "D02",
+      "number": 604,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "a4c5925fb022668a4ad869ac7f6faa3be8d3068de42ac69235132de9aba3af02",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/604"
+    },
+    {
+      "audit_id": "D04",
+      "number": 605,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "6ab517bf1b1a2b59c81d52306941df653be2f81d01efaea44da3af0036575247",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/605"
+    },
+    {
+      "audit_id": "D05",
+      "number": 606,
+      "state": "OPEN",
+      "exact_match": true,
+      "sha256": "15cea8d115b001831a7fc9deb65e68fb9934879c2a361b50aa594fb06c4ad2ef",
+      "url": "https://github.com/DevKor-github/OnTime-front/issues/606"
+    }
+  ]
+}

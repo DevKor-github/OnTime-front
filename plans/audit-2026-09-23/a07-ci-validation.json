@@ -1,0 +1,42 @@
+{
+  "head_commit": "28baf6c7b91c00d2c6490f597375c1dad39fc2b6",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 35947757749,
+      "event": "pull_request",
+      "headSha": "28baf6c7b91c00d2c6490f597375c1dad39fc2b6",
+      "status": "completed",
+      "url": "https://github.com/DevKor-github/OnTime-front/actions/runs/35947757749",
+      "workflowName": "Flutter Testing",
+      "tests_passed": 944,
+      "coverage": {
+        "percent": 88.7,
+        "lines_hit": 13294,
+        "lines_found": 14987
+      }
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 35947757745,
+      "event": "pull_request",
+      "headSha": "28baf6c7b91c00d2c6490f597375c1dad39fc2b6",
+      "status": "completed",
+      "url": "https://github.com/DevKor-github/OnTime-front/actions/runs/35947757745",
+      "workflowName": "Android Notification Contract",
+      "artifact_id": 10786864301,
+      "identity": {
+        "commit": "5d57fde334649f0d3cdc1036f54e00d3e6cca431",
+        "artifact": "build/app/outputs/flutter-apk/app-release.apk",
+        "sha256": "c060bad43f3d66d5337bfc8f934ba0f3f3070ab369361ab8c39df9ed1cf6db29",
+        "signing": "disposable CI validation key; not a store release",
+        "merged_manifests": [
+          "build/app/intermediates/merged_manifest/release/outputReleaseAppLinkSettings/AndroidManifest.xml",
+          "build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml",
+          "build/app/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml"
+        ],
+        "device_delivery_verified": false
+      }
+    }
+  ]
+}

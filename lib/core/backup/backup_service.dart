@@ -1,12 +1,17 @@
+export 'package:on_time_front/domain/entities/backup_operation.dart';
+import 'package:on_time_front/domain/entities/backup_operation.dart';
 import 'package:on_time_front/core/backup/recurring_backup_data.dart';
 import 'dart:convert';
+import 'package:on_time_front/domain/use-cases/cancel_all_alarms_use_case.dart';
 
 import 'package:drift/drift.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
+import 'package:on_time_front/core/backup/backup_file_export_port.dart';
 import 'package:on_time_front/core/constants/local_profile.dart';
 import 'package:on_time_front/core/database/database.dart';
+import 'package:on_time_front/core/database/local_data_operation_gate.dart';
 import 'package:on_time_front/core/services/app_metadata_service.dart';
 import 'package:on_time_front/core/services/device_info_service/shared.dart';
 import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
@@ -18,42 +23,21 @@ import 'package:on_time_front/domain/entities/schedule_entity.dart';
 import 'package:on_time_front/domain/entities/schedule_preparation_mode.dart';
 import 'package:on_time_front/domain/entities/user_entity.dart';
 
-enum BackupFreshness { neverExported, noChanges, unexportedChanges }
+class BackupRestoreCandidate implements BackupRestoreInput {
+  BackupRestoreCandidate._(
+    this._data,
+    this.preview,
+    this._generation,
+    this._revision,
+  );
 
-class BackupFreshnessStatus {
-  const BackupFreshnessStatus({
-    required this.freshness,
-    this.lastExportedAt,
-    this.reminderDue = false,
-  });
-
-  final BackupFreshness freshness;
-  final DateTime? lastExportedAt;
-  final bool reminderDue;
-}
-
-class BackupRestorePreview {
-  const BackupRestorePreview({
-    required this.cutoff,
-    required this.sourceAppVersion,
-    required this.sourcePlatform,
-    required this.scheduleCount,
-    required this.templateCount,
-    required this.defaultPreparationStepCount,
-  });
-
-  final DateTime cutoff;
-  final String sourceAppVersion;
-  final String sourcePlatform;
-  final int scheduleCount;
-  final int templateCount;
-  final int defaultPreparationStepCount;
-}
-
-class BackupRestoreCandidate {
-  const BackupRestoreCandidate._(this._data, this.preview);
+  int _generation;
+  final int _revision;
+  bool _consumed = false;
+  Future<int>? _running;
 
   final _BackupData _data;
+  @override
   final BackupRestorePreview preview;
 }
 
@@ -61,40 +45,66 @@ class BackupRestoreCandidate {
 class BackupService {
   BackupService(
     this._database,
-    this._metadataProvider, {
+    this._metadataProvider,
+    this._cancelAllAlarms, {
     @ignoreParam BackupCrypto? crypto,
-  }) : _crypto = crypto ?? BackupCrypto();
+    @ignoreParam BackupFileExportPort? exportPort,
+    @ignoreParam LocalDataOperationGate? operationGate,
+  }) : _crypto = crypto ?? BackupCrypto(),
+       _exportPort = exportPort ?? const NativeBackupFileExportPort(),
+       _operationGate = operationGate ?? LocalDataOperationGate.shared;
 
   static const _typeGroup = XTypeGroup(
     label: 'OnTime Backup',
     extensions: ['ontimebackup'],
     mimeTypes: ['application/octet-stream'],
+    // iOS filters by UTI only. Files transferred from Android may not have a
+    // custom backup UTI, so authenticate their contents after selection.
+    uniformTypeIdentifiers: ['public.data'],
   );
 
   final AppDatabase _database;
+  final CancelAllAlarmsUseCase _cancelAllAlarms;
   final AppMetadataProvider _metadataProvider;
   final BackupCrypto _crypto;
+  final BackupFileExportPort _exportPort;
+  final LocalDataOperationGate _operationGate;
+  int get generation => _operationGate.generation;
 
-  Future<bool> exportToUserSelectedFile(String password) async {
+  Future<BackupExportResult> exportToUserSelectedFile(
+    String password,
+  ) => _operationGate.run(() async {
+    final generation = _operationGate.generation;
     final snapshot = await _captureSnapshot();
     final encrypted = await _encryptSnapshot(snapshot, password);
-    final location = await getSaveLocation(
-      acceptedTypeGroups: const [_typeGroup],
-      suggestedName: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
-    );
-    if (location == null) return false;
-    await XFile.fromData(
-      encrypted,
-      name: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
-      mimeType: 'application/octet-stream',
-    ).saveTo(location.path);
-    await _database.userDao.markExported(
-      userId: localProfileId,
-      revision: snapshot.dataRevision,
-      cutoff: snapshot.cutoff,
-    );
-    return true;
-  }
+    final BackupFileExportReceipt receipt;
+    try {
+      receipt = await _exportPort.export(
+        encryptedBytes: encrypted,
+        suggestedName: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
+      );
+    } catch (_) {
+      throw const BackupFileExportFailure();
+    }
+    if (receipt == BackupFileExportReceipt.cancelled) {
+      return BackupExportResult.cancelled;
+    }
+    // A successful file save is distinct from updating this installation's
+    // freshness metadata. Never repeat or undo the external save on DB failure.
+    if (_operationGate.generation != generation) {
+      return BackupExportResult.savedFreshnessUpdateFailed;
+    }
+    try {
+      await _database.userDao.markExported(
+        userId: localProfileId,
+        revision: snapshot.dataRevision,
+        cutoff: snapshot.cutoff,
+      );
+    } catch (_) {
+      return BackupExportResult.savedFreshnessUpdateFailed;
+    }
+    return BackupExportResult.saved;
+  });
 
   Future<BackupRestoreCandidate?> selectAndPreviewRestore(
     String password,
@@ -120,6 +130,11 @@ class BackupService {
     );
     final decoded = jsonDecode(utf8.decode(decrypted));
     final data = _BackupData.fromJson(_asMap(decoded, 'backup'));
+    final previewGeneration = generation;
+    final revision = await _currentRevision();
+    if (previewGeneration != generation) {
+      throw const DataOperationException(DataOperationFailure.stalePreview);
+    }
     return BackupRestoreCandidate._(
       data,
       BackupRestorePreview(
@@ -131,6 +146,8 @@ class BackupService {
         defaultPreparationStepCount:
             data.defaultPreparation.preparationStepList.length,
       ),
+      previewGeneration,
+      revision,
     );
   }
 
@@ -141,10 +158,71 @@ class BackupService {
     );
   }
 
+  Future<int> _currentRevision() async => (await (_database.select(
+    _database.users,
+  )..where((t) => t.id.equals(localProfileId))).getSingle()).dataRevision;
+
   Future<void> applyRestore(BackupRestoreCandidate candidate) async {
+    await applyRestoreWithReceipt(candidate);
+  }
+
+  Future<int> applyRestoreWithReceipt(BackupRestoreCandidate candidate) {
+    if (candidate._consumed) {
+      return Future.error(
+        const DataOperationException(DataOperationFailure.stalePreview),
+      );
+    }
+    return candidate._running ??= _claimRestore(
+      candidate,
+    ).whenComplete(() => candidate._running = null);
+  }
+
+  Future<int> _claimRestore(BackupRestoreCandidate candidate) async {
+    var claimed = false;
+    var claimGeneration = candidate._generation;
+    try {
+      return await _operationGate.run(
+        () async {
+          claimed = true;
+          claimGeneration = generation;
+          await _applyRestore(candidate);
+          candidate._consumed = true;
+          return claimGeneration;
+        },
+        replacesData: true,
+        validateReplacement: () async {
+          if (candidate._generation != generation ||
+              candidate._revision != await _currentRevision()) {
+            throw const DataOperationException(
+              DataOperationFailure.stalePreview,
+            );
+          }
+        },
+      );
+    } catch (error) {
+      if (!claimed) rethrow;
+      // The old generation and OS cleanup may already have changed, even when
+      // the DB transaction rejects an edit that raced the cleanup. A09 owns
+      // complete writer fencing and staging/runtime replacement integration.
+      candidate._generation = claimGeneration;
+      throw DataOperationException(
+        error is DataOperationException
+            ? error.failure
+            : DataOperationFailure.failed,
+        followUpPending: true,
+        generation: claimGeneration,
+      );
+    }
+  }
+
+  Future<void> _applyRestore(BackupRestoreCandidate candidate) async {
+    await _cancelAllAlarms.forDataReplacement();
     final data = candidate._data;
     final profile = data.profile.valueOrNull!;
     await _database.transaction(() async {
+      if (candidate._revision != await _currentRevision()) {
+        throw const DataOperationException(DataOperationFailure.stalePreview);
+      }
       await _database.deleteAllDurableData();
       await _database
           .into(_database.users)

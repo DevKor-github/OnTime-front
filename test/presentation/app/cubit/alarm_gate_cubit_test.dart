@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
@@ -368,6 +369,22 @@ class _FakeAlarmSchedulerService extends AlarmSchedulerService {
 
 class _FakeFallbackAlarmNotificationService
     implements FallbackAlarmNotificationService {
+  @override
+  Future<DeliveryObservation> observePending() async =>
+      const DeliveryObservation.unknown();
+  AlarmPermissionState timingPermission = AlarmPermissionState.unsupported;
+  int timingRequestCount = 0;
+
+  @override
+  Future<AlarmPermissionState> checkExactTimingPermission() async =>
+      timingPermission;
+
+  @override
+  Future<AlarmPermissionState> requestExactTimingPermission() async {
+    timingRequestCount++;
+    return timingPermission;
+  }
+
   _FakeFallbackAlarmNotificationService({
     this.checkPermissionState = AlarmPermissionState.denied,
     this.requestPermissionState = AlarmPermissionState.denied,
@@ -387,7 +404,9 @@ class _FakeFallbackAlarmNotificationService
   }
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {}
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async => NotificationTiming.platformDefault;
 
   @override
   Future<void> cancelFallbackAlarm(ScheduledAlarmRecord record) async {}

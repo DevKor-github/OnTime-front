@@ -1,11 +1,8 @@
+import 'package:sqlite3/sqlite3.dart';
 import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/database/database.dart';
-import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
-import 'package:on_time_front/domain/entities/place_entity.dart';
-import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/entities/user_entity.dart';
 
 void main() {
   test(
@@ -15,52 +12,20 @@ void main() {
         'ontime-migration-',
       );
       final file = File('${directory.path}/v1.sqlite');
-      var db = AppDatabase.forTesting(NativeDatabase(file));
+      final raw = sqlite3.open(file.path);
+      raw.execute(
+        File('test/fixtures/database/schema_v1.sql').readAsStringSync(),
+      );
+      raw.execute(
+        "INSERT INTO users(id,spare_time,note,eligible_outcome_count,on_time_outcome_count) VALUES('local-profile',0,'preserve',4,3)",
+      );
+      raw.execute("INSERT INTO places(id,place_name) VALUES('p','Home')");
+      raw.execute(
+        "INSERT INTO schedules(id,place_id,schedule_name,schedule_time,move_time,schedule_note) VALUES('old','p','Existing','2026-01-01T10:00:00.000',0,'keep')",
+      );
+      raw.dispose();
+      final db = AppDatabase.forTesting(NativeDatabase(file));
       try {
-        await db.userDao.putUser(
-          const UserEntity(
-            id: 'local-profile',
-            spareTime: Duration.zero,
-            note: 'preserve',
-            eligibleOutcomeCount: 4,
-            onTimeOutcomeCount: 3,
-          ),
-        );
-        await db.scheduleDao.createSchedule(
-          ScheduleEntity(
-            id: 'old',
-            place: const PlaceEntity(id: 'p', placeName: 'Home'),
-            scheduleName: 'Existing',
-            scheduleTime: DateTime(2026, 1, 1, 10),
-            moveTime: Duration.zero,
-            isChanged: false,
-            isStarted: false,
-            scheduleNote: 'keep',
-            scheduleSpareTime: Duration.zero,
-          ).toScheduleWithPlaceRow(),
-        );
-        // The unchanged seven tables are schema 1 after removing the additive
-        // recurrence migration. Reopen through the real onUpgrade entry point.
-        for (final table in [
-          'recurring_schedule_exclusions',
-          'recurring_schedule_segments',
-          'preparation_definition_steps',
-          'preparation_definitions',
-        ]) {
-          await db.customStatement('DROP TABLE $table');
-        }
-        for (final column in [
-          'recurring_segment_id',
-          'recurring_slot_key',
-          'recurring_ordinal',
-          'recurring_overrides',
-          'preparation_definition_id',
-        ]) {
-          await db.customStatement('ALTER TABLE schedules DROP COLUMN $column');
-        }
-        await db.customStatement('PRAGMA user_version = 1');
-        await db.close();
-        db = AppDatabase.forTesting(NativeDatabase(file));
         expect(
           (await db.scheduleDao.getScheduleById('old')).schedule.scheduleName,
           'Existing',

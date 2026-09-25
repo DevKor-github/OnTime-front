@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -87,6 +88,17 @@ class StreamingScheduleBloc extends Mock implements ScheduleBloc {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  setUpAll(() async {
+    final loader = FontLoader('Pretendard');
+    for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+      loader.addFont(rootBundle.load('assets/fonts/Pretendard-$weight.ttf'));
+    }
+    await loader.load();
+    await (FontLoader(
+      'MaterialIcons',
+    )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
+  });
+
   setUp(() async {
     await getIt.reset();
   });
@@ -117,6 +129,7 @@ void main() {
 
     return MaterialApp(
       theme: themeData,
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
@@ -144,6 +157,100 @@ void main() {
       ),
     );
   }
+
+  for (final hasSchedule in [false, true]) {
+    testWidgets('430 portrait home fits actual font, schedule=$hasSchedule', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(430, 932);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        buildSubject(
+          size: const Size(430, 932),
+          scheduleState: hasSchedule
+              ? ScheduleState.upcoming(_shortSchedule())
+              : const ScheduleState.notExists(),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final card = tester.getRect(find.byKey(const Key('today_schedule_card')));
+      final tile = tester.getRect(find.byKey(const Key('today_schedule_tile')));
+      final calendar = tester.getRect(
+        find.byKey(const Key('home_month_calendar')),
+      );
+      expect(card.contains(tile.topLeft), isTrue);
+      expect(card.contains(tile.bottomRight), isTrue);
+      expect(calendar.top, greaterThanOrEqualTo(card.bottom));
+      expect(calendar.bottom, lessThanOrEqualTo(932));
+      expect(find.text('View calendar').hitTestable(), findsOneWidget);
+      if (hasSchedule) {
+        expect(
+          find.text(_shortSchedule().scheduleName).hitTestable(),
+          findsOneWidget,
+        );
+      }
+    });
+  }
+
+  testWidgets('430 home last calendar day and primary routes remain tappable', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(430, 932);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final scheduleBloc = StreamingScheduleBloc(
+      ScheduleState.upcoming(_shortSchedule()),
+    );
+    addTearDown(scheduleBloc.close);
+    await tester.pumpWidget(
+      _buildRoutedSubject(
+        size: const Size(430, 932),
+        scheduleBloc: scheduleBloc,
+      ),
+    );
+    await tester.pump();
+    final router = GoRouter.of(tester.element(find.byType(HomeScreenContent)));
+    final now = DateTime.now();
+    final lastDay = DateTime(now.year, now.month + 1, 0);
+    final day = find
+        .descendant(
+          of: find.byKey(const Key('home_month_calendar')),
+          matching: find.text('${lastDay.day}'),
+        )
+        .first;
+    final dayRect = tester.getRect(day);
+    final calendarRect = tester.getRect(
+      find.byKey(const Key('home_month_calendar')),
+    );
+    expect(dayRect.top, greaterThan(calendarRect.top));
+    expect(dayRect.bottom, lessThanOrEqualTo(calendarRect.bottom));
+    expect(dayRect.bottom, lessThanOrEqualTo(932));
+    expect(day.hitTestable(), findsOneWidget);
+    await tester.tap(day);
+    await tester.pumpAndSettle();
+    expect(find.text('Calendar Route'), findsOneWidget);
+    expect(
+      DateTime.parse(
+        router.routeInformationProvider.value.uri.queryParameters['date']!,
+      ),
+      lastDay,
+    );
+    router.go('/home');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View calendar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Calendar Route'), findsOneWidget);
+    router.go('/home');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('today_schedule_tile')));
+    await tester.pumpAndSettle();
+    expect(find.text('Schedule Start:earlyStart'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('compact portrait home fits without scroll at 1.3 text scale', (
     tester,

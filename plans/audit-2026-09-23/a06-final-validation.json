@@ -1,0 +1,58 @@
+{
+  "issue": "A06 #598",
+  "source_files": {
+    "lib/core/services/notification_service.dart": "a91d7c029f22ad61eb9bf540d884a29d0879010747d268a085c6ab0cde080fab",
+    "lib/presentation/app/bloc/schedule/schedule_bloc.dart": "5a15dc1e8c7918ce1759f5df021c9bebd0629be6130bd7d61a91da3f2449efe0",
+    "lib/presentation/app/bloc/schedule/schedule_event.dart": "c495cca0d838643a2bb6f0f1110d8fdc8cb838404feaa1c8866d5c62ba0be936",
+    "lib/presentation/app/screens/app.dart": "0fbd83a8eb8227809d02e8072f68325ee1578d8b39814453e41428e812c1a837",
+    "test/presentation/app/bloc/schedule/schedule_bloc_test.dart": "bc715a45d509e3203d7621efbbb6066b25f10ae1e198f4cab1d96d64f2d50a08",
+    "test/core/services/preparation_step_notification_test.dart": "5a9d45fe439c38ee00471e90fa849e7d9be65160e5f898aaa4bc1696679dcea7",
+    "test/presentation/app/bloc/schedule/preparation_step_delivery_test.dart": "ad03928eeb7e1c4b55054b1cbf301d18104e8dd7add28504a062cf5ab6d532ae"
+  },
+  "results": {
+    "full_tests": 929,
+    "new_boundary_tests": 47,
+    "coverage_percent": 88.74,
+    "covered_lines": 13092,
+    "total_lines": 14753,
+    "analyzer": "No issues found",
+    "python_policy_tests": 11,
+    "generated_policy": "pass",
+    "local_only_policy": "pass",
+    "android_source_manifest": "pass",
+    "diff_check": "pass"
+  },
+  "limitations": [
+    "Android/iOS device background, lock, resume, display permission QA not executed",
+    "Plugin show completion is submission, not proof of visible OS notification",
+    "No guarantee of periodic execution while suspended or killed",
+    "No native APK or iOS build executed for this change"
+  ],
+  "implementation_commit": "d06474d4c645794644075173f76afb9ff4445047",
+  "logs_raw_sha256": {
+    "/tmp/a06-negative.log": "28bb4e09b59e6d2047ad93491c8e4fe41519024bc798fe551d5133aff4d0dd11",
+    "/tmp/a06-focused-v2.log": "d1534a3b5187d3eff5acf28433f26b5a07e39e7dd32c3c9ab8b9317cfe2c0879",
+    "/tmp/a06-boundary-final.log": "4ba6ae959e6852694921350d483a500a8e5b8373467af67a37320efb7a88f8c0",
+    "/tmp/a06-analyze-final.log": "108b7d56681eac78775e3c9378837f1f8e0412b37b2abd10ec1bcaee0235f632",
+    "/tmp/a06-full-coverage.log": "129513993c09666846e3a396a13ffd6cc0240cbceb86a8be707479ac225f5a8b",
+    "/tmp/a06-coverage-policy.log": "aa77fcd4fe1820edf645a85420bbd7b24c50fbec5316eb33a5c7093e882c21f7",
+    "/tmp/a06-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "/tmp/a06-local-only-policy.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "/tmp/a06-python-policies.log": "1d83585b97486319bb9c2fff2996c7435fd78e26e63e611aae2ad6791d35db6b",
+    "/tmp/a06-manifest-policy.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01"
+  },
+  "artifacts": {
+    "plans/audit-2026-09-23/artifacts/a06/a06-negative.log": "9c091616c38249759858c4227cb65043f8d02b486b32425576757849a6b38ad7",
+    "plans/audit-2026-09-23/artifacts/a06/a06-focused-v2.log": "d1534a3b5187d3eff5acf28433f26b5a07e39e7dd32c3c9ab8b9317cfe2c0879",
+    "plans/audit-2026-09-23/artifacts/a06/a06-boundary-final.log": "4ba6ae959e6852694921350d483a500a8e5b8373467af67a37320efb7a88f8c0",
+    "plans/audit-2026-09-23/artifacts/a06/a06-analyze-final.log": "373e11882e69290552a80ca5ac78af50eb68629e11ed821e0d9a2536ced71af3",
+    "plans/audit-2026-09-23/artifacts/a06/a06-full-coverage.log": "129513993c09666846e3a396a13ffd6cc0240cbceb86a8be707479ac225f5a8b",
+    "plans/audit-2026-09-23/artifacts/a06/a06-coverage-policy.log": "aa77fcd4fe1820edf645a85420bbd7b24c50fbec5316eb33a5c7093e882c21f7",
+    "plans/audit-2026-09-23/artifacts/a06/a06-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "plans/audit-2026-09-23/artifacts/a06/a06-local-only-policy.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "plans/audit-2026-09-23/artifacts/a06/a06-python-policies.log": "1d83585b97486319bb9c2fff2996c7435fd78e26e63e611aae2ad6791d35db6b",
+    "plans/audit-2026-09-23/artifacts/a06/a06-manifest-policy.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+    "plans/audit-2026-09-23/artifacts/a06/source-freeze.json": "ee48302e08f59878680f738635d6532fa898ac6a9961b90df297a6fc8de15ca1"
+  },
+  "log_normalization": "strip trailing whitespace in repo copies; raw log hashes retained"
+}

@@ -1,43 +1,42 @@
 import 'package:injectable/injectable.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/core/services/alarm_registration_cleanup.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
-import 'package:on_time_front/domain/entities/alarm_entities.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 
 @Injectable()
 class CancelAllAlarmsUseCase {
-  final AlarmRegistryRepository _registryRepository;
-  final AlarmSchedulerService _schedulerService;
-  final FallbackAlarmNotificationService _fallbackNotificationService;
-
   CancelAllAlarmsUseCase(
-    this._registryRepository,
-    this._schedulerService,
-    this._fallbackNotificationService,
-  );
+    AlarmRegistryRepository registry,
+    AlarmSchedulerService scheduler,
+    FallbackAlarmNotificationService fallback, {
+    @ignoreParam AlarmOperationCoordinator? operations,
+  }) : _operations = operations ?? AlarmOperationCoordinator.shared,
+       _cleanup = AlarmRegistrationCleanup(
+         registry,
+         scheduler,
+         fallback,
+         operations ?? AlarmOperationCoordinator.shared,
+       );
+
+  final AlarmOperationCoordinator _operations;
+  final AlarmRegistrationCleanup _cleanup;
+
+  AlarmOperationCoordinator get operations => _operations;
+
+  Future<T> withCleanupOwner<T>(
+    Future<T> Function(AlarmRegistrationCleanup) action,
+  ) => _operations.cleanup(() => action(_cleanup));
 
   Future<void> call() async {
-    final records = await _registryRepository.loadAll();
-    await cancelRecords(records);
-    await _registryRepository.deleteAll();
+    final lease = _operations.capture();
+    await _operations.run(lease, _cleanup.cancelMatching);
+    lease.check();
   }
 
-  Future<void> cancelRecords(List<ScheduledAlarmRecord> records) async {
-    for (final record in records) {
-      await _cancelRecord(record);
-    }
-  }
-
-  Future<void> _cancelRecord(ScheduledAlarmRecord record) async {
-    try {
-      if (record.provider == AlarmProvider.localNotification) {
-        await _fallbackNotificationService.cancelFallbackAlarm(record);
-      } else if (record.provider != AlarmProvider.none) {
-        await _schedulerService.cancelNativeAlarm(record);
-      }
-    } catch (_) {
-      // Best-effort cancellation: stale registry cleanup should not be blocked
-      // by a platform channel or notification plugin failure.
-    }
-  }
+  /// The caller already owns the data replacement gate. Wait for actual old
+  /// platform Futures, then cancel; never wait for normal drain/gate release.
+  Future<void> forDataReplacement() =>
+      _operations.cleanup(_cleanup.cancelMatching);
 }

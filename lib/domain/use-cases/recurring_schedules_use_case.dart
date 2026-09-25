@@ -78,47 +78,6 @@ class RecurringSchedulesUseCase {
     return _recurring.review(value.schedule, value.preparation, rule);
   }
 
-  Future<void> save(ScheduleFormSubmission value) async {
-    final original = value.originalSchedule;
-    if (original != null &&
-        (original.isRecurring || original.preparationDefinitionId != null)) {
-      if (original.isRecurring &&
-          value.recurringScope == RecurringEditScope.following) {
-        await _recurring.updateFollowing(
-          original,
-          value.schedule,
-          value.preparation,
-          value.recurrenceRule!,
-          countChanged: value.recurrenceCountChanged,
-          excludedSlots: value.excludedSlots,
-          reviewedFirstSlotKey: value.reviewedFirstSlotKey,
-          confirmDetached: value.confirmDetached,
-        );
-      } else {
-        await _recurring.updateOccurrence(
-          original,
-          value.schedule,
-          value.preparation,
-          preparationChanged: value.preparationChanged,
-        );
-      }
-    } else {
-      await _recurring.create(
-        value.schedule,
-        value.preparation,
-        value.recurrenceRule!,
-        excludedSlots: value.excludedSlots,
-        reviewedFirstSlotKey: value.reviewedFirstSlotKey,
-      );
-    }
-    await _alarms(
-      operation: original == null
-          ? ScheduleMutationAlarmOperation.created
-          : ScheduleMutationAlarmOperation.updated,
-      scheduleId: value.schedule.id,
-    );
-  }
-
   Future<void> delete(
     ScheduleEntity occurrence,
     RecurringEditScope scope,

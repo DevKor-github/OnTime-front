@@ -107,7 +107,6 @@ void main() {
       expect(scheduleRepository.startedScheduleIds, ['schedule-1']);
     },
   );
-
 }
 
 ScheduleEntity _schedule(String id) {
@@ -161,8 +160,12 @@ class _FakeScheduleRepository implements ScheduleRepository {
   }
 
   @override
-  Future<void> startSchedule(String scheduleId) async {
+  Future<DateTime> startSchedule(
+    String scheduleId, {
+    DateTime? startedAt,
+  }) async {
     startedScheduleIds.add(scheduleId);
+    return startedAt ?? DateTime.utc(2026);
   }
 
   @override

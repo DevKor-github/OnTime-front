@@ -1,3 +1,4 @@
+import 'package:on_time_front/domain/entities/schedule_start_rejected.dart';
 import 'dart:async';
 
 import 'package:collection/collection.dart';
@@ -10,7 +11,6 @@ import 'package:on_time_front/data/daos/user_dao.dart';
 import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/data/tables/schedule_with_place_model.dart';
 import 'package:on_time_front/domain/entities/schedule_entity.dart';
-import 'package:on_time_front/domain/entities/user_entity.dart';
 import 'package:on_time_front/domain/repositories/schedule_repository.dart';
 import 'package:on_time_front/domain/repositories/timed_preparation_repository.dart';
 import 'package:rxdart/subjects.dart';
@@ -88,17 +88,30 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
   }
 
   @override
-  Future<void> startSchedule(String scheduleId) async {
-    final existing = await _scheduleDao.getScheduleById(scheduleId);
+  Future<DateTime> startSchedule(
+    String scheduleId, {
+    DateTime? startedAt,
+  }) => _database.transaction(() async {
+    final existing = (await _scheduleDao.getScheduleById(scheduleId)).schedule;
+    if (existing.doneStatus != ScheduleDoneStatus.notEnded.name) {
+      throw ScheduleStartRejected(scheduleId);
+    }
+    final firstStartedAt = existing.startedAt ?? startedAt ?? DateTime.now();
+    if (existing.isStarted &&
+        existing.startedAt != null &&
+        existing.preparationFrozen) {
+      return firstStartedAt;
+    }
     await _scheduleDao.updateSchedule(
-      existing.schedule.copyWith(
+      existing.copyWith(
         isStarted: true,
-        startedAt: Value(DateTime.now()),
+        startedAt: Value(firstStartedAt),
         preparationFrozen: true,
       ),
     );
     await _userDao.markDurableDataChanged(localProfileId);
-  }
+    return firstStartedAt;
+  });
 
   @override
   Future<ScheduleEntity> getScheduleById(String id) async {
@@ -127,7 +140,9 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
     await _scheduleDao.updateScheduleWithPlace(
       schedule.toScheduleWithPlaceRow(),
     );
-    await _clearTimedPreparation(schedule.id);
+    // Retain the old content-free identity until the session validator sees
+    // this edit. Deleting it would make an invalid run look like a fresh one
+    // and allow automatic catch-up. Unchanged timing/shape stays resumable.
     await _userDao.markDurableDataChanged(localProfileId);
   }
 
@@ -152,19 +167,10 @@ class ScheduleRepositoryImpl implements ScheduleRepository {
         ),
       );
 
-      final user = await _userDao.getUserById(localProfileId);
-      if (!existing.schedule.scoreContributionRecorded && user != null) {
-        final value = user.valueOrNull!;
-        await _userDao.putUser(
-          UserEntity(
-            id: value.id,
-            spareTime: value.spareTime,
-            note: value.note,
-            isOnboardingCompleted: value.isOnboardingCompleted,
-            eligibleOutcomeCount: value.eligibleOutcomeCount + 1,
-            onTimeOutcomeCount:
-                value.onTimeOutcomeCount + (latenessTime > 0 ? 0 : 1),
-          ),
+      if (!existing.schedule.scoreContributionRecorded) {
+        await _userDao.incrementScore(
+          localProfileId,
+          onTime: latenessTime <= 0,
         );
       }
       await _userDao.markDurableDataChanged(localProfileId);

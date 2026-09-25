@@ -36,18 +36,12 @@ object NativeLog {
         } else {
             extras.keySet().associateWith { key -> extras.get(key) }
         }
-        return "action=${intent.action} ${summarizeMap(values)}"
+        return "hasAction=${intent.action != null} ${summarizeMap(values)}"
     }
 
     fun summarizeMap(values: Map<*, *>?): String {
         if (values == null) return "keys=0"
-        val scheduleId = values["scheduleId"]?.toString()
-        val nativeAlarmId = values["nativeAlarmId"]?.toString()
-        val type = values["type"]?.toString()
-        val parts = mutableListOf("keys=${values.size}")
-        if (!scheduleId.isNullOrBlank()) parts.add("scheduleId=$scheduleId")
-        if (!nativeAlarmId.isNullOrBlank()) parts.add("nativeAlarmId=$nativeAlarmId")
-        if (!type.isNullOrBlank()) parts.add("type=$type")
-        return parts.joinToString(" ")
+        // Intent extras may be legacy or attacker-controlled. Never log their values.
+        return "keys=${values.size}"
     }
 }

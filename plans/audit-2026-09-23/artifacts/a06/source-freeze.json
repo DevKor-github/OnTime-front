@@ -1,0 +1,9 @@
+{
+  "lib/core/services/notification_service.dart": "a91d7c029f22ad61eb9bf540d884a29d0879010747d268a085c6ab0cde080fab",
+  "lib/presentation/app/bloc/schedule/schedule_bloc.dart": "5a15dc1e8c7918ce1759f5df021c9bebd0629be6130bd7d61a91da3f2449efe0",
+  "lib/presentation/app/bloc/schedule/schedule_event.dart": "c495cca0d838643a2bb6f0f1110d8fdc8cb838404feaa1c8866d5c62ba0be936",
+  "lib/presentation/app/screens/app.dart": "0fbd83a8eb8227809d02e8072f68325ee1578d8b39814453e41428e812c1a837",
+  "test/presentation/app/bloc/schedule/schedule_bloc_test.dart": "bc715a45d509e3203d7621efbbb6066b25f10ae1e198f4cab1d96d64f2d50a08",
+  "test/core/services/preparation_step_notification_test.dart": "5a9d45fe439c38ee00471e90fa849e7d9be65160e5f898aaa4bc1696679dcea7",
+  "test/presentation/app/bloc/schedule/preparation_step_delivery_test.dart": "ad03928eeb7e1c4b55054b1cbf301d18104e8dd7add28504a062cf5ab6d532ae"
+}

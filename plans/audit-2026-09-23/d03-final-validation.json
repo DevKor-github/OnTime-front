@@ -1,0 +1,65 @@
+{
+  "source_freeze": "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-source-freeze.json",
+  "source_files": 579,
+  "full_tests": 872,
+  "focused_tests": 71,
+  "coverage_percent": 87.99,
+  "coverage_hit": 12253,
+  "coverage_found": 13926,
+  "post_full_test_change": {
+    "path": "tool/qa/reset_journal_crash_probe.dart",
+    "reason": "QA-only fake native observation now explicitly unknown for syntax corruption cases; no product or test/ suite source changed",
+    "sha256": "5374f12a5f0226a6d65b2359597da91002d50776f6d3ae6e1b736a55bc87405d"
+  },
+  "host_sigkill_cases": 11,
+  "host_limits": "host process death; fixture providers and deletion adapters",
+  "device_verified": false,
+  "ci_verified": false,
+  "artifacts": {
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-local-only.log": "587fabc88d7ad8a721a0e2ed2feb1e5400471f16be9bc1f9614fae6ee79ca56a",
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-p2-targeted-final.log": "944374ab1c830cfd853ba2b5c780b8d3ff056b1cfa88415dcef15fca151c3c93",
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-coverage-policy.log": "71ba8864988773d2a31e36792c98bf8d15cd1f8fef1a0df00a68d63f8f218724",
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-changed-source-freeze.json": "a4ec90fc931fc9cf61bf0c7869ba4cdae045a9d32e7c90f62aed0f079691eca6",
+    "plans/audit-2026-09-23/artifacts/d03/final/d03-python-policy.log": "4fdc1df0b7744216895078fbfd0411918951ced6f104fd7c2d803096adf589a8",
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-generated-policy.log": "6fbaa122fa71317c57c6dd9ac5e5f3a56588d95a9827892da05702283937607a",
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-source-freeze.json": "8e7f94b6452c9ed3d34b532d09fac1951926afafc02d4153e56151dec590a53f",
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-coverage.log": "36a879b0287d0e34827c8c3006c4139d35719add2b1e38be811928b68e292828",
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-analyze.log": "0105662d4fa2d1212accc42aa4de1a520293c00b29de7852fa8ac434746af66b",
+    "plans/audit-2026-09-23/artifacts/d03/final/d03-manifest-policy.log": "60ac45f9be8ec739ed709fa43c33c8f51a94665b6bdea633dd65e27529d13c01",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/completion-renamed-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/database-deleted-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/journal-unlinked-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/partial-first-pending-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/intent-renamed-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/recoveryPublished-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/result.json": "0fdd4b1d636aeee9117f65b25724e7874ea928369f2cc641a0a385cfd529973e",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/intent-renamed-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/partial-first-pending-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/recoveryMarked-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/first-ownership-written-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/recoveryMarked-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/quarantinedPending-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/recoveryPublished-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/recoveryVerified-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/completion-renamed-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/recoveryVerified-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/marker-removed-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/first-ownership-written-cut.log": "4205045ac2bf0e285f31476e20c3ea6f62c54006a6e8a25b536ec20fee4e74b2",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/database-deleted-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/marker-removed-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/quarantinedPending-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/host-process-kill/journal-unlinked-recover.log": "93e2c5706ef2a3b70328428a8d70f83d5c70175e6bddfac2ceead7ee7fc9249a",
+    "plans/audit-2026-09-23/artifacts/d03/final/root-final-analyze.log": "6a264992dedc95ff2cbaed6acfff786deeb34e1ca3746c93a8446d729f900355"
+  },
+  "implementation_commit": "5f3adf11aaaa3e36d6e4e25c41be6c06e4105480",
+  "normalized_logs": {
+    "plans/audit-2026-09-23/artifacts/d03/final/ontime-d03-final-analyze.log": {
+      "raw_sha256": "8386c45b857f26046fae9ec03f3a4c747ca99b606b83c503c2f38509dc2a99d7",
+      "change": "trailing spaces only"
+    },
+    "plans/audit-2026-09-23/artifacts/d03/final/root-final-analyze.log": {
+      "raw_sha256": "e0d6617d592c7b0e5a5e207e2d26af3970e2b4f1978336a2c72e3bfcc81dafb1",
+      "change": "trailing spaces only"
+    }
+  }
+}

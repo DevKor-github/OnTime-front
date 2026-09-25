@@ -206,6 +206,7 @@ class AlarmGateCubit extends Cubit<AlarmGateState> {
   Future<void> _disableAlarmsBestEffort() async {
     try {
       await _alarmRepository.updateAlarmSettings(alarmsEnabled: false);
+      requestAlarmReconciliation(_reconcileAlarmsUseCase);
       await _cancelAllAlarmsUseCase();
     } catch (error) {
       AppLogger.debug(

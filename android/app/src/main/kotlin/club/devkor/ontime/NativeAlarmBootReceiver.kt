@@ -66,7 +66,7 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
         val records = try {
             JSONArray(rawRegistry)
         } catch (error: Exception) {
-            NativeLog.w(TAG, "restorePersistedNativeAlarms registry parse failed", error)
+            NativeLog.w(TAG, "restorePersistedNativeAlarms registry parse failed")
             return
         }
 
@@ -79,6 +79,10 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
                 continue
             }
             if (record.optString("provider") != "androidAlarmManager") {
+                skippedCount += 1
+                continue
+            }
+            if (record.optBoolean("cancellationPending", false)) {
                 skippedCount += 1
                 continue
             }
@@ -134,7 +138,6 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
         }
         val alarmTimeMillis = parseAlarmTime(record.optString("alarmTime"))
         val preparationStartTimeMillis = parseAlarmTime(record.optString("preparationStartTime"))
-        val payload = record.optJSONObject("payload")
         val extras = mutableMapOf(
             "type" to "schedule_alarm",
             "scheduleId" to scheduleId,
@@ -144,11 +147,6 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
         if (alarmTimeMillis != null) extras["alarmTime"] = alarmTimeMillis.toString()
         if (preparationStartTimeMillis != null) {
             extras["preparationStartTime"] = preparationStartTimeMillis.toString()
-        }
-        val payloadKeys = payload?.keys()
-        while (payloadKeys?.hasNext() == true) {
-            val key = payloadKeys.next()
-            payload.opt(key)?.let { value -> extras[key] = value.toString() }
         }
         extras["title"] = record.optString("scheduleTitle", "")
         extras["body"] = "It is time to get ready."
@@ -178,12 +176,6 @@ class NativeAlarmBootReceiver : BroadcastReceiver() {
         }
         parseAlarmTime(record.optString("preparationStartTime"))?.let {
             extras["preparationStartTime"] = it.toString()
-        }
-        val payload = record.optJSONObject("payload")
-        val payloadKeys = payload?.keys()
-        while (payloadKeys?.hasNext() == true) {
-            val key = payloadKeys.next()
-            payload.opt(key)?.let { value -> extras[key] = value.toString() }
         }
         extras["title"] = record.optString("scheduleTitle", "")
         extras["body"] = "It is time to get ready."

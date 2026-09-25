@@ -1,9 +1,11 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 
 @Singleton()
 class NavigationService {
+  final RouteObserver<PageRoute<dynamic>> routeObserver =
+      RouteObserver<PageRoute<dynamic>>();
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   void push(String routeName, {Object? extra}) {

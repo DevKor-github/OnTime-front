@@ -21,6 +21,10 @@ _Avoid_: Server result, analytics event, transient completion screen
 Past and completed Schedule details retained locally until the user explicitly deletes the Schedule.
 _Avoid_: Server archive, analytics history, automatic retention window, score aggregate
 
+**Nearest Upcoming Schedule**:
+The unfinished Schedule whose resolved occurrence instant is the earliest at or after the current instant.
+_Avoid_: Today's Schedule, active Schedule Preparation Session
+
 **Local Punctuality Score**:
 The percentage of eligible Schedule Outcomes completed On Time since the latest Punctuality Score Reset.
 _Avoid_: Server score, lifetime score, reward points, zero before first result
@@ -324,7 +328,7 @@ _Avoid_: Loaded range, stream range, cached range
 - Backup cryptography uses a reviewed library implementation and never a custom cipher or password-key-derivation construction.
 - A **Backup Restore** validates the complete OnTime Backup before changing active local data.
 - A successful **Backup Restore** replaces rather than merges the current Local Profile data.
-- A failed **Backup Restore** leaves the current Local Profile data unchanged.
+- A **Backup Restore** that fails before durable replacement preserves the current Local Profile data. Failure of cleanup after a committed replacement keeps the restored data active and exposes pending recovery; it does not claim rollback.
 - An **OnTime Backup** contains all **Durable OnTime Data**, including the Local Profile, onboarding state, Schedules, Places, Preparations, retained outcomes, and app preferences.
 - An **OnTime Backup** excludes an active Preparation Run, Early Start Session, device identifier, scheduled-notification registry, operating-system permission, cache, and log.
 - A successful **Backup Restore** recalculates Schedule Notifications from restored future Schedules instead of restoring device-specific registrations.
@@ -378,7 +382,8 @@ _Avoid_: Loaded range, stream range, cached range
 - **Platform-Managed Data Transfer** is not a supported OnTime backup or recovery path.
 - OnTime excludes its active data from **Platform-Managed Data Transfer** wherever the Supported Product Platform exposes such control.
 - OnTime does not promise that every operating system or device manufacturer will honor the requested exclusion.
-- Each app installation has exactly one **Installation Data Key** stored only in device-bound secure storage.
+- Each app installation has exactly one active **Installation Data Key** stored only in device-bound secure storage.
+- A verified Backup Restore may temporarily retain inactive recovery key material; it does not represent another active Installation Data Key and is removed after safe recovery cleanup.
 - The **Installation Data Key** is not synchronized, backed up, exported, or included in an OnTime Backup.
 - OnTime uses the **Installation Data Key** without requiring a Backup Password or biometric prompt during normal app use.
 - Losing the **Installation Data Key** makes active Durable OnTime Data unreadable; recovery requires a readable OnTime Backup or a destructive local-data reset.
@@ -407,7 +412,7 @@ _Avoid_: Loaded range, stream range, cached range
 - An **Ambiguous Schedule Time** requires the user to choose one of the two represented offsets before saving.
 - A Schedule and its OnTime Backup preserve the user's chosen occurrence of an **Ambiguous Schedule Time**.
 - Time-zone rules are updated only through an OnTime app release, not through a runtime network request.
-- After a time-zone rule update, a future Schedule keeps its intended civil date, time, and Schedule Time Zone while OnTime recalculates its absolute instant and Schedule Notification.
+- After a time-zone rule update, a future Schedule keeps its intended civil date, time, and Schedule Time Zone; a changed occurrence is proposed for explicit confirmation before its saved commitment and Schedule Notification are changed.
 - OnTime identifies future Schedules whose absolute notification time changed because of a time-zone rule update; completed and past Schedules remain unchanged.
 - The **Local Data Store** is the only authoritative persistence boundary for Durable OnTime Data.
 - All durable preferences belong to the Local Data Store together with the Local Profile and user content.
@@ -425,7 +430,7 @@ _Avoid_: Loaded range, stream range, cached range
 - A Punctuality Score Reset does not delete Schedules or Schedule Outcomes; Local Data Reset removes the complete score history.
 - An OnTime Backup preserves the Local Punctuality Score aggregation basis and its latest reset boundary.
 - **Schedule History** has no age-based or storage-based automatic expiration.
-- Deleting a Schedule removes its name, Place, note, Preparation, Schedule Outcome detail, delivery registrations, and appearance in current backup data.
+- Deleting a Schedule removes its details and its exclusively owned content; content still owned or referenced by another Schedule, Recurring Schedule, default Preparation, or Preparation template is retained for that independent purpose. The deleted Schedule is absent from later OnTime Backups. Only minimal content-free delivery ownership may remain while cancellation is unresolved, and it is removed after cancellation is confirmed.
 - After a completed Schedule is deleted, only its non-identifying On Time or Late aggregate contribution may remain for Local Punctuality Score continuity.
 - Restoring an OnTime Backup may reintroduce a Schedule deleted after that backup's Backup Cutoff, and Restore Preview warns about that replacement effect.
 - A **Schedule** has one effective **Preparation** for calculating preparation timing.

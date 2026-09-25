@@ -1,0 +1,238 @@
+{
+  "audit_id": "A14",
+  "issue_number": 593,
+  "recorded_at": "2026-09-24T01:13:50.681364+09:00",
+  "base_head": "0f763692f78c1aeda1104d4ab3c916f4a8409759",
+  "implementation_commit": null,
+  "scope": "Local source and mocked boundary verification; no real OS delivery validation",
+  "upstream_a13_persistence_fix": "edfff97c (separate root commit; not part of this A14 diff)",
+  "commands": [
+    {
+      "command": "dart run build_runner build --delete-conflicting-outputs",
+      "exit_code": 0,
+      "result": "10 seconds; 448 ignored local outputs regenerated"
+    },
+    {
+      "command": "flutter test test/domain/use-cases/reconcile_alarms_use_case_test.dart test/domain/use-cases/delivery_reconciliation_test.dart test/core/services/delivery_observation_test.dart test/domain/entities/schedule_notification_status_test.dart test/core/services/scheduled_notification_delivery_test.dart test/presentation/my_page/my_page_screen_test.dart",
+      "exit_code": 0,
+      "passed": 100,
+      "evidence": "Fake providers and real plugin/native Dart method-channel boundaries with mocked platform responses; not OS execution"
+    },
+    {
+      "command": "flutter test",
+      "exit_code": 0,
+      "passed": 772,
+      "phase": "frozen source serial retry",
+      "session_id": 13396
+    },
+    {
+      "command": "flutter analyze",
+      "exit_code": 0,
+      "result": "No issues found"
+    },
+    {
+      "command": "dart run tool/check_generated_dart_policy.dart",
+      "exit_code": 0,
+      "result": "outputs ignored and untracked"
+    },
+    {
+      "command": "dart run tool/check_local_only_boundary.dart",
+      "exit_code": 0,
+      "result": "local-only product boundary verified"
+    },
+    {
+      "command": "plutil -lint ios/Runner.xcodeproj/project.pbxproj",
+      "exit_code": 0,
+      "result": "OK"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "xcrun swiftc -typecheck -target arm64-apple-ios15.0-simulator -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -F /Users/ejunpark/Library/flutter/bin/cache/artifacts/engine/ios/Flutter.xcframework/ios-arm64_x86_64-simulator -import-objc-header ios/Runner/Runner-Bridging-Header.h ios/Runner/AppDelegate.swift ios/Runner/AlarmLaunchPayload.swift ios/Runner/BackupExportPlugin.swift",
+      "exit_code": 0,
+      "evidence": "Real iOS 26.5 simulator SDK and Flutter types, including AlarmKit throwing alarms property; not Runner linking or OS execution"
+    },
+    {
+      "command": "kotlinc android/app/src/main/kotlin/club/devkor/ontime/*.kt /tmp/ontime-a11-native/GeneratedSymbols.kt -classpath /Users/ejunpark/Library/Android/sdk/platforms/android-36/android.jar:/Users/ejunpark/Library/flutter/bin/cache/artifacts/engine/android-arm64/flutter.jar:/tmp/ontime-a11-native/lifecycle-common-2.7.0.jar -d /tmp/ontime-a14-native-classes",
+      "exit_code": 0,
+      "evidence": "Real Android SDK36/Flutter/lifecycle classpaths; generated BuildConfig/R symbols stubbed; deprecated API warnings; not Gradle APK packaging or device execution"
+    },
+    {
+      "command": "flutter test --no-pub --concurrency=1 /tmp/a14_capture_en_test.dart --plain-name 'capture A14 cleanup needed status'",
+      "exit_code": 0,
+      "passed": 1,
+      "evidence": "Standalone real MyPage widget capture with in-memory DB and fake partial cleanup receipt; not Android/iOS device"
+    },
+    {
+      "command": "flutter test --no-pub --concurrency=1 /tmp/a14_capture_ko_test.dart --plain-name 'capture A14 cleanup needed status'",
+      "exit_code": 0,
+      "passed": 1,
+      "evidence": "Standalone real MyPage widget capture with in-memory DB and fake partial cleanup receipt; not Android/iOS device"
+    }
+  ],
+  "environment_retry": {
+    "command": "flutter test",
+    "exit_code": 1,
+    "phase": "Before test loading",
+    "reason": "Concurrent Flutter setup failed creating macOS ephemeral flutter_secure_storage_darwin symlink",
+    "recovery": "Awaited other Flutter commands, then reran the identical frozen source serially. No flutter clean or product code changes.",
+    "retry_result": "772 passed, exit 0"
+  },
+  "source_freeze": {
+    "file_count": 24,
+    "before_after_equal": true,
+    "before_aggregate_sha256": "f3fd0e4939d868251dc724c114324650b5d2a57c49be686e17eba8d6ebdff06d",
+    "after_aggregate_sha256": "f3fd0e4939d868251dc724c114324650b5d2a57c49be686e17eba8d6ebdff06d",
+    "algorithm": "SHA-256 of UTF-8 compact JSON of path-to-SHA256 map with sorted keys",
+    "source_sha256": {
+      "android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt": "c9393aa030b79f4cf8192fcb04c0ffd773201c5c4c8d21df6024f39dc622db65",
+      "ios/Runner/AppDelegate.swift": "08e9bf83a0a603171782de03f5cab5bbdd43ba11fed1a81582249b6b5f319cdb",
+      "lib/core/services/alarm_scheduler_service.dart": "68cdd5deef016088c00fffb8777fb15a02b5a8a987798a639ac8abae15b214ab",
+      "lib/core/services/fallback_alarm_notification_service.dart": "3e15e7ce0fb5fed325ed530e00a484a22c43635daa987325c24b09e2ab64adaf",
+      "lib/core/services/notification_service.dart": "2a897790a49dd7b1bf8c017ff9e1e8892ee1dfcafe743aab855dbb5abe6f1944",
+      "lib/domain/entities/alarm_entities.dart": "e553b399b33366e66d97f4d9a48be51f893b2665d3526de6863996dc3df9f5eb",
+      "lib/domain/entities/delivery_observation.dart": "2f0623716afe22b99e1d6026ab5c82019d054569b032b77c7abfc7af89d6de5f",
+      "lib/domain/entities/schedule_notification_status.dart": "93e994a46aab2768b33eb6d9f132ca9e20f1fef7f521b860ad1809abc7dcbcc8",
+      "lib/domain/use-cases/reconcile_alarms_use_case.dart": "b35da04adb14635ff3e49d7c20bcd990fb999188cfaf4901216ee75e6a2cab55",
+      "lib/l10n/app_en.arb": "18e40a3a5c2a9032981ecce5982e6f7864a2aea660777c865d0d16ee1ad64051",
+      "lib/l10n/app_ko.arb": "e947c6fc196bc5e6dfd43e83ebbcf81d4be8674df81e43ca30499fde6928dd12",
+      "lib/l10n/app_localizations.dart": "d86baa29318eb3fbea27fe8ea8f49fb3d23be02e2ef165342b85454a89b08741",
+      "lib/l10n/app_localizations_en.dart": "fff4b13da436cc260b1f2410f05871439aad97f6033bbdb9c8f1de8b12af585b",
+      "lib/l10n/app_localizations_ko.dart": "0cdaba15b0bd4aa4c5c3bc72f73ac3b8c5efae4dd2f99b77396f60470a567c3b",
+      "lib/presentation/my_page/my_page_screen.dart": "a6b09b5008a5d1c550b98ca5b741e07eeaf5f49c295f63a6c6cd64ebdbfa4af9",
+      "test/core/services/delivery_observation_test.dart": "c249f8c99a5be63d831db724418f8dbc6c4bbdc518815afcb840445db2412e09",
+      "test/core/services/scheduled_notification_delivery_test.dart": "21e4d57360f69211ce2b0ee98775a457f107f452bdd6fa42c3c683ade0f5440c",
+      "test/domain/entities/schedule_notification_status_test.dart": "c47ed772514315e6fc02fb967fa586ea50718007743f336ab1c91de6fce8733b",
+      "test/domain/use-cases/delivery_reconciliation_test.dart": "abeb570e3da6c3a8ce879e1e13673d567d1ce23bd4de75f1e5f5ecb455b43428",
+      "test/domain/use-cases/reconcile_alarms_use_case_test.dart": "a3fcfc825fbb660cf51835847cceaf1d5223d1b62d8d3834f4df436beadf5b63",
+      "test/domain/use-cases/recurring_alarm_integration_test.dart": "4213d878156b6f446ecede4c9816cc3b51ba0729bfd1706e32722ef5b76ae49a",
+      "test/presentation/alarm_allow/alarm_allow_screen_test.dart": "dfd31f5fdc9fd2d295a6b9a015867ed1444cbf44b724dd004de7777e56696810",
+      "test/presentation/app/cubit/alarm_gate_cubit_test.dart": "ceaa6032a46b88460ce304c14847904d529e668080de22805535b58169901e53",
+      "test/presentation/my_page/my_page_screen_test.dart": "d6f00ea706ec4b93fdde2ed37fd883c6fe193d866fd77544f61aa29bf858021a"
+    },
+    "after_capture_equal": true
+  },
+  "native_compile_inputs_sha256": {
+    "android/app/src/main/kotlin/club/devkor/ontime/AlarmLaunchPayload.kt": "9d2485c8c45e559a93f0d457dfa35ef5a05ebaf610a22a59788f75f7d55e01d9",
+    "android/app/src/main/kotlin/club/devkor/ontime/MainActivity.kt": "c9393aa030b79f4cf8192fcb04c0ffd773201c5c4c8d21df6024f39dc622db65",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmReceiver.kt": "ba03fce43d0167d79189b037d0d3d205bad5518c682d17b48080273f2ab3e711",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmPolicy.kt": "439f8fa99257c2d6e8e4c9bb32a56ddf6acc284cd1a44f15c8f7f86765ee7a50",
+    "android/app/src/main/kotlin/club/devkor/ontime/BackupExportPlugin.kt": "4ad01cff546229ac1d941441710d0c63c226947289d38c33d01af1328a242728",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeAlarmBootReceiver.kt": "2a85c577706925edc6eb972c7c59d1b2f0617da5ac452c4c5745bad7801b9311",
+    "android/app/src/main/kotlin/club/devkor/ontime/NativeLog.kt": "74c67917c22da5a7faba4d8b643d520d322cf917f03574742e592fc647a3c985",
+    "android/app/src/main/kotlin/club/devkor/ontime/AlarmRingingActivity.kt": "7c8d44256ee94eb74af779770ca11902b4485f53b6a9a94f10e87ad6520dee84",
+    "ios/Runner/AppDelegate.swift": "08e9bf83a0a603171782de03f5cab5bbdd43ba11fed1a81582249b6b5f319cdb",
+    "ios/Runner/AlarmLaunchPayload.swift": "29ab79ad928d8083dd84b360714ea387de67b0773fb647cf463520f2121463c1",
+    "ios/Runner/BackupExportPlugin.swift": "8b19b8ecd01b30ef933cef6f67d1ccb48d067b5a8ca15a914318fd718322b7a0",
+    "ios/Runner/Runner-Bridging-Header.h": "1a8d11d01d1cc92c650c9c9ed35299240052d4683a15a719a2315ef44185e074",
+    "ios/Runner/GeneratedPluginRegistrant.h": "a5f88cc6415d2e639d2cb549348b84e02a7fdd0261603b0063abef6fa11f075a",
+    "/tmp/ontime-a11-native/GeneratedSymbols.kt": "30148808394970040a32cb9241f0b85b2c5efbc4886ed5b708c85108696e0659"
+  },
+  "logs": {
+    "focused": {
+      "path": "/tmp/a14-focused-final2.txt",
+      "sha256": "9b2bced2519902f7ce1dae60512dc4b7a93bfb2d9d35ee6e77796e06a02e55d4",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/focused.txt",
+      "repository_copy_sha256": "9b2bced2519902f7ce1dae60512dc4b7a93bfb2d9d35ee6e77796e06a02e55d4",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "full": {
+      "path": "/tmp/a14-freeze-full-retry.txt",
+      "sha256": "9bdd383ae16e528b6f954377e95bf45a86b0cad5c1a59e5e76abe20a52c9646c",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/full.txt",
+      "repository_copy_sha256": "9bdd383ae16e528b6f954377e95bf45a86b0cad5c1a59e5e76abe20a52c9646c",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "analyzer": {
+      "path": "/tmp/a14-freeze-analyze.txt",
+      "sha256": "bfcaede3f901a0f0e152d25c3befa831d17b06edfc13f5271e86bb64e460263e",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/analyzer.txt",
+      "repository_copy_sha256": "1c2a999138c45994eb0148ec91bc9198c8875e65b6d76532e0e5eef0b44bced1",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "swift": {
+      "path": "/tmp/a14-freeze-swift.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/swift.txt",
+      "repository_copy_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "kotlin": {
+      "path": "/tmp/a14-freeze-kotlin.txt",
+      "sha256": "6b36989e0453cf691341adf802e7f3dc9af6022162515c57e15e9d569f54749c",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/kotlin.txt",
+      "repository_copy_sha256": "6b36989e0453cf691341adf802e7f3dc9af6022162515c57e15e9d569f54749c",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "generation": {
+      "path": "/tmp/a14-generation.txt",
+      "sha256": "482c774e21c07abe77abeb20e33ebec470f969103377cd6b658a1a39749cbaa9",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/generation.txt",
+      "repository_copy_sha256": "482c774e21c07abe77abeb20e33ebec470f969103377cd6b658a1a39749cbaa9",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "pre_test_environment_failure": {
+      "path": "/tmp/a14-freeze-full.txt",
+      "sha256": "84625046af888e679bd1af423c79e79466ac0f3c068741e73c6af4510620f97b",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/pre_test_environment_failure.txt",
+      "repository_copy_sha256": "84625046af888e679bd1af423c79e79466ac0f3c068741e73c6af4510620f97b",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "capture_en": {
+      "path": "plans/audit-2026-09-23/artifacts/a14/capture-en.log",
+      "sha256": "66c1806663eaea0f3cc18e2a240e6af4d8cec405f139feeb36dfa2f5e56efa63",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/capture-en.txt",
+      "repository_copy_sha256": "66c1806663eaea0f3cc18e2a240e6af4d8cec405f139feeb36dfa2f5e56efa63",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    },
+    "capture_ko": {
+      "path": "plans/audit-2026-09-23/artifacts/a14/capture-ko.log",
+      "sha256": "addb65d277564831ab7cab5f1729a039196d7292f29630467163d5e668e7a618",
+      "repository_copy": "plans/audit-2026-09-23/artifacts/a14/capture-ko.txt",
+      "repository_copy_sha256": "addb65d277564831ab7cab5f1729a039196d7292f29630467163d5e668e7a618",
+      "copy_normalization": "Line endings normalized to LF and line trailing whitespace removed; original file retained"
+    }
+  },
+  "logs_note": "Original raw logs retained at their paths. Repository .txt copies preserve output with LF line endings and trailing whitespace removed; raw/copy hashes are separate.",
+  "limitations": [
+    "Actual Android/iOS permission revoke/grant, OS pending loss, lock screen, Doze, reboot, arrival time and duplicate count: NOT RUN / device pending",
+    "Android pending plugin cache and cancellation token absence do not prove OS AlarmManager survival/absence",
+    "iOS pending presence and successful scheduling do not prove eventual delivery",
+    "Unmapped AlarmKit UUIDs are not arbitrarily deleted; source stays unconfirmed",
+    "Full Runner linking, APK packaging/install/run for A14: NOT RUN",
+    "Global reconcile dirty rerun/concurrency and reset/restore lifecycle remain A15/D03 scope"
+  ],
+  "disk_observation": "6.6 GiB available during final checks; no destructive cleanup performed",
+  "capture_conditions": {
+    "surface_logical_px": "430x932",
+    "raster_scale": 2,
+    "locales": [
+      "ko",
+      "en"
+    ],
+    "fonts": "Bundled Pretendard Regular/Medium/SemiBold/Bold and MaterialIcons",
+    "fixture": "Real MyPage widget; in-memory Drift settings; Schedule Notification disabled; fake reconcile returns partial cleanup with empty registry",
+    "harness": "Copies of current widget test plus screenshot instrumentation in /tmp; product/test source files unchanged; only named capture test executed",
+    "visual_inspection": "Both generated PNGs viewed. New OFF cleanup warning is visible and fits without clipping/overflow at this size. Existing mixed-language labels outside A14 are not treated as translated.",
+    "not_verified": "Not OS notification/permission UI, physical device, emulator or delivery evidence; not a broad screen-size/accessibility matrix"
+  },
+  "artifacts_sha256": {
+    "plans/audit-2026-09-23/artifacts/a14/analyzer.txt": "1c2a999138c45994eb0148ec91bc9198c8875e65b6d76532e0e5eef0b44bced1",
+    "plans/audit-2026-09-23/artifacts/a14/capture-en.log": "66c1806663eaea0f3cc18e2a240e6af4d8cec405f139feeb36dfa2f5e56efa63",
+    "plans/audit-2026-09-23/artifacts/a14/capture-en.txt": "66c1806663eaea0f3cc18e2a240e6af4d8cec405f139feeb36dfa2f5e56efa63",
+    "plans/audit-2026-09-23/artifacts/a14/capture-harness-en.dart.txt": "adeee8a4ce5458fbd12c0bb41648f8deda9d508a1a0581bd447205313f5073db",
+    "plans/audit-2026-09-23/artifacts/a14/capture-harness-ko.dart.txt": "84316cebc7a962379182031213a75f889071ca545190279918be029ead4e60b4",
+    "plans/audit-2026-09-23/artifacts/a14/capture-ko.log": "addb65d277564831ab7cab5f1729a039196d7292f29630467163d5e668e7a618",
+    "plans/audit-2026-09-23/artifacts/a14/capture-ko.txt": "addb65d277564831ab7cab5f1729a039196d7292f29630467163d5e668e7a618",
+    "plans/audit-2026-09-23/artifacts/a14/cleanup-needed-en.png": "94454e9cedbb81538250e592459b477345ae22c99fa2729c11710e36f73194a0",
+    "plans/audit-2026-09-23/artifacts/a14/cleanup-needed-ko.png": "e6b72808cf84b813c53556ce59b4de5b9936b87a1911ba1d66b5eef0ddea8265",
+    "plans/audit-2026-09-23/artifacts/a14/focused.txt": "9b2bced2519902f7ce1dae60512dc4b7a93bfb2d9d35ee6e77796e06a02e55d4",
+    "plans/audit-2026-09-23/artifacts/a14/full.txt": "9bdd383ae16e528b6f954377e95bf45a86b0cad5c1a59e5e76abe20a52c9646c",
+    "plans/audit-2026-09-23/artifacts/a14/generation.txt": "482c774e21c07abe77abeb20e33ebec470f969103377cd6b658a1a39749cbaa9",
+    "plans/audit-2026-09-23/artifacts/a14/kotlin.txt": "6b36989e0453cf691341adf802e7f3dc9af6022162515c57e15e9d569f54749c",
+    "plans/audit-2026-09-23/artifacts/a14/pre_test_environment_failure.txt": "84625046af888e679bd1af423c79e79466ac0f3c068741e73c6af4510620f97b",
+    "plans/audit-2026-09-23/artifacts/a14/swift.txt": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  }
+}

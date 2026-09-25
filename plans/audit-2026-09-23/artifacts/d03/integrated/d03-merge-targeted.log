@@ -1,0 +1,70 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart
+lib/presentation/startup/screens/local_data_recovery_screen.dart:37:9: Error: No named parameter with the name 'retry'.
+        retry: widget.reset ?? getIt<LocalDataResetService>().reset,
+        ^^^^^
+lib/presentation/startup/screens/local_reset_progress_screen.dart:9:9: Context: Found this candidate, but the arguments don't match.
+  const LocalResetProgressScreen({
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+00:00 +0 -1: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart [E]
+  Failed to load "/Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart":
+  Compilation failed for testPath=/Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: lib/presentation/startup/screens/local_data_recovery_screen.dart:37:9: Error: No named parameter with the name 'retry'.
+          retry: widget.reset ?? getIt<LocalDataResetService>().reset,
+          ^^^^^
+  lib/presentation/startup/screens/local_reset_progress_screen.dart:9:9: Context: Found this candidate, but the arguments don't match.
+    const LocalResetProgressScreen({
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  .
+00:00 +0 -2: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart [E]
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 1009:11   DefaultResidentCompiler._compile.<fn>
+  dart:async/zone_root.dart 48:47                  _rootRunUnary
+  dart:async/zone.dart 733:19                      _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone_root.dart 35:13                  _rootRun
+  dart:async/zone.dart 726:19                      _CustomZone.run
+  dart:async/zone.dart 625:7                       _CustomZone.runGuarded
+  dart:async/zone.dart 666:23                      _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
+
+00:00 +0 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: (setUpAll)
+00:00 +0 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: Korean settings match the phone layout
+00:00 +1 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:00 +2 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:00 +3 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:00 +4 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:01 +5 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:01 +6 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:01 +7 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:01 +8 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:01 +9 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:01 +10 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: timing education is optional once and settings require explicit choice
+00:01 +11 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: timing education is optional once and settings require explicit choice
+00:01 +12 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +13 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +14 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +15 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +16 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +17 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +18 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +19 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI reset failure exposes retry without constructing the normal app
+00:01 +20 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: new notification grant initializes local notifications
+00:01 +21 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: pre-DI bootstrap failure can retry without showing private exception text
+00:01 +22 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: restricted notification state can open system settings
+00:01 +23 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: restricted notification state can open system settings
+00:01 +24 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/startup/local_reset_recovery_test.dart: ko partial deletion screen is distinct from complete and fits large text
+00:01 +25 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: local data and bundled privacy destinations remain in-app
+00:01 +26 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: local data and bundled privacy destinations remain in-app
+00:01 +27 -2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: (tearDownAll)
+00:01 +27 -2: Some tests failed.
+
+Failing tests:
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/my_page/my_page_screen_test.dart
+  /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/refreshed_screens_test.dart

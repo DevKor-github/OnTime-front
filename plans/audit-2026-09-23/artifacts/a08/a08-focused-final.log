@@ -1,0 +1,149 @@
+00:00 +0: loading /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart
+00:00 +0: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: place fault rolls back the whole aggregate and same intent retries
+00:00 +1: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: schedule fault rolls back the whole aggregate and same intent retries
+00:00 +2: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: step fault rolls back the whole aggregate and same intent retries
+00:00 +3: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: revision fault rolls back the whole aggregate and same intent retries
+00:00 +4: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: edit failure after old preparation deletion preserves old aggregate and revision
+00:00 +5: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: concurrent and recreated repository lost receipt retry commit once
+00:00 +6: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: same id other input conflicts instead of upsert
+00:00 +7: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: semantic no-op preserves owned step IDs and revision
+00:00 +8: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: two edit drafts and value ABA conflict without using global revision
+00:00 +9: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: deleted create retry and recreated same id reject old intent
+00:00 +10: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: new store same revision and fresh memory generation rejects old draft
+00:00 +11: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: unrelated durable create conflict is explicit; reviewed new intent succeeds
+00:00 +12: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: edit snapshot cannot combine old schedule with new preparation
+00:00 +13: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: edit snapshot cannot combine old schedule with new preparation
+00:00 +14: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: edit snapshot cannot combine old schedule with new preparation
+00:00 +15: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: edit snapshot cannot combine old schedule with new preparation
+00:00 +16: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: edit snapshot cannot combine old schedule with new preparation
+00:00 +17: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: edit snapshot cannot combine old schedule with new preparation
+00:00 +18: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: edit snapshot cannot combine old schedule with new preparation
+00:00 +19: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: series owns reusable preparation and direct duplicate create rejects missing intent receipt
+00:00 +20: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: series owns reusable preparation and direct duplicate create rejects missing intent receipt
+00:00 +21: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: series owns reusable preparation and direct duplicate create rejects missing intent receipt
+00:00 +22: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: series owns reusable preparation and direct duplicate create rejects missing intent receipt
+00:00 +23: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: series owns reusable preparation and direct duplicate create rejects missing intent receipt
+00:00 +24: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: series owns reusable preparation and direct duplicate create rejects missing intent receipt
+00:00 +25: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: file database close/reopen with new gate verifies committed receipt
+00:00 +26: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_repository_test.dart: recurring preparation_definition_steps fault rolls back definitions series materialization and revision
+00:00 +27: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: deleting one occurrence never refills the count after rematerialization
+00:00 +28: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real preparation watch sees committed aggregate and never rolled back value
+00:00 +29: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real preparation watch sees committed aggregate and never rolled back value
+00:00 +30: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+00:00 +31: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+00:00 +32: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+00:00 +33: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+00:00 +34: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:on_time_front/core/database/database.g.dart:6499:36)
+#4      new AppDatabase.forTesting (package:on_time_front/core/database/database.dart)
+#5      main.<anonymous closure> (file:///Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart:105:37)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:00 +35: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+00:00 +36: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+00:00 +37: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 1 upgrades atomically and identities survive reopen/upsert
+00:00 +38: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: a detached occurrence and a later new slot on its original date remain distinct
+00:00 +39: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/recurring_schedule_repository_test.dart: a detached occurrence and a later new slot on its original date remain distinct
+00:00 +39: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart: frozen schema 2 upgrades atomically and identities survive reopen/upsert
+WARNING (drift): It looks like you've created the database class AppDatabase multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _$AppDatabase (package:on_time_front/core/database/database.g.dart:6499:36)
+#4      new AppDatabase.forTesting (package:on_time_front/core/database/database.dart)
+#5      main.<anonymous closure> (file:///Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/schedule_aggregate_migration_test.dart:105:37)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:00 +40: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: following receipt survives file close reopen and deletion of original occurrence
+00:00 +41: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: following receipt survives file close reopen and deletion of original occurrence
+00:00 +42: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: following receipt survives file close reopen and deletion of original occurrence
+00:00 +43: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: following receipt survives file close reopen and deletion of original occurrence
+00:00 +44: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: following receipt survives file close reopen and deletion of original occurrence
+00:00 +45: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: following receipt survives file close reopen and deletion of original occurrence
+00:00 +46: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: following receipt survives file close reopen and deletion of original occurrence
+00:00 +47: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/recurring_migration_test.dart: version 1 database upgrades in place preserving user outcomes and schedules
+00:00 +48: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/recurring_migration_test.dart: version 1 database upgrades in place preserving user outcomes and schedules
+00:00 +49: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/recurring_migration_test.dart: version 1 database upgrades in place preserving user outcomes and schedules
+00:00 +50: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/recurring_migration_test.dart: version 1 database upgrades in place preserving user outcomes and schedules
+00:00 +51: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/recurring_migration_test.dart: version 1 database upgrades in place preserving user outcomes and schedules
+00:00 +52: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/database/recurring_migration_test.dart: version 1 database upgrades in place preserving user outcomes and schedules
+00:00 +53: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +54: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +55: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +56: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +57: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +58: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +59: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +60: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +61: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +62: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:00 +63: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:01 +64: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:01 +65: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:01 +66: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:01 +67: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:01 +68: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/data/repositories/schedule_aggregate_snapshot_test.dart: real encrypted backup cutoff cannot mix concurrent aggregate commit
+00:01 +69: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:01 +70: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:01 +71: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:02 +72: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:02 +73: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:02 +74: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:02 +75: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: saved receipt marks only the captured revision despite an ordinary edit
+00:02 +76: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: cancel preserves freshness and releases gate for a retry
+00:02 +77: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: write failure cannot mark success or expose provider error details
+00:02 +78: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +79: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +80: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +81: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +82: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +83: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +84: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +85: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: second export, restore, and destructive operation reject while picker is open
+00:02 +86: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:02 +87: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:02 +88: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:02 +89: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:03 +90: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:03 +91: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:03 +92: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:03 +93: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:03 +94: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:03 +95: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:04 +96: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: four-step creation opens recurrence review and saves to the local database
+00:04 +97: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: format 1 remains importable and malformed new references never replace data
+00:04 +98: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: format 1 remains importable and malformed new references never replace data
+00:04 +99: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: format 1 remains importable and malformed new references never replace data
+00:04 +100: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/core/backup/backup_service_test.dart: format 1 remains importable and malformed new references never replace data
+00:04 +101: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/schedule_create/components/schedule_multi_page_form_test.dart: sheet closes after successful submit
+00:04 +102: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: ordinary save rollback and delivery-only retry ko
+00:04 +103: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: ordinary save rollback and delivery-only retry ko
+00:04 +104: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: ordinary save rollback and delivery-only retry ko
+00:04 +105: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/schedule_create/components/schedule_multi_page_form_test.dart: edited name and place are submitted from form steps
+00:04 +106: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: ordinary save rollback and delivery-only retry en
+00:04 +107: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/recurring/recurring_form_integration_test.dart: ordinary save rollback and delivery-only retry en
+00:05 +108: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/schedule_create/components/schedule_multi_page_form_test.dart: cancelling date and time pickers keeps next disabled
+00:05 +109: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/schedule_create/components/schedule_multi_page_form_test.dart: cancelling date and time pickers keeps next disabled
+00:05 +110: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/schedule_create/components/schedule_multi_page_form_test.dart: cancelling date and time pickers keeps next disabled
+00:05 +111: /Users/ejunpark/.codex/worktrees/1f98bd1e-95ca-4396-82c1-c34de41a8851/OnTime-front/test/presentation/schedule_create/components/schedule_multi_page_form_test.dart: cancelling date and time pickers keeps next disabled
+00:05 +112: All tests passed!

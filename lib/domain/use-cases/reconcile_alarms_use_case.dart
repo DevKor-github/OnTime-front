@@ -1,10 +1,16 @@
+import 'dart:async';
+import 'dart:ui' as ui;
+
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/services/alarm_scheduler_service.dart';
+import 'package:on_time_front/core/services/alarm_operation_coordinator.dart';
+import 'package:on_time_front/core/services/alarm_registration_cleanup.dart';
 import 'package:on_time_front/core/services/fallback_alarm_notification_service.dart';
 import 'package:on_time_front/core/services/local_time_zone_service.dart';
 import 'package:on_time_front/domain/entities/alarm_delivery_policy.dart';
 import 'package:on_time_front/domain/entities/alarm_entities.dart';
+import 'package:on_time_front/domain/entities/delivery_observation.dart';
 import 'package:on_time_front/domain/entities/schedule_with_preparation_entity.dart';
 import 'package:on_time_front/domain/repositories/alarm_registry_repository.dart';
 import 'package:on_time_front/domain/repositories/alarm_repository.dart';
@@ -22,14 +28,30 @@ class ReconcileAlarmsUseCase {
   final AlarmSchedulerService _schedulerService;
   final FallbackAlarmNotificationService _fallbackNotificationService;
   final AlarmNowProvider _nowProvider;
-  Future<AlarmReconciliationResult>? _inFlight;
+  final String Function() _languageCodeProvider;
+  final Future<String> Function() _timeZoneProvider;
+  final AlarmOperationCoordinator _operations;
+  final _requests = <_ReconciliationRequest>[];
+  int _revision = 0;
+  bool _draining = false;
+
+  AlarmRegistrationCleanup get _cleanup => AlarmRegistrationCleanup(
+    _registryRepository,
+    _schedulerService,
+    _fallbackNotificationService,
+    _operations,
+  );
 
   ReconcileAlarmsUseCase(
     this._alarmRepository,
     this._registryRepository,
     this._schedulerService,
-    this._fallbackNotificationService,
-  ) : _nowProvider = DateTime.now;
+    this._fallbackNotificationService, {
+    @ignoreParam AlarmOperationCoordinator? operations,
+  }) : _operations = operations ?? AlarmOperationCoordinator.shared,
+       _nowProvider = DateTime.now,
+       _languageCodeProvider = _currentLanguageCode,
+       _timeZoneProvider = LocalTimeZoneService.current;
 
   @visibleForTesting
   ReconcileAlarmsUseCase.test(
@@ -38,31 +60,82 @@ class ReconcileAlarmsUseCase {
     this._schedulerService,
     this._fallbackNotificationService, {
     required AlarmNowProvider nowProvider,
-  }) : _nowProvider = nowProvider;
+    String Function()? languageCodeProvider,
+    Future<String> Function()? timeZoneProvider,
+    AlarmOperationCoordinator? operations,
+  }) : _operations = operations ?? AlarmOperationCoordinator.shared,
+       _nowProvider = nowProvider,
+       _languageCodeProvider = languageCodeProvider ?? _currentLanguageCode,
+       _timeZoneProvider = timeZoneProvider ?? LocalTimeZoneService.current;
+
+  static String _currentLanguageCode() =>
+      ui.PlatformDispatcher.instance.locale.languageCode;
 
   Future<AlarmReconciliationResult> call() {
-    final running = _inFlight;
-    if (running != null) {
-      AppLogger.debug('$_logTag call joined existing in-flight reconciliation');
-      return running;
+    final AlarmOperationLease lease;
+    try {
+      lease = _operations.capture();
+    } catch (error, stack) {
+      return Future.error(error, stack);
     }
-
-    late final Future<AlarmReconciliationResult> pending;
-    pending = _run().whenComplete(() {
-      if (identical(_inFlight, pending)) {
-        _inFlight = null;
-      }
-    });
-    _inFlight = pending;
-    return pending;
+    final request = _ReconciliationRequest(++_revision, lease);
+    _requests.add(request);
+    if (!_draining) {
+      _draining = true;
+      _operations.addListener(_invalidateRequests);
+      unawaited(_drain());
+    }
+    return request.completer.future;
   }
 
-  Future<AlarmReconciliationResult> _run() async {
+  void _invalidateRequests() {
+    for (final request in _requests) {
+      if (!request.lease.isCurrent && !request.completer.isCompleted) {
+        request.completer.completeError(const AlarmOperationInvalidated());
+      }
+    }
+  }
+
+  Future<void> _drain() async {
+    try {
+      while (_requests.isNotEmpty) {
+        final batch = List<_ReconciliationRequest>.of(_requests);
+        final cutoff = batch.last.revision;
+        try {
+          final result = await _operations.run(
+            batch.last.lease,
+            () => _run(batch.last.lease),
+          );
+          batch.last.lease.check();
+          for (final request in batch) {
+            if (!request.completer.isCompleted) {
+              request.completer.complete(result);
+            }
+          }
+        } catch (error, stack) {
+          for (final request in batch) {
+            if (!request.completer.isCompleted) {
+              request.completer.completeError(error, stack);
+            }
+          }
+        }
+        _requests.removeWhere((request) => request.revision <= cutoff);
+      }
+    } finally {
+      // No await between the final queue check and idle transition.
+      _operations.removeListener(_invalidateRequests);
+      _draining = false;
+    }
+  }
+
+  Future<AlarmReconciliationResult> _run(AlarmOperationLease lease) async {
+    lease.check();
     final now = _nowProvider();
     final scheduleWindowStart = now;
     final scheduleWindowEnd = DateTime(now.year + 50, 1, 1);
     final alarmCoverageStart = now;
     final capabilities = await _schedulerService.getCapabilities();
+    lease.check();
     final alarmCoverageEnd = scheduleWindowEnd;
     AppLogger.debug(
       '$_logTag start now=${now.toIso8601String()} '
@@ -81,11 +154,13 @@ class ReconcileAlarmsUseCase {
     AlarmSettings settings;
     try {
       settings = await _alarmRepository.getAlarmSettings();
+      lease.check();
       AppLogger.debug(
         '$_logTag settings alarmsEnabled=${settings.alarmsEnabled} '
         'alarmOffset=${settings.alarmOffset}',
       );
     } catch (_) {
+      lease.check();
       AppLogger.debug('$_logTag settings unavailable');
       final result = _result(
         status: AlarmReconciliationStatus.settingsUnavailable,
@@ -99,14 +174,40 @@ class ReconcileAlarmsUseCase {
     }
 
     if (!settings.alarmsEnabled) {
-      final records = await _registryRepository.loadAll();
+      final stored = await _operations.loadRecords(_registryRepository);
+      final unknownOwnership =
+          (await _operations.journal.read()).unknownOwnership;
+      final observed = await _observeFallback();
+      final records = [...stored, ..._fallbackOrphans(observed, stored)];
+      final nativeObserved = await _observeNative(records, capabilities);
+      final nativeUncertain = _nativeUncertain(nativeObserved, capabilities);
       AppLogger.debug(
         '$_logTag alarms disabled; canceling existingRecords=${records.length}',
       );
-      await _cancelRecords(records);
-      await _registryRepository.deleteAll();
+      lease.check();
+      final failedCancellations = await _cancelRecords(records);
+      lease.check();
+      await _operations.replaceRecords(
+        _registryRepository,
+        failedCancellations,
+      );
       final result = _result(
-        status: AlarmReconciliationStatus.disabled,
+        status:
+            failedCancellations.isEmpty &&
+                !unknownOwnership &&
+                !nativeUncertain &&
+                (observed.available ||
+                    capabilities.fallbackProvider !=
+                        AlarmProvider.localNotification)
+            ? AlarmReconciliationStatus.disabled
+            : AlarmReconciliationStatus.partial,
+        failures: [
+          ..._cancellationFailures(failedCancellations),
+          if (nativeUncertain || unknownOwnership) _observationFailure(),
+          if (!observed.available &&
+              capabilities.fallbackProvider == AlarmProvider.localNotification)
+            _observationFailure(),
+        ],
         capabilities: capabilities,
         scheduleWindowStart: scheduleWindowStart,
         scheduleWindowEnd: scheduleWindowEnd,
@@ -127,10 +228,12 @@ class ReconcileAlarmsUseCase {
         scheduleWindowStart,
         scheduleWindowEnd,
       );
+      lease.check();
       AppLogger.debug(
         '$_logTag getAlarmWindow success count=${schedules.length}',
       );
     } catch (error) {
+      lease.check();
       AppLogger.debug('$_logTag getAlarmWindow failed: $error');
       final result = _result(
         status: AlarmReconciliationStatus.partial,
@@ -154,7 +257,8 @@ class ReconcileAlarmsUseCase {
       alarmCoverageEnd: alarmCoverageEnd,
       alarmOffset: settings.alarmOffset,
       detailedNotificationContent: settings.detailedNotificationContent,
-      currentTimeZoneId: await LocalTimeZoneService.current(),
+      currentTimeZoneId: await _timeZoneProvider(),
+      languageCode: _languageCodeProvider(),
     );
     final desiredRecords = allDesiredRecords
         .take(_platformAlarmCapacity)
@@ -177,29 +281,48 @@ class ReconcileAlarmsUseCase {
       'desired=${_recordSummary(desiredRecords)}',
     );
 
-    final existingRecords = await _registryRepository.loadAll();
+    final storedRecords = await _operations.loadRecords(_registryRepository);
+    if ((await _operations.journal.read()).unknownOwnership) {
+      lease.check();
+      return _result(
+        status: AlarmReconciliationStatus.partial,
+        failures: [_observationFailure()],
+        capabilities: capabilities,
+        scheduleWindowStart: scheduleWindowStart,
+        scheduleWindowEnd: scheduleWindowEnd,
+        alarmCoverageStart: alarmCoverageStart,
+        alarmCoverageEnd: alarmCoverageEnd,
+      );
+    }
+    final fallbackObservation = await _observeFallback();
+    final existingRecords = [
+      ...storedRecords,
+      ..._fallbackOrphans(fallbackObservation, storedRecords),
+    ];
+    final nativeObservation = await _observeNative([
+      ...existingRecords,
+      ...desiredRecords,
+    ], capabilities);
     AppLogger.debug(
       '$_logTag existingRecords=${existingRecords.length} '
       'existing=${_recordSummary(existingRecords)}',
     );
-    final existingByScheduleId = {
-      for (final record in existingRecords) record.scheduleId: record,
-    };
     final desiredByScheduleId = {
       for (final record in desiredRecords) record.scheduleId: record,
     };
 
-    final staleRecords = existingRecords.where((record) {
-      final desired = desiredByScheduleId[record.scheduleId];
-      return desired == null ||
-          !_recordMatches(record, desired) ||
-          !_recordProviderMatchesCapabilities(record, capabilities);
-    }).toList();
-    AppLogger.debug(
-      '$_logTag staleRecords=${staleRecords.length} '
-      'stale=${_recordSummary(staleRecords)}',
-    );
-    await _cancelRecords(staleRecords);
+    final timingPermission = await _fallbackNotificationService
+        .checkExactTimingPermission();
+    final desiredTiming = timingPermission == AlarmPermissionState.unsupported
+        ? NotificationTiming.platformDefault
+        : timingPermission == AlarmPermissionState.granted
+        ? NotificationTiming.exact
+        : NotificationTiming.approximate;
+    bool timingMatches(ScheduledAlarmRecord record) =>
+        record.provider != AlarmProvider.localNotification ||
+        // iOS has no Android timing access and keeps its existing delivery policy.
+        desiredTiming == NotificationTiming.platformDefault ||
+        record.notificationTiming == desiredTiming;
 
     final nativePermission = await _checkNativePermission(capabilities);
     final fallbackPermission = await _checkFallbackPermission(capabilities);
@@ -213,30 +336,117 @@ class ReconcileAlarmsUseCase {
       fallbackPermission: fallbackPermission,
     );
 
+    final existingByScheduleId = <String, ScheduledAlarmRecord>{};
+    for (final record in existingRecords) {
+      final desired = desiredByScheduleId[record.scheduleId];
+      final previous = existingByScheduleId[record.scheduleId];
+      bool keepable(ScheduledAlarmRecord value) =>
+          desired != null &&
+          !value.cancellationPending &&
+          _recordMatches(value, desired) &&
+          value.provider == deliveryPolicy.activeProvider &&
+          timingMatches(value);
+      if (previous == null || (!keepable(previous) && keepable(record))) {
+        existingByScheduleId[record.scheduleId] = record;
+      }
+    }
+
+    lease.check();
+    final staleRecords = existingRecords.where((record) {
+      final desired = desiredByScheduleId[record.scheduleId];
+      return !identical(record, existingByScheduleId[record.scheduleId]) ||
+          !deliveryPolicy.canDeliver ||
+          desired == null ||
+          !_recordMatches(record, desired) ||
+          _fallbackIdentityConflict(record, fallbackObservation) ||
+          record.provider != deliveryPolicy.activeProvider ||
+          !_recordProviderMatchesCapabilities(record, capabilities) ||
+          !timingMatches(record);
+    }).toList();
+    AppLogger.debug(
+      '$_logTag staleRecords=${staleRecords.length} '
+      'stale=${_recordSummary(staleRecords)}',
+    );
+    final failedCancellations = await _cancelRecords(staleRecords);
+    lease.check();
+    final blockedScheduleIds = failedCancellations
+        .map((record) => record.scheduleId)
+        .toSet();
+
     final finalRecords = <ScheduledAlarmRecord>[];
-    final failures = <AlarmFailure>[];
+    final retainedRecords = <ScheduledAlarmRecord>[
+      ...existingRecords.where(
+        (record) =>
+            blockedScheduleIds.contains(record.scheduleId) &&
+            !staleRecords.contains(record),
+      ),
+    ];
+    final failures = [
+      ..._cancellationFailures(failedCancellations),
+      if (!fallbackObservation.available &&
+          capabilities.fallbackProvider == AlarmProvider.localNotification)
+        _observationFailure(),
+      if (_nativeUncertain(nativeObservation, capabilities))
+        _observationFailure(
+          message:
+              'Native registrations or their ownership could not be confirmed',
+        ),
+    ];
     AlarmPermissionIssue? permissionIssue;
 
     for (final desired in desiredRecords) {
+      lease.check();
+      // Never overwrite cancellation evidence or report an old detailed
+      // registration as a newly armed private one.
+      if (blockedScheduleIds.contains(desired.scheduleId)) continue;
+      if (!desired.alarmTime.isAfter(_nowProvider())) continue;
       final existing = existingByScheduleId[desired.scheduleId];
       if (existing != null &&
+          !staleRecords.contains(existing) &&
+          existing.provider == deliveryPolicy.activeProvider &&
           _recordMatches(existing, desired) &&
-          _recordProviderMatchesCapabilities(existing, capabilities)) {
-        AppLogger.debug(
-          '$_logTag keeping existing alarm '
-          'scheduleId=${existing.scheduleId} provider=${existing.provider}',
-        );
-        finalRecords.add(existing);
-        continue;
+          timingMatches(existing) &&
+          deliveryPolicy.canDeliver) {
+        final observation = existing.provider == AlarmProvider.localNotification
+            ? fallbackObservation
+            : nativeObservation;
+        if (observation.isOsObservation &&
+            observation.presence(existing) == DeliveryPresence.present) {
+          finalRecords.add(existing);
+          continue;
+        }
+        if (observation.presence(existing) == DeliveryPresence.unknown &&
+            observation.source !=
+                DeliveryObservationSource.androidPluginCache) {
+          retainedRecords.add(existing);
+          failures.add(_observationFailure(scheduleId: existing.scheduleId));
+          continue;
+        }
+        // iOS OS absence is repaired; Android always reapplies the same ID.
+        // Cache presence is not evidence that AlarmManager kept the request.
       }
 
+      // Retain the owned platform ID even for older installations that used
+      // another stable ID algorithm. Reapplying must not leave two requests.
+      final reapplied =
+          existing != null &&
+              !staleRecords.contains(existing) &&
+              existing.provider == AlarmProvider.localNotification
+          ? desired.copyWith(
+              fallbackNotificationId: existing.fallbackNotificationId,
+            )
+          : desired;
       final scheduled = await _scheduleRecord(
-        desired,
+        reapplied,
+        lease: lease,
         capabilities: capabilities,
         deliveryPolicy: deliveryPolicy,
         fallbackPermission: fallbackPermission,
       );
 
+      if (scheduled.pendingRecord != null) {
+        retainedRecords.add(scheduled.pendingRecord!);
+      }
       if (scheduled.record != null) {
         AppLogger.debug(
           '$_logTag scheduled alarm '
@@ -266,7 +476,38 @@ class ReconcileAlarmsUseCase {
       }
     }
 
-    await _registryRepository.replaceAll(finalRecords);
+    // Query again after writes. A scheduling receipt and OS presence are
+    // different facts; keep ownership when verification fails.
+    final postFallback = await _observeFallback();
+    final postNative = await _observeNative([
+      ...existingRecords,
+      ...finalRecords,
+    ], capabilities);
+    if (_nativeUncertain(postNative, capabilities)) {
+      failures.add(_observationFailure());
+    }
+    if (!postFallback.available &&
+        capabilities.fallbackProvider == AlarmProvider.localNotification) {
+      failures.add(_observationFailure());
+    }
+    final confirmedRecords = <ScheduledAlarmRecord>[];
+    for (final record in finalRecords) {
+      final observed = record.provider == AlarmProvider.localNotification
+          ? postFallback
+          : postNative;
+      if (observed.presence(record) == DeliveryPresence.present) {
+        confirmedRecords.add(record);
+      } else {
+        retainedRecords.add(record);
+        failures.add(_observationFailure(scheduleId: record.scheduleId));
+      }
+    }
+    lease.check();
+    await _operations.replaceRecords(_registryRepository, [
+      ...confirmedRecords,
+      ...retainedRecords,
+      ...failedCancellations,
+    ]);
     AppLogger.debug(
       '$_logTag registry replaced finalRecords=${finalRecords.length} '
       'final=${_recordSummary(finalRecords)}',
@@ -274,7 +515,7 @@ class ReconcileAlarmsUseCase {
 
     final status = _statusFor(
       desiredCount: desiredRecords.length,
-      armedCount: finalRecords.length,
+      armedCount: confirmedRecords.length,
       failures: failures,
       permissionIssue: permissionIssue,
       deliveryPolicy: deliveryPolicy,
@@ -283,8 +524,8 @@ class ReconcileAlarmsUseCase {
     final result = _result(
       status: status,
       permissionIssue: permissionIssue,
-      capabilities: _effectiveCapabilities(capabilities, finalRecords),
-      armedScheduleIds: finalRecords
+      capabilities: _effectiveCapabilities(capabilities, confirmedRecords),
+      armedScheduleIds: confirmedRecords
           .map((record) => record.scheduleId)
           .toList(),
       skippedScheduleCount: skippedScheduleCount,
@@ -310,6 +551,7 @@ class ReconcileAlarmsUseCase {
     required Duration alarmOffset,
     required bool detailedNotificationContent,
     required String currentTimeZoneId,
+    required String languageCode,
   }) {
     final records = schedules
         .where(
@@ -323,6 +565,7 @@ class ReconcileAlarmsUseCase {
             provider: AlarmProvider.none,
             detailedNotificationContent: detailedNotificationContent,
             currentTimeZoneId: currentTimeZoneId,
+            languageCode: languageCode,
           ),
         )
         .toList();
@@ -336,7 +579,7 @@ class ReconcileAlarmsUseCase {
     DateTime alarmCoverageEnd,
     Duration alarmOffset,
   ) {
-    if (!isAlarmEligibleSchedule(schedule)) return false;
+    if (!isAlarmEligibleSchedule(schedule) || schedule.isStarted) return false;
     if (schedule.id.isEmpty) return false;
     final alarmTime = computeAlarmTime(schedule, offset: alarmOffset);
     return alarmTime.isAfter(now) &&
@@ -368,86 +611,93 @@ class ReconcileAlarmsUseCase {
 
   Future<_ScheduleAttempt> _scheduleRecord(
     ScheduledAlarmRecord desired, {
+    required AlarmOperationLease lease,
     required AlarmSchedulerCapabilities capabilities,
     required AlarmDeliveryPolicy deliveryPolicy,
     required AlarmPermissionState fallbackPermission,
   }) async {
     if (deliveryPolicy.mode == AlarmDeliveryMode.nativeAlarm) {
-      final nativeRecord = desired.copyWith(
+      final record = desired.copyWith(
         provider: capabilities.nativeAlarmProvider,
       );
+      lease.check();
+      await _rememberOwnership([record]);
+      lease.check();
       try {
-        AppLogger.debug(
-          '$_logTag trying native schedule '
-          'scheduleId=${nativeRecord.scheduleId} '
-          'alarmTime=${nativeRecord.alarmTime.toIso8601String()}',
-        );
-        await _schedulerService.scheduleNativeAlarm(nativeRecord);
-        return _ScheduleAttempt(record: nativeRecord);
-      } on AlarmSchedulingException catch (error) {
-        AppLogger.debug(
-          '$_logTag native schedule failed '
-          'scheduleId=${nativeRecord.scheduleId} reason=${error.reason} '
-          'permissionIssue=${error.permissionIssue} message=${error.message}',
-        );
-        if (error.permissionIssue == null &&
-            fallbackPermission != AlarmPermissionState.granted) {
-          return _ScheduleAttempt(
-            failureReason: error.reason,
-            message: error.message,
+        if (!record.alarmTime.isAfter(_nowProvider())) {
+          return const _ScheduleAttempt(
+            failureReason: AlarmFailureReason.scheduleInvalid,
           );
         }
+        await _schedulerService.scheduleNativeAlarm(record);
+        lease.check();
+        return _ScheduleAttempt(record: record);
       } catch (error) {
-        AppLogger.debug(
-          '$_logTag native schedule threw '
-          'scheduleId=${nativeRecord.scheduleId} error=$error',
-        );
+        if (error is AlarmOperationInvalidated) rethrow;
+        // A channel error can follow an OS write. Confirm cleanup before
+        // changing providers; do not create two deliveries for one Schedule.
+        final pending = await _cancelRecords([record]);
+        if (pending.isNotEmpty) {
+          return _ScheduleAttempt(
+            pendingRecord: pending.single,
+            failureReason: AlarmFailureReason.cancellationFailed,
+          );
+        }
+        lease.check();
         if (fallbackPermission != AlarmPermissionState.granted) {
           return _ScheduleAttempt(
-            failureReason: AlarmFailureReason.platformError,
-            message: error.toString(),
+            failureReason: error is AlarmSchedulingException
+                ? error.reason
+                : AlarmFailureReason.platformError,
+            permissionIssue: error is AlarmSchedulingException
+                ? error.permissionIssue
+                : null,
+            message: error is AlarmSchedulingException
+                ? error.message
+                : error.toString(),
           );
         }
       }
     }
 
-    if ((deliveryPolicy.mode == AlarmDeliveryMode.fallbackNotification ||
-            capabilities.fallbackProvider == AlarmProvider.localNotification) &&
+    if (capabilities.fallbackProvider == AlarmProvider.localNotification &&
         fallbackPermission == AlarmPermissionState.granted) {
-      final fallbackRecord = desired.copyWith(
+      final record = desired.copyWith(
         provider: AlarmProvider.localNotification,
       );
+      lease.check();
+      await _rememberOwnership([record]);
+      lease.check();
       try {
-        AppLogger.debug(
-          '$_logTag trying fallback schedule '
-          'scheduleId=${fallbackRecord.scheduleId} '
-          'alarmTime=${fallbackRecord.alarmTime.toIso8601String()}',
-        );
-        await _fallbackNotificationService.scheduleFallbackAlarm(
-          fallbackRecord,
-        );
-        return _ScheduleAttempt(record: fallbackRecord);
-      } on AlarmSchedulingException catch (error) {
-        AppLogger.debug(
-          '$_logTag fallback schedule failed '
-          'scheduleId=${fallbackRecord.scheduleId} reason=${error.reason} '
-          'permissionIssue=${error.permissionIssue} message=${error.message}',
-        );
-        if (error.permissionIssue != null) {
-          return _ScheduleAttempt(permissionIssue: error.permissionIssue);
+        if (!record.alarmTime.isAfter(_nowProvider())) {
+          return const _ScheduleAttempt(
+            failureReason: AlarmFailureReason.scheduleInvalid,
+          );
         }
+        final timing = await _fallbackNotificationService.scheduleFallbackAlarm(
+          record,
+        );
+        lease.check();
         return _ScheduleAttempt(
-          failureReason: error.reason,
-          message: error.message,
+          record: record.copyWith(notificationTiming: timing),
         );
       } catch (error) {
-        AppLogger.debug(
-          '$_logTag fallback schedule threw '
-          'scheduleId=${fallbackRecord.scheduleId} error=$error',
-        );
+        if (error is AlarmOperationInvalidated) rethrow;
+        final pending = await _cancelRecords([record]);
+        lease.check();
         return _ScheduleAttempt(
-          failureReason: AlarmFailureReason.platformError,
-          message: error.toString(),
+          pendingRecord: pending.firstOrNull,
+          message: error is AlarmSchedulingException
+              ? error.message
+              : error.toString(),
+          failureReason: pending.isNotEmpty
+              ? AlarmFailureReason.cancellationFailed
+              : error is AlarmSchedulingException
+              ? error.reason
+              : AlarmFailureReason.platformError,
+          permissionIssue: pending.isEmpty && error is AlarmSchedulingException
+              ? error.permissionIssue
+              : null,
         );
       }
     }
@@ -470,6 +720,11 @@ class ReconcileAlarmsUseCase {
     required AlarmPermissionIssue? permissionIssue,
     required AlarmDeliveryPolicy deliveryPolicy,
   }) {
+    if (failures.any(
+      (failure) => failure.reason == AlarmFailureReason.cancellationFailed,
+    )) {
+      return AlarmReconciliationStatus.partial;
+    }
     if (!deliveryPolicy.canDeliver) {
       if (permissionIssue != null) {
         return AlarmReconciliationStatus.permissionNeeded;
@@ -517,7 +772,10 @@ class ReconcileAlarmsUseCase {
     ScheduledAlarmRecord existing,
     ScheduledAlarmRecord desired,
   ) {
-    return existing.scheduleFingerprint == desired.scheduleFingerprint &&
+    return existing.hasCurrentContent &&
+        existing.contentVersion == desired.contentVersion &&
+        existing.contentDigest == desired.contentDigest &&
+        existing.scheduleFingerprint == desired.scheduleFingerprint &&
         existing.payload['alarmLaunchPayloadVersion'] ==
             desired.payload['alarmLaunchPayloadVersion'] &&
         existing.alarmTime.isAtSameMomentAs(desired.alarmTime) &&
@@ -546,31 +804,121 @@ class ReconcileAlarmsUseCase {
         );
   }
 
-  Future<void> _cancelRecords(List<ScheduledAlarmRecord> records) async {
-    for (final record in records) {
-      try {
-        if (record.provider == AlarmProvider.localNotification) {
-          AppLogger.debug(
-            '$_logTag cancel fallback '
-            'scheduleId=${record.scheduleId} provider=${record.provider}',
-          );
-          await _fallbackNotificationService.cancelFallbackAlarm(record);
-        } else if (record.provider != AlarmProvider.none) {
-          AppLogger.debug(
-            '$_logTag cancel native '
-            'scheduleId=${record.scheduleId} provider=${record.provider}',
-          );
-          await _schedulerService.cancelNativeAlarm(record);
-        }
-      } catch (_) {
-        // Keep reconciliation moving; registry replacement is authoritative.
-        AppLogger.debug(
-          '$_logTag cancel failed; continuing '
-          'scheduleId=${record.scheduleId} provider=${record.provider}',
-        );
-      }
+  List<AlarmFailure> _cancellationFailures(
+    List<ScheduledAlarmRecord> records,
+  ) => records
+      .map(
+        (record) => AlarmFailure(
+          scheduleId: record.scheduleId,
+          reason: AlarmFailureReason.cancellationFailed,
+          message: 'Existing notification cancellation could not be confirmed',
+        ),
+      )
+      .toList();
+
+  Future<DeliveryObservation> _observeFallback() async {
+    try {
+      return await _fallbackNotificationService.observePending();
+    } catch (_) {
+      return const DeliveryObservation.unknown();
     }
   }
+
+  Future<DeliveryObservation> _observeNative(
+    List<ScheduledAlarmRecord> records,
+    AlarmSchedulerCapabilities capabilities,
+  ) async {
+    if (capabilities.nativeAlarmProvider != AlarmProvider.iosAlarmKit &&
+        !records.any((r) => r.provider == AlarmProvider.iosAlarmKit)) {
+      return const DeliveryObservation.unknown();
+    }
+    try {
+      return await _schedulerService.observePendingNativeAlarms(
+        records.map((r) => r.scheduleId),
+      );
+    } catch (_) {
+      return const DeliveryObservation.unknown(
+        source: DeliveryObservationSource.iosAlarmKit,
+      );
+    }
+  }
+
+  bool _nativeUncertain(
+    DeliveryObservation observed,
+    AlarmSchedulerCapabilities capabilities,
+  ) =>
+      observed.unmappedCount > 0 ||
+      (!observed.available &&
+          (capabilities.nativeAlarmProvider == AlarmProvider.iosAlarmKit ||
+              observed.source == DeliveryObservationSource.iosAlarmKit));
+
+  AlarmFailure _observationFailure({String? scheduleId, String? message}) =>
+      AlarmFailure(
+        scheduleId: scheduleId,
+        reason: AlarmFailureReason.observationFailed,
+        message: message ?? 'Delivery registration could not be confirmed',
+      );
+
+  List<ScheduledAlarmRecord> _fallbackOrphans(
+    DeliveryObservation observed,
+    List<ScheduledAlarmRecord> stored,
+  ) {
+    if (!observed.available) return const [];
+    final knownIds = stored
+        .where((r) => r.provider == AlarmProvider.localNotification)
+        .map(
+          (r) => (r.fallbackNotificationId ?? stableAlarmId(r.scheduleId))
+              .toString(),
+        )
+        .toSet();
+    return observed.entries
+        .where(
+          (entry) =>
+              !knownIds.contains(entry.id) &&
+              entry.scheduleId != null &&
+              int.tryParse(entry.id) != null,
+        )
+        .map(
+          (entry) => ScheduledAlarmRecord(
+            scheduleId: entry.scheduleId!,
+            provider: AlarmProvider.localNotification,
+            fallbackNotificationId: int.parse(entry.id),
+            alarmTime: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+            preparationStartTime: DateTime.fromMillisecondsSinceEpoch(
+              0,
+              isUtc: true,
+            ),
+            scheduleFingerprint: '',
+            scheduleTitle: 'OnTime',
+            payload: const {},
+            cancellationPending: true,
+          ),
+        )
+        .toList();
+  }
+
+  bool _fallbackIdentityConflict(
+    ScheduledAlarmRecord record,
+    DeliveryObservation observed,
+  ) {
+    if (!observed.available ||
+        record.provider != AlarmProvider.localNotification) {
+      return false;
+    }
+    final id =
+        (record.fallbackNotificationId ?? stableAlarmId(record.scheduleId))
+            .toString();
+    return observed.entries.any(
+      (entry) => entry.id == id && entry.scheduleId != record.scheduleId,
+    );
+  }
+
+  Future<void> _rememberOwnership(List<ScheduledAlarmRecord> records) =>
+      _operations.remember(_registryRepository, records);
+
+  Future<List<ScheduledAlarmRecord>> _cancelRecords(
+    List<ScheduledAlarmRecord> records,
+  ) => _cleanup.cancelRecords(records);
 
   AlarmReconciliationResult _result({
     required AlarmReconciliationStatus status,
@@ -615,14 +963,38 @@ class ReconcileAlarmsUseCase {
 
 class _ScheduleAttempt {
   final ScheduledAlarmRecord? record;
+  final ScheduledAlarmRecord? pendingRecord;
   final AlarmPermissionIssue? permissionIssue;
   final AlarmFailureReason? failureReason;
   final String? message;
 
   const _ScheduleAttempt({
     this.record,
+    this.pendingRecord,
     this.permissionIssue,
     this.failureReason,
     this.message,
   });
+}
+
+final class _ReconciliationRequest {
+  _ReconciliationRequest(this.revision, this.lease);
+  final int revision;
+  final AlarmOperationLease lease;
+  final completer = Completer<AlarmReconciliationResult>();
+}
+
+/// Acceptance is synchronous; errors remain observed where DB saves do not wait
+/// for operating-system delivery effects.
+void requestAlarmReconciliation(ReconcileAlarmsUseCase reconcile) {
+  unawaited(
+    reconcile().then<void>(
+      (_) {},
+      onError: (Object error, StackTrace _) {
+        AppLogger.debug(
+          '[ReconcileAlarms] request ended errorType=${error.runtimeType}',
+        );
+      },
+    ),
+  );
 }

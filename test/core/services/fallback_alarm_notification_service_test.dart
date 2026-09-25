@@ -49,7 +49,10 @@ void main() {
       );
       final record = _record(fallbackNotificationId: null);
 
-      await service.scheduleFallbackAlarm(record);
+      expect(
+        await service.scheduleFallbackAlarm(record),
+        NotificationTiming.approximate,
+      );
       await service.cancelFallbackAlarm(record);
 
       expect(notificationService.scheduledRecords, [record]);
@@ -97,8 +100,11 @@ class _FakeNotificationService implements NotificationService {
   }
 
   @override
-  Future<void> scheduleFallbackAlarm(ScheduledAlarmRecord record) async {
+  Future<NotificationTiming> scheduleFallbackAlarm(
+    ScheduledAlarmRecord record,
+  ) async {
     scheduledRecords.add(record);
+    return NotificationTiming.approximate;
   }
 
   @override

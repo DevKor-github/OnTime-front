@@ -1,0 +1,13 @@
+{
+  "baseline": "4529d9f84e911b1ee2fbb42af09698a0c27cc9f2",
+  "test_target": "test/data/repositories/schedule_aggregate_negative_test.dart",
+  "test_name": "preparation insert failure leaves no partial schedule, place or revision",
+  "exit_code": 1,
+  "observed": "Real SQLite preparation INSERT trigger aborts; the pre-change FormSubmission leaves its schedule row already committed. Test expected an empty schedules table and failed.",
+  "test_executed_before_product_edits": true,
+  "artifacts": {
+    "/tmp/a08-negative-test.dart": "692bce0eef10bde945c34f2741fa30f6ec7fa5964e605c638913ce8a85134e60",
+    "/tmp/a08-negative.log": "8f907e05b2250f2698569cd3006d0b126674549d71e86fc292eefb0408177f09"
+  },
+  "boundary": "Actual NativeDatabase memory SQLite and real legacy repositories/use case, not mocks or a source-text assertion."
+}

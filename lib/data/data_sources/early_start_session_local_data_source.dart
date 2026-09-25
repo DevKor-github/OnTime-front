@@ -27,7 +27,9 @@ class EarlyStartSessionLocalDataSourceImpl
     final prefs = await SharedPreferences.getInstance();
     final key = '$_prefsKeyPrefix$scheduleId';
     final payload = jsonEncode({'startedAt': startedAt.millisecondsSinceEpoch});
-    await prefs.setString(key, payload);
+    if (!await prefs.setString(key, payload)) {
+      throw StateError('Early preparation start was not saved');
+    }
   }
 
   @override

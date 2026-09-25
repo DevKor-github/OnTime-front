@@ -1,0 +1,223 @@
+{
+  "queried_at": "2026-09-24T02:50:25.044233+00:00",
+  "source": "28baf6c7b91c00d2c6490f597375c1dad39fc2b6",
+  "repository": {
+    "exit": 0,
+    "data": {
+      "default_branch": "main",
+      "full_name": "DevKor-github/OnTime-front",
+      "permissions": {
+        "admin": true,
+        "maintain": true,
+        "pull": true,
+        "push": true,
+        "triage": true
+      },
+      "private": false
+    },
+    "stderr": ""
+  },
+  "main": {
+    "exit": 0,
+    "data": {
+      "commit": "c7184b2ae477e6a24a47fd0b9da79d3ed52b8cf4",
+      "name": "main",
+      "protected": false,
+      "protection": {
+        "enabled": false,
+        "required_status_checks": {
+          "checks": [],
+          "contexts": [],
+          "enforcement_level": "off"
+        }
+      }
+    },
+    "stderr": ""
+  },
+  "effective": {
+    "exit": 0,
+    "data": [],
+    "stderr": ""
+  },
+  "rulesets": {
+    "exit": 0,
+    "data": [
+      {
+        "id": 2100824,
+        "name": "require review before merge main",
+        "target": "branch",
+        "source_type": "Repository",
+        "source": "DevKor-github/OnTime-front",
+        "enforcement": "disabled",
+        "node_id": "RRS_lACqUmVwb3NpdG9yec4ywDwFzgAgDlg",
+        "_links": {
+          "self": {
+            "href": "https://api.github.com/repos/DevKor-github/OnTime-front/rulesets/2100824"
+          },
+          "html": {
+            "href": "https://github.com/DevKor-github/OnTime-front/rules/2100824"
+          }
+        },
+        "created_at": "2024-10-04T20:55:30.725+09:00",
+        "updated_at": "2026-03-19T16:24:38.386+09:00"
+      }
+    ],
+    "stderr": ""
+  },
+  "legacy": {
+    "exit": 1,
+    "data": {
+      "message": "Branch not protected",
+      "documentation_url": "https://docs.github.com/rest/branches/branch-protection#get-branch-protection",
+      "status": "404"
+    },
+    "stderr": "gh: Branch not protected (HTTP 404)"
+  },
+  "checks": {
+    "exit": 0,
+    "data": {
+      "check_runs": [
+        {
+          "app": {
+            "id": 15368,
+            "slug": "github-actions"
+          },
+          "conclusion": "skipped",
+          "head_sha": "28baf6c7b91c00d2c6490f597375c1dad39fc2b6",
+          "name": "build_and_preview",
+          "status": "completed"
+        },
+        {
+          "app": {
+            "id": 15368,
+            "slug": "github-actions"
+          },
+          "conclusion": "success",
+          "head_sha": "28baf6c7b91c00d2c6490f597375c1dad39fc2b6",
+          "name": "release-manifest",
+          "status": "completed"
+        },
+        {
+          "app": {
+            "id": 15368,
+            "slug": "github-actions"
+          },
+          "conclusion": "success",
+          "head_sha": "28baf6c7b91c00d2c6490f597375c1dad39fc2b6",
+          "name": "test",
+          "status": "completed"
+        }
+      ],
+      "total_count": 3
+    },
+    "stderr": ""
+  },
+  "disabled_ruleset": {
+    "exit": 0,
+    "data": {
+      "id": 2100824,
+      "name": "require review before merge main",
+      "target": "branch",
+      "source_type": "Repository",
+      "source": "DevKor-github/OnTime-front",
+      "enforcement": "disabled",
+      "conditions": {
+        "ref_name": {
+          "exclude": [],
+          "include": [
+            "~DEFAULT_BRANCH"
+          ]
+        }
+      },
+      "rules": [
+        {
+          "type": "deletion"
+        },
+        {
+          "type": "non_fast_forward"
+        },
+        {
+          "type": "pull_request",
+          "parameters": {
+            "required_approving_review_count": 1,
+            "dismiss_stale_reviews_on_push": true,
+            "required_reviewers": [],
+            "require_code_owner_review": false,
+            "dismissal_restriction": {
+              "enabled": false,
+              "allowed_actors": []
+            },
+            "require_last_push_approval": false,
+            "required_review_thread_resolution": true,
+            "require_extra_approval_for_unattributed_changes": true,
+            "allowed_merge_methods": [
+              "merge",
+              "squash",
+              "rebase"
+            ]
+          }
+        }
+      ],
+      "node_id": "RRS_lACqUmVwb3NpdG9yec4ywDwFzgAgDlg",
+      "created_at": "2024-10-04T20:55:30.725+09:00",
+      "updated_at": "2026-03-19T16:24:38.386+09:00",
+      "bypass_actors": [],
+      "current_user_can_bypass": "never",
+      "_links": {
+        "self": {
+          "href": "https://api.github.com/repos/DevKor-github/OnTime-front/rulesets/2100824"
+        },
+        "html": {
+          "href": "https://github.com/DevKor-github/OnTime-front/rules/2100824"
+        }
+      }
+    },
+    "stderr": ""
+  },
+  "protected_targets": {
+    "exit": 0,
+    "data": [
+      {
+        "name": "hotfix/fix-calendarscreen-merge-conflict",
+        "protected": false
+      },
+      {
+        "name": "hotfix/remove-full-screen-intent",
+        "protected": false
+      },
+      {
+        "name": "hotfix/schedule-create-form-next-button-enable",
+        "protected": false
+      },
+      {
+        "name": "main",
+        "protected": false
+      },
+      {
+        "name": "release/1.0.0",
+        "protected": false
+      },
+      {
+        "name": "release/1.0.2-build-54",
+        "protected": false
+      },
+      {
+        "name": "release/1.0.2-build-55",
+        "protected": false
+      }
+    ],
+    "stderr": ""
+  },
+  "effective_release": {
+    "exit": 0,
+    "data": [],
+    "stderr": ""
+  },
+  "effective_hotfix": {
+    "exit": 0,
+    "data": [],
+    "stderr": ""
+  },
+  "raw_readback_sha256": "a3b6981fef9973d12cc3d1924df7677e63457c7f7feb1e8dff55dad4004b0525",
+  "note": "Read-only baseline. Full paginated historical branch list omitted; protected target rows retained. No rules changed."
+}

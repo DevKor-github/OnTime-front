@@ -1,0 +1,16 @@
+test_boot_permission_must_not_expire_on_newer_android (test_android_notification_manifest.NotificationManifestTest.test_boot_permission_must_not_expire_on_newer_android) ... ok
+test_disabled_application_is_rejected (test_android_notification_manifest.NotificationManifestTest.test_disabled_application_is_rejected) ... ok
+test_duplicate_receiver_declaration_is_rejected (test_android_notification_manifest.NotificationManifestTest.test_duplicate_receiver_declaration_is_rejected) ... ok
+test_exported_disabled_or_renamed_components_are_rejected (test_android_notification_manifest.NotificationManifestTest.test_exported_disabled_or_renamed_components_are_rejected) ... ok
+test_invalid_xml_is_reported_as_failure (test_android_notification_manifest.NotificationManifestTest.test_invalid_xml_is_reported_as_failure) ... ok
+test_missing_boot_actions_are_individually_rejected (test_android_notification_manifest.NotificationManifestTest.test_missing_boot_actions_are_individually_rejected) ... ok
+test_missing_delivery_component_is_rejected_even_if_named_in_comment (test_android_notification_manifest.NotificationManifestTest.test_missing_delivery_component_is_rejected_even_if_named_in_comment) ... ok
+test_missing_exported_attribute_is_rejected (test_android_notification_manifest.NotificationManifestTest.test_missing_exported_attribute_is_rejected) ... ok
+test_receiver_must_be_direct_child_of_application (test_android_notification_manifest.NotificationManifestTest.test_receiver_must_be_direct_child_of_application) ... ok
+test_source_manifest_can_deliver_and_restore_notifications (test_android_notification_manifest.NotificationManifestTest.test_source_manifest_can_deliver_and_restore_notifications) ... ok
+test_valid_contract_without_explicit_enabled_is_accepted (test_android_notification_manifest.NotificationManifestTest.test_valid_contract_without_explicit_enabled_is_accepted) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.002s
+
+OK

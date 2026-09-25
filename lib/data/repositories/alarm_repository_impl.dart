@@ -1,3 +1,4 @@
+import 'package:on_time_front/data/repositories/schedule_aggregate_repository_impl.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/data/mappers/domain_persistence_mappers.dart';
 import 'package:on_time_front/domain/repositories/recurring_schedule_repository.dart';
@@ -20,15 +21,11 @@ class AlarmRepositoryImpl implements AlarmRepository {
     RecurringScheduleRepository? recurringScheduleRepository,
   }) : _database = database,
        _recurring = recurringScheduleRepository,
-       _userDao = database.userDao,
-       _scheduleRepository = scheduleRepository,
-       _preparationRepository = preparationRepository;
+       _userDao = database.userDao;
 
   final AppDatabase _database;
   final RecurringScheduleRepository? _recurring;
   final UserDao _userDao;
-  final ScheduleRepository _scheduleRepository;
-  final PreparationRepository _preparationRepository;
 
   @override
   Future<AlarmSettings> getAlarmSettings() async {
@@ -48,14 +45,7 @@ class AlarmRepositoryImpl implements AlarmRepository {
       userId: localProfileId,
       enabled: alarmsEnabled,
     );
-    return AlarmSettings(
-      alarmsEnabled: alarmsEnabled,
-      defaultAlarmOffsetMinutes: 0,
-      updatedAt: DateTime.now(),
-      detailedNotificationContent: (await _userDao.getAlarmSettings(
-        localProfileId,
-      )).detailedNotificationContent,
-    );
+    return getAlarmSettings();
   }
 
   @override
@@ -67,31 +57,22 @@ class AlarmRepositoryImpl implements AlarmRepository {
     // a bounded pending set. Supply the nearest candidates from each series.
     final civilStart = startDate.subtract(const Duration(days: 2));
     await _recurring?.materialize(civilStart, endDate, perSeriesLimit: 64);
-    final schedules = _recurring == null
-        ? await _scheduleRepository.getSchedulesByDate(startDate, endDate)
-        : (await _database.scheduleDao.getSchedulesByDate(
-            civilStart,
-            endDate.add(const Duration(days: 2)),
-          )).map((r) => r.toScheduleEntity()).toList();
-    final defaultPreparation = await _preparationRepository
-        .getDefualtPreparation();
-    final result = <ScheduleWithPreparationEntity>[];
-    for (final schedule in schedules) {
-      await _preparationRepository.getPreparationByScheduleId(schedule.id);
-      final custom = await _preparationRepository.preparationStream.first.then(
-        (preparations) => preparations[schedule.id],
-      );
-      result.add(
-        ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
-          schedule,
-          PreparationWithTimeEntity.fromPreparation(
-            custom == null || custom.preparationStepList.isEmpty
-                ? defaultPreparation
-                : custom,
+    return _database.transaction(() async {
+      final schedules = (await _database.scheduleDao.getSchedulesByDate(
+        _recurring == null ? startDate : civilStart,
+        _recurring == null ? endDate : endDate.add(const Duration(days: 2)),
+      )).map((r) => r.toScheduleEntity());
+      final result = <ScheduleWithPreparationEntity>[];
+      for (final schedule in schedules) {
+        final preparation = await readSchedulePreparation(_database, schedule);
+        result.add(
+          ScheduleWithPreparationEntity.fromScheduleAndPreparationEntity(
+            schedule,
+            PreparationWithTimeEntity.fromPreparation(preparation),
           ),
-        ),
-      );
-    }
-    return result;
+        );
+      }
+      return List.unmodifiable(result);
+    });
   }
 }

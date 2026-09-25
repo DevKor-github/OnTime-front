@@ -31,7 +31,7 @@ final class PreparationNameState extends Equatable {
 
 final onBoardingPreparationSuggestion = [
   PreparationStepNameState(
-    preparationName: PreparationNameInputModel.dirty('화장실 가기'),
+    preparationName: PreparationNameInputModel.dirty('샤워하기'),
     isSelected: false,
   ),
   PreparationStepNameState(
@@ -40,6 +40,10 @@ final onBoardingPreparationSuggestion = [
   ),
   PreparationStepNameState(
     preparationName: PreparationNameInputModel.dirty('머리 세팅하기'),
+    isSelected: false,
+  ),
+  PreparationStepNameState(
+    preparationName: PreparationNameInputModel.dirty('옷 고르기/입기'),
     isSelected: false,
   ),
   PreparationStepNameState(

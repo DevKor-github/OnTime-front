@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/shared/components/cupertino_picker_modal.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 
@@ -22,12 +23,15 @@ class PreparationTimeInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final minutes = time.inMinutes < 0 ? 0 : time.inMinutes;
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         GestureDetector(
           child: Container(
-            width: 50,
-            height: 30,
+            width: 50 * scale,
+            height: 30 * scale,
             decoration: BoxDecoration(
               color: AppColors.white,
               border: hasError
@@ -37,10 +41,9 @@ class PreparationTimeInput extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                (time.inMinutes < 10 ? '0' : '') +
-                    (time.inMinutes < 0 ? '0' : time.inMinutes.toString()),
-                style: textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onPrimaryContainer,
+                '${minutes.toString().padLeft(2, '0')} ${l10n.localeName.startsWith('ko') ? '분' : 'min'}',
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -48,7 +51,7 @@ class PreparationTimeInput extends StatelessWidget {
           onTap: () {
             onTap?.call();
             context.showCupertinoMinutePickerModal(
-              title: '시간을 선택해주세요',
+              title: l10n.selectTime,
               initialValue: time,
               onSaved: (value) {
                 onPreparationTimeChanged?.call(value);

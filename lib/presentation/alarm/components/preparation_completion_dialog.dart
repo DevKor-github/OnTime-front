@@ -8,16 +8,28 @@ Future<void> showPreparationCompletionDialog({
   required bool isLate,
   required VoidCallback onFinish,
   VoidCallback? onContinue,
+  bool manual = false,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final result = await showTwoActionDialog(
     context,
     config: TwoActionDialogConfig(
-      title: isLate ? l10n.areYouRunningLate : l10n.preparationCompletedTitle,
-      description: isLate
+      title: manual
+          ? l10n.finishPreparationConfirmTitle
+          : isLate
+          ? l10n.areYouRunningLate
+          : l10n.preparationCompletedTitle,
+      description: manual
+          ? l10n.finishPreparationConfirmDescription
+          : isLate
           ? l10n.runningLateDescription
           : l10n.preparationCompletedDescription,
       barrierDismissible: false,
+      useSafeArea: false,
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      innerPadding: const EdgeInsets.all(16),
+      titleContentSpacing: 12,
+      contentActionsSpacing: 12,
       secondaryAction: DialogActionConfig(
         label: l10n.continuePreparing,
         variant: ModalWideButtonVariant.neutral,

@@ -9,6 +9,7 @@ Future<bool?> showTwoButtonDeleteDialog(
   required String cancelText,
   required String confirmText,
   bool barrierDismissible = true,
+  bool sourceCalendarLayout = false,
 }) async {
   final result = await showTwoActionDialog(
     context,
@@ -16,6 +17,17 @@ Future<bool?> showTwoButtonDeleteDialog(
       title: title,
       description: description,
       barrierDismissible: barrierDismissible,
+      useSafeArea: !sourceCalendarLayout,
+      barrierColor: sourceCalendarLayout ? const Color(0x6b000000) : null,
+      innerPadding: sourceCalendarLayout
+          ? const EdgeInsets.all(16)
+          : TwoActionDialogTokens.innerPadding,
+      titleContentSpacing: sourceCalendarLayout
+          ? 12
+          : TwoActionDialogTokens.titleContentSpacing,
+      contentActionsSpacing: sourceCalendarLayout
+          ? 12
+          : TwoActionDialogTokens.contentActionsSpacing,
       secondaryAction: DialogActionConfig(
         label: cancelText,
         variant: ModalWideButtonVariant.neutral,

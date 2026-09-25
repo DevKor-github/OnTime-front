@@ -40,6 +40,14 @@
         "description": "The title of the calendar screen"
     },
     "error": "Error",
+    "retry": "Try again",
+    "@retry": {
+        "description": "Action to retry loading failed content"
+    },
+    "preparationInProgress": "Preparing",
+    "@preparationInProgress": {
+        "description": "Status label for an active preparation on the home card"
+    },
     "@error": {
         "description": "Generic error message"
     },
@@ -148,6 +156,8 @@
         "description": "Button text to continue preparing"
     },
     "finishPreparation": "Finish Preparation",
+    "finishPreparationConfirmTitle": "Have you finished preparing?",
+    "finishPreparationConfirmDescription": "Finish preparation to see your result.",
     "@finishPreparation": {
         "description": "Button text to finish preparing"
     },
@@ -400,6 +410,18 @@
     "@editDefaultPreparation": {
         "description": "Setting tile for editing default preparation and spare time"
     },
+    "editPreparationSpareTimeHeader": "Edit spare time and preparation",
+    "@editPreparationSpareTimeHeader": {
+        "description": "Title of the spare-time and preparation edit screen"
+    },
+    "done": "Done",
+    "@done": {
+        "description": "Action that saves and closes an edit screen"
+    },
+    "addPreparationStep": "Add preparation step",
+    "@addPreparationStep": {
+        "description": "Accessible label for the preparation list add button"
+    },
     "allowAppNotifications": "Allow App Notifications",
     "@allowAppNotifications": {
         "description": "Setting tile for allowing app notifications"
@@ -428,7 +450,7 @@
     "@editSpareTime": {
         "description": "Section title for editing spare time"
     },
-    "editPreparationTime": "Edit preparation time",
+    "editPreparationTime": "Edit preparation steps and times",
     "@editPreparationTime": {
         "description": "Section title for editing preparation time"
     },

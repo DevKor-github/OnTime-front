@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/services/notification_service.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 import 'package:on_time_front/presentation/app/cubit/notification_gate_cubit.dart';
-import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 
 abstract interface class NotificationPermissionGateway {
   Future<AuthorizationStatus> checkNotificationPermission();
@@ -82,28 +82,32 @@ class _NotificationAllowScreenState extends State<NotificationAllowScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.only(bottom: 72.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          spacing: 68.50,
-          children: [
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 40,
-                  children: [_Image(), _Title()],
+    return RefreshTheme(
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    (MediaQuery.sizeOf(context).height * .244 -
+                            MediaQuery.paddingOf(context).top)
+                        .clamp(24, 206),
+                    16,
+                    24,
+                  ),
+                  child: const Column(
+                    children: [_Image(), SizedBox(height: 40), _Title()],
+                  ),
                 ),
               ),
-            ),
-            _Buttons(permissionGateway: widget.permissionGateway),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: _Buttons(permissionGateway: widget.permissionGateway),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -123,22 +127,36 @@ class _Buttons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
-      spacing: 24,
+      spacing: 16,
       children: [
-        FilledButton(
-          onPressed: () async {
-            await _handleNotificationPermission(context, permissionGateway);
-          },
-          child: Text(
-            AppLocalizations.of(context)!.allowNotifications,
-            textAlign: TextAlign.center,
-            style: textTheme.titleMedium?.copyWith(
-              color: colorScheme.onPrimary,
+        SizedBox(
+          width: double.infinity,
+          height: 58,
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () async {
+              await _handleNotificationPermission(context, permissionGateway);
+            },
+            child: Text(
+              AppLocalizations.of(context)!.allowNotifications,
+              textAlign: TextAlign.center,
+              style: textTheme.titleMedium?.copyWith(
+                color: colorScheme.onPrimary,
+              ),
             ),
           ),
         ),
-        GestureDetector(
-          onTap: () async {
+        TextButton(
+          style: TextButton.styleFrom(
+            minimumSize: const Size(double.infinity, 44),
+            foregroundColor: const Color(0xFF545454),
+          ),
+          onPressed: () async {
             await context.read<NotificationGateCubit>().dismissPrompt();
             if (!context.mounted) return;
             context.go('/home');
@@ -149,9 +167,7 @@ class _Buttons extends StatelessWidget {
               AppLocalizations.of(context)!.doItLater,
               textAlign: TextAlign.center,
               style: textTheme.bodyLarge?.copyWith(
-                color: AppColors.grey[400],
-                decoration: TextDecoration.underline,
-                decorationColor: AppColors.grey[400],
+                color: const Color(0xFF545454),
               ),
             ),
           ),
@@ -201,15 +217,16 @@ class _Image extends StatelessWidget {
     return Container(
       width: 70,
       height: 70,
-      padding: const EdgeInsets.all(17.50),
+      alignment: Alignment.center,
       decoration: ShapeDecoration(
         color: colorScheme.primaryContainer,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
       ),
       child: SvgPicture.asset(
-        'bell-ringing.svg',
-        package: 'assets',
-        colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+        'assets/design/notification_bell.svg',
+        width: 36,
+        height: 37,
+        excludeFromSemantics: true,
       ),
     );
   }

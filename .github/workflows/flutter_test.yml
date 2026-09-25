@@ -41,6 +41,8 @@ jobs:
         run: dart run tool/check_local_only_boundary.dart
       - name: Analyze
         run: flutter analyze
+      - name: Check Figma UI inventory and reference images
+        run: dart run tool/report_figma_ui_coverage.dart --strict
       - name: Run test with coverage
         run: flutter test --coverage
       - name: Check coverage

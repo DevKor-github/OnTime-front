@@ -320,6 +320,18 @@ abstract class AppLocalizations {
   /// **'Error'**
   String get error;
 
+  /// Action to retry loading failed content
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get retry;
+
+  /// Status label for an active preparation on the home card
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get preparationInProgress;
+
   /// Text shown when there are no schedules on a selected date
   ///
   /// In en, this message translates to:
@@ -481,6 +493,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish Preparation'**
   String get finishPreparation;
+
+  /// No description provided for @finishPreparationConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you finished preparing?'**
+  String get finishPreparationConfirmTitle;
+
+  /// No description provided for @finishPreparationConfirmDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish preparation to see your result.'**
+  String get finishPreparationConfirmDescription;
 
   /// Center timer label shown after all preparation steps are complete and there is still time before leaving
   ///
@@ -818,6 +842,24 @@ abstract class AppLocalizations {
   /// **'Edit Default Preparation / Spare Time'**
   String get editDefaultPreparation;
 
+  /// Title of the spare-time and preparation edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit spare time and preparation'**
+  String get editPreparationSpareTimeHeader;
+
+  /// Action that saves and closes an edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// Accessible label for the preparation list add button
+  ///
+  /// In en, this message translates to:
+  /// **'Add preparation step'**
+  String get addPreparationStep;
+
   /// Setting tile for allowing app notifications
   ///
   /// In en, this message translates to:
@@ -863,7 +905,7 @@ abstract class AppLocalizations {
   /// Section title for editing preparation time
   ///
   /// In en, this message translates to:
-  /// **'Edit preparation time'**
+  /// **'Edit preparation steps and times'**
   String get editPreparationTime;
 
   /// Label for total preparation time

@@ -22,6 +22,7 @@ class _PreparationOrderFormState extends State<PreparationOrderForm> {
   @override
   Widget build(BuildContext context) {
     return OnboardingPageViewLayout(
+      contentSpacing: 40,
       title: AppLocalizations.of(context)!.preparationOrderTitle,
       child: BlocBuilder<PreparationOrderCubit, PreparationOrderState>(
         builder: (context, state) {

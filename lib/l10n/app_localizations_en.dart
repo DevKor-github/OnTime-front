@@ -142,6 +142,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error => 'Error';
 
   @override
+  String get retry => 'Try again';
+
+  @override
+  String get preparationInProgress => 'Preparing';
+
+  @override
   String get noSchedules => 'No schedules';
 
   @override
@@ -227,6 +233,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get finishPreparation => 'Finish Preparation';
+
+  @override
+  String get finishPreparationConfirmTitle => 'Have you finished preparing?';
+
+  @override
+  String get finishPreparationConfirmDescription =>
+      'Finish preparation to see your result.';
 
   @override
   String get preparationReadyToGo => 'Ready to go';
@@ -426,6 +439,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editDefaultPreparation => 'Edit Default Preparation / Spare Time';
 
   @override
+  String get editPreparationSpareTimeHeader =>
+      'Edit spare time and preparation';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get addPreparationStep => 'Add preparation step';
+
+  @override
   String get allowAppNotifications => 'Allow App Notifications';
 
   @override
@@ -448,7 +471,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editSpareTime => 'Edit spare time';
 
   @override
-  String get editPreparationTime => 'Edit preparation time';
+  String get editPreparationTime => 'Edit preparation steps and times';
 
   @override
   String get totalTime => 'Total time: ';

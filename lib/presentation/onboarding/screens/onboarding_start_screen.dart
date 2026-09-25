@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
 class OnboardingStartScreen extends StatelessWidget {
@@ -9,28 +8,35 @@ class OnboardingStartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 35),
-          child: Center(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _Title(),
-                        SizedBox(height: 37),
-                        _OnboardingCharacterImage(),
-                      ],
-                    ),
+    return RefreshTheme(
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    (MediaQuery.sizeOf(context).height * .174 -
+                            MediaQuery.paddingOf(context).top)
+                        .clamp(24, 147),
+                    16,
+                    24,
+                  ),
+                  child: const Column(
+                    children: [
+                      _Title(),
+                      SizedBox(height: 46),
+                      _OnboardingCharacterImage(),
+                    ],
                   ),
                 ),
-                _OnboardingStartButton(),
-              ],
-            ),
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 13),
+                child: _OnboardingStartButton(),
+              ),
+            ],
           ),
         ),
       ),
@@ -57,7 +63,7 @@ class _Title extends StatelessWidget {
           AppLocalizations.of(context)!.onboardingStartSubtitle,
           textAlign: TextAlign.center,
           key: Key('onboarding_start_subtitle'),
-          style: textTheme.titleExtraSmall,
+          style: textTheme.bodyLarge?.copyWith(color: const Color(0xFF777777)),
         ),
       ],
     );
@@ -69,12 +75,11 @@ class _OnboardingCharacterImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'characters/onboarding_character.svg',
-      package: 'assets',
-      semanticsLabel: 'character onboarding',
-      height: 271,
-      width: 280,
+    return Image.asset(
+      'assets/design/onboarding_greeting.png',
+      excludeFromSemantics: true,
+      height: 280,
+      width: 271,
       fit: BoxFit.contain,
     );
   }
@@ -87,7 +92,11 @@ class _OnboardingStartButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
+      height: 58,
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
         onPressed: () {
           context.go('/onboarding');
         },

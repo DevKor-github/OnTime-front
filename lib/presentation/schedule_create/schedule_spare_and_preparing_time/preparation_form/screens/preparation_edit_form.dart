@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:on_time_front/l10n/app_localizations.dart';
+import 'package:on_time_front/presentation/shared/utils/duration_format.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/domain/entities/preparation_entity.dart';
 import 'package:on_time_front/presentation/schedule_create/schedule_spare_and_preparing_time/preparation_form/bloc/preparation_form_bloc.dart';
@@ -38,6 +40,8 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
               return Column(
                 children: [
                   TopBar(
+                    title: AppLocalizations.of(context)!.editPreparationTime,
+                    actionLabel: AppLocalizations.of(context)!.done,
                     onNextPageButtonClicked: state.isValid
                         ? () {
                             getIt.get<PreparationEditDraftCubit>().setDraft(
@@ -49,24 +53,37 @@ class _PreparationEditFormState extends State<PreparationEditForm> {
                     onPreviousPageButtonClicked: context.pop,
                     isNextButtonEnabled: state.isValid,
                   ),
+                  const SizedBox(height: 31),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '${AppLocalizations.of(context)!.totalTime}${formatDurationAsMinutes(context, Duration(minutes: state.preparationStepList.fold<int>(0, (sum, step) => sum + step.preparationTime.value.inMinutes)))}',
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: PreparationFormCreateList(
-                      preparationNameState: state,
-                      onNameChanged:
-                          ({required int index, required String value}) {
-                            context.read<PreparationFormBloc>().add(
-                              PreparationFormPreparationStepNameChanged(
-                                index: index,
-                                preparationStepName: value,
-                              ),
-                            );
-                          },
-                      onCreationRequested: () {
-                        context.read<PreparationFormBloc>().add(
-                          PreparationFormPreparationStepCreationRequested(),
-                        );
-                      },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: PreparationFormCreateList(
+                        preparationNameState: state,
+                        onNameChanged:
+                            ({required int index, required String value}) {
+                              context.read<PreparationFormBloc>().add(
+                                PreparationFormPreparationStepNameChanged(
+                                  index: index,
+                                  preparationStepName: value,
+                                ),
+                              );
+                            },
+                        onCreationRequested: () {
+                          context.read<PreparationFormBloc>().add(
+                            PreparationFormPreparationStepCreationRequested(),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],

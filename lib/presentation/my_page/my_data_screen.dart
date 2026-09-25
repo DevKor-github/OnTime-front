@@ -1,4 +1,5 @@
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
+import 'package:on_time_front/presentation/my_page/data_state_page.dart';
 import 'package:on_time_front/presentation/startup/screens/local_data_recovery_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -309,56 +310,58 @@ class _BackupPasswordDialogState extends State<_BackupPasswordDialog> {
       height: 1.4,
       color: Color(0xFF545454),
     );
-    return TwoActionDialog(
-      config: TwoActionDialogConfig(
-        title: widget.confirm ? '백업 비밀번호 만들기' : '백업 비밀번호 입력',
-        secondaryAction: const DialogActionConfig(label: '취소'),
-        primaryAction: const DialogActionConfig(
-          label: '계속',
-          variant: ModalWideButtonVariant.primary,
-        ),
-        alignment: Alignment.topCenter,
-        insetPadding: EdgeInsets.only(top: topInset),
-        innerPadding: const EdgeInsets.all(16),
-        titleContentSpacing: 12,
-        contentActionsSpacing: 11,
-      ),
-      onSecondaryPressed: () => Navigator.of(context).pop(),
-      onPrimaryPressed: _continue,
-      customContent: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: (availableHeight - topInset - 124).clamp(
-            80.0,
-            double.infinity,
+    return RefreshTheme(
+      child: TwoActionDialog(
+        config: TwoActionDialogConfig(
+          title: widget.confirm ? '백업 비밀번호 만들기' : '백업 비밀번호 입력',
+          secondaryAction: const DialogActionConfig(label: '취소'),
+          primaryAction: const DialogActionConfig(
+            label: '계속',
+            variant: ModalWideButtonVariant.primary,
           ),
+          alignment: Alignment.topCenter,
+          insetPadding: EdgeInsets.only(top: topInset),
+          innerPadding: const EdgeInsets.all(16),
+          titleContentSpacing: 12,
+          contentActionsSpacing: 11,
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('백업 비밀번호', style: bodyStyle),
-              const SizedBox(height: 12),
-              _passwordField(_first, '백업 비밀번호', bodyStyle),
-              const Text(
-                '15~128자, 대소문자와 공백을 그대로 구분합니다.',
-                style: bodyStyle,
-                textAlign: TextAlign.center,
-              ),
-              if (widget.confirm) ...[
-                const SizedBox(height: 16),
-                const Text('백업 비밀번호 확인', style: bodyStyle),
+        onSecondaryPressed: () => Navigator.of(context).pop(),
+        onPrimaryPressed: _continue,
+        customContent: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: (availableHeight - topInset - 124).clamp(
+              80.0,
+              double.infinity,
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('백업 비밀번호', style: bodyStyle),
                 const SizedBox(height: 12),
-                _passwordField(_second, '백업 비밀번호 확인', bodyStyle),
-              ],
-              if (_error != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _error!,
-                  style: bodyStyle.copyWith(color: const Color(0xFFBF2E22)),
+                _passwordField(_first, '백업 비밀번호', bodyStyle),
+                const Text(
+                  '15~128자, 대소문자와 공백을 그대로 구분합니다.',
+                  style: bodyStyle,
                   textAlign: TextAlign.center,
                 ),
+                if (widget.confirm) ...[
+                  const SizedBox(height: 16),
+                  const Text('백업 비밀번호 확인', style: bodyStyle),
+                  const SizedBox(height: 12),
+                  _passwordField(_second, '백업 비밀번호 확인', bodyStyle),
+                ],
+                if (_error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _error!,
+                    style: bodyStyle.copyWith(color: const Color(0xFFBF2E22)),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -425,31 +428,40 @@ Future<DialogActionResult> showRestorePreviewDialog(
       '준비 템플릿 ${preview.templateCount}개\n'
       '기본 준비 단계 ${preview.defaultPreparationStepCount}개\n\n'
       '현재 로컬 데이터는 모두 교체됩니다.';
-  return showTwoActionDialog(
-    context,
-    config: TwoActionDialogConfig(
-      title: '복원 내용 확인',
-      secondaryAction: const DialogActionConfig(label: '취소'),
-      primaryAction: const DialogActionConfig(
-        label: '복원',
-        variant: ModalWideButtonVariant.primary,
+  return showDialog<DialogActionResult>(
+    context: context,
+    barrierColor: const Color(0x6B000000),
+    builder: (dialogContext) => RefreshTheme(
+      child: TwoActionDialog(
+        onPrimaryPressed: () =>
+            Navigator.of(dialogContext).pop(DialogActionResult.primary),
+        onSecondaryPressed: () =>
+            Navigator.of(dialogContext).pop(DialogActionResult.secondary),
+        config: TwoActionDialogConfig(
+          title: '복원 내용 확인',
+          secondaryAction: const DialogActionConfig(label: '취소'),
+          primaryAction: const DialogActionConfig(
+            label: '복원',
+            variant: ModalWideButtonVariant.primary,
+          ),
+          barrierColor: const Color(0x6B000000),
+          alignment: Alignment.topCenter,
+          insetPadding: EdgeInsets.only(top: _figmaDialogTopInset(context)),
+        ),
+        customContent: Text(
+          description,
+          style: const TextStyle(
+            fontFamily: 'Pretendard',
+            fontSize: 13,
+            height: 1.55,
+            letterSpacing: -0.4,
+            color: Color(0xFF545454),
+          ),
+          textAlign: TextAlign.center,
+        ),
       ),
-      barrierColor: const Color(0x6B000000),
-      alignment: Alignment.topCenter,
-      insetPadding: EdgeInsets.only(top: _figmaDialogTopInset(context)),
     ),
-    customContent: Text(
-      description,
-      style: const TextStyle(
-        fontFamily: 'Pretendard',
-        fontSize: 13,
-        height: 1.55,
-        letterSpacing: -0.4,
-        color: Color(0xFF545454),
-      ),
-      textAlign: TextAlign.center,
-    ),
-  );
+  ).then((result) => result ?? DialogActionResult.dismissed);
 }
 
 String _formatBackupCutoff(DateTime cutoff) {
@@ -545,58 +557,75 @@ class LocalDataResetCompleteScreen extends StatelessWidget {
   const LocalDataResetCompleteScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: RecurrenceSheet(
-      title: '초기화 완료',
-      showBack: false,
-      footer: ScreenActions(
-        action: '다시 시작 안내',
-        onAction: () => showDialog<void>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('OnTime을 다시 열어 주세요'),
-            content: const Text('앱을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로 시작합니다.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('확인'),
-              ),
-            ],
+  Widget build(BuildContext context) => DataStatePage(
+    title: '초기화 완료',
+    showBack: false,
+    footerPadding: const EdgeInsets.fromLTRB(19, 16, 19, 19),
+    footer: ModalWideButton(
+      text: '다시 시작 안내',
+      variant: ModalWideButtonVariant.primary,
+      layout: ModalWideButtonLayout.full,
+      height: 50,
+      onPressed: () => showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('OnTime을 다시 열어 주세요'),
+          content: const Text('앱을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로 시작합니다.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('확인'),
+            ),
+          ],
+        ),
+      ),
+    ),
+    children: [
+      const SizedBox(height: 56),
+      Center(
+        child: SvgPicture.asset(
+          'assets/design/reset_success.svg',
+          width: 69,
+          height: 69,
+        ),
+      ),
+      const SizedBox(height: 18),
+      const Text(
+        '로컬 데이터 초기화가\n완료되었습니다',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 24,
+          height: 31 / 24,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      const SizedBox(height: 16),
+      const Text(
+        '이 기기에 저장된 모든 로컬 데이터가 삭제되었습니다.\nOnTime을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로 시작합니다.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 14,
+          height: 20.5 / 14,
+          color: Color(0xFF545454),
+        ),
+      ),
+      const SizedBox(height: 26.5),
+      const DataNotice(
+        key: Key('resetCompleteBackupNotice'),
+        outlinedIcon: true,
+        gap: 13,
+        padding: EdgeInsets.symmetric(horizontal: 17, vertical: 16),
+        minHeight: 74,
+        child: Text(
+          '외부에 저장된 백업 파일은 삭제되지 않았습니다.\n필요한 경우 직접 삭제해 주세요.',
+          style: TextStyle(
+            fontSize: 13,
+            height: 21 / 13,
+            color: Color(0xFF545454),
           ),
         ),
       ),
-      children: [
-        const SizedBox(height: 40),
-        Center(
-          child: SvgPicture.asset(
-            'assets/design/reset_success.svg',
-            width: 69,
-            height: 69,
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          '로컬 데이터 초기화가\n완료되었습니다',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 24,
-            height: 1.3,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const Text(
-          '이 기기에 저장된 모든 로컬 데이터가 삭제되었습니다.\nOnTime을 완전히 종료한 뒤 다시 열면 새 로컬 프로필로 시작합니다.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, height: 1.5),
-        ),
-        const SizedBox(height: 8),
-        const RecurrencePanel(
-          child: Text(
-            '외부에 저장된 백업 파일은 삭제되지 않았습니다.\n필요한 경우 직접 삭제해 주세요.',
-            style: TextStyle(fontSize: 13, height: 1.6),
-          ),
-        ),
-      ],
-    ),
+      const SizedBox(height: 24),
+    ],
   );
 }

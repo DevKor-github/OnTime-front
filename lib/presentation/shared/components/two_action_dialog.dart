@@ -23,6 +23,7 @@ class TwoActionDialogConfig {
     required this.primaryAction,
     this.secondaryAction,
     this.barrierDismissible = true,
+    this.useSafeArea = true,
     this.maxWidth = TwoActionDialogTokens.maxDialogWidth,
     this.innerPadding = TwoActionDialogTokens.innerPadding,
     this.titleContentSpacing = TwoActionDialogTokens.titleContentSpacing,
@@ -37,6 +38,7 @@ class TwoActionDialogConfig {
   final DialogActionConfig primaryAction;
   final DialogActionConfig? secondaryAction;
   final bool barrierDismissible;
+  final bool useSafeArea;
   final double maxWidth;
   final EdgeInsets innerPadding;
   final double titleContentSpacing;
@@ -65,6 +67,7 @@ Future<DialogActionResult> showTwoActionDialog(
   final result = await showDialog<DialogActionResult>(
     context: context,
     barrierDismissible: config.barrierDismissible,
+    useSafeArea: config.useSafeArea,
     barrierColor: config.barrierColor,
     builder: (dialogContext) {
       return TwoActionDialog(

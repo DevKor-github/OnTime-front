@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
+import 'package:on_time_front/presentation/my_page/data_state_page.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -28,60 +28,89 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ('문의', '앱 배포 페이지에 표시된 개발자 연락처를 이용할 수 있습니다.'),
   ];
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: RecurrenceSheet(
-      title: '개인정보 처리방침',
-      spacing: 8,
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(4, 8, 4, 8),
-          child: Text('시행일: 2026년 8월 28일', style: TextStyle(fontSize: 12)),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(4, 0, 4, 16),
-          child: Text('OnTime 로컬 전용 개인정보 처리방침', style: TextStyle(fontSize: 14)),
-        ),
-        for (var i = 0; i < sections.length; i++)
-          RecurrencePanel(
-            child: SelectionArea(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 28,
-                    child: Text(
-                      '${i + 1}.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          sections[i].$1,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          sections[i].$2,
-                          style: const TextStyle(fontSize: 13, height: 1.4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+  Widget build(BuildContext context) => DataStatePage(
+    title: '개인정보 처리방침',
+    // Keep the iOS back target 44px tall; the seven-pixel header difference is
+    // removed from the introductory top padding to retain the reference grid.
+    padding: const EdgeInsets.fromLTRB(16, 11, 16, 24),
+    children: [
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '시행일: 2026년 8월 28일',
+              style: TextStyle(
+                fontSize: 12,
+                height: 17 / 12,
+                color: Color(0xFF545454),
               ),
             ),
+            SizedBox(height: 10),
+            Text(
+              'OnTime 로컬 전용 개인정보 처리방침',
+              style: TextStyle(fontSize: 13, height: 18 / 13),
+            ),
+            SizedBox(height: 25),
+          ],
+        ),
+      ),
+      for (var i = 0; i < sections.length; i++) ...[
+        Container(
+          key: Key('privacySection${i + 1}'),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(10),
           ),
+          child: SelectionArea(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 16,
+                  child: Text(
+                    '${i + 1}.',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 20 / 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF4F69DF),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        sections[i].$1,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          height: 20 / 13.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        sections[i].$2,
+                        style: const TextStyle(
+                          fontSize: 12.3,
+                          height: 17 / 12.3,
+                          color: Color(0xFF383838),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
       ],
-    ),
+    ],
   );
 }

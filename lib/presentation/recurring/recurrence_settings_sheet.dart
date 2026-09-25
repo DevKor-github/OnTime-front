@@ -1,6 +1,8 @@
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_engine.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
@@ -20,12 +22,14 @@ class RecurrenceSettingsSheet extends StatefulWidget {
     this.initial,
     this.allowNone = true,
     this.leadTime = Duration.zero,
+    this.now,
   });
   final DateTime start;
   final String timeZoneId;
   final RecurrenceRule? initial;
   final bool allowNone;
   final Duration leadTime;
+  final DateTime Function()? now;
   @override
   State<RecurrenceSettingsSheet> createState() =>
       _RecurrenceSettingsSheetState();
@@ -143,7 +147,10 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
     bool compact = false,
   }) => TextFormField(
     controller: controller,
-    style: const TextStyle(fontSize: 16),
+    style: TextStyle(
+      fontSize: 16,
+      fontWeight: compact ? FontWeight.w700 : FontWeight.w400,
+    ),
     textAlign: compact ? TextAlign.center : TextAlign.start,
     decoration: InputDecoration(
       labelText: compact ? null : label,
@@ -169,7 +176,7 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
           .expand(
             r,
             through: r.until ?? DateTime(widget.start.year + 50, 12, 31),
-            preparationNotBeforeUtc: DateTime.now(),
+            preparationNotBeforeUtc: widget.now?.call() ?? DateTime.now(),
             leadTime: widget.leadTime,
             limit: 1,
           )
@@ -221,14 +228,23 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
           'frequency' => '반복 단위',
           'ending' => '반복 종료',
           'monthly' => '월간 규칙 입력',
+          'monthlyOverview' => '월간 반복',
           _ => '반복 설정',
         },
         switch (_page) {
           'frequency' => 'Frequency',
           'ending' => 'Ends',
           'monthly' => 'Monthly rule',
+          'monthlyOverview' => 'Monthly recurrence',
           _ => 'Repeat',
         },
+      ),
+      spacing: _page == 'settings' ? 0 : 8,
+      contentPadding: EdgeInsets.fromLTRB(
+        _page == 'settings' ? 22 : 17,
+        _page == 'settings' ? 0 : 15,
+        _page == 'settings' ? 22 : 17,
+        16,
       ),
       action: recurrenceText(context, '적용', 'Apply'),
       onBack: _back,
@@ -244,6 +260,8 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
           ..._frequencyFields()
         else if (_page == 'ending')
           ..._endingFields()
+        else if (_page == 'monthlyOverview')
+          ..._monthlyOverview()
         else if (_page == 'monthly')
           ..._monthlyFields()
         else
@@ -272,7 +290,7 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
         }),
       ),
     if (_frequency >= 0) ...[
-      const SizedBox(height: 8),
+      const SizedBox(height: 16),
       _number(
         _interval,
         recurrenceText(
@@ -284,7 +302,7 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
       Text(
         recurrenceText(
           context,
-          '첫 일정부터 선택한 간격으로 반복됩니다.',
+          '예시: ${['매일', '매주', '매월'][_frequency]} · ${_interval.text}${['일', '주', '개월'][_frequency]}마다\n첫 일정부터 선택한 간격으로 반복됩니다.',
           'Repeats at the selected interval from the first occurrence.',
         ),
       ),
@@ -298,9 +316,20 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
         '일정을 언제, 얼마나 자주 반복할지 설정하세요.',
         'Choose when and how often to repeat.',
       ),
-      style: Theme.of(context).textTheme.bodySmall,
+      style: const TextStyle(
+        fontSize: 12,
+        height: 20 / 12,
+        color: Color(0xff545454),
+      ),
     ),
-    _heading('반복 단위', 'Frequency'),
+    const SizedBox(height: 25),
+    GestureDetector(
+      onTap: widget.allowNone
+          ? () => setState(() => _page = 'frequency')
+          : null,
+      child: _heading('반복 단위', 'Frequency'),
+    ),
+    const SizedBox(height: 10),
     Row(
       children: [
         for (var i = 0; i < 3; i++) ...[
@@ -308,13 +337,14 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
           Expanded(
             child: TextButton(
               style: TextButton.styleFrom(
-                minimumSize: const Size(44, 44),
+                minimumSize: const Size(44, 38),
+                padding: EdgeInsets.zero,
                 backgroundColor: _frequency == i
                     ? AppColors.blue.shade600
-                    : Theme.of(context).colorScheme.surfaceContainerLowest,
+                    : const Color(0xfff6f6f6),
                 foregroundColor: _frequency == i
-                    ? Theme.of(context).colorScheme.onPrimary
-                    : Theme.of(context).colorScheme.onSurface,
+                    ? Colors.white
+                    : const Color(0xff111111),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -322,6 +352,7 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
               onPressed: () => setState(() {
                 _frequency = i;
                 _error = null;
+                if (i == 2) _page = 'monthlyOverview';
               }),
               child: Text(
                 recurrenceText(
@@ -340,20 +371,24 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
       ],
     ),
     if (_frequency >= 0) ...[
+      const SizedBox(height: 23),
       _heading('${['일', '주', '월'][_frequency]} 반복 간격', 'Repeat interval'),
+      const SizedBox(height: 12),
       Row(
         children: [
-          Text(recurrenceText(context, '매', 'Every')),
-          const SizedBox(width: 8),
           SizedBox(
-            width: 64,
+            width: 20,
+            child: Text(recurrenceText(context, '매', 'Every')),
+          ),
+          SizedBox(
+            width: 56,
             child: _number(
               _interval,
               recurrenceText(context, '간격', 'Interval'),
               compact: true,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               recurrenceText(
@@ -366,7 +401,9 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
         ],
       ),
       if (_frequency == 1) ...[
+        const SizedBox(height: 23),
         _heading('반복 요일', 'Repeat on'),
+        const SizedBox(height: 10),
         LayoutBuilder(
           builder: (context, constraints) => Wrap(
             spacing: constraints.maxWidth >= 344
@@ -390,12 +427,10 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
                         ),
                         backgroundColor: _weekdays.contains(day)
                             ? AppColors.blue.shade600
-                            : Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerLowest,
+                            : const Color(0xfff6f6f6),
                         foregroundColor: _weekdays.contains(day)
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onSurface,
+                            ? Colors.white
+                            : const Color(0xff545454),
                       ),
                       onPressed: () => setState(() {
                         _weekdays.contains(day)
@@ -417,36 +452,56 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
           ),
         ),
       ],
-      if (_frequency == 2)
+      if (_frequency == 2) ...[
+        const SizedBox(height: 18),
         RecurrenceValue(
           label: recurrenceText(context, '월 규칙', 'Monthly rule'),
-          value: recurrenceText(context, switch (_monthly) {
-            MonthlyRecurrence.dayOfMonth => '매월 ${_monthDay.text}일',
-            MonthlyRecurrence.nthWeekday =>
-              '${_ordinal == -1 ? '마지막' : '$_ordinal번째'} ${weekdayLabel(context, _monthWeekday)}요일',
-            MonthlyRecurrence.lastDay => '매월 마지막 날',
-          }, 'Configure monthly rule'),
-          onTap: () => setState(() => _page = 'monthly'),
+          value: recurrenceLabel(context, _rule()),
+          onTap: () => setState(() => _page = 'monthlyOverview'),
         ),
+      ],
+      const SizedBox(height: 29),
       _heading('종료 조건', 'Ends'),
-      RecurrenceValue(
-        label: recurrenceText(context, '반복 종료', 'Repeat ends'),
-        compact: true,
-        value: recurrenceText(
-          context,
-          _end == 0
-              ? '종료 없음'
-              : _end == 1
-              ? recurrenceDay(context, _until)
-              : '총 ${_count.text}회',
-          _end == 0
-              ? 'Never'
-              : _end == 1
-              ? recurrenceDay(context, _until)
-              : 'After ${_count.text} occurrences',
+      const SizedBox(height: 8),
+      Material(
+        color: const Color(0xfff6f6f6),
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          onTap: () => setState(() => _page = 'ending'),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    recurrenceText(
+                      context,
+                      _end == 0
+                          ? '종료 없음'
+                          : _end == 1
+                          ? recurrenceDay(context, _until)
+                          : '총 ${_count.text}회',
+                      _end == 0
+                          ? 'Never'
+                          : _end == 1
+                          ? recurrenceDay(context, _until)
+                          : 'After ${_count.text} occurrences',
+                    ),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: Color(0xff545454),
+                ),
+              ],
+            ),
+          ),
         ),
-        onTap: () => setState(() => _page = 'ending'),
       ),
+      const SizedBox(height: 23),
       RecurrencePanel(
         highlighted: true,
         child: Column(
@@ -454,39 +509,200 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
           children: [
             Text(
               recurrenceText(context, '반복 예시', 'Preview'),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.blue.shade600,
+              style: const TextStyle(
+                fontSize: 12,
+                height: 20 / 12,
+                color: Color(0xff4f69df),
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               _preview(),
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(height: 1.8),
+              style: const TextStyle(fontSize: 13, height: 25 / 13),
             ),
           ],
         ),
       ),
-    ],
-    if (widget.allowNone)
-      TextButton(
-        onPressed: () => setState(() => _page = 'frequency'),
-        child: Text(
-          recurrenceText(
-            context,
-            '반복 단위 변경 / 반복 안 함',
-            'Change frequency / do not repeat',
+      if (widget.allowNone)
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: TextButton(
+            onPressed: () => setState(() => _page = 'frequency'),
+            child: Text(
+              recurrenceText(
+                context,
+                '반복 단위 변경 / 반복 안 함',
+                'Change frequency / do not repeat',
+              ),
+              style: const TextStyle(fontSize: 12),
+            ),
           ),
-          style: const TextStyle(fontSize: 12),
         ),
+    ],
+  ];
+
+  List<Widget> _monthlyOverview() => [
+    _heading('반복 간격', 'Repeat interval'),
+    Text(
+      recurrenceText(
+        context,
+        '몇 개월마다 반복할지 선택하세요.',
+        'Choose the monthly interval.',
       ),
+      style: const TextStyle(fontSize: 12, color: Color(0xff545454)),
+    ),
+    RecurrencePanel(
+      padding: const EdgeInsets.all(6),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: (int.tryParse(_interval.text) ?? 1) > 1
+                ? () => setState(
+                    () => _interval.text = '${int.parse(_interval.text) - 1}',
+                  )
+                : null,
+            icon: const Icon(Icons.remove),
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                recurrenceText(
+                  context,
+                  '${_interval.text} 개월마다',
+                  'Every ${_interval.text} months',
+                ),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () => setState(
+              () =>
+                  _interval.text = '${(int.tryParse(_interval.text) ?? 1) + 1}',
+            ),
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
+    ),
+    const SizedBox(height: 8),
+    InkWell(
+      onTap: () => setState(() => _page = 'monthly'),
+      child: _heading('월 규칙', 'Monthly rule'),
+    ),
+    Text(
+      recurrenceText(
+        context,
+        '매월 날짜를 정하는 방식을 선택하세요.',
+        'Choose how to determine each monthly date.',
+      ),
+      style: const TextStyle(fontSize: 12, color: Color(0xff545454)),
+    ),
+    for (var option = 0; option < 4; option++)
+      RecurrenceChoice(
+        label: recurrenceText(
+          context,
+          ['날짜 지정', '순번 요일', '마지막 요일', '말일'][option],
+          ['Day of month', 'Nth weekday', 'Last weekday', 'Last day'][option],
+        ),
+        description: recurrenceText(
+          context,
+          [
+            '매월 같은 날짜에 반복합니다.',
+            '예) 매월 첫째 월요일, 셋째 금요일',
+            '예) 매월 마지막 목요일',
+            '매월 마지막 날에 반복합니다.',
+          ][option],
+          'Monthly repeat pattern',
+        ),
+        selected: switch (option) {
+          0 => _monthly == MonthlyRecurrence.dayOfMonth,
+          1 => _monthly == MonthlyRecurrence.nthWeekday && _ordinal != -1,
+          2 => _monthly == MonthlyRecurrence.nthWeekday && _ordinal == -1,
+          _ => _monthly == MonthlyRecurrence.lastDay,
+        },
+        onTap: () => setState(() {
+          _monthly = switch (option) {
+            0 => MonthlyRecurrence.dayOfMonth,
+            1 || 2 => MonthlyRecurrence.nthWeekday,
+            _ => MonthlyRecurrence.lastDay,
+          };
+          if (option == 1) {
+            if (_ordinal == -1) _ordinal = 1;
+            _page = 'monthly';
+          }
+          if (option == 2) {
+            _ordinal = -1;
+            _page = 'monthly';
+          }
+        }),
+        child: _monthly == MonthlyRecurrence.dayOfMonth && option == 0
+            ? DropdownButtonFormField<int>(
+                initialValue: int.tryParse(_monthDay.text),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 14,
+                  color: const Color(0xff111111),
+                ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: const BorderSide(color: Color(0xff949494)),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                ),
+                items: [
+                  for (var day = 1; day <= 31; day++)
+                    DropdownMenuItem(
+                      value: day,
+                      child: Text(
+                        recurrenceText(context, '$day일', 'Day $day'),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _monthDay.text = '$v'),
+              )
+            : null,
+      ),
+    RecurrenceNotice(
+      highlighted: true,
+      asset: 'recurrence_review_ellipse.svg',
+      glyph: 'i',
+      child: Text(
+        recurrenceText(
+          context,
+          '선택한 날짜가 없는 달에는 해당 일정을 건너뜁니다. 이 경우 총 횟수에서 제외됩니다.',
+          'Months without the selected date are skipped and do not consume the count.',
+        ),
+        style: const TextStyle(fontSize: 11, height: 1.5),
+      ),
+    ),
   ];
 
   String _preview() {
     try {
-      return '${recurrenceLabel(context, _rule())}\n${_first()}';
+      final r = _rule();
+      final ko = Localizations.localeOf(context).languageCode == 'ko';
+      if (ko && r.frequency == RecurrenceFrequency.weekly) {
+        final days = (r.weekdays.toList()..sort())
+            .map((d) => weekdayLabel(context, d))
+            .join('·');
+        return '매주 $days에 반복됩니다.\n${r.interval}주마다, ${recurrenceEndLabel(context, r)}\n${_first()}';
+      }
+      return '${recurrenceLabel(context, r)}\n${_first()}';
     } catch (_) {
       return _first();
     }
@@ -549,6 +765,11 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
       ),
     RecurrenceChoice(
       label: recurrenceText(context, '매월 마지막 날에 반복', 'Last day of month'),
+      description: recurrenceText(
+        context,
+        '예) 매월 마지막 날',
+        'The last date of every month',
+      ),
       selected: _monthly == MonthlyRecurrence.lastDay,
       onTap: () => setState(() => _monthly = MonthlyRecurrence.lastDay),
     ),
@@ -557,6 +778,11 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
         context,
         '특정 요일의 마지막 날에 반복',
         'Last weekday of month',
+      ),
+      description: recurrenceText(
+        context,
+        '예) 매월 마지막 수요일',
+        'For example, the last Wednesday',
       ),
       selected: _monthly == MonthlyRecurrence.nthWeekday && _ordinal == -1,
       onTap: () => setState(() {
@@ -567,7 +793,10 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
           ? _weekdayField()
           : null,
     ),
-    RecurrencePanel(
+    RecurrenceNotice(
+      asset: 'recurrence_detached_vector.svg',
+      glyph: 'i',
+      glyphColor: const Color(0xff545454),
       child: Text(
         recurrenceText(
           context,
@@ -592,13 +821,19 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
   );
 
   List<Widget> _endingFields() => [
-    Text(
-      recurrenceText(
-        context,
-        '언제까지 반복할지 선택하세요.',
-        'Choose when the series ends.',
+    if (_end != 1)
+      Text(
+        recurrenceText(
+          context,
+          '언제까지 반복할지 선택하세요.',
+          'Choose when the series ends.',
+        ),
+        style: const TextStyle(
+          fontSize: 12,
+          height: 20 / 12,
+          color: Color(0xff545454),
+        ),
       ),
-    ),
     for (var i = 0; i < 3; i++)
       RecurrenceChoice(
         label: recurrenceText(
@@ -618,39 +853,71 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
         selected: _end == i,
         onTap: () => setState(() => _end = i),
         child: i == 2 && _end == 2
-            ? _number(
-                _count,
-                recurrenceText(context, '반복 횟수', 'Occurrence count'),
+            ? Row(
+                children: [
+                  SizedBox(
+                    width: 86,
+                    child: _number(
+                      _count,
+                      recurrenceText(context, '반복 횟수', 'Occurrence count'),
+                      compact: true,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    recurrenceText(context, '회', 'occurrences'),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
               )
             : null,
       ),
-    if (_end == 1)
-      RecurrenceValue(
-        label: recurrenceText(context, '마지막 날짜', 'Inclusive end date'),
-        value: recurrenceDay(context, _until),
-        icon: Icons.calendar_today_outlined,
-        onTap: () async {
-          final day = DateTime(
-            widget.start.year,
-            widget.start.month,
-            widget.start.day,
-          );
-          final picked = await showDatePicker(
-            context: context,
-            initialDate: _until.isBefore(day) ? day : _until,
-            firstDate: day,
-            lastDate: DateTime(9999, 12, 31),
-          );
-          if (picked != null && mounted) setState(() => _until = picked);
-        },
+    if (_end == 1) ...[
+      const SizedBox(height: 8),
+      Text(
+        recurrenceText(context, '마지막 날짜', 'Inclusive end date'),
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       ),
-    RecurrencePanel(
+      InkWell(
+        onTap: _pickUntil,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Color(0xff949494))),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat('yyyy. M. d.').format(_until),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              SvgPicture.asset(
+                'recurrence_date_time_calendar.svg',
+                package: 'assets',
+                width: 22,
+                height: 22,
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 3),
+    ],
+    RecurrenceNotice(
+      asset: _end == 1
+          ? 'recurrence_detached_vector.svg'
+          : 'recurrence_ending_ellipse.svg',
+      glyph: 'i',
+      glyphColor: _end == 1 ? const Color(0xff4f69df) : Colors.white,
       highlighted: _end == 1,
       child: Text(
         recurrenceText(
           context,
           _end == 1
-              ? '지정한 날짜가 포함되어 반복이 종료됩니다. 일정의 시간대를 기준으로 적용됩니다.'
+              ? '지정한 날짜(${DateFormat('yyyy. M. d.').format(_until)})가 포함되어 반복이 종료됩니다. 일정의 시간대를 기준으로 적용됩니다.'
               : '실제로 존재하는 회차만 횟수에 포함됩니다. 삭제한 회차는 보충되지 않습니다.',
           _end == 1
               ? 'The end date is inclusive, in the schedule time zone.'
@@ -660,4 +927,18 @@ class _RecurrenceSettingsSheetState extends State<RecurrenceSettingsSheet> {
       ),
     ),
   ];
+  Future<void> _pickUntil() async {
+    final day = DateTime(
+      widget.start.year,
+      widget.start.month,
+      widget.start.day,
+    );
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _until.isBefore(day) ? day : _until,
+      firstDate: day,
+      lastDate: DateTime(9999, 12, 31),
+    );
+    if (picked != null && mounted) setState(() => _until = picked);
+  }
 }

@@ -284,6 +284,18 @@ abstract class AppLocalizations {
   /// **'Finish Preparation'**
   String get finishPreparation;
 
+  /// No description provided for @finishPreparationConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you finished preparing?'**
+  String get finishPreparationConfirmTitle;
+
+  /// No description provided for @finishPreparationConfirmDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish preparation to see your result.'**
+  String get finishPreparationConfirmDescription;
+
   /// Center timer label shown after all preparation steps are complete and there is still time before leaving
   ///
   /// In en, this message translates to:

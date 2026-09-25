@@ -32,11 +32,13 @@ void main() {
 
     expect(find.text('Preparation minutes'), findsOneWidget);
     expect(find.text('07'), findsOneWidget);
+    await tester.drag(find.byType(CupertinoPicker), const Offset(0, -32));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
 
-    expect(saved, const Duration(minutes: 7));
+    expect(saved, const Duration(minutes: 8));
     expect(disposedCount, 1);
     expect(find.text('Preparation minutes'), findsNothing);
   });

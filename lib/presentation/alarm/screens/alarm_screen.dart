@@ -11,6 +11,7 @@ import 'package:on_time_front/presentation/alarm/components/alarm_screen_bottom_
 import 'package:on_time_front/presentation/alarm/components/alarm_screen_top_section.dart';
 import 'package:on_time_front/presentation/alarm/components/preparation_completion_dialog.dart';
 import 'package:on_time_front/presentation/shared/router/route_arguments.dart';
+import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
 import 'package:on_time_front/presentation/shared/utils/time_format.dart';
 
 class AlarmScreen extends StatefulWidget {
@@ -23,9 +24,10 @@ class AlarmScreen extends StatefulWidget {
 }
 
 class _AlarmScreenState extends State<AlarmScreen> {
-  static const _lateContinuePrimary = Color(0xFFFF6953);
+  static const _lateContinuePrimary = Color(0xFFBF2E22);
   static const _lateContinuePrimaryContainer = Color(0xFFFFEAE7);
   bool _hasShownCompletionDialog = false;
+  bool _isCompletionDialogOpen = false;
   bool _isContinuingAfterCompletion = false;
   bool _navigateAfterFinish = false;
   bool _didNavigateForNotExistsTransition = false;
@@ -60,16 +62,81 @@ class _AlarmScreenState extends State<AlarmScreen> {
     return schedule.isLateAt(widget.nowProvider());
   }
 
-  ThemeData _buildAlarmTheme(BuildContext context, bool isLateContinueMode) {
-    if (!isLateContinueMode) {
-      return Theme.of(context);
+  ScheduleWithPreparationEntity? _activeDialogSchedule(String scheduleId) {
+    if (!mounted) return null;
+    final state = context.read<ScheduleBloc>().state;
+    if ((state.status != ScheduleStatus.ongoing &&
+            state.status != ScheduleStatus.started) ||
+        state.schedule?.id != scheduleId) {
+      return null;
     }
+    return state.schedule;
+  }
 
+  void _requestCompletionDialog(
+    BuildContext context,
+    ScheduleWithPreparationEntity schedule, {
+    bool manual = false,
+  }) {
+    if (_isCompletionDialogOpen || !mounted) return;
+    // Reserve the slot before scheduling the automatic dialog after this frame.
+    _isCompletionDialogOpen = true;
+    if (!manual) _hasShownCompletionDialog = true;
+
+    if (manual) {
+      unawaited(_presentCompletionDialog(context, schedule, manual: true));
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        unawaited(_presentCompletionDialog(context, schedule));
+      });
+    }
+  }
+
+  Future<void> _presentCompletionDialog(
+    BuildContext context,
+    ScheduleWithPreparationEntity schedule, {
+    bool manual = false,
+  }) async {
+    try {
+      if (_activeDialogSchedule(schedule.id) == null) return;
+      await showPreparationCompletionDialog(
+        context: context,
+        manual: manual,
+        isLate: _isLate(schedule),
+        onFinish: () {
+          final current = _activeDialogSchedule(schedule.id);
+          if (current == null) return;
+          final remaining = _timeRemainingBeforeLeaving(current);
+          _onPreparationFinished(context, remaining, remaining.isNegative);
+        },
+        onContinue: () {
+          final current = _activeDialogSchedule(schedule.id);
+          if (current == null || !current.preparation.isAllStepsDone) return;
+          // A manual prompt can outlive the last timer tick. Its Continue choice
+          // also acknowledges completion, so do not immediately prompt again.
+          _hasShownCompletionDialog = true;
+          _isContinuingAfterCompletion = true;
+        },
+      );
+    } finally {
+      if (mounted) {
+        // Rebuild against the latest timer state after either prompt closes.
+        setState(() => _isCompletionDialogOpen = false);
+      }
+    }
+  }
+
+  ThemeData _buildAlarmTheme(BuildContext context, bool isLate) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme.copyWith(
-      primary: _lateContinuePrimary,
-      primaryContainer: _lateContinuePrimaryContainer,
-      onPrimaryContainer: _lateContinuePrimary,
+      primary: isLate ? _lateContinuePrimary : AppColors.blue.shade600,
+      primaryContainer: isLate
+          ? _lateContinuePrimaryContainer
+          : AppColors.blue.shade200,
+      onPrimaryContainer: isLate
+          ? _lateContinuePrimary
+          : AppColors.blue.shade900,
     );
 
     return theme.copyWith(colorScheme: colorScheme);
@@ -165,30 +232,10 @@ class _AlarmScreenState extends State<AlarmScreen> {
               _resetCompletionUiState();
             }
 
-            if (preparation.isAllStepsDone && !_hasShownCompletionDialog) {
-              _hasShownCompletionDialog = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                showPreparationCompletionDialog(
-                  context: context,
-                  isLate: _isLate(schedule),
-                  onFinish: () {
-                    final timeRemainingBeforeLeaving =
-                        _timeRemainingBeforeLeaving(schedule);
-                    _onPreparationFinished(
-                      context,
-                      timeRemainingBeforeLeaving,
-                      timeRemainingBeforeLeaving.isNegative,
-                    );
-                  },
-                  onContinue: () {
-                    if (!mounted) return;
-                    setState(() {
-                      _isContinuingAfterCompletion = true;
-                    });
-                  },
-                );
-              });
+            if (preparation.isAllStepsDone &&
+                !_hasShownCompletionDialog &&
+                !_navigateAfterFinish) {
+              _requestCompletionDialog(context, schedule);
             }
 
             _ensureUiTicker(
@@ -251,7 +298,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
       _ensureUiTicker(false);
     }
 
-    final alarmTheme = _buildAlarmTheme(context, isLateContinueMode);
+    final alarmTheme = _buildAlarmTheme(context, isLate);
 
     return Theme(
       key: const ValueKey('alarm_screen_theme'),
@@ -259,53 +306,66 @@ class _AlarmScreenState extends State<AlarmScreen> {
       child: Builder(
         builder: (context) {
           return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            body: Stack(
-              children: [
-                Column(
-                  children: [
-                    AlarmScreenTopSection(
-                      isLate: isLate,
-                      beforeOutTime: timeRemainingBeforeLeaving.inSeconds,
-                      preparationName: timerLabel,
-                      showPreparationName: true,
-                      preparationRemainingTime: displayRemainingSeconds,
-                      progress: displayProgress,
-                    ),
-                    const SizedBox(height: 110),
-                    Expanded(
-                      child: AlarmScreenBottomSection(
-                        preparation: preparation,
-                        onSkip: () {
-                          context.read<ScheduleBloc>().add(
-                            const ScheduleStepSkipped(),
-                          );
-                        },
-                        onEndPreparation: () => _onPreparationFinished(
-                          context,
-                          timeRemainingBeforeLeaving,
-                          isLate,
+            backgroundColor: isLate ? AppColors.red.shade50 : AppColors.blue,
+            body: LayoutBuilder(
+              builder: (context, constraints) => Stack(
+                children: [
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: (constraints.maxHeight * 426 / 844).clamp(
+                          220.0,
+                          426.0,
+                        ),
+                        child: AlarmScreenTopSection(
+                          isLate: isLate,
+                          beforeOutTime: timeRemainingBeforeLeaving.inSeconds,
+                          preparationName: timerLabel,
+                          showPreparationName: true,
+                          preparationRemainingTime: displayRemainingSeconds,
+                          progress: displayProgress,
+                        ),
+                      ),
+                      Expanded(
+                        child: AlarmScreenBottomSection(
+                          preparation: preparation,
+                          onSkip: () {
+                            context.read<ScheduleBloc>().add(
+                              const ScheduleStepSkipped(),
+                            );
+                          },
+                          onEndPreparation: () => _requestCompletionDialog(
+                            context,
+                            schedule,
+                            manual: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: SafeArea(
+                      minimum: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: IconButton(
+                          key: const Key('alarm_close_button'),
+                          tooltip: AppLocalizations.of(context)!.home,
+                          icon: Icon(
+                            Icons.close,
+                            color: isLate
+                                ? AppColors.red.shade900
+                                : AppColors.white,
+                          ),
+                          onPressed: () => context.go('/home'),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: SafeArea(
-                    minimum: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: IconButton(
-                        key: const Key('alarm_close_button'),
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => context.go('/home'),
-                      ),
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },

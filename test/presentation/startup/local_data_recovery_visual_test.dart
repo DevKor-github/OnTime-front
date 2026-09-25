@@ -7,6 +7,7 @@ import 'package:on_time_front/core/database/local_data_reset_service.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
 import 'package:on_time_front/presentation/app/bloc/auth/auth_bloc.dart';
 import 'package:on_time_front/presentation/shared/theme/theme.dart';
+import 'package:on_time_front/presentation/shared/components/app_spinner.dart';
 import 'package:on_time_front/presentation/startup/screens/local_data_recovery_screen.dart';
 
 import '../../helpers/visual_test_fonts.dart';
@@ -48,6 +49,8 @@ void main() {
   Future<void> pumpScreen(WidgetTester tester, Size size) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = size;
+    tester.view.padding = FakeViewPadding(top: 44, bottom: 21);
+    addTearDown(tester.view.resetPadding);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(
@@ -64,6 +67,10 @@ void main() {
 
   testWidgets('recovery default visual remains reviewed', (tester) async {
     await pumpScreen(tester, const Size(390, 844));
+    expect(
+      tester.getTopLeft(find.byKey(const Key('recoveryPreservedNotice'))),
+      const Offset(19, 360),
+    );
     await expectLater(
       find.byType(Scaffold),
       matchesGoldenFile('../../goldens/goldens/recovery_default_390x844.png'),
@@ -89,6 +96,14 @@ void main() {
 
     expect(find.text('복구하지 않고 삭제하시겠습니까?'), findsOneWidget);
     expect(find.byType(Dialog), findsNothing);
+    expect(
+      tester.getTopLeft(find.byKey(const Key('resetConsequences'))),
+      const Offset(19, 254),
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const Key('resetExternalBackupNotice'))),
+      const Offset(19, 386),
+    );
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile(
@@ -112,7 +127,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 900));
 
     expect(find.text('복구하지 않고 삭제하시겠습니까?'), findsNothing);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(AppSpinner), findsOneWidget);
     expect(find.text('로컬 데이터 초기화 중'), findsOneWidget);
     expect(find.text('다시 시도'), findsOneWidget);
     await expectLater(
@@ -123,7 +138,7 @@ void main() {
     resetService.pending!.completeError(StateError('reset failed'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 900));
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byType(AppSpinner), findsNothing);
     expect(find.textContaining('초기화하지 못했습니다'), findsOneWidget);
   });
 }

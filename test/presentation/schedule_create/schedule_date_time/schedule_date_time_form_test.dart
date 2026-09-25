@@ -55,7 +55,7 @@ void main() {
 
     await _pumpForm(tester, cubit: cubit, locale: const Locale('ko'));
 
-    expect(find.text('2026년 05월 15일'), findsWidgets);
+    expect(find.text('2026년 5월 15일 (금)'), findsWidgets);
   });
 
   testWidgets('shows explicit choices for a repeated DST time', (tester) async {

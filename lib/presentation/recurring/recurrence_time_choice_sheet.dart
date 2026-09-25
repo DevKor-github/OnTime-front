@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:on_time_front/core/time/civil_time_resolver.dart';
 import 'package:on_time_front/domain/recurrence/recurrence_rule.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
@@ -24,7 +27,7 @@ class _RecurrenceTimeChoiceSheetState extends State<RecurrenceTimeChoiceSheet> {
     action: recurrenceText(context, '적용', 'Apply'),
     onAction: () => Navigator.of(context).pop(_choice),
     children: [
-      const SizedBox(height: 24),
+      const SizedBox(height: 16),
       Text(
         recurrenceText(context, '반복 시각 확인', 'Choose the repeated time'),
         style: Theme.of(context).textTheme.headlineSmall,
@@ -40,15 +43,18 @@ class _RecurrenceTimeChoiceSheetState extends State<RecurrenceTimeChoiceSheet> {
         RecurrenceChoice(
           label: recurrenceText(
             context,
-            choice == RepeatedCivilTime.first ? '첫 번째 시각' : '두 번째 시각',
+            '${choice == RepeatedCivilTime.first ? '첫 번째' : '두 번째'} ${DateFormat('H:mm').format(widget.date)}',
             choice == RepeatedCivilTime.first
                 ? 'First occurrence'
                 : 'Second occurrence',
           ),
+          description: _offsetDescription(context, choice),
           selected: _choice == choice,
           onTap: () => setState(() => _choice = choice),
         ),
-      RecurrencePanel(
+      RecurrenceNotice(
+        asset: 'recurrence_time_exceptions_info.svg',
+        glyph: 'i',
         child: Text(
           recurrenceText(
             context,
@@ -60,6 +66,14 @@ class _RecurrenceTimeChoiceSheetState extends State<RecurrenceTimeChoiceSheet> {
       ),
     ],
   );
+  String _offsetDescription(BuildContext context, RepeatedCivilTime choice) {
+    final options = CivilTimeResolver.resolve(widget.date, widget.timeZoneId);
+    if (options.length != 2) {
+      return recurrenceText(context, '선택한 시간대 기준', 'In the selected time zone');
+    }
+    final option = options[choice.index];
+    return '${CivilTimeResolver.formatUtcOffset(option.offsetSeconds)} · ${DateFormat('H:mm').format(widget.date)}';
+  }
 }
 
 class RecurrenceSaveErrorSheet extends StatelessWidget {
@@ -71,18 +85,60 @@ class RecurrenceSaveErrorSheet extends StatelessWidget {
     action: recurrenceText(context, '다시 저장하기', 'Retry saving'),
     onAction: () => Navigator.of(context).pop(true),
     children: [
-      const SizedBox(height: 12),
       RecurrencePanel(
-        child: Column(
+        padding: const EdgeInsets.all(22),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(message, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Text(
-              recurrenceText(
-                context,
-                '입력한 내용은 유지되었어요. 조건을 확인하거나 다시 시도해 주세요.',
-                'Your input is preserved. Check the conditions or retry.',
+            SizedBox(
+              width: 28,
+              height: 28,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'recurrence_save_error_vector1.svg',
+                    package: 'assets',
+                  ),
+                  const Text(
+                    '!',
+                    style: TextStyle(
+                      fontSize: 20,
+                      height: 1,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 22),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    recurrenceText(
+                      context,
+                      '입력한 내용은 유지되었어요. 조건을 확인하거나 다시 시도해 주세요.',
+                      'Your input is preserved. Check the conditions or retry.',
+                    ),
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      height: 1.5,
+                      color: Color(0xff5d6272),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

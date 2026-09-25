@@ -4,6 +4,7 @@ import 'package:on_time_front/presentation/recurring/recurrence_scope_sheet.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -246,6 +247,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Scaffold(
           backgroundColor: const Color(0xfff2f4f6),
           appBar: AppBar(
+            toolbarHeight: sourceLayout ? 50 : kToolbarHeight,
             title: Text(AppLocalizations.of(context)!.calendarTitle),
             centerTitle: true,
             backgroundColor: const Color(0xfff2f4f6),
@@ -263,12 +265,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               child: Row(
                 children: [
-                  const SizedBox(width: 20),
-                  const Icon(Icons.chevron_left, size: 20),
+                  const SizedBox(width: 18),
+                  SvgPicture.asset('calendar_back.svg', package: 'assets'),
                   const SizedBox(width: 2),
                   Text(
                     AppLocalizations.of(context)!.home,
                     style: textTheme.bodyMedium?.copyWith(
+                      fontSize:
+                          Localizations.localeOf(context).languageCode == 'ko'
+                          ? 18
+                          : 14,
+                      fontWeight: FontWeight.w700,
                       color: const Color(0xff4f69df),
                     ),
                   ),
@@ -279,7 +286,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           body: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 18.0) +
-                EdgeInsets.only(top: sourceLayout ? 11 : 0, bottom: 12.0),
+                EdgeInsets.only(top: sourceLayout ? 16 : 0, bottom: 12.0),
             child: BlocListener<MonthlySchedulesBloc, MonthlySchedulesState>(
               listenWhen: (previous, current) =>
                   previous.deleteFailureCount != current.deleteFailureCount,
@@ -288,7 +295,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
               },
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final detailGap = _calendarDetailGap(constraints.maxHeight);
+                  final detailGap = sourceLayout
+                      ? 32.0
+                      : _calendarDetailGap(constraints.maxHeight);
                   final selectedDateHeadingGap = _selectedDateHeadingGap(
                     constraints.maxHeight,
                   );
@@ -309,7 +318,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               EdgeInsets.only(
                                 top: _calendarVerticalPadding,
                                 bottom: sourceLayout
-                                    ? 52
+                                    ? 17
                                     : _calendarVerticalPadding,
                               ),
                           child: BlocBuilder<MonthlySchedulesBloc, MonthlySchedulesState>(
@@ -321,13 +330,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   state.status ==
                                       MonthlySchedulesStatus.error) {
                                 return SizedBox(
-                                  height: sourceLayout ? 326 : 288,
+                                  height: sourceLayout ? 361 : 288,
                                   child: Center(
                                     child:
                                         state.status ==
                                             MonthlySchedulesStatus.error
                                         ? Transform.translate(
-                                            offset: const Offset(0, 8),
+                                            offset: Offset(
+                                              0,
+                                              sourceLayout ? -8.5 : 8,
+                                            ),
                                             child: Column(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
@@ -389,7 +401,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                             ),
                                           )
                                         : Transform.translate(
-                                            offset: const Offset(0, 8),
+                                            offset: Offset(
+                                              0,
+                                              sourceLayout ? -8.5 : 8,
+                                            ),
                                             child: const SizedBox(
                                               key: Key(
                                                 'calendar_month_spinner',
@@ -411,7 +426,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                   context,
                                 ).toString(),
                                 daysOfWeekHeight: _calendarDaysOfWeekHeight,
-                                rowHeight: _calendarRowHeight,
+                                rowHeight: sourceLayout
+                                    ? 51
+                                    : _calendarRowHeight,
                                 eventLoader: (day) {
                                   day = DateTime(day.year, day.month, day.day);
                                   return state.schedules[day] ?? [];
@@ -496,19 +513,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     );
                                   },
                                   selectedBuilder: (context, day, focusedDay) {
-                                    return Container(
-                                      margin: const EdgeInsets.all(2.0),
-                                      alignment: Alignment.center,
-                                      decoration:
-                                          calendarTheme.selectedDayDecoration,
-                                      child: Text(
-                                        DateFormat.d(
-                                          Localizations.localeOf(
-                                            context,
-                                          ).toString(),
-                                        ).format(day),
-                                        style:
-                                            calendarTheme.selectedDayTextStyle,
+                                    return Center(
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        margin: EdgeInsets.zero,
+                                        alignment: Alignment.center,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xff4f69df),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Text(
+                                          day.day.toString(),
+                                          style: textTheme.bodyLarge?.copyWith(
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
                                     );
                                   },
@@ -571,16 +591,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                                 context,
                                                 schedule: schedule,
                                               ),
-                                          onDeleteSchedule: (schedule) {
+                                          onDeleteSchedule: (schedule) async {
                                             if (schedule.isRecurring) {
-                                              _deleteRecurring(
+                                              await _deleteRecurring(
                                                 context,
                                                 schedule,
                                               );
                                               return;
                                             }
-                                            showTwoButtonDeleteDialog(
+                                            await showTwoButtonDeleteDialog(
                                               context,
+                                              sourceCalendarLayout: true,
                                               title: AppLocalizations.of(
                                                 context,
                                               )!.scheduleDeleteConfirmTitle,
@@ -642,7 +663,7 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
   final MonthlySchedulesState state;
   final VoidCallback onAddSchedule;
   final ValueChanged<ScheduleEntity> onEditSchedule;
-  final ValueChanged<ScheduleEntity> onDeleteSchedule;
+  final Future<void> Function(ScheduleEntity) onDeleteSchedule;
 
   @override
   Widget build(BuildContext context) {
@@ -674,8 +695,9 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
       );
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.zero,
+    return ListView.separated(
+      padding: EdgeInsets.only(top: sourceLayout ? 6 : 0),
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
       itemCount: schedules.length,
       itemBuilder: (context, index) {
         final schedule = schedules[index];
@@ -688,6 +710,7 @@ class _SelectedDateSchedulesContent extends StatelessWidget {
 
             return ScheduleDetail(
               schedule: schedule,
+              referenceDate: referenceDate,
               preparationTime:
                   state.preparationDurationByScheduleId[schedule.id],
               isEarlyStarted: isEarlyStarted,

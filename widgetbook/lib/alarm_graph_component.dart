@@ -3,10 +3,7 @@ import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 import 'package:on_time_front/presentation/alarm/components/alarm_graph_component.dart';
 
-@widgetbook.UseCase(
-  name: 'Static Graph Painter',
-  type: AlarmGraphComponent,
-)
+@widgetbook.UseCase(name: 'Static Graph Painter', type: AlarmGraphComponent)
 Widget alarmGraphComponentUseCase(BuildContext context) {
   final progress = context.knobs.double.slider(
     label: 'Progress',
@@ -21,7 +18,7 @@ Widget alarmGraphComponentUseCase(BuildContext context) {
       height: 700,
       child: Center(
         child: CustomPaint(
-          size: const Size(230, 115),
+          size: const Size.square(268),
           painter: AlarmGraphComponent(
             progress: progress,
             backgroundColor: const Color(0xFF3D54BC),

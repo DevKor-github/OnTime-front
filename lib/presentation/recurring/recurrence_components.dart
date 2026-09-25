@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 import 'package:on_time_front/presentation/shared/constants/app_colors.dart';
-import 'package:on_time_front/presentation/schedule_create/components/top_bar.dart';
 
 /// The existing OnTime tokens used by the refreshed Figma screen compositions.
 class RefreshTheme extends StatelessWidget {
@@ -31,6 +31,7 @@ class RecurrenceSheet extends StatelessWidget {
     this.footer,
     this.showBack = true,
     this.spacing = 16,
+    this.contentPadding = const EdgeInsets.fromLTRB(17, 15, 17, 16),
   });
   final String title;
   final String? action;
@@ -40,6 +41,7 @@ class RecurrenceSheet extends StatelessWidget {
   final Widget? footer;
   final bool showBack;
   final double spacing;
+  final EdgeInsets contentPadding;
   @override
   Widget build(BuildContext context) => RefreshTheme(
     child: Builder(
@@ -54,19 +56,40 @@ class RecurrenceSheet extends StatelessWidget {
               children: [
                 SizedBox(
                   height: 44,
-                  child: TopBar(
-                    title: title,
-                    showAction: false,
-                    onPreviousPageButtonClicked: showBack
-                        ? onBack ?? () => Navigator.of(context).maybePop()
-                        : null,
-                    onNextPageButtonClicked: null,
-                    isNextButtonEnabled: false,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 64,
+                        child: IconButton(
+                          tooltip: recurrenceText(context, '뒤로', 'Back'),
+                          onPressed: showBack
+                              ? onBack ?? () => Navigator.of(context).maybePop()
+                              : null,
+                          icon: SvgPicture.asset(
+                            'recurrence_scope_tonemuted.svg',
+                            package: 'assets',
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 64),
+                    ],
                   ),
                 ),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    padding: contentPadding,
                     children: [
                       for (final child in children)
                         Padding(
@@ -78,7 +101,7 @@ class RecurrenceSheet extends StatelessWidget {
                 ),
                 if (footer != null || action != null)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(17, 8, 17, 13),
                     child:
                         footer ??
                         ScreenActions(
@@ -191,7 +214,7 @@ class RecurrencePanel extends StatelessWidget {
     color: highlighted
         ? Theme.of(context).colorScheme.primaryContainer
         : Theme.of(context).colorScheme.surfaceContainerLowest,
-    borderRadius: BorderRadius.circular(8),
+    borderRadius: BorderRadius.circular(10),
     child: SizedBox(
       width: double.infinity,
       child: Padding(padding: padding, child: child),
@@ -223,26 +246,25 @@ class RecurrenceChoice extends StatelessWidget {
         color: selected
             ? colors.primaryContainer
             : colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 1),
-                  child: Icon(
+                  child: SvgPicture.asset(
                     selected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                    color: selected ? colors.primary : AppColors.grey.shade700,
-                    size: 24,
+                        ? 'recurrence_scope_stateselected.svg'
+                        : 'recurrence_scope_stateunselected.svg',
+                    package: 'assets',
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,6 +273,8 @@ class RecurrenceChoice extends StatelessWidget {
                         label,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          height: 1.55,
                         ),
                       ),
                       if (description != null) ...[
@@ -258,7 +282,10 @@ class RecurrenceChoice extends StatelessWidget {
                         Text(
                           description!,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColors.grey.shade700),
+                              ?.copyWith(
+                                color: AppColors.grey.shade700,
+                                height: 1.5,
+                              ),
                         ),
                       ],
                       if (child != null)
@@ -285,12 +312,14 @@ class RecurrenceValue extends StatelessWidget {
     required this.value,
     this.onTap,
     this.icon,
+    this.asset,
     this.compact = false,
   });
   final String label;
   final String value;
   final VoidCallback? onTap;
   final IconData? icon;
+  final String? asset;
   final bool compact;
   @override
   Widget build(BuildContext context) => Material(
@@ -303,8 +332,11 @@ class RecurrenceValue extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            if (icon != null) ...[
-              Icon(icon, size: 24),
+            if (icon != null || asset != null) ...[
+              if (asset != null)
+                SvgPicture.asset(asset!, package: 'assets')
+              else
+                Icon(icon, size: 24),
               const SizedBox(width: 16),
             ],
             Expanded(
@@ -338,4 +370,53 @@ class RecurrenceValue extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// The Figma information symbol composes a provided circle asset and a text glyph.
+class RecurrenceNotice extends StatelessWidget {
+  const RecurrenceNotice({
+    super.key,
+    required this.child,
+    this.asset = 'recurrence_scope_vector.svg',
+    this.glyph = '!',
+    this.glyphColor = Colors.white,
+    this.highlighted = false,
+    this.bare = false,
+  });
+  final Widget child;
+  final String asset;
+  final String glyph;
+  final Color glyphColor;
+  final bool highlighted;
+  final bool bare;
+  @override
+  Widget build(BuildContext context) {
+    final row = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 22,
+          height: 22,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SvgPicture.asset(asset, package: 'assets'),
+              Text(
+                glyph,
+                style: TextStyle(
+                  fontSize: 15,
+                  height: 1.1,
+                  fontWeight: FontWeight.w700,
+                  color: glyphColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: child),
+      ],
+    );
+    return bare ? row : RecurrencePanel(highlighted: highlighted, child: row);
+  }
 }

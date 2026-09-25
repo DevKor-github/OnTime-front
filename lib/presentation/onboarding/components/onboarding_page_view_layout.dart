@@ -8,12 +8,14 @@ class OnboardingPageViewLayout extends StatefulWidget {
     this.subTitle,
     this.hint,
     required this.child,
+    this.contentSpacing = 18,
   });
 
   final String title;
   final String? hint;
   final RichText? subTitle;
   final Widget child;
+  final double contentSpacing;
 
   @override
   State<OnboardingPageViewLayout> createState() =>
@@ -23,24 +25,31 @@ class OnboardingPageViewLayout extends StatefulWidget {
 class _OnboardingPageViewLayoutState extends State<OnboardingPageViewLayout> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 27.0,
-              horizontal: 8.0,
-            ),
-            child: OnboardingTitle(
-              title: widget.title,
-              subTitle: widget.subTitle,
-              hint: widget.hint,
+    return LayoutBuilder(
+      builder: (context, constraints) => Column(
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: constraints.maxHeight * .6),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: 40,
+                  bottom: widget.contentSpacing,
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OnboardingTitle(
+                    title: widget.title,
+                    subTitle: widget.subTitle,
+                    hint: widget.hint,
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-        Expanded(child: widget.child),
-      ],
+          Expanded(child: widget.child),
+        ],
+      ),
     );
   }
 }

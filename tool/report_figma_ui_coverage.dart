@@ -136,6 +136,23 @@ void main(List<String> args) {
     'pending ${variantCounts['pending'] ?? 0}, '
     'excluded ${variantCounts['excluded'] ?? 0}.',
   );
+  final designOnlyNodes = manifest['design_only_nodes'] as YamlList?;
+  final unmappedIds = <String>{};
+  for (final value in designOnlyNodes ?? <Object>[]) {
+    final node = value as YamlMap;
+    final id = node['figma_node'] as String?;
+    if (id == null ||
+        !RegExp(r'^\d+:\d+$').hasMatch(id) ||
+        !unmappedIds.add(id) ||
+        node['status'] != 'unmapped' ||
+        node['reason'] == null) {
+      failures.add('Invalid or unexplained design-only node: $id');
+    }
+  }
+  stdout.writeln(
+    'Design-only states without an app route: ${unmappedIds.length}. '
+    'These are not counted as reviewed app UI; strict mode checks mapped routes.',
+  );
   if (strict &&
       (counts['pending'] ?? 0) +
               (counts['in_progress'] ?? 0) +

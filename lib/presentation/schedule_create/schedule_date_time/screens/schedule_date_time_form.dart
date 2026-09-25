@@ -4,6 +4,7 @@ import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:on_time_front/presentation/schedule_create/bloc/schedule_form_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
@@ -52,14 +53,18 @@ class ScheduleDateTimeForm extends StatelessWidget {
             const SizedBox(height: 16),
             TextField(
               readOnly: true,
+              style: const TextStyle(fontSize: 13),
               decoration: InputDecoration(
                 filled: true,
+                isDense: true,
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                contentPadding: const EdgeInsets.symmetric(vertical: 9),
                 labelStyle: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: Color(0xFF545454),
                 ),
                 floatingLabelStyle: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: Color(0xFF545454),
                 ),
                 fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -71,9 +76,23 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   borderSide: BorderSide.none,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                prefixIcon: const Icon(Icons.calendar_today_outlined, size: 24),
-                suffixIcon: const Icon(Icons.chevron_right, size: 20),
-                labelText: AppLocalizations.of(context)!.appointmentTime,
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 17),
+                  child: SvgPicture.asset(
+                    'recurrence_date_time_calendar.svg',
+                    package: 'assets',
+                  ),
+                ),
+                prefixIconConstraints: const BoxConstraints(minWidth: 55),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: SvgPicture.asset(
+                    'recurrence_date_time_chevron.svg',
+                    package: 'assets',
+                  ),
+                ),
+                suffixIconConstraints: const BoxConstraints(minWidth: 30),
+                labelText: recurrenceText(context, '날짜', 'Date'),
                 hintText: _localizedDateString(context, DateTime.now()),
                 hintStyle: fadedHintStyle,
               ),
@@ -103,14 +122,18 @@ class ScheduleDateTimeForm extends StatelessWidget {
             const SizedBox(height: 8),
             TextField(
               readOnly: true,
+              style: const TextStyle(fontSize: 13),
               decoration: InputDecoration(
                 filled: true,
+                isDense: true,
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                contentPadding: const EdgeInsets.symmetric(vertical: 9),
                 labelStyle: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: Color(0xFF545454),
                 ),
                 floatingLabelStyle: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: Color(0xFF545454),
                 ),
                 fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -122,8 +145,22 @@ class ScheduleDateTimeForm extends StatelessWidget {
                   borderSide: BorderSide.none,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                prefixIcon: const Icon(Icons.schedule, size: 24),
-                suffixIcon: const Icon(Icons.chevron_right, size: 20),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 17),
+                  child: SvgPicture.asset(
+                    'recurrence_date_time_clock.svg',
+                    package: 'assets',
+                  ),
+                ),
+                prefixIconConstraints: const BoxConstraints(minWidth: 55),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: SvgPicture.asset(
+                    'recurrence_date_time_chevron.svg',
+                    package: 'assets',
+                  ),
+                ),
+                suffixIconConstraints: const BoxConstraints(minWidth: 30),
                 labelText: recurrenceText(context, '시간', 'Time'),
                 hintText: DateFormat.jm(
                   Localizations.localeOf(context).toString(),
@@ -157,52 +194,68 @@ class ScheduleDateTimeForm extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             if (form.originalSchedule == null || form.recurrenceRule != null)
-              RecurrenceValue(
-                label: recurrenceText(context, '반복 설정', 'Repeat'),
-                icon: Icons.repeat,
-                value: form.recurrenceRule == null
-                    ? recurrenceText(context, '반복 안 함', 'Does not repeat')
-                    : recurrenceLabel(context, form.recurrenceRule!),
-                onTap: state.selectedScheduleDateTime == null
-                    ? null
-                    : () async {
-                        final bloc = context.read<ScheduleFormBloc>();
-                        final cubit = context.read<ScheduleDateTimeCubit>();
-                        final selected =
-                            await showModalBottomSheet<
-                              RecurrenceSettingsResult
-                            >(
-                              context: context,
-                              isScrollControlled: true,
-                              useSafeArea: true,
-                              builder: (context) => SizedBox(
-                                height: MediaQuery.sizeOf(context).height * .94,
-                                child: RecurrenceSettingsSheet(
-                                  start: state.selectedScheduleDateTime!,
-                                  timeZoneId: form.timeZoneId,
-                                  initial: form.recurrenceRule,
-                                  allowNone: form.originalSchedule == null,
-                                  leadTime:
-                                      form.totalPreparationTime +
-                                      (form.moveTime ?? Duration.zero) +
-                                      (form.scheduleSpareTime ?? Duration.zero),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    recurrenceText(context, '반복 설정', 'Repeat'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  RecurrenceValue(
+                    compact: true,
+                    label: recurrenceText(context, '반복 설정', 'Repeat'),
+                    asset: 'recurrence_date_time_repeat.svg',
+                    value: form.recurrenceRule == null
+                        ? recurrenceText(context, '반복 안 함', 'Does not repeat')
+                        : recurrencePatternLabel(context, form.recurrenceRule!),
+                    onTap: state.selectedScheduleDateTime == null
+                        ? null
+                        : () async {
+                            final bloc = context.read<ScheduleFormBloc>();
+                            final cubit = context.read<ScheduleDateTimeCubit>();
+                            final selected =
+                                await showModalBottomSheet<
+                                  RecurrenceSettingsResult
+                                >(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  useSafeArea: true,
+                                  builder: (context) => SizedBox(
+                                    height:
+                                        MediaQuery.sizeOf(context).height * .94,
+                                    child: RecurrenceSettingsSheet(
+                                      start: state.selectedScheduleDateTime!,
+                                      timeZoneId: form.timeZoneId,
+                                      initial: form.recurrenceRule,
+                                      allowNone: form.originalSchedule == null,
+                                      leadTime:
+                                          form.totalPreparationTime +
+                                          (form.moveTime ?? Duration.zero) +
+                                          (form.scheduleSpareTime ??
+                                              Duration.zero),
+                                    ),
+                                  ),
+                                );
+                            if (selected != null &&
+                                !bloc.isClosed &&
+                                !cubit.isClosed) {
+                              bloc.add(
+                                ScheduleFormRecurringChanged(
+                                  selected.rule,
+                                  countChanged:
+                                      form.recurrenceCountChanged ||
+                                      selected.countChanged,
                                 ),
-                              ),
-                            );
-                        if (selected != null &&
-                            !bloc.isClosed &&
-                            !cubit.isClosed) {
-                          bloc.add(
-                            ScheduleFormRecurringChanged(
-                              selected.rule,
-                              countChanged:
-                                  form.recurrenceCountChanged ||
-                                  selected.countChanged,
-                            ),
-                          );
-                          cubit.setRecurring(selected.rule != null);
-                        }
-                      },
+                              );
+                              cubit.setRecurring(selected.rule != null);
+                            }
+                          },
+                  ),
+                ],
               ),
             if (state.isRecurring && form.recurrenceRule != null) ...[
               const SizedBox(height: 16),
@@ -218,7 +271,10 @@ class ScheduleDateTimeForm extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(recurrenceLabel(context, form.recurrenceRule!)),
+                    Text(
+                      '${recurrencePatternLabel(context, form.recurrenceRule!)}, ${recurrenceEndLabel(context, form.recurrenceRule!)}',
+                      style: const TextStyle(fontSize: 12, height: 1.8),
+                    ),
                     const SizedBox(height: 14),
                     Text(
                       recurrenceText(context, '첫 일정 날짜', 'First occurrence'),
@@ -339,7 +395,7 @@ String _occurrenceLabel(BuildContext context, int index, int offsetSeconds) {
 String _localizedDateString(BuildContext context, DateTime date) {
   final locale = Localizations.localeOf(context).languageCode;
   if (locale == 'ko') {
-    return DateFormat('yyyy년 MM월 dd일', 'ko').format(date);
+    return DateFormat('yyyy년 M월 d일 (E)', 'ko').format(date);
   } else {
     return DateFormat(
       'yyyy.MM.dd.',

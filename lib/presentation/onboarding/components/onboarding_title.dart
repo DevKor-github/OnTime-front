@@ -20,9 +20,14 @@ class OnboardingTitle extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         RichText(
+          textScaler: MediaQuery.textScalerOf(context),
           text: TextSpan(
             text: title,
-            style: textTheme.titleLarge,
+            style: textTheme.titleLarge?.copyWith(
+              fontSize: 24,
+              height: 1.4,
+              fontWeight: FontWeight.w500,
+            ),
             children: hint != null
                 ? [
                     TextSpan(
@@ -35,8 +40,10 @@ class OnboardingTitle extends StatelessWidget {
                 : [],
           ),
         ),
-        SizedBox(height: 8.0),
-        subTitle ?? const SizedBox.shrink(),
+        if (subTitle != null) ...[
+          const SizedBox(height: 7),
+          SizedBox(width: double.infinity, child: subTitle!),
+        ],
       ],
     );
   }

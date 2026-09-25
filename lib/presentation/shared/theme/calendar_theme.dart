@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -66,13 +67,16 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
         leftChevronVisible: false,
         rightChevronVisible: false,
         headerPadding: EdgeInsets.zero,
-        leftChevronIcon: Icon(
-          Icons.chevron_left,
-          color: colorScheme.outlineVariant,
+        leftChevronIcon: RotatedBox(
+          quarterTurns: 2,
+          child: SvgPicture.asset(
+            'calendar_month_arrow.svg',
+            package: 'assets',
+          ),
         ),
-        rightChevronIcon: Icon(
-          Icons.chevron_right,
-          color: colorScheme.outlineVariant,
+        rightChevronIcon: SvgPicture.asset(
+          'calendar_month_arrow.svg',
+          package: 'assets',
         ),
         titleTextStyle: textTheme.titleMedium!,
       ),
@@ -86,8 +90,9 @@ class CalendarTheme extends ThemeExtension<CalendarTheme> {
         weekendTextStyle: textTheme.bodyLarge!,
         defaultTextStyle: textTheme.bodyLarge!,
         cellMargin: const EdgeInsets.all(2.0),
-        markerDecoration: BoxDecoration(
-          color: colorScheme.primary,
+        markerSize: 6,
+        markerDecoration: const BoxDecoration(
+          color: Color(0xff4f69df),
           shape: BoxShape.circle,
         ),
         markerMargin: const EdgeInsets.symmetric(horizontal: 1.0),

@@ -66,7 +66,7 @@ void main() {
     expect(calendarTheme.calendarStyle.outsideDaysVisible, isFalse);
     expect(
       calendarTheme.calendarStyle.markerDecoration,
-      BoxDecoration(color: colorScheme.primary, shape: BoxShape.circle),
+      const BoxDecoration(color: Color(0xff4f69df), shape: BoxShape.circle),
     );
     expect(
       calendarTheme.daysOfWeekStyle.dowTextFormatter!.call(

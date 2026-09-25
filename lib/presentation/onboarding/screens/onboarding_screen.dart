@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:on_time_front/core/di/di_setup.dart';
+import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/screens/preparation_order_form.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/cubit/preparation_name/preparation_name_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_name_select/screens/preparation_name_form.dart';
@@ -13,7 +14,6 @@ import 'package:on_time_front/presentation/onboarding/schedule_spare_time/screen
 import 'package:on_time_front/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:on_time_front/presentation/onboarding/preparation_order/cubit/preparation_order_cubit.dart';
 import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
-import 'package:on_time_front/presentation/shared/components/step_progress.dart';
 import 'package:on_time_front/presentation/shared/components/two_action_dialog.dart';
 import 'package:on_time_front/l10n/app_localizations.dart';
 
@@ -24,7 +24,12 @@ class OnboardingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => getIt.get<OnboardingCubit>(),
-      child: Scaffold(resizeToAvoidBottomInset: false, body: _OnboardingForm()),
+      child: const RefreshTheme(
+        child: Scaffold(
+          resizeToAvoidBottomInset: false,
+          body: _OnboardingForm(),
+        ),
+      ),
     );
   }
 }
@@ -66,7 +71,12 @@ class _OnboardingFormState extends State<_OnboardingForm>
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          12,
+          16,
+          13 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: MultiBlocProvider(
           providers: [
             BlocProvider<PreparationNameCubit>(
@@ -111,25 +121,34 @@ class _OnboardingFormState extends State<_OnboardingForm>
                       ],
                     ),
                   ),
-                  SizedBox(
-                    height: 58,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed:
-                          !_isSubmitting &&
-                              context.select(
-                                (OnboardingCubit cubit) => cubit.state.isValid,
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0)
+                    SizedBox(
+                      height: 58,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                        ),
+                        onPressed:
+                            !_isSubmitting &&
+                                context.select(
+                                  (OnboardingCubit cubit) =>
+                                      cubit.state.isValid,
+                                )
+                            ? () => _onNextPageButtonClicked(context)
+                            : null,
+                        child: _isSubmitting
+                            ? const SizedBox.square(
+                                dimension: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
-                          ? () => _onNextPageButtonClicked(context)
-                          : null,
-                      child: _isSubmitting
-                          ? const SizedBox.square(
-                              dimension: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(AppLocalizations.of(context)!.next),
+                            : Text(AppLocalizations.of(context)!.next),
+                      ),
                     ),
-                  ),
                 ],
               );
             },
@@ -207,7 +226,7 @@ class _OnboardingFormState extends State<_OnboardingForm>
 }
 
 class _AppBar extends StatelessWidget {
-  _AppBar({
+  const _AppBar({
     required this.tabController,
     required this.onUpdateCurrentPageIndex,
   });
@@ -215,43 +234,96 @@ class _AppBar extends StatelessWidget {
   final TabController tabController;
   final void Function(int) onUpdateCurrentPageIndex;
 
-  final SvgPicture _previousIcon = SvgPicture.asset(
-    'chevron_left.svg',
-    package: 'assets',
-    semanticsLabel: 'Previous Icon',
-    fit: BoxFit.contain,
-  );
-
   @override
-  Widget build(BuildContext context) {
-    const double iconButtonSize = 32.0;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        SizedBox(
-          width: iconButtonSize,
-          height: iconButtonSize,
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              onUpdateCurrentPageIndex(tabController.index - 1);
-            },
-            icon: _previousIcon,
-          ),
-        ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: StepProgress(
-              currentStep: tabController.index,
-              totalSteps: tabController.length,
+  Widget build(BuildContext context) => SizedBox(
+    height: 39,
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: -8,
+          top: -4,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: IconButton(
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+              onPressed: () =>
+                  onUpdateCurrentPageIndex(tabController.index - 1),
+              icon: SvgPicture.asset(
+                'chevron_left.svg',
+                package: 'assets',
+                width: 8,
+                height: 14,
+                colorFilter: const ColorFilter.mode(
+                  Colors.black,
+                  BlendMode.srcIn,
+                ),
+              ),
             ),
           ),
         ),
-        SizedBox(width: iconButtonSize),
+        Positioned.fill(
+          left: 20,
+          child: Center(
+            child: Semantics(
+              label: 'STEP ${tabController.index + 1} / 4',
+              child: ExcludeSemantics(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var i = 0; i < 3; i++) ...[
+                            SvgPicture.asset(
+                              'assets/design/onboarding_progress_${i < tabController.index
+                                  ? 'complete'
+                                  : i == tabController.index
+                                  ? 'current'
+                                  : 'pending'}.svg',
+                              width: 74,
+                              height: 11,
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          SvgPicture.asset(
+                            'assets/design/onboarding_progress_last_${tabController.index == 3 ? 'current' : 'pending'}.svg',
+                            width: 11,
+                            height: 11,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 9),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var i = 0; i < 4; i++) ...[
+                            if (i > 0) const SizedBox(width: 38),
+                            Text(
+                              'STEP ${i + 1}',
+                              textScaler: TextScaler.noScaling,
+                              style: TextStyle(
+                                fontSize: 12,
+                                height: 1.4,
+                                color: i <= tabController.index
+                                    ? const Color(0xFF4F69DF)
+                                    : const Color(0xFF949494),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
-    );
-  }
+    ),
+  );
 }

@@ -38,6 +38,7 @@ void main() {
     ScheduleEntity? customSchedule,
     Duration? preparationTime,
     bool isEarlyStarted = false,
+    double textScale = 1,
   }) async {
     final targetSchedule = customSchedule ?? schedule;
     await tester.pumpWidget(
@@ -45,13 +46,21 @@ void main() {
         bundle: _FakeSvgAssetBundle(),
         child: MaterialApp(
           locale: const Locale('en'),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: ScheduleDetail(
-              schedule: targetSchedule,
-              preparationTime: preparationTime,
-              isEarlyStarted: isEarlyStarted,
+            body: SingleChildScrollView(
+              child: ScheduleDetail(
+                schedule: targetSchedule,
+                preparationTime: preparationTime,
+                isEarlyStarted: isEarlyStarted,
+              ),
             ),
           ),
         ),
@@ -79,7 +88,7 @@ void main() {
       if (radius is! BorderRadius) {
         return false;
       }
-      return radius.topLeft.x == 12 && decoration.color != null;
+      return radius.topLeft.x == 8 && decoration.color != null;
     });
 
     expect(actionContainers, findsWidgets);
@@ -102,7 +111,7 @@ void main() {
       if (radius is! BorderRadius) {
         return false;
       }
-      return radius.topLeft.x == 12 && decoration.color != null;
+      return radius.topLeft.x == 8 && decoration.color != null;
     });
 
     return actionContainers.evaluate().length;
@@ -135,6 +144,27 @@ void main() {
     expect(preparationY, lessThan(spareY));
   });
 
+  testWidgets(
+    'expanded schedule remains readable on narrow screen at 2x text',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 640);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await pumpScheduleDetail(
+        tester,
+        textScale: 2,
+        preparationTime: const Duration(minutes: 20),
+      );
+      await tester.tap(find.text('Design Review'));
+      await tester.pumpAndSettle();
+      expect(find.text('Travel Time'), findsOneWidget);
+      expect(find.text('Preparation Time'), findsOneWidget);
+      expect(find.text('20 minutes'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('preparation fallback is shown as dash when unavailable', (
     tester,
   ) async {
@@ -164,7 +194,7 @@ void main() {
         tester,
         preparationTime: const Duration(minutes: 20),
       );
-      await tester.tap(find.byType(ListTile));
+      await tester.tap(find.text('Design Review'));
       await tester.pumpAndSettle();
       expect(find.text('Travel Time'), findsOneWidget);
       await openTrailingActions(tester);
@@ -181,7 +211,7 @@ void main() {
 
     expect(find.text('Design Review'), findsOneWidget);
     expect(find.text('Office'), findsOneWidget);
-    expect(find.text('09:00'), findsOneWidget);
+    expect(find.text('9:00'), findsOneWidget);
 
     final updatedSchedule = ScheduleEntity(
       id: 'schedule-1',
@@ -202,7 +232,7 @@ void main() {
     expect(find.text('10:30'), findsOneWidget);
     expect(find.text('Design Review'), findsNothing);
     expect(find.text('Office'), findsNothing);
-    expect(find.text('09:00'), findsNothing);
+    expect(find.text('9:00'), findsNothing);
   });
 
   testWidgets('edit action is available before preparation starts', (

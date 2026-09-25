@@ -149,7 +149,7 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 27.0),
+            padding: const EdgeInsets.only(bottom: 25.0),
             child: SizedBox(
               height: 56,
               child: Row(
@@ -158,16 +158,17 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
                 children: [
                   _BottomNavDestination(
                     selected: currentLocation == '/home',
-                    color: colorScheme.primary,
-                    unselectedColor: colorScheme.onPrimaryContainer,
+                    color: const Color(0xff111111),
+                    unselectedColor: const Color(0xff111111),
                     label: AppLocalizations.of(context)!.home,
                     onTap: () => onDestinationSelected(0),
                     child: const _HomeIcon(),
                   ),
+                  const SizedBox(width: 70),
                   _BottomNavDestination(
                     selected: currentLocation == '/myPage',
-                    color: colorScheme.primary,
-                    unselectedColor: colorScheme.onPrimaryContainer,
+                    color: const Color(0xff111111),
+                    unselectedColor: const Color(0xff111111),
                     label: AppLocalizations.of(context)!.myPage,
                     onTap: () => onDestinationSelected(1),
                     child: const _MyIcon(),
@@ -198,6 +199,7 @@ class _BottomNavigationBarScaffoldState extends State<BottomNavBarScaffold> {
             //   context.go('/scheduleCreate');
             // },
             style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xff4f69df),
               shape: CircleBorder(),
               padding: EdgeInsets.all(13),
             ),
@@ -261,12 +263,11 @@ class _HomeIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconTheme = IconTheme.of(context);
     return SvgPicture.asset(
-      'Home.svg',
+      'home_nav_home.svg',
       package: 'assets',
       semanticsLabel: AppLocalizations.of(context)!.home,
       height: iconTheme.size,
       fit: BoxFit.contain,
-      colorFilter: ColorFilter.mode(iconTheme.color!, BlendMode.srcIn),
     );
   }
 }
@@ -278,12 +279,11 @@ class _MyIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconTheme = IconTheme.of(context);
     return SvgPicture.asset(
-      'My.svg',
+      'home_nav_my.svg',
       package: 'assets',
       semanticsLabel: AppLocalizations.of(context)!.myPage,
       height: iconTheme.size,
       fit: BoxFit.contain,
-      colorFilter: ColorFilter.mode(iconTheme.color!, BlendMode.srcIn),
     );
   }
 }
@@ -294,7 +294,7 @@ class _PlusIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SvgPicture.asset(
-      'Plus.svg',
+      'home_nav_add.svg',
       package: 'assets',
       semanticsLabel: AppLocalizations.of(context)!.plus,
       height: 50,

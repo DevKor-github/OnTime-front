@@ -9,12 +9,45 @@ import 'package:on_time_front/presentation/shared/theme/theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/visual_test_fonts.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadVisualTestFonts);
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
+
+  testWidgets(
+    'notification rationale matches the app-owned Figma request surface',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.padding = FakeViewPadding(top: 44, bottom: 21);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetPadding);
+      final harness = await _pumpNotificationAllowScreen(
+        tester,
+        locale: const Locale('ko'),
+        permissionGateway: _FakePermissionGateway(
+          currentStatus: AuthorizationStatus.notDetermined,
+        ),
+      );
+      addTearDown(harness.dispose);
+      await expectLater(
+        find.byType(Scaffold),
+        matchesGoldenFile(
+          '../../goldens/goldens/notification_permission_390x844.png',
+        ),
+      );
+      final semantics = tester.ensureSemantics();
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      semantics.dispose();
+    },
+  );
 
   testWidgets('shows English schedule preparation reminder rationale', (
     tester,
@@ -212,6 +245,7 @@ Future<_NotificationAllowHarness> _pumpNotificationAllowScreen(
   await tester.pumpWidget(
     MaterialApp.router(
       theme: themeData,
+      debugShowCheckedModeBanner: false,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

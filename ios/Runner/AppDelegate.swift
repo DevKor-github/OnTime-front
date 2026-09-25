@@ -14,6 +14,7 @@ private let onTimeAlarmLaunchURLHost = "alarm"
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private static weak var current: AppDelegate?
   private var nativeAlarmChannel: FlutterMethodChannel?
+  private let backupExporter = OnTimeBackupExporter()
 
   override func application(
     _ application: UIApplication,
@@ -35,6 +36,21 @@ private let onTimeAlarmLaunchURLHost = "alarm"
     nativeAlarmChannel = channel
     channel.setMethodCallHandler { call, result in
       self.handleNativeAlarmCall(call, result: result)
+    }
+    let backupChannel = FlutterMethodChannel(
+      name: "on_time_front/backup_files",
+      binaryMessenger: engineBridge.applicationRegistrar.messenger()
+    )
+    backupChannel.setMethodCallHandler { [weak self] call, result in
+      guard call.method == "exportBackup" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      guard let self = self else {
+        result(FlutterError(code: "unavailable", message: "Application unavailable", details: nil))
+        return
+      }
+      self.backupExporter.export(call.arguments, result: result)
     }
   }
 
@@ -456,3 +472,80 @@ private func deterministicAlarmUUID(_ scheduleId: String) -> UUID {
   ))
 }
 #endif
+
+/// Exports only the encrypted portable container through the system Files UI.
+private final class OnTimeBackupExporter: NSObject, UIDocumentPickerDelegate,
+  UIAdaptivePresentationControllerDelegate {
+  private var pendingResult: FlutterResult?
+  private var temporaryDirectory: URL?
+
+  func export(_ arguments: Any?, result: @escaping FlutterResult) {
+    guard pendingResult == nil else {
+      result(FlutterError(code: "busy", message: "A backup export is already open", details: nil))
+      return
+    }
+    guard let args = arguments as? [String: Any],
+          let bytes = args["bytes"] as? FlutterStandardTypedData,
+          !bytes.data.isEmpty,
+          let name = args["suggestedName"] as? String,
+          (name as NSString).lastPathComponent == name,
+          name.hasSuffix(".ontimebackup") else {
+      result(FlutterError(code: "invalidArguments", message: "Invalid backup export", details: nil))
+      return
+    }
+    let window = UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .filter { $0.activationState == .foregroundActive }
+      .flatMap { $0.windows }
+      .first { $0.isKeyWindow }
+    guard var presenter = window?.rootViewController else {
+      result(FlutterError(code: "unavailable", message: "No active application window", details: nil))
+      return
+    }
+    while let presented = presenter.presentedViewController {
+      presenter = presented
+    }
+    guard !presenter.isBeingDismissed else {
+      result(FlutterError(code: "busy", message: "Application is dismissing a dialog", details: nil))
+      return
+    }
+    pendingResult = result
+    do {
+      let directory = FileManager.default.temporaryDirectory
+        .appendingPathComponent("ontime-export-\(UUID().uuidString)", isDirectory: true)
+      temporaryDirectory = directory
+      try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+      let file = directory.appendingPathComponent(name)
+      try bytes.data.write(to: file, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
+      let picker = UIDocumentPickerViewController(forExporting: [file], asCopy: true)
+      picker.delegate = self
+      picker.modalPresentationStyle = .formSheet
+      picker.presentationController?.delegate = self
+      presenter.present(picker, animated: true)
+    } catch {
+      finish(FlutterError(code: "exportFailed", message: "Could not prepare backup file", details: nil))
+    }
+  }
+
+  func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    finish(!urls.isEmpty)
+  }
+
+  func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+    finish(false)
+  }
+
+  func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
+    finish(false)
+  }
+
+  private func finish(_ value: Any?) {
+    let result = pendingResult
+    pendingResult = nil
+    if let directory = temporaryDirectory {
+      try? FileManager.default.removeItem(at: directory)
+    }
+    temporaryDirectory = nil
+    result?(value)
+  }
+}

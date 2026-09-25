@@ -545,12 +545,12 @@ void main() {
     for (var i = 0; i < 3; i++) {
       await tester.tap(find.byType(TextField).first);
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
+      await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(TextField).at(1));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
+      await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     }
 

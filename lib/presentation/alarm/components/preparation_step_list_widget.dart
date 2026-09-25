@@ -35,31 +35,28 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
     for (int i = 0; i < widget.preparationSteps.length; i++) {
       _tileKeys[i] = GlobalKey();
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _scrollToCurrentStep(widget.currentStepIndex);
+    });
   }
 
   @override
   void didUpdateWidget(covariant PreparationStepListWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    for (int i = 0; i < widget.preparationSteps.length; i++) {
+      _tileKeys.putIfAbsent(i, GlobalKey.new);
+    }
     if (oldWidget.currentStepIndex != widget.currentStepIndex) {
       _scrollToCurrentStep(widget.currentStepIndex);
     }
   }
 
   Future<void> _scrollToCurrentStep(int currentStepIndex) async {
-    if (currentStepIndex > 1) {
-      final key = _tileKeys[currentStepIndex - 1];
+    if (currentStepIndex > 0) {
+      final key = _tileKeys[currentStepIndex];
       if (key?.currentContext != null) {
-        final RenderBox box =
-            key!.currentContext!.findRenderObject() as RenderBox;
-        final double targetOffset =
-            box.localToGlobal(Offset.zero).dy +
-            _scrollController.offset -
-            (MediaQuery.of(context).size.height / 2) +
-            (box.size.height / 2) -
-            50;
-
-        await _scrollController.animateTo(
-          targetOffset,
+        await Scrollable.ensureVisible(
+          key!.currentContext!,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
@@ -68,12 +65,20 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Center(
+    return Align(
+      alignment: Alignment.topLeft,
       child: SizedBox(
-        width: 329,
+        width: 358,
         child: ListView.builder(
           controller: _scrollController,
+          padding: EdgeInsets.zero,
           itemCount: widget.preparationSteps.length,
           itemBuilder: (context, index) {
             final preparation = widget.preparationSteps[index];
@@ -87,6 +92,10 @@ class _PreparationStepListWidgetState extends State<PreparationStepListWidget> {
               ),
               isLastItem: index == widget.preparationSteps.length - 1,
               stepElapsedTime: widget.stepElapsedTimes[index],
+              stepRemainingTime:
+                  (preparation.preparationTime.inSeconds -
+                          widget.stepElapsedTimes[index])
+                      .clamp(0, preparation.preparationTime.inSeconds),
               preparationStepState: widget.preparationStepStates[index],
               onSkip: () => widget.onSkip(),
             );

@@ -236,8 +236,24 @@ void main() {
         );
         await tester.tap(find.text('다음'));
         await tester.pumpAndSettle();
-        if (step == 0) await captureRefresh(tester, 'date-time');
-        if (step == 2) await captureRefresh(tester, 'preparation');
+        if (step == 0) {
+          await captureRefresh(tester, 'date-time');
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile(
+              '../../goldens/goldens/recurring_date_time_390x844.png',
+            ),
+          );
+        }
+        if (step == 2) {
+          await captureRefresh(tester, 'preparation');
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile(
+              '../../goldens/goldens/recurring_preparation_390x844.png',
+            ),
+          );
+        }
       }
       expect(find.text('검토하기'), findsOneWidget);
       final reviewed = bloc.stream.firstWhere(

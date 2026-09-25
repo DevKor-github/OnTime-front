@@ -21,21 +21,36 @@ class _PreparationTimeFormState extends State<PreparationTimeForm> {
 
   @override
   Widget build(BuildContext context) {
-    return OnboardingPageViewLayout(
-      title: AppLocalizations.of(context)!.preparationTimeTitle,
-      child: BlocBuilder<PreparationTimeCubit, PreparationTimeState>(
-        builder: (context, state) {
-          return PreparationTimeInputFieldList(
+    return BlocBuilder<PreparationTimeCubit, PreparationTimeState>(
+      builder: (context, state) {
+        final total = state.preparationTimeList.fold<int>(
+          0,
+          (sum, step) => sum + step.preparationTime.value.inMinutes,
+        );
+        return OnboardingPageViewLayout(
+          title: AppLocalizations.of(context)!.preparationTimeTitle,
+          contentSpacing: 12,
+          subTitle: RichText(
+            textAlign: TextAlign.right,
+            textScaler: MediaQuery.textScalerOf(context),
+            text: TextSpan(
+              text:
+                  '${AppLocalizations.of(context)!.totalTime}$total${Localizations.localeOf(context).languageCode == 'ko' ? '분' : ' min'}',
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                fontSize: 16,
+                height: 1.4,
+                color: Color(0xFF545454),
+              ),
+            ),
+          ),
+          child: PreparationTimeInputFieldList(
             preparationTimeList: state.preparationTimeList,
-            onPreparationTimeChanged: (index, value) {
-              context.read<PreparationTimeCubit>().preparationTimeChanged(
-                index,
-                value,
-              );
-            },
-          );
-        },
-      ),
+            onPreparationTimeChanged: (index, value) => context
+                .read<PreparationTimeCubit>()
+                .preparationTimeChanged(index, value),
+          ),
+        );
+      },
     );
   }
 }

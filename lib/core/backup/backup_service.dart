@@ -2,7 +2,7 @@ import 'package:on_time_front/core/backup/recurring_backup_data.dart';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
-import 'package:file_selector/file_selector.dart';
+import 'package:on_time_front/core/backup/backup_file_picker.dart';
 import 'package:injectable/injectable.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
 import 'package:on_time_front/core/constants/local_profile.dart';
@@ -63,31 +63,23 @@ class BackupService {
     this._database,
     this._metadataProvider, {
     @ignoreParam BackupCrypto? crypto,
-  }) : _crypto = crypto ?? BackupCrypto();
-
-  static const _typeGroup = XTypeGroup(
-    label: 'OnTime Backup',
-    extensions: ['ontimebackup'],
-    mimeTypes: ['application/octet-stream'],
-  );
+    @ignoreParam BackupFilePicker? filePicker,
+  }) : _crypto = crypto ?? BackupCrypto(),
+       _filePicker = filePicker ?? BackupFilePicker();
 
   final AppDatabase _database;
   final AppMetadataProvider _metadataProvider;
   final BackupCrypto _crypto;
+  final BackupFilePicker _filePicker;
 
   Future<bool> exportToUserSelectedFile(String password) async {
     final snapshot = await _captureSnapshot();
     final encrypted = await _encryptSnapshot(snapshot, password);
-    final location = await getSaveLocation(
-      acceptedTypeGroups: const [_typeGroup],
-      suggestedName: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
-    );
-    if (location == null) return false;
-    await XFile.fromData(
+    final saved = await _filePicker.save(
       encrypted,
-      name: 'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
-      mimeType: 'application/octet-stream',
-    ).saveTo(location.path);
+      'OnTime-${_fileDate(snapshot.cutoff)}.ontimebackup',
+    );
+    if (!saved) return false;
     await _database.userDao.markExported(
       userId: localProfileId,
       revision: snapshot.dataRevision,
@@ -99,9 +91,9 @@ class BackupService {
   Future<BackupRestoreCandidate?> selectAndPreviewRestore(
     String password,
   ) async {
-    final file = await openFile(acceptedTypeGroups: const [_typeGroup]);
-    if (file == null) return null;
-    return previewEncryptedBackup(await file.readAsBytes(), password);
+    final bytes = await _filePicker.select();
+    if (bytes == null) return null;
+    return previewEncryptedBackup(bytes, password);
   }
 
   /// Creates the same portable container used by the OS file export flow.

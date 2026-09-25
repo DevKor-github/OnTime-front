@@ -32,6 +32,7 @@ class _ScopeSheetState extends State<_ScopeSheet> {
       widget.deleting ? '삭제 범위' : '변경 범위',
       widget.deleting ? 'Delete scope' : 'Edit scope',
     ),
+    spacing: 10,
     footer: ScreenActions(
       action: recurrenceText(
         context,
@@ -43,9 +44,20 @@ class _ScopeSheetState extends State<_ScopeSheet> {
       onAction: () => Navigator.of(context).pop(_scope),
     ),
     children: [
-      Text(
-        recurrenceText(context, '어떤 일정까지 변경할지 선택해 주세요.', 'Which occurrences?'),
-        style: Theme.of(context).textTheme.titleLarge,
+      Padding(
+        padding: const EdgeInsets.only(top: 4, bottom: 11),
+        child: Text(
+          recurrenceText(
+            context,
+            '어떤 일정까지 변경할지 선택해 주세요.',
+            'Which occurrences?',
+          ),
+          style: const TextStyle(
+            fontSize: 14,
+            height: 1.6,
+            color: Color(0xff545454),
+          ),
+        ),
       ),
       for (final scope in RecurringEditScope.values)
         RecurrenceChoice(
@@ -68,15 +80,26 @@ class _ScopeSheetState extends State<_ScopeSheet> {
           selected: _scope == scope,
           onTap: () => setState(() => _scope = scope),
         ),
-      Text(
-        recurrenceText(
-          context,
-          widget.deleting
-              ? '이후 삭제에는 개별 수정한 회차도 포함돼요. 진행 중·과거 회차는 유지합니다.'
-              : '개별 수정한 항목과 진행 중·과거 회차는 유지합니다.',
-          widget.deleting
-              ? 'Following occurrences include individual edits. Active and historical occurrences are preserved.'
-              : 'Individual overrides, active preparations and history are preserved.',
+      Padding(
+        padding: const EdgeInsets.only(top: 16),
+        child: RecurrenceNotice(
+          bare: true,
+          child: Text(
+            recurrenceText(
+              context,
+              widget.deleting
+                  ? '이후 삭제에는 개별 수정한 회차도 포함돼요. 진행 중·과거 회차는 유지합니다.'
+                  : '이미 진행 중이거나 완료된 회차는 변경되지 않으며,\n이전에 개별적으로 수정한 항목도 그대로 유지됩니다.',
+              widget.deleting
+                  ? 'Following occurrences include individual edits. Active and historical occurrences are preserved.'
+                  : 'Individual overrides, active preparations and history are preserved.',
+            ),
+            style: const TextStyle(
+              fontSize: 12,
+              height: 1.6,
+              color: Color(0xff545454),
+            ),
+          ),
         ),
       ),
     ],

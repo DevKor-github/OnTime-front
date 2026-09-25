@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:on_time_front/presentation/recurring/recurrence_occurrence_sheet.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +29,7 @@ class _SwipeActionContent extends StatelessWidget {
       child: SizedBox.expand(
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             color: color,
           ),
           alignment: Alignment.center,
@@ -56,6 +58,7 @@ class ScheduleDetail extends StatefulWidget {
     required this.schedule,
     this.preparationTime,
     this.isEarlyStarted = false,
+    this.referenceDate,
     this.onDeleted,
     this.onEdit,
   });
@@ -63,8 +66,9 @@ class ScheduleDetail extends StatefulWidget {
   final ScheduleEntity schedule;
   final Duration? preparationTime;
   final bool isEarlyStarted;
+  final DateTime? referenceDate;
   final VoidCallback? onEdit;
-  final VoidCallback? onDeleted;
+  final FutureOr<void> Function()? onDeleted;
 
   final meatballsIcon = SvgPicture.asset('meatballs.svg', package: 'assets');
 
@@ -73,12 +77,10 @@ class ScheduleDetail extends StatefulWidget {
 }
 
 class _ScheduleDetailState extends State<ScheduleDetail> {
-  static const double _actionWidth = 96.0;
-  static const EdgeInsets _trailingActionMargin = EdgeInsets.only(
-    left: 4.0,
-    top: 4.0,
-    bottom: 4.0,
-  );
+  bool _expanded = false;
+
+  DateTime get _now => widget.referenceDate ?? DateTime.now();
+  double get _actionGap => _expanded ? 10 : 8;
 
   String get _scheduleRenderKey => [
     widget.schedule.id,
@@ -92,17 +94,19 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return SwipeActionCell(
-      key: ValueKey<String>(_scheduleRenderKey),
-      backgroundColor: Colors.transparent,
-      trailingActions: _buildSwipeActions(context),
-      child: _buildScheduleContent(context),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: SwipeActionCell(
+        key: ValueKey<String>(_scheduleRenderKey),
+        backgroundColor: Colors.transparent,
+        trailingActions: _buildSwipeActions(context),
+        child: _buildScheduleContent(context),
+      ),
     );
   }
 
   List<SwipeAction> _buildSwipeActions(BuildContext context) {
-    final theme = Theme.of(context);
-    final now = DateTime.now();
+    final now = _now;
     final canEdit =
         widget.schedule.doneStatus == ScheduleDoneStatus.notEnded &&
         !_hasPreparationStarted(now) &&
@@ -111,21 +115,21 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     return [
       if (canDelete)
         SwipeAction(
-          widthSpace: _actionWidth,
+          widthSpace: _expanded ? 92 : 94,
           onTap: (handler) async {
-            await handler(false);
-            widget.onDeleted?.call();
+            await widget.onDeleted?.call();
+            if (mounted) await handler(false);
           },
           color: Colors.transparent,
           content: _SwipeActionContent(
             icon: const _TrashCanSvg(),
-            color: theme.colorScheme.error,
-            margin: _trailingActionMargin,
+            color: const Color(0xffbf2e22),
+            margin: EdgeInsets.only(left: _actionGap, right: _expanded ? 0 : 4),
           ),
         ),
       if (canEdit)
         SwipeAction(
-          widthSpace: _actionWidth,
+          widthSpace: _expanded ? 92 : 90,
           onTap: (handler) async {
             await handler(false);
             widget.onEdit?.call();
@@ -133,8 +137,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
           color: Colors.transparent,
           content: _SwipeActionContent(
             icon: const _EditPencilSvg(),
-            color: theme.colorScheme.outline,
-            margin: _trailingActionMargin,
+            color: const Color(0xff545454),
+            margin: EdgeInsets.only(left: _actionGap),
           ),
         ),
     ];
@@ -160,219 +164,181 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 
   Widget _buildScheduleContent(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: _ScheduleTimeColumn(
-                  scheduleTime: widget.schedule.scheduleTime,
-                ),
-              ),
-              const _VerticalDivider(),
-              Expanded(
-                child: _ScheduleDetailsColumn(
-                  schedule: widget.schedule,
-                  placeName: widget.schedule.place.placeName,
-                  preparationTime: widget.preparationTime,
-                  onEdit:
-                      widget.schedule.doneStatus ==
-                              ScheduleDoneStatus.notEnded &&
-                          !_hasPreparationStarted(DateTime.now()) &&
-                          !widget.schedule.occurrenceInstantUtc.isBefore(
-                            DateTime.now().toUtc(),
-                          )
-                      ? widget.onEdit
-                      : null,
-                  onDelete:
-                      widget.schedule.doneStatus == ScheduleDoneStatus.notEnded
-                      ? widget.onDeleted
-                      : null,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ScheduleTimeColumn extends StatelessWidget {
-  const _ScheduleTimeColumn({required this.scheduleTime});
-
-  final DateTime scheduleTime;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final locale = AppLocalizations.of(context)!.localeName;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
+    final schedule = widget.schedule;
+    final canEdit =
+        schedule.doneStatus == ScheduleDoneStatus.notEnded &&
+        !_hasPreparationStarted(_now) &&
+        !schedule.occurrenceInstantUtc.isBefore(_now.toUtc());
+    final canDelete = schedule.doneStatus == ScheduleDoneStatus.notEnded;
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    final sourceLayout = textScale <= 1.01 && !schedule.isRecurring;
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          DateFormat.Hm(locale).format(scheduleTime),
-          style: theme.textTheme.titleSmall,
-          textAlign: TextAlign.center,
+          schedule.scheduleName,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontSize: 20,
+            height: 1.4,
+            fontWeight: FontWeight.w600,
+          ),
+          maxLines: sourceLayout ? 1 : null,
+          overflow: sourceLayout ? TextOverflow.ellipsis : null,
         ),
         const SizedBox(height: 4),
-        Text(
-          DateFormat('a', 'en').format(scheduleTime),
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
-          ),
-          textAlign: TextAlign.center,
+        Row(
+          children: [
+            const SizedBox(width: 18, height: 19, child: _MapPinFillSvg()),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                schedule.place.placeName,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: theme.colorScheme.outline,
+                ),
+                maxLines: sourceLayout ? 1 : null,
+                overflow: sourceLayout ? TextOverflow.ellipsis : null,
+              ),
+            ),
+          ],
         ),
+        if (schedule.isRecurring) ...[
+          Text(
+            recurrenceText(context, '반복 일정', 'Recurring schedule'),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          if (!schedule.isStarted &&
+              canDelete &&
+              schedule.occurrenceInstantUtc.isBefore(_now.toUtc()))
+            Text(
+              recurrenceText(context, '진행 기록 없음', 'No preparation recorded'),
+              style: theme.textTheme.bodySmall,
+            ),
+        ],
+        if (_expanded) ...[
+          const SizedBox(height: 16),
+          if (schedule.isRecurring)
+            TextButton(
+              onPressed: () => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                builder: (context) => SizedBox(
+                  height: MediaQuery.sizeOf(context).height * .94,
+                  child: RecurrenceOccurrenceSheet(
+                    schedule: schedule,
+                    onEdit: canEdit ? widget.onEdit : null,
+                    onDelete: canDelete ? widget.onDeleted : null,
+                  ),
+                ),
+              ),
+              child: Text(
+                recurrenceText(context, '이번 회차 보기', 'View occurrence'),
+              ),
+            ),
+          _ScheduleInfoTile(
+            label: AppLocalizations.of(context)!.travelTime,
+            value: formatDuration(context, schedule.moveTime),
+          ),
+          const SizedBox(height: 8),
+          _ScheduleInfoTile(
+            label: AppLocalizations.of(context)!.preparationTime,
+            value: widget.preparationTime == null
+                ? '-'
+                : formatDuration(context, widget.preparationTime!),
+          ),
+          const SizedBox(height: 8),
+          _ScheduleInfoTile(
+            label: AppLocalizations.of(context)!.spareTime,
+            value: formatDuration(
+              context,
+              schedule.scheduleSpareTime ?? Duration.zero,
+            ),
+          ),
+        ],
       ],
     );
-  }
-}
-
-class _ScheduleDetailsColumn extends StatelessWidget {
-  const _ScheduleDetailsColumn({
-    required this.schedule,
-    required this.placeName,
-    required this.preparationTime,
-    this.onEdit,
-    this.onDelete,
-  });
-
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
-  final ScheduleEntity schedule;
-  final String placeName;
-  final Duration? preparationTime;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          visualDensity: const VisualDensity(
-            vertical: VisualDensity.minimumDensity,
-          ),
-          listTileTheme: const ListTileThemeData(
-            dense: true,
-            minVerticalPadding: 0,
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        child: IconTheme(
-          data: IconTheme.of(context).copyWith(size: 32),
-          child: ExpansionTile(
-            shape: const Border(),
-            collapsedShape: const Border(),
-            iconColor:
-                theme.colorScheme.onSurfaceVariant, // Color when expanded
-            // icon size provided by IconTheme above
-            collapsedIconColor:
-                theme.colorScheme.onSurfaceVariant, // Color when collapsed
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  schedule.scheduleName,
-                  style: theme.textTheme.titleLarge,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (schedule.isRecurring)
-                  Text(
-                    recurrenceText(context, '반복 일정', 'Recurring schedule'),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                if (schedule.isRecurring &&
-                    !schedule.isStarted &&
-                    schedule.doneStatus == ScheduleDoneStatus.notEnded &&
-                    schedule.occurrenceInstantUtc.isBefore(
-                      DateTime.now().toUtc(),
-                    ))
-                  Text(
-                    recurrenceText(
-                      context,
-                      '진행 기록 없음',
-                      'No preparation recorded',
-                    ),
-                    style: theme.textTheme.bodySmall,
-                  ),
-              ],
+    return Material(
+      key: ValueKey('schedule_card_${schedule.id}'),
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        expanded: _expanded,
+        child: InkWell(
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: _expanded ? 192 : 82,
+              maxHeight: sourceLayout
+                  ? (_expanded ? 192 : 82)
+                  : double.infinity,
             ),
-            childrenPadding: const EdgeInsets.only(top: 16.0),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
+            child: IntrinsicHeight(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const _MapPinFillSvg(),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      placeName,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.outline,
+                  SizedBox(
+                    width: 70,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            DateFormat(
+                              'h:mm',
+                              'en',
+                            ).format(schedule.scheduleTime),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontSize: 16,
+                              height: 1.4,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            DateFormat('a', 'en').format(schedule.scheduleTime),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 13,
+                              height: 1.4,
+                              color: theme.colorScheme.outline,
+                            ),
+                          ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: _VerticalDivider(),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(21, 15, 12, 15),
+                      child: Row(
+                        children: [
+                          Expanded(child: details),
+                          const SizedBox(width: 8),
+                          RotatedBox(
+                            quarterTurns: _expanded ? 2 : 0,
+                            child: SvgPicture.asset(
+                              'calendar_chevron_down.svg',
+                              package: 'assets',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            children: [
-              if (schedule.isRecurring)
-                TextButton(
-                  onPressed: () => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    useSafeArea: true,
-                    builder: (context) => SizedBox(
-                      height: MediaQuery.sizeOf(context).height * .94,
-                      child: RecurrenceOccurrenceSheet(
-                        schedule: schedule,
-                        onEdit: onEdit,
-                        onDelete: onDelete,
-                      ),
-                    ),
-                  ),
-                  child: Text(
-                    recurrenceText(context, '이번 회차 보기', 'View occurrence'),
-                  ),
-                ),
-              Column(
-                children: [
-                  _ScheduleInfoTile(
-                    label: AppLocalizations.of(context)!.travelTime,
-                    value: formatDuration(context, schedule.moveTime),
-                  ),
-                  _ScheduleInfoTile(
-                    label: AppLocalizations.of(context)!.preparationTime,
-                    value: preparationTime == null
-                        ? '-'
-                        : formatDuration(context, preparationTime!),
-                  ),
-                  _ScheduleInfoTile(
-                    label: AppLocalizations.of(context)!.spareTime,
-                    value: formatDuration(
-                      context,
-                      schedule.scheduleSpareTime ?? Duration.zero,
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ),
         ),
       ),
@@ -382,41 +348,27 @@ class _ScheduleDetailsColumn extends StatelessWidget {
 
 class _ScheduleInfoTile extends StatelessWidget {
   const _ScheduleInfoTile({required this.label, required this.value});
-
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-    return Column(
+    final style = theme.textTheme.bodySmall?.copyWith(
+      fontSize: 13,
+      height: 1.4,
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 22.18,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 18,
-            children: [
-              Text(
-                label,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.outline,
-                ),
-              ),
-              Text(
-                value,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-            ],
+        Flexible(
+          child: Text(
+            label,
+            style: style?.copyWith(color: theme.colorScheme.outline),
           ),
         ),
+        const SizedBox(width: 18),
+        Flexible(child: Text(value, style: style)),
       ],
     );
   }
@@ -427,7 +379,7 @@ class _MapPinFillSvg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset('map_pin_fill.svg', package: 'assets');
+    return SvgPicture.asset('calendar_map_pin.svg', package: 'assets');
   }
 }
 
@@ -436,7 +388,7 @@ class _TrashCanSvg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset('trash_can.svg', package: 'assets');
+    return SvgPicture.asset('calendar_trash.svg', package: 'assets');
   }
 }
 
@@ -445,6 +397,6 @@ class _EditPencilSvg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset('edit_pencil.svg', package: 'assets');
+    return SvgPicture.asset('calendar_edit.svg', package: 'assets');
   }
 }

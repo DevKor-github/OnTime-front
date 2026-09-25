@@ -6,6 +6,7 @@ import 'package:on_time_front/domain/recurrence/recurring_schedule.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_time_front/core/backup/backup_crypto.dart';
+import 'package:on_time_front/core/backup/backup_file_picker.dart';
 import 'package:on_time_front/core/backup/backup_service.dart';
 import 'package:on_time_front/core/database/database.dart';
 import 'package:on_time_front/core/services/app_metadata_service.dart';
@@ -22,13 +23,16 @@ void main() {
   const password = 'portable backup password';
   late AppDatabase database;
   late BackupService service;
+  late _FilePicker filePicker;
 
   setUp(() async {
     database = AppDatabase.forTesting(NativeDatabase.memory());
+    filePicker = _FilePicker();
     service = BackupService(
       database,
       _MetadataProvider(),
       crypto: BackupCrypto(sodiumLoader: loadSodiumForTest),
+      filePicker: filePicker,
     );
     await database.userDao.putUser(
       const UserEntity(
@@ -58,6 +62,73 @@ void main() {
   });
 
   tearDown(() => database.close());
+
+  test(
+    'only completed OS export marks the encrypted snapshot as backed up',
+    () async {
+      expect(
+        (await service.getFreshness()).freshness,
+        BackupFreshness.neverExported,
+      );
+      filePicker.saved = false;
+      expect(await service.exportToUserSelectedFile(password), isFalse);
+      expect(
+        (await service.getFreshness()).freshness,
+        BackupFreshness.neverExported,
+      );
+      filePicker.saved = true;
+      expect(await service.exportToUserSelectedFile(password), isTrue);
+      expect(
+        (await service.getFreshness()).freshness,
+        BackupFreshness.noChanges,
+      );
+      expect(filePicker.name, matches(RegExp(r'^OnTime-.*\.ontimebackup$')));
+      final preview = await service.previewEncryptedBackup(
+        filePicker.bytes!,
+        password,
+      );
+      expect(preview.preview.scheduleCount, 1);
+      expect(
+        utf8.decode(filePicker.bytes!, allowMalformed: true),
+        isNot(contains('local note')),
+      );
+    },
+  );
+
+  test('failed OS export leaves backup freshness unchanged', () async {
+    filePicker.error = StateError('storage unavailable');
+    await expectLater(
+      service.exportToUserSelectedFile(password),
+      throwsStateError,
+    );
+    expect(
+      (await service.getFreshness()).freshness,
+      BackupFreshness.neverExported,
+    );
+  });
+
+  test(
+    'restore selection cancellation and preview never replace live data',
+    () async {
+      expect(await service.selectAndPreviewRestore(password), isNull);
+      filePicker.bytes = await service.createEncryptedBackup(password);
+      final candidate = await service.selectAndPreviewRestore(password);
+      expect(candidate!.preview.scheduleCount, 1);
+      expect(
+        (await database.scheduleDao.getScheduleList()).single.schedule.id,
+        'schedule-1',
+      );
+      filePicker.bytes = Uint8List.fromList([1, 2, 3]);
+      await expectLater(
+        service.selectAndPreviewRestore(password),
+        throwsA(isA<Exception>()),
+      );
+      expect(
+        (await database.scheduleDao.getScheduleList()).single.schedule.id,
+        'schedule-1',
+      );
+    },
+  );
 
   test(
     'preview authenticates backup and restore replaces active data',
@@ -242,4 +313,23 @@ class _MetadataProvider implements AppMetadataProvider {
   @override
   Future<AppMetadata> getMetadata() async =>
       const AppMetadata(version: '1.0.1', buildNumber: '1');
+}
+
+class _FilePicker extends BackupFilePicker {
+  _FilePicker() : super(isIOS: true);
+  bool saved = true;
+  Object? error;
+  Uint8List? bytes;
+  String? name;
+
+  @override
+  Future<bool> save(Uint8List encrypted, String suggestedName) async {
+    if (error != null) throw error!;
+    bytes = encrypted;
+    name = suggestedName;
+    return saved;
+  }
+
+  @override
+  Future<Uint8List?> select() async => bytes;
 }

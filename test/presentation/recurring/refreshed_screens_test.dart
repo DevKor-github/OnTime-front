@@ -293,8 +293,8 @@ void main() {
       await captureRefresh(tester, 'detail');
       expect(find.text('씻기'), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.text('반복 종료'),
-        200,
+        find.text('반복 종료').hitTestable(),
+        100,
         scrollable: find.byType(Scrollable).last,
       );
       await tester.tap(find.text('반복 종료'));

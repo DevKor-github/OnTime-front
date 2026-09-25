@@ -120,6 +120,8 @@
         "description": "Button text to continue preparing"
     },
     "finishPreparation": "Finish Preparation",
+    "finishPreparationConfirmTitle": "Have you finished preparing?",
+    "finishPreparationConfirmDescription": "Finish preparation to see your result.",
     "@finishPreparation": {
         "description": "Button text to finish preparing"
     },

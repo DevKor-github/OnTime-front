@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class AppSpinner extends StatefulWidget {
-  const AppSpinner({super.key});
+  const AppSpinner({
+    super.key,
+    this.assetPath = 'feedback_spinner.svg',
+    this.assetPackage = 'assets',
+  });
+
+  final String assetPath;
+  final String? assetPackage;
 
   @override
   State<AppSpinner> createState() => _AppSpinnerState();
@@ -28,8 +35,8 @@ class _AppSpinnerState extends State<AppSpinner>
     child: RotationTransition(
       turns: _rotation,
       child: SvgPicture.asset(
-        'feedback_spinner.svg',
-        package: 'assets',
+        widget.assetPath,
+        package: widget.assetPackage,
         width: 40,
         height: 40,
         excludeFromSemantics: true,

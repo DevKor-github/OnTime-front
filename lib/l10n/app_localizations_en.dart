@@ -108,6 +108,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get finishPreparation => 'Finish Preparation';
 
   @override
+  String get finishPreparationConfirmTitle => 'Have you finished preparing?';
+
+  @override
+  String get finishPreparationConfirmDescription =>
+      'Finish preparation to see your result.';
+
+  @override
   String get preparationReadyToGo => 'Ready to go';
 
   @override

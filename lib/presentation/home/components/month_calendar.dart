@@ -210,13 +210,21 @@ class _MonthCalendarState extends State<MonthCalendar> {
                         );
                       },
                       selectedBuilder: (context, day, focusedDay) {
-                        return Container(
-                          margin: const EdgeInsets.all(4.0),
-                          alignment: Alignment.center,
-                          decoration: calendarTheme.selectedDayDecoration,
-                          child: Text(
-                            day.day.toString(),
-                            style: calendarTheme.selectedDayTextStyle,
+                        return Center(
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            alignment: Alignment.center,
+                            decoration: const BoxDecoration(
+                              color: Color(0xff4f69df),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              day.day.toString(),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         );
                       },

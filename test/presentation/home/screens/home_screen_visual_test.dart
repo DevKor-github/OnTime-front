@@ -48,6 +48,7 @@ void main() {
       find.byType(MaterialApp),
       matchesGoldenFile('../../../goldens/goldens/home_default_390x844.png'),
     );
+    debugDisableShadows = true;
   });
 
   testWidgets('Home loading masks only the month content', (tester) async {
@@ -60,6 +61,7 @@ void main() {
       find.byType(MaterialApp),
       matchesGoldenFile('../../../goldens/goldens/home_loading_390x844.png'),
     );
+    debugDisableShadows = true;
   });
 
   testWidgets('Home error keeps today visible and offers retry', (
@@ -75,6 +77,7 @@ void main() {
       find.byType(MaterialApp),
       matchesGoldenFile('../../../goldens/goldens/home_error_390x844.png'),
     );
+    debugDisableShadows = true;
   });
 }
 
@@ -82,6 +85,7 @@ Future<void> _pumpHomeFixture(
   WidgetTester tester,
   MonthlySchedulesStatus status,
 ) async {
+  debugDisableShadows = false;
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(390, 844);
   tester.view.padding = FakeViewPadding(top: 44, bottom: 21);

@@ -9,7 +9,6 @@ import 'package:on_time_front/domain/use-cases/recurring_schedules_use_case.dart
 import 'package:on_time_front/presentation/recurring/recurrence_components.dart';
 import 'package:on_time_front/presentation/recurring/recurrence_labels.dart';
 import 'package:on_time_front/presentation/schedule_create/screens/schedule_edit_screen.dart';
-import 'package:on_time_front/presentation/shared/components/modal_wide_button.dart';
 
 class RecurringManagementScreen extends StatefulWidget {
   const RecurringManagementScreen({super.key, this.useCase});
@@ -506,22 +505,25 @@ class _SeriesDetailState extends State<_SeriesDetail> {
         height: MediaQuery.sizeOf(context).height * .94,
         child: RecurrenceSheet(
           title: recurrenceText(context, '반복 종료', 'End series'),
+          spacing: 12,
+          contentPadding: const EdgeInsets.fromLTRB(20, 26, 20, 16),
           footer: ScreenActions(
             action: recurrenceText(context, '반복 종료', 'End series'),
-            destructive: true,
             backLabel: recurrenceText(context, '취소', 'Cancel'),
             onBack: () => Navigator.pop(context, false),
             onAction: () => Navigator.pop(context, true),
           ),
           children: [
-            const SizedBox(height: 16),
             Text(
               recurrenceText(
                 context,
-                '${recurrenceDay(context, next.scheduleTime)}부터 이후 회차의 반복을 종료할까요?',
+                '${DateFormat('M/d').format(next.scheduleTime)}부터 이후 회차의 반복을 종료할까요?',
                 'End the series from ${recurrenceDay(context, next.scheduleTime)}?',
               ),
-              style: Theme.of(context).textTheme.titleSmall,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 23,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             Text(
               recurrenceText(
@@ -530,8 +532,11 @@ class _SeriesDetailState extends State<_SeriesDetail> {
                 'Deletes upcoming occurrences. Active preparations and history are preserved.',
               ),
             ),
-            RecurrencePanel(
+            RecurrenceNotice(
               highlighted: true,
+              asset: 'recurrence_end_confirm_vector.svg',
+              glyph: 'i',
+              glyphColor: const Color(0xff212f6f),
               child: Text(
                 recurrenceText(
                   context,
@@ -582,12 +587,74 @@ class _SeriesDetailState extends State<_SeriesDetail> {
     }
   }
 
+  Widget _detailAction(
+    String label,
+    String? asset,
+    VoidCallback? action, {
+    bool stop = false,
+  }) => Material(
+    color: stop ? const Color(0xfff6f6f6) : const Color(0xffdce3ff),
+    borderRadius: BorderRadius.circular(8),
+    child: InkWell(
+      onTap: action,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        child: Row(
+          children: [
+            if (stop)
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: const Color(0xff545454),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              )
+            else
+              SvgPicture.asset(asset!, package: 'assets'),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.6,
+                  fontWeight: FontWeight.w700,
+                  color: stop
+                      ? const Color(0xff545454)
+                      : const Color(0xff4f69df),
+                ),
+              ),
+            ),
+            if (_busy && stop)
+              const SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              SvgPicture.asset(
+                stop
+                    ? 'recurrence_detail_frame4.svg'
+                    : 'recurrence_detail_frame2.svg',
+                package: 'assets',
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final segment = widget.summary.segment;
+    final locale = Localizations.localeOf(context).toString();
+    final next = widget.summary.next;
     return RecurrenceSheet(
       title: segment.schedule.scheduleName,
-      spacing: 10,
+      spacing: 0,
+      contentPadding: const EdgeInsets.fromLTRB(16, 15, 17, 16),
       footer: ScreenActions(
         action: recurrenceText(context, '뒤로', 'Back'),
         onAction: () => Navigator.of(context).pop(),
@@ -599,82 +666,149 @@ class _SeriesDetailState extends State<_SeriesDetail> {
             children: [
               Text(
                 recurrenceText(context, '반복 규칙', 'Repeat'),
-                style: Theme.of(context).textTheme.bodySmall,
+                style: const TextStyle(fontSize: 14, color: Color(0xff545454)),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
-                recurrenceLabel(context, segment.rule),
-                style: Theme.of(context).textTheme.titleSmall,
+                recurrencePatternLabel(
+                  context,
+                  segment.rule,
+                  includeTime: true,
+                ),
+                style: const TextStyle(
+                  fontSize: 16,
+                  height: 1.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              Text(
-                recurrenceEndLabel(context, segment.rule),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              if (widget.summary.next != null) ...[
+              if (segment.rule.count != null || segment.rule.until != null)
+                Text(
+                  recurrenceEndLabel(context, segment.rule),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xff545454),
+                  ),
+                ),
+              if (next != null) ...[
                 const SizedBox(height: 16),
                 Text(
                   recurrenceText(context, '다음 일정', 'Next occurrence'),
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xff545454),
+                  ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  recurrenceDate(context, widget.summary.next!.scheduleTime),
-                  style: Theme.of(context).textTheme.titleSmall,
+                  DateFormat('M/d (E) H:mm', locale).format(next.scheduleTime),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.5,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ],
           ),
         ),
+        const SizedBox(height: 18),
         Text(
           recurrenceText(context, '전용 준비', 'Preparation for this series'),
-          style: Theme.of(context).textTheme.titleSmall,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
-        for (final step in segment.preparation.ordered.preparationStepList)
-          RecurrencePanel(
-            child: Row(
-              children: [
-                Expanded(child: Text(step.preparationName)),
-                Text(
-                  '${step.preparationTime.inMinutes}${recurrenceText(context, '분', ' min')}',
+        const SizedBox(height: 6),
+        Text(
+          recurrenceText(
+            context,
+            '이 반복 일정에 필요한 준비 과정이에요.',
+            'The preparation steps for this series.',
+          ),
+          style: const TextStyle(fontSize: 12, color: Color(0xff545454)),
+        ),
+        const SizedBox(height: 14),
+        for (final step in segment.preparation.ordered.preparationStepList) ...[
+          Material(
+            color: const Color(0xfff6f6f6),
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              onTap: next == null || _busy ? null : _edit,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
                 ),
-              ],
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        step.preparationName,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 4,
+                      ),
+                      color: Colors.white,
+                      child: Text(
+                        '${step.preparationTime.inMinutes}${recurrenceText(context, ' 분', ' min')}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    SvgPicture.asset(
+                      'recurrence_detail_frame.svg',
+                      package: 'assets',
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        const Divider(height: 24),
+          const SizedBox(height: 7),
+        ],
+        const SizedBox(height: 14),
+        const Divider(height: 1),
+        const SizedBox(height: 12),
         Text(
           recurrenceText(context, '독립 관리 안내', 'Manage independently'),
-          style: Theme.of(context).textTheme.titleSmall,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
+        const SizedBox(height: 4),
         Text(
           recurrenceText(
             context,
             '반복 규칙과 준비 과정은 각각 독립적으로 관리할 수 있어요. 필요에 따라 따로 수정할 수 있습니다.',
             'You can edit the recurrence rule and preparation independently.',
           ),
+          style: const TextStyle(
+            fontSize: 12,
+            height: 1.6,
+            color: Color(0xff545454),
+          ),
         ),
-        if (widget.summary.next != null) ...[
-          ModalWideButton(
-            text: recurrenceText(context, '반복 규칙 수정', 'Edit recurrence'),
-            variant: ModalWideButtonVariant.subtle,
-            layout: ModalWideButtonLayout.full,
-            height: 48,
-            onPressed: _busy ? null : _edit,
+        if (next != null) ...[
+          const SizedBox(height: 14),
+          _detailAction(
+            recurrenceText(context, '반복 규칙 수정', 'Edit recurrence'),
+            'recurrence_detail_frame1.svg',
+            _busy ? null : _edit,
           ),
-          ModalWideButton(
-            text: recurrenceText(context, '준비과정 수정', 'Edit preparation'),
-            variant: ModalWideButtonVariant.subtle,
-            layout: ModalWideButtonLayout.full,
-            height: 48,
-            onPressed: _busy ? null : _edit,
+          const SizedBox(height: 8),
+          _detailAction(
+            recurrenceText(context, '준비과정 수정', 'Edit preparation'),
+            'recurrence_detail_frame3.svg',
+            _busy ? null : _edit,
           ),
-          const Divider(),
-          ModalWideButton(
-            text: recurrenceText(context, '반복 종료', 'End series'),
-            variant: ModalWideButtonVariant.neutral,
-            layout: ModalWideButtonLayout.full,
-            height: 48,
-            onPressed: _busy ? null : _end,
-            isLoading: _busy,
+          const SizedBox(height: 18),
+          const Divider(height: 1),
+          const SizedBox(height: 15),
+          _detailAction(
+            recurrenceText(context, '반복 종료', 'End series'),
+            null,
+            _busy ? null : _end,
+            stop: true,
           ),
         ],
         if (_error != null)

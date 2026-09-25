@@ -1315,6 +1315,15 @@ void main() {
         await pumpUntilFound(tester, find.byType(ElevatedButton));
 
         await tapAndPump(tester, find.byType(ElevatedButton).first);
+        await pumpUntilFound(tester, find.byType(TwoActionDialog));
+        expect(finishUseCase.calls, isEmpty);
+        await tapAndPump(
+          tester,
+          find.descendant(
+            of: find.byType(TwoActionDialog),
+            matching: find.text('Finish Preparation'),
+          ),
+        );
         await pumpUntilFound(tester, find.textContaining('EARLYLATE:false'));
 
         expect(finishUseCase.calls.single.$2, 0);
@@ -1392,6 +1401,103 @@ void main() {
       timeout: const Timeout(Duration(seconds: 15)),
     );
 
+    for (final completesWhileOpen in [true, false]) {
+      testWidgets(
+        completesWhileOpen
+            ? 'last timer tick does not stack an automatic prompt over manual finish'
+            : 'manual continue before the last tick preserves the automatic prompt once',
+        (tester) async {
+          await setLargeTestViewport(tester);
+          now = DateTime(2026, 3, 20, 9, 29, 55);
+          final schedule = buildSchedule(
+            id: 'manual-finish-race',
+            scheduleTime: DateTime(2026, 3, 20, 10),
+            steps: const [
+              PreparationStepWithTimeEntity(
+                id: 'last-step',
+                preparationName: 'Last step',
+                preparationTime: Duration(seconds: 5),
+                nextPreparationId: null,
+                elapsedTime: Duration.zero,
+                isDone: false,
+              ),
+            ],
+          );
+          final router = GoRouter(
+            initialLocation: '/alarmScreen',
+            routes: [
+              GoRoute(path: '/home', builder: (_, __) => const Text('HOME')),
+              GoRoute(
+                path: '/alarmScreen',
+                builder: (_, __) => AlarmScreen(nowProvider: () => now),
+              ),
+              GoRoute(
+                path: '/earlyLate',
+                builder: (_, __) => const Text('EARLYLATE'),
+              ),
+            ],
+          );
+          addTearDown(router.dispose);
+          final alarmBloc = ScheduleBloc.test(
+            StubGetNearestUpcomingScheduleUseCase(() => Stream.value(schedule)),
+            navigationService,
+            createSessionUseCase(
+              saveUseCase: NoopSaveTimedPreparationUseCase(),
+              getSnapshotUseCase: StubGetTimedPreparationSnapshotUseCase({}),
+              clearTimedUseCase: NoopClearTimedPreparationUseCase(),
+              startUseCase: startUseCase,
+              finishUseCase: finishUseCase,
+              earlyBundle: createEarlyStartUseCaseBundle(),
+            ),
+            nowProvider: () => now,
+          );
+          addTearDown(alarmBloc.close);
+          await pumpWithRouter(tester, bloc: alarmBloc, router: router);
+          await pumpUntilFound(tester, find.text('Last step'));
+          expect(alarmBloc.state.schedule!.preparation.isAllStepsDone, isFalse);
+          await tapAndPump(tester, find.text('Finish Preparation'));
+          expect(find.byType(TwoActionDialog), findsOneWidget);
+
+          if (!completesWhileOpen) {
+            await tapAndPump(tester, find.byType(ModalWideButton).first);
+            await tester.pump(const Duration(milliseconds: 250));
+            expect(find.byType(TwoActionDialog), findsNothing);
+          }
+
+          // Advance the real ScheduleBloc timer while preserving the live route.
+          now = now.add(const Duration(seconds: 6));
+          await tester.pump(const Duration(seconds: 6));
+          await tester.pump(const Duration(milliseconds: 400));
+          expect(alarmBloc.state.schedule!.preparation.isAllStepsDone, isTrue);
+          expect(
+            find.byType(TwoActionDialog, skipOffstage: false),
+            findsOneWidget,
+          );
+          expect(finishUseCase.calls, isEmpty);
+
+          await tapAndPump(tester, find.byType(ModalWideButton).first);
+          await tester.pump(const Duration(milliseconds: 250));
+          expect(
+            find.byType(TwoActionDialog, skipOffstage: false),
+            findsNothing,
+          );
+          now = now.add(const Duration(seconds: 2));
+          await tester.pump(const Duration(seconds: 2));
+          expect(find.byType(TwoActionDialog), findsNothing);
+          expect(find.text('지각이에요'), findsOneWidget);
+          expect(finishUseCase.calls, isEmpty);
+
+          await tapAndPump(tester, find.text('Finish Preparation'));
+          await tapAndPump(tester, find.byType(ModalWideButton).last);
+          await pumpUntilRouteText(tester, 'EARLYLATE');
+          expect(finishUseCase.calls, hasLength(1));
+          expect(find.text('EARLYLATE'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        },
+        timeout: const Timeout(Duration(seconds: 15)),
+      );
+    }
+
     testWidgets(
       'completion dialog continue shows live leave countdown for ongoing flow',
       (tester) async {
@@ -1461,7 +1567,7 @@ void main() {
 
         expect(
           continuingTheme.colorScheme.primary.toARGB32(),
-          const Color(0xFF5C79FB).toARGB32(),
+          const Color(0xFF4F69DF).toARGB32(),
         );
         expect(
           continuingTheme.colorScheme.primaryContainer.toARGB32(),
@@ -1477,16 +1583,16 @@ void main() {
         );
         expect(find.text('EARLYLATE'), findsNothing);
         expect(find.text('Ready to go'), findsOneWidget);
-        expect(find.text('5분 뒤에 나가야 해요'), findsOneWidget);
-        expect(find.text('05 : 00'), findsOneWidget);
+        expect(find.text('5분 뒤에 나가야 돼요'), findsOneWidget);
+        expect(find.text('5:00'), findsOneWidget);
         expect(finishUseCase.calls, isEmpty);
 
         now = now.add(const Duration(minutes: 1));
         await tester.pump(const Duration(seconds: 1));
 
-        expect(find.text('4분 뒤에 나가야 해요'), findsOneWidget);
+        expect(find.text('4분 뒤에 나가야 돼요'), findsOneWidget);
         expect(find.text('Ready to go'), findsOneWidget);
-        expect(find.text('04 : 00'), findsOneWidget);
+        expect(find.text('4:00'), findsOneWidget);
 
         alarmBloc.add(const ScheduleFinished(0));
         await tester.pump();
@@ -1556,14 +1662,14 @@ void main() {
 
         await tapAndPump(tester, find.byType(ModalWideButton).first);
 
-        expect(find.text('1시간 뒤에 나가야 해요'), findsOneWidget);
-        expect(find.text('01 : 00 : 00'), findsOneWidget);
+        expect(find.text('1시간 뒤에 나가야 돼요'), findsOneWidget);
+        expect(find.text('1:00:00'), findsOneWidget);
 
         now = now.add(const Duration(minutes: 5));
         await tester.pump(const Duration(seconds: 1));
 
-        expect(find.text('55분 뒤에 나가야 해요'), findsOneWidget);
-        expect(find.text('55 : 00'), findsOneWidget);
+        expect(find.text('55분 뒤에 나가야 돼요'), findsOneWidget);
+        expect(find.text('55:00'), findsOneWidget);
 
         alarmBloc.add(const ScheduleFinished(0));
         await tester.pump();
@@ -1628,8 +1734,8 @@ void main() {
 
         await tapAndPump(tester, find.byType(ModalWideButton).first);
 
-        expect(find.text('1분 뒤에 나가야 해요'), findsOneWidget);
-        expect(find.text('01 : 00'), findsOneWidget);
+        expect(find.text('1분 뒤에 나가야 돼요'), findsOneWidget);
+        expect(find.text('1:00'), findsOneWidget);
 
         now = now.add(const Duration(minutes: 2));
         await tester.pump(const Duration(seconds: 1));
@@ -1646,7 +1752,7 @@ void main() {
 
         expect(
           lateTheme.colorScheme.primary.toARGB32(),
-          const Color(0xFFFF6953).toARGB32(),
+          const Color(0xFFBF2E22).toARGB32(),
         );
         expect(
           lateTheme.colorScheme.primaryContainer.toARGB32(),
@@ -1654,11 +1760,11 @@ void main() {
         );
         expect(
           lateTheme.colorScheme.onPrimaryContainer.toARGB32(),
-          const Color(0xFFFF6953).toARGB32(),
+          const Color(0xFFBF2E22).toARGB32(),
         );
         expect(
           lateScaffold.backgroundColor!.toARGB32(),
-          const Color(0xFFFF6953).toARGB32(),
+          const Color(0xFFFFEAE7).toARGB32(),
         );
         expect(
           tester
@@ -1671,19 +1777,19 @@ void main() {
               .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
               .backgroundColor
               .toARGB32(),
-          const Color(0xFFFFEAE7).toARGB32(),
+          const Color(0xFFFECBC0).toARGB32(),
         );
         expect(
           tester
               .widget<AlarmGraphAnimator>(find.byType(AlarmGraphAnimator))
               .progressColor
               .toARGB32(),
-          const Color(0xFFFFEAE7).toARGB32(),
+          const Color(0xFFBF2E22).toARGB32(),
         );
-        expect(find.text('준비시간을 1분 초과했어요'), findsOneWidget);
+        expect(find.text('준비 시간을 1분 초과했어요'), findsOneWidget);
         expect(find.text('지각이에요'), findsOneWidget);
         expect(find.text('Ready to go'), findsNothing);
-        expect(find.text('01 : 00'), findsOneWidget);
+        expect(find.text('1:00'), findsOneWidget);
         expect(find.text('Prep'), findsOneWidget);
 
         alarmBloc.add(const ScheduleFinished(0));

@@ -208,6 +208,7 @@ void main() {
       size: const Size(390, 852),
       initialDate: DateTime(2024, 12, 21),
       referenceDate: DateTime(2024, 12, 1),
+      schedules: _calendarMarkerSchedules(),
       locale: const Locale('ko'),
       visual: true,
     );
@@ -217,7 +218,7 @@ void main() {
     expect(find.text('약속 추가하기'), findsOneWidget);
     expect(
       tester.getRect(find.byKey(const Key('calendar_card'))),
-      const Rect.fromLTWH(18, 111, 354, 390),
+      const Rect.fromLTWH(18, 110, 354, 390),
     );
     expect(
       tester.getSize(find.widgetWithText(ElevatedButton, '약속 추가하기')).height,
@@ -228,6 +229,88 @@ void main() {
       matchesGoldenFile('../../../goldens/goldens/calendar_empty_390x852.png'),
     );
   });
+
+  for (final variant in [
+    'list',
+    'expanded',
+    'swipe_actions',
+    'expanded_actions',
+    'delete_confirm',
+  ]) {
+    testWidgets('calendar $variant matches source card geometry and actions', (
+      tester,
+    ) async {
+      final deletion = _StubDeleteScheduleUseCase();
+      await pumpCalendarScreen(
+        tester,
+        size: const Size(390, 852),
+        initialDate: DateTime(2024, 12, 21),
+        referenceDate: DateTime(2024, 12, 1),
+        schedules: [
+          ..._calendarMarkerSchedules(),
+          for (var index = 0; index < 2; index++)
+            ScheduleEntity(
+              id: 'figma-$index',
+              place: const PlaceEntity(id: 'place', placeName: '약속 장소'),
+              scheduleName: '약속 이름',
+              scheduleTime: DateTime(2024, 12, 21, 18 + index),
+              moveTime: const Duration(minutes: 80),
+              isChanged: false,
+              isStarted: false,
+              scheduleSpareTime: const Duration(minutes: 10),
+              scheduleNote: '',
+            ),
+        ],
+        deleteScheduleUseCase: deletion,
+        locale: const Locale('ko'),
+        visual: true,
+      );
+      final expanded =
+          variant == 'expanded' ||
+          variant == 'expanded_actions' ||
+          variant == 'delete_confirm';
+      if (expanded) {
+        await tester.tap(find.text('약속 이름').first);
+        await tester.pumpAndSettle();
+      }
+      expect(
+        tester.getSize(find.byKey(const ValueKey('schedule_card_figma-0'))),
+        Size(354, expanded ? 192 : 82),
+      );
+      if (variant.contains('actions') || variant == 'delete_confirm') {
+        await tester.drag(
+          find.byType(SwipeActionCell).first,
+          const Offset(-210, 0),
+        );
+        await tester.pumpAndSettle();
+      }
+      if (variant == 'delete_confirm') {
+        final deleteAction = find.byWidgetPredicate(
+          (widget) =>
+              widget is Container &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).color ==
+                  const Color(0xffbf2e22),
+        );
+        await tester.tap(deleteAction.first);
+        await tester.pumpAndSettle();
+        expect(deletion.deletedSchedules, isEmpty);
+      }
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile(
+          '../../../goldens/goldens/calendar_${variant}_390x852.png',
+        ),
+      );
+      if (variant == 'delete_confirm') {
+        await tester.tap(find.text('취소'));
+        await tester.pumpAndSettle();
+        expect(deletion.deletedSchedules, isEmpty);
+        expect(find.text('약속 이름'), findsNWidgets(2));
+      }
+    });
+  }
 
   testWidgets('compact future empty state fits with add button', (
     tester,
@@ -425,7 +508,7 @@ void main() {
     expect(find.byKey(const Key('calendar_month_retry')), findsOneWidget);
     expect(
       tester.getRect(find.byKey(const Key('calendar_card'))),
-      const Rect.fromLTWH(18, 111, 354, 390),
+      const Rect.fromLTWH(18, 110, 354, 390),
     );
     expect(tester.getTopLeft(find.text('오류')).dy, inInclusiveRange(250, 265));
     expect(
@@ -468,7 +551,7 @@ void main() {
     expect(find.text('약속 추가하기'), findsNothing);
     expect(
       tester.getRect(find.byKey(const Key('calendar_card'))),
-      const Rect.fromLTWH(18, 111, 354, 390),
+      const Rect.fromLTWH(18, 110, 354, 390),
     );
     await tester.pump(const Duration(milliseconds: 250));
     await expectLater(
@@ -521,7 +604,7 @@ void main() {
       if (widget is! Container) return false;
       final decoration = widget.decoration;
       return decoration is BoxDecoration &&
-          decoration.color == themeData.colorScheme.error;
+          decoration.color == const Color(0xffbf2e22);
     });
     expect(deleteAction, findsOneWidget);
 
@@ -662,3 +745,13 @@ ScheduleEntity _schedule({
     scheduleNote: '',
   );
 }
+
+List<ScheduleEntity> _calendarMarkerSchedules() => [
+  for (final entry in {4: 3, 8: 2, 14: 1, 20: 3}.entries)
+    for (var index = 0; index < entry.value; index++)
+      _schedule(
+        id: 'marker-${entry.key}-$index',
+        name: '달력 일정',
+        date: DateTime(2024, 12, entry.key),
+      ),
+];

@@ -11,13 +11,17 @@ class ReorderableTile extends StatelessWidget {
     required this.index,
   });
 
-  final dragIndicatorSvg = SvgPicture.asset(
-    'drag_indicator.svg',
-    package: 'assets',
-    semanticsLabel: 'drag indicator',
-    height: 14,
-    width: 14,
-    fit: BoxFit.contain,
+  final dragIndicatorSvg = SizedBox(
+    height: 24,
+    width: 24,
+    child: Center(
+      child: SvgPicture.asset(
+        'assets/design/onboarding_drag.svg',
+        semanticsLabel: 'drag indicator',
+        height: 16,
+        width: 18,
+      ),
+    ),
   );
   final PreparationStepOrderState preparationStepOrderState;
   final int index;
@@ -28,8 +32,10 @@ class ReorderableTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Tile(
       style: TileStyle(
-        backgroundColor: Color(0xFFE6E9F9),
-        padding: EdgeInsets.all(18.0) + EdgeInsets.only(right: 15),
+        backgroundColor: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(9999),
+        minimumSize: const Size(0, 62),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       ),
       leading: Container(
         height: 22,
@@ -43,8 +49,8 @@ class ReorderableTile extends StatelessWidget {
             (index + 1).toString(),
             style: TextStyle(
               color: colorScheme.surface,
-              fontSize: 10.48,
-              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
               height: 1.4,
             ),
           ),
@@ -54,12 +60,12 @@ class ReorderableTile extends StatelessWidget {
         index: index,
         child: dragIndicatorSvg,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: Text(
-          preparationStepOrderState.preparationName,
-          style: textTheme.bodyLarge?.copyWith(
-            color: colorScheme.onPrimaryContainer,
+      child: Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            preparationStepOrderState.preparationName,
+            style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
           ),
         ),
       ),

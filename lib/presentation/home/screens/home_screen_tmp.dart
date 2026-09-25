@@ -81,7 +81,7 @@ class HomeScreenContent extends StatelessWidget {
             safeAreaTop: MediaQuery.paddingOf(context).top,
           );
 
-          return Column(
+          final content = Column(
             children: [
               SizedBox(
                 height: metrics.topSectionHeight,
@@ -110,17 +110,7 @@ class HomeScreenContent extends StatelessWidget {
                           ],
                         ),
                       )
-                    : Stack(
-                        children: [
-                          const _HomeHero(),
-                          Positioned(
-                            top: 177,
-                            left: 0,
-                            right: 0,
-                            child: _TodaysScheduleOverlay(metrics: metrics),
-                          ),
-                        ],
-                      ),
+                    : Stack(children: [const _HomeHero()]),
               ),
               Expanded(
                 child: Container(
@@ -135,6 +125,18 @@ class HomeScreenContent extends StatelessWidget {
                     referenceDate: referenceDate,
                   ),
                 ),
+              ),
+            ],
+          );
+          if (metrics.compact) return content;
+          return Stack(
+            children: [
+              content,
+              Positioned(
+                top: 177,
+                left: 0,
+                right: 0,
+                child: _TodaysScheduleOverlay(metrics: metrics),
               ),
             ],
           );

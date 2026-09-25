@@ -59,13 +59,12 @@ class _PreparationFormListFieldState extends State<PreparationFormListField> {
   bool _hasRequestedInitialFocus = false;
   bool _isTimePickerOpen = false;
   final dragIndicatorSvg = SvgPicture.asset(
-    'drag_indicator.svg',
+    'preparation_edit_drag.svg',
     package: 'assets',
     semanticsLabel: 'drag indicator',
-    height: 18,
+    height: 16,
     width: 18,
     fit: BoxFit.contain,
-    colorFilter: ColorFilter.mode(AppColors.grey.shade400, BlendMode.srcIn),
   );
 
   @override

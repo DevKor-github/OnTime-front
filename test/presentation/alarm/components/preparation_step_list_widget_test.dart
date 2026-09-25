@@ -10,6 +10,7 @@ void main() {
     tester,
   ) async {
     var skipCount = 0;
+    final semantics = tester.ensureSemantics();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -29,18 +30,20 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     expect(find.text('Wake up'), findsOneWidget);
     expect(find.text('Shower'), findsOneWidget);
     expect(find.text('Leave home'), findsOneWidget);
-    expect(find.byIcon(Icons.check), findsOneWidget);
-    expect(find.text('1분 30초'), findsOneWidget);
+    expect(find.bySemanticsLabel('완료'), findsOneWidget);
+    expect(find.text('8분 30초'), findsOneWidget);
     expect(find.text('이 단계 건너 뛰기'), findsOneWidget);
 
     await tester.tap(find.text('이 단계 건너 뛰기'));
     await tester.pump();
 
     expect(skipCount, 1);
+    semantics.dispose();
   });
 
   testWidgets('scrolls toward the previous step when current step advances', (
